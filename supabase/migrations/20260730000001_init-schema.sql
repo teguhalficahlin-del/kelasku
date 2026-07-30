@@ -10,7 +10,10 @@ BEGIN;
 -- ENUM
 -- ---------------------------------------------------------------------------
 
-CREATE TYPE IF NOT EXISTS member_role AS ENUM ('SISWA', 'ORTU');
+DO $$ BEGIN
+  CREATE TYPE member_role AS ENUM ('SISWA', 'ORTU');
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 -- ---------------------------------------------------------------------------
 -- TABEL
@@ -252,19 +255,6 @@ CREATE POLICY pol_profiles_self ON profiles
   FOR ALL TO authenticated
   USING (user_id = auth.uid())
   WITH CHECK (user_id = auth.uid());
-
--- Guru, siswa, dan ortu bisa baca profil member di classroom yang sama
--- (untuk menampilkan nama di UI)
-CREATE POLICY pol_profiles_classroom_peer ON profiles
-  FOR SELECT TO authenticated
-  USING (
-    EXISTS (
-      SELECT 1 FROM classroom_members cm1
-      JOIN classroom_members cm2 ON cm1.classroom_id = cm2.classroom_id
-      WHERE cm1.profile_id = fn_current_profile_id()
-        AND cm2.profile_id = profiles.id
-    )
-  );
 
 -- ---- classrooms ----
 -- Guru: CRUD classroom miliknya
