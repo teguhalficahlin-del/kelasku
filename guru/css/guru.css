@@ -120,3 +120,234 @@ button[type="submit"]:disabled {
 .link-daftar a:hover {
   text-decoration: underline;
 }
+
+/* ── Dashboard ── */
+
+body.dashboard {
+  display: block;
+  padding: 0;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #ffffff;
+  padding: 0.875rem 1.5rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.header-brand {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1a56db;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+#guru-name {
+  font-size: 0.9rem;
+  color: #374151;
+}
+
+#btn-logout {
+  font-size: 0.875rem;
+  color: #6b7280;
+  background: none;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 0.375rem 0.75rem;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+#btn-logout:hover {
+  background: #f3f4f6;
+}
+
+main {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.toolbar h2 {
+  margin-bottom: 0;
+}
+
+#btn-buat-classroom {
+  background: #1a56db;
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+#btn-buat-classroom:hover {
+  background: #1648b8;
+}
+
+.classroom-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 0.75rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.25rem;
+}
+
+.card-name {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.card-code {
+  font-size: 0.8rem;
+  font-family: monospace;
+  background: #eff6ff;
+  color: #1e40af;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  letter-spacing: 0.05em;
+}
+
+.card-subject {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-bottom: 0.5rem;
+}
+
+.card-count {
+  font-size: 0.8rem;
+  color: #9ca3af;
+  margin-bottom: 0.75rem;
+}
+
+.btn-kelola {
+  font-size: 0.875rem;
+  color: #1a56db;
+  text-decoration: none;
+}
+
+.btn-kelola:hover {
+  text-decoration: underline;
+}
+
+.empty-state {
+  text-align: center;
+  color: #9ca3af;
+  font-size: 0.9rem;
+  padding: 2rem 0;
+}
+
+/* ── Modal ── */
+
+#modal-classroom {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.modal-box {
+  position: relative;
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 440px;
+  margin: 0 1rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.modal-box h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.modal-box input[type="text"] {
+  display: block;
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  font-size: 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #f9fafb;
+  color: #1a1a2e;
+  margin-bottom: 1rem;
+  transition: border-color 0.15s;
+}
+
+.modal-box input[type="text"]:focus {
+  outline: none;
+  border-color: #1a56db;
+  background: #fff;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
+
+#btn-batal {
+  background: #f3f4f6;
+  color: #374151;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+#btn-batal:hover {
+  background: #e5e7eb;
+}
+
+.modal-box button[type="submit"] {
+  width: auto;
+  padding: 0.5rem 1.25rem;
+  margin-top: 0;
+  font-size: 0.9rem;
+}
+
+.opsional {
+  font-weight: 400;
+  color: #9ca3af;
+}

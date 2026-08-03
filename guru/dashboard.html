@@ -6,8 +6,51 @@
   <title>SIP Mandiri — Dashboard Guru</title>
   <link rel="stylesheet" href="css/guru.css">
 </head>
-<body>
-  <h1>SIP Mandiri — Dashboard Guru</h1>
+<body class="dashboard">
+
+  <header>
+    <span class="header-brand">SIP Mandiri</span>
+    <div class="header-right">
+      <span id="guru-name"></span>
+      <button id="btn-logout">Keluar</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="toolbar">
+      <h2>Classroom Saya</h2>
+      <button id="btn-buat-classroom">+ Buat Classroom</button>
+    </div>
+
+    <div id="classroom-list"></div>
+  </main>
+
+  <!-- Modal buat classroom -->
+  <div id="modal-classroom" style="display:none;">
+    <div class="modal-backdrop" id="modal-backdrop"></div>
+    <div class="modal-box">
+      <h3>Buat Classroom Baru</h3>
+      <div id="modal-error" class="error-msg" style="display:none;"></div>
+      <form id="form-classroom">
+        <label for="inp-name">Nama Kelas</label>
+        <input type="text" id="inp-name" required placeholder="Contoh: X DPB">
+
+        <label for="inp-subject">Mata Pelajaran</label>
+        <input type="text" id="inp-subject" required placeholder="Contoh: Bahasa Inggris">
+
+        <label for="inp-desc">Deskripsi <span class="opsional">(opsional)</span></label>
+        <input type="text" id="inp-desc" placeholder="Keterangan singkat">
+
+        <div class="modal-actions">
+          <button type="button" id="btn-batal">Batal</button>
+          <button type="submit" id="btn-simpan">Simpan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../shared/js/supabase.js"></script>
   <script src="js/api.js"></script>
   <script src="js/guru.js"></script>
 </body>
