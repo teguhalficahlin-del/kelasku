@@ -1,0 +1,145 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: system-ui, sans-serif;
+  background: #f4f6f9;
+  color: #1a1a2e;
+  min-height: 100vh;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 2rem 1rem;
+}
+
+.container {
+  width: 100%;
+  max-width: 480px;
+}
+
+h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1a56db;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+section {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+  padding: 1.75rem;
+}
+
+h2 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 1.25rem;
+  color: #1a1a2e;
+}
+
+label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 0.35rem;
+  color: #374151;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+  display: block;
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  font-size: 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #f9fafb;
+  color: #1a1a2e;
+  margin-bottom: 1rem;
+  transition: border-color 0.15s;
+}
+
+input:focus {
+  outline: none;
+  border-color: #1a56db;
+  background: #fff;
+}
+
+button[type="button"],
+button[type="submit"] {
+  display: block;
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #fff;
+  background: #1a56db;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 0.25rem;
+  transition: background 0.15s;
+}
+
+button[type="button"]:hover:not(:disabled),
+button[type="submit"]:hover:not(:disabled) {
+  background: #1648b8;
+}
+
+button[type="button"]:disabled,
+button[type="submit"]:disabled {
+  background: #93c5fd;
+  cursor: not-allowed;
+}
+
+.error-msg {
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  color: #b91c1c;
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+  margin-top: 0.75rem;
+}
+
+.konfirmasi {
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+  color: #166534;
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.cl-label {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-bottom: 1rem;
+}
+
+#step-2-msg {
+  font-size: 0.9rem;
+  color: #374151;
+  margin-top: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 6px;
+}
+
+#step-2-msg a {
+  color: #1a56db;
+  text-decoration: none;
+}
+
+#step-2-msg a:hover {
+  text-decoration: underline;
+}
