@@ -57,7 +57,7 @@
           '<td>' + genBtn + '</td>' +
           '<td>' +
             '<button class="btn-qr" data-idx="' + i + '">QR</button> ' +
-            '<button class="btn-link" data-siswa="' + escHtml(links.siswa) + '" data-ortu="' + escHtml(links.ortu) + '">Link</button>' +
+            '<button class="btn-link" data-idx="' + i + '" data-siswa="' + escHtml(links.siswa) + '" data-ortu="' + escHtml(links.ortu) + '">Link</button>' +
           '</td>' +
         '</tr>';
     });
@@ -109,9 +109,10 @@
     });
 
     listEl.querySelectorAll('.btn-link').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        const msg = 'Link Siswa:\n' + this.dataset.siswa + '\n\nLink Ortu:\n' + this.dataset.ortu;
-        prompt('Salin link:', msg);
+      btn.addEventListener('click', async function () {
+        const row   = rows[parseInt(this.dataset.idx, 10)];
+        const links = { siswa: this.dataset.siswa, ortu: this.dataset.ortu };
+        await shareLinks(row, links);
       });
     });
   }
@@ -365,6 +366,80 @@
       siswa: base + '/siswa/?kelas=' + encodeURIComponent(code) + '&nis=' + encodeURIComponent(siswa.nis),
       ortu:  base + '/ortu/?kelas='  + encodeURIComponent(code) + '&nis=' + encodeURIComponent(siswa.nis),
     };
+  }
+
+  // -------------------------------------------------------------------------
+  // shareLinks — Web Share API → Clipboard → fallback textarea readonly
+  // -------------------------------------------------------------------------
+
+  async function shareLinks(row, links) {
+    const msg = 'Link Siswa:\n' + links.siswa + '\n\nLink Ortu:\n' + links.ortu;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: 'Login SIP Mandiri — ' + row.full_name, text: msg });
+      } catch (err) {
+        // AbortError = user cancel native sheet — tidak perlu fallback
+        if (err.name !== 'AbortError') { showShareFallback(msg); }
+      }
+    } else if (navigator.clipboard) {
+      try {
+        await navigator.clipboard.writeText(msg);
+        showShareNotif('Link disalin ke clipboard ✓');
+      } catch (_) {
+        showShareFallback(msg);
+      }
+    } else {
+      showShareFallback(msg);
+    }
+  }
+
+  function showShareNotif(text) {
+    const notif = document.createElement('div');
+    notif.className = 'share-notif';
+    notif.textContent = text;
+    document.body.appendChild(notif);
+    setTimeout(function () { if (notif.parentNode) { notif.remove(); } }, 2500);
+  }
+
+  function showShareFallback(text) {
+    const overlay = document.createElement('div');
+    overlay.className = 'share-overlay';
+
+    const box = document.createElement('div');
+    box.className = 'share-box';
+
+    const label = document.createElement('p');
+    label.textContent = 'Salin link di bawah:';
+
+    const ta = document.createElement('textarea');
+    ta.value    = text;
+    ta.readOnly = true;
+    ta.rows     = 5;
+
+    const closeBtn = document.createElement('button');
+    closeBtn.type        = 'button';
+    closeBtn.textContent = 'Tutup';
+    closeBtn.addEventListener('click', function () { overlay.remove(); });
+
+    // Tutup saat klik di luar box
+    overlay.addEventListener('click', function (e) { if (e.target === overlay) { overlay.remove(); } });
+
+    // Tutup dengan Escape
+    function onEsc(e) {
+      if (e.key === 'Escape') { overlay.remove(); document.removeEventListener('keydown', onEsc); }
+    }
+    document.addEventListener('keydown', onEsc);
+
+    box.appendChild(label);
+    box.appendChild(ta);
+    box.appendChild(closeBtn);
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
+
+    // Auto-select agar mudah di-copy manual
+    ta.focus();
+    ta.select();
   }
 
   // -------------------------------------------------------------------------
