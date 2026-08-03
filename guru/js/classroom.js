@@ -184,19 +184,46 @@
       reader.readAsText(file);
     });
 
-    const rows = text
-      .split(/\r?\n/)
-      .map(function (line) { return line.split(',').map(function (v) { return v.trim(); }); })
-      .filter(function (cols) { return cols[0] && cols[1]; })
-      .map(function (cols) {
-        return {
-          classroom_id: currentClassroomId,
-          teacher_id:   currentProfile.id,
-          full_name:    cols[0],
-          nis:          cols[1],
-          nama_ortu:    cols[2] || null,
-        };
-      });
+    const rows = (function () {
+      // Parser CSV minimal — handle quoted fields (misal: "Nama, S.Pd") dan skip header
+      function parseLine(line) {
+        var fields = [], field = '', inQ = false;
+        for (var i = 0; i < line.length; i++) {
+          var ch = line[i];
+          if (inQ) {
+            if (ch === '"') { if (line[i + 1] === '"') { field += '"'; i++; } else { inQ = false; } }
+            else { field += ch; }
+          } else {
+            if (ch === '"') { inQ = true; }
+            else if (ch === ',') { fields.push(field.trim()); field = ''; }
+            else { field += ch; }
+          }
+        }
+        fields.push(field.trim());
+        return fields;
+      }
+
+      var allCols = text.split(/\r?\n/)
+        .filter(function (l) { return l.trim(); })
+        .map(parseLine);
+
+      // Skip baris pertama jika NIS-nya non-numerik (kemungkinan baris header)
+      var data = (allCols.length > 0 && !/^\d+$/.test(allCols[0][1] || ''))
+        ? allCols.slice(1)
+        : allCols;
+
+      return data
+        .filter(function (cols) { return cols[0] && cols[1]; })
+        .map(function (cols) {
+          return {
+            classroom_id: currentClassroomId,
+            teacher_id:   currentProfile.id,
+            full_name:    cols[0],
+            nis:          cols[1],
+            nama_ortu:    cols[2] || null,
+          };
+        });
+    }());
 
     if (rows.length === 0) {
       resultEl.textContent   = 'Tidak ada baris valid di file CSV.';

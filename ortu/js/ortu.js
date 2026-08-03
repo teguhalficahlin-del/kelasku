@@ -50,7 +50,7 @@
     if (rpcError) {
       btn.disabled = false;
       btn.textContent = 'Masuk';
-      showError('Gagal memverifikasi data. Coba lagi.');
+      showError('Gagal terhubung ke server. Periksa koneksi internet.');
       return;
     }
 
@@ -64,17 +64,23 @@
     const email    = 'ortu.' + nisAnak + '.' + kode + '@sipmandiri.local';
     const password = nisAnak;
 
-    const { error } = await db.auth.signInWithPassword({ email, password });
+    try {
+      const { error } = await db.auth.signInWithPassword({ email, password });
 
-    btn.disabled = false;
-    btn.textContent = 'Masuk';
+      btn.disabled = false;
+      btn.textContent = 'Masuk';
 
-    if (error) {
-      showError('Akun belum dibuat guru, hubungi guru kelas.');
-      return;
+      if (error) {
+        showError('Akun belum dibuat guru, hubungi guru kelas.');
+        return;
+      }
+
+      window.location.href = 'dashboard.html';
+    } catch (_) {
+      btn.disabled = false;
+      btn.textContent = 'Masuk';
+      showError('Gagal terhubung ke server. Periksa koneksi internet.');
     }
-
-    window.location.href = 'dashboard.html';
   });
 
 }());

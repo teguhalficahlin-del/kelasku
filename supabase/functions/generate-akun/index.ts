@@ -148,11 +148,12 @@ Deno.serve(async (req) => {
 
     // Update nama_ortu di roster jika dikirim
     if (nama_ortu) {
-      await admin
+      const { error: rosterErr } = await admin
         .from('classroom_roster')
         .update({ nama_ortu })
         .eq('classroom_id', classroom_id)
         .eq('nis', nis);
+      if (rosterErr) console.error('nama_ortu update gagal:', rosterErr.message);
     }
 
     // -------------------------------------------------------------------------
