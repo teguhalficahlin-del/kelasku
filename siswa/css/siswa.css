@@ -143,3 +143,118 @@ button[type="submit"]:disabled {
 #step-2-msg a:hover {
   text-decoration: underline;
 }
+
+/* ── Dashboard siswa ─────────────────────────────────── */
+body.dashboard {
+  display: block;
+  padding: 0;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #ffffff;
+  padding: 0.875rem 1.5rem;
+  border-bottom: 1px solid #e2e8f0;
+  position: sticky;
+  top: 0;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  z-index: 10;
+}
+
+.header-brand {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1a56db;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+#siswa-name {
+  font-size: 0.9rem;
+  color: #374151;
+}
+
+#btn-logout {
+  display: inline-block;
+  width: auto;
+  background: none;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  margin-top: 0;
+  transition: background 0.15s;
+}
+
+#btn-logout:hover {
+  background: #f9fafb;
+}
+
+main {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem;
+}
+
+main h2 {
+  margin-bottom: 1.25rem;
+}
+
+.classroom-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.card-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+.card-code {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #1a56db;
+  background: #eff6ff;
+  border-radius: 4px;
+  padding: 0.2rem 0.5rem;
+  letter-spacing: 0.05em;
+}
+
+.card-subject {
+  font-size: 0.875rem;
+  color: #374151;
+  margin-bottom: 0.25rem;
+}
+
+.card-teacher {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.empty-state {
+  color: #6b7280;
+  font-size: 0.9rem;
+  text-align: center;
+  padding: 2rem 0;
+}
