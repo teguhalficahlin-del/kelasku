@@ -44,12 +44,9 @@
     this.disabled = true;
     this.textContent = 'Mengecek...';
 
-    const { data: classroom, error } = await client
-      .from('classrooms')
-      .select('id, name, classroom_code')
-      .eq('classroom_code', kode)
-      .eq('is_archived', false)
-      .single();
+    const { data: rows, error } = await client
+      .rpc('fn_lookup_classroom_code', { p_code: kode });
+    const classroom = rows && rows.length > 0 ? rows[0] : null;
 
     this.disabled = false;
     this.textContent = 'Cek Kode';

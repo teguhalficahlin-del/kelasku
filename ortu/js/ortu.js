@@ -29,12 +29,9 @@ async function cekKode() {
   const btn = document.getElementById('btn-cek-kode');
   btn.disabled = true;
 
-  const { data, error } = await db
-    .from('classrooms')
-    .select('id, name, classroom_code, teacher_id')
-    .eq('classroom_code', kode)
-    .eq('is_archived', false)
-    .single();
+  const { data: rows, error } = await db
+    .rpc('fn_lookup_classroom_code', { p_code: kode });
+  const data = rows && rows.length > 0 ? rows[0] : null;
 
   btn.disabled = false;
 
