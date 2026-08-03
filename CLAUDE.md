@@ -244,13 +244,18 @@ git push origin main
 
 ## 14. SLASH COMMANDS TERSEDIA
 
+Gunakan commands berikut untuk pola kerja berulang. Jalankan `/sip-start` di awal setiap sesi.
+
 | Command | Kapan dipakai |
 |---------|---------------|
-| `/sip-start` | Pembuka setiap sesi |
-| `/sip-deploy` | Urutan deploy aman |
-| `/sip-fn-inspect` | Inspeksi fungsi PostgreSQL |
+| `/sip-start` | Verifikasi sesi pembuka — wajib di awal setiap sesi |
+| `/sip-migration-check` | Validasi sebelum push migration |
+| `/sip-fn-inspect <nama>` | Inspeksi body fungsi DB |
+| `/sip-invert <deskripsi>` | Skenario gagal sebelum eksekusi |
+| `/sip-deploy` | Urutan deploy yang aman |
+| `/sip-audit-tenant` | Audit classroom isolation |
 | `/plan` | Sebelum task kompleks |
 | `/effort high` | Migration, RLS, multi-file |
 | `/effort medium` | Bug fix single file, UI tweak |
 
-Detail: `.claude/commands/` (akan dibuat saat repo diinisialisasi)
+Detail implementasi: `.claude/commands/`
