@@ -22,7 +22,7 @@ Fitur utama: manajemen classroom, catatan siswa, sesi pembinaan, forum, jadwal.
 - Auth: Supabase Auth (JWT)
 
 **Supabase project ID:** `teccdzetrdjowqemnuuc`
-**Repo GitHub:** `teguhalficahlin-del/student-insight-platform-mandiri`
+**Repo GitHub:** `teguhalficahlin-del/sip-mandiri`
 **Repo lokal:** `D:\ribuan_pengguna\CLAUDE\SIP Mandiri`
 
 ---
