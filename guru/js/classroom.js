@@ -63,6 +63,11 @@
             '<button class="btn-qr" data-idx="' + i + '">QR</button> ' +
             '<button class="btn-link" data-idx="' + i + '" data-siswa="' + escHtml(links.siswa) + '" data-ortu="' + escHtml(links.ortu) + '">Link</button>' +
           '</td>' +
+          '<td>' +
+            (isExpired
+              ? '<button disabled class="btn-hapus-disabled" title="Aktifkan akun untuk menggunakan fitur ini">Hapus</button>'
+              : '<button class="btn-hapus" data-idx="' + i + '">Hapus</button>') +
+          '</td>' +
         '</tr>';
     });
 
@@ -70,7 +75,7 @@
       '<table>' +
         '<thead><tr>' +
           '<th>No</th><th>Nama</th><th>NIS</th><th>Nama Ortu</th>' +
-          '<th>Status Akun</th><th>Generate</th><th>Bagikan</th>' +
+          '<th>Status Akun</th><th>Generate</th><th>Bagikan</th><th>Hapus</th>' +
         '</tr></thead>' +
         '<tbody>' + tbody + '</tbody>' +
       '</table>';
@@ -117,6 +122,51 @@
         const row   = rows[parseInt(this.dataset.idx, 10)];
         const links = { siswa: this.dataset.siswa, ortu: this.dataset.ortu };
         await shareLinks(row, links);
+      });
+    });
+
+    listEl.querySelectorAll('.btn-hapus').forEach(function (btn) {
+      btn.addEventListener('click', async function () {
+        const row = rows[parseInt(this.dataset.idx, 10)];
+
+        if (row.profile_id) {
+          const ok = window.confirm(
+            'Hapus akun ' + row.full_name + ' (NIS: ' + row.nis + ')?\n' +
+            'Akun siswa dan ortu akan terhapus permanen.'
+          );
+          if (!ok) return;
+          this.disabled = true;
+          this.textContent = 'Menghapus...';
+          const result = await hapusAkun(row.profile_id);
+          if (result.error) {
+            alert('Gagal hapus akun: ' + result.error);
+            this.disabled = false;
+            this.textContent = 'Hapus';
+          } else {
+            this.closest('tr').remove();
+            showShareNotif('Akun ' + row.full_name + ' berhasil dihapus');
+          }
+        } else {
+          const ok = window.confirm(
+            'Hapus ' + row.full_name + ' (NIS: ' + row.nis + ') dari roster?\n' +
+            'Siswa belum punya akun — hanya data roster yang dihapus.'
+          );
+          if (!ok) return;
+          this.disabled = true;
+          this.textContent = 'Menghapus...';
+          const { error } = await client
+            .from('classroom_roster')
+            .delete()
+            .eq('id', row.id);
+          if (error) {
+            alert('Gagal hapus: ' + error.message);
+            this.disabled = false;
+            this.textContent = 'Hapus';
+          } else {
+            this.closest('tr').remove();
+            showShareNotif(row.full_name + ' berhasil dihapus dari roster');
+          }
+        }
       });
     });
   }
@@ -338,6 +388,32 @@
     resultEl.style.display = 'block';
     btn.disabled = false;
     await loadRoster();
+  }
+
+  // -------------------------------------------------------------------------
+  // hapusAkun
+  // -------------------------------------------------------------------------
+
+  async function hapusAkun(profileId) {
+    const EDGE_URL = 'https://teccdzetrdjowqemnuuc.supabase.co/functions/v1/hapus-akun';
+    const { data: { session } } = await client.auth.getSession();
+    if (!session) return { error: 'Sesi tidak valid. Silakan login ulang.' };
+
+    const res = await fetch(EDGE_URL, {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + session.access_token,
+        'Content-Type':  'application/json',
+      },
+      body: JSON.stringify({
+        profile_id:   profileId,
+        classroom_id: currentClassroomId,
+      }),
+    });
+
+    const json = await res.json();
+    if (!json.success) return { error: json.error || 'Hapus akun gagal.' };
+    return { deleted: json.deleted };
   }
 
   // -------------------------------------------------------------------------
