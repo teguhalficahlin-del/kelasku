@@ -135,6 +135,15 @@ Deno.serve(async (req) => {
           p_profile_id: siswaProfileId,
         });
       }
+
+      // Masukkan siswa ke classroom_members agar fn_is_classroom_member() return TRUE
+      // Tanpa ini RLS forum/jadwal/catatan menolak akses siswa
+      await admin.from('classroom_members').upsert({
+        classroom_id,
+        teacher_id:  callerProfile.id,
+        profile_id:  siswaProfileId,
+        member_role: 'SISWA',
+      }, { onConflict: 'classroom_id,profile_id', ignoreDuplicates: true });
     }
 
     // Update nama_ortu di roster jika dikirim
