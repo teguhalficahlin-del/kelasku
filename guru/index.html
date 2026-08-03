@@ -7,8 +7,30 @@
   <link rel="stylesheet" href="css/guru.css">
 </head>
 <body>
-  <h1>SIP Mandiri — Login Guru</h1>
-  <script src="js/api.js"></script>
+  <div class="container">
+    <h1>SIP Mandiri</h1>
+
+    <section>
+      <h2>Masuk sebagai Guru</h2>
+
+      <div id="error-msg" class="error-msg" style="display:none;"></div>
+
+      <form id="form-login">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" required placeholder="email@sekolah.id">
+
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required placeholder="Password Anda">
+
+        <button type="submit" id="btn-masuk">Masuk</button>
+      </form>
+
+      <p class="link-daftar">Belum punya akun? <a href="../onboarding/index.html">Daftar di sini</a></p>
+    </section>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../shared/js/supabase.js"></script>
   <script src="js/guru.js"></script>
 </body>
 </html>
