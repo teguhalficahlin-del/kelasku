@@ -4,6 +4,7 @@
   let currentProfile     = null;
   let currentClassroomId = null;
   let currentClassroom   = null;
+  let trialStatus        = null;
 
   function escHtml(str) {
     return String(str)
@@ -43,9 +44,12 @@
     rows.forEach(function (r, i) {
       const statusClass = r.profile_id ? 'status-sudah' : 'status-belum';
       const statusText  = r.profile_id ? 'Sudah Ada Akun' : 'Belum Ada Akun';
+      const isExpired = trialStatus && trialStatus.status === 'expired';
       const genBtn = r.profile_id
         ? '<button disabled class="btn-gen-disabled">Sudah</button>'
-        : '<button class="btn-gen-akun" data-idx="' + i + '">Generate Akun</button>';
+        : isExpired
+          ? '<button disabled class="btn-gen-disabled" title="Aktifkan akun untuk menggunakan fitur ini">Generate Akun</button>'
+          : '<button class="btn-gen-akun" data-idx="' + i + '">Generate Akun</button>';
       const links = generateShareLink(r);
       tbody +=
         '<tr>' +
@@ -369,6 +373,49 @@
   }
 
   // -------------------------------------------------------------------------
+  // Trial gate — disable fitur generate/upload saat status expired
+  // -------------------------------------------------------------------------
+
+  async function loadTrialStatus() {
+    try {
+      const stored = sessionStorage.getItem('guru_trial_status');
+      if (stored) { trialStatus = JSON.parse(stored); return; }
+    } catch (_) {}
+    // Fallback ke RPC — untuk kasus guru buka classroom.html langsung tanpa melewati login
+    if (window.api && typeof window.api.getTrialStatus === 'function') {
+      trialStatus = await window.api.getTrialStatus();
+      if (trialStatus) {
+        try { sessionStorage.setItem('guru_trial_status', JSON.stringify(trialStatus)); } catch (_) {}
+      }
+    }
+  }
+
+  function applyTrialGate() {
+    if (!trialStatus || trialStatus.status !== 'expired') return;
+    const hint = 'Aktifkan akun untuk menggunakan fitur ini';
+
+    const btnGen = document.getElementById('btn-generate-semua');
+    btnGen.disabled = true;
+    btnGen.title = hint;
+    const genHint = document.createElement('small');
+    genHint.className = 'trial-hint';
+    genHint.textContent = hint;
+    btnGen.parentNode.appendChild(genHint);
+
+    const btnUpload = document.getElementById('btn-upload');
+    btnUpload.disabled = true;
+    btnUpload.title = hint;
+
+    const inpCsv = document.getElementById('inp-csv');
+    inpCsv.disabled = true;
+
+    const uploadHint = document.createElement('small');
+    uploadHint.className = 'trial-hint';
+    uploadHint.textContent = hint;
+    btnUpload.parentNode.insertAdjacentElement('afterend', uploadHint);
+  }
+
+  // -------------------------------------------------------------------------
   // shareLinks — Web Share API → Clipboard → fallback textarea readonly
   // -------------------------------------------------------------------------
 
@@ -476,6 +523,9 @@
     document.getElementById('cl-code').textContent    = classroom.classroom_code;
     document.getElementById('cl-subject').textContent = classroom.subject || '';
     document.title = 'SIP Mandiri — ' + classroom.name;
+
+    await loadTrialStatus();
+    applyTrialGate();
 
     await loadRoster();
   });
