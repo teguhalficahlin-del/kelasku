@@ -40,6 +40,27 @@
     btn.disabled = true;
     btn.textContent = 'Masuk...';
 
+    // Validasi nama anak ke classroom_roster sebelum mencoba login
+    const { data: valid, error: rpcError } = await db.rpc('fn_validate_ortu_login', {
+      p_classroom_code: kode,
+      p_nis:            nisAnak,
+      p_nama_anak:      namaAnak,
+    });
+
+    if (rpcError) {
+      btn.disabled = false;
+      btn.textContent = 'Masuk';
+      showError('Gagal memverifikasi data. Coba lagi.');
+      return;
+    }
+
+    if (!valid) {
+      btn.disabled = false;
+      btn.textContent = 'Masuk';
+      showError('Nama anak tidak sesuai dengan data kelas.');
+      return;
+    }
+
     const email    = 'ortu.' + nisAnak + '.' + kode + '@sipmandiri.local';
     const password = nisAnak;
 

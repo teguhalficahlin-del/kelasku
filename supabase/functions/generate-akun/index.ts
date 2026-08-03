@@ -11,6 +11,7 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Body dibaca satu kali di sini — stream tidak bisa dibaca dua kali
     const { nis, nama, nama_ortu, classroom_code, classroom_id } = await req.json();
 
     if (!nis || !nama || !classroom_code || !classroom_id) {
@@ -20,17 +21,73 @@ Deno.serve(async (req) => {
       );
     }
 
-    const supabaseUrl      = Deno.env.get('SUPABASE_URL')!;
-    const serviceRoleKey   = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const admin            = createClient(supabaseUrl, serviceRoleKey, {
+    // Normalisasi ke uppercase — konsisten dengan konstruksi email di portal siswa/ortu
+    const classroomCode = (classroom_code as string).toUpperCase();
+
+    const supabaseUrl    = Deno.env.get('SUPABASE_URL')!;
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const admin          = createClient(supabaseUrl, serviceRoleKey, {
       auth: { autoRefreshToken: false, persistSession: false },
     });
 
-    const siswaEmail = `${nis}.${classroom_code}@sipmandiri.local`;
-    const ortuEmail  = `ortu.${nis}.${classroom_code}@sipmandiri.local`;
+    // -------------------------------------------------------------------------
+    // Validasi caller: harus authenticated guru, pemilik classroom_id ini
+    // -------------------------------------------------------------------------
+
+    const authHeader = req.headers.get('Authorization') ?? '';
+    if (!authHeader.startsWith('Bearer ')) {
+      return Response.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401, headers: CORS_HEADERS },
+      );
+    }
+
+    const jwt = authHeader.slice(7);
+    const { data: { user }, error: authError } = await admin.auth.getUser(jwt);
+    if (authError || !user) {
+      return Response.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401, headers: CORS_HEADERS },
+      );
+    }
+
+    // Ambil profil caller — role harus GURU
+    const { data: callerProfile } = await admin
+      .from('profiles')
+      .select('id, role')
+      .eq('user_id', user.id)
+      .single();
+
+    if (!callerProfile || callerProfile.role !== 'GURU') {
+      return Response.json(
+        { success: false, error: 'Forbidden' },
+        { status: 403, headers: CORS_HEADERS },
+      );
+    }
+
+    // Verifikasi caller adalah pemilik classroom yang dikirim di body
+    const { data: ownedClassroom } = await admin
+      .from('classrooms')
+      .select('id')
+      .eq('id', classroom_id)
+      .eq('teacher_id', callerProfile.id)
+      .single();
+
+    if (!ownedClassroom) {
+      return Response.json(
+        { success: false, error: 'Forbidden: bukan owner classroom ini' },
+        { status: 403, headers: CORS_HEADERS },
+      );
+    }
+
+    // -------------------------------------------------------------------------
+    // Generate akun siswa
+    // -------------------------------------------------------------------------
+
+    const siswaEmail = `${nis}.${classroomCode}@sipmandiri.local`;
+    const ortuEmail  = `ortu.${nis}.${classroomCode}@sipmandiri.local`;
     const password   = nis;
 
-    // Buat akun siswa
     const { data: siswaAuth, error: siswaErr } = await admin.auth.admin.createUser({
       email:         siswaEmail,
       password,
@@ -89,7 +146,10 @@ Deno.serve(async (req) => {
         .eq('nis', nis);
     }
 
-    // Buat akun ortu (jika nama_ortu ada)
+    // -------------------------------------------------------------------------
+    // Generate akun ortu (jika nama_ortu ada)
+    // -------------------------------------------------------------------------
+
     let ortuEmailResult: string | null = null;
     if (nama_ortu) {
       const { data: ortuAuth, error: ortuErr } = await admin.auth.admin.createUser({

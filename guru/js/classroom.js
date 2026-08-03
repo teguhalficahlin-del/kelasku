@@ -228,12 +228,15 @@
 
   async function generateSingleAccount(siswa) {
     const EDGE_URL = 'https://teccdzetrdjowqemnuuc.supabase.co/functions/v1/generate-akun';
-    const ANON_KEY = 'sb_publishable_7T4Y9_ty5cN6_NIZ4TalXA_ByYNtSwG';
+
+    // Kirim JWT session guru — bukan anon key — agar Edge Function bisa verifikasi identitas
+    const { data: { session } } = await client.auth.getSession();
+    if (!session) return { error: 'Sesi tidak valid. Silakan login ulang.' };
 
     const res = await fetch(EDGE_URL, {
       method: 'POST',
       headers: {
-        'Authorization': 'Bearer ' + ANON_KEY,
+        'Authorization': 'Bearer ' + session.access_token,
         'Content-Type':  'application/json',
       },
       body: JSON.stringify({
