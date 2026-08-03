@@ -7,7 +7,57 @@
   <link rel="stylesheet" href="css/onboarding.css">
 </head>
 <body>
-  <h1>SIP Mandiri — Daftar Akun</h1>
+  <div class="container">
+    <h1>SIP Mandiri</h1>
+
+    <div id="error-msg" class="error-msg" style="display:none;"></div>
+
+    <!-- Step 1: Daftar Akun -->
+    <section id="step-1">
+      <h2>Langkah 1 — Daftar Akun</h2>
+      <form id="form-daftar">
+        <label for="full_name">Nama Lengkap</label>
+        <input type="text" id="full_name" name="full_name" required placeholder="Nama lengkap Anda">
+
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" required placeholder="email@sekolah.id">
+
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required placeholder="Minimal 6 karakter">
+
+        <button type="submit" id="btn-daftar">Daftar</button>
+      </form>
+    </section>
+
+    <!-- Step 2: Buat Classroom -->
+    <section id="step-2" style="display:none;">
+      <h2>Langkah 2 — Buat Classroom Pertama</h2>
+      <form id="form-classroom">
+        <label for="class_name">Nama Kelas</label>
+        <input type="text" id="class_name" name="class_name" required placeholder="Contoh: XII IPA 1">
+
+        <label for="subject">Mata Pelajaran</label>
+        <input type="text" id="subject" name="subject" required placeholder="Contoh: Matematika">
+
+        <label for="description">Deskripsi <span class="opsional">(opsional)</span></label>
+        <input type="text" id="description" name="description" placeholder="Keterangan singkat tentang kelas ini">
+
+        <button type="submit" id="btn-classroom">Buat Classroom</button>
+      </form>
+    </section>
+
+    <!-- Step 3: Kode Classroom -->
+    <section id="step-3" style="display:none;">
+      <h2>Classroom Berhasil Dibuat!</h2>
+      <p>Bagikan kode ini ke siswa Anda agar mereka bisa bergabung:</p>
+      <div id="classroom-code-display"></div>
+      <p class="instruksi">Siswa masuk ke portal siswa dan pilih "Gabung Classroom", lalu ketik kode di atas.</p>
+      <a href="../guru/index.html" class="btn-dashboard">Masuk ke Dashboard</a>
+    </section>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../shared/js/supabase.js"></script>
   <script src="js/onboarding.js"></script>
 </body>
 </html>
