@@ -29,6 +29,7 @@
         <div class="inline-form">
           <input type="text" id="inp-nama" placeholder="Nama lengkap" required>
           <input type="text" id="inp-nis" placeholder="NIS" required>
+          <input type="text" id="inp-nama-ortu" placeholder="Nama ortu (opsional)">
           <button type="submit" id="btn-tambah">Tambah</button>
         </div>
         <div id="tambah-error" class="error-msg" style="display:none;"></div>
@@ -49,11 +50,16 @@
     <!-- Daftar siswa -->
     <section class="panel">
       <h2>Daftar Siswa (<span id="roster-count">0</span>)</h2>
+      <div class="roster-actions">
+        <button type="button" id="btn-generate-semua">Generate Semua Akun</button>
+        <div id="generate-result" style="display:none;"></div>
+      </div>
       <div id="roster-list"></div>
     </section>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
   <script src="../shared/js/supabase.js"></script>
   <script src="js/api.js"></script>
   <script src="js/classroom.js"></script>

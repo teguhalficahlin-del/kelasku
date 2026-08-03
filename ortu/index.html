@@ -3,47 +3,27 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SIP Mandiri — Daftar Ortu</title>
+  <title>SIP Mandiri — Login Ortu</title>
   <link rel="stylesheet" href="css/ortu.css">
 </head>
 <body>
   <div class="container">
     <h1>SIP Mandiri</h1>
+    <h2>Login Orang Tua</h2>
 
-    <!-- Step 1: Masukkan kode classroom -->
-    <section id="step-1">
-      <h2>Langkah 1 — Masukkan Kode Classroom</h2>
-      <label for="inp-kode">Kode Classroom</label>
+    <form id="form-login">
+      <label for="inp-kode">Kode Kelas</label>
       <input type="text" id="inp-kode" placeholder="Contoh: A1B2C3D4" autocomplete="off">
-      <button type="button" id="btn-cek-kode">Cek Kode</button>
-      <div id="step-1-error" class="error-msg" style="display:none;"></div>
-    </section>
 
-    <!-- Step 2: Verifikasi siswa -->
-    <section id="step-2" style="display:none;">
-      <h2>Langkah 2 — Verifikasi Data Siswa</h2>
-      <div id="cl-name-display" class="cl-label"></div>
-      <label for="inp-nama-siswa">Nama Lengkap Siswa</label>
-      <input type="text" id="inp-nama-siswa" placeholder="Nama siswa sesuai data" autocomplete="off">
-      <label for="inp-nis-siswa">Nomor Induk Siswa (NIS)</label>
-      <input type="text" id="inp-nis-siswa" placeholder="NIS siswa" autocomplete="off">
-      <button type="button" id="btn-verifikasi-siswa">Verifikasi Siswa</button>
-      <div id="step-2-error" class="error-msg" style="display:none;"></div>
-    </section>
+      <label for="inp-nama-anak">Nama Lengkap Anak</label>
+      <input type="text" id="inp-nama-anak" placeholder="Nama anak sesuai data guru" autocomplete="off">
 
-    <!-- Step 3: Buat akun ortu -->
-    <section id="step-3" style="display:none;">
-      <h2>Langkah 3 — Buat Akun Ortu</h2>
-      <div id="konfirmasi-siswa" class="konfirmasi"></div>
-      <form id="form-buat-akun">
-        <label for="inp-email">Email</label>
-        <input type="email" id="inp-email" required placeholder="email@anda.com">
-        <label for="inp-password">Password</label>
-        <input type="password" id="inp-password" required placeholder="Minimal 6 karakter">
-        <button type="submit" id="btn-buat-akun">Buat Akun</button>
-      </form>
-      <div id="step-3-error" class="error-msg" style="display:none;"></div>
-    </section>
+      <label for="inp-nis-anak">NIS Anak</label>
+      <input type="text" id="inp-nis-anak" placeholder="Nomor Induk Siswa anak" autocomplete="off">
+
+      <button type="submit" id="btn-login">Masuk</button>
+      <div id="login-error" class="error-msg" style="display:none;"></div>
+    </form>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>

@@ -1,155 +1,59 @@
-const db = window.supabaseClient;
+(function () {
+  const db = window.supabaseClient;
 
-let currentClassroom = null;
-let currentRoster    = null;
+  function showError(msg) {
+    const el = document.getElementById('login-error');
+    el.textContent = msg;
+    el.style.display = 'block';
+  }
 
-function showError(id, msg) {
-  const el = document.getElementById(id);
-  el.textContent = msg;
-  el.style.display = 'block';
-}
+  function hideError() {
+    const el = document.getElementById('login-error');
+    el.textContent = '';
+    el.style.display = 'none';
+  }
 
-function hideError(id) {
-  const el = document.getElementById(id);
-  el.textContent = '';
-  el.style.display = 'none';
-}
+  document.addEventListener('DOMContentLoaded', async function () {
+    const { data: { session } } = await db.auth.getSession();
+    if (session) { window.location.href = 'dashboard.html'; return; }
 
-function showSection(id) {
-  ['step-1', 'step-2', 'step-3'].forEach(s => {
-    document.getElementById(s).style.display = s === id ? '' : 'none';
+    // Pre-fill dari URL ?kelas= dan ?nis=
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('kelas')) document.getElementById('inp-kode').value     = params.get('kelas');
+    if (params.get('nis'))   document.getElementById('inp-nis-anak').value = params.get('nis');
   });
-}
 
-async function cekKode() {
-  hideError('step-1-error');
-  const kode = document.getElementById('inp-kode').value.trim().toUpperCase();
-  if (!kode) { showError('step-1-error', 'Masukkan kode classroom.'); return; }
+  document.getElementById('form-login').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    hideError();
 
-  const btn = document.getElementById('btn-cek-kode');
-  btn.disabled = true;
+    const kode    = document.getElementById('inp-kode').value.trim().toUpperCase();
+    const namaAnak = document.getElementById('inp-nama-anak').value.trim();
+    const nisAnak  = document.getElementById('inp-nis-anak').value.trim();
+    const btn      = document.getElementById('btn-login');
 
-  const { data: rows, error } = await db
-    .rpc('fn_lookup_classroom_code', { p_code: kode });
-  const data = rows && rows.length > 0 ? rows[0] : null;
-
-  btn.disabled = false;
-
-  if (error || !data) {
-    showError('step-1-error', 'Kode classroom tidak ditemukan.');
-    return;
-  }
-
-  currentClassroom = data;
-  document.getElementById('cl-name-display').textContent = `Classroom: ${data.name}`;
-  showSection('step-2');
-}
-
-async function verifikasiSiswa() {
-  hideError('step-2-error');
-  const nama = document.getElementById('inp-nama-siswa').value.trim();
-  const nis  = document.getElementById('inp-nis-siswa').value.trim();
-
-  if (!nama || !nis) {
-    showError('step-2-error', 'Nama siswa dan NIS wajib diisi.');
-    return;
-  }
-
-  const btn = document.getElementById('btn-verifikasi-siswa');
-  btn.disabled = true;
-
-  const { data: rows, error } = await db
-    .rpc('fn_lookup_roster_by_name_nis', {
-      p_classroom_id: currentClassroom.id,
-      p_full_name: nama,
-      p_nis: nis,
-    });
-  const data = rows && rows.length > 0 ? rows[0] : null;
-
-  btn.disabled = false;
-
-  if (error || !data) {
-    showError('step-2-error', 'Data siswa tidak ditemukan di classroom ini.');
-    return;
-  }
-
-  if (!data.profile_id) {
-    showError('step-2-error', 'Siswa belum membuat akun. Minta siswa daftar dulu.');
-    return;
-  }
-
-  currentRoster = data;
-  document.getElementById('konfirmasi-siswa').textContent =
-    `Siswa ditemukan: ${data.full_name} (NIS: ${data.nis})`;
-  showSection('step-3');
-}
-
-async function buatAkun(e) {
-  e.preventDefault();
-  hideError('step-3-error');
-
-  const email    = document.getElementById('inp-email').value.trim();
-  const password = document.getElementById('inp-password').value;
-  const btn      = document.getElementById('btn-buat-akun');
-  btn.disabled   = true;
-
-  // 1. Buat akun auth
-  const { data: authData, error: authError } = await db.auth.signUp({ email, password });
-  if (authError) {
-    showError('step-3-error', authError.message);
-    btn.disabled = false;
-    return;
-  }
-
-  const userId = authData.user.id;
-
-  // 2. Insert profiles
-  const { data: profile, error: profileError } = await db
-    .from('profiles')
-    .insert({
-      user_id:   userId,
-      full_name: `Ortu - ${currentRoster.full_name}`,
-      role:      'ORTU',
-      email,
-    })
-    .select('id')
-    .single();
-
-  if (profileError) {
-    showError('step-3-error', 'Gagal membuat profil: ' + profileError.message);
-    btn.disabled = false;
-    return;
-  }
-
-  // 3. Insert classroom_members
-  const { error: memberError } = await db
-    .from('classroom_members')
-    .insert({
-      classroom_id:       currentClassroom.id,
-      teacher_id:         currentClassroom.teacher_id,
-      profile_id:         profile.id,
-      member_role:        'ORTU',
-      linked_student_id:  currentRoster.profile_id,
-    });
-
-  if (memberError) {
-    if (memberError.code === '23505') {
-      showError('step-3-error', 'Anda sudah terdaftar di classroom ini.');
-    } else {
-      showError('step-3-error', 'Gagal bergabung classroom: ' + memberError.message);
+    if (!kode || !namaAnak || !nisAnak) {
+      showError('Semua field wajib diisi.');
+      return;
     }
+
+    btn.disabled = true;
+    btn.textContent = 'Masuk...';
+
+    const email    = 'ortu.' + nisAnak + '.' + kode + '@sipmandiri.local';
+    const password = nisAnak;
+
+    const { error } = await db.auth.signInWithPassword({ email, password });
+
     btn.disabled = false;
-    return;
-  }
+    btn.textContent = 'Masuk';
 
-  window.location.href = 'dashboard.html';
-}
+    if (error) {
+      showError('Akun belum dibuat guru, hubungi guru kelas.');
+      return;
+    }
 
-document.addEventListener('DOMContentLoaded', async () => {
-  const { data: { session } } = await db.auth.getSession();
-  if (session) { window.location.href = 'dashboard.html'; return; }
+    window.location.href = 'dashboard.html';
+  });
 
-  document.getElementById('btn-cek-kode').addEventListener('click', cekKode);
-  document.getElementById('btn-verifikasi-siswa').addEventListener('click', verifikasiSiswa);
-  document.getElementById('form-buat-akun').addEventListener('submit', buatAkun);
-});
+}());
