@@ -204,19 +204,44 @@ git push origin main                  → urutan TERAKHIR
 
 ## 12. STATUS PROYEK
 
-**Fase saat ini: FONDASI — belum ada kode**
+**Fase saat ini: DEVELOPMENT AKTIF**
+**HEAD:** `36a5c16`
 
 - [x] Dokumen rancangan selesai (REQUIREMENTS, SCHEMA-v0, ADR-001)
-- [ ] Supabase project baru dibuat
-- [ ] Repo GitHub dibuat
-- [ ] Migration pertama: schema + RLS
-- [ ] Portal Guru: onboarding + classroom
+- [x] Supabase project baru dibuat
+- [x] Repo GitHub dibuat
+- [x] Migration pertama: schema + RLS
+- [x] Portal Guru: onboarding + classroom
+- [x] ADR-003 login tanpa email (siswa/ortu pakai username + PIN)
+- [x] Generate akun siswa + ortu (single + semua sekaligus)
+- [x] QR code + share link mobile-friendly
+- [x] Trial 30 hari + trial gate classroom
+- [x] Hapus akun siswa + ortu (end-to-end)
+- [x] 6 slash commands di `.claude/commands/`
+- [x] Edge Functions deployed: `generate-akun`, `hapus-akun`
 - [ ] Portal Guru: catatan siswa + sesi pembinaan
 - [ ] Portal Guru: forum + jadwal
 - [ ] Portal Siswa
 - [ ] Portal Ortu
 - [ ] Security audit
 - [ ] Test suite
+
+**Test pending manual:**
+- Test 4.4: progress generate semua (butuh siswa baru tanpa akun)
+- Test 8.4–8.5: cross-classroom isolation (butuh guru kedua)
+
+**Migrations (urut kronologis):**
+```
+20260803000006_profiles-guru-lifecycle.sql
+20260803000007_roster-nama-ortu.sql
+20260803000008_fn-validate-ortu-login.sql
+20260803000009_fn-guru-trial-start.sql
+20260803000010_fn-guru-trial-status.sql
+20260804000001_fn-activate-guru.sql
+20260804000002_fix-fk-hapus-akun.sql
+20260804000003_fix-fk-student-notes-guidance.sql
+20260804000004_fix-fk-forum-comments.sql
+```
 
 ---
 
