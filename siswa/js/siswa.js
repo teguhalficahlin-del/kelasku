@@ -76,12 +76,12 @@
     this.disabled = true;
     this.textContent = 'Memverifikasi...';
 
-    const { data: roster, error } = await client
-      .from('classroom_roster')
-      .select('id, full_name, nis, profile_id')
-      .eq('classroom_id', currentClassroom.id)
-      .eq('nis', nis)
-      .single();
+    const { data: rows, error } = await client
+      .rpc('fn_lookup_roster_by_nis', {
+        p_classroom_id: currentClassroom.id,
+        p_nis: nis,
+      });
+    const roster = rows && rows.length > 0 ? rows[0] : null;
 
     this.disabled = false;
     this.textContent = 'Verifikasi NIS';

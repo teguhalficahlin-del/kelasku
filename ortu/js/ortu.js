@@ -58,13 +58,13 @@ async function verifikasiSiswa() {
   const btn = document.getElementById('btn-verifikasi-siswa');
   btn.disabled = true;
 
-  const { data, error } = await db
-    .from('classroom_roster')
-    .select('id, full_name, nis, profile_id')
-    .eq('classroom_id', currentClassroom.id)
-    .ilike('full_name', nama)
-    .eq('nis', nis)
-    .single();
+  const { data: rows, error } = await db
+    .rpc('fn_lookup_roster_by_name_nis', {
+      p_classroom_id: currentClassroom.id,
+      p_full_name: nama,
+      p_nis: nis,
+    });
+  const data = rows && rows.length > 0 ? rows[0] : null;
 
   btn.disabled = false;
 
