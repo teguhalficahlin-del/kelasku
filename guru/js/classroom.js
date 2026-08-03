@@ -227,66 +227,27 @@
   // -------------------------------------------------------------------------
 
   async function generateSingleAccount(siswa) {
-    const code       = currentClassroom.classroom_code;
-    const siswaEmail = siswa.nis + '.' + code + '@sipmandiri.local';
-    const ortuEmail  = 'ortu.' + siswa.nis + '.' + code + '@sipmandiri.local';
-    const password   = siswa.nis;
+    const EDGE_URL = 'https://teccdzetrdjowqemnuuc.supabase.co/functions/v1/generate-akun';
+    const ANON_KEY = 'sb_publishable_7T4Y9_ty5cN6_NIZ4TalXA_ByYNtSwG';
 
-    const { data: siswaAuth, error: siswaErr } = await client.auth.admin.createUser({
-      email:         siswaEmail,
-      password:      password,
-      email_confirm: true,
-    });
-    if (siswaErr) return { error: 'Akun siswa gagal: ' + siswaErr.message };
-
-    const { data: siswaProfile, error: spErr } = await client
-      .from('profiles')
-      .insert({
-        user_id:   siswaAuth.user.id,
-        full_name: siswa.full_name,
-        role:      'SISWA',
-        email:     siswaEmail,
-        nis:       siswa.nis,
-      })
-      .select('id')
-      .single();
-    if (spErr) return { error: 'Profil siswa gagal: ' + spErr.message };
-
-    await client.rpc('fn_activate_roster', {
-      p_roster_id:  siswa.id,
-      p_profile_id: siswaProfile.id,
+    const res = await fetch(EDGE_URL, {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + ANON_KEY,
+        'Content-Type':  'application/json',
+      },
+      body: JSON.stringify({
+        nis:            siswa.nis,
+        nama:           siswa.full_name,
+        nama_ortu:      siswa.nama_ortu || null,
+        classroom_code: currentClassroom.classroom_code,
+        classroom_id:   currentClassroomId,
+      }),
     });
 
-    if (siswa.nama_ortu) {
-      const { data: ortuAuth, error: ortuErr } = await client.auth.admin.createUser({
-        email:         ortuEmail,
-        password:      password,
-        email_confirm: true,
-      });
-      if (!ortuErr && ortuAuth) {
-        const { data: ortuProfile } = await client
-          .from('profiles')
-          .insert({
-            user_id:   ortuAuth.user.id,
-            full_name: 'Ortu - ' + siswa.full_name,
-            role:      'ORTU',
-            email:     ortuEmail,
-          })
-          .select('id')
-          .single();
-        if (ortuProfile) {
-          await client.from('classroom_members').insert({
-            classroom_id:      currentClassroomId,
-            teacher_id:        currentProfile.id,
-            profile_id:        ortuProfile.id,
-            member_role:       'ORTU',
-            linked_student_id: siswaProfile.id,
-          });
-        }
-      }
-    }
-
-    return { siswa_email: siswaEmail, ortu_email: siswa.nama_ortu ? ortuEmail : null, password };
+    const json = await res.json();
+    if (!json.success) return { error: json.error || 'Generate akun gagal.' };
+    return { siswa_email: json.siswa_email, ortu_email: json.ortu_email, password: json.password };
   }
 
   // -------------------------------------------------------------------------
