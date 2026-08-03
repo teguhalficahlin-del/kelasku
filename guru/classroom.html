@@ -97,7 +97,11 @@
     <!-- Upload CSV -->
     <section class="panel">
       <h2>Upload CSV</h2>
-      <p class="hint">Format: dua kolom tanpa header — <code>nama,nis</code> per baris</p>
+      <p class="hint">
+        Format: <code>nama, nis, nama_ortu</code> (nama_ortu opsional) — satu siswa per baris.<br>
+        Header row opsional — di-skip otomatis jika NIS bukan angka.<br>
+        Quoted fields didukung, misal: <code>"Budi, S.Pd",12345</code>
+      </p>
       <div class="inline-form">
         <input type="file" id="inp-csv" accept=".csv">
         <button type="button" id="btn-upload">Import</button>
