@@ -35,6 +35,12 @@
         return;
       }
 
+      // Ambil status trial sebelum redirect — disimpan agar dashboard tidak perlu RPC ulang
+      try {
+        const ts = await api.getTrialStatus();
+        if (ts) sessionStorage.setItem('guru_trial_status', JSON.stringify(ts));
+      } catch (_) { /* dashboard akan fallback ke RPC jika sessionStorage kosong */ }
+
       window.location.href = 'dashboard.html';
     });
   }
@@ -140,6 +146,27 @@
       window.location.href = 'index.html';
     });
 
+    // -- Trial UI --
+
+    function applyTrialUI(ts) {
+      if (!ts) return;
+      const banner  = document.getElementById('trial-banner');
+      const btnBuat = document.getElementById('btn-buat-classroom');
+
+      if (ts.status === 'trial') {
+        banner.className   = 'trial-banner trial-info';
+        banner.textContent = 'Trial aktif — ' + ts.hari_tersisa + ' hari tersisa.';
+        banner.style.display = 'block';
+      } else if (ts.status === 'expired') {
+        banner.className   = 'trial-banner trial-expired';
+        banner.textContent = 'Trial habis. Hubungi admin untuk aktivasi.';
+        banner.style.display = 'block';
+        btnBuat.disabled = true;
+        btnBuat.title    = 'Trial habis — hubungi admin untuk aktivasi';
+      }
+      // status 'belum_trial': guru belum buat classroom — tidak tampilkan banner
+    }
+
     // -- Init --
 
     window.addEventListener('DOMContentLoaded', async () => {
@@ -151,6 +178,23 @@
 
       currentTeacherId = profile.id;
       document.getElementById('guru-name').textContent = profile.full_name;
+
+      // Baca status trial dari sessionStorage (diisi saat login)
+      // Fallback ke RPC jika navigasi langsung atau sessionStorage kosong
+      let trialStatus = null;
+      try {
+        const stored = sessionStorage.getItem('guru_trial_status');
+        if (stored) { trialStatus = JSON.parse(stored); }
+      } catch (_) {}
+
+      if (!trialStatus) {
+        trialStatus = await api.getTrialStatus();
+        if (trialStatus) {
+          try { sessionStorage.setItem('guru_trial_status', JSON.stringify(trialStatus)); } catch (_) {}
+        }
+      }
+
+      applyTrialUI(trialStatus);
 
       await loadClassrooms(currentTeacherId);
     });

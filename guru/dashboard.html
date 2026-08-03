@@ -5,6 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SIP Mandiri — Dashboard Guru</title>
   <link rel="stylesheet" href="css/guru.css">
+  <style>
+    .trial-banner {
+      padding: .6rem 1rem;
+      border-radius: .4rem;
+      margin-bottom: 1rem;
+      font-size: .9rem;
+    }
+    .trial-info    { background: #e8f4fd; color: #1a6fa8; border: 1px solid #b3d7f0; }
+    .trial-expired { background: #fdecea; color: #b71c1c; border: 1px solid #f5c6c6; font-weight: 600; }
+  </style>
 </head>
 <body class="dashboard">
 
@@ -17,6 +27,7 @@
   </header>
 
   <main>
+    <div id="trial-banner" class="trial-banner" style="display:none;"></div>
     <div class="toolbar">
       <h2>Classroom Saya</h2>
       <button id="btn-buat-classroom">+ Buat Classroom</button>

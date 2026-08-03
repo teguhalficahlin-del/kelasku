@@ -40,6 +40,12 @@
         .single();
     },
 
+    async getTrialStatus() {
+      const { data, error } = await client.rpc('fn_guru_trial_status');
+      if (error) return null;
+      return data;
+    },
+
     signOut() {
       return client.auth.signOut();
     },
