@@ -58,7 +58,7 @@
         '</div>' +
         '<div class="card-subject">' + escHtml(classroom.subject || '') + '</div>' +
         '<div class="card-count">' + count + ' siswa terdaftar</div>' +
-        '<a href="#" class="btn-kelola">Kelola</a>';
+        '<a href="classroom.html?id=' + escHtml(classroom.id) + '" class="btn-kelola">Kelola</a>';
       return card;
     }
 

@@ -351,3 +351,148 @@ main {
   font-weight: 400;
   color: #9ca3af;
 }
+
+/* ── Kelola Classroom ── */
+
+.btn-back {
+  font-size: 0.875rem;
+  color: #6b7280;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.btn-back:hover {
+  color: #1a1a2e;
+}
+
+.header-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+#cl-name {
+  font-weight: 600;
+}
+
+.cl-meta {
+  font-size: 0.875rem;
+  color: #6b7280;
+  padding: 0 1rem 1rem;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.panel {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+  max-width: 720px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.panel h2 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.hint {
+  font-size: 0.8rem;
+  color: #9ca3af;
+  margin-bottom: 0.75rem;
+}
+
+.hint code {
+  background: #f3f4f6;
+  padding: 0.1rem 0.3rem;
+  border-radius: 3px;
+  font-family: monospace;
+}
+
+.inline-form {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.inline-form input[type="text"] {
+  flex: 1;
+  min-width: 140px;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  background: #f9fafb;
+  color: #1a1a2e;
+  transition: border-color 0.15s;
+}
+
+.inline-form input[type="text"]:focus {
+  outline: none;
+  border-color: #1a56db;
+  background: #fff;
+}
+
+.inline-form button {
+  padding: 0.5rem 1rem;
+  background: #1a56db;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+
+.inline-form button:hover:not(:disabled) {
+  background: #1648b8;
+}
+
+.inline-form button:disabled {
+  background: #93c5fd;
+  cursor: not-allowed;
+}
+
+input[type="file"] {
+  font-size: 0.875rem;
+}
+
+#upload-result {
+  margin-top: 0.75rem;
+  font-size: 0.875rem;
+  color: #374151;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+th {
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 2px solid #e2e8f0;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.status-sudah {
+  color: #059669;
+  font-weight: 500;
+}
+
+.status-belum {
+  color: #9ca3af;
+}

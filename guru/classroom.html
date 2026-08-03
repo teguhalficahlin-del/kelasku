@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SIP Mandiri — Kelola Classroom</title>
+  <link rel="stylesheet" href="css/guru.css">
+</head>
+<body class="dashboard">
+
+  <header>
+    <a href="dashboard.html" class="btn-back">← Kembali</a>
+    <div class="header-info">
+      <span id="cl-name"></span>
+      <span id="cl-code" class="card-code"></span>
+    </div>
+    <span id="guru-name-cl"></span>
+  </header>
+
+  <main>
+    <div class="cl-meta">
+      <span id="cl-subject"></span>
+    </div>
+
+    <!-- Tambah siswa manual -->
+    <section class="panel">
+      <h2>Tambah Siswa</h2>
+      <form id="form-tambah">
+        <div class="inline-form">
+          <input type="text" id="inp-nama" placeholder="Nama lengkap" required>
+          <input type="text" id="inp-nis" placeholder="NIS" required>
+          <button type="submit" id="btn-tambah">Tambah</button>
+        </div>
+        <div id="tambah-error" class="error-msg" style="display:none;"></div>
+      </form>
+    </section>
+
+    <!-- Upload CSV -->
+    <section class="panel">
+      <h2>Upload CSV</h2>
+      <p class="hint">Format: dua kolom tanpa header — <code>nama,nis</code> per baris</p>
+      <div class="inline-form">
+        <input type="file" id="inp-csv" accept=".csv">
+        <button type="button" id="btn-upload">Import</button>
+      </div>
+      <div id="upload-result" style="display:none;"></div>
+    </section>
+
+    <!-- Daftar siswa -->
+    <section class="panel">
+      <h2>Daftar Siswa (<span id="roster-count">0</span>)</h2>
+      <div id="roster-list"></div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../shared/js/supabase.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/classroom.js"></script>
+</body>
+</html>
