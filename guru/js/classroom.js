@@ -90,7 +90,13 @@
     listEl.querySelectorAll('.btn-qr').forEach(function (btn) {
       btn.addEventListener('click', async function () {
         const row = rows[parseInt(this.dataset.idx, 10)];
-        const dataUrl = await generateQRCode(row);
+        let dataUrl;
+        try {
+          dataUrl = await generateQRCode(row);
+        } catch (err) {
+          alert(err.message || 'Gagal membuat QR code.');
+          return;
+        }
         const win = window.open('', '_blank', 'width=400,height=500');
         win.document.write(
           '<!DOCTYPE html><html><body style="text-align:center;font-family:sans-serif;">' +
@@ -279,6 +285,15 @@
       return;
     }
 
+    // Konfirmasi sebelum eksekusi — jumlah siswa sudah diketahui dari query di atas
+    const confirmed = window.confirm(
+      'Generate akun untuk ' + rows.length + ' siswa? Tindakan ini tidak bisa dibatalkan.'
+    );
+    if (!confirmed) {
+      btn.disabled = false;
+      return;
+    }
+
     let berhasil = 0;
     let gagal    = 0;
 
@@ -298,6 +313,10 @@
   // -------------------------------------------------------------------------
 
   async function generateQRCode(siswa) {
+    // Guard: library di-load via CDN — bisa gagal jika offline atau CDN down
+    if (typeof window.QRCode === 'undefined') {
+      return Promise.reject(new Error('Library QR code gagal dimuat. Coba refresh halaman.'));
+    }
     const url = generateShareLink(siswa).siswa;
     return new Promise(function (resolve, reject) {
       QRCode.toDataURL(url, { width: 300, margin: 2 }, function (err, dataUrl) {
@@ -312,9 +331,12 @@
 
   function generateShareLink(siswa) {
     const code = currentClassroom ? currentClassroom.classroom_code : '';
+    // Base URL dengan /sip-mandiri/ prefix untuk GitHub Pages
+    // window.location.origin = https://teguhalficahlin-del.github.io
+    const base = window.location.origin + '/sip-mandiri';
     return {
-      siswa: '/siswa/?kelas=' + encodeURIComponent(code) + '&nis=' + encodeURIComponent(siswa.nis),
-      ortu:  '/ortu/?kelas='  + encodeURIComponent(code) + '&nis=' + encodeURIComponent(siswa.nis),
+      siswa: base + '/siswa/?kelas=' + encodeURIComponent(code) + '&nis=' + encodeURIComponent(siswa.nis),
+      ortu:  base + '/ortu/?kelas='  + encodeURIComponent(code) + '&nis=' + encodeURIComponent(siswa.nis),
     };
   }
 
