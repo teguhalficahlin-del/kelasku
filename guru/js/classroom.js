@@ -91,6 +91,7 @@
           this.disabled = false;
           this.textContent = 'Generate Akun';
         } else {
+          showCredentialsModal(row.full_name, result.siswa_email, result.ortu_email, result.password);
           await loadRoster();
         }
       });
@@ -144,6 +145,8 @@
             this.textContent = 'Hapus';
           } else {
             this.closest('tr').remove();
+            const countEl = document.getElementById('roster-count');
+            if (countEl) { countEl.textContent = Math.max(0, parseInt(countEl.textContent, 10) - 1); }
             showShareNotif('Akun ' + row.full_name + ' berhasil dihapus');
           }
         } else {
@@ -164,6 +167,8 @@
             this.textContent = 'Hapus';
           } else {
             this.closest('tr').remove();
+            const countEl = document.getElementById('roster-count');
+            if (countEl) { countEl.textContent = Math.max(0, parseInt(countEl.textContent, 10) - 1); }
             showShareNotif(row.full_name + ' berhasil dihapus dari roster');
           }
         }
@@ -561,6 +566,58 @@
     document.body.appendChild(overlay);
 
     // Auto-select agar mudah di-copy manual
+    ta.focus();
+    ta.select();
+  }
+
+  // -------------------------------------------------------------------------
+  // showCredentialsModal — tampil sekali setelah generate single akun berhasil
+  // -------------------------------------------------------------------------
+
+  function showCredentialsModal(namaLengkap, siswaEmail, ortuEmail, password) {
+    const overlay = document.createElement('div');
+    overlay.className = 'share-overlay';
+
+    const box = document.createElement('div');
+    box.className = 'share-box';
+
+    const title = document.createElement('p');
+    title.innerHTML = '<strong>Akun berhasil dibuat — ' + escHtml(namaLengkap) + '</strong>';
+
+    const pesan = document.createElement('p');
+    pesan.style.color  = '#c0392b';
+    pesan.style.margin = '4px 0 10px';
+    pesan.textContent  = 'Simpan password ini — tidak akan ditampilkan lagi.';
+
+    const ta = document.createElement('textarea');
+    ta.readOnly = true;
+    ta.rows     = 5;
+    ta.value    =
+      'Email Siswa : ' + siswaEmail + '\n' +
+      'Email Ortu  : ' + ortuEmail  + '\n' +
+      'Password    : ' + password;
+
+    const closeBtn = document.createElement('button');
+    closeBtn.type        = 'button';
+    closeBtn.textContent = 'Tutup';
+    closeBtn.addEventListener('click', function () { overlay.remove(); document.removeEventListener('keydown', onEsc); });
+
+    overlay.addEventListener('click', function (e) {
+      if (e.target === overlay) { overlay.remove(); document.removeEventListener('keydown', onEsc); }
+    });
+
+    function onEsc(e) {
+      if (e.key === 'Escape') { overlay.remove(); document.removeEventListener('keydown', onEsc); }
+    }
+    document.addEventListener('keydown', onEsc);
+
+    box.appendChild(title);
+    box.appendChild(pesan);
+    box.appendChild(ta);
+    box.appendChild(closeBtn);
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
+
     ta.focus();
     ta.select();
   }
