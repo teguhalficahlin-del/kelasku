@@ -20,13 +20,11 @@ async function getClassrooms(profileId) {
 }
 
 async function getGuruName(teacherId) {
+  if (!teacherId) return '—';
   const { data, error } = await db
-    .from('profiles')
-    .select('full_name')
-    .eq('id', teacherId)
-    .single();
-  if (error) return '—';
-  return data.full_name;
+    .rpc('fn_lookup_profile_name', { p_profile_id: teacherId });
+  if (error || !data) return '—';
+  return data;
 }
 
 function renderCard(classroom, guruName) {

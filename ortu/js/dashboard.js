@@ -23,12 +23,9 @@ async function getClassroomMembers(profileId) {
 async function getProfileName(profileId) {
   if (!profileId) return '—';
   const { data, error } = await db
-    .from('profiles')
-    .select('full_name')
-    .eq('id', profileId)
-    .single();
-  if (error) return '—';
-  return data.full_name;
+    .rpc('fn_lookup_profile_name', { p_profile_id: profileId });
+  if (error || !data) return '—';
+  return data;
 }
 
 function renderCard(classroom, guruName, siswaNama) {
