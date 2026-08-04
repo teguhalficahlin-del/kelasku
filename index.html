@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id" data-theme="light">
+<html lang="id" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,49 +8,36 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg:        #f0f4ff;
-      --surface:   #ffffff;
-      --border:    #dde5f5;
-      --text:      #0f172a;
-      --muted:     #64748b;
-      --accent:    #2563eb;
-      --accent-dk: #1d4ed8;
-      --accent-bg: #eff6ff;
-    }
-
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --bg:        #0f172a;
-        --surface:   #1e293b;
-        --border:    #334155;
-        --text:      #f1f5f9;
-        --muted:     #94a3b8;
-        --accent:    #3b82f6;
-        --accent-dk: #2563eb;
-        --accent-bg: #1e3a5f;
-      }
+      --bg:        #0f172a;
+      --surface:   #1e293b;
+      --border:    rgba(255,255,255,0.08);
+      --text:      #f1f5f9;
+      --muted:     #94a3b8;
+      --accent:    #6366f1;
+      --accent-dk: #4f46e5;
+      --accent-bg: rgba(99,102,241,0.15);
     }
 
     :root[data-theme="dark"] {
       --bg:        #0f172a;
       --surface:   #1e293b;
-      --border:    #334155;
+      --border:    rgba(255,255,255,0.08);
       --text:      #f1f5f9;
       --muted:     #94a3b8;
-      --accent:    #3b82f6;
-      --accent-dk: #2563eb;
-      --accent-bg: #1e3a5f;
+      --accent:    #6366f1;
+      --accent-dk: #4f46e5;
+      --accent-bg: rgba(99,102,241,0.15);
     }
 
     :root[data-theme="light"] {
-      --bg:        #f0f4ff;
-      --surface:   #ffffff;
-      --border:    #dde5f5;
-      --text:      #0f172a;
-      --muted:     #64748b;
-      --accent:    #2563eb;
-      --accent-dk: #1d4ed8;
-      --accent-bg: #eff6ff;
+      --bg:        #0f172a;
+      --surface:   #1e293b;
+      --border:    rgba(255,255,255,0.08);
+      --text:      #f1f5f9;
+      --muted:     #94a3b8;
+      --accent:    #6366f1;
+      --accent-dk: #4f46e5;
+      --accent-bg: rgba(99,102,241,0.15);
     }
 
     body {
@@ -145,7 +132,7 @@
 
     .card:hover {
       border-color: var(--accent);
-      box-shadow: 0 4px 16px rgba(37, 99, 235, 0.1);
+      box-shadow: 0 4px 24px rgba(99,102,241,0.25);
     }
 
     .card-icon {
