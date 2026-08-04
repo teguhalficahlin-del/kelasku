@@ -6,70 +6,74 @@
   <title>SIP Mandiri — Kelola Classroom</title>
   <link rel="stylesheet" href="css/guru.css">
   <style>
-    /* Trial gate — hint text di bawah tombol yang di-disable */
+    /* Trial gate */
     .trial-hint {
       display: block;
-      color: #b71c1c;
+      color: var(--danger);
       font-size: .8rem;
-      margin-top: .3rem;
+      margin-top: .35rem;
     }
 
-    /* Share link — toast notification */
+    /* Toast notification */
     .share-notif {
       position: fixed;
       bottom: 1.5rem;
       left: 50%;
       transform: translateX(-50%);
-      background: #333;
-      color: #fff;
-      padding: .45rem 1.1rem;
+      background: #0f172a;
+      color: #f8fafc;
+      padding: .5rem 1.25rem;
       border-radius: 2rem;
-      font-size: .875rem;
+      font-size: .8125rem;
+      font-weight: 500;
       z-index: 1000;
       pointer-events: none;
       animation: share-in .2s ease;
       white-space: nowrap;
+      box-shadow: 0 4px 12px rgba(0,0,0,.2);
     }
     @keyframes share-in {
       from { opacity: 0; transform: translateX(-50%) translateY(.4rem); }
       to   { opacity: 1; transform: translateX(-50%) translateY(0); }
     }
 
-    /* Checkbox multi-select */
-    .roster-actions { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin-bottom: .75rem; }
-    #btn-gen-terpilih,
-    #btn-hapus-terpilih { font-size: .875rem; }
-    #btn-gen-terpilih:disabled,
-    #btn-hapus-terpilih:disabled { opacity: .45; cursor: not-allowed; }
+    /* Roster action bar */
+    .roster-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .5rem;
+      align-items: center;
+      margin-bottom: .875rem;
+    }
 
-    /* Tombol Hapus dalam mode proses — merah visible */
+    /* Processing states */
     .btn-hapus-processing {
-      background: #e74c3c !important;
-      color: #fff !important;
+      background: var(--danger) !important;
+      color: var(--surface) !important;
+      border-color: var(--danger) !important;
       pointer-events: none;
       cursor: not-allowed;
       opacity: 1 !important;
     }
-
-    /* Tombol Generate dalam mode proses — visible, tidak transparent */
     .btn-processing {
-      background: #f39c12 !important;
-      color: #000 !important;
+      background: #b45309 !important;
+      color: var(--surface) !important;
+      border-color: #b45309 !important;
       pointer-events: none;
       cursor: not-allowed;
       opacity: 1 !important;
     }
 
-    /* Banner peringatan proses berjalan */
+    /* Processing banner */
     #processing-banner {
       display: none;
-      background: #fff3cd;
-      border: 1px solid #ffc107;
-      border-radius: .4rem;
-      padding: .5rem .85rem;
-      margin-bottom: .75rem;
-      font-size: .875rem;
-      color: #856404;
+      background: #fffbeb;
+      border: 1px solid #fcd34d;
+      border-radius: var(--r-sm);
+      padding: .5rem .875rem;
+      margin-bottom: .875rem;
+      font-size: .8125rem;
+      color: #92400e;
     }
 
     /* Pagination */
@@ -77,69 +81,126 @@
       display: flex;
       align-items: center;
       gap: .5rem;
-      margin: .4rem 0;
+      margin: .5rem 0;
       flex-wrap: wrap;
     }
     .pagination-bar button {
-      min-width: 2rem;
-      padding: .28rem .55rem;
-      font-size: .875rem;
+      min-width: 2.25rem;
+      height: 36px;
+      padding: 0 .625rem;
+      font-size: .8125rem;
+      font-weight: 600;
+      color: var(--text-sec);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      cursor: pointer;
+      transition: background var(--transition), border-color var(--transition);
+      font-family: inherit;
     }
+    .pagination-bar button:hover:not(:disabled) {
+      background: var(--surface-sub);
+      border-color: var(--text-muted);
+    }
+    .pagination-bar button:disabled { opacity: .35; cursor: default; }
     .page-label {
-      font-size: .82rem;
-      color: #555;
+      font-size: .8125rem;
+      color: var(--text-muted);
       flex: 1;
       text-align: center;
     }
 
     /* Share buttons */
     .btn-share {
-      font-size: .72rem;
-      padding: .18rem .42rem;
-      border-radius: .3rem;
+      font-size: .75rem;
+      font-weight: 600;
+      padding: .25rem .625rem;
+      border-radius: var(--r-sm);
       cursor: pointer;
-      border: 1px solid currentColor;
+      border: 1.5px solid currentColor;
       background: none;
       line-height: 1.4;
+      font-family: inherit;
+      min-height: 28px;
+      transition: background var(--transition), color var(--transition);
     }
-    .btn-share-siswa { color: #2563eb; border-color: #2563eb; }
-    .btn-share-ortu  { color: #7c3aed; border-color: #7c3aed; }
+    .btn-share-siswa {
+      color: var(--primary);
+      border-color: var(--primary);
+    }
+    .btn-share-siswa:hover { background: var(--primary-light); }
+    .btn-share-ortu {
+      color: #6d28d9;
+      border-color: #c4b5fd;
+    }
+    .btn-share-ortu:hover { background: #f5f3ff; }
 
     /* Roster card layout */
     .card-select-all {
       display: flex;
       align-items: center;
       gap: .5rem;
-      padding: .2rem 0 .5rem;
-      font-size: .85rem;
-      color: #555;
+      padding: .25rem 0 .625rem;
+      font-size: .8125rem;
+      font-weight: 500;
+      color: var(--text-sec);
     }
     .card-select-all label { cursor: pointer; user-select: none; }
+
     .roster-cards { display: flex; flex-direction: column; gap: .5rem; }
+
     .roster-card {
       display: grid;
       grid-template-columns: 1.5rem 1fr;
-      gap: .4rem .75rem;
-      padding: .75rem 1rem;
-      border: 1px solid #e5e7eb;
-      border-radius: .6rem;
-      background: #fff;
+      gap: .4rem .875rem;
+      padding: .875rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      background: var(--surface);
+      box-shadow: var(--shadow-card);
       align-items: start;
+      transition: border-color var(--transition);
     }
+    .roster-card:hover { border-color: #cbd5e1; }
+
     .card-body { display: flex; flex-direction: column; gap: .25rem; min-width: 0; }
     .card-top  { display: flex; justify-content: space-between; align-items: flex-start; gap: .5rem; }
-    .card-name { font-weight: 600; font-size: .95rem; word-break: break-word; }
+
+    .card-name {
+      font-weight: 600;
+      font-size: .9375rem;
+      color: var(--text);
+      word-break: break-word;
+      letter-spacing: -.01em;
+    }
+
     .card-badge {
-      font-size: .7rem;
-      padding: .15rem .5rem;
-      border-radius: 2rem;
+      font-size: .6875rem;
+      font-weight: 600;
+      padding: .2rem .55rem;
+      border-radius: 99px;
       white-space: nowrap;
       flex-shrink: 0;
+      letter-spacing: .01em;
     }
-    .card-badge-sudah { background: #d1fae5; color: #065f46; }
-    .card-badge-belum { background: #fee2e2; color: #991b1b; }
-    .card-meta  { font-size: .8rem; color: #6b7280; }
-    .card-actions { display: flex; gap: .35rem; flex-wrap: wrap; margin-top: .2rem; align-items: center; }
+    .card-badge-sudah {
+      background: var(--success-bg);
+      color: var(--success-text);
+    }
+    .card-badge-belum {
+      background: var(--surface-sub);
+      color: var(--text-sec);
+      border: 1px solid var(--border);
+    }
+
+    .card-meta  { font-size: .8125rem; color: var(--text-muted); }
+    .card-actions {
+      display: flex;
+      gap: .35rem;
+      flex-wrap: wrap;
+      margin-top: .25rem;
+      align-items: center;
+    }
 
     /* Form input — fluid grid tanpa breakpoint pixel */
     .inline-form {
@@ -149,11 +210,12 @@
       align-items: center;
     }
 
-    /* Share link — fallback overlay */
+    /* Share overlay */
     .share-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, .45);
+      background: rgba(15,23,42,.5);
+      backdrop-filter: blur(2px);
       z-index: 999;
       display: flex;
       align-items: center;
@@ -161,27 +223,29 @@
       padding: 1rem;
     }
     .share-box {
-      background: #fff;
-      border-radius: .75rem;
-      padding: 1.25rem;
+      background: var(--surface);
+      border-radius: var(--r-lg);
+      padding: 1.5rem;
       width: 100%;
       max-width: 480px;
       display: flex;
       flex-direction: column;
-      gap: .75rem;
-      box-shadow: 0 4px 24px rgba(0,0,0,.18);
+      gap: .875rem;
+      box-shadow: var(--shadow-modal);
     }
-    .share-box p { margin: 0; font-weight: 600; }
+    .share-box p { margin: 0; font-weight: 600; color: var(--text); }
     .share-box textarea {
       width: 100%;
       box-sizing: border-box;
       resize: none;
-      border: 1px solid #ddd;
-      border-radius: .4rem;
-      padding: .5rem;
-      font-family: monospace;
-      font-size: .82rem;
-      line-height: 1.5;
+      border: 1.5px solid var(--border);
+      border-radius: var(--r-md);
+      padding: .625rem .75rem;
+      font-family: ui-monospace, monospace;
+      font-size: .8125rem;
+      line-height: 1.6;
+      color: var(--text);
+      background: var(--surface-sub);
     }
     .share-box button { align-self: flex-end; }
   </style>

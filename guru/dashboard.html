@@ -7,13 +7,23 @@
   <link rel="stylesheet" href="css/guru.css">
   <style>
     .trial-banner {
-      padding: .6rem 1rem;
-      border-radius: .4rem;
+      padding: .625rem 1rem;
+      border-radius: var(--r-sm);
       margin-bottom: 1rem;
-      font-size: .9rem;
+      font-size: .875rem;
+      line-height: 1.5;
     }
-    .trial-info    { background: #e8f4fd; color: #1a6fa8; border: 1px solid #b3d7f0; }
-    .trial-expired { background: #fdecea; color: #b71c1c; border: 1px solid #f5c6c6; font-weight: 600; }
+    .trial-info {
+      background: var(--primary-light);
+      color: var(--primary);
+      border: 1px solid #bfdbfe;
+    }
+    .trial-expired {
+      background: var(--danger-bg);
+      color: var(--danger);
+      border: 1px solid #fecaca;
+      font-weight: 600;
+    }
   </style>
 </head>
 <body class="dashboard">
