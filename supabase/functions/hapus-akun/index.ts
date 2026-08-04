@@ -41,24 +41,15 @@ Deno.serve(async (req) => {
     return json({ success: false, error: 'profile_id dan classroom_id wajib', step: 'validate' }, 400);
   }
 
-  // 3. Verifikasi role GURU + ownership classroom
-  const { data: guruProfile, error: gpError } = await supabase
+  // 3. Verifikasi role GURU + ownership classroom dalam satu query atomic
+  const { data: guruProfile, error: profileError } = await supabase
     .from('profiles')
-    .select('id, role')
+    .select('id, role, classrooms!classrooms_teacher_id_fkey!inner(id)')
     .eq('user_id', user.id)
+    .eq('classrooms.id', classroom_id)
     .single();
-  if (gpError || !guruProfile || guruProfile.role !== 'GURU') {
-    return json({ success: false, error: 'Forbidden: bukan GURU', step: 'ownership' }, 403);
-  }
-
-  const { data: classroom, error: clError } = await supabase
-    .from('classrooms')
-    .select('id')
-    .eq('id', classroom_id)
-    .eq('teacher_id', guruProfile.id)
-    .single();
-  if (clError || !classroom) {
-    return json({ success: false, error: 'Forbidden: bukan pemilik classroom', step: 'ownership' }, 403);
+  if (profileError || !guruProfile || guruProfile.role !== 'GURU') {
+    return json({ success: false, error: 'Forbidden', step: 'ownership' }, 403);
   }
 
   // Admin client — semua operasi berikut bypass RLS
