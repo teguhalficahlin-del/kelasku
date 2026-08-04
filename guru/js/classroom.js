@@ -5,6 +5,7 @@
   let currentClassroomId = null;
   let currentClassroom   = null;
   let trialStatus        = null;
+  let currentRows        = [];
 
   function escHtml(str) {
     return String(str)
@@ -34,9 +35,11 @@
     }
 
     countEl.textContent = rows ? rows.length : 0;
+    currentRows = rows || [];
 
     if (!rows || rows.length === 0) {
       listEl.innerHTML = '<p class="empty-state">Belum ada siswa. Tambah via form atau upload CSV.</p>';
+      updateSelectionUI();
       return;
     }
 
@@ -53,6 +56,7 @@
       const links = generateShareLink(r);
       tbody +=
         '<tr>' +
+          '<td><input type="checkbox" class="chk-row" data-idx="' + i + '"></td>' +
           '<td>' + (i + 1) + '</td>' +
           '<td>' + escHtml(r.full_name) + '</td>' +
           '<td>' + escHtml(r.nis) + '</td>' +
@@ -74,11 +78,32 @@
     listEl.innerHTML =
       '<table>' +
         '<thead><tr>' +
+          '<th><input type="checkbox" id="chk-all" title="Centang semua"></th>' +
           '<th>No</th><th>Nama</th><th>NIS</th><th>Nama Ortu</th>' +
           '<th>Status Akun</th><th>Generate</th><th>Bagikan</th><th>Hapus</th>' +
         '</tr></thead>' +
         '<tbody>' + tbody + '</tbody>' +
       '</table>';
+
+    // Checkbox utama
+    var chkAll = listEl.querySelector('#chk-all');
+    chkAll.addEventListener('change', function () {
+      listEl.querySelectorAll('.chk-row').forEach(function (c) { c.checked = chkAll.checked; });
+      updateSelectionUI();
+    });
+
+    // Checkbox per baris
+    listEl.querySelectorAll('.chk-row').forEach(function (chk) {
+      chk.addEventListener('change', function () {
+        var all = listEl.querySelectorAll('.chk-row');
+        var checked = listEl.querySelectorAll('.chk-row:checked');
+        chkAll.indeterminate = checked.length > 0 && checked.length < all.length;
+        chkAll.checked = checked.length === all.length;
+        updateSelectionUI();
+      });
+    });
+
+    updateSelectionUI();
 
     listEl.querySelectorAll('.btn-gen-akun').forEach(function (btn) {
       btn.addEventListener('click', async function () {
@@ -358,6 +383,14 @@
     await generateAllAccounts();
   });
 
+  document.getElementById('btn-gen-terpilih').addEventListener('click', async function () {
+    await generateTerpilih();
+  });
+
+  document.getElementById('btn-hapus-terpilih').addEventListener('click', async function () {
+    await hapusTerpilih();
+  });
+
   // -------------------------------------------------------------------------
   // generateSingleAccount
   // -------------------------------------------------------------------------
@@ -462,6 +495,118 @@
     const json = await res.json();
     if (!json.success) return { error: json.error || 'Hapus akun gagal.' };
     return { deleted: json.deleted };
+  }
+
+  // -------------------------------------------------------------------------
+  // updateSelectionUI — sinkronkan label + disabled kedua tombol terpilih
+  // -------------------------------------------------------------------------
+
+  function updateSelectionUI() {
+    var listEl = document.getElementById('roster-list');
+    var checked = listEl ? listEl.querySelectorAll('.chk-row:checked') : [];
+    var countGen   = 0;
+    var countHapus = 0;
+    checked.forEach(function (chk) {
+      var r = currentRows[parseInt(chk.dataset.idx, 10)];
+      if (!r) return;
+      if (!r.profile_id) countGen++;
+      else               countHapus++;
+    });
+
+    var btnGen   = document.getElementById('btn-gen-terpilih');
+    var btnHapus = document.getElementById('btn-hapus-terpilih');
+    if (!btnGen || !btnHapus) return;
+
+    btnGen.textContent   = 'Generate Terpilih (' + countGen + ')';
+    btnHapus.textContent = 'Hapus Terpilih (' + countHapus + ')';
+
+    var isExpired = trialStatus && trialStatus.status === 'expired';
+    btnGen.disabled   = countGen   === 0 || isExpired;
+    btnHapus.disabled = countHapus === 0 || isExpired;
+  }
+
+  // -------------------------------------------------------------------------
+  // generateTerpilih — proses berurutan siswa yang dicentang + belum punya akun
+  // -------------------------------------------------------------------------
+
+  async function generateTerpilih() {
+    var listEl  = document.getElementById('roster-list');
+    var checked = listEl ? listEl.querySelectorAll('.chk-row:checked') : [];
+    var targets = [];
+    checked.forEach(function (chk) {
+      var r = currentRows[parseInt(chk.dataset.idx, 10)];
+      if (r && !r.profile_id) targets.push(r);
+    });
+    if (targets.length === 0) return;
+
+    var ok = window.confirm('Generate akun untuk ' + targets.length + ' siswa?');
+    if (!ok) return;
+
+    var btnGen   = document.getElementById('btn-gen-terpilih');
+    var resultEl = document.getElementById('generate-result');
+    btnGen.disabled = true;
+    resultEl.style.display = 'none';
+
+    var berhasil = 0;
+    var gagal    = 0;
+    for (var i = 0; i < targets.length; i++) {
+      var row = targets[i];
+      btnGen.textContent = 'Memproses ' + row.full_name + '... (' + (i + 1) + '/' + targets.length + ')';
+      var result = await generateSingleAccount(row);
+      if (result.error) { gagal++; } else { berhasil++; }
+    }
+
+    resultEl.textContent   = 'Selesai: ' + berhasil + ' berhasil, ' + gagal + ' gagal.';
+    resultEl.style.display = 'block';
+
+    // Uncentang semua
+    if (listEl) {
+      listEl.querySelectorAll('.chk-row').forEach(function (c) { c.checked = false; });
+      var chkAll = listEl.querySelector('#chk-all');
+      if (chkAll) { chkAll.checked = false; chkAll.indeterminate = false; }
+    }
+    await loadRoster();
+  }
+
+  // -------------------------------------------------------------------------
+  // hapusTerpilih — proses berurutan siswa yang dicentang + sudah punya akun
+  // -------------------------------------------------------------------------
+
+  async function hapusTerpilih() {
+    var listEl  = document.getElementById('roster-list');
+    var checked = listEl ? listEl.querySelectorAll('.chk-row:checked') : [];
+    var targets = [];
+    checked.forEach(function (chk) {
+      var r = currentRows[parseInt(chk.dataset.idx, 10)];
+      if (r && r.profile_id) targets.push(r);
+    });
+    if (targets.length === 0) return;
+
+    var ok = window.confirm(
+      'Hapus akun ' + targets.length + ' siswa yang dipilih?\nTindakan ini tidak bisa dibatalkan.'
+    );
+    if (!ok) return;
+
+    var btnHapus = document.getElementById('btn-hapus-terpilih');
+    btnHapus.disabled = true;
+
+    var berhasil = 0;
+    var gagal    = 0;
+    for (var i = 0; i < targets.length; i++) {
+      var row = targets[i];
+      btnHapus.textContent = 'Menghapus ' + row.full_name + '... (' + (i + 1) + '/' + targets.length + ')';
+      var result = await hapusAkun(row.profile_id);
+      if (result.error) { gagal++; } else { berhasil++; }
+    }
+
+    showShareNotif('Selesai: ' + berhasil + ' berhasil dihapus, ' + gagal + ' gagal.');
+
+    if (listEl) {
+      listEl.querySelectorAll('.chk-row').forEach(function (c) { c.checked = false; });
+      var chkAll = listEl.querySelector('#chk-all');
+      if (chkAll) { chkAll.checked = false; chkAll.indeterminate = false; }
+    }
+    await loadRoster();
   }
 
   // -------------------------------------------------------------------------

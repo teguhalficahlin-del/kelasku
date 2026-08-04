@@ -35,6 +35,13 @@
       to   { opacity: 1; transform: translateX(-50%) translateY(0); }
     }
 
+    /* Checkbox multi-select */
+    .roster-actions { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin-bottom: .75rem; }
+    #btn-gen-terpilih,
+    #btn-hapus-terpilih { font-size: .875rem; }
+    #btn-gen-terpilih:disabled,
+    #btn-hapus-terpilih:disabled { opacity: .45; cursor: not-allowed; }
+
     /* Share link — fallback overlay */
     .share-overlay {
       position: fixed;
@@ -109,7 +116,8 @@
         Mendukung <strong>CSV</strong> dan <strong>Excel (.xlsx/.xls)</strong>.<br>
         Kolom: <code>nama, nis, nama_ortu</code> (nama_ortu opsional) — satu siswa per baris.<br>
         Header row opsional — di-skip otomatis jika NIS bukan angka.<br>
-        Excel: sheet pertama yang dipakai. Nama kolom case-insensitive.
+        Excel: sheet pertama yang dipakai. Nama kolom case-insensitive.<br>
+        <a href="../shared/template-siswa.xlsx" download>Download template Excel</a>
       </p>
       <div class="inline-form">
         <input type="file" id="inp-csv" accept=".csv,.xlsx,.xls">
@@ -123,6 +131,8 @@
       <h2>Daftar Siswa (<span id="roster-count">0</span>)</h2>
       <div class="roster-actions">
         <button type="button" id="btn-generate-semua">Generate Semua Akun</button>
+        <button type="button" id="btn-gen-terpilih" disabled>Generate Terpilih (0)</button>
+        <button type="button" id="btn-hapus-terpilih" disabled>Hapus Terpilih (0)</button>
         <div id="generate-result" style="display:none;"></div>
       </div>
       <div id="roster-list"></div>
