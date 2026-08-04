@@ -67,11 +67,6 @@
             '<button class="btn-qr" data-idx="' + i + '">QR</button> ' +
             '<button class="btn-link" data-idx="' + i + '" data-siswa="' + escHtml(links.siswa) + '" data-ortu="' + escHtml(links.ortu) + '">Link</button>' +
           '</td>' +
-          '<td>' +
-            (isExpired
-              ? '<button disabled class="btn-hapus-disabled" title="Aktifkan akun untuk menggunakan fitur ini">Hapus</button>'
-              : '<button class="btn-hapus" data-idx="' + i + '">Hapus</button>') +
-          '</td>' +
         '</tr>';
     });
 
@@ -80,7 +75,7 @@
         '<thead><tr>' +
           '<th><input type="checkbox" id="chk-all" title="Centang semua"></th>' +
           '<th>No</th><th>Nama</th><th>NIS</th><th>Nama Ortu</th>' +
-          '<th>Status Akun</th><th>Generate</th><th>Bagikan</th><th>Hapus</th>' +
+          '<th>Status Akun</th><th>Generate</th><th>Bagikan</th>' +
         '</tr></thead>' +
         '<tbody>' + tbody + '</tbody>' +
       '</table>';
@@ -151,54 +146,6 @@
       });
     });
 
-    listEl.querySelectorAll('.btn-hapus').forEach(function (btn) {
-      btn.addEventListener('click', async function () {
-        const row = rows[parseInt(this.dataset.idx, 10)];
-
-        if (row.profile_id) {
-          const ok = window.confirm(
-            'Hapus akun ' + row.full_name + ' (NIS: ' + row.nis + ')?\n' +
-            'Akun siswa dan ortu akan terhapus permanen.'
-          );
-          if (!ok) return;
-          this.disabled = true;
-          this.textContent = 'Menghapus...';
-          const result = await hapusAkun(row.profile_id);
-          if (result.error) {
-            alert('Gagal hapus akun: ' + result.error);
-            this.disabled = false;
-            this.textContent = 'Hapus';
-          } else {
-            this.closest('tr').remove();
-            const countEl = document.getElementById('roster-count');
-            if (countEl) { countEl.textContent = Math.max(0, parseInt(countEl.textContent, 10) - 1); }
-            showShareNotif('Akun ' + row.full_name + ' berhasil dihapus');
-          }
-        } else {
-          const ok = window.confirm(
-            'Hapus ' + row.full_name + ' (NIS: ' + row.nis + ') dari roster?\n' +
-            'Siswa belum punya akun — hanya data roster yang dihapus.'
-          );
-          if (!ok) return;
-          this.disabled = true;
-          this.textContent = 'Menghapus...';
-          const { error } = await client
-            .from('classroom_roster')
-            .delete()
-            .eq('id', row.id);
-          if (error) {
-            alert('Gagal hapus: ' + error.message);
-            this.disabled = false;
-            this.textContent = 'Hapus';
-          } else {
-            this.closest('tr').remove();
-            const countEl = document.getElementById('roster-count');
-            if (countEl) { countEl.textContent = Math.max(0, parseInt(countEl.textContent, 10) - 1); }
-            showShareNotif(row.full_name + ' berhasil dihapus dari roster');
-          }
-        }
-      });
-    });
   }
 
   // -------------------------------------------------------------------------
@@ -500,25 +447,23 @@
   function updateSelectionUI() {
     var listEl = document.getElementById('roster-list');
     var checked = listEl ? listEl.querySelectorAll('.chk-row:checked') : [];
-    var countGen   = 0;
-    var countHapus = 0;
+    var countChecked = checked.length;
+    var countHapus   = 0;
     checked.forEach(function (chk) {
       var r = currentRows[parseInt(chk.dataset.idx, 10)];
-      if (!r) return;
-      if (!r.profile_id) countGen++;
-      else               countHapus++;
+      if (r && r.profile_id) countHapus++;
     });
 
     var btnGen   = document.getElementById('btn-gen-terpilih');
     var btnHapus = document.getElementById('btn-hapus-terpilih');
     if (!btnGen || !btnHapus) return;
 
-    btnGen.textContent   = 'Generate Terpilih (' + countGen + ')';
+    btnGen.textContent   = 'Generate Terpilih (' + countChecked + ')';
     btnHapus.textContent = 'Hapus Terpilih (' + countHapus + ')';
 
     var isExpired = trialStatus && trialStatus.status === 'expired';
-    btnGen.disabled   = countGen   === 0 || isExpired;
-    btnHapus.disabled = countHapus === 0 || isExpired;
+    btnGen.disabled   = countChecked === 0 || isExpired;
+    btnHapus.disabled = countHapus   === 0 || isExpired;
   }
 
   // -------------------------------------------------------------------------
@@ -529,10 +474,17 @@
     var listEl  = document.getElementById('roster-list');
     var checked = listEl ? listEl.querySelectorAll('.chk-row:checked') : [];
     var targets = [];
+    var sudahPunyaAkun = 0;
     checked.forEach(function (chk) {
       var r = currentRows[parseInt(chk.dataset.idx, 10)];
-      if (r && !r.profile_id) targets.push(r);
+      if (!r) return;
+      if (r.profile_id) { sudahPunyaAkun++; } else { targets.push(r); }
     });
+
+    if (sudahPunyaAkun > 0) {
+      alert('Beberapa siswa yang dipilih sudah punya akun. Pilih hanya siswa yang belum punya akun untuk generate.');
+      return;
+    }
     if (targets.length === 0) return;
 
     var ok = window.confirm('Generate akun untuk ' + targets.length + ' siswa?');
