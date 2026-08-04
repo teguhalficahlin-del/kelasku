@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SIP Mandiri — Ruang Catatan Guru</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #f0f4ff;
+      --surface:   #ffffff;
+      --border:    #dde5f5;
+      --text:      #0f172a;
+      --muted:     #64748b;
+      --accent:    #2563eb;
+      --accent-dk: #1d4ed8;
+      --accent-bg: #eff6ff;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg:        #0f172a;
+        --surface:   #1e293b;
+        --border:    #334155;
+        --text:      #f1f5f9;
+        --muted:     #94a3b8;
+        --accent:    #3b82f6;
+        --accent-dk: #2563eb;
+        --accent-bg: #1e3a5f;
+      }
+    }
+
+    :root[data-theme="dark"] {
+      --bg:        #0f172a;
+      --surface:   #1e293b;
+      --border:    #334155;
+      --text:      #f1f5f9;
+      --muted:     #94a3b8;
+      --accent:    #3b82f6;
+      --accent-dk: #2563eb;
+      --accent-bg: #1e3a5f;
+    }
+
+    :root[data-theme="light"] {
+      --bg:        #f0f4ff;
+      --surface:   #ffffff;
+      --border:    #dde5f5;
+      --text:      #0f172a;
+      --muted:     #64748b;
+      --accent:    #2563eb;
+      --accent-dk: #1d4ed8;
+      --accent-bg: #eff6ff;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2.5rem 1rem 3rem;
+    }
+
+    .wrap {
+      width: 100%;
+      max-width: 860px;
+    }
+
+    /* Header */
+    .brand {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .brand-mark {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 52px;
+      height: 52px;
+      background: var(--accent);
+      border-radius: 14px;
+      margin-bottom: 0.75rem;
+    }
+
+    .brand-mark svg {
+      width: 28px;
+      height: 28px;
+      fill: #fff;
+    }
+
+    .brand h1 {
+      font-size: 1.625rem;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+    }
+
+    .brand .tagline {
+      margin-top: 0.4rem;
+      font-size: 0.9375rem;
+      color: var(--muted);
+    }
+
+    /* Label seksi */
+    .section-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+
+    /* Cards */
+    .cards {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    @media (min-width: 600px) {
+      .cards {
+        flex-direction: row;
+        align-items: stretch;
+      }
+    }
+
+    .card {
+      flex: 1;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 1.5rem 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .card:hover {
+      border-color: var(--accent);
+      box-shadow: 0 4px 16px rgba(37, 99, 235, 0.1);
+    }
+
+    .card-icon {
+      font-size: 1.875rem;
+      line-height: 1;
+      margin-bottom: 0.25rem;
+    }
+
+    .card h2 {
+      font-size: 1.0625rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .card p {
+      font-size: 0.875rem;
+      color: var(--muted);
+      line-height: 1.55;
+      flex: 1;
+    }
+
+    .btn {
+      display: block;
+      text-align: center;
+      padding: 0.625rem 1rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      text-decoration: none;
+      margin-top: 0.75rem;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-dk);
+    }
+
+    .btn-outline {
+      background: var(--accent-bg);
+      color: var(--accent);
+      border: 1.5px solid var(--border);
+    }
+
+    .btn-outline:hover {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    /* Footer area */
+    .footer {
+      margin-top: 2rem;
+      text-align: center;
+    }
+
+    .footer p {
+      font-size: 0.875rem;
+      color: var(--muted);
+    }
+
+    .footer a {
+      color: var(--accent);
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    .footer a:hover { text-decoration: underline; }
+
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 2rem 0 1.25rem;
+    }
+
+    .footer-note {
+      font-size: 0.8125rem;
+      color: var(--muted);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .card, .btn { transition: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">
+        <!-- Ikon buku/catatan sederhana -->
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 4a2 2 0 0 1 2-2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4zm2 0v16h12V8.5L13.5 4H6zm2 8h8v1.5H8V12zm0 3h6v1.5H8V15z"/>
+        </svg>
+      </div>
+      <h1>SIP Mandiri</h1>
+      <p class="tagline">Ruang catatan siswa untuk guru — mandiri dan mudah.</p>
+    </div>
+
+    <p class="section-label">Pilih peran Anda</p>
+
+    <div class="cards">
+
+      <div class="card">
+        <div class="card-icon">👩‍🏫</div>
+        <h2>Guru</h2>
+        <p>Kelola classroom, catat perkembangan siswa, dan jadwalkan sesi bimbingan.</p>
+        <a href="guru/index.html" class="btn btn-primary">Masuk sebagai Guru</a>
+      </div>
+
+      <div class="card">
+        <div class="card-icon">🎓</div>
+        <h2>Siswa</h2>
+        <p>Lihat catatan dan informasi dari guru Anda.</p>
+        <a href="siswa/index.html" class="btn btn-outline">Masuk sebagai Siswa</a>
+      </div>
+
+      <div class="card">
+        <div class="card-icon">👨‍👩‍👧</div>
+        <h2>Orang Tua</h2>
+        <p>Pantau catatan dan perkembangan belajar anak Anda.</p>
+        <a href="ortu/index.html" class="btn btn-outline">Masuk sebagai Orang Tua</a>
+      </div>
+
+    </div>
+
+    <div class="footer">
+      <hr class="divider">
+      <p>Guru baru? <a href="onboarding.html">Daftar sebagai Guru</a></p>
+      <p class="footer-note" style="margin-top:0.5rem;">Siswa dan orang tua masuk menggunakan username dan PIN dari guru.</p>
+    </div>
+
+  </div>
+</body>
+</html>

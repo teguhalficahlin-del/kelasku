@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SIP Mandiri — Daftar Guru</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #f0f4ff;
+      --surface:   #ffffff;
+      --border:    #dde5f5;
+      --text:      #0f172a;
+      --muted:     #64748b;
+      --accent:    #2563eb;
+      --accent-dk: #1d4ed8;
+      --accent-bg: #eff6ff;
+      --error-bg:  #fff0f0;
+      --error-txt: #b91c1c;
+      --error-bdr: #fecaca;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg:        #0f172a;
+        --surface:   #1e293b;
+        --border:    #334155;
+        --text:      #f1f5f9;
+        --muted:     #94a3b8;
+        --accent:    #3b82f6;
+        --accent-dk: #2563eb;
+        --accent-bg: #1e3a5f;
+        --error-bg:  #2d1a1a;
+        --error-txt: #fca5a5;
+        --error-bdr: #7f1d1d;
+      }
+    }
+
+    :root[data-theme="dark"] {
+      --bg:        #0f172a;
+      --surface:   #1e293b;
+      --border:    #334155;
+      --text:      #f1f5f9;
+      --muted:     #94a3b8;
+      --accent:    #3b82f6;
+      --accent-dk: #2563eb;
+      --accent-bg: #1e3a5f;
+      --error-bg:  #2d1a1a;
+      --error-txt: #fca5a5;
+      --error-bdr: #7f1d1d;
+    }
+
+    :root[data-theme="light"] {
+      --bg:        #f0f4ff;
+      --surface:   #ffffff;
+      --border:    #dde5f5;
+      --text:      #0f172a;
+      --muted:     #64748b;
+      --accent:    #2563eb;
+      --accent-dk: #1d4ed8;
+      --accent-bg: #eff6ff;
+      --error-bg:  #fff0f0;
+      --error-txt: #b91c1c;
+      --error-bdr: #fecaca;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem 3rem;
+    }
+
+    .wrap {
+      width: 100%;
+      max-width: 480px;
+    }
+
+    /* Nav atas */
+    .top-nav {
+      margin-bottom: 1.75rem;
+    }
+
+    .back-link {
+      font-size: 0.875rem;
+      color: var(--accent);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      font-weight: 500;
+    }
+
+    .back-link:hover { text-decoration: underline; }
+
+    /* Header */
+    .brand {
+      text-align: center;
+      margin-bottom: 1.75rem;
+    }
+
+    .brand h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.02em;
+    }
+
+    .brand .sub {
+      font-size: 0.9375rem;
+      color: var(--muted);
+      margin-top: 0.3rem;
+    }
+
+    /* Manfaat */
+    .benefits {
+      background: var(--accent-bg);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 1.125rem 1.25rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.625rem;
+    }
+
+    .benefit-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.625rem;
+      font-size: 0.875rem;
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    .benefit-icon {
+      flex-shrink: 0;
+      font-size: 1rem;
+      margin-top: 0.05rem;
+    }
+
+    /* Form card */
+    .form-card {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 1.75rem 1.5rem;
+    }
+
+    .form-card h2 {
+      font-size: 1.0625rem;
+      font-weight: 700;
+      margin-bottom: 1.25rem;
+      color: var(--text);
+    }
+
+    .field {
+      margin-bottom: 1rem;
+    }
+
+    label {
+      display: block;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 0.35rem;
+      letter-spacing: 0.01em;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="password"] {
+      display: block;
+      width: 100%;
+      padding: 0.65rem 0.75rem;
+      font-size: 1rem;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg);
+      color: var(--text);
+      transition: border-color 0.15s;
+      font-family: inherit;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: var(--accent);
+      background: var(--surface);
+    }
+
+    input::placeholder { color: var(--muted); opacity: 0.7; }
+
+    .btn-submit {
+      display: block;
+      width: 100%;
+      padding: 0.75rem;
+      font-size: 1rem;
+      font-weight: 700;
+      color: #fff;
+      background: var(--accent);
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 0.5rem;
+      font-family: inherit;
+      transition: background 0.15s;
+    }
+
+    .btn-submit:hover:not(:disabled) { background: var(--accent-dk); }
+
+    .btn-submit:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    /* Error */
+    .error-msg {
+      background: var(--error-bg);
+      border: 1px solid var(--error-bdr);
+      color: var(--error-txt);
+      border-radius: 8px;
+      padding: 0.7rem 0.9rem;
+      font-size: 0.875rem;
+      margin-bottom: 1rem;
+      line-height: 1.5;
+    }
+
+    /* Sukses */
+    .success-msg {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      color: #15803d;
+      border-radius: 8px;
+      padding: 0.9rem 1rem;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      text-align: center;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .success-msg {
+        background: #052e16;
+        border-color: #166534;
+        color: #86efac;
+      }
+    }
+
+    /* Footer link */
+    .footer-link {
+      margin-top: 1.25rem;
+      text-align: center;
+      font-size: 0.875rem;
+      color: var(--muted);
+    }
+
+    .footer-link a {
+      color: var(--accent);
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    .footer-link a:hover { text-decoration: underline; }
+
+    @media (prefers-reduced-motion: reduce) {
+      input, .btn-submit { transition: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+
+    <nav class="top-nav">
+      <a href="index.html" class="back-link">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+        Kembali
+      </a>
+    </nav>
+
+    <div class="brand">
+      <h1>SIP Mandiri</h1>
+      <p class="sub">Daftar akun guru — gratis, tanpa ikatan institusi.</p>
+    </div>
+
+    <div class="benefits" aria-label="Manfaat SIP Mandiri">
+      <div class="benefit-item">
+        <span class="benefit-icon" aria-hidden="true">📋</span>
+        <span>Kelola daftar siswa dan roster kelas dengan mudah</span>
+      </div>
+      <div class="benefit-item">
+        <span class="benefit-icon" aria-hidden="true">📝</span>
+        <span>Catat perkembangan setiap siswa secara terstruktur</span>
+      </div>
+      <div class="benefit-item">
+        <span class="benefit-icon" aria-hidden="true">📅</span>
+        <span>Jadwalkan sesi bimbingan dan pantau kehadiran</span>
+      </div>
+      <div class="benefit-item">
+        <span class="benefit-icon" aria-hidden="true">🔗</span>
+        <span>Bagikan akses ke siswa dan orang tua via kode kelas</span>
+      </div>
+    </div>
+
+    <div class="form-card">
+      <h2>Buat Akun Guru</h2>
+
+      <div id="error-msg" class="error-msg" style="display:none;" role="alert"></div>
+      <div id="success-msg" class="success-msg" style="display:none;" role="status"></div>
+
+      <form id="form-daftar" novalidate>
+        <div class="field">
+          <label for="full_name">Nama Lengkap</label>
+          <input type="text" id="full_name" name="full_name" required
+            placeholder="Nama lengkap Anda" autocomplete="name">
+        </div>
+
+        <div class="field">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" required
+            placeholder="email@sekolah.id" autocomplete="email">
+        </div>
+
+        <div class="field">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" required
+            placeholder="Minimal 6 karakter" autocomplete="new-password">
+        </div>
+
+        <button type="submit" id="btn-daftar" class="btn-submit">Daftar</button>
+      </form>
+    </div>
+
+    <p class="footer-link">Sudah punya akun? <a href="guru/index.html">Masuk di sini</a></p>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="shared/js/supabase.js"></script>
+  <script>
+  (function () {
+    var client  = window.supabaseClient;
+    var form    = document.getElementById('form-daftar');
+    var errorEl = document.getElementById('error-msg');
+    var successEl = document.getElementById('success-msg');
+    var btn     = document.getElementById('btn-daftar');
+
+    function showError(msg) {
+      errorEl.textContent = msg;
+      errorEl.style.display = 'block';
+      successEl.style.display = 'none';
+    }
+
+    function hideError() {
+      errorEl.textContent = '';
+      errorEl.style.display = 'none';
+    }
+
+    function showSuccess(msg) {
+      successEl.textContent = msg;
+      successEl.style.display = 'block';
+      errorEl.style.display = 'none';
+    }
+
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      hideError();
+
+      var full_name = document.getElementById('full_name').value.trim();
+      var email     = document.getElementById('email').value.trim();
+      var password  = document.getElementById('password').value;
+
+      if (!full_name || !email || !password) {
+        showError('Semua field wajib diisi.');
+        return;
+      }
+      if (password.length < 6) {
+        showError('Password minimal 6 karakter.');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Mendaftar...';
+
+      var _a = await client.auth.signUp({ email: email, password: password });
+      var signUpData  = _a.data;
+      var signUpError = _a.error;
+
+      if (signUpError) {
+        showError('Gagal mendaftar: ' + signUpError.message);
+        btn.disabled = false;
+        btn.textContent = 'Daftar';
+        return;
+      }
+
+      var userId = signUpData.user && signUpData.user.id;
+      if (!userId) {
+        showSuccess('Daftar berhasil! Cek email konfirmasi Anda, lalu kembali untuk masuk.');
+        form.style.display = 'none';
+        return;
+      }
+
+      var _b = await client
+        .from('profiles')
+        .insert({ user_id: userId, full_name: full_name, role: 'GURU', email: email });
+      var profileError = _b.error;
+
+      if (profileError) {
+        showError('Akun dibuat, tapi gagal menyimpan profil: ' + profileError.message +
+          '. Cek inbox email Anda untuk konfirmasi, lalu coba masuk.');
+        btn.disabled = false;
+        btn.textContent = 'Daftar';
+        return;
+      }
+
+      window.location.href = 'guru/dashboard.html';
+    });
+  }());
+  </script>
+</body>
+</html>
