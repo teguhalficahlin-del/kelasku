@@ -402,7 +402,7 @@
 
     const { error } = await client
       .from('classroom_roster')
-      .upsert(rows, { onConflict: 'classroom_id,nis', ignoreDuplicates: true });
+      .upsert(rows, { onConflict: 'classroom_id,nis' });
 
     if (error) {
       resultEl.textContent   = 'Gagal import: ' + error.message;
