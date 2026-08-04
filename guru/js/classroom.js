@@ -448,22 +448,17 @@
     var listEl = document.getElementById('roster-list');
     var checked = listEl ? listEl.querySelectorAll('.chk-row:checked') : [];
     var countChecked = checked.length;
-    var countHapus   = 0;
-    checked.forEach(function (chk) {
-      var r = currentRows[parseInt(chk.dataset.idx, 10)];
-      if (r && r.profile_id) countHapus++;
-    });
 
     var btnGen   = document.getElementById('btn-gen-terpilih');
     var btnHapus = document.getElementById('btn-hapus-terpilih');
     if (!btnGen || !btnHapus) return;
 
     btnGen.textContent   = 'Generate Terpilih (' + countChecked + ')';
-    btnHapus.textContent = 'Hapus Terpilih (' + countHapus + ')';
+    btnHapus.textContent = 'Hapus Terpilih (' + countChecked + ')';
 
     var isExpired = trialStatus && trialStatus.status === 'expired';
     btnGen.disabled   = countChecked === 0 || isExpired;
-    btnHapus.disabled = countHapus   === 0 || isExpired;
+    btnHapus.disabled = countChecked === 0 || isExpired;
   }
 
   // -------------------------------------------------------------------------
@@ -527,19 +522,29 @@
   // hapusTerpilih — proses berurutan siswa yang dicentang + sudah punya akun
   // -------------------------------------------------------------------------
 
+  async function hapusRosterOnly(row) {
+    const { error } = await client
+      .from('classroom_roster')
+      .delete()
+      .eq('classroom_id', currentClassroomId)
+      .eq('nis', row.nis);
+    if (error) return { error: error.message };
+    return { deleted: true };
+  }
+
   async function hapusTerpilih() {
     var listEl  = document.getElementById('roster-list');
     var checked = listEl ? listEl.querySelectorAll('.chk-row:checked') : [];
     var targets = [];
     checked.forEach(function (chk) {
       var r = currentRows[parseInt(chk.dataset.idx, 10)];
-      if (r && r.profile_id) targets.push(r);
+      if (r) targets.push(r);
     });
     if (targets.length === 0) return;
 
     // Konfirmasi: overlay dengan input "HAPUS" untuk > 10, window.confirm untuk ≤ 10
     var confirmed = await (targets.length > 10 ? konfirmasiKuat(targets.length) : Promise.resolve(
-      window.confirm('Hapus akun ' + targets.length + ' siswa yang dipilih?\nTindakan ini tidak bisa dibatalkan.')
+      window.confirm('Hapus ' + targets.length + ' siswa yang dipilih?\nTindakan ini tidak bisa dibatalkan.')
     ));
     if (!confirmed) return;
 
@@ -555,7 +560,7 @@
     for (var i = 0; i < targets.length; i++) {
       var row = targets[i];
       btnHapus.textContent = 'Menghapus ' + row.full_name + '... (' + (i + 1) + '/' + targets.length + ')';
-      var result = await hapusAkun(row.profile_id);
+      var result = row.profile_id ? await hapusAkun(row.profile_id) : await hapusRosterOnly(row);
       if (result.error) { gagal++; } else { berhasil++; }
     }
 
