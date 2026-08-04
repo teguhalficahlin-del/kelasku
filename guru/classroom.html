@@ -42,7 +42,16 @@
     #btn-gen-terpilih:disabled,
     #btn-hapus-terpilih:disabled { opacity: .45; cursor: not-allowed; }
 
-    /* Tombol dalam mode proses — visible, tidak transparent */
+    /* Tombol Hapus dalam mode proses — merah visible */
+    .btn-hapus-processing {
+      background: #e74c3c !important;
+      color: #fff !important;
+      pointer-events: none;
+      cursor: not-allowed;
+      opacity: 1 !important;
+    }
+
+    /* Tombol Generate dalam mode proses — visible, tidak transparent */
     .btn-processing {
       background: #f39c12 !important;
       color: #000 !important;

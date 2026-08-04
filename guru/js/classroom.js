@@ -592,7 +592,11 @@
     if (!confirmed) return;
 
     var btnHapus = document.getElementById('btn-hapus-terpilih');
-    btnHapus.disabled = true;
+    var banner   = document.getElementById('processing-banner');
+
+    btnHapus.classList.add('btn-hapus-processing');
+    btnHapus.removeAttribute('disabled');
+    if (banner) { banner.style.display = 'block'; }
 
     var berhasil = 0;
     var gagal    = 0;
@@ -602,6 +606,9 @@
       var result = await hapusAkun(row.profile_id);
       if (result.error) { gagal++; } else { berhasil++; }
     }
+
+    btnHapus.classList.remove('btn-hapus-processing');
+    if (banner) { banner.style.display = 'none'; }
 
     showShareNotif('Selesai: ' + berhasil + ' berhasil dihapus, ' + gagal + ' gagal.');
 

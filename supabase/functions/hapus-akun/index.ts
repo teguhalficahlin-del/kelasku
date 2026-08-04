@@ -112,13 +112,13 @@ Deno.serve(async (req) => {
   await admin.from('guidance_sessions').delete().eq('student_id', profile_id);
   await admin.from('forum_comments').delete().eq('author_id', profile_id);
 
-  // 8. SET NULL di classroom_roster (FK ON DELETE SET NULL akan handle ini saat deleteUser,
-  //    tapi kita lakukan eksplisit untuk classroom_id ini agar deterministik)
-  await admin
+  // 8. Query NIS dari roster sebelum deleteUser — dibutuhkan untuk delete setelah user hilang
+  const { data: rosterRow } = await admin
     .from('classroom_roster')
-    .update({ profile_id: null })
+    .select('nis')
     .eq('profile_id', profile_id)
-    .eq('classroom_id', classroom_id);
+    .eq('classroom_id', classroom_id)
+    .single();
 
   // 9. Hapus classroom_members siswa
   await admin
@@ -128,9 +128,20 @@ Deno.serve(async (req) => {
     .eq('classroom_id', classroom_id);
 
   // 10. deleteUser siswa — cascade ke profiles (ON DELETE CASCADE dari auth.users → profiles)
+  //     FK classroom_roster.profile_id ON DELETE SET NULL otomatis null-kan kolom
   const { error: delSiswaErr } = await admin.auth.admin.deleteUser(siswa.user_id);
   if (delSiswaErr) {
     return json({ success: false, error: delSiswaErr.message, step: 'delete_user_siswa' }, 500);
+  }
+
+  // 11. Hapus baris classroom_roster sepenuhnya — dilakukan setelah deleteUser
+  //     Gunakan nis (bukan profile_id yang sudah null setelah cascade)
+  if (rosterRow?.nis) {
+    await admin
+      .from('classroom_roster')
+      .delete()
+      .eq('classroom_id', classroom_id)
+      .eq('nis', rosterRow.nis);
   }
 
   return json({ success: true, deleted: { siswa: siswa.email, ortu_count } });
