@@ -523,12 +523,14 @@
   // -------------------------------------------------------------------------
 
   async function hapusRosterOnly(row) {
-    const { error } = await client
+    const { data, error } = await client
       .from('classroom_roster')
       .delete()
       .eq('classroom_id', currentClassroomId)
-      .eq('nis', row.nis);
+      .eq('nis', row.nis)
+      .select('id');
     if (error) return { error: error.message };
+    if (!data || data.length === 0) return { error: 'Siswa tidak ditemukan di daftar classroom ini.' };
     return { deleted: true };
   }
 
