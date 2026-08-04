@@ -66,7 +66,7 @@
           '<td>' + genBtn + '</td>' +
           '<td>' +
             '<button class="btn-qr" data-idx="' + i + '">QR</button> ' +
-            '<button class="btn-link" data-idx="' + i + '" data-siswa="' + escHtml(links.siswa) + '" data-ortu="' + escHtml(links.ortu) + '">Link</button>' +
+            '<span class="copy-link" data-url="' + escHtml(links.siswa) + '" title="Klik untuk menyalin link siswa" style="cursor:pointer;color:#2563eb;font-size:0.75rem;display:inline-block;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle;text-decoration:underline;">' + escHtml(links.siswa) + '</span>' +
           '</td>' +
         '</tr>';
     });
@@ -139,11 +139,21 @@
       });
     });
 
-    listEl.querySelectorAll('.btn-link').forEach(function (btn) {
-      btn.addEventListener('click', async function () {
-        const row   = rows[parseInt(this.dataset.idx, 10)];
-        const links = { siswa: this.dataset.siswa, ortu: this.dataset.ortu };
-        await shareLinks(row, links);
+    listEl.querySelectorAll('.copy-link').forEach(function (el) {
+      el.addEventListener('click', async function () {
+        var url = this.dataset.url;
+        try {
+          await navigator.clipboard.writeText(url);
+        } catch (_) {
+          var ta = document.createElement('textarea');
+          ta.value = url;
+          ta.style.cssText = 'position:fixed;opacity:0;';
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          ta.remove();
+        }
+        showShareNotif('Disalin!');
       });
     });
 
