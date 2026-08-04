@@ -92,7 +92,7 @@
       text-align: center;
     }
 
-    /* Share buttons di kolom Bagikan */
+    /* Share buttons */
     .btn-share {
       font-size: .72rem;
       padding: .18rem .42rem;
@@ -101,20 +101,51 @@
       border: 1px solid currentColor;
       background: none;
       line-height: 1.4;
-      vertical-align: middle;
     }
     .btn-share-siswa { color: #2563eb; border-color: #2563eb; }
     .btn-share-ortu  { color: #7c3aed; border-color: #7c3aed; }
+
+    /* Roster card layout */
+    .card-select-all {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      padding: .2rem 0 .5rem;
+      font-size: .85rem;
+      color: #555;
+    }
+    .card-select-all label { cursor: pointer; user-select: none; }
+    .roster-cards { display: flex; flex-direction: column; gap: .5rem; }
+    .roster-card {
+      display: grid;
+      grid-template-columns: 1.5rem 1fr;
+      gap: .4rem .75rem;
+      padding: .75rem 1rem;
+      border: 1px solid #e5e7eb;
+      border-radius: .6rem;
+      background: #fff;
+      align-items: start;
+    }
+    .card-body { display: flex; flex-direction: column; gap: .25rem; min-width: 0; }
+    .card-top  { display: flex; justify-content: space-between; align-items: flex-start; gap: .5rem; }
+    .card-name { font-weight: 600; font-size: .95rem; word-break: break-word; }
+    .card-badge {
+      font-size: .7rem;
+      padding: .15rem .5rem;
+      border-radius: 2rem;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .card-badge-sudah { background: #d1fae5; color: #065f46; }
+    .card-badge-belum { background: #fee2e2; color: #991b1b; }
+    .card-meta  { font-size: .8rem; color: #6b7280; }
+    .card-actions { display: flex; gap: .35rem; flex-wrap: wrap; margin-top: .2rem; align-items: center; }
 
     /* Mobile — form tambah siswa stack vertikal */
     @media (max-width: 480px) {
       .inline-form { flex-direction: column; }
       .inline-form input, .inline-form button { width: 100%; box-sizing: border-box; }
       .roster-actions { flex-wrap: wrap; }
-      table { font-size: .78rem; }
-      /* Sembunyikan kolom No di mobile */
-      thead th:nth-child(2),
-      tbody td:nth-child(2) { display: none; }
     }
 
     /* Share link — fallback overlay */

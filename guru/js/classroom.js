@@ -69,51 +69,51 @@
     }
 
     var isExpired = trialStatus && trialStatus.status === 'expired';
-    var tbody = '';
+    var cardsHtml = '';
     pageRows.forEach(function (r, i) {
-      var globalIdx   = startIdx + i;
-      var statusClass = r.profile_id ? 'status-sudah' : 'status-belum';
-      var statusText  = r.profile_id ? 'Sudah Ada Akun' : 'Belum Ada Akun';
+      var globalIdx  = startIdx + i;
+      var badgeClass = r.profile_id ? 'card-badge-sudah' : 'card-badge-belum';
+      var badgeText  = r.profile_id ? 'Sudah Akun'       : 'Belum Akun';
       var genBtn = r.profile_id
         ? '<button disabled class="btn-gen-disabled">Sudah</button>'
         : isExpired
-          ? '<button disabled class="btn-gen-disabled" title="Aktifkan akun untuk menggunakan fitur ini">Generate Akun</button>'
-          : '<button class="btn-gen-akun" data-idx="' + globalIdx + '">Generate Akun</button>';
+          ? '<button disabled class="btn-gen-disabled" title="Aktifkan akun untuk menggunakan fitur ini">Generate</button>'
+          : '<button class="btn-gen-akun" data-idx="' + globalIdx + '">Generate</button>';
 
       var shareButtons =
         '<button class="btn-share btn-share-siswa" data-idx="' + globalIdx + '">Siswa</button>';
       if (r.nama_ortu) {
-        shareButtons += ' <button class="btn-share btn-share-ortu" data-idx="' + globalIdx + '">Ortu</button>';
+        shareButtons += '<button class="btn-share btn-share-ortu" data-idx="' + globalIdx + '">Ortu</button>';
       }
 
-      tbody +=
-        '<tr>' +
-          '<td><input type="checkbox" class="chk-row" data-idx="' + globalIdx + '"></td>' +
-          '<td>' + (globalIdx + 1) + '</td>' +
-          '<td>' + escHtml(r.full_name) + '</td>' +
-          '<td>' + escHtml(r.nis) + '</td>' +
-          '<td>' + escHtml(r.nama_ortu || '—') + '</td>' +
-          '<td class="' + statusClass + '">' + statusText + '</td>' +
-          '<td>' + genBtn + '</td>' +
-          '<td>' +
-            '<button class="btn-qr" data-idx="' + globalIdx + '">QR</button> ' +
-            shareButtons +
-          '</td>' +
-        '</tr>';
+      var meta = 'NIS: ' + escHtml(r.nis);
+      if (r.nama_ortu) { meta += ' · ' + escHtml(r.nama_ortu); }
+
+      cardsHtml +=
+        '<div class="roster-card">' +
+          '<input type="checkbox" class="chk-row" data-idx="' + globalIdx + '">' +
+          '<div class="card-body">' +
+            '<div class="card-top">' +
+              '<span class="card-name">' + escHtml(r.full_name) + '</span>' +
+              '<span class="card-badge ' + badgeClass + '">' + badgeText + '</span>' +
+            '</div>' +
+            '<div class="card-meta">' + meta + '</div>' +
+            '<div class="card-actions">' +
+              '<button class="btn-qr" data-idx="' + globalIdx + '">QR</button>' +
+              shareButtons +
+              genBtn +
+            '</div>' +
+          '</div>' +
+        '</div>';
     });
 
-    var tableHtml =
-      '<table>' +
-        '<thead><tr>' +
-          '<th><input type="checkbox" id="chk-all" title="Centang semua di halaman ini"></th>' +
-          '<th>No</th><th>Nama</th><th>NIS</th><th>Nama Ortu</th>' +
-          '<th>Status Akun</th><th>Generate</th><th>Bagikan</th>' +
-        '</tr></thead>' +
-        '<tbody>' + tbody + '</tbody>' +
-      '</table>';
-
     var tableDiv = document.createElement('div');
-    tableDiv.innerHTML = tableHtml;
+    tableDiv.innerHTML =
+      '<div class="card-select-all">' +
+        '<input type="checkbox" id="chk-all" title="Centang semua di halaman ini">' +
+        '<label for="chk-all">Pilih semua di halaman ini</label>' +
+      '</div>' +
+      '<div class="roster-cards">' + cardsHtml + '</div>';
 
     listEl.innerHTML = '';
     listEl.appendChild(makePaginationBar());
