@@ -72,6 +72,51 @@
       color: #856404;
     }
 
+    /* Pagination */
+    .pagination-bar {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      margin: .4rem 0;
+      flex-wrap: wrap;
+    }
+    .pagination-bar button {
+      min-width: 2rem;
+      padding: .28rem .55rem;
+      font-size: .875rem;
+    }
+    .page-label {
+      font-size: .82rem;
+      color: #555;
+      flex: 1;
+      text-align: center;
+    }
+
+    /* Share buttons di kolom Bagikan */
+    .btn-share {
+      font-size: .72rem;
+      padding: .18rem .42rem;
+      border-radius: .3rem;
+      cursor: pointer;
+      border: 1px solid currentColor;
+      background: none;
+      line-height: 1.4;
+      vertical-align: middle;
+    }
+    .btn-share-siswa { color: #2563eb; border-color: #2563eb; }
+    .btn-share-ortu  { color: #7c3aed; border-color: #7c3aed; }
+
+    /* Mobile — form tambah siswa stack vertikal */
+    @media (max-width: 480px) {
+      .inline-form { flex-direction: column; }
+      .inline-form input, .inline-form button { width: 100%; box-sizing: border-box; }
+      .roster-actions { flex-wrap: wrap; }
+      table { font-size: .78rem; }
+      /* Sembunyikan kolom No di mobile */
+      thead th:nth-child(2),
+      tbody td:nth-child(2) { display: none; }
+    }
+
     /* Share link — fallback overlay */
     .share-overlay {
       position: fixed;

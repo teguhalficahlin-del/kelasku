@@ -6,7 +6,10 @@
   let currentClassroom   = null;
   let trialStatus        = null;
   let currentRows        = [];
+  let currentPage        = 0;
   let isGenerating       = false;
+
+  const PAGE_SIZE = 10;
 
   function escHtml(str) {
     return String(str)
@@ -16,8 +19,204 @@
       .replace(/"/g, '&quot;');
   }
 
+  function fallbackCopy(text) {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;opacity:0;';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    ta.remove();
+  }
+
   // -------------------------------------------------------------------------
-  // Roster
+  // renderPage — render slice currentRows ke tabel + pagination + event
+  // -------------------------------------------------------------------------
+
+  function renderPage(page) {
+    currentPage = page;
+    var listEl = document.getElementById('roster-list');
+    if (!listEl || currentRows.length === 0) return;
+
+    var totalPages = Math.ceil(currentRows.length / PAGE_SIZE);
+    var startIdx   = page * PAGE_SIZE;
+    var pageRows   = currentRows.slice(startIdx, startIdx + PAGE_SIZE);
+
+    function makePaginationBar() {
+      var bar = document.createElement('div');
+      bar.className = 'pagination-bar';
+
+      var btnPrev = document.createElement('button');
+      btnPrev.type        = 'button';
+      btnPrev.textContent = '←';
+      btnPrev.disabled    = page === 0;
+      btnPrev.addEventListener('click', function () { renderPage(currentPage - 1); });
+
+      var lbl = document.createElement('span');
+      lbl.className   = 'page-label';
+      lbl.textContent = 'Halaman ' + (page + 1) + ' dari ' + totalPages + ' (' + currentRows.length + ' siswa)';
+
+      var btnNext = document.createElement('button');
+      btnNext.type        = 'button';
+      btnNext.textContent = '→';
+      btnNext.disabled    = startIdx + PAGE_SIZE >= currentRows.length;
+      btnNext.addEventListener('click', function () { renderPage(currentPage + 1); });
+
+      bar.appendChild(btnPrev);
+      bar.appendChild(lbl);
+      bar.appendChild(btnNext);
+      return bar;
+    }
+
+    var isExpired = trialStatus && trialStatus.status === 'expired';
+    var tbody = '';
+    pageRows.forEach(function (r, i) {
+      var globalIdx   = startIdx + i;
+      var statusClass = r.profile_id ? 'status-sudah' : 'status-belum';
+      var statusText  = r.profile_id ? 'Sudah Ada Akun' : 'Belum Ada Akun';
+      var genBtn = r.profile_id
+        ? '<button disabled class="btn-gen-disabled">Sudah</button>'
+        : isExpired
+          ? '<button disabled class="btn-gen-disabled" title="Aktifkan akun untuk menggunakan fitur ini">Generate Akun</button>'
+          : '<button class="btn-gen-akun" data-idx="' + globalIdx + '">Generate Akun</button>';
+
+      var shareButtons =
+        '<button class="btn-share btn-share-siswa" data-idx="' + globalIdx + '">Siswa</button>';
+      if (r.nama_ortu) {
+        shareButtons += ' <button class="btn-share btn-share-ortu" data-idx="' + globalIdx + '">Ortu</button>';
+      }
+
+      tbody +=
+        '<tr>' +
+          '<td><input type="checkbox" class="chk-row" data-idx="' + globalIdx + '"></td>' +
+          '<td>' + (globalIdx + 1) + '</td>' +
+          '<td>' + escHtml(r.full_name) + '</td>' +
+          '<td>' + escHtml(r.nis) + '</td>' +
+          '<td>' + escHtml(r.nama_ortu || '—') + '</td>' +
+          '<td class="' + statusClass + '">' + statusText + '</td>' +
+          '<td>' + genBtn + '</td>' +
+          '<td>' +
+            '<button class="btn-qr" data-idx="' + globalIdx + '">QR</button> ' +
+            shareButtons +
+          '</td>' +
+        '</tr>';
+    });
+
+    var tableHtml =
+      '<table>' +
+        '<thead><tr>' +
+          '<th><input type="checkbox" id="chk-all" title="Centang semua di halaman ini"></th>' +
+          '<th>No</th><th>Nama</th><th>NIS</th><th>Nama Ortu</th>' +
+          '<th>Status Akun</th><th>Generate</th><th>Bagikan</th>' +
+        '</tr></thead>' +
+        '<tbody>' + tbody + '</tbody>' +
+      '</table>';
+
+    var tableDiv = document.createElement('div');
+    tableDiv.innerHTML = tableHtml;
+
+    listEl.innerHTML = '';
+    listEl.appendChild(makePaginationBar());
+    listEl.appendChild(tableDiv);
+    if (totalPages > 1) { listEl.appendChild(makePaginationBar()); }
+
+    // --- Checkbox ---
+    var chkAll = listEl.querySelector('#chk-all');
+    chkAll.addEventListener('change', function () {
+      listEl.querySelectorAll('.chk-row').forEach(function (c) { c.checked = chkAll.checked; });
+      updateSelectionUI();
+    });
+    listEl.querySelectorAll('.chk-row').forEach(function (chk) {
+      chk.addEventListener('change', function () {
+        var all     = listEl.querySelectorAll('.chk-row');
+        var checked = listEl.querySelectorAll('.chk-row:checked');
+        chkAll.indeterminate = checked.length > 0 && checked.length < all.length;
+        chkAll.checked       = checked.length === all.length;
+        updateSelectionUI();
+      });
+    });
+
+    // --- Generate akun per baris ---
+    listEl.querySelectorAll('.btn-gen-akun').forEach(function (btn) {
+      btn.addEventListener('click', async function () {
+        var row = currentRows[parseInt(this.dataset.idx, 10)];
+        this.disabled    = true;
+        this.textContent = 'Generating...';
+        var result = await generateSingleAccount(row);
+        if (result.error) {
+          alert('Gagal: ' + result.error);
+          this.disabled    = false;
+          this.textContent = 'Generate Akun';
+        } else {
+          showCredentialsModal(row.full_name, result.siswa_email, result.ortu_email, result.password);
+          await loadRoster();
+        }
+      });
+    });
+
+    // --- QR ---
+    listEl.querySelectorAll('.btn-qr').forEach(function (btn) {
+      btn.addEventListener('click', async function () {
+        var row = currentRows[parseInt(this.dataset.idx, 10)];
+        let dataUrl;
+        try {
+          dataUrl = await generateQRCode(row);
+        } catch (err) {
+          alert(err.message || 'Gagal membuat QR code.');
+          return;
+        }
+        var win = window.open('', '_blank', 'width=400,height=500');
+        win.document.write(
+          '<!DOCTYPE html><html><body style="text-align:center;font-family:sans-serif;">' +
+          '<h3>' + escHtml(row.full_name) + ' (' + escHtml(row.nis) + ')</h3>' +
+          '<img src="' + dataUrl + '" style="max-width:300px"><br>' +
+          '<a href="' + escHtml(generateShareLink(row).siswa) + '">' + escHtml(generateShareLink(row).siswa) + '</a>' +
+          '</body></html>'
+        );
+      });
+    });
+
+    // --- Share Siswa ---
+    listEl.querySelectorAll('.btn-share-siswa').forEach(function (btn) {
+      btn.addEventListener('click', async function () {
+        var row = currentRows[parseInt(this.dataset.idx, 10)];
+        var url = generateShareLink(row).siswa;
+        try { await navigator.clipboard.writeText(url); } catch (_) { fallbackCopy(url); }
+        showShareNotif('Disalin!');
+      });
+    });
+
+    // --- Share Ortu ---
+    listEl.querySelectorAll('.btn-share-ortu').forEach(function (btn) {
+      btn.addEventListener('click', async function () {
+        var row = currentRows[parseInt(this.dataset.idx, 10)];
+        var url = generateShareLink(row).ortu;
+        try { await navigator.clipboard.writeText(url); } catch (_) { fallbackCopy(url); }
+        showShareNotif('Disalin!');
+      });
+    });
+
+    // --- Swipe gesture (horizontal dominant) ---
+    var touchStartX = 0;
+    var touchStartY = 0;
+    tableDiv.addEventListener('touchstart', function (e) {
+      touchStartX = e.changedTouches[0].clientX;
+      touchStartY = e.changedTouches[0].clientY;
+    }, { passive: true });
+    tableDiv.addEventListener('touchend', function (e) {
+      var dx = e.changedTouches[0].clientX - touchStartX;
+      var dy = e.changedTouches[0].clientY - touchStartY;
+      if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
+        if (dx < 0 && currentPage < totalPages - 1) { renderPage(currentPage + 1); }
+        else if (dx > 0 && currentPage > 0)          { renderPage(currentPage - 1); }
+      }
+    }, { passive: true });
+
+    updateSelectionUI();
+  }
+
+  // -------------------------------------------------------------------------
+  // loadRoster — query DB, populate currentRows, lalu renderPage(0)
   // -------------------------------------------------------------------------
 
   async function loadRoster() {
@@ -44,119 +243,7 @@
       return;
     }
 
-    let tbody = '';
-    rows.forEach(function (r, i) {
-      const statusClass = r.profile_id ? 'status-sudah' : 'status-belum';
-      const statusText  = r.profile_id ? 'Sudah Ada Akun' : 'Belum Ada Akun';
-      const isExpired = trialStatus && trialStatus.status === 'expired';
-      const genBtn = r.profile_id
-        ? '<button disabled class="btn-gen-disabled">Sudah</button>'
-        : isExpired
-          ? '<button disabled class="btn-gen-disabled" title="Aktifkan akun untuk menggunakan fitur ini">Generate Akun</button>'
-          : '<button class="btn-gen-akun" data-idx="' + i + '">Generate Akun</button>';
-      const links = generateShareLink(r);
-      tbody +=
-        '<tr>' +
-          '<td><input type="checkbox" class="chk-row" data-idx="' + i + '"></td>' +
-          '<td>' + (i + 1) + '</td>' +
-          '<td>' + escHtml(r.full_name) + '</td>' +
-          '<td>' + escHtml(r.nis) + '</td>' +
-          '<td>' + escHtml(r.nama_ortu || '—') + '</td>' +
-          '<td class="' + statusClass + '">' + statusText + '</td>' +
-          '<td>' + genBtn + '</td>' +
-          '<td>' +
-            '<button class="btn-qr" data-idx="' + i + '">QR</button> ' +
-            '<span class="copy-link" data-url="' + escHtml(links.siswa) + '" title="Klik untuk menyalin link siswa" style="cursor:pointer;color:#2563eb;font-size:0.75rem;display:inline-block;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle;text-decoration:underline;">' + escHtml(links.siswa) + '</span>' +
-          '</td>' +
-        '</tr>';
-    });
-
-    listEl.innerHTML =
-      '<table>' +
-        '<thead><tr>' +
-          '<th><input type="checkbox" id="chk-all" title="Centang semua"></th>' +
-          '<th>No</th><th>Nama</th><th>NIS</th><th>Nama Ortu</th>' +
-          '<th>Status Akun</th><th>Generate</th><th>Bagikan</th>' +
-        '</tr></thead>' +
-        '<tbody>' + tbody + '</tbody>' +
-      '</table>';
-
-    // Checkbox utama
-    var chkAll = listEl.querySelector('#chk-all');
-    chkAll.addEventListener('change', function () {
-      listEl.querySelectorAll('.chk-row').forEach(function (c) { c.checked = chkAll.checked; });
-      updateSelectionUI();
-    });
-
-    // Checkbox per baris
-    listEl.querySelectorAll('.chk-row').forEach(function (chk) {
-      chk.addEventListener('change', function () {
-        var all = listEl.querySelectorAll('.chk-row');
-        var checked = listEl.querySelectorAll('.chk-row:checked');
-        chkAll.indeterminate = checked.length > 0 && checked.length < all.length;
-        chkAll.checked = checked.length === all.length;
-        updateSelectionUI();
-      });
-    });
-
-    updateSelectionUI();
-
-    listEl.querySelectorAll('.btn-gen-akun').forEach(function (btn) {
-      btn.addEventListener('click', async function () {
-        const row = rows[parseInt(this.dataset.idx, 10)];
-        this.disabled = true;
-        this.textContent = 'Generating...';
-        const result = await generateSingleAccount(row);
-        if (result.error) {
-          alert('Gagal: ' + result.error);
-          this.disabled = false;
-          this.textContent = 'Generate Akun';
-        } else {
-          showCredentialsModal(row.full_name, result.siswa_email, result.ortu_email, result.password);
-          await loadRoster();
-        }
-      });
-    });
-
-    listEl.querySelectorAll('.btn-qr').forEach(function (btn) {
-      btn.addEventListener('click', async function () {
-        const row = rows[parseInt(this.dataset.idx, 10)];
-        let dataUrl;
-        try {
-          dataUrl = await generateQRCode(row);
-        } catch (err) {
-          alert(err.message || 'Gagal membuat QR code.');
-          return;
-        }
-        const win = window.open('', '_blank', 'width=400,height=500');
-        win.document.write(
-          '<!DOCTYPE html><html><body style="text-align:center;font-family:sans-serif;">' +
-          '<h3>' + escHtml(row.full_name) + ' (' + escHtml(row.nis) + ')</h3>' +
-          '<img src="' + dataUrl + '" style="max-width:300px"><br>' +
-          '<a href="' + escHtml(generateShareLink(row).siswa) + '">' + escHtml(generateShareLink(row).siswa) + '</a>' +
-          '</body></html>'
-        );
-      });
-    });
-
-    listEl.querySelectorAll('.copy-link').forEach(function (el) {
-      el.addEventListener('click', async function () {
-        var url = this.dataset.url;
-        try {
-          await navigator.clipboard.writeText(url);
-        } catch (_) {
-          var ta = document.createElement('textarea');
-          ta.value = url;
-          ta.style.cssText = 'position:fixed;opacity:0;';
-          document.body.appendChild(ta);
-          ta.select();
-          document.execCommand('copy');
-          ta.remove();
-        }
-        showShareNotif('Disalin!');
-      });
-    });
-
+    renderPage(0);
   }
 
   // -------------------------------------------------------------------------
@@ -207,7 +294,6 @@
   // -------------------------------------------------------------------------
 
   function parseRosterRows(allCols) {
-    // Normalisasi header jika ada — cek baris pertama: NIS non-numerik = header
     var data = (allCols.length > 0 && !/^\d+$/.test((allCols[0][1] || '').toString().trim()))
       ? allCols.slice(1)
       : allCols;
@@ -231,13 +317,11 @@
     var raw   = window.XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
     if (!raw.length) return [];
 
-    // Deteksi header row case-insensitive
     var firstRow = raw[0].map(function (c) { return String(c).trim().toLowerCase(); });
     var namaIdx  = firstRow.indexOf('nama');
     var nisIdx   = firstRow.indexOf('nis');
     var ortuIdx  = firstRow.indexOf('nama_ortu');
 
-    // Jika header ditemukan, gunakan index dari header; jika tidak, pakai posisi 0,1,2
     if (nisIdx !== -1 && namaIdx !== -1) {
       return raw.slice(1).map(function (r) {
         return [r[namaIdx], r[nisIdx], ortuIdx !== -1 ? r[ortuIdx] : ''];
@@ -281,7 +365,6 @@
           reader.readAsText(file);
         });
 
-        // Parser CSV minimal — handle quoted fields (misal: "Nama, S.Pd")
         function parseLine(line) {
           var fields = [], field = '', inQ = false;
           for (var i = 0; i < line.length; i++) {
@@ -334,7 +417,7 @@
   });
 
   // -------------------------------------------------------------------------
-  // Generate Semua
+  // Generate / Hapus terpilih
   // -------------------------------------------------------------------------
 
   document.getElementById('btn-gen-terpilih').addEventListener('click', async function () {
@@ -352,7 +435,6 @@
   async function generateSingleAccount(siswa) {
     const EDGE_URL = 'https://teccdzetrdjowqemnuuc.supabase.co/functions/v1/generate-akun';
 
-    // Kirim JWT session guru — bukan anon key — agar Edge Function bisa verifikasi identitas
     const { data: { session } } = await client.auth.getSession();
     if (!session) return { error: 'Sesi tidak valid. Silakan login ulang.' };
 
@@ -374,55 +456,6 @@
     const json = await res.json();
     if (!json.success) return { error: json.error || 'Generate akun gagal.' };
     return { siswa_email: json.siswa_email, ortu_email: json.ortu_email, password: json.password };
-  }
-
-  // -------------------------------------------------------------------------
-  // generateAllAccounts
-  // -------------------------------------------------------------------------
-
-  async function generateAllAccounts() {
-    const resultEl = document.getElementById('generate-result');
-    const btn      = document.getElementById('btn-generate-semua');
-
-    btn.disabled = true;
-    resultEl.style.display = 'none';
-
-    const { data: rows, error } = await client
-      .from('classroom_roster')
-      .select('id, full_name, nis, nama_ortu, profile_id')
-      .eq('classroom_id', currentClassroomId)
-      .is('profile_id', null);
-
-    if (error || !rows || rows.length === 0) {
-      resultEl.textContent   = rows && rows.length === 0
-        ? 'Semua siswa sudah punya akun.'
-        : 'Gagal memuat roster: ' + (error ? error.message : '');
-      resultEl.style.display = 'block';
-      btn.disabled = false;
-      return;
-    }
-
-    // Konfirmasi sebelum eksekusi — jumlah siswa sudah diketahui dari query di atas
-    const confirmed = window.confirm(
-      'Generate akun untuk ' + rows.length + ' siswa? Tindakan ini tidak bisa dibatalkan.'
-    );
-    if (!confirmed) {
-      btn.disabled = false;
-      return;
-    }
-
-    let berhasil = 0;
-    let gagal    = 0;
-
-    for (const row of rows) {
-      const result = await generateSingleAccount(row);
-      if (result.error) { gagal++; } else { berhasil++; }
-    }
-
-    resultEl.textContent   = 'Selesai: ' + berhasil + ' berhasil, ' + gagal + ' gagal.';
-    resultEl.style.display = 'block';
-    btn.disabled = false;
-    await loadRoster();
   }
 
   // -------------------------------------------------------------------------
@@ -452,12 +485,12 @@
   }
 
   // -------------------------------------------------------------------------
-  // updateSelectionUI — sinkronkan label + disabled kedua tombol terpilih
+  // updateSelectionUI
   // -------------------------------------------------------------------------
 
   function updateSelectionUI() {
-    var listEl = document.getElementById('roster-list');
-    var checked = listEl ? listEl.querySelectorAll('.chk-row:checked') : [];
+    var listEl      = document.getElementById('roster-list');
+    var checked     = listEl ? listEl.querySelectorAll('.chk-row:checked') : [];
     var countChecked = checked.length;
 
     var btnGen   = document.getElementById('btn-gen-terpilih');
@@ -473,7 +506,7 @@
   }
 
   // -------------------------------------------------------------------------
-  // generateTerpilih — proses berurutan siswa yang dicentang + belum punya akun
+  // generateTerpilih
   // -------------------------------------------------------------------------
 
   async function generateTerpilih() {
@@ -524,7 +557,6 @@
       resultEl.textContent   = 'Selesai: ' + berhasil + ' berhasil, ' + gagal + ' gagal.';
       resultEl.style.display = 'block';
 
-      // Uncentang semua
       if (listEl) {
         listEl.querySelectorAll('.chk-row').forEach(function (c) { c.checked = false; });
         var chkAll = listEl.querySelector('#chk-all');
@@ -537,7 +569,7 @@
   }
 
   // -------------------------------------------------------------------------
-  // hapusTerpilih — proses berurutan siswa yang dicentang + sudah punya akun
+  // hapusTerpilih
   // -------------------------------------------------------------------------
 
   async function hapusRosterOnly(row) {
@@ -570,7 +602,6 @@
     if (rosterOnly > 0) msgParts.push(rosterOnly  + ' siswa akan dihapus dari daftar saja');
     var msgDetail = msgParts.join(', ');
 
-    // Konfirmasi: overlay dengan input "HAPUS" untuk > 10, window.confirm untuk ≤ 10
     var confirmed = await (targets.length > 10
       ? konfirmasiKuat(targets.length, withAkun, rosterOnly)
       : Promise.resolve(window.confirm(msgDetail + '.\nTindakan ini tidak bisa dibatalkan.')));
@@ -597,14 +628,12 @@
 
     showShareNotif('Selesai: ' + berhasil + ' berhasil dihapus, ' + gagal + ' gagal.');
 
-    // Reset state tombol secara eksplisit — agar tetap benar jika loadRoster() error
     btnHapus.textContent = 'Hapus Terpilih (0)';
     btnHapus.disabled    = true;
 
     await loadRoster();
   }
 
-  // Overlay konfirmasi kuat: user harus mengetik "HAPUS" untuk melanjutkan
   function konfirmasiKuat(jumlah, withAkun, rosterOnly) {
     return new Promise(function (resolve) {
       var overlay = document.createElement('div');
@@ -681,7 +710,6 @@
   // -------------------------------------------------------------------------
 
   async function generateQRCode(siswa) {
-    // Guard: library di-load via CDN — bisa gagal jika offline atau CDN down
     if (typeof window.QRCode === 'undefined') {
       return Promise.reject(new Error('Library QR code gagal dimuat. Coba refresh halaman.'));
     }
@@ -699,8 +727,6 @@
 
   function generateShareLink(siswa) {
     const code = currentClassroom ? currentClassroom.classroom_code : '';
-    // Base URL dengan /kelasku/ prefix untuk GitHub Pages
-    // window.location.origin = https://teguhalficahlin-del.github.io
     const base = window.location.origin + '/kelasku';
     return {
       siswa: base + '/siswa/?kelas=' + encodeURIComponent(code) + '&nis=' + encodeURIComponent(siswa.nis),
@@ -709,7 +735,7 @@
   }
 
   // -------------------------------------------------------------------------
-  // Trial gate — disable fitur generate/upload saat status expired
+  // Trial gate
   // -------------------------------------------------------------------------
 
   async function loadTrialStatus() {
@@ -717,8 +743,6 @@
       const stored = sessionStorage.getItem('guru_trial_status');
       if (stored) { trialStatus = JSON.parse(stored); return; }
     } catch (_) {}
-    // Fallback: RPC langsung — tidak bergantung window.api agar tetap aman
-    // jika guru buka classroom.html langsung tanpa melewati dashboard
     try {
       const { data } = await client.rpc('fn_guru_trial_status');
       if (data) {
@@ -759,7 +783,7 @@
   }
 
   // -------------------------------------------------------------------------
-  // shareLinks — Web Share API → Clipboard → fallback textarea readonly
+  // shareLinks (Web Share API — dipakai di tempat lain jika perlu)
   // -------------------------------------------------------------------------
 
   async function shareLinks(row, links) {
@@ -769,7 +793,6 @@
       try {
         await navigator.share({ title: 'Login SIP Mandiri — ' + row.full_name, text: msg });
       } catch (err) {
-        // AbortError = user cancel native sheet — tidak perlu fallback
         if (err.name !== 'AbortError') { showShareFallback(msg); }
       }
     } else if (navigator.clipboard) {
@@ -812,10 +835,8 @@
     closeBtn.textContent = 'Tutup';
     closeBtn.addEventListener('click', function () { overlay.remove(); });
 
-    // Tutup saat klik di luar box
     overlay.addEventListener('click', function (e) { if (e.target === overlay) { overlay.remove(); } });
 
-    // Tutup dengan Escape
     function onEsc(e) {
       if (e.key === 'Escape') { overlay.remove(); document.removeEventListener('keydown', onEsc); }
     }
@@ -827,13 +848,12 @@
     overlay.appendChild(box);
     document.body.appendChild(overlay);
 
-    // Auto-select agar mudah di-copy manual
     ta.focus();
     ta.select();
   }
 
   // -------------------------------------------------------------------------
-  // showCredentialsModal — tampil sekali setelah generate single akun berhasil
+  // showCredentialsModal
   // -------------------------------------------------------------------------
 
   function showCredentialsModal(namaLengkap, siswaEmail, ortuEmail, password) {
