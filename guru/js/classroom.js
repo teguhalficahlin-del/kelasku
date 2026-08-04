@@ -487,9 +487,9 @@
 
   function generateShareLink(siswa) {
     const code = currentClassroom ? currentClassroom.classroom_code : '';
-    // Base URL dengan /sip-mandiri/ prefix untuk GitHub Pages
+    // Base URL dengan /kelasku/ prefix untuk GitHub Pages
     // window.location.origin = https://teguhalficahlin-del.github.io
-    const base = window.location.origin + '/sip-mandiri';
+    const base = window.location.origin + '/kelasku';
     return {
       siswa: base + '/siswa/?kelas=' + encodeURIComponent(code) + '&nis=' + encodeURIComponent(siswa.nis),
       ortu:  base + '/ortu/?kelas='  + encodeURIComponent(code) + '&nis=' + encodeURIComponent(siswa.nis),
