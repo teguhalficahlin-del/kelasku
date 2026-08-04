@@ -695,13 +695,18 @@
     if (!trialStatus || trialStatus.status !== 'expired') return;
     const hint = 'Aktifkan akun untuk menggunakan fitur ini';
 
-    const btnGen = document.getElementById('btn-generate-semua');
-    btnGen.disabled = true;
-    btnGen.title = hint;
-    const genHint = document.createElement('small');
-    genHint.className = 'trial-hint';
-    genHint.textContent = hint;
-    btnGen.parentNode.appendChild(genHint);
+    const btnGenTerpilih = document.getElementById('btn-gen-terpilih');
+    btnGenTerpilih.disabled = true;
+    btnGenTerpilih.title = hint;
+
+    const btnHapusTerpilih = document.getElementById('btn-hapus-terpilih');
+    btnHapusTerpilih.disabled = true;
+    btnHapusTerpilih.title = hint;
+
+    const terpilihHint = document.createElement('small');
+    terpilihHint.className = 'trial-hint';
+    terpilihHint.textContent = hint;
+    btnGenTerpilih.parentNode.appendChild(terpilihHint);
 
     const btnUpload = document.getElementById('btn-upload');
     btnUpload.disabled = true;
