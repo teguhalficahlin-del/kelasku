@@ -55,6 +55,19 @@ Guru bisa menginput siswa satu per satu via form, atau upload file
 Excel/CSV dengan kolom: nama, NIS. Sistem import dan simpan ke
 classroom_roster.
 
+**[DIREVISI — 4 Agustus 2026]** Kolom upload diperluas: `nama, nis, nama_ortu`
+(nama_ortu opsional — boleh kosong). Template Excel bisa didownload dari UI
+(`shared/template-siswa.xlsx`). Lihat K5-Addendum.
+
+### K5-Addendum — Kolom Roster Diperluas dengan nama_ortu [BARU — 4 Agustus 2026]
+
+`classroom_roster` punya kolom tambahan `nama_ortu` (migration
+`20260803000007_roster-nama-ortu.sql`). Diisi opsional — jika diisi,
+Edge Function `generate-akun` otomatis membuat akun ortu saat generate akun siswa.
+
+Template Excel (`shared/template-siswa.xlsx`) tersedia di UI untuk didownload.
+Kolom: `nama | nis | nama_ortu`. Header case-insensitive. `nama_ortu` boleh kosong.
+
 ### K6 — NIS Unik per Classroom, Bukan Global
 
 UNIQUE constraint pada (classroom_id, nis) — satu NIS bisa muncul
@@ -110,3 +123,21 @@ dan data yang guru sudah punya.
 ### Negatif / Trade-off
 - Guru wajib input data siswa sebelum siswa bisa join — langkah ekstra
 - Jika NIS salah diinput guru, siswa tidak bisa masuk — perlu fitur edit roster
+
+---
+
+## Addendum — 4 Agustus 2026
+
+### Perubahan FK
+
+`classroom_roster.profile_id` FK diubah ke `ON DELETE SET NULL`
+(migration `20260804000002`). Sebelumnya `NO ACTION` yang memblokir hapus akun.
+
+### Mekanisme Hapus Roster
+
+Dua cara hapus baris roster:
+1. **Siswa sudah punya akun** — via Edge Function `hapus-akun` (hapus akun + roster)
+2. **Siswa belum punya akun** — DELETE langsung via anon client di frontend,
+   diizinkan RLS `pol_roster_guru_all` (`teacher_id = fn_current_profile_id()`)
+
+Hard delete di kedua kasus — baris roster hilang sepenuhnya, tidak soft delete.

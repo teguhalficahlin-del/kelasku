@@ -95,6 +95,26 @@ dihapus dari database, tidak ada kolom `is_deleted` atau `deleted_at`.
 undo di versi ini. Menambah soft delete di kemudian hari lebih mudah daripada
 menghapus kolom yang sudah ada dan menangani data tombstone-nya.
 
+### K10 — Delete Strategy Roster: Hard Delete Baris Setelah Hapus Akun [BARU — 4 Agustus 2026]
+
+Saat akun siswa dihapus via Edge Function `hapus-akun`, baris `classroom_roster`
+ikut dihapus sepenuhnya (DELETE), bukan hanya di-SET NULL `profile_id`.
+
+**Urutan hapus di Edge Function:**
+1. Hapus `student_notes`, `guidance_sessions`, `forum_comments` siswa
+2. Query NIS dari `classroom_roster` (untuk delete setelah user hilang)
+3. Hapus `classroom_members` siswa
+4. `deleteUser(siswa.user_id)` — cascade hapus `profiles`, FK SET NULL `classroom_roster.profile_id`
+5. DELETE baris `classroom_roster` menggunakan `classroom_id + nis`
+
+**Untuk siswa yang belum punya akun** (profile_id null): baris roster dihapus
+langsung dari frontend via anon client (RLS `pol_roster_guru_all` mengizinkan DELETE
+jika `teacher_id = fn_current_profile_id()`). Tidak memerlukan Edge Function.
+
+**FK `classroom_roster.profile_id`** diubah ke `ON DELETE SET NULL`
+(migration `20260804000002_fix-fk-hapus-akun.sql`) — baris roster bertahan saat
+profiles dihapus, lalu Edge Function menghapus baris tersebut secara eksplisit.
+
 ---
 
 ## Alternatif yang Ditolak

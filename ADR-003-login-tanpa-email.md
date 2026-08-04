@@ -41,12 +41,17 @@ Sistem construct kredensial di balik layar:
 
 ### K3 — Akun Siswa dan Ortu Di-generate oleh Guru
 
-Guru generate akun dari halaman Kelola Classroom. Dua mode:
+Guru generate akun dari halaman Kelola Classroom. ~~Dua~~ **Dua** mode:
 - Satu per satu: tombol "Generate Akun" per baris siswa
-- Sekaligus: tombol "Generate Semua" untuk semua siswa yang belum punya akun
+- ~~Sekaligus: tombol "Generate Semua" untuk semua siswa yang belum punya akun~~ **[DIHAPUS — 4 Agustus 2026]**
+- Batch terpilih: checkbox multi-select + tombol "Generate Terpilih" **[BARU — 4 Agustus 2026]**
 
 Setiap generate akun siswa otomatis generate akun ortu jika nama ortu
 sudah diisi di roster.
+
+**Generate Terpilih** memvalidasi bahwa semua siswa yang dipilih belum
+punya akun — jika ada yang sudah punya akun, seluruh operasi ditolak
+dengan pesan penolakan (tidak ada partial generate).
 
 ### K4 — Data Siswa dan Ortu via Manual atau Upload Excel
 
@@ -148,3 +153,32 @@ Nilai `expires_at` dan `is_active` dikelola Romo via Supabase dashboard.
   perlu notifikasi yang cukup jelas sebelum terjadi
 - Guru yang lupa generate akun = siswa tidak bisa masuk —
   perlu reminder di UI
+
+---
+
+## Addendum — 4 Agustus 2026
+
+### Perubahan Mode Generate Akun (K3 direvisi)
+
+Tombol "Generate Semua Akun" dihapus dari UI. Mode generate sekarang:
+- Satu per satu via tombol "Generate Akun" per baris
+- Batch via checkbox multi-select + "Generate Terpilih"
+
+### Fitur Hapus Akun (BARU)
+
+Guru bisa menghapus akun siswa dari halaman Kelola Classroom:
+- **Hapus Terpilih** (batch): checkbox multi-select → hapus semua yang dipilih
+  - Siswa sudah punya akun → hapus akun + roster via Edge Function `hapus-akun`
+  - Siswa belum punya akun → hapus baris roster saja via anon client
+
+Konfirmasi sebelum hapus batch:
+- ≤ 10 siswa: `window.confirm`
+- > 10 siswa: overlay konfirmasi dengan input teks "HAPUS" (untuk mencegah
+  hapus tidak disengaja dalam jumlah besar)
+
+### Trial Gate dan Hapus Terpilih
+
+`updateSelectionUI()` mengecek `isExpired` untuk disable kedua tombol
+Generate Terpilih dan Hapus Terpilih saat trial expired. Hapus roster-only
+(siswa tanpa akun) tetap diblokir trial gate di UI, meski secara teknis
+tidak memerlukan Edge Function.
