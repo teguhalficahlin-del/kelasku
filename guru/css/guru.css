@@ -29,14 +29,14 @@
   --font:           'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 
   /* Fluid typography */
-  --fs-h1:      clamp(16px, 2vw, 22px);
-  --fs-h2:      clamp(14px, 1.6vw, 18px);
-  --fs-body:    clamp(13px, 1.4vw, 15px);
-  --fs-caption: clamp(11px, 1.2vw, 13px);
-  --fs-btn:     clamp(13px, 1.4vw, 15px);
+  --fs-h1:      clamp(19px, 3vw, 24px);
+  --fs-h2:      clamp(17px, 2.5vw, 21px);
+  --fs-body:    clamp(16px, 2.5vw, 18px);
+  --fs-caption: clamp(13px, 1.8vw, 15px);
+  --fs-btn:     clamp(15px, 2vw, 17px);
 
   /* Fluid sizing */
-  --btn-h:   clamp(40px, 5vw, 48px);
+  --btn-h:   clamp(48px, 7vw, 56px);
   --btn-px:  clamp(14px, 2vw, 20px);
   --btn-py:  clamp(8px, 1.5vw, 12px);
 
@@ -231,8 +231,8 @@ header {
   background: none;
   border: 1px solid var(--border);
   border-radius: var(--r-sm);
-  padding: 0 0.875rem;
-  height: 34px;
+  padding: 0 1rem;
+  height: 44px;
   cursor: pointer;
   transition: background var(--transition), border-color var(--transition), color var(--transition);
   font-family: inherit;
@@ -647,7 +647,7 @@ input[type="file"] { font-size: var(--fs-body); }
   cursor: pointer;
   transition: background var(--transition), color var(--transition);
   font-family: inherit;
-  min-height: 30px;
+  min-height: 40px;
 }
 .btn-gen-akun:hover { background: var(--primary-hov); color: #ffffff; }
 .btn-gen-akun:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -664,7 +664,7 @@ input[type="file"] { font-size: var(--fs-body); }
   border-radius: var(--r-sm);
   cursor: default;
   font-family: inherit;
-  min-height: 30px;
+  min-height: 40px;
 }
 
 .btn-qr {
@@ -680,7 +680,7 @@ input[type="file"] { font-size: var(--fs-body); }
   cursor: pointer;
   transition: background var(--transition), border-color var(--transition);
   font-family: inherit;
-  min-height: 30px;
+  min-height: 40px;
 }
 .btn-qr:hover {
   background: rgba(255,255,255,0.05);
