@@ -220,8 +220,48 @@
   });
 
   // -------------------------------------------------------------------------
-  // Upload CSV
+  // Upload Daftar Siswa (CSV + Excel)
   // -------------------------------------------------------------------------
+
+  function parseRosterRows(allCols) {
+    // Normalisasi header jika ada — cek baris pertama: NIS non-numerik = header
+    var data = (allCols.length > 0 && !/^\d+$/.test((allCols[0][1] || '').toString().trim()))
+      ? allCols.slice(1)
+      : allCols;
+
+    return data
+      .filter(function (cols) { return cols[0] && cols[1]; })
+      .map(function (cols) {
+        return {
+          classroom_id: currentClassroomId,
+          teacher_id:   currentProfile.id,
+          full_name:    String(cols[0]).trim(),
+          nis:          String(cols[1]).trim(),
+          nama_ortu:    cols[2] ? String(cols[2]).trim() : null,
+        };
+      })
+      .filter(function (r) { return r.full_name && /^\d+$/.test(r.nis); });
+  }
+
+  function parseColsFromExcel(wb) {
+    var sheet = wb.Sheets[wb.SheetNames[0]];
+    var raw   = window.XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+    if (!raw.length) return [];
+
+    // Deteksi header row case-insensitive
+    var firstRow = raw[0].map(function (c) { return String(c).trim().toLowerCase(); });
+    var namaIdx  = firstRow.indexOf('nama');
+    var nisIdx   = firstRow.indexOf('nis');
+    var ortuIdx  = firstRow.indexOf('nama_ortu');
+
+    // Jika header ditemukan, gunakan index dari header; jika tidak, pakai posisi 0,1,2
+    if (nisIdx !== -1 && namaIdx !== -1) {
+      return raw.slice(1).map(function (r) {
+        return [r[namaIdx], r[nisIdx], ortuIdx !== -1 ? r[ortuIdx] : ''];
+      });
+    }
+    return raw;
+  }
 
   document.getElementById('btn-upload').addEventListener('click', async function () {
     const fileInput = document.getElementById('inp-csv');
@@ -231,62 +271,65 @@
     resultEl.textContent   = '';
 
     if (!fileInput.files || !fileInput.files[0]) {
-      alert('Pilih file CSV dulu.');
+      alert('Pilih file dulu (CSV atau Excel).');
       return;
     }
 
     const file = fileInput.files[0];
+    const ext  = file.name.split('.').pop().toLowerCase();
+    let rows;
 
-    const text = await new Promise(function (resolve, reject) {
-      const reader = new FileReader();
-      reader.onload  = function (e) { resolve(e.target.result); };
-      reader.onerror = function ()  { reject(new Error('Gagal membaca file.')); };
-      reader.readAsText(file);
-    });
-
-    const rows = (function () {
-      // Parser CSV minimal — handle quoted fields (misal: "Nama, S.Pd") dan skip header
-      function parseLine(line) {
-        var fields = [], field = '', inQ = false;
-        for (var i = 0; i < line.length; i++) {
-          var ch = line[i];
-          if (inQ) {
-            if (ch === '"') { if (line[i + 1] === '"') { field += '"'; i++; } else { inQ = false; } }
-            else { field += ch; }
-          } else {
-            if (ch === '"') { inQ = true; }
-            else if (ch === ',') { fields.push(field.trim()); field = ''; }
-            else { field += ch; }
-          }
-        }
-        fields.push(field.trim());
-        return fields;
-      }
-
-      var allCols = text.split(/\r?\n/)
-        .filter(function (l) { return l.trim(); })
-        .map(parseLine);
-
-      // Skip baris pertama jika NIS-nya non-numerik (kemungkinan baris header)
-      var data = (allCols.length > 0 && !/^\d+$/.test(allCols[0][1] || ''))
-        ? allCols.slice(1)
-        : allCols;
-
-      return data
-        .filter(function (cols) { return cols[0] && cols[1]; })
-        .map(function (cols) {
-          return {
-            classroom_id: currentClassroomId,
-            teacher_id:   currentProfile.id,
-            full_name:    cols[0],
-            nis:          cols[1],
-            nama_ortu:    cols[2] || null,
-          };
+    try {
+      if (ext === 'xlsx' || ext === 'xls') {
+        const buffer = await new Promise(function (resolve, reject) {
+          const reader = new FileReader();
+          reader.onload  = function (e) { resolve(e.target.result); };
+          reader.onerror = function ()  { reject(new Error('Gagal membaca file.')); };
+          reader.readAsArrayBuffer(file);
         });
-    }());
+        const wb   = window.XLSX.read(new Uint8Array(buffer), { type: 'array' });
+        const cols = parseColsFromExcel(wb);
+        rows = parseRosterRows(cols);
+      } else {
+        const text = await new Promise(function (resolve, reject) {
+          const reader = new FileReader();
+          reader.onload  = function (e) { resolve(e.target.result); };
+          reader.onerror = function ()  { reject(new Error('Gagal membaca file.')); };
+          reader.readAsText(file);
+        });
+
+        // Parser CSV minimal — handle quoted fields (misal: "Nama, S.Pd")
+        function parseLine(line) {
+          var fields = [], field = '', inQ = false;
+          for (var i = 0; i < line.length; i++) {
+            var ch = line[i];
+            if (inQ) {
+              if (ch === '"') { if (line[i + 1] === '"') { field += '"'; i++; } else { inQ = false; } }
+              else { field += ch; }
+            } else {
+              if (ch === '"') { inQ = true; }
+              else if (ch === ',') { fields.push(field.trim()); field = ''; }
+              else { field += ch; }
+            }
+          }
+          fields.push(field.trim());
+          return fields;
+        }
+
+        var allCols = text.split(/\r?\n/)
+          .filter(function (l) { return l.trim(); })
+          .map(parseLine);
+
+        rows = parseRosterRows(allCols);
+      }
+    } catch (err) {
+      resultEl.textContent   = 'Gagal membaca file: ' + err.message;
+      resultEl.style.display = 'block';
+      return;
+    }
 
     if (rows.length === 0) {
-      resultEl.textContent   = 'Tidak ada baris valid di file CSV.';
+      resultEl.textContent   = 'Tidak ada baris valid di file. Pastikan kolom nama dan NIS (angka) ada.';
       resultEl.style.display = 'block';
       return;
     }

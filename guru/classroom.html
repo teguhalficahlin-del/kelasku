@@ -102,16 +102,17 @@
       </form>
     </section>
 
-    <!-- Upload CSV -->
+    <!-- Upload Daftar Siswa -->
     <section class="panel">
-      <h2>Upload CSV</h2>
+      <h2>Upload Daftar Siswa</h2>
       <p class="hint">
-        Format: <code>nama, nis, nama_ortu</code> (nama_ortu opsional) — satu siswa per baris.<br>
+        Mendukung <strong>CSV</strong> dan <strong>Excel (.xlsx/.xls)</strong>.<br>
+        Kolom: <code>nama, nis, nama_ortu</code> (nama_ortu opsional) — satu siswa per baris.<br>
         Header row opsional — di-skip otomatis jika NIS bukan angka.<br>
-        Quoted fields didukung, misal: <code>"Budi, S.Pd",12345</code>
+        Excel: sheet pertama yang dipakai. Nama kolom case-insensitive.
       </p>
       <div class="inline-form">
-        <input type="file" id="inp-csv" accept=".csv">
+        <input type="file" id="inp-csv" accept=".csv,.xlsx,.xls">
         <button type="button" id="btn-upload">Import</button>
       </div>
       <div id="upload-result" style="display:none;"></div>
@@ -130,6 +131,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="../shared/js/supabase.js"></script>
   <script src="js/api.js"></script>
   <script src="js/classroom.js"></script>
