@@ -21,17 +21,33 @@
   --warning-bg:     rgba(251,191,36,0.15);
   --text:           #f1f5f9;
   --text-sec:       #94a3b8;
-  --text-muted:     #64748b;
+  --text-muted:     #8091a7;   /* brightened from #64748b for WCAG AA */
   --font:           'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --r-sm:           6px;
-  --r-md:           8px;
-  --r-lg:           12px;
-  --shadow-card:    0 4px 24px rgba(0,0,0,0.4);
-  --shadow-modal:   0 8px 40px rgba(0,0,0,0.6);
-  --transition:     150ms ease;
-  --glass:          rgba(30,41,59,0.75);
-  --glass-border:   rgba(255,255,255,0.1);
-  --blur:           blur(12px);
+
+  /* Fluid typography */
+  --fs-h1:      clamp(16px, 2vw, 22px);
+  --fs-h2:      clamp(14px, 1.6vw, 18px);
+  --fs-body:    clamp(13px, 1.4vw, 15px);
+  --fs-caption: clamp(11px, 1.2vw, 13px);
+  --fs-btn:     clamp(13px, 1.4vw, 15px);
+
+  /* Fluid sizing */
+  --btn-h:  clamp(40px, 5vw, 48px);
+  --btn-px: clamp(14px, 2vw, 20px);
+  --btn-py: clamp(8px, 1.5vw, 12px);
+
+  /* Radius */
+  --r-sm:  6px;
+  --r-md:  8px;
+  --r-lg:  clamp(8px, 1.5vw, 14px);
+
+  /* Elevation */
+  --shadow-card:  0 4px 24px rgba(0,0,0,0.4);
+  --shadow-modal: 0 8px 40px rgba(0,0,0,0.6);
+  --transition:   150ms ease;
+  --glass:        rgba(30,41,59,0.75);
+  --glass-border: rgba(255,255,255,0.1);
+  --blur:         blur(12px);
 }
 
 /* ── Reset ── */
@@ -40,7 +56,7 @@
 /* ── Base ── */
 body {
   font-family: var(--font);
-  font-size: 14px;
+  font-size: var(--fs-body);
   line-height: 1.6;
   background: var(--bg);
   color: var(--text);
@@ -59,7 +75,7 @@ body {
 
 /* ── Typography ── */
 h1 {
-  font-size: 1.25rem;
+  font-size: var(--fs-h1);
   font-weight: 700;
   color: var(--accent);
   margin-bottom: 1.75rem;
@@ -68,7 +84,7 @@ h1 {
 }
 
 h2 {
-  font-size: 1rem;
+  font-size: var(--fs-h2);
   font-weight: 600;
   color: var(--text);
   margin-bottom: 1.25rem;
@@ -87,7 +103,7 @@ section {
 /* ── Labels ── */
 label {
   display: block;
-  font-size: 0.75rem;
+  font-size: var(--fs-caption);
   font-weight: 600;
   margin-bottom: 0.35rem;
   color: var(--text-sec);
@@ -102,7 +118,7 @@ input[type="password"] {
   display: block;
   width: 100%;
   padding: 0.625rem 0.875rem;
-  font-size: 0.9375rem;
+  font-size: var(--fs-body);
   border: 1.5px solid var(--border);
   border-radius: var(--r-md);
   background: var(--surface-sub);
@@ -125,11 +141,11 @@ button[type="button"],
 button[type="submit"] {
   display: block;
   width: 100%;
-  padding: 0.75rem 1.5rem;
-  min-height: 44px;
-  font-size: 0.9375rem;
+  padding: var(--btn-py) var(--btn-px);
+  min-height: var(--btn-h);
+  font-size: var(--fs-btn);
   font-weight: 600;
-  color: #fff;
+  color: #ffffff;
   background: var(--accent);
   border: none;
   border-radius: var(--r-md);
@@ -153,7 +169,7 @@ button[type="submit"]:disabled { opacity: 0.4; cursor: not-allowed; }
   color: var(--danger);
   border-radius: var(--r-md);
   padding: 0.75rem 1rem;
-  font-size: 0.875rem;
+  font-size: var(--fs-body);
   margin-top: 0.75rem;
   line-height: 1.5;
 }
@@ -165,13 +181,13 @@ button[type="submit"]:disabled { opacity: 0.4; cursor: not-allowed; }
   color: var(--success);
   border-radius: var(--r-md);
   padding: 0.75rem 1rem;
-  font-size: 0.875rem;
+  font-size: var(--fs-body);
   margin-bottom: 1rem;
 }
 
 /* ── Label kelas ── */
 .cl-label {
-  font-size: 0.875rem;
+  font-size: var(--fs-caption);
   color: var(--text-muted);
   margin-bottom: 1rem;
 }
@@ -199,7 +215,7 @@ header {
 }
 
 .header-brand {
-  font-size: 0.9375rem;
+  font-size: var(--fs-body);
   font-weight: 700;
   color: var(--accent);
   letter-spacing: -0.02em;
@@ -212,7 +228,7 @@ header {
 }
 
 #ortu-name {
-  font-size: 0.8125rem;
+  font-size: var(--fs-caption);
   font-weight: 500;
   color: var(--text-sec);
 }
@@ -225,7 +241,7 @@ header {
   border-radius: var(--r-sm);
   padding: 0 0.875rem;
   height: 34px;
-  font-size: 0.8125rem;
+  font-size: var(--fs-caption);
   font-weight: 500;
   color: var(--text-sec);
   cursor: pointer;
@@ -247,7 +263,7 @@ main {
 
 main h2 {
   margin-bottom: 1.25rem;
-  font-size: 1rem;
+  font-size: var(--fs-h2);
   font-weight: 600;
   letter-spacing: -0.01em;
 }
@@ -276,17 +292,18 @@ main h2 {
 }
 
 .card-name {
-  font-size: 0.9375rem;
+  font-size: var(--fs-body);
   font-weight: 600;
   color: var(--text);
   letter-spacing: -0.01em;
 }
 
+/* WCAG fix: accent on tinted bg = 2.79:1 → dark indigo bg + indigo-100 text = 9.27:1 */
 .card-code {
-  font-size: 0.6875rem;
+  font-size: var(--fs-caption);
   font-weight: 700;
-  color: var(--accent);
-  background: var(--accent-light);
+  color: #e0e7ff;
+  background: #312e81;
   border-radius: 4px;
   padding: 0.2rem 0.55rem;
   letter-spacing: 0.08em;
@@ -295,25 +312,25 @@ main h2 {
 }
 
 .card-subject {
-  font-size: 0.8125rem;
+  font-size: var(--fs-caption);
   color: var(--text-sec);
   margin-bottom: 0.25rem;
 }
 
 .card-teacher {
-  font-size: 0.8rem;
+  font-size: var(--fs-caption);
   color: var(--text-muted);
   margin-bottom: 0.2rem;
 }
 
 .card-student {
-  font-size: 0.8rem;
+  font-size: var(--fs-caption);
   color: var(--text-muted);
 }
 
 .empty-state {
   color: var(--text-muted);
-  font-size: 0.875rem;
+  font-size: var(--fs-caption);
   text-align: center;
   padding: 3rem 0;
   line-height: 1.7;

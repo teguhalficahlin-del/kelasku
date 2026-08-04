@@ -5,6 +5,7 @@
 
 /* ── Design tokens — dark premium ── */
 :root {
+  /* Colors */
   --primary:        #6366f1;
   --primary-hov:    #4f46e5;
   --primary-light:  rgba(99,102,241,0.15);
@@ -24,17 +25,33 @@
   --warning-bg:     rgba(251,191,36,0.15);
   --text:           #f1f5f9;
   --text-sec:       #94a3b8;
-  --text-muted:     #64748b;
+  --text-muted:     #8091a7;   /* was #64748b — brightened for WCAG AA */
   --font:           'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --r-sm:           6px;
-  --r-md:           8px;
-  --r-lg:           12px;
-  --shadow-card:    0 4px 24px rgba(0,0,0,0.4);
-  --shadow-modal:   0 8px 40px rgba(0,0,0,0.6);
-  --transition:     150ms ease;
-  --glass:          rgba(30,41,59,0.75);
-  --glass-border:   rgba(255,255,255,0.1);
-  --blur:           blur(12px);
+
+  /* Fluid typography */
+  --fs-h1:      clamp(16px, 2vw, 22px);
+  --fs-h2:      clamp(14px, 1.6vw, 18px);
+  --fs-body:    clamp(13px, 1.4vw, 15px);
+  --fs-caption: clamp(11px, 1.2vw, 13px);
+  --fs-btn:     clamp(13px, 1.4vw, 15px);
+
+  /* Fluid sizing */
+  --btn-h:   clamp(40px, 5vw, 48px);
+  --btn-px:  clamp(14px, 2vw, 20px);
+  --btn-py:  clamp(8px, 1.5vw, 12px);
+
+  /* Radius */
+  --r-sm:    6px;
+  --r-md:    8px;
+  --r-lg:    clamp(8px, 1.5vw, 14px);
+
+  /* Elevation */
+  --shadow-card:  0 4px 24px rgba(0,0,0,0.4);
+  --shadow-modal: 0 8px 40px rgba(0,0,0,0.6);
+  --transition:   150ms ease;
+  --glass:        rgba(30,41,59,0.75);
+  --glass-border: rgba(255,255,255,0.1);
+  --blur:         blur(12px);
 }
 
 /* ── Reset ── */
@@ -43,7 +60,7 @@
 /* ── Base ── */
 body {
   font-family: var(--font);
-  font-size: 14px;
+  font-size: var(--fs-body);
   line-height: 1.6;
   background: var(--bg);
   color: var(--text);
@@ -62,7 +79,7 @@ body {
 
 /* ── Login — Typography ── */
 h1 {
-  font-size: 1.25rem;
+  font-size: var(--fs-h1);
   font-weight: 700;
   color: var(--primary);
   margin-bottom: 1.75rem;
@@ -71,7 +88,7 @@ h1 {
 }
 
 h2 {
-  font-size: 1rem;
+  font-size: var(--fs-h2);
   font-weight: 600;
   color: var(--text);
   margin-bottom: 1.25rem;
@@ -90,7 +107,7 @@ section {
 /* ── Labels ── */
 label {
   display: block;
-  font-size: 0.75rem;
+  font-size: var(--fs-caption);
   font-weight: 600;
   margin-bottom: 0.35rem;
   color: var(--text-sec);
@@ -104,7 +121,7 @@ input[type="password"] {
   display: block;
   width: 100%;
   padding: 0.625rem 0.875rem;
-  font-size: 0.9375rem;
+  font-size: var(--fs-body);
   border: 1.5px solid var(--border);
   border-radius: var(--r-md);
   background: var(--surface-sub);
@@ -126,11 +143,11 @@ input::placeholder { color: var(--text-muted); }
 button[type="submit"] {
   display: block;
   width: 100%;
-  padding: 0.75rem 1.5rem;
-  min-height: 44px;
-  font-size: 0.9375rem;
+  padding: var(--btn-py) var(--btn-px);
+  min-height: var(--btn-h);
+  font-size: var(--fs-btn);
   font-weight: 600;
-  color: var(--surface);
+  color: #ffffff;
   background: var(--primary);
   border: none;
   border-radius: var(--r-md);
@@ -151,14 +168,14 @@ button[type="submit"]:disabled { opacity: 0.4; cursor: not-allowed; }
   color: var(--danger);
   border-radius: var(--r-md);
   padding: 0.75rem 1rem;
-  font-size: 0.875rem;
+  font-size: var(--fs-body);
   margin-bottom: 1rem;
   line-height: 1.5;
 }
 
 /* ── Login footer link ── */
 .link-daftar {
-  font-size: 0.875rem;
+  font-size: var(--fs-body);
   color: var(--text-sec);
   text-align: center;
   margin-top: 1.25rem;
@@ -189,7 +206,7 @@ header {
 }
 
 .header-brand {
-  font-size: 0.9375rem;
+  font-size: var(--fs-body);
   font-weight: 700;
   color: var(--primary);
   letter-spacing: -0.02em;
@@ -202,13 +219,13 @@ header {
 }
 
 #guru-name {
-  font-size: 0.8125rem;
+  font-size: var(--fs-caption);
   font-weight: 500;
   color: var(--text-sec);
 }
 
 #btn-logout {
-  font-size: 0.8125rem;
+  font-size: var(--fs-caption);
   font-weight: 500;
   color: var(--text-sec);
   background: none;
@@ -244,12 +261,12 @@ main {
 
 #btn-buat-classroom {
   background: var(--primary);
-  color: var(--surface);
+  color: #ffffff;
   border: none;
-  padding: 0 1.25rem;
-  height: 44px;
+  padding: 0 var(--btn-px);
+  min-height: var(--btn-h);
   border-radius: var(--r-md);
-  font-size: 0.875rem;
+  font-size: var(--fs-btn);
   font-weight: 600;
   cursor: pointer;
   transition: background var(--transition);
@@ -285,16 +302,17 @@ main {
 
 .card-name {
   font-weight: 600;
-  font-size: 0.9375rem;
+  font-size: var(--fs-body);
   color: var(--text);
   letter-spacing: -0.01em;
 }
 
+/* WCAG fix: accent on tinted bg = 2.79:1 → dark indigo bg + indigo-100 text = 9.27:1 */
 .card-code {
-  font-size: 0.6875rem;
+  font-size: var(--fs-caption);
   font-family: ui-monospace, SFMono-Regular, 'Courier New', monospace;
-  background: var(--primary-light);
-  color: var(--primary);
+  background: #312e81;
+  color: #e0e7ff;
   padding: 0.2rem 0.55rem;
   border-radius: 4px;
   letter-spacing: 0.08em;
@@ -303,13 +321,13 @@ main {
 }
 
 .card-subject {
-  font-size: 0.8125rem;
+  font-size: var(--fs-caption);
   color: var(--text-sec);
   margin-bottom: 0.4rem;
 }
 
 .card-count {
-  font-size: 0.75rem;
+  font-size: var(--fs-caption);
   color: var(--text-muted);
   margin-bottom: 1rem;
 }
@@ -317,7 +335,7 @@ main {
 .btn-kelola {
   display: inline-flex;
   align-items: center;
-  font-size: 0.8125rem;
+  font-size: var(--fs-caption);
   font-weight: 600;
   color: var(--primary);
   text-decoration: none;
@@ -329,13 +347,13 @@ main {
 }
 .btn-kelola:hover {
   background: var(--primary);
-  color: var(--surface);
+  color: #ffffff;
 }
 
 .empty-state {
   text-align: center;
   color: var(--text-muted);
-  font-size: 0.875rem;
+  font-size: var(--fs-caption);
   padding: 3rem 0;
   line-height: 1.7;
 }
@@ -377,7 +395,7 @@ main {
 }
 
 .modal-box h3 {
-  font-size: 1rem;
+  font-size: var(--fs-h2);
   font-weight: 600;
   margin-bottom: 1.25rem;
   color: var(--text);
@@ -388,7 +406,7 @@ main {
   display: block;
   width: 100%;
   padding: 0.625rem 0.875rem;
-  font-size: 0.9375rem;
+  font-size: var(--fs-body);
   border: 1.5px solid var(--border);
   border-radius: var(--r-md);
   background: var(--surface-sub);
@@ -414,23 +432,23 @@ main {
   background: var(--surface-sub);
   color: var(--text-sec);
   border: 1px solid var(--border);
-  padding: 0 1.25rem;
-  height: 44px;
+  padding: 0 var(--btn-px);
+  min-height: var(--btn-h);
   border-radius: var(--r-md);
-  font-size: 0.875rem;
+  font-size: var(--fs-btn);
   font-weight: 500;
   cursor: pointer;
   transition: background var(--transition);
   font-family: inherit;
 }
-#btn-batal:hover { background: var(--border); }
+#btn-batal:hover { background: rgba(255,255,255,0.05); }
 
 .modal-box button[type="submit"] {
   width: auto;
-  padding: 0 1.5rem;
-  height: 44px;
+  padding: 0 var(--btn-px);
+  min-height: var(--btn-h);
   margin-top: 0;
-  font-size: 0.875rem;
+  font-size: var(--fs-btn);
 }
 
 .opsional { font-weight: 400; color: var(--text-muted); }
@@ -440,7 +458,7 @@ main {
    ============================================================ */
 
 .btn-back {
-  font-size: 0.8125rem;
+  font-size: var(--fs-caption);
   font-weight: 500;
   color: var(--text-sec);
   text-decoration: none;
@@ -461,7 +479,7 @@ main {
 
 #cl-name {
   font-weight: 600;
-  font-size: 0.9375rem;
+  font-size: var(--fs-body);
   color: var(--text);
   letter-spacing: -0.01em;
   overflow: hidden;
@@ -470,14 +488,14 @@ main {
 }
 
 #guru-name-cl {
-  font-size: 0.8125rem;
+  font-size: var(--fs-caption);
   font-weight: 500;
   color: var(--text-sec);
   white-space: nowrap;
 }
 
 .cl-meta {
-  font-size: 0.8125rem;
+  font-size: var(--fs-caption);
   color: var(--text-sec);
   padding: 0 1rem 1rem;
   max-width: 720px;
@@ -496,14 +514,14 @@ main {
 }
 
 .panel h2 {
-  font-size: 0.9375rem;
+  font-size: var(--fs-body);
   font-weight: 600;
   margin-bottom: 0.875rem;
   color: var(--text);
 }
 
 .hint {
-  font-size: 0.8125rem;
+  font-size: var(--fs-caption);
   color: var(--text-muted);
   margin-bottom: 0.875rem;
   line-height: 1.65;
@@ -514,7 +532,7 @@ main {
   padding: 0.1rem 0.35rem;
   border-radius: 4px;
   font-family: ui-monospace, SFMono-Regular, monospace;
-  font-size: 0.8125rem;
+  font-size: var(--fs-caption);
   color: var(--text-sec);
 }
 
@@ -529,10 +547,10 @@ main {
   flex: 1;
   min-width: 140px;
   padding: 0.625rem 0.875rem;
-  min-height: 44px;
+  min-height: var(--btn-h);
   border: 1.5px solid var(--border);
   border-radius: var(--r-md);
-  font-size: 0.875rem;
+  font-size: var(--fs-body);
   background: var(--surface-sub);
   color: var(--text);
   transition: border-color var(--transition);
@@ -544,13 +562,13 @@ main {
   background: var(--surface);
 }
 .inline-form button {
-  padding: 0 1.25rem;
-  min-height: 44px;
+  padding: var(--btn-py) var(--btn-px);
+  min-height: var(--btn-h);
   background: var(--primary);
-  color: var(--surface);
+  color: #ffffff;
   border: none;
   border-radius: var(--r-md);
-  font-size: 0.875rem;
+  font-size: var(--fs-btn);
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
@@ -561,11 +579,11 @@ main {
 .inline-form button:hover:not(:disabled) { background: var(--primary-hov); }
 .inline-form button:disabled { opacity: 0.4; cursor: not-allowed; }
 
-input[type="file"] { font-size: 0.875rem; }
+input[type="file"] { font-size: var(--fs-body); }
 
 #upload-result {
   margin-top: 0.75rem;
-  font-size: 0.875rem;
+  font-size: var(--fs-body);
   color: var(--text-sec);
 }
 
@@ -574,8 +592,8 @@ input[type="file"] { font-size: 0.875rem; }
   display: inline-flex;
   align-items: center;
   padding: 0 1.125rem;
-  height: 44px;
-  font-size: 0.8125rem;
+  min-height: var(--btn-h);
+  font-size: var(--fs-caption);
   font-weight: 600;
   color: var(--primary);
   background: var(--surface);
@@ -596,8 +614,8 @@ input[type="file"] { font-size: 0.875rem; }
   display: inline-flex;
   align-items: center;
   padding: 0 1.125rem;
-  height: 44px;
-  font-size: 0.8125rem;
+  min-height: var(--btn-h);
+  font-size: var(--fs-caption);
   font-weight: 600;
   color: var(--danger);
   background: var(--surface);
@@ -620,7 +638,7 @@ input[type="file"] { font-size: 0.875rem; }
   display: inline-flex;
   align-items: center;
   padding: 0.25rem 0.75rem;
-  font-size: 0.75rem;
+  font-size: var(--fs-caption);
   font-weight: 600;
   color: var(--primary);
   background: var(--primary-light);
@@ -631,14 +649,14 @@ input[type="file"] { font-size: 0.875rem; }
   font-family: inherit;
   min-height: 30px;
 }
-.btn-gen-akun:hover { background: var(--primary); color: var(--surface); }
+.btn-gen-akun:hover { background: var(--primary); color: #ffffff; }
 .btn-gen-akun:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .btn-gen-disabled {
   display: inline-flex;
   align-items: center;
   padding: 0.25rem 0.75rem;
-  font-size: 0.75rem;
+  font-size: var(--fs-caption);
   font-weight: 500;
   background: var(--surface-sub);
   color: var(--text-muted);
@@ -653,7 +671,7 @@ input[type="file"] { font-size: 0.875rem; }
   display: inline-flex;
   align-items: center;
   padding: 0.25rem 0.625rem;
-  font-size: 0.75rem;
+  font-size: var(--fs-caption);
   font-weight: 500;
   color: var(--text-sec);
   background: var(--surface-sub);
@@ -665,19 +683,19 @@ input[type="file"] { font-size: 0.875rem; }
   min-height: 30px;
 }
 .btn-qr:hover {
-  background: var(--border);
+  background: rgba(255,255,255,0.05);
   border-color: var(--text-muted);
 }
 
 /* ── Table (compatibility) ── */
-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+table { width: 100%; border-collapse: collapse; font-size: var(--fs-body); }
 th {
   text-align: left;
   padding: 0.5rem 0.75rem;
   border-bottom: 2px solid var(--border);
   color: var(--text-sec);
   font-weight: 600;
-  font-size: 0.6875rem;
+  font-size: var(--fs-caption);
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
