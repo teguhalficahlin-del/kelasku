@@ -119,7 +119,7 @@ input[type="password"] {
   width: 100%;
   padding: 0.625rem 0.875rem;
   font-size: var(--fs-body);
-  border: 1.5px solid var(--border);
+  border: 1.5px solid rgba(255,255,255,0.22);
   border-radius: var(--r-md);
   background: var(--surface-sub);
   color: var(--text);
@@ -128,7 +128,7 @@ input[type="password"] {
   font-family: inherit;
 }
 
-input::placeholder { color: var(--text-muted); }
+input::placeholder { color: #97a8bb; }
 
 input:focus {
   outline: none;
@@ -146,7 +146,7 @@ button[type="submit"] {
   font-size: var(--fs-btn);
   font-weight: 600;
   color: #ffffff;
-  background: var(--accent);
+  background: var(--accent-hov);
   border: none;
   border-radius: var(--r-md);
   cursor: pointer;
@@ -157,7 +157,7 @@ button[type="submit"] {
 }
 
 button[type="button"]:hover:not(:disabled),
-button[type="submit"]:hover:not(:disabled) { background: var(--accent-hov); }
+button[type="submit"]:hover:not(:disabled) { background: #4338ca; }
 
 button[type="button"]:disabled,
 button[type="submit"]:disabled { opacity: 0.4; cursor: not-allowed; }
@@ -217,7 +217,7 @@ header {
 .header-brand {
   font-size: var(--fs-body);
   font-weight: 700;
-  color: var(--accent);
+  color: #a5b4fc;
   letter-spacing: -0.02em;
 }
 
