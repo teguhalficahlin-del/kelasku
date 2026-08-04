@@ -578,10 +578,11 @@
     });
     if (targets.length === 0) return;
 
-    var ok = window.confirm(
-      'Hapus akun ' + targets.length + ' siswa yang dipilih?\nTindakan ini tidak bisa dibatalkan.'
-    );
-    if (!ok) return;
+    // Konfirmasi: overlay dengan input "HAPUS" untuk > 10, window.confirm untuk ≤ 10
+    var confirmed = await (targets.length > 10 ? konfirmasiKuat(targets.length) : Promise.resolve(
+      window.confirm('Hapus akun ' + targets.length + ' siswa yang dipilih?\nTindakan ini tidak bisa dibatalkan.')
+    ));
+    if (!confirmed) return;
 
     var btnHapus = document.getElementById('btn-hapus-terpilih');
     btnHapus.disabled = true;
@@ -597,12 +598,76 @@
 
     showShareNotif('Selesai: ' + berhasil + ' berhasil dihapus, ' + gagal + ' gagal.');
 
-    if (listEl) {
-      listEl.querySelectorAll('.chk-row').forEach(function (c) { c.checked = false; });
-      var chkAll = listEl.querySelector('#chk-all');
-      if (chkAll) { chkAll.checked = false; chkAll.indeterminate = false; }
-    }
+    // Reset state tombol secara eksplisit — agar tetap benar jika loadRoster() error
+    btnHapus.textContent = 'Hapus Terpilih (0)';
+    btnHapus.disabled    = true;
+
     await loadRoster();
+  }
+
+  // Overlay konfirmasi kuat: user harus mengetik "HAPUS" untuk melanjutkan
+  function konfirmasiKuat(jumlah) {
+    return new Promise(function (resolve) {
+      var overlay = document.createElement('div');
+      overlay.className = 'share-overlay';
+
+      var box = document.createElement('div');
+      box.className = 'share-box';
+
+      var title = document.createElement('p');
+      title.innerHTML = '<strong>Konfirmasi Hapus ' + jumlah + ' Akun</strong>';
+
+      var pesan = document.createElement('p');
+      pesan.style.color  = '#c0392b';
+      pesan.style.margin = '4px 0 8px';
+      pesan.textContent  = 'Tindakan ini tidak bisa dibatalkan. Ketik HAPUS untuk melanjutkan.';
+
+      var inp = document.createElement('input');
+      inp.type        = 'text';
+      inp.placeholder = 'Ketik HAPUS';
+      inp.style.cssText = 'width:100%;box-sizing:border-box;padding:.45rem;border:1px solid #ddd;border-radius:.4rem;font-size:1rem;';
+
+      var rowBtn = document.createElement('div');
+      rowBtn.style.cssText = 'display:flex;gap:.5rem;justify-content:flex-end;margin-top:.25rem;';
+
+      var btnBatal = document.createElement('button');
+      btnBatal.type        = 'button';
+      btnBatal.textContent = 'Batal';
+
+      var btnOk = document.createElement('button');
+      btnOk.type        = 'button';
+      btnOk.textContent = 'Hapus';
+      btnOk.disabled    = true;
+      btnOk.style.background = '#c0392b';
+      btnOk.style.color      = '#fff';
+
+      function done(val) {
+        overlay.remove();
+        document.removeEventListener('keydown', onEsc);
+        resolve(val);
+      }
+
+      inp.addEventListener('input', function () {
+        btnOk.disabled = inp.value.trim() !== 'HAPUS';
+      });
+      btnOk.addEventListener('click', function () { done(true); });
+      btnBatal.addEventListener('click', function () { done(false); });
+      overlay.addEventListener('click', function (e) { if (e.target === overlay) { done(false); } });
+
+      function onEsc(e) { if (e.key === 'Escape') { done(false); } }
+      document.addEventListener('keydown', onEsc);
+
+      rowBtn.appendChild(btnBatal);
+      rowBtn.appendChild(btnOk);
+      box.appendChild(title);
+      box.appendChild(pesan);
+      box.appendChild(inp);
+      box.appendChild(rowBtn);
+      overlay.appendChild(box);
+      document.body.appendChild(overlay);
+
+      inp.focus();
+    });
   }
 
   // -------------------------------------------------------------------------
