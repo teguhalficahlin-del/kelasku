@@ -141,11 +141,12 @@
     .card-meta  { font-size: .8rem; color: #6b7280; }
     .card-actions { display: flex; gap: .35rem; flex-wrap: wrap; margin-top: .2rem; align-items: center; }
 
-    /* Mobile — form tambah siswa stack vertikal */
-    @media (max-width: 480px) {
-      .inline-form { flex-direction: column; }
-      .inline-form input, .inline-form button { width: 100%; box-sizing: border-box; }
-      .roster-actions { flex-wrap: wrap; }
+    /* Form input — fluid grid tanpa breakpoint pixel */
+    .inline-form {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: .5rem;
+      align-items: center;
     }
 
     /* Share link — fallback overlay */
