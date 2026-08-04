@@ -542,10 +542,18 @@
     });
     if (targets.length === 0) return;
 
+    var withAkun   = targets.filter(function (r) { return r.profile_id; }).length;
+    var rosterOnly = targets.length - withAkun;
+
+    var msgParts = [];
+    if (withAkun   > 0) msgParts.push(withAkun   + ' siswa akan dihapus akunnya');
+    if (rosterOnly > 0) msgParts.push(rosterOnly  + ' siswa akan dihapus dari daftar saja');
+    var msgDetail = msgParts.join(', ');
+
     // Konfirmasi: overlay dengan input "HAPUS" untuk > 10, window.confirm untuk ≤ 10
-    var confirmed = await (targets.length > 10 ? konfirmasiKuat(targets.length) : Promise.resolve(
-      window.confirm('Hapus ' + targets.length + ' siswa yang dipilih?\nTindakan ini tidak bisa dibatalkan.')
-    ));
+    var confirmed = await (targets.length > 10
+      ? konfirmasiKuat(targets.length, withAkun, rosterOnly)
+      : Promise.resolve(window.confirm(msgDetail + '.\nTindakan ini tidak bisa dibatalkan.')));
     if (!confirmed) return;
 
     var btnHapus = document.getElementById('btn-hapus-terpilih');
@@ -577,7 +585,7 @@
   }
 
   // Overlay konfirmasi kuat: user harus mengetik "HAPUS" untuk melanjutkan
-  function konfirmasiKuat(jumlah) {
+  function konfirmasiKuat(jumlah, withAkun, rosterOnly) {
     return new Promise(function (resolve) {
       var overlay = document.createElement('div');
       overlay.className = 'share-overlay';
@@ -586,12 +594,16 @@
       box.className = 'share-box';
 
       var title = document.createElement('p');
-      title.innerHTML = '<strong>Konfirmasi Hapus ' + jumlah + ' Akun</strong>';
+      title.innerHTML = '<strong>Konfirmasi Hapus ' + jumlah + ' Siswa</strong>';
+
+      var detailParts = [];
+      if (withAkun   > 0) detailParts.push(withAkun   + ' siswa akan dihapus akunnya');
+      if (rosterOnly > 0) detailParts.push(rosterOnly  + ' siswa akan dihapus dari daftar saja');
 
       var pesan = document.createElement('p');
       pesan.style.color  = '#c0392b';
       pesan.style.margin = '4px 0 8px';
-      pesan.textContent  = 'Tindakan ini tidak bisa dibatalkan. Ketik HAPUS untuk melanjutkan.';
+      pesan.textContent  = detailParts.join(', ') + '. Tindakan ini tidak bisa dibatalkan. Ketik HAPUS untuk melanjutkan.';
 
       var inp = document.createElement('input');
       inp.type        = 'text';
@@ -682,13 +694,15 @@
       const stored = sessionStorage.getItem('guru_trial_status');
       if (stored) { trialStatus = JSON.parse(stored); return; }
     } catch (_) {}
-    // Fallback ke RPC — untuk kasus guru buka classroom.html langsung tanpa melewati login
-    if (window.api && typeof window.api.getTrialStatus === 'function') {
-      trialStatus = await window.api.getTrialStatus();
-      if (trialStatus) {
+    // Fallback: RPC langsung — tidak bergantung window.api agar tetap aman
+    // jika guru buka classroom.html langsung tanpa melewati dashboard
+    try {
+      const { data } = await client.rpc('fn_guru_trial_status');
+      if (data) {
+        trialStatus = data;
         try { sessionStorage.setItem('guru_trial_status', JSON.stringify(trialStatus)); } catch (_) {}
       }
-    }
+    } catch (_) {}
   }
 
   function applyTrialGate() {
