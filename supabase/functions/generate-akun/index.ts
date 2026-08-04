@@ -51,31 +51,17 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Ambil profil caller — role harus GURU
-    const { data: callerProfile } = await admin
+    // Verifikasi role GURU + ownership classroom dalam satu query atomic
+    const { data: callerProfile, error: profileError } = await admin
       .from('profiles')
-      .select('id, role')
+      .select('id, role, classrooms!classrooms_teacher_id_fkey!inner(id)')
       .eq('user_id', user.id)
+      .eq('classrooms.id', classroom_id)
       .single();
 
-    if (!callerProfile || callerProfile.role !== 'GURU') {
+    if (profileError || !callerProfile || callerProfile.role !== 'GURU') {
       return Response.json(
         { success: false, error: 'Forbidden' },
-        { status: 403, headers: CORS_HEADERS },
-      );
-    }
-
-    // Verifikasi caller adalah pemilik classroom yang dikirim di body
-    const { data: ownedClassroom } = await admin
-      .from('classrooms')
-      .select('id')
-      .eq('id', classroom_id)
-      .eq('teacher_id', callerProfile.id)
-      .single();
-
-    if (!ownedClassroom) {
-      return Response.json(
-        { success: false, error: 'Forbidden: bukan owner classroom ini' },
         { status: 403, headers: CORS_HEADERS },
       );
     }

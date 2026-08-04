@@ -6,6 +6,7 @@
   let currentClassroom   = null;
   let trialStatus        = null;
   let currentRows        = [];
+  let isGenerating       = false;
 
   function escHtml(str) {
     return String(str)
@@ -466,6 +467,8 @@
   // -------------------------------------------------------------------------
 
   async function generateTerpilih() {
+    if (isGenerating) return;
+
     var listEl  = document.getElementById('roster-list');
     var checked = listEl ? listEl.querySelectorAll('.chk-row:checked') : [];
     var targets = [];
@@ -485,6 +488,7 @@
     var ok = window.confirm('Generate akun untuk ' + targets.length + ' siswa?');
     if (!ok) return;
 
+    isGenerating = true;
     var btnGen   = document.getElementById('btn-gen-terpilih');
     var resultEl = document.getElementById('generate-result');
     var banner   = document.getElementById('processing-banner');
@@ -494,28 +498,32 @@
     if (banner) { banner.style.display = 'block'; }
     resultEl.style.display = 'none';
 
-    var berhasil = 0;
-    var gagal    = 0;
-    for (var i = 0; i < targets.length; i++) {
-      var row = targets[i];
-      btnGen.textContent = 'Memproses ' + row.full_name + '... (' + (i + 1) + '/' + targets.length + ')';
-      var result = await generateSingleAccount(row);
-      if (result.error) { gagal++; } else { berhasil++; }
+    try {
+      var berhasil = 0;
+      var gagal    = 0;
+      for (var i = 0; i < targets.length; i++) {
+        var row = targets[i];
+        btnGen.textContent = 'Memproses ' + row.full_name + '... (' + (i + 1) + '/' + targets.length + ')';
+        var result = await generateSingleAccount(row);
+        if (result.error) { gagal++; } else { berhasil++; }
+      }
+
+      btnGen.classList.remove('btn-processing');
+      if (banner) { banner.style.display = 'none'; }
+
+      resultEl.textContent   = 'Selesai: ' + berhasil + ' berhasil, ' + gagal + ' gagal.';
+      resultEl.style.display = 'block';
+
+      // Uncentang semua
+      if (listEl) {
+        listEl.querySelectorAll('.chk-row').forEach(function (c) { c.checked = false; });
+        var chkAll = listEl.querySelector('#chk-all');
+        if (chkAll) { chkAll.checked = false; chkAll.indeterminate = false; }
+      }
+      await loadRoster();
+    } finally {
+      isGenerating = false;
     }
-
-    btnGen.classList.remove('btn-processing');
-    if (banner) { banner.style.display = 'none'; }
-
-    resultEl.textContent   = 'Selesai: ' + berhasil + ' berhasil, ' + gagal + ' gagal.';
-    resultEl.style.display = 'block';
-
-    // Uncentang semua
-    if (listEl) {
-      listEl.querySelectorAll('.chk-row').forEach(function (c) { c.checked = false; });
-      var chkAll = listEl.querySelector('#chk-all');
-      if (chkAll) { chkAll.checked = false; chkAll.indeterminate = false; }
-    }
-    await loadRoster();
   }
 
   // -------------------------------------------------------------------------
@@ -626,7 +634,10 @@
       btnOk.style.background = '#c0392b';
       btnOk.style.color      = '#fff';
 
+      var invoked = false;
       function done(val) {
+        if (invoked) return;
+        invoked = true;
         overlay.remove();
         document.removeEventListener('keydown', onEsc);
         resolve(val);
