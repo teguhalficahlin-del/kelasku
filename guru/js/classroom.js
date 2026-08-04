@@ -379,10 +379,6 @@
   // Generate Semua
   // -------------------------------------------------------------------------
 
-  document.getElementById('btn-generate-semua').addEventListener('click', async function () {
-    await generateAllAccounts();
-  });
-
   document.getElementById('btn-gen-terpilih').addEventListener('click', async function () {
     await generateTerpilih();
   });
