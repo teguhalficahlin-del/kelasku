@@ -540,7 +540,11 @@
 
     var btnGen   = document.getElementById('btn-gen-terpilih');
     var resultEl = document.getElementById('generate-result');
-    btnGen.disabled = true;
+    var banner   = document.getElementById('processing-banner');
+
+    btnGen.classList.add('btn-processing');
+    btnGen.removeAttribute('disabled');
+    if (banner) { banner.style.display = 'block'; }
     resultEl.style.display = 'none';
 
     var berhasil = 0;
@@ -551,6 +555,9 @@
       var result = await generateSingleAccount(row);
       if (result.error) { gagal++; } else { berhasil++; }
     }
+
+    btnGen.classList.remove('btn-processing');
+    if (banner) { banner.style.display = 'none'; }
 
     resultEl.textContent   = 'Selesai: ' + berhasil + ' berhasil, ' + gagal + ' gagal.';
     resultEl.style.display = 'block';

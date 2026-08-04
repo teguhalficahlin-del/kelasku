@@ -42,6 +42,27 @@
     #btn-gen-terpilih:disabled,
     #btn-hapus-terpilih:disabled { opacity: .45; cursor: not-allowed; }
 
+    /* Tombol dalam mode proses — visible, tidak transparent */
+    .btn-processing {
+      background: #f39c12 !important;
+      color: #000 !important;
+      pointer-events: none;
+      cursor: not-allowed;
+      opacity: 1 !important;
+    }
+
+    /* Banner peringatan proses berjalan */
+    #processing-banner {
+      display: none;
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      border-radius: .4rem;
+      padding: .5rem .85rem;
+      margin-bottom: .75rem;
+      font-size: .875rem;
+      color: #856404;
+    }
+
     /* Share link — fallback overlay */
     .share-overlay {
       position: fixed;
@@ -129,6 +150,7 @@
     <!-- Daftar siswa -->
     <section class="panel">
       <h2>Daftar Siswa (<span id="roster-count">0</span>)</h2>
+      <div id="processing-banner">⏳ Sedang memproses akun — jangan refresh halaman</div>
       <div class="roster-actions">
         <button type="button" id="btn-gen-terpilih" disabled>Generate Terpilih (0)</button>
         <button type="button" id="btn-hapus-terpilih" disabled>Hapus Terpilih (0)</button>
