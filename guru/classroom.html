@@ -210,6 +210,133 @@
       align-items: center;
     }
 
+    /* ── Tab navigation ── */
+    .tab-bar {
+      display: flex;
+      gap: .25rem;
+      margin-bottom: 1.25rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .tab-btn {
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      padding: .5rem .875rem;
+      font-size: var(--fs-caption);
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-family: inherit;
+      margin-bottom: -1px;
+      transition: color var(--transition), border-color var(--transition);
+    }
+    .tab-btn:hover { color: var(--text-sec); }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+    /* ── Schedule table ── */
+    .schedule-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: var(--fs-caption);
+      min-width: 520px;
+    }
+    .schedule-table th {
+      text-align: left;
+      color: var(--text-muted);
+      font-weight: 600;
+      padding: .375rem .5rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .schedule-table td {
+      padding: .625rem .5rem;
+      border-bottom: 1px solid var(--border-sub);
+      vertical-align: top;
+    }
+    .schedule-table tr:last-child td { border-bottom: none; }
+    .sch-day { font-weight: 600; color: var(--text-sec); white-space: nowrap; }
+    .sch-time { white-space: nowrap; color: var(--text); }
+    .sch-empty { color: var(--text-muted); }
+    .sch-add-row td { padding-top: .25rem; padding-bottom: .5rem; }
+    .sch-reason { font-size: .75rem; color: var(--text-muted); margin-top: .2rem; }
+    .sch-actions { display: flex; gap: .35rem; flex-wrap: wrap; align-items: center; }
+
+    /* ── Schedule modal inputs ── */
+    .sch-label {
+      display: flex;
+      flex-direction: column;
+      gap: .3rem;
+      font-size: var(--fs-caption);
+      font-weight: 600;
+      color: var(--text-sec);
+    }
+    .sch-input {
+      padding: .45rem .625rem;
+      border: 1.5px solid var(--border-strong);
+      border-radius: var(--r-sm);
+      background: var(--surface);
+      color: var(--text);
+      font-size: var(--fs-caption);
+      font-family: inherit;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .sch-input:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+    .sch-btn-primary {
+      background: var(--primary) !important;
+      color: #fff !important;
+      border-color: var(--primary) !important;
+    }
+    .sch-btn-primary:hover { background: var(--primary-hov) !important; }
+    .sch-btn-danger {
+      background: var(--danger) !important;
+      color: #fff !important;
+      border-color: var(--danger) !important;
+    }
+
+    /* Badge */
+    .badge-aktif {
+      display: inline-block;
+      background: var(--success-bg);
+      color: var(--success-text);
+      font-size: .6875rem;
+      font-weight: 700;
+      padding: .15rem .5rem;
+      border-radius: 99px;
+      white-space: nowrap;
+    }
+    .badge-nonaktif {
+      display: inline-block;
+      background: var(--danger-bg);
+      color: var(--danger);
+      font-size: .6875rem;
+      font-weight: 700;
+      padding: .15rem .5rem;
+      border-radius: 99px;
+      white-space: nowrap;
+    }
+
+    /* ── Small action buttons ── */
+    .btn-sm {
+      font-size: .75rem;
+      font-weight: 600;
+      padding: .25rem .6rem;
+      border-radius: var(--r-sm);
+      cursor: pointer;
+      border: 1.5px solid var(--border-strong);
+      background: var(--surface-sub);
+      color: var(--text-sec);
+      font-family: inherit;
+      min-height: 28px;
+      transition: background var(--transition), color var(--transition);
+    }
+    .btn-sm:hover:not(:disabled) { background: var(--surface); }
+    .btn-sm:disabled { opacity: .45; cursor: default; }
+    .btn-sm-danger { border-color: var(--danger-border); color: var(--danger); }
+    .btn-sm-danger:hover:not(:disabled) { background: var(--danger-bg); }
+
     /* Share overlay — glassmorphism */
     .share-overlay {
       position: fixed;
@@ -271,6 +398,12 @@
       <span id="cl-subject"></span>
     </div>
 
+    <div class="tab-bar">
+      <button class="tab-btn active" id="tab-siswa">Siswa</button>
+      <button class="tab-btn" id="tab-jadwal">Jadwal &amp; Absensi</button>
+    </div>
+
+    <div id="panel-siswa">
     <!-- Tambah siswa manual -->
     <section class="panel">
       <h2>Tambah Siswa</h2>
@@ -313,6 +446,14 @@
       </div>
       <div id="roster-list"></div>
     </section>
+    </div><!-- /panel-siswa -->
+
+    <!-- Jadwal & Absensi -->
+    <section class="panel" id="panel-jadwal" style="display:none">
+      <h2>Jadwal Mingguan</h2>
+      <div id="jadwal-list"></div>
+    </section>
+
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
@@ -321,5 +462,6 @@
   <script src="../shared/js/supabase.js"></script>
   <script src="js/api.js"></script>
   <script src="js/classroom.js"></script>
+  <script src="js/classroom-schedule.js"></script>
 </body>
 </html>

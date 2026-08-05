@@ -335,3 +335,80 @@ main h2 {
   padding: 3rem 0;
   line-height: 1.7;
 }
+
+/* ── Jadwal classroom ── */
+.card-schedules {
+  margin-top: .875rem;
+  padding-top: .75rem;
+  border-top: 1px solid var(--border-sub);
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+}
+
+.sch-section-title {
+  font-size: .75rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  margin-bottom: .125rem;
+}
+
+.sch-day-group {
+  display: flex;
+  flex-direction: column;
+  gap: .3rem;
+}
+
+.sch-day-name {
+  font-size: .75rem;
+  font-weight: 700;
+  color: var(--text-sec);
+}
+
+.sch-slot {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  flex-wrap: wrap;
+  padding-left: .625rem;
+}
+
+.sch-slot-time {
+  font-size: var(--fs-caption);
+  color: var(--text);
+}
+
+.badge-aktif {
+  display: inline-block;
+  background: rgba(16,185,129,.15);
+  color: #10b981;
+  font-size: .6875rem;
+  font-weight: 700;
+  padding: .15rem .5rem;
+  border-radius: 99px;
+  white-space: nowrap;
+}
+
+.badge-nonaktif {
+  display: inline-block;
+  background: rgba(248,113,113,.15);
+  color: #f87171;
+  font-size: .6875rem;
+  font-weight: 700;
+  padding: .15rem .5rem;
+  border-radius: 99px;
+  white-space: nowrap;
+}
+
+.sch-reason {
+  font-size: .75rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.sch-empty-msg {
+  font-size: var(--fs-caption);
+  color: var(--text-muted);
+}

@@ -1,4 +1,11 @@
-const db = window.supabaseClient;
+const db   = window.supabaseClient;
+const DAYS = ['SENIN','SELASA','RABU','KAMIS','JUMAT','SABTU'];
+
+function escHtml(s) {
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function fmtTime(t) { return t ? String(t).slice(0,5) : ''; }
+function dayLabel(d) { return d[0] + d.slice(1).toLowerCase(); }
 
 async function getProfile(userId) {
   const { data, error } = await db
@@ -20,6 +27,74 @@ async function getClassroomMembers(profileId) {
   return data;
 }
 
+async function getSchedules(classroomId) {
+  const { data, error } = await db
+    .from('schedules')
+    .select('day_of_week,start_time,end_time,is_active,inactive_reason')
+    .eq('classroom_id', classroomId)
+    .order('day_of_week').order('start_time');
+  if (error) return [];
+  return data || [];
+}
+
+function renderScheduleSection(schedules) {
+  const byDay = {};
+  DAYS.forEach(d => { byDay[d] = []; });
+  schedules.forEach(s => { if (byDay[s.day_of_week]) byDay[s.day_of_week].push(s); });
+
+  const activeDays = DAYS.filter(d => byDay[d].length > 0);
+  const div = document.createElement('div');
+  div.className = 'card-schedules';
+
+  if (activeDays.length === 0) {
+    div.innerHTML = '<span class="sch-empty-msg">Belum ada jadwal.</span>';
+    return div;
+  }
+
+  const title = document.createElement('div');
+  title.className = 'sch-section-title';
+  title.textContent = 'Jadwal';
+  div.appendChild(title);
+
+  activeDays.forEach(day => {
+    const group = document.createElement('div');
+    group.className = 'sch-day-group';
+
+    const dayEl = document.createElement('div');
+    dayEl.className = 'sch-day-name';
+    dayEl.textContent = dayLabel(day);
+    group.appendChild(dayEl);
+
+    byDay[day].forEach(s => {
+      const slot = document.createElement('div');
+      slot.className = 'sch-slot';
+
+      const timeEl = document.createElement('span');
+      timeEl.className   = 'sch-slot-time';
+      timeEl.textContent = fmtTime(s.start_time) + ' – ' + fmtTime(s.end_time);
+      slot.appendChild(timeEl);
+
+      const badge = document.createElement('span');
+      badge.className   = s.is_active ? 'badge-aktif' : 'badge-nonaktif';
+      badge.textContent = s.is_active ? 'Aktif' : 'Nonaktif';
+      slot.appendChild(badge);
+
+      if (!s.is_active && s.inactive_reason) {
+        const reason = document.createElement('span');
+        reason.className   = 'sch-reason';
+        reason.textContent = s.inactive_reason;
+        slot.appendChild(reason);
+      }
+
+      group.appendChild(slot);
+    });
+
+    div.appendChild(group);
+  });
+
+  return div;
+}
+
 async function getProfileName(profileId) {
   if (!profileId) return '—';
   const { data, error } = await db
@@ -28,18 +103,18 @@ async function getProfileName(profileId) {
   return data;
 }
 
-function renderCard(classroom, guruName, siswaNama) {
+function renderCard(classroom, guruName, siswaNama, schedules) {
   const card = document.createElement('div');
   card.className = 'classroom-card';
-  card.innerHTML = `
-    <div class="card-header">
-      <span class="card-name">${classroom.name}</span>
-      <span class="card-code">${classroom.classroom_code}</span>
-    </div>
-    <div class="card-subject">${classroom.subject ?? ''}</div>
-    <div class="card-teacher">Guru: ${guruName}</div>
-    <div class="card-student">Siswa dipantau: ${siswaNama}</div>
-  `;
+  card.innerHTML =
+    '<div class="card-header">' +
+      '<span class="card-name">'    + escHtml(classroom.name)             + '</span>' +
+      '<span class="card-code">'    + escHtml(classroom.classroom_code)   + '</span>' +
+    '</div>' +
+    '<div class="card-subject">'   + escHtml(classroom.subject ?? '')    + '</div>' +
+    '<div class="card-teacher">Guru: '          + escHtml(guruName)      + '</div>' +
+    '<div class="card-student">Siswa dipantau: ' + escHtml(siswaNama)    + '</div>';
+  card.appendChild(renderScheduleSection(schedules));
   return card;
 }
 
@@ -82,11 +157,12 @@ async function init() {
   for (const row of members) {
     const classroom = row.classrooms;
     if (!classroom) continue;
-    const [guruName, siswaNama] = await Promise.all([
+    const [guruName, siswaNama, schedules] = await Promise.all([
       getProfileName(classroom.teacher_id),
       getProfileName(row.linked_student_id),
+      getSchedules(classroom.id),
     ]);
-    list.appendChild(renderCard(classroom, guruName, siswaNama));
+    list.appendChild(renderCard(classroom, guruName, siswaNama, schedules));
   }
 }
 
