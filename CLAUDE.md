@@ -205,7 +205,7 @@ git push origin main                  → urutan TERAKHIR
 ## 12. STATUS PROYEK
 
 **Fase saat ini: DEVELOPMENT AKTIF**
-**HEAD:** `36a5c16`
+**HEAD:** `54c718d`
 
 - [x] Dokumen rancangan selesai (REQUIREMENTS, SCHEMA-v0, ADR-001)
 - [x] Supabase project baru dibuat
@@ -232,6 +232,12 @@ git push origin main                  → urutan TERAKHIR
 
 **Migrations (urut kronologis):**
 ```
+20260730000001_init-schema.sql
+20260803000001_add-roster.sql
+20260803000002_fn-activate-roster.sql
+20260803000003_fn-lookup-classroom-code.sql
+20260803000004_fn-lookup-roster.sql
+20260803000005_fn-lookup-profile-name.sql
 20260803000006_profiles-guru-lifecycle.sql
 20260803000007_roster-nama-ortu.sql
 20260803000008_fn-validate-ortu-login.sql
@@ -241,6 +247,7 @@ git push origin main                  → urutan TERAKHIR
 20260804000002_fix-fk-hapus-akun.sql
 20260804000003_fix-fk-student-notes-guidance.sql
 20260804000004_fix-fk-forum-comments.sql
+20260804000005_fix-rls-roster-siswa.sql
 ```
 
 ---
