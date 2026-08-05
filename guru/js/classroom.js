@@ -72,8 +72,7 @@
     var cardsHtml = '';
     pageRows.forEach(function (r, i) {
       var globalIdx  = startIdx + i;
-      var badgeClass = r.profile_id ? 'card-badge-sudah' : 'card-badge-belum';
-      var badgeText  = r.profile_id ? 'Sudah Akun'       : 'Belum Akun';
+      var badge = r.profile_id ? '<span class="card-badge card-badge-sudah">Sudah Terdaftar</span>' : '';
       var genBtn = r.profile_id
         ? '<button disabled class="btn-gen-disabled">Sudah</button>'
         : isExpired
@@ -95,7 +94,7 @@
           '<div class="card-body">' +
             '<div class="card-top">' +
               '<span class="card-name">' + escHtml(r.full_name) + '</span>' +
-              '<span class="card-badge ' + badgeClass + '">' + badgeText + '</span>' +
+              badge +
             '</div>' +
             '<div class="card-meta">' + meta + '</div>' +
             '<div class="card-actions">' +
@@ -234,7 +233,7 @@
       return;
     }
 
-    countEl.textContent = rows ? rows.length : 0;
+    countEl.textContent = (rows ? rows.length : 0) + ' siswa terdaftar';
     currentRows = rows || [];
 
     if (!rows || rows.length === 0) {
@@ -915,6 +914,11 @@
       if (!h2 || h2.dataset.collapseInit) return;
       h2.dataset.collapseInit = '1';
       h2.classList.add('panel-header');
+
+      var titleSpan = document.createElement('span');
+      titleSpan.className = 'panel-title';
+      Array.from(h2.childNodes).forEach(function (node) { titleSpan.appendChild(node); });
+      h2.appendChild(titleSpan);
 
       var arrow = document.createElement('span');
       arrow.className = 'panel-collapse-arrow';
