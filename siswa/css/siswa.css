@@ -124,13 +124,15 @@ body {
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  padding: 2.5rem 1rem;
+  padding: 2.5rem 0;
   -webkit-font-smoothing: antialiased;
 }
 
 .container {
-  width: 100%;
-  max-width: 480px;
+  width: min(680px, 100%);
+  margin: 0 auto;
+  padding: 0 var(--space-md);
+  box-sizing: border-box;
 }
 
 /* ── Typography ── */
@@ -334,9 +336,10 @@ header {
 }
 
 main {
-  max-width: 720px;
+  width: min(680px, 100%);
   margin: 0 auto;
-  padding: 1.5rem 1rem;
+  padding: 1.5rem var(--space-md);
+  box-sizing: border-box;
 }
 
 main h2 {

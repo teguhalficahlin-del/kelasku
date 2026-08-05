@@ -12,12 +12,14 @@ body {
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  padding: 2rem 1rem;
+  padding: 2rem 0;
 }
 
 .container {
-  width: 100%;
-  max-width: 480px;
+  width: min(680px, 100%);
+  margin: 0 auto;
+  padding: 0 1rem;
+  box-sizing: border-box;
 }
 
 h1 {

@@ -127,13 +127,15 @@ body {
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  padding: 2.5rem 1rem;
+  padding: 2.5rem 0;
   -webkit-font-smoothing: antialiased;
 }
 
 .container {
-  width: 100%;
-  max-width: 480px;
+  width: min(680px, 100%);
+  margin: 0 auto;
+  padding: 0 var(--space-md);
+  box-sizing: border-box;
 }
 
 /* ── Login — Typography ── */
@@ -308,9 +310,10 @@ header {
 }
 
 main {
-  max-width: 720px;
+  width: min(680px, 100%);
   margin: 0 auto;
-  padding: 1.5rem 1rem;
+  padding: 1.5rem var(--space-md);
+  box-sizing: border-box;
 }
 
 /* ── Toolbar ── */
@@ -452,13 +455,10 @@ main {
   border: 1px solid var(--glass-border);
   border-radius: var(--card-r);
   padding: 1.75rem;
-  width: 100%;
-  max-width: 440px;
-  margin: 0 1rem;
+  width: min(520px, calc(100% - 2rem));
+  margin: 0 auto;
   box-shadow: var(--shadow-modal);
 }
-
-.modal-box { max-width: 520px; }
 
 /* Step indicator */
 .step-indicator {
@@ -722,9 +722,7 @@ main {
 .cl-meta {
   font-size: var(--fs-caption);
   color: var(--text-secondary);
-  padding: 0 1rem 1rem;
-  max-width: 720px;
-  margin: 0 auto;
+  padding: 0 0 1rem;
 }
 
 /* ── Panel ── */
@@ -734,8 +732,7 @@ main {
   border-radius: var(--card-r);
   padding: 1.25rem;
   box-shadow: var(--shadow-card);
-  max-width: 720px;
-  margin: 0 auto 1rem;
+  margin-bottom: 1rem;
 }
 
 .panel h2 {
