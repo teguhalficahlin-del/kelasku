@@ -68,19 +68,62 @@
       card.innerHTML =
         '<div class="card-header">' +
           '<span class="card-name">' + escHtml(classroom.name) + '</span>' +
-          '<span class="card-code">' + escHtml(classroom.classroom_code) + '</span>' +
+          '<span class="card-header-right">' +
+            '<span class="card-code">' + escHtml(classroom.classroom_code) + '</span>' +
+            '<span class="card-collapse-arrow">▾</span>' +
+          '</span>' +
         '</div>' +
-        '<div class="card-subject">' + escHtml(classroom.subject || '') + '</div>' +
-        '<div class="card-count">' + count + ' siswa terdaftar</div>' +
-        noSchBanner +
-        '<div class="card-actions">' +
-          '<button class="btn-edit-cl">Edit</button>' +
-          '<button class="btn-hapus-cl btn-sm-danger">Hapus</button>' +
-          '<a href="classroom.html?id=' + escHtml(classroom.id) + '" class="btn-kelola">Kelola</a>' +
+        '<div class="card-body-collapse">' +
+          '<div class="card-subject">' + escHtml(classroom.subject || '') + '</div>' +
+          '<div class="card-count">' + count + ' siswa terdaftar</div>' +
+          noSchBanner +
+          '<div class="card-actions">' +
+            '<button class="btn-edit-cl">Edit</button>' +
+            '<button class="btn-hapus-cl btn-sm-danger">Hapus</button>' +
+            '<a href="classroom.html?id=' + escHtml(classroom.id) + '" class="btn-kelola">Kelola</a>' +
+          '</div>' +
         '</div>';
+
+      // Default: body collapse tertutup — caller yang buka card pertama
+      card.querySelector('.card-body-collapse').style.display = 'none';
+
       card.querySelector('.btn-edit-cl').addEventListener('click', () => openModal(classroom));
       card.querySelector('.btn-hapus-cl').addEventListener('click', () => handleDeleteClassroom(classroom.id, classroom.name));
+
+      card.querySelector('.card-header').addEventListener('click', function () {
+        const isOpen = card.querySelector('.card-body-collapse').style.display !== 'none';
+        // Tutup semua card lain
+        document.querySelectorAll('.classroom-card').forEach(function (other) {
+          if (other !== card) {
+            other.querySelector('.card-body-collapse').style.display = 'none';
+            other.querySelector('.card-header').classList.remove('open');
+          }
+        });
+        // Toggle card ini
+        const body = card.querySelector('.card-body-collapse');
+        const header = card.querySelector('.card-header');
+        if (isOpen) {
+          body.style.display = 'none';
+          header.classList.remove('open');
+        } else {
+          body.style.display = '';
+          header.classList.add('open');
+        }
+      });
+
       return card;
+    }
+
+    function openCard(card) {
+      card.querySelector('.card-body-collapse').style.display = '';
+      card.querySelector('.card-header').classList.add('open');
+    }
+
+    function closeAllCards() {
+      document.querySelectorAll('.classroom-card').forEach(function (c) {
+        c.querySelector('.card-body-collapse').style.display = 'none';
+        c.querySelector('.card-header').classList.remove('open');
+      });
     }
 
     function escHtml(str) {
@@ -108,6 +151,10 @@
         const schCount = await api.getScheduleCount(cl.id);
         list.appendChild(renderCard(cl, count, schCount > 0));
       }
+
+      // Buka card pertama secara default
+      const firstCard = list.querySelector('.classroom-card');
+      if (firstCard) openCard(firstCard);
     }
 
     // -- Modal multi-step --
@@ -162,7 +209,10 @@
       const list = document.getElementById('classroom-list');
       const emptyState = list.querySelector('.empty-state');
       if (emptyState) list.innerHTML = '';
-      list.prepend(renderCard(createdClassroom, 0, hasSchedule));
+      closeAllCards();
+      const card = renderCard(createdClassroom, 0, hasSchedule);
+      list.prepend(card);
+      openCard(card);
     }
 
     async function handleDeleteClassroom(classroomId, classroomName) {
