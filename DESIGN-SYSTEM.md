@@ -64,14 +64,13 @@ Inter di-load dari Google Fonts. Jika tidak tersedia, fallback ke system font.
 
 ### Skala Tipografi (Fluid via clamp)
 ```css
---fs-display: clamp(22px, 4vw, 32px);   /* Judul halaman utama */
---fs-h1:      clamp(20px, 3.5vw, 28px); /* Heading utama per section */
---fs-h2:      clamp(18px, 3vw, 24px);   /* Heading sub-section */
---fs-h3:      clamp(16px, 2.5vw, 20px); /* Heading card/panel */
---fs-body:    clamp(15px, 2.2vw, 18px); /* Teks body utama */
---fs-ui:      clamp(14px, 2vw, 16px);   /* Label, input, tombol */
---fs-caption: clamp(12px, 1.8vw, 14px); /* Caption, hint, metadata */
---fs-badge:   clamp(11px, 1.5vw, 13px); /* Badge, pill, tag */
+--fs-h1:      clamp(24px, 4vw, 28px);   /* Heading utama section */
+--fs-h2:      clamp(20px, 3.5vw, 24px); /* Heading sub-section */
+--fs-h3:      clamp(18px, 3vw, 20px);   /* Heading card/panel */
+--fs-body:    clamp(16px, 2.5vw, 18px); /* Teks utama */
+--fs-ui:      clamp(15px, 2.2vw, 16px); /* Label, input, tombol */
+--fs-caption: clamp(13px, 2vw, 14px);   /* Hint, metadata */
+--fs-badge:   clamp(12px, 1.8vw, 13px); /* Tag, pill, status */
 ```
 
 ### Font Weight
