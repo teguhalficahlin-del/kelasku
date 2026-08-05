@@ -95,6 +95,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  text-align: center;
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 
