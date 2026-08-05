@@ -295,13 +295,15 @@
 
       // Swipe gesture
       const listEl = block.querySelector('.abs-siswa-list');
-      let touchStartX = 0;
+      let touchStartX = 0, touchStartY = 0;
       listEl.addEventListener('touchstart', e => {
         touchStartX = e.changedTouches[0].clientX;
+        touchStartY = e.changedTouches[0].clientY;
       }, { passive: true });
       listEl.addEventListener('touchend', e => {
         const dx = e.changedTouches[0].clientX - touchStartX;
-        if (Math.abs(dx) < 50) return;
+        const dy = e.changedTouches[0].clientY - touchStartY;
+        if (Math.abs(dx) < 50 || Math.abs(dx) <= Math.abs(dy)) return;
         const maxPage = Math.ceil(state.siswa.length / PAGE_SIZE) - 1;
         if (dx < 0 && state.page < maxPage) { state.page++; renderSiswaPage(block, state, done); }
         if (dx > 0 && state.page > 0)       { state.page--; renderSiswaPage(block, state, done); }
@@ -569,6 +571,23 @@
         if (btnExport) btnExport.click();
       });
     });
+
+    // Swipe gesture untuk rekap
+    bodyEl.removeEventListener('touchstart', bodyEl._rekapSwipeStart);
+    bodyEl.removeEventListener('touchend',   bodyEl._rekapSwipeEnd);
+    bodyEl._rekapSwipeStart = function (e) {
+      bodyEl._rekapTouchX = e.touches[0].clientX;
+      bodyEl._rekapTouchY = e.touches[0].clientY;
+    };
+    bodyEl._rekapSwipeEnd = function (e) {
+      const dx = e.changedTouches[0].clientX - bodyEl._rekapTouchX;
+      const dy = e.changedTouches[0].clientY - bodyEl._rekapTouchY;
+      if (Math.abs(dx) < 50 || Math.abs(dx) <= Math.abs(dy)) return;
+      if (dx < 0 && _rekapPage < totalPages - 1) { _rekapPage++; renderRekapPage(perSiswa, bodyEl); }
+      else if (dx > 0 && _rekapPage > 0)         { _rekapPage--; renderRekapPage(perSiswa, bodyEl); }
+    };
+    bodyEl.addEventListener('touchstart', bodyEl._rekapSwipeStart, { passive: true });
+    bodyEl.addEventListener('touchend',   bodyEl._rekapSwipeEnd,   { passive: true });
   }
 
   async function refreshRekap(fromDate, toDate, bodyEl) {
