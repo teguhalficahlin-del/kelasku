@@ -97,7 +97,7 @@ button[type="submit"] {
   width: 100%;
   padding: 0 var(--btn-px);
   min-height: var(--btn-h);
-  font-size: var(--fs-ui);
+  font-size: var(--fs-h3);
   font-weight: var(--fw-medium);
   color: var(--text-on-gold);
   background: var(--gold);
@@ -130,7 +130,7 @@ button[type="submit"]:disabled { opacity: 0.4; cursor: not-allowed; }
 
 /* ── Login footer link ── */
 .link-daftar {
-  font-size: var(--fs-caption);
+  font-size: var(--fs-ui);
   color: var(--text-secondary);
   text-align: center;
   margin-top: 1.25rem;
@@ -278,13 +278,13 @@ main {
 }
 
 .card-subject {
-  font-size: var(--fs-caption);
+  font-size: var(--fs-ui);
   color: var(--text-secondary);
   margin-bottom: 0.4rem;
 }
 
 .card-count {
-  font-size: var(--fs-caption);
+  font-size: var(--fs-ui);
   color: var(--text-muted);
   margin-bottom: 1rem;
 }
@@ -397,7 +397,7 @@ main {
   display: block;
   width: 100%;
   padding: var(--input-py) var(--input-px);
-  font-size: var(--fs-ui);
+  font-size: var(--fs-h3);
   border: 1.5px solid var(--input-border);
   border-radius: var(--input-r);
   background: var(--input-bg);
@@ -556,7 +556,7 @@ main {
   border: 1px solid rgba(251,191,36,0.25);
   border-radius: 6px;
   color: var(--warning);
-  font-size: var(--fs-caption);
+  font-size: var(--fs-ui);
   padding: .375rem .75rem;
   margin-bottom: .75rem;
   line-height: var(--lh-normal);
@@ -574,7 +574,7 @@ main {
    ============================================================ */
 
 .btn-back {
-  font-size: var(--fs-caption);
+  font-size: var(--fs-ui);
   font-weight: var(--fw-medium);
   color: var(--text-secondary);
   text-decoration: none;
@@ -604,7 +604,7 @@ main {
 }
 
 #guru-name-cl {
-  font-size: var(--fs-caption);
+  font-size: var(--fs-ui);
   font-weight: var(--fw-medium);
   color: var(--text-secondary);
   white-space: nowrap;
@@ -617,7 +617,7 @@ main {
 }
 
 #cl-subject {
-  font-size: var(--fs-ui);
+  font-size: var(--fs-h3);
 }
 
 /* ── Panel ── */
@@ -638,7 +638,7 @@ main {
 }
 
 .hint {
-  font-size: var(--fs-caption);
+  font-size: var(--fs-ui);
   color: var(--text-muted);
   margin-bottom: 0.875rem;
   line-height: var(--lh-loose);
@@ -667,7 +667,7 @@ main {
   min-height: var(--btn-h);
   border: 1.5px solid var(--input-border);
   border-radius: var(--input-r);
-  font-size: var(--fs-ui);
+  font-size: var(--fs-h3);
   background: var(--input-bg);
   color: var(--text-primary);
   transition: border-color var(--transition);
@@ -686,7 +686,7 @@ main {
   color: var(--text-on-gold);
   border: none;
   border-radius: var(--btn-r);
-  font-size: var(--fs-ui);
+  font-size: var(--fs-h3);
   font-weight: var(--fw-medium);
   cursor: pointer;
   white-space: nowrap;
@@ -714,7 +714,7 @@ input[type="file"] { font-size: var(--fs-body); }
   align-items: center;
   padding: 0 var(--btn-px-sm);
   min-height: var(--btn-h);
-  font-size: var(--fs-ui);
+  font-size: var(--fs-h3);
   font-weight: var(--fw-semibold);
   color: var(--gold);
   background: var(--bg-surface);
@@ -737,7 +737,7 @@ input[type="file"] { font-size: var(--fs-body); }
   align-items: center;
   padding: 0 var(--btn-px-sm);
   min-height: var(--btn-h);
-  font-size: var(--fs-ui);
+  font-size: var(--fs-h3);
   font-weight: var(--fw-semibold);
   color: var(--danger);
   background: var(--bg-surface);
@@ -927,7 +927,7 @@ td { padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border); }
 }
 .pagination-bar button:disabled { opacity: .35; cursor: default; }
 .page-label {
-  font-size: var(--fs-caption);
+  font-size: var(--fs-ui);
   color: var(--text-muted);
   flex: 1;
   text-align: center;
@@ -1008,7 +1008,7 @@ td { padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border); }
   border: 1px solid var(--border);
 }
 
-.card-meta  { font-size: var(--fs-caption); color: var(--text-muted); }
+.card-meta  { font-size: var(--fs-ui); color: var(--text-muted); }
 .card-actions {
   display: flex;
   gap: .35rem;
@@ -1029,7 +1029,7 @@ td { padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border); }
   border: none;
   border-bottom: 2px solid transparent;
   padding: .5rem .875rem;
-  font-size: var(--fs-ui);
+  font-size: var(--fs-h3);
   font-weight: 600;
   color: var(--text-muted);
   cursor: pointer;
@@ -1132,7 +1132,7 @@ td { padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border); }
 
 /* ── Small action buttons ── */
 .btn-sm {
-  font-size: var(--fs-caption);
+  font-size: var(--fs-ui);
   font-weight: 600;
   padding: .25rem .6rem;
   border-radius: var(--r-sm);

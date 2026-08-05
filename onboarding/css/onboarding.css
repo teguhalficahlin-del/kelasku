@@ -83,7 +83,7 @@ button[type="submit"] {
   display: block;
   width: 100%;
   padding: 0.75rem;
-  font-size: var(--fs-ui);
+  font-size: var(--fs-h3);
   font-weight: 600;
   color: var(--text-on-gold);
   background: var(--gold);
@@ -140,7 +140,7 @@ button[type="submit"]:disabled {
   display: block;
   width: 100%;
   padding: 0.75rem;
-  font-size: var(--fs-ui);
+  font-size: var(--fs-h3);
   font-weight: 600;
   color: var(--text-on-gold);
   background: var(--gold);

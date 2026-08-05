@@ -57,13 +57,13 @@ body {
 
 .brand .tagline {
   margin-top: 0.4rem;
-  font-size: var(--fs-body);
+  font-size: var(--fs-h3);
   color: var(--text-secondary);
 }
 
 /* Label seksi */
 .section-label {
-  font-size: var(--fs-caption);
+  font-size: var(--fs-ui);
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -117,7 +117,7 @@ body {
 }
 
 .card p {
-  font-size: var(--fs-body);
+  font-size: var(--fs-h3);
   color: var(--text-secondary);
   line-height: 1.55;
   flex: 1;
@@ -131,7 +131,7 @@ body {
   padding: 0 var(--btn-px);
   min-height: var(--btn-h);
   border-radius: 8px;
-  font-size: var(--fs-ui);
+  font-size: var(--fs-h3);
   font-weight: 600;
   text-decoration: none;
   margin-top: 0.75rem;
