@@ -40,6 +40,15 @@
         .single();
     },
 
+    async getScheduleCount(classroomId) {
+      const { count, error } = await client
+        .from('schedules')
+        .select('*', { count: 'exact', head: true })
+        .eq('classroom_id', classroomId);
+      if (error) return 0;
+      return count ?? 0;
+    },
+
     async getTrialStatus() {
       const { data, error } = await client.rpc('fn_guru_trial_status');
       if (error) return null;

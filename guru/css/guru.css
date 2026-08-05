@@ -458,6 +458,42 @@ main {
   box-shadow: var(--shadow-modal);
 }
 
+.modal-box { max-width: 520px; }
+
+/* Step indicator */
+.step-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-bottom: 1.25rem;
+}
+.step-dot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-semibold);
+  background: var(--bg-base);
+  color: var(--text-muted);
+  border: 1.5px solid var(--border);
+  flex-shrink: 0;
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+}
+.step-dot.active {
+  background: var(--gold);
+  color: var(--text-on-gold);
+  border-color: var(--gold);
+}
+.step-line {
+  flex: 1;
+  height: 1.5px;
+  background: var(--border);
+  margin: 0 .5rem;
+}
+
 .modal-box h3 {
   font-size: var(--fs-h2);
   font-weight: var(--fw-semibold);
@@ -517,6 +553,130 @@ main {
 }
 
 .opsional { font-weight: var(--fw-regular); color: var(--text-muted); }
+
+/* ── Step 2: Schedule input table ── */
+.schedule-table-wrap {
+  overflow-x: auto;
+  margin-bottom: .875rem;
+}
+.schedule-input-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-ui);
+}
+.schedule-input-table th {
+  font-size: var(--fs-caption);
+  padding: .375rem .5rem;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+.schedule-input-table td {
+  padding: .375rem .375rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+.sch-sel,
+.sch-t {
+  background: var(--input-bg);
+  border: 1.5px solid var(--input-border);
+  border-radius: var(--input-r);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: var(--fs-caption);
+  padding: .375rem .5rem;
+  width: 100%;
+  min-height: var(--btn-h-xs);
+}
+.sch-sel:focus,
+.sch-t:focus {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px var(--gold-muted);
+}
+.btn-hapus-row {
+  background: var(--danger-bg);
+  color: var(--danger);
+  border: 1px solid rgba(248,113,113,0.3);
+  border-radius: 6px;
+  font-size: var(--fs-caption);
+  min-height: var(--btn-h-xs);
+  padding: 0 .5rem;
+  cursor: pointer;
+  transition: background var(--transition);
+  font-family: inherit;
+}
+.btn-hapus-row:hover { background: rgba(248,113,113,0.25); }
+
+#btn-tambah-hari {
+  background: transparent;
+  color: var(--gold);
+  border: 1.5px solid var(--gold-border);
+  border-radius: var(--btn-r);
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-medium);
+  min-height: var(--btn-h-xs);
+  padding: 0 var(--btn-px-sm);
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition);
+  font-family: inherit;
+  margin-bottom: 1rem;
+}
+#btn-tambah-hari:hover { background: var(--gold-muted); border-color: var(--gold); }
+
+.modal-actions-step2 {
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: .5rem;
+}
+#btn-lewati {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  padding: 0 var(--btn-px);
+  min-height: var(--btn-h);
+  border-radius: var(--btn-r);
+  font-size: var(--fs-ui);
+  font-weight: var(--fw-medium);
+  cursor: pointer;
+  transition: background var(--transition);
+  font-family: inherit;
+}
+#btn-lewati:hover { background: rgba(255,255,255,0.05); }
+#btn-simpan-jadwal {
+  background: var(--gold);
+  color: var(--text-on-gold);
+  border: none;
+  padding: 0 var(--btn-px);
+  min-height: var(--btn-h);
+  border-radius: var(--btn-r);
+  font-size: var(--fs-ui);
+  font-weight: var(--fw-medium);
+  cursor: pointer;
+  transition: background var(--transition), box-shadow var(--transition);
+  font-family: inherit;
+}
+#btn-simpan-jadwal:hover:not(:disabled) { background: var(--gold-hover); box-shadow: var(--shadow-gold); }
+#btn-simpan-jadwal:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ── Card warning banner (no schedule) ── */
+.card-no-schedule {
+  background: var(--warning-bg);
+  border: 1px solid rgba(251,191,36,0.25);
+  border-radius: 6px;
+  color: var(--warning);
+  font-size: var(--fs-caption);
+  padding: .375rem .75rem;
+  margin-bottom: .75rem;
+  line-height: var(--lh-normal);
+}
+.link-atur-jadwal {
+  color: var(--warning);
+  font-weight: var(--fw-semibold);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.link-atur-jadwal:hover { opacity: .8; }
 
 /* ============================================================
    Kelola Classroom

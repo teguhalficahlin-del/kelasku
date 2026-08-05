@@ -46,27 +46,67 @@
     <div id="classroom-list"></div>
   </main>
 
-  <!-- Modal buat classroom -->
+  <!-- Modal buat classroom — multi-step -->
   <div id="modal-classroom" style="display:none;">
     <div class="modal-backdrop" id="modal-backdrop"></div>
     <div class="modal-box">
-      <h3>Buat Classroom Baru</h3>
-      <div id="modal-error" class="error-msg" style="display:none;"></div>
-      <form id="form-classroom">
-        <label for="inp-name">Nama Kelas</label>
-        <input type="text" id="inp-name" required placeholder="Contoh: X DPB">
 
-        <label for="inp-subject">Mata Pelajaran</label>
-        <input type="text" id="inp-subject" required placeholder="Contoh: Bahasa Inggris">
+      <!-- Step indicator -->
+      <div class="step-indicator">
+        <span class="step-dot active" id="step-dot-1">1</span>
+        <span class="step-line"></span>
+        <span class="step-dot" id="step-dot-2">2</span>
+      </div>
 
-        <label for="inp-desc">Deskripsi <span class="opsional">(opsional)</span></label>
-        <input type="text" id="inp-desc" placeholder="Keterangan singkat">
+      <!-- Step 1: Info Classroom -->
+      <div id="modal-step1">
+        <h3>Buat Classroom Baru</h3>
+        <div id="modal-error" class="error-msg" style="display:none;"></div>
+        <form id="form-classroom">
+          <label for="inp-name">Nama Kelas</label>
+          <input type="text" id="inp-name" required placeholder="Contoh: X DPB">
 
-        <div class="modal-actions">
-          <button type="button" id="btn-batal">Batal</button>
-          <button type="submit" id="btn-simpan">Simpan</button>
+          <label for="inp-subject">Mata Pelajaran</label>
+          <input type="text" id="inp-subject" required placeholder="Contoh: Bahasa Inggris">
+
+          <label for="inp-desc">Deskripsi <span class="opsional">(opsional)</span></label>
+          <input type="text" id="inp-desc" placeholder="Keterangan singkat">
+
+          <div class="modal-actions">
+            <button type="button" id="btn-batal">Batal</button>
+            <button type="submit" id="btn-lanjut">Lanjut →</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Step 2: Atur Jadwal -->
+      <div id="modal-step2" style="display:none;">
+        <h3>Atur Jadwal <span class="opsional">(opsional)</span></h3>
+        <p class="hint" style="margin-bottom:.875rem;">Tambah jadwal mingguan. Jadwal diperlukan agar absensi bisa digunakan.</p>
+        <div id="step2-error" class="error-msg" style="display:none;"></div>
+
+        <div class="schedule-table-wrap">
+          <table class="schedule-input-table">
+            <thead>
+              <tr>
+                <th>Hari</th>
+                <th>Jam Mulai</th>
+                <th>Jam Selesai</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="schedule-rows"></tbody>
+          </table>
         </div>
-      </form>
+
+        <button type="button" id="btn-tambah-hari">+ Tambah Hari</button>
+
+        <div class="modal-actions modal-actions-step2">
+          <button type="button" id="btn-lewati">Lewati untuk sekarang</button>
+          <button type="button" id="btn-simpan-jadwal">Simpan &amp; Buat Classroom</button>
+        </div>
+      </div>
+
     </div>
   </div>
 
