@@ -43,6 +43,12 @@ Setiap deviasi dari dokumen ini harus dilaporkan dan dikonfirmasi sebelum diekse
 --glass:        rgba(19,19,26,0.75);
 --glass-border: rgba(212,175,55,0.15);
 --blur:         blur(12px);
+
+/* Alias utama — resolusi konflik --primary vs --accent */
+--primary:       var(--gold);        /* alias utama — gantikan --accent di siswa/ortu */
+--primary-hov:   var(--gold-hover);
+--primary-light: var(--gold-muted);
+--success-text:  var(--success);     /* alias — dipakai di badge aktif beberapa komponen */
 ```
 
 ### Aturan Penggunaan Warna
@@ -168,6 +174,7 @@ border-radius: 6px;
 - Semua tombol WAJIB punya `transition` untuk hover state
 - Semua tombol WAJIB punya state `:disabled` yang jelas
 - Tap target minimum 44px untuk semua elemen interaktif
+- Gunakan `--primary` sebagai alias `--gold` untuk tombol primary
 
 ---
 
@@ -389,6 +396,214 @@ Implementasi CSS:
 ```
 
 DILARANG menempatkan tombol aksi di sebelah kanan baris yang sama dengan informasi utama.
+
+---
+
+## 13. LAYOUT & CONTAINER
+
+```css
+--container-max: 680px;
+--container-px:  clamp(12px, 4vw, 24px);
+
+/* Border radius tambahan */
+--r-sm: 6px;   /* badge kecil, code snippet */
+--r-md: 8px;   /* alias --btn-r, --input-r */
+```
+
+### Aturan Container
+- `.container`: `max-width: var(--container-max); margin: 0 auto; padding: 0 var(--container-px); box-sizing: border-box;`
+- Semua halaman WAJIB membungkus konten utama dalam `.container`
+- DILARANG hardcode `680px` atau `1rem` — selalu referensi token di atas
+
+---
+
+## 14. HEADER PORTAL
+
+Komponen header yang identik di semua portal (guru, siswa, ortu):
+
+```css
+/* .header-brand */
+display: flex;
+align-items: center;
+gap: var(--space-sm);
+font-size: var(--fs-h3);
+font-weight: var(--fw-semibold);
+color: var(--text-primary);
+
+/* .header-right */
+display: flex;
+align-items: center;
+gap: var(--space-sm);
+font-size: var(--fs-caption);
+color: var(--text-secondary);
+```
+
+### Aturan Header Portal
+- Nama portal/brand WAJIB menggunakan `.header-brand`
+- Area kanan (nama user, logout) WAJIB menggunakan `.header-right`
+- DILARANG mendefinisikan ulang header per portal — gunakan komponen bersama di `shared/css/components.css`
+
+---
+
+## 15. FEEDBACK & STATE
+
+Komponen feedback yang identik di semua portal:
+
+```css
+/* .error-msg */
+color: var(--danger);
+font-size: var(--fs-caption);
+margin-top: var(--space-xs);
+
+/* .konfirmasi */
+color: var(--success);
+font-size: var(--fs-caption);
+margin-top: var(--space-xs);
+
+/* .empty-state */
+text-align: center;
+color: var(--text-muted);
+font-size: var(--fs-body);
+padding: var(--space-xl) var(--space-md);
+```
+
+### Aturan Feedback
+- `.error-msg` dan `.konfirmasi` WAJIB muncul langsung setelah elemen yang memicu state tersebut
+- DILARANG mendefinisikan ulang komponen feedback per portal — gunakan komponen bersama
+
+---
+
+## 16. CARD PARTS
+
+Bagian card yang identik lintas portal:
+
+```css
+/* .card-name */
+font-size: var(--fs-body);
+font-weight: var(--fw-semibold);
+color: var(--text-primary);
+
+/* .card-code */
+font-size: var(--fs-caption);
+font-weight: var(--fw-medium);
+color: var(--gold);
+background: var(--gold-muted);
+border: 1px solid var(--gold-border);
+border-radius: var(--r-sm);
+padding: 2px var(--space-sm);
+font-family: ui-monospace, SFMono-Regular, 'Courier New', monospace;
+
+/* .cl-label */
+font-size: var(--fs-caption);
+color: var(--text-muted);
+
+/* .opsional */
+font-size: var(--fs-caption);
+font-weight: var(--fw-regular);
+color: var(--text-muted);
+```
+
+### Aturan Card Parts
+- `.card-code` selalu monospace — kode classroom, NIS, atau identifier lain
+- `.cl-label` untuk label caption di atas card/section
+- DILARANG mendefinisikan ulang komponen ini per portal
+
+---
+
+## 17. JADWAL & ABSENSI VIEWER
+
+Komponen viewer yang identik di portal siswa dan ortu:
+
+```css
+/* .sch-section-title */
+font-size: var(--fs-h3);
+font-weight: var(--fw-semibold);
+color: var(--text-primary);
+margin-bottom: var(--space-sm);
+
+/* .sch-day-group */
+margin-bottom: var(--space-md);
+
+/* .sch-slot */
+display: flex;
+align-items: center;
+gap: var(--space-sm);
+padding: var(--space-xs) 0;
+font-size: var(--fs-ui);
+color: var(--text-primary);
+border-bottom: 1px solid var(--border);
+
+/* .sch-slot-time */
+font-size: var(--fs-caption);
+color: var(--text-secondary);
+min-width: 80px;
+
+/* .sch-empty-msg */
+font-size: var(--fs-caption);
+color: var(--text-muted);
+font-style: italic;
+
+/* Absensi viewer (.att-*) */
+/* .att-header */
+font-size: var(--fs-h3);
+font-weight: var(--fw-semibold);
+
+/* .att-summary */
+display: flex;
+gap: var(--space-sm);
+font-size: var(--fs-caption);
+color: var(--text-secondary);
+
+/* .att-row */
+display: flex;
+align-items: center;
+gap: var(--space-sm);
+padding: var(--space-xs) 0;
+font-size: var(--fs-ui);
+border-bottom: 1px solid var(--border);
+
+/* .att-status badge varian */
+/* H (Hadir):  background var(--success-bg); color var(--success)  */
+/* S (Sakit):  background var(--warning-bg); color var(--warning)  */
+/* I (Izin):   background var(--warning-bg); color var(--warning)  */
+/* A (Alpha):  background var(--danger-bg);  color var(--danger)   */
+```
+
+### Aturan Jadwal & Absensi Viewer
+- Komponen `.sch-*` dan `.att-*` viewer WAJIB ada di `shared/css/components.css`
+- Warna status absensi menggunakan token badge Section 6 — DILARANG hardcode
+- `min-width: 80px` pada `.sch-slot-time` boleh hardcode sebagai layout constraint teknis
+
+---
+
+## 18. ATURAN PERMANEN REFACTOR
+
+Aturan berikut berlaku permanen setelah refactor design system selesai:
+
+```
+1. Tidak ada :root di luar shared/css/design-system.css
+2. Tidak ada inline <style> di file HTML manapun
+3. Komponen yang dipakai 2+ portal WAJIB ada di shared/css/components.css
+4. Semua nilai warna/ukuran WAJIB referensi token — tidak ada hardcode baru
+5. Alias --primary = --gold — gunakan --primary di komponen, --gold di token
+6. onboarding ikut design system hitam+gold — tidak ada tema terpisah
+```
+
+### Pembagian File CSS
+| File | Isi |
+|---|---|
+| `shared/css/design-system.css` | Semua token `:root` (Section 1–13) |
+| `shared/css/components.css` | Komponen reusable 2+ portal (Section 14–17) |
+| `guru/css/guru.css` | Komponen eksklusif portal guru |
+| `siswa/css/siswa.css` | Komponen eksklusif portal siswa |
+| `ortu/css/ortu.css` | Komponen eksklusif portal ortu |
+
+### Urutan `<link>` yang Wajib
+```html
+<link rel="stylesheet" href="../shared/css/design-system.css">
+<link rel="stylesheet" href="../shared/css/components.css">
+<link rel="stylesheet" href="css/guru.css">  <!-- atau siswa/ortu -->
+```
 
 ---
 
