@@ -382,12 +382,16 @@
         tabJadwal.classList.remove('active');
         panelSiswa.style.display  = '';
         panelJadwal.style.display = 'none';
+        const _cId = new URLSearchParams(window.location.search).get('id');
+        if (_cId) try { localStorage.setItem('sip_tab_' + _cId, 'siswa'); } catch (_) {}
       });
       tabJadwal.addEventListener('click', () => {
         tabJadwal.classList.add('active');
         tabSiswa.classList.remove('active');
         panelSiswa.style.display  = 'none';
         panelJadwal.style.display = '';
+        const _cId = new URLSearchParams(window.location.search).get('id');
+        if (_cId) try { localStorage.setItem('sip_tab_' + _cId, 'jadwal'); } catch (_) {}
       });
     }
 
@@ -405,6 +409,10 @@
     teacherId = prof.id;
 
     await load();
+
+    // Restore tab terakhir — setelah semua listener terpasang
+    const savedTab = cId ? localStorage.getItem('sip_tab_' + cId) : null;
+    if (savedTab === 'jadwal' && tabJadwal) tabJadwal.click();
   });
 
 }());

@@ -35,6 +35,9 @@
 
   function renderPage(page) {
     currentPage = page;
+    if (currentClassroomId) {
+      try { localStorage.setItem('sip_roster_page_' + currentClassroomId, page); } catch (_) {}
+    }
     var listEl = document.getElementById('roster-list');
     if (!listEl || currentRows.length === 0) return;
 
@@ -242,7 +245,9 @@
       return;
     }
 
-    renderPage(0);
+    var savedPage = parseInt(localStorage.getItem('sip_roster_page_' + currentClassroomId)) || 0;
+    var maxPage   = Math.max(0, Math.ceil(currentRows.length / PAGE_SIZE) - 1);
+    renderPage(Math.min(savedPage, maxPage));
   }
 
   // -------------------------------------------------------------------------
@@ -947,8 +952,29 @@
           if (ph && pb) { ph.classList.remove('open'); pb.style.display = 'none'; }
         });
         if (!isOpen) { h2.classList.add('open'); body.style.display = ''; }
+        var cId = new URLSearchParams(window.location.search).get('id');
+        if (cId && containerEl.id) {
+          try { localStorage.setItem('sip_collapse_' + cId + '_' + containerEl.id, isOpen ? '-1' : String(idx)); } catch (_) {}
+        }
       });
     });
+
+    // Restore collapse state dari localStorage
+    var cIdRestore = new URLSearchParams(window.location.search).get('id');
+    if (cIdRestore && containerEl.id) {
+      var savedCollapse = localStorage.getItem('sip_collapse_' + cIdRestore + '_' + containerEl.id);
+      if (savedCollapse !== null) {
+        var savedIdx = parseInt(savedCollapse);
+        panels.forEach(function (p, i) {
+          var ph = p.querySelector('h2.panel-header');
+          var pb = p.querySelector('.panel-body-collapse');
+          if (ph && pb) {
+            if (i === savedIdx) { ph.classList.add('open'); pb.style.display = ''; }
+            else { ph.classList.remove('open'); pb.style.display = 'none'; }
+          }
+        });
+      }
+    }
   }
 
   // -------------------------------------------------------------------------
