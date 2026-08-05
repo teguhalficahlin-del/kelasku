@@ -493,7 +493,7 @@
     const summary  = buildRekapSummary(rows);
     const perSiswa = buildRekapPerSiswa(rows, roster);
 
-    bodyEl.innerHTML = renderRekapSummaryHtml(summary) + renderRekapTableHtml(perSiswa);
+    bodyEl.innerHTML = renderRekapTableHtml(perSiswa);
 
     // Collapse listeners — safe karena innerHTML replace, bukan append
     bodyEl.querySelectorAll('.rekap-siswa-header').forEach(header => {
@@ -532,53 +532,48 @@
     if (!container || container.dataset.init) return;
     container.dataset.init = '1';
 
-    let currentPreset = 'bulan';
+    const [defaultFrom, defaultTo] = getPresetRange('bulan');
 
     container.innerHTML =
-      `<div class="rekap-filters">` +
-        ['minggu','bulan','semester','custom'].map(p =>
-          `<button class="rekap-preset${p === currentPreset ? ' active' : ''}" data-preset="${p}">` +
-            (p === 'minggu' ? 'Minggu ini' : p === 'bulan' ? 'Bulan ini' : p === 'semester' ? 'Semester ini' : 'Custom') +
-          `</button>`
-        ).join('') +
+      `<div class="rekap-date-range">` +
+        `<div class="rekap-date-group">` +
+          `<label class="rekap-date-label" for="rekap-from">Dari</label>` +
+          `<input type="date" id="rekap-from" class="rekap-date-input" value="${defaultFrom}">` +
+        `</div>` +
+        `<div class="rekap-date-group">` +
+          `<label class="rekap-date-label" for="rekap-to">Sampai</label>` +
+          `<input type="date" id="rekap-to" class="rekap-date-input" value="${defaultTo}">` +
+        `</div>` +
       `</div>` +
-      `<div class="rekap-custom-range" style="display:none">` +
-        `<label class="sch-label" style="flex-direction:row;align-items:center;gap:.4rem">Dari <input type="date" id="rekap-from" class="sch-input" style="width:auto"></label>` +
-        `<label class="sch-label" style="flex-direction:row;align-items:center;gap:.4rem">Sampai <input type="date" id="rekap-to" class="sch-input" style="width:auto"></label>` +
-        `<button class="btn-sm" id="rekap-apply">Terapkan</button>` +
-      `</div>` +
-      `<div id="rekap-body"></div>` +
-      `<div style="margin-top:.75rem"><button id="btn-export-excel" disabled title="Muat rekap dulu sebelum export">Export Excel</button></div>`;
+      `<button id="rekap-toggle" class="rekap-toggle-btn">Tampilkan</button>` +
+      `<div id="rekap-body" style="display:none"></div>` +
+      `<div id="rekap-export-wrap" style="display:none;margin-top:.75rem">` +
+        `<button id="btn-export-excel" disabled title="Muat rekap dulu sebelum export">Export Excel</button>` +
+      `</div>`;
 
     const bodyEl      = container.querySelector('#rekap-body');
-    const customRange = container.querySelector('.rekap-custom-range');
+    const exportWrap  = container.querySelector('#rekap-export-wrap');
+    const toggleBtn   = container.querySelector('#rekap-toggle');
 
-    // Initial load
-    const [initFrom, initTo] = getPresetRange(currentPreset);
-    refreshRekap(initFrom, initTo, bodyEl);
-
-    // Preset button events
-    container.querySelectorAll('.rekap-preset').forEach(btn => {
-      btn.addEventListener('click', () => {
-        container.querySelectorAll('.rekap-preset').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        currentPreset = btn.dataset.preset;
-        if (currentPreset === 'custom') {
-          customRange.style.display = '';
-        } else {
-          customRange.style.display = 'none';
-          const [f, t] = getPresetRange(currentPreset);
-          refreshRekap(f, t, bodyEl);
+    // Toggle tampilkan / sembunyikan
+    toggleBtn.addEventListener('click', () => {
+      if (toggleBtn.textContent === 'Tampilkan') {
+        const f = container.querySelector('#rekap-from').value;
+        const t = container.querySelector('#rekap-to').value;
+        if (!f || !t || f > t) {
+          bodyEl.style.display = 'block';
+          bodyEl.innerHTML = '<p class="empty-state">Rentang tanggal tidak valid.</p>';
+          return;
         }
-      });
-    });
-
-    // Custom apply
-    container.querySelector('#rekap-apply').addEventListener('click', () => {
-      const f = container.querySelector('#rekap-from').value;
-      const t = container.querySelector('#rekap-to').value;
-      if (!f || !t || f > t) return;
-      refreshRekap(f, t, bodyEl);
+        refreshRekap(f, t, bodyEl);
+        bodyEl.style.display = 'block';
+        exportWrap.style.display = 'block';
+        toggleBtn.textContent = 'Sembunyikan';
+      } else {
+        bodyEl.style.display = 'none';
+        exportWrap.style.display = 'none';
+        toggleBtn.textContent = 'Tampilkan';
+      }
     });
 
     // Export

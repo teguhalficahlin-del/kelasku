@@ -1331,36 +1331,50 @@ td { padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border); }
 .abs-save-ok  { color: var(--success-text); }
 .abs-save-err { color: var(--danger); }
 .abs-disabled-msg { font-size: var(--fs-caption); color: var(--text-muted); font-style: italic; margin-top: .625rem; }
-.abs-rekap-summary { margin-bottom: .875rem; }
-
 /* ── Rekap ── */
-.rekap-filters {
+.rekap-date-range {
   display: flex;
-  gap: .35rem;
+  gap: var(--space-md);
   flex-wrap: wrap;
-  margin-bottom: .75rem;
+  margin-bottom: var(--space-md);
 }
-.rekap-preset {
+.rekap-date-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  flex: 1;
+  min-width: 140px;
+}
+.rekap-date-label {
   font-size: var(--fs-caption);
-  font-weight: 600;
-  padding: .3rem .75rem;
-  border-radius: 99px;
-  border: 1.5px solid var(--border-strong);
-  background: var(--bg-surface);
   color: var(--text-secondary);
+  font-weight: var(--fw-medium);
+}
+.rekap-date-input {
+  width: 100%;
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: var(--input-r);
+  color: var(--text-primary);
+  font-size: var(--fs-ui);
+  padding: var(--input-py) var(--input-px);
+  font-family: inherit;
+}
+.rekap-toggle-btn {
+  width: 100%;
+  background: var(--gold);
+  color: var(--text-on-gold);
+  border: none;
+  border-radius: var(--btn-r);
+  font-size: var(--fs-ui);
+  font-weight: var(--fw-medium);
+  min-height: var(--btn-h);
   cursor: pointer;
   font-family: inherit;
-  transition: background var(--transition), color var(--transition), border-color var(--transition);
+  transition: background var(--transition);
+  margin-bottom: var(--space-md);
 }
-.rekap-preset:hover { background: var(--bg-elevated); }
-.rekap-preset.active { background: var(--gold-muted); color: var(--gold); border-color: var(--gold); }
-.rekap-custom-range {
-  display: flex;
-  align-items: center;
-  gap: .5rem;
-  flex-wrap: wrap;
-  margin-bottom: .75rem;
-}
+.rekap-toggle-btn:hover { background: var(--gold-hover); }
 .rekap-siswa-row {
   border: 1px solid var(--border);
   border-radius: var(--r-md);
