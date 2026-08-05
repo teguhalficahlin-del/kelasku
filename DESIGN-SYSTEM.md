@@ -374,6 +374,22 @@ Section header di dalam card:
 - DILARANG menambahkan konten langsung ke `<body>` atau container utama tanpa card wrapper
 - Jika ragu apakah konten perlu card baru: YA, buat card baru
 
+### Posisi Tombol Aksi pada Card List
+Tombol aksi (Edit, Hapus, Nonaktifkan, dsb.) pada card list WAJIB diposisikan di bawah informasi utama, bukan di sebelah kanan.
+
+Layout card list yang benar:
+- **Baris atas**: informasi utama (hari, waktu, nama, badge status)
+- **Baris bawah**: tombol aksi, rata kiri (`justify-content: flex-start`)
+
+Implementasi CSS:
+```css
+.card-row        { display: flex; flex-direction: column; gap: var(--space-xs); }
+.card-row-info   { display: flex; align-items: center; gap: var(--space-sm); flex-wrap: wrap; }
+.card-row-actions{ display: flex; gap: var(--space-xs); flex-wrap: wrap; justify-content: flex-start; }
+```
+
+DILARANG menempatkan tombol aksi di sebelah kanan baris yang sama dengan informasi utama.
+
 ---
 
 *Dokumen ini dibuat 5 Agustus 2026. Setiap perubahan harus melalui konfirmasi Romo.*

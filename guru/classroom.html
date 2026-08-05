@@ -242,9 +242,8 @@
     }
     .sch-row {
       display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: var(--space-sm);
+      flex-direction: column;
+      gap: var(--space-xs);
       padding: var(--space-sm) 0;
       border-bottom: 1px solid var(--border-sub);
       width: 100%;
@@ -252,8 +251,6 @@
     }
     .sch-row:last-child { border-bottom: none; }
     .sch-row-info {
-      flex-grow: 1;
-      min-width: 160px;
       display: flex;
       align-items: center;
       gap: var(--space-sm);
@@ -262,7 +259,7 @@
     .sch-day  { font-weight: 600; color: var(--text-sec); white-space: nowrap; font-size: var(--fs-caption); }
     .sch-time { white-space: nowrap; color: var(--text); font-size: var(--fs-caption); }
     .sch-reason { font-size: .75rem; color: var(--text-muted); margin-top: .2rem; width: 100%; }
-    .sch-actions { flex-shrink: 0; display: flex; gap: var(--space-xs); flex-wrap: wrap; align-items: center; }
+    .sch-actions { display: flex; gap: var(--space-xs); flex-wrap: wrap; align-items: center; justify-content: flex-start; }
 
     /* ── Schedule modal inputs ── */
     .sch-label {
