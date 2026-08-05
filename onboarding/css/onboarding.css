@@ -39,7 +39,7 @@ section {
 }
 
 h2 {
-  font-size: 1.1rem;
+  font-size: var(--fs-h2);
   font-weight: 600;
   margin-bottom: 1.25rem;
   color: var(--text-primary);
@@ -47,7 +47,7 @@ h2 {
 
 label {
   display: block;
-  font-size: 0.875rem;
+  font-size: var(--fs-caption);
   font-weight: 500;
   margin-bottom: 0.35rem;
   color: var(--text-primary);
@@ -64,7 +64,7 @@ input[type="password"] {
   display: block;
   width: 100%;
   padding: 0.625rem 0.75rem;
-  font-size: 1rem;
+  font-size: var(--fs-ui);
   border: 1px solid var(--input-border);
   border-radius: 6px;
   background: var(--input-bg);
@@ -83,7 +83,7 @@ button[type="submit"] {
   display: block;
   width: 100%;
   padding: 0.75rem;
-  font-size: 1rem;
+  font-size: var(--fs-ui);
   font-weight: 600;
   color: var(--text-on-gold);
   background: var(--gold);
@@ -110,7 +110,7 @@ button[type="submit"]:disabled {
   color: var(--danger);
   border-radius: 6px;
   padding: 0.75rem 1rem;
-  font-size: 0.9rem;
+  font-size: var(--fs-body);
   margin-bottom: 1rem;
 }
 
@@ -130,7 +130,7 @@ button[type="submit"]:disabled {
 }
 
 .instruksi {
-  font-size: 0.875rem;
+  font-size: var(--fs-caption);
   color: var(--text-secondary);
   margin-bottom: 1.5rem;
   line-height: 1.5;
@@ -140,7 +140,7 @@ button[type="submit"]:disabled {
   display: block;
   width: 100%;
   padding: 0.75rem;
-  font-size: 1rem;
+  font-size: var(--fs-ui);
   font-weight: 600;
   color: var(--text-on-gold);
   background: var(--gold);

@@ -22,7 +22,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-sm);
-  font-size: var(--fs-h3);
+  font-size: var(--fs-h2);
   font-weight: var(--fw-semibold);
   color: var(--text-primary);
 }
