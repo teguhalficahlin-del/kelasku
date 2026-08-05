@@ -299,6 +299,13 @@ backdrop-filter: blur(4px);
 - Card list: `flex-direction: column`, full width
 - Tabel yang lebar: `overflow-x: auto` dengan `min-width` yang sesuai
 
+### Layout Rules Wajib
+- Semua list/card container: `width: 100%`
+- Semua card/row item: `width: 100%`, `box-sizing: border-box`
+- DILARANG elemen list yang tidak full-width di dalam container tanpa alasan eksplisit
+- DILARANG `max-width` pada elemen list — max-width hanya boleh pada container halaman utama
+- Padding dalam card tidak boleh mengurangi lebar elemen child
+
 ---
 
 ## 10. AKSESIBILITAS
@@ -333,6 +340,39 @@ Sebelum menyentuh CSS atau HTML apapun:
 4. Setiap komponen baru WAJIB memenuhi WCAG AA — hitung kontras sebelum commit
 5. WAJIB test tampilan di 375px sebelum commit
 6. Jika ada deviasi yang diperlukan: STOP — laporkan alasan — tunggu konfirmasi
+
+---
+
+## 12. STRUKTUR HALAMAN
+
+### Prinsip Section Terpisah
+Setiap kelompok konten yang berbeda WAJIB dibungkus dalam card/panel tersendiri.
+DILARANG membuat satu halaman dengan konten tersambung dari atas ke bawah tanpa pemisah visual.
+
+Contoh yang BENAR untuk halaman Jadwal & Absensi:
+- Card 1: "Jadwal Mingguan" — berisi tabel/list jadwal
+- Card 2: "Absensi Hari Ini" — berisi form absensi aktif
+- Card 3: "Rekap Absensi" — berisi filter dan tabel rekap
+
+Setiap card:
+- Background: `var(--bg-surface)`
+- Border: `1px solid var(--border)`
+- Border-radius: `var(--card-r)`
+- Padding: `var(--card-p)`
+- Margin-bottom: `var(--space-lg)`
+- Box-shadow: `var(--shadow-card)`
+
+Section header di dalam card:
+- Font-size: `var(--fs-h2)`
+- Font-weight: `var(--fw-semibold)`
+- Color: `var(--text-primary)`
+- Margin-bottom: `var(--space-md)`
+- Border-bottom: `1px solid var(--border)` (opsional, untuk section panjang)
+
+### Aturan Wajib Claude Code
+- Setiap fitur baru yang ditambahkan ke halaman existing WAJIB dibungkus dalam card tersendiri
+- DILARANG menambahkan konten langsung ke `<body>` atau container utama tanpa card wrapper
+- Jika ragu apakah konten perlu card baru: YA, buat card baru
 
 ---
 
