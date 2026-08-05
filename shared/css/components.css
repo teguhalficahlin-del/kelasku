@@ -1,0 +1,235 @@
+/* SIP Mandiri — Shared Components */
+/* Sumber kebenaran: DESIGN-SYSTEM.md Section 13–17 + audit komponen */
+/* Jangan edit langsung — perbarui DESIGN-SYSTEM.md dulu */
+/* Wajib di-load SETELAH design-system.css, SEBELUM CSS portal */
+
+/* ================================================================
+   SECTION 13 — LAYOUT & CONTAINER
+   ================================================================ */
+
+.container {
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: 0 var(--container-px);
+  box-sizing: border-box;
+}
+
+/* ================================================================
+   SECTION 14 — HEADER PORTAL
+   ================================================================ */
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: var(--fs-h3);
+  font-weight: var(--fw-semibold);
+  color: var(--text-primary);
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: var(--fs-caption);
+  color: var(--text-secondary);
+}
+
+/* ================================================================
+   SECTION 15 — FEEDBACK & STATE
+   ================================================================ */
+
+.error-msg {
+  color: var(--danger);
+  font-size: var(--fs-caption);
+  margin-top: var(--space-xs);
+}
+
+.konfirmasi {
+  color: var(--success);
+  font-size: var(--fs-caption);
+  margin-top: var(--space-xs);
+}
+
+.empty-state {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: var(--fs-body);
+  padding: var(--space-xl) var(--space-md);
+}
+
+/* ================================================================
+   SECTION 16 — CARD PARTS
+   ================================================================ */
+
+.card-name {
+  font-size: var(--fs-body);
+  font-weight: var(--fw-semibold);
+  color: var(--text-primary);
+}
+
+.card-code {
+  display: inline-block;
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-medium);
+  color: var(--gold);
+  background: var(--gold-muted);
+  border: 1px solid var(--gold-border);
+  border-radius: var(--r-sm);
+  padding: 2px var(--space-sm);
+  font-family: ui-monospace, SFMono-Regular, 'Courier New', monospace;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.cl-label {
+  font-size: var(--fs-caption);
+  color: var(--text-muted);
+}
+
+.opsional {
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-regular);
+  color: var(--text-muted);
+}
+
+/* ================================================================
+   SECTION 6 + AUDIT — BADGE
+   ================================================================ */
+
+.badge-aktif {
+  display: inline-block;
+  background: var(--success-bg);
+  color: var(--success);
+  font-size: var(--fs-badge);
+  font-weight: var(--fw-medium);
+  padding: 2px 10px;
+  border-radius: 99px;
+  white-space: nowrap;
+}
+
+.badge-nonaktif {
+  display: inline-block;
+  background: var(--danger-bg);
+  color: var(--danger);
+  font-size: var(--fs-badge);
+  font-weight: var(--fw-medium);
+  padding: 2px 10px;
+  border-radius: 99px;
+  white-space: nowrap;
+}
+
+/* ================================================================
+   AUDIT — CARD SCHEDULES (identik di siswa + ortu)
+   ================================================================ */
+
+.card-schedules {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--card-r);
+  padding: var(--card-p);
+  margin: 0 0 var(--space-lg);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* ================================================================
+   SECTION 17 — JADWAL VIEWER (.sch-*)
+   ================================================================ */
+
+.sch-section-title {
+  font-size: var(--fs-h3);
+  font-weight: var(--fw-semibold);
+  color: var(--text-primary);
+  margin-bottom: var(--space-sm);
+}
+
+.sch-day-group {
+  margin-bottom: var(--space-md);
+}
+
+.sch-slot {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-xs) 0;
+  font-size: var(--fs-ui);
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border);
+}
+
+.sch-slot-time {
+  font-size: var(--fs-caption);
+  color: var(--text-secondary);
+  min-width: 80px; /* layout constraint teknis — lihat DESIGN-SYSTEM.md §17 */
+  flex-shrink: 0;
+}
+
+.sch-empty-msg {
+  font-size: var(--fs-caption);
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* ================================================================
+   SECTION 17 — ABSENSI VIEWER (.att-*)
+   ================================================================ */
+
+.att-header {
+  font-size: var(--fs-h3);
+  font-weight: var(--fw-semibold);
+  color: var(--text-primary);
+}
+
+.att-summary {
+  display: flex;
+  gap: var(--space-sm);
+  font-size: var(--fs-caption);
+  color: var(--text-secondary);
+  flex-wrap: wrap;
+}
+
+.att-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-xs) 0;
+  font-size: var(--fs-ui);
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border);
+}
+
+/* Status badge varian — Section 17 */
+.att-status-h {
+  display: inline-block;
+  background: var(--success-bg);
+  color: var(--success);
+  font-size: var(--fs-badge);
+  font-weight: var(--fw-medium);
+  padding: 2px 10px;
+  border-radius: 99px;
+  white-space: nowrap;
+}
+
+.att-status-s,
+.att-status-i {
+  display: inline-block;
+  background: var(--warning-bg);
+  color: var(--warning);
+  font-size: var(--fs-badge);
+  font-weight: var(--fw-medium);
+  padding: 2px 10px;
+  border-radius: 99px;
+  white-space: nowrap;
+}
+
+.att-status-a {
+  display: inline-block;
+  background: var(--danger-bg);
+  color: var(--danger);
+  font-size: var(--fs-badge);
+  font-weight: var(--fw-medium);
+  padding: 2px 10px;
+  border-radius: 99px;
+  white-space: nowrap;
+}

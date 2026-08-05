@@ -1,0 +1,140 @@
+/* SIP Mandiri — Design System */
+/* Sumber kebenaran: DESIGN-SYSTEM.md */
+/* Jangan edit langsung — perbarui DESIGN-SYSTEM.md dulu */
+
+:root {
+
+  /* ================================================================
+     WARNA
+     ================================================================ */
+
+  /* Background */
+  --bg-base:      #0A0A0F;             /* Background utama — near-black */
+  --bg-surface:   #13131A;             /* Card, panel, form */
+  --bg-elevated:  #1C1C26;             /* Modal, dropdown, overlay */
+  --bg-overlay:   rgba(10,10,15,0.88); /* Glassmorphism overlay */
+
+  /* Gold */
+  --gold:         #D4AF37;             /* Accent utama — gold klasik elegan */
+  --gold-hover:   #B8960C;             /* Gold saat hover */
+  --gold-muted:   rgba(212,175,55,0.15); /* Background badge/banner gold */
+  --gold-border:  rgba(212,175,55,0.3);  /* Border dengan nuansa gold */
+
+  /* Text */
+  --text-on-gold:   #0A0A0F;           /* Teks di atas gold — hitam, kontras tinggi */
+  --text-primary:   #F5F0E8;           /* Teks utama — warm white */
+  --text-secondary: #A89880;           /* Teks sekunder — warm muted */
+  --text-muted:     #6B5F50;           /* Teks sangat muted */
+
+  /* Border */
+  --border:        rgba(212,175,55,0.12); /* Border halus bernuansa gold */
+  --border-strong: rgba(212,175,55,0.25); /* Border lebih tegas */
+
+  /* Semantic */
+  --success:      #10B981;
+  --success-bg:   rgba(16,185,129,0.15);
+  --danger:       #F87171;
+  --danger-bg:    rgba(248,113,113,0.15);
+  --warning:      #FBBF24;
+  --warning-bg:   rgba(251,191,36,0.15);
+
+  /* Shadow */
+  --shadow-card:  0 4px 24px rgba(0,0,0,0.5);
+  --shadow-modal: 0 8px 40px rgba(0,0,0,0.7);
+  --shadow-gold:  0 0 20px rgba(212,175,55,0.15);
+
+  /* Glass */
+  --glass:        rgba(19,19,26,0.75);
+  --glass-border: rgba(212,175,55,0.15);
+  --blur:         blur(12px);
+
+  /* Alias — resolusi konflik --primary vs --accent */
+  --primary:       var(--gold);        /* alias utama — gantikan --accent di siswa/ortu */
+  --primary-hov:   var(--gold-hover);
+  --primary-light: var(--gold-muted);
+  --success-text:  var(--success);     /* alias — dipakai di badge aktif beberapa komponen */
+
+  /* ================================================================
+     TIPOGRAFI
+     ================================================================ */
+
+  /* Font stack */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  /* Skala fs — fluid via clamp */
+  --fs-display: clamp(28px, 7vw, 40px);   /* Judul halaman utama */
+  --fs-h1:      clamp(24px, 6vw, 34px);   /* Heading utama section */
+  --fs-h2:      clamp(20px, 5vw, 28px);   /* Heading sub-section */
+  --fs-h3:      clamp(18px, 4vw, 22px);   /* Heading card/panel */
+  --fs-body:    clamp(16px, 3.5vw, 18px); /* Teks utama */
+  --fs-ui:      clamp(15px, 3vw, 17px);   /* Label, input, tombol */
+  --fs-caption: clamp(13px, 2.5vw, 15px); /* Hint, metadata */
+  --fs-badge:   clamp(12px, 2vw, 13px);   /* Badge, pill, tag */
+
+  /* Font weight */
+  --fw-regular:  400;
+  --fw-medium:   500;
+  --fw-semibold: 600;
+  --fw-bold:     700;
+
+  /* Line height */
+  --lh-tight:  1.2; /* Heading */
+  --lh-normal: 1.5; /* Body */
+  --lh-loose:  1.8; /* Paragraf panjang */
+
+  /* ================================================================
+     TOMBOL
+     ================================================================ */
+
+  --btn-h:     clamp(48px, 7vw, 56px);   /* Tombol utama */
+  --btn-h-sm:  clamp(36px, 5vw, 44px);   /* Tombol sekunder/inline */
+  --btn-h-xs:  clamp(28px, 4vw, 36px);   /* Tombol sangat kecil (badge-like) */
+  --btn-px:    clamp(16px, 2.5vw, 24px); /* Padding horizontal */
+  --btn-px-sm: clamp(10px, 1.5vw, 16px); /* Padding horizontal kecil */
+  --btn-r:     8px;                       /* Border radius tombol */
+
+  /* ================================================================
+     CARD
+     ================================================================ */
+
+  --card-bg:     var(--bg-surface);
+  --card-border: var(--border);
+  --card-r:      clamp(10px, 1.5vw, 14px);
+  --card-shadow: var(--shadow-card);
+  --card-p:      clamp(14px, 2vw, 20px);
+
+  /* ================================================================
+     INPUT
+     ================================================================ */
+
+  --input-bg:     rgba(255,255,255,0.04);
+  --input-border: rgba(212,175,55,0.2);
+  --input-r:      8px;
+  --input-py:     clamp(10px, 1.5vw, 14px);
+  --input-px:     clamp(12px, 1.8vw, 16px);
+
+  /* ================================================================
+     SPACING
+     ================================================================ */
+
+  --space-xs:  clamp(4px, 0.8vw, 6px);
+  --space-sm:  clamp(8px, 1.2vw, 12px);
+  --space-md:  clamp(12px, 1.8vw, 18px);
+  --space-lg:  clamp(18px, 2.5vw, 28px);
+  --space-xl:  clamp(28px, 4vw, 40px);
+  --space-2xl: clamp(40px, 6vw, 60px);
+
+  /* ================================================================
+     LAYOUT & CONTAINER
+     ================================================================ */
+
+  --container-max: 680px;
+  --container-px:  clamp(12px, 4vw, 24px);
+
+  /* ================================================================
+     RADIUS
+     ================================================================ */
+
+  --r-sm: 6px; /* badge kecil, code snippet */
+  --r-md: 8px; /* alias --btn-r, --input-r */
+}
