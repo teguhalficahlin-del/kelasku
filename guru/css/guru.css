@@ -1618,3 +1618,63 @@ h2.panel-header.open .panel-collapse-arrow {
   border: 1px solid var(--danger-border);
   font-weight: 600;
 }
+
+/* ── Rekap pagination ──────────────────────────────────────────────────────── */
+
+.rekap-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: var(--space-md);
+  gap: var(--space-sm);
+}
+
+.rekap-pg-prev,
+.rekap-pg-next {
+  background: none;
+  color: var(--gold);
+  border: 2px solid var(--gold-border);
+  border-radius: var(--r-sm);
+  min-width: 44px;
+  min-height: var(--btn-h-sm);
+  font-size: var(--fs-ui);
+  font-weight: var(--fw-semibold);
+  cursor: pointer;
+  font-family: inherit;
+  transition: background var(--transition), border-color var(--transition);
+}
+.rekap-pg-prev:hover:not(:disabled),
+.rekap-pg-next:hover:not(:disabled) {
+  background: var(--gold-muted);
+  border-color: var(--gold);
+}
+.rekap-pg-prev:disabled,
+.rekap-pg-next:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.rekap-pg-label {
+  font-size: var(--fs-caption);
+  color: var(--gold);
+  flex: 1;
+  text-align: center;
+}
+
+.rekap-more-notif {
+  font-size: var(--fs-caption);
+  color: var(--text-muted);
+  padding: var(--space-xs) var(--card-p);
+  border-top: 1px solid var(--border);
+}
+
+.rekap-btn-export-hint {
+  background: none;
+  border: none;
+  color: var(--gold);
+  font-size: var(--fs-caption);
+  cursor: pointer;
+  text-decoration: underline;
+  font-family: inherit;
+  padding: 0;
+}

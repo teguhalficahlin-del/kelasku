@@ -24,6 +24,9 @@
   // Rekap cache
   let _rekapPerSiswa   = null;
   let _rekapDateRange  = null;
+  let _rekapPage       = 0;
+  const REKAP_PER_PAGE = 10;
+  const REKAP_SESI_MAX = 10;
 
   // ---- Utility ----
   function esc(s) {
@@ -487,15 +490,62 @@
     }).join('');
   }
 
-  async function refreshRekap(fromDate, toDate, bodyEl) {
-    bodyEl.innerHTML = '<p class="empty-state">Memuat rekap…</p>';
-    const { rows, roster } = await loadRekapData(fromDate, toDate);
-    const summary  = buildRekapSummary(rows);
-    const perSiswa = buildRekapPerSiswa(rows, roster);
+  function renderRekapPage(perSiswa, bodyEl) {
+    if (perSiswa.length === 0) {
+      bodyEl.innerHTML = '<p class="empty-state">Belum ada data absensi dalam rentang ini.</p>';
+      return;
+    }
+    const total      = perSiswa.length;
+    const totalPages = Math.ceil(total / REKAP_PER_PAGE);
+    const start      = _rekapPage * REKAP_PER_PAGE;
+    const end        = Math.min(start + REKAP_PER_PAGE, total);
+    const slice      = perSiswa.slice(start, end);
 
-    bodyEl.innerHTML = renderRekapTableHtml(perSiswa);
+    const rowsHtml = slice.map(s => {
+      const t = s.HADIR + s.SAKIT + s.IZIN + s.ALPHA;
+      const pctH = t ? Math.round(s.HADIR / t * 100) : 0;
+      const displaySessions = s.sessions.slice(0, REKAP_SESI_MAX);
+      const detail = displaySessions.map(ses => {
+        const stLow = ses.status.toLowerCase();
+        return `<div class="rekap-detail-row">` +
+          `<span class="rekap-detail-date">${esc(ses.tanggal)}</span>` +
+          `<span class="rekap-detail-status rekap-status-${stLow}">${STATUS_LABELS[ses.status]}</span>` +
+        `</div>`;
+      }).join('');
+      const moreNotif = s.sessions.length >= REKAP_SESI_MAX
+        ? `<div class="rekap-more-notif">Data lebih dari ${REKAP_SESI_MAX} entri. ` +
+          `<button class="rekap-btn-export-hint">Download rekap Excel</button> untuk melihat semua data.</div>`
+        : '';
+      return `<div class="rekap-siswa-row">` +
+        `<div class="rekap-siswa-header">` +
+          `<span class="rekap-siswa-nama">${esc(s.full_name)}</span>` +
+          `<div class="rekap-siswa-stats">` +
+            `<span class="rekap-stat-h">${s.HADIR}H</span>` +
+            `<span class="rekap-stat-sep">·</span>` +
+            `<span class="rekap-stat-s">${s.SAKIT}S</span>` +
+            `<span class="rekap-stat-sep">·</span>` +
+            `<span class="rekap-stat-i">${s.IZIN}I</span>` +
+            `<span class="rekap-stat-sep">·</span>` +
+            `<span class="rekap-stat-a">${s.ALPHA}A</span>` +
+            `<span class="rekap-stat-pct">${pctH}%</span>` +
+            `<span class="rekap-arrow">▾</span>` +
+          `</div>` +
+        `</div>` +
+        `<div class="rekap-siswa-detail" style="display:none">${detail}${moreNotif}</div>` +
+      `</div>`;
+    }).join('');
 
-    // Collapse listeners — safe karena innerHTML replace, bukan append
+    const pgHtml = totalPages > 1
+      ? `<div class="rekap-pagination">` +
+          `<button class="rekap-pg-prev"${_rekapPage === 0 ? ' disabled' : ''}>←</button>` +
+          `<span class="rekap-pg-label">Siswa ${start + 1}–${end} dari ${total}</span>` +
+          `<button class="rekap-pg-next"${_rekapPage >= totalPages - 1 ? ' disabled' : ''}>→</button>` +
+        `</div>`
+      : '';
+
+    bodyEl.innerHTML = rowsHtml + pgHtml;
+
+    // Collapse listeners
     bodyEl.querySelectorAll('.rekap-siswa-header').forEach(header => {
       header.addEventListener('click', () => {
         const detail = header.nextElementSibling;
@@ -505,6 +555,30 @@
         arrow.classList.toggle('open', !isOpen);
       });
     });
+
+    // Pagination listeners
+    const btnPrev = bodyEl.querySelector('.rekap-pg-prev');
+    const btnNext = bodyEl.querySelector('.rekap-pg-next');
+    if (btnPrev) btnPrev.addEventListener('click', () => { _rekapPage--; renderRekapPage(perSiswa, bodyEl); });
+    if (btnNext) btnNext.addEventListener('click', () => { _rekapPage++; renderRekapPage(perSiswa, bodyEl); });
+
+    // Export hint listeners
+    bodyEl.querySelectorAll('.rekap-btn-export-hint').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const btnExport = document.getElementById('btn-export-excel');
+        if (btnExport) btnExport.click();
+      });
+    });
+  }
+
+  async function refreshRekap(fromDate, toDate, bodyEl) {
+    bodyEl.innerHTML = '<p class="empty-state">Memuat rekap…</p>';
+    const { rows, roster } = await loadRekapData(fromDate, toDate);
+    const summary  = buildRekapSummary(rows);
+    const perSiswa = buildRekapPerSiswa(rows, roster);
+
+    _rekapPage = 0;
+    renderRekapPage(perSiswa, bodyEl);
 
     // Cache for Excel export + enable tombol
     _rekapPerSiswa  = perSiswa;
