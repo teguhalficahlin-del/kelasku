@@ -86,9 +86,9 @@
     }
     .pagination-bar button {
       min-width: 2.25rem;
-      height: 36px;
+      min-height: var(--btn-h-sm);
       padding: 0 .625rem;
-      font-size: .8125rem;
+      font-size: var(--fs-caption);
       font-weight: 600;
       color: var(--text-sec);
       background: var(--surface);
@@ -320,7 +320,7 @@
 
     /* ── Small action buttons ── */
     .btn-sm {
-      font-size: .75rem;
+      font-size: var(--fs-caption);
       font-weight: 600;
       padding: .25rem .6rem;
       border-radius: var(--r-sm);
@@ -329,7 +329,7 @@
       background: var(--surface-sub);
       color: var(--text-sec);
       font-family: inherit;
-      min-height: 28px;
+      min-height: var(--btn-h-sm);
       transition: background var(--transition), color var(--transition);
     }
     .btn-sm:hover:not(:disabled) { background: var(--surface); }
@@ -388,16 +388,16 @@
     }
     .abs-card-info { display: flex; flex-direction: column; gap: .1rem; flex: 1; min-width: 0; }
     .abs-nama { font-weight: 600; font-size: var(--fs-caption); color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .abs-nis  { font-size: .75rem; color: var(--text-muted); }
+    .abs-nis  { font-size: var(--fs-caption); color: var(--text-sec); }
     .abs-toggle { display: flex; gap: .25rem; flex-shrink: 0; }
     .abs-status-btn {
-      width: clamp(30px,6vw,36px);
-      height: clamp(30px,6vw,36px);
+      width: var(--btn-h-sm);
+      height: var(--btn-h-sm);
       border-radius: var(--r-sm);
       border: 1.5px solid var(--border-strong);
       background: var(--surface);
       color: var(--text-muted);
-      font-size: .8125rem;
+      font-size: var(--fs-caption);
       font-weight: 700;
       cursor: pointer;
       font-family: inherit;
@@ -415,11 +415,11 @@
       border: none;
       border-radius: var(--r-sm);
       padding: .5rem 1.25rem;
-      font-size: var(--fs-caption);
+      font-size: var(--fs-btn);
       font-weight: 600;
       cursor: pointer;
       font-family: inherit;
-      min-height: 36px;
+      min-height: var(--btn-h);
       transition: background var(--transition);
     }
     .btn-simpan-absensi:hover:not(:disabled) { background: var(--primary-hov); }
@@ -438,7 +438,7 @@
       margin-bottom: .75rem;
     }
     .rekap-preset {
-      font-size: .8125rem;
+      font-size: var(--fs-caption);
       font-weight: 600;
       padding: .3rem .75rem;
       border-radius: 99px;
@@ -486,10 +486,11 @@
       color: var(--text-sec);
       cursor: pointer;
       font-family: inherit;
-      min-height: 34px;
+      min-height: var(--btn-h-sm);
       transition: background var(--transition);
     }
-    #btn-export-excel:hover { background: var(--surface); }
+    #btn-export-excel:hover:not(:disabled) { background: var(--surface); }
+    #btn-export-excel:disabled { opacity: .45; cursor: not-allowed; }
 
     /* Share overlay — glassmorphism */
     .share-overlay {

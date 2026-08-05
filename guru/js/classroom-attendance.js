@@ -18,6 +18,7 @@
 
   // Auto-status timer
   let _todaySchedules = [];
+  let _loadedDate     = null;
   let _sessionTimerId = null;
 
   // Rekap cache
@@ -341,6 +342,7 @@
     const [schedules, roster] = await Promise.all([loadTodaySchedules(), loadRoster()]);
 
     _todaySchedules = schedules;
+    _loadedDate     = todayStr();
 
     container.innerHTML = '';
     const dayEl = document.createElement('p');
@@ -381,7 +383,15 @@
   // ---- Timer: cek perubahan status setiap 30 detik ----
   function syncSessionStatuses() {
     const container = document.getElementById('absensi-container');
-    if (!container || _todaySchedules.length === 0) return;
+    if (!container) return;
+
+    // Guard midnight: jika hari berganti, reload jadwal dari awal
+    if (_loadedDate && todayStr() !== _loadedDate) {
+      renderAbsensi();
+      return;
+    }
+
+    if (_todaySchedules.length === 0) return;
 
     let needsRerender = false;
     _todaySchedules.forEach(sch => {
@@ -469,9 +479,11 @@
 
     bodyEl.innerHTML = renderRekapSummaryHtml(summary) + renderRekapTableHtml(perSiswa);
 
-    // Cache for Excel export
+    // Cache for Excel export + enable tombol
     _rekapPerSiswa  = perSiswa;
     _rekapDateRange = { fromDate, toDate };
+    const btnExport = document.getElementById('btn-export-excel');
+    if (btnExport) { btnExport.disabled = false; btnExport.removeAttribute('title'); }
   }
 
   function exportExcel(perSiswa, fromDate, toDate) {
@@ -509,7 +521,7 @@
         `<button class="btn-sm" id="rekap-apply">Terapkan</button>` +
       `</div>` +
       `<div id="rekap-body"></div>` +
-      `<div style="margin-top:.75rem"><button id="btn-export-excel">Export Excel</button></div>`;
+      `<div style="margin-top:.75rem"><button id="btn-export-excel" disabled title="Muat rekap dulu sebelum export">Export Excel</button></div>`;
 
     const bodyEl      = container.querySelector('#rekap-body');
     const customRange = container.querySelector('.rekap-custom-range');

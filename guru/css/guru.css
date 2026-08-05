@@ -36,9 +36,10 @@
   --fs-btn:     clamp(15px, 2vw, 17px);
 
   /* Fluid sizing */
-  --btn-h:   clamp(48px, 7vw, 56px);
-  --btn-px:  clamp(14px, 2vw, 20px);
-  --btn-py:  clamp(8px, 1.5vw, 12px);
+  --btn-h:    clamp(48px, 7vw, 56px);
+  --btn-h-sm: clamp(32px, 4.5vw, 40px);
+  --btn-px:   clamp(14px, 2vw, 20px);
+  --btn-py:   clamp(8px, 1.5vw, 12px);
 
   /* Radius */
   --r-sm:    6px;
