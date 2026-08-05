@@ -257,6 +257,7 @@
 
       close();
       await load();
+      window.dispatchEvent(new CustomEvent('schedule-changed'));
     });
 
     box.querySelector('#sch-start').focus();
@@ -313,6 +314,7 @@
       }
       close();
       await load();
+      window.dispatchEvent(new CustomEvent('schedule-changed'));
     });
 
     inp.focus();
@@ -330,6 +332,7 @@
         .update({ is_active: true, inactive_reason: null }).eq('id', id);
       if (error) { alert('Gagal: ' + error.message); return; }
       await load();
+      window.dispatchEvent(new CustomEvent('schedule-changed'));
     }
   }
 
@@ -359,6 +362,7 @@
     const { error } = await client.from('schedules').delete().eq('id', id);
     if (error) { alert('Gagal hapus: ' + error.message); return; }
     await load();
+    window.dispatchEvent(new CustomEvent('schedule-changed'));
   }
 
   // ---------------------------------------------------------------------------

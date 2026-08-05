@@ -625,4 +625,8 @@
     }
   });
 
+  window.addEventListener('schedule-changed', function () {
+    renderAbsensi();
+  });
+
 }());
