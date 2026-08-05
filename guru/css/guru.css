@@ -932,11 +932,14 @@ td { padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border); }
   flex: 1;
   text-align: center;
 }
+.abs-summary-wrap { width: 100%; }
 .abs-summary-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: var(--space-sm);
   margin-bottom: var(--space-md);
+  width: 100%;
+  box-sizing: border-box;
 }
 .abs-sum-card {
   border-radius: var(--r-sm);
