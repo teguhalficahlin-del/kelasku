@@ -347,26 +347,65 @@ main h2 {
 }
 
 /* ── Classroom card ── */
+/* Wrapper transparan — shadow mengikuti bentuk tiap sub-card */
 .classroom-card {
-  background: var(--bg-surface);
-  border: 1px solid var(--border);
-  border-radius: var(--card-r);
-  box-shadow: var(--shadow-card);
-  padding: 1.25rem 1.5rem;
-  margin-bottom: 0.75rem;
-  transition: border-color var(--transition), box-shadow var(--transition);
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-bottom: var(--space-lg);
+  filter: drop-shadow(var(--shadow-card));
+  transition: filter var(--transition);
 }
 .classroom-card:hover {
+  filter: drop-shadow(var(--shadow-card)) drop-shadow(var(--shadow-gold));
+}
+.classroom-card:hover > .card-header,
+.classroom-card:hover > .card-subject,
+.classroom-card:hover > .card-teacher {
   border-color: var(--gold-border);
-  box-shadow: var(--shadow-card), var(--shadow-gold);
 }
 
-.card-header {
+/* Card info: header + subject + teacher dirantai jadi satu card */
+.classroom-card > .card-header {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-bottom: none;
+  border-radius: var(--card-r) var(--card-r) 0 0;
+  padding: var(--card-p) var(--card-p) 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.5rem;
-  gap: 0.5rem;
+  margin-bottom: 0;
+  gap: var(--space-sm);
+  transition: border-color var(--transition);
+}
+
+.classroom-card > .card-subject {
+  background: var(--bg-surface);
+  border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  padding: var(--space-xs) var(--card-p);
+  font-size: var(--fs-caption);
+  color: var(--text-secondary);
+  margin-bottom: 0;
+  transition: border-color var(--transition);
+}
+
+/* card-teacher = elemen info terakhir di portal siswa */
+.classroom-card > .card-teacher {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-top: none;
+  border-radius: 0 0 var(--card-r) var(--card-r);
+  padding: 0 var(--card-p) var(--card-p);
+  font-size: var(--fs-caption);
+  color: var(--text-muted);
+  margin-bottom: var(--space-lg);
+  transition: border-color var(--transition);
 }
 
 .card-name {
@@ -389,17 +428,6 @@ main h2 {
   white-space: nowrap;
 }
 
-.card-subject {
-  font-size: var(--fs-caption);
-  color: var(--text-secondary);
-  margin-bottom: 0.25rem;
-}
-
-.card-teacher {
-  font-size: var(--fs-caption);
-  color: var(--text-muted);
-}
-
 .empty-state {
   color: var(--text-muted);
   font-size: var(--fs-caption);
@@ -408,11 +436,15 @@ main h2 {
   line-height: var(--lh-loose);
 }
 
-/* ── Jadwal classroom ── */
+/* ── Card Jadwal (terpisah) ── */
 .card-schedules {
-  margin-top: .875rem;
-  padding-top: .75rem;
-  border-top: 1px solid var(--border);
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--card-r);
+  padding: var(--card-p);
+  margin: 0 0 var(--space-lg);
+  width: 100%;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   gap: .5rem;
@@ -445,6 +477,8 @@ main h2 {
   gap: .5rem;
   flex-wrap: wrap;
   padding-left: .625rem;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .sch-slot-time {
