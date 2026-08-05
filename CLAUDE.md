@@ -205,7 +205,7 @@ git push origin main                  → urutan TERAKHIR
 ## 12. STATUS PROYEK
 
 **Fase saat ini: DEVELOPMENT AKTIF**
-**HEAD:** `e0239bd`
+**HEAD:** `631e503`
 
 - [x] Dokumen rancangan selesai (REQUIREMENTS, SCHEMA-v0, ADR-001)
 - [x] Supabase project baru dibuat
@@ -222,6 +222,7 @@ git push origin main                  → urutan TERAKHIR
 - [ ] Portal Guru: catatan siswa + sesi pembinaan
 - [x] Portal Guru: jadwal classroom (ADR-004)
 - [x] Portal Guru: absensi classroom (ADR-005)
+- [x] Portal Guru: UX polish absensi + rekap (sesi 6 Agustus 2026)
 - [ ] Portal Guru: forum
 - [ ] Portal Siswa
 - [ ] Portal Ortu
@@ -231,6 +232,34 @@ git push origin main                  → urutan TERAKHIR
 **Test pending manual:**
 - Test 4.4: progress generate semua (butuh siswa baru tanpa akun)
 - Test 8.4–8.5: cross-classroom isolation (butuh guru kedua)
+
+**Fitur & fix sesi 6 Agustus 2026 (HEAD 2e7044f → 631e503):**
+
+Fix:
+- Dropdown pilih hari — semua 6 hari selalu tersedia (bukan hanya hari kosong)
+- Sinkronisasi panel absensi setelah edit/nonaktifkan/hapus jadwal
+  (`CustomEvent 'schedule-changed'` dari schedule.js, listener di attendance.js)
+- Heading section classroom: `font-size: var(--fs-h3)`, `color: var(--gold)`
+  via `.panel > h2.panel-header`
+- Swipe absensi per sesi: tambah cek delta vertikal (`Math.abs(dx) <= Math.abs(dy)`)
+- Tombol Export Excel: posisi kanan (`margin-left: auto`), tidak trigger collapse
+  (`e.stopPropagation()`), selalu aktif (guard alert jika belum ada data)
+
+Fitur baru:
+- Rekap absensi: pagination 10 siswa per halaman, batasi 10 entri per siswa,
+  notif download jika entri ≥ 10 (`renderRekapPage`, state `_rekapPage`)
+- Swipe gesture di semua pagination: roster, absensi per sesi, rekap
+  (`{ passive: true }`, threshold 50px, cek vertikal)
+- Tombol Export Excel dipindah ke header `h2.panel-header` Rekap Absensi
+  (disisipkan via JS setelah `initCollapseSections` wrap, class `btn-export-header`)
+- Persist state UI via `localStorage` (key berbasis `classroomId`):
+  * `sip_tab_<id>` → tab aktif (Kelola Siswa / Jadwal & Absensi)
+  * `sip_collapse_<id>_<panelId>` → index section yang terbuka
+  * `sip_roster_page_<id>` → halaman pagination roster terakhir
+
+Label:
+- Tab "Siswa" → "Kelola Siswa"
+- Heading "Jadwal Mingguan" → "Jadwal Mengajar"
 
 **Migrations (urut kronologis):**
 ```
