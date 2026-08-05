@@ -6,8 +6,8 @@
 
 body {
   font-family: system-ui, sans-serif;
-  background: #f4f6f9;
-  color: #1a1a2e;
+  background: var(--bg-base);
+  color: var(--text-primary);
   min-height: 100vh;
   display: flex;
   align-items: flex-start;
@@ -25,16 +25,16 @@ body {
 h1 {
   font-size: var(--fs-display);
   font-weight: 700;
-  color: #1a56db;
+  color: var(--gold);
   margin-bottom: 1.5rem;
   text-align: center;
 }
 
 section {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
   border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+  box-shadow: var(--shadow-card);
   padding: 1.75rem;
 }
 
@@ -42,7 +42,7 @@ h2 {
   font-size: 1.1rem;
   font-weight: 600;
   margin-bottom: 1.25rem;
-  color: #1a1a2e;
+  color: var(--text-primary);
 }
 
 label {
@@ -50,12 +50,12 @@ label {
   font-size: 0.875rem;
   font-weight: 500;
   margin-bottom: 0.35rem;
-  color: #374151;
+  color: var(--text-primary);
 }
 
 .opsional {
   font-weight: 400;
-  color: #9ca3af;
+  color: var(--text-muted);
 }
 
 input[type="text"],
@@ -65,18 +65,18 @@ input[type="password"] {
   width: 100%;
   padding: 0.625rem 0.75rem;
   font-size: 1rem;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--input-border);
   border-radius: 6px;
-  background: #f9fafb;
-  color: #1a1a2e;
+  background: var(--input-bg);
+  color: var(--text-primary);
   margin-bottom: 1rem;
   transition: border-color 0.15s;
 }
 
 input:focus {
   outline: none;
-  border-color: #1a56db;
-  background: #fff;
+  border-color: var(--gold);
+  background: var(--bg-surface);
 }
 
 button[type="submit"] {
@@ -85,8 +85,8 @@ button[type="submit"] {
   padding: 0.75rem;
   font-size: 1rem;
   font-weight: 600;
-  color: #fff;
-  background: #1a56db;
+  color: var(--text-on-gold);
+  background: var(--gold);
   border: none;
   border-radius: 6px;
   cursor: pointer;
@@ -95,18 +95,19 @@ button[type="submit"] {
 }
 
 button[type="submit"]:hover:not(:disabled) {
-  background: #1648b8;
+  background: var(--gold-hover);
 }
 
 button[type="submit"]:disabled {
-  background: #93c5fd;
+  background: var(--gold-muted);
+  color: var(--text-secondary);
   cursor: not-allowed;
 }
 
 .error-msg {
-  background: #fef2f2;
-  border: 1px solid #fca5a5;
-  color: #b91c1c;
+  background: var(--danger-bg);
+  border: 1px solid var(--danger-border);
+  color: var(--danger);
   border-radius: 6px;
   padding: 0.75rem 1rem;
   font-size: 0.9rem;
@@ -118,19 +119,19 @@ button[type="submit"]:disabled {
   font-size: 2rem;
   font-weight: 700;
   letter-spacing: 0.25em;
-  background: #eff6ff;
-  border: 2px solid #bfdbfe;
+  background: var(--bg-elevated);
+  border: 2px solid var(--gold-border);
   border-radius: 8px;
   padding: 1rem 1.5rem;
   text-align: center;
-  color: #1e40af;
+  color: var(--gold);
   margin: 1rem 0;
   user-select: all;
 }
 
 .instruksi {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: var(--text-secondary);
   margin-bottom: 1.5rem;
   line-height: 1.5;
 }
@@ -141,8 +142,8 @@ button[type="submit"]:disabled {
   padding: 0.75rem;
   font-size: 1rem;
   font-weight: 600;
-  color: #fff;
-  background: #059669;
+  color: var(--text-on-gold);
+  background: var(--gold);
   border-radius: 6px;
   text-align: center;
   text-decoration: none;
@@ -150,5 +151,5 @@ button[type="submit"]:disabled {
 }
 
 .btn-dashboard:hover {
-  background: #047857;
+  background: var(--gold-hover);
 }

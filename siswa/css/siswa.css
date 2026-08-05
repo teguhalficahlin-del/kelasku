@@ -413,3 +413,37 @@ main h2 {
   font-size: var(--fs-caption);
   color: var(--text-muted);
 }
+
+/* ═══════════════════════════════════════════════════════
+   ABSENSI SISWA — dipindah dari siswa/dashboard.html
+   ═══════════════════════════════════════════════════════ */
+
+.att-section { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--card-r); padding: var(--card-p); margin: 0; width: 100%; box-sizing: border-box; }
+.att-title { font-weight: 700; font-size: var(--fs-caption); color: var(--text-secondary); margin-bottom: .5rem; }
+.att-filters { display: flex; gap: .3rem; flex-wrap: wrap; margin-bottom: .5rem; }
+.att-preset {
+  font-size: var(--fs-caption); font-weight: 600; padding: .2rem .6rem; border-radius: 99px;
+  border: 1.5px solid var(--border-strong); background: var(--bg-elevated);
+  color: var(--text-secondary); cursor: pointer; font-family: inherit;
+  min-height: var(--btn-h-sm);
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+}
+.att-preset.active { background: var(--gold-muted); color: var(--gold); border-color: var(--gold); }
+.att-custom-range { display: flex; gap: .4rem; flex-wrap: wrap; align-items: center; margin-bottom: .5rem; font-size: var(--fs-caption); color: var(--text-secondary); }
+.att-date-inp { padding: .2rem .4rem; border: 1.5px solid var(--border-strong); border-radius: 4px; background: var(--bg-surface); color: var(--text-primary); font-size: var(--fs-caption); font-family: inherit; }
+.att-apply { font-size: var(--fs-caption); font-weight: 600; padding: .2rem .6rem; border-radius: 4px; border: 1.5px solid var(--border-strong); background: var(--bg-surface); color: var(--text-secondary); cursor: pointer; font-family: inherit; min-height: var(--btn-h-sm); }
+.att-summary { display: flex; gap: .35rem 1rem; flex-wrap: wrap; font-size: var(--fs-caption); padding: .5rem .75rem; background: var(--bg-elevated); border-radius: 6px; margin-bottom: .5rem; }
+.att-h { color: var(--success); }
+.att-s { color: #f59e0b; }
+.att-i { color: #60a5fa; }
+.att-a { color: var(--danger); }
+.att-empty { font-size: var(--fs-caption); color: var(--text-muted); padding: .25rem 0; }
+.att-table-wrap { overflow-x: auto; }
+.att-table { width: 100%; border-collapse: collapse; font-size: var(--fs-caption); }
+.att-table th { text-align: left; color: var(--text-muted); font-weight: 600; padding: .3rem .4rem; border-bottom: 1px solid var(--border); }
+.att-table td { padding: .35rem .4rem; border-bottom: 1px solid rgba(255,255,255,0.04); color: var(--text-primary); }
+.att-table tr:last-child td { border-bottom: none; }
+.att-row-h td:last-child { color: var(--success); font-weight: 600; }
+.att-row-s td:last-child { color: #f59e0b; font-weight: 600; }
+.att-row-i td:last-child { color: #60a5fa; font-weight: 600; }
+.att-row-a td:last-child { color: var(--danger); font-weight: 600; }
