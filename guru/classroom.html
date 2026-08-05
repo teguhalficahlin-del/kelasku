@@ -255,11 +255,13 @@
       align-items: center;
       gap: var(--space-sm);
       flex-wrap: wrap;
+      width: 100%;
     }
-    .sch-day  { font-weight: 600; color: var(--text-sec); white-space: nowrap; font-size: var(--fs-caption); }
-    .sch-time { white-space: nowrap; color: var(--text); font-size: var(--fs-caption); }
-    .sch-reason { font-size: .75rem; color: var(--text-muted); margin-top: .2rem; width: 100%; }
+    .sch-day  { font-weight: 600; color: var(--text-sec); white-space: nowrap; font-size: var(--fs-body); }
+    .sch-time { white-space: nowrap; color: var(--text); font-size: var(--fs-body); }
+    .sch-reason { font-size: var(--fs-caption); color: var(--text-muted); margin-top: .2rem; width: 100%; }
     .sch-actions { display: flex; gap: var(--space-xs); flex-wrap: wrap; align-items: center; justify-content: flex-start; }
+    .sch-actions .btn-sm { flex: 1; justify-content: center; font-size: var(--fs-body); padding: .4rem .5rem; }
 
     /* ── Schedule modal inputs ── */
     .sch-label {
@@ -303,9 +305,9 @@
       display: inline-block;
       background: var(--success-bg);
       color: var(--success-text);
-      font-size: .6875rem;
+      font-size: var(--fs-caption);
       font-weight: 700;
-      padding: .15rem .5rem;
+      padding: .2rem .65rem;
       border-radius: 99px;
       white-space: nowrap;
     }
@@ -313,9 +315,9 @@
       display: inline-block;
       background: var(--danger-bg);
       color: var(--danger);
-      font-size: .6875rem;
+      font-size: var(--fs-caption);
       font-weight: 700;
-      padding: .15rem .5rem;
+      padding: .2rem .65rem;
       border-radius: 99px;
       white-space: nowrap;
     }
@@ -367,14 +369,15 @@
       box-sizing: border-box;
     }
     .add-day-sel {
+      flex: 1;
       background: var(--input-bg);
       border: 1.5px solid var(--input-border);
       border-radius: var(--input-r);
       color: var(--text-primary);
       font-family: inherit;
-      font-size: var(--fs-caption);
-      padding: .375rem .5rem;
-      min-height: var(--btn-h-sm);
+      font-size: var(--fs-body);
+      padding: .4rem .5rem;
+      min-height: var(--btn-h);
     }
     .add-day-sel:focus {
       outline: none;
@@ -382,14 +385,15 @@
       box-shadow: 0 0 0 3px var(--gold-muted);
     }
     .btn-add-day-confirm {
+      flex: 1;
       background: transparent;
       color: var(--gold);
       border: 1.5px solid var(--gold-border);
       border-radius: var(--btn-r);
-      font-size: var(--fs-caption);
+      font-size: var(--fs-body);
       font-weight: var(--fw-medium);
-      min-height: var(--btn-h-sm);
-      padding: 0 var(--btn-px-sm);
+      min-height: var(--btn-h);
+      padding: 0 var(--btn-px);
       cursor: pointer;
       transition: background var(--transition), border-color var(--transition);
       font-family: inherit;
@@ -666,22 +670,22 @@
     </div><!-- /panel-siswa -->
 
     <!-- Jadwal & Absensi -->
-    <section class="panel" id="panel-jadwal" style="display:none">
-      <div style="background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--card-r);padding:var(--card-p);margin-bottom:var(--space-lg);box-shadow:var(--shadow-card)">
+    <div id="panel-jadwal" style="display:none">
+      <div class="panel">
         <h2>Jadwal Mingguan</h2>
         <div id="jadwal-list"></div>
       </div>
 
-      <div style="background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--card-r);padding:var(--card-p);margin-bottom:var(--space-lg);box-shadow:var(--shadow-card)">
+      <div class="panel">
         <h2>Absensi Hari Ini</h2>
         <div id="absensi-container"></div>
       </div>
 
-      <div style="background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--card-r);padding:var(--card-p);margin-bottom:var(--space-lg);box-shadow:var(--shadow-card)">
+      <div class="panel">
         <h2>Rekap Absensi</h2>
         <div id="rekap-container"></div>
       </div>
-    </section>
+    </div>
 
   </main>
 
