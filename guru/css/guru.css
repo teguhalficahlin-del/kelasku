@@ -908,14 +908,14 @@ td { padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border); }
   flex-wrap: wrap;
 }
 .pagination-bar button {
-  min-width: 2.25rem;
+  min-width: 44px;
   min-height: var(--btn-h-sm);
   padding: 0 .625rem;
-  font-size: var(--fs-caption);
-  font-weight: 600;
+  font-size: var(--fs-ui);
+  font-weight: var(--fw-semibold);
   color: var(--gold);
   background: none;
-  border: 1.5px solid var(--gold-border);
+  border: 2px solid var(--gold-border);
   border-radius: var(--r-sm);
   cursor: pointer;
   transition: background var(--transition), border-color var(--transition);
@@ -928,10 +928,35 @@ td { padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border); }
 .pagination-bar button:disabled { opacity: .35; cursor: default; }
 .page-label {
   font-size: var(--fs-ui);
-  color: var(--text-muted);
+  color: var(--gold);
   flex: 1;
   text-align: center;
 }
+.abs-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+.abs-sum-card {
+  border-radius: var(--r-sm);
+  padding: var(--space-sm) var(--space-xs);
+  text-align: center;
+  border: 1px solid;
+}
+.abs-sum-card .abs-sum-label {
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-semibold);
+  margin-bottom: var(--space-xs);
+}
+.abs-sum-card .abs-sum-num {
+  font-size: var(--fs-h2);
+  font-weight: var(--fw-bold);
+}
+.abs-sum-h { background: var(--success-bg); border-color: rgba(16,185,129,0.3); color: var(--success); }
+.abs-sum-s { background: var(--warning-bg); border-color: rgba(251,191,36,0.3); color: var(--warning); }
+.abs-sum-i { background: rgba(59,130,246,0.12); border-color: rgba(59,130,246,0.3); color: #60A5FA; }
+.abs-sum-a { background: var(--danger-bg); border-color: var(--danger-border); color: var(--danger); }
 
 /* Share buttons */
 .btn-share {

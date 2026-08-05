@@ -149,11 +149,13 @@
   }
 
   function renderSummaryInner(siswa) {
-    const total = siswa.length;
     const c = countStatuses(siswa);
-    return STATUSES.map(s =>
-      `<span class="abs-sum-item abs-sum-${s.toLowerCase()}">${STATUS_LABELS[s]}: <strong>${c[s]}</strong> <em>(${pct(c[s], total)}%)</em></span>`
-    ).join('');
+    return `<div class="abs-summary-grid">` +
+      `<div class="abs-sum-card abs-sum-h"><div class="abs-sum-label">H</div><div class="abs-sum-num">${c.HADIR}</div></div>` +
+      `<div class="abs-sum-card abs-sum-s"><div class="abs-sum-label">S</div><div class="abs-sum-num">${c.SAKIT}</div></div>` +
+      `<div class="abs-sum-card abs-sum-i"><div class="abs-sum-label">I</div><div class="abs-sum-num">${c.IZIN}</div></div>` +
+      `<div class="abs-sum-card abs-sum-a"><div class="abs-sum-label">A</div><div class="abs-sum-num">${c.ALPHA}</div></div>` +
+    `</div>`;
   }
 
   // ---- Siswa page renderer ----
