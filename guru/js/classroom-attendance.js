@@ -602,8 +602,7 @@
     // Cache for Excel export + enable tombol
     _rekapPerSiswa  = perSiswa;
     _rekapDateRange = { fromDate, toDate };
-    const btnExport = document.getElementById('btn-export-excel');
-    if (btnExport) { btnExport.disabled = false; btnExport.removeAttribute('title'); }
+    // tombol export tidak pernah disabled — tidak perlu di-enable di sini
   }
 
   function exportExcel(perSiswa, fromDate, toDate) {
@@ -648,8 +647,7 @@
       const exportBtn     = document.createElement('button');
       exportBtn.id        = 'btn-export-excel';
       exportBtn.className = 'btn-export-header';
-      exportBtn.disabled  = true;
-      exportBtn.title     = 'Muat rekap dulu sebelum export';
+      exportBtn.disabled  = false;
       exportBtn.textContent = 'Export Excel';
       const arrow = rekapH2.querySelector('.panel-collapse-arrow');
       rekapH2.insertBefore(exportBtn, arrow);
@@ -681,8 +679,11 @@
     const exportBtnEl = document.getElementById('btn-export-excel');
     if (exportBtnEl) exportBtnEl.addEventListener('click', function (e) {
       e.stopPropagation();
-      if (_rekapPerSiswa && _rekapDateRange)
-        exportExcel(_rekapPerSiswa, _rekapDateRange.fromDate, _rekapDateRange.toDate);
+      if (!_rekapPerSiswa || _rekapPerSiswa.length === 0) {
+        alert('Tampilkan rekap dulu sebelum export.');
+        return;
+      }
+      exportExcel(_rekapPerSiswa, _rekapDateRange.fromDate, _rekapDateRange.toDate);
     });
   }
 
