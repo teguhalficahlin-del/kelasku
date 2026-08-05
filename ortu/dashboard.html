@@ -5,6 +5,36 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SIP Mandiri — Dashboard Ortu</title>
   <link rel="stylesheet" href="css/ortu.css">
+  <style>
+    .att-section { margin-top: 1rem; border-top: 1px solid var(--border); padding-top: .875rem; }
+    .att-title { font-weight: 700; font-size: var(--fs-caption); color: var(--text-sec); margin-bottom: .5rem; }
+    .att-filters { display: flex; gap: .3rem; flex-wrap: wrap; margin-bottom: .5rem; }
+    .att-preset {
+      font-size: .75rem; font-weight: 600; padding: .2rem .6rem; border-radius: 99px;
+      border: 1.5px solid var(--border-strong); background: var(--surface-sub);
+      color: var(--text-sec); cursor: pointer; font-family: inherit;
+      transition: background var(--transition), color var(--transition), border-color var(--transition);
+    }
+    .att-preset.active { background: var(--accent-light); color: var(--accent); border-color: var(--accent); }
+    .att-custom-range { display: flex; gap: .4rem; flex-wrap: wrap; align-items: center; margin-bottom: .5rem; font-size: .75rem; color: var(--text-sec); }
+    .att-date-inp { padding: .2rem .4rem; border: 1.5px solid var(--border-strong); border-radius: 4px; background: var(--surface); color: var(--text); font-size: .75rem; font-family: inherit; }
+    .att-apply { font-size: .75rem; font-weight: 600; padding: .2rem .6rem; border-radius: 4px; border: 1.5px solid var(--border-strong); background: var(--surface); color: var(--text-sec); cursor: pointer; font-family: inherit; }
+    .att-summary { display: flex; gap: .35rem 1rem; flex-wrap: wrap; font-size: .75rem; padding: .5rem .75rem; background: var(--surface-sub); border-radius: 6px; margin-bottom: .5rem; }
+    .att-h { color: var(--success); }
+    .att-s { color: #f59e0b; }
+    .att-i { color: #60a5fa; }
+    .att-a { color: var(--danger); }
+    .att-empty { font-size: .75rem; color: var(--text-muted); padding: .25rem 0; }
+    .att-table-wrap { overflow-x: auto; }
+    .att-table { width: 100%; border-collapse: collapse; font-size: .75rem; }
+    .att-table th { text-align: left; color: var(--text-muted); font-weight: 600; padding: .3rem .4rem; border-bottom: 1px solid var(--border); }
+    .att-table td { padding: .35rem .4rem; border-bottom: 1px solid rgba(255,255,255,0.04); color: var(--text); }
+    .att-table tr:last-child td { border-bottom: none; }
+    .att-row-h td:last-child { color: var(--success); font-weight: 600; }
+    .att-row-s td:last-child { color: #f59e0b; font-weight: 600; }
+    .att-row-i td:last-child { color: #60a5fa; font-weight: 600; }
+    .att-row-a td:last-child { color: var(--danger); font-weight: 600; }
+  </style>
 </head>
 <body class="dashboard">
   <header>
