@@ -75,9 +75,11 @@
         noSchBanner +
         '<div class="card-actions">' +
           '<button class="btn-edit-cl">Edit</button>' +
+          '<button class="btn-hapus-cl btn-sm-danger">Hapus</button>' +
           '<a href="classroom.html?id=' + escHtml(classroom.id) + '" class="btn-kelola">Kelola</a>' +
         '</div>';
       card.querySelector('.btn-edit-cl').addEventListener('click', () => openModal(classroom));
+      card.querySelector('.btn-hapus-cl').addEventListener('click', () => handleDeleteClassroom(classroom.id, classroom.name));
       return card;
     }
 
@@ -161,6 +163,43 @@
       const emptyState = list.querySelector('.empty-state');
       if (emptyState) list.innerHTML = '';
       list.prepend(renderCard(createdClassroom, 0, hasSchedule));
+    }
+
+    async function handleDeleteClassroom(classroomId, classroomName) {
+      const stats = await api.getClassroomStats(classroomId);
+      if (stats.error) {
+        window.alert('Gagal memeriksa data classroom: ' + stats.error.message);
+        return;
+      }
+
+      window.alert(
+        '⚠️ PERINGATAN — Tindakan Tidak Bisa Dibatalkan\n\n' +
+        'Anda akan menghapus classroom "' + classroomName + '" beserta SELURUH datanya:\n' +
+        '• ' + stats.members  + ' siswa terdaftar\n' +
+        '• ' + stats.sessions + ' sesi absensi tersimpan\n\n' +
+        'Semua data ini akan hilang permanen dan tidak bisa dipulihkan.'
+      );
+
+      const input = window.prompt('Ketik nama classroom untuk konfirmasi:\n"' + classroomName + '"');
+      if (input === null) return;
+      if (input.trim().toLowerCase() !== classroomName.trim().toLowerCase()) {
+        window.alert('Nama tidak cocok. Hapus dibatalkan.');
+        return;
+      }
+
+      const { error } = await api.deleteClassroom(classroomId);
+      if (error) {
+        window.alert('Gagal menghapus classroom: ' + error.message);
+        return;
+      }
+
+      const card = document.querySelector('.classroom-card[data-id="' + classroomId + '"]');
+      if (card) card.remove();
+
+      const list = document.getElementById('classroom-list');
+      if (list && !list.querySelector('.classroom-card')) {
+        list.innerHTML = '<p class="empty-state">Belum ada classroom. Klik \'+ Buat Classroom\' untuk mulai.</p>';
+      }
     }
 
     function addScheduleRow() {

@@ -49,6 +49,27 @@
       return count ?? 0;
     },
 
+    async getClassroomStats(id) {
+      const [memberRes, attendRes] = await Promise.all([
+        client.from('classroom_members')
+          .select('*', { count: 'exact', head: true })
+          .eq('classroom_id', id)
+          .eq('member_role', 'SISWA'),
+        client.from('attendance')
+          .select('*', { count: 'exact', head: true })
+          .eq('classroom_id', id),
+      ]);
+      return {
+        members:  memberRes.count ?? 0,
+        sessions: attendRes.count ?? 0,
+        error:    memberRes.error || attendRes.error || null,
+      };
+    },
+
+    async deleteClassroom(id) {
+      return client.from('classrooms').delete().eq('id', id);
+    },
+
     async updateClassroom(id, name, subject, description) {
       return client
         .from('classrooms')
