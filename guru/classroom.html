@@ -233,32 +233,32 @@
     .tab-btn:hover { color: var(--text-sec); }
     .tab-btn.active { color: var(--gold); border-bottom-color: var(--gold); }
 
-    /* ── Schedule table ── */
-    .schedule-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: var(--fs-caption);
-      min-width: 520px;
+    /* ── Schedule list (flex, no table) ── */
+    .sch-list {
+      display: flex;
+      flex-direction: column;
     }
-    .schedule-table th {
-      text-align: left;
-      color: var(--text-muted);
-      font-weight: 600;
-      padding: .375rem .5rem;
-      border-bottom: 1px solid var(--border);
-    }
-    .schedule-table td {
-      padding: .625rem .5rem;
+    .sch-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--space-sm);
+      padding: var(--space-sm) 0;
       border-bottom: 1px solid var(--border-sub);
-      vertical-align: top;
     }
-    .schedule-table tr:last-child td { border-bottom: none; }
-    .sch-day { font-weight: 600; color: var(--text-sec); white-space: nowrap; }
-    .sch-time { white-space: nowrap; color: var(--text); }
-    .sch-empty { color: var(--text-muted); }
-    .sch-add-row td { padding-top: .25rem; padding-bottom: .5rem; }
-    .sch-reason { font-size: .75rem; color: var(--text-muted); margin-top: .2rem; }
-    .sch-actions { display: flex; gap: .35rem; flex-wrap: wrap; align-items: center; }
+    .sch-row:last-child { border-bottom: none; }
+    .sch-row-info {
+      flex-grow: 1;
+      min-width: 160px;
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      flex-wrap: wrap;
+    }
+    .sch-day  { font-weight: 600; color: var(--text-sec); white-space: nowrap; font-size: var(--fs-caption); }
+    .sch-time { white-space: nowrap; color: var(--text); font-size: var(--fs-caption); }
+    .sch-reason { font-size: .75rem; color: var(--text-muted); margin-top: .2rem; width: 100%; }
+    .sch-actions { flex-shrink: 0; display: flex; gap: var(--space-xs); flex-wrap: wrap; align-items: center; }
 
     /* ── Schedule modal inputs ── */
     .sch-label {

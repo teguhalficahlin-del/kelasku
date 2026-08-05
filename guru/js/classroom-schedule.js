@@ -69,59 +69,37 @@
       return;
     }
 
-    // ── Tabel: hanya hari yang punya jadwal ──
-    const wrap = document.createElement('div');
-    wrap.style.overflowX = 'auto';
-
-    const tbl   = document.createElement('table');
-    tbl.className = 'schedule-table';
-
-    const thead = document.createElement('thead');
-    thead.innerHTML = '<tr><th>Hari</th><th>Waktu</th><th>Status</th><th></th></tr>';
-    tbl.appendChild(thead);
-
-    const tbody = document.createElement('tbody');
+    // ── Daftar flex: hanya hari yang punya jadwal ──
+    const list = document.createElement('div');
+    list.className = 'sch-list';
 
     daysWithSchedule.forEach(day => {
-      const rows = byDay[day];
-
-      rows.forEach((s, i) => {
+      byDay[day].forEach(s => {
         const badge = s.is_active
           ? '<span class="badge-aktif">Aktif</span>'
           : '<span class="badge-nonaktif">Nonaktif</span>' +
             (s.inactive_reason ? '<div class="sch-reason">' + esc(s.inactive_reason) + '</div>' : '');
 
-        const tr = document.createElement('tr');
-        tr.innerHTML =
-          '<td class="sch-day">' + (i === 0 ? dayLabel(day) : '') + '</td>' +
-          '<td class="sch-time">' + esc(fmt(s.start_time)) + ' – ' + esc(fmt(s.end_time)) + '</td>' +
-          '<td>' + badge + '</td>' +
-          '<td class="sch-actions">' +
-            '<button class="btn-sm btn-edit-sch" data-id="' + s.id + '">Edit</button> ' +
+        const row = document.createElement('div');
+        row.className = 'sch-row';
+        row.innerHTML =
+          '<div class="sch-row-info">' +
+            '<span class="sch-day">' + dayLabel(day) + '</span>' +
+            '<span class="sch-time">' + esc(fmt(s.start_time)) + ' – ' + esc(fmt(s.end_time)) + '</span>' +
+            badge +
+          '</div>' +
+          '<div class="sch-actions">' +
+            '<button class="btn-sm btn-edit-sch" data-id="' + s.id + '">Edit</button>' +
             (s.is_active
               ? '<button class="btn-sm btn-sm-danger btn-toggle-sch" data-id="' + s.id + '" data-active="1">Nonaktifkan</button>'
               : '<button class="btn-sm btn-toggle-sch" data-id="' + s.id + '" data-active="0">Aktifkan</button>') +
-            ' <button class="btn-sm btn-sm-danger btn-del-sch" data-id="' + s.id + '">Hapus</button>' +
-          '</td>';
-        tbody.appendChild(tr);
+            '<button class="btn-sm btn-sm-danger btn-del-sch" data-id="' + s.id + '">Hapus</button>' +
+          '</div>';
+        list.appendChild(row);
       });
-
-      // Tombol tambah sesi ekstra pada hari yang sudah ada jadwalnya
-      const addTr = document.createElement('tr');
-      addTr.className = 'sch-add-row';
-      addTr.innerHTML =
-        '<td></td><td colspan="2"></td>' +
-        '<td><button class="btn-sm btn-add-day" data-day="' + day + '">+ Tambah</button></td>';
-      tbody.appendChild(addTr);
     });
 
-    tbl.appendChild(tbody);
-    wrap.appendChild(tbl);
-    el.appendChild(wrap);
-
-    // Events tabel
-    el.querySelectorAll('.btn-add-day').forEach(b =>
-      b.addEventListener('click', () => openModal(null, b.dataset.day)));
+    el.appendChild(list);
 
     el.querySelectorAll('.btn-edit-sch').forEach(b =>
       b.addEventListener('click', () => {
