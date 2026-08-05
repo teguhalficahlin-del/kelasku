@@ -432,12 +432,15 @@
   function buildRekapPerSiswa(rows, roster) {
     const byId = {};
     roster.forEach(r => {
-      byId[r.profile_id] = { full_name: r.full_name, nis: r.nis, HADIR: 0, SAKIT: 0, IZIN: 0, ALPHA: 0 };
+      byId[r.profile_id] = { full_name: r.full_name, nis: r.nis, HADIR: 0, SAKIT: 0, IZIN: 0, ALPHA: 0, sessions: [] };
     });
     rows.forEach(r => {
-      if (byId[r.student_id] && byId[r.student_id][r.status] !== undefined)
-        byId[r.student_id][r.status]++;
+      if (byId[r.student_id]) {
+        if (byId[r.student_id][r.status] !== undefined) byId[r.student_id][r.status]++;
+        byId[r.student_id].sessions.push({ tanggal: r.tanggal, status: r.status });
+      }
     });
+    Object.values(byId).forEach(s => s.sessions.sort((a, b) => b.tanggal.localeCompare(a.tanggal)));
     return Object.values(byId);
   }
 
@@ -454,18 +457,34 @@
   function renderRekapTableHtml(perSiswa) {
     if (perSiswa.length === 0)
       return '<p class="empty-state">Belum ada data absensi dalam rentang ini.</p>';
-    return `<div style="overflow-x:auto"><table class="rekap-table"><thead><tr>` +
-      `<th>Nama</th><th>H</th><th>S</th><th>I</th><th>A</th><th>% Hadir</th>` +
-    `</tr></thead><tbody>` +
-    perSiswa.map(s => {
+    return perSiswa.map(s => {
       const t = s.HADIR + s.SAKIT + s.IZIN + s.ALPHA;
-      return `<tr>` +
-        `<td>${esc(s.full_name)}</td>` +
-        `<td>${s.HADIR}</td><td>${s.SAKIT}</td><td>${s.IZIN}</td><td>${s.ALPHA}</td>` +
-        `<td>${t ? Math.round(s.HADIR / t * 100) : 0}%</td>` +
-      `</tr>`;
-    }).join('') +
-    `</tbody></table></div>`;
+      const pctH = t ? Math.round(s.HADIR / t * 100) : 0;
+      const detail = s.sessions.map(ses => {
+        const stLow = ses.status.toLowerCase();
+        return `<div class="rekap-detail-row">` +
+          `<span class="rekap-detail-date">${esc(ses.tanggal)}</span>` +
+          `<span class="rekap-detail-status rekap-status-${stLow}">${STATUS_LABELS[ses.status]}</span>` +
+        `</div>`;
+      }).join('');
+      return `<div class="rekap-siswa-row">` +
+        `<div class="rekap-siswa-header">` +
+          `<span class="rekap-siswa-nama">${esc(s.full_name)}</span>` +
+          `<div class="rekap-siswa-stats">` +
+            `<span class="rekap-stat-h">${s.HADIR}H</span>` +
+            `<span class="rekap-stat-sep">·</span>` +
+            `<span class="rekap-stat-s">${s.SAKIT}S</span>` +
+            `<span class="rekap-stat-sep">·</span>` +
+            `<span class="rekap-stat-i">${s.IZIN}I</span>` +
+            `<span class="rekap-stat-sep">·</span>` +
+            `<span class="rekap-stat-a">${s.ALPHA}A</span>` +
+            `<span class="rekap-stat-pct">${pctH}%</span>` +
+            `<span class="rekap-arrow">▾</span>` +
+          `</div>` +
+        `</div>` +
+        `<div class="rekap-siswa-detail" style="display:none">${detail}</div>` +
+      `</div>`;
+    }).join('');
   }
 
   async function refreshRekap(fromDate, toDate, bodyEl) {
@@ -475,6 +494,17 @@
     const perSiswa = buildRekapPerSiswa(rows, roster);
 
     bodyEl.innerHTML = renderRekapSummaryHtml(summary) + renderRekapTableHtml(perSiswa);
+
+    // Collapse listeners — safe karena innerHTML replace, bukan append
+    bodyEl.querySelectorAll('.rekap-siswa-header').forEach(header => {
+      header.addEventListener('click', () => {
+        const detail = header.nextElementSibling;
+        const arrow  = header.querySelector('.rekap-arrow');
+        const isOpen = detail.style.display !== 'none';
+        detail.style.display = isOpen ? 'none' : 'block';
+        arrow.classList.toggle('open', !isOpen);
+      });
+    });
 
     // Cache for Excel export + enable tombol
     _rekapPerSiswa  = perSiswa;
