@@ -49,6 +49,15 @@
       return count ?? 0;
     },
 
+    async updateClassroom(id, name, subject, description) {
+      return client
+        .from('classrooms')
+        .update({ name, subject, description: description || null })
+        .eq('id', id)
+        .select('id, name, subject, classroom_code, description')
+        .single();
+    },
+
     async getTrialStatus() {
       const { data, error } = await client.rpc('fn_guru_trial_status');
       if (error) return null;

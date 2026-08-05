@@ -73,7 +73,11 @@
         '<div class="card-subject">' + escHtml(classroom.subject || '') + '</div>' +
         '<div class="card-count">' + count + ' siswa terdaftar</div>' +
         noSchBanner +
-        '<a href="classroom.html?id=' + escHtml(classroom.id) + '" class="btn-kelola">Kelola</a>';
+        '<div class="card-actions">' +
+          '<button class="btn-edit-cl">Edit</button>' +
+          '<a href="classroom.html?id=' + escHtml(classroom.id) + '" class="btn-kelola">Kelola</a>' +
+        '</div>';
+      card.querySelector('.btn-edit-cl').addEventListener('click', () => openModal(classroom));
       return card;
     }
 
@@ -106,7 +110,8 @@
 
     // -- Modal multi-step --
 
-    let createdClassroom = null;  // set setelah step 1 berhasil
+    let createdClassroom  = null;  // set setelah step 1 berhasil
+    let editClassroomId   = null;  // non-null saat mode edit
 
     function showStep(n) {
       document.getElementById('modal-step1').style.display = n === 1 ? '' : 'none';
@@ -115,8 +120,24 @@
       document.getElementById('step-dot-2').classList.toggle('active', n === 2);
     }
 
-    function openModal() {
+    function openModal(classroom) {
       createdClassroom = null;
+      editClassroomId  = classroom ? classroom.id : null;
+
+      const h3  = document.querySelector('#modal-step1 h3');
+      const btn = document.getElementById('btn-lanjut');
+
+      if (classroom) {
+        h3.textContent  = 'Edit Classroom';
+        btn.textContent = 'Simpan';
+        document.getElementById('inp-name').value    = classroom.name;
+        document.getElementById('inp-subject').value = classroom.subject || '';
+        document.getElementById('inp-desc').value    = classroom.description || '';
+      } else {
+        h3.textContent  = 'Buat Classroom Baru';
+        btn.textContent = 'Lanjut →';
+      }
+
       showStep(1);
       document.getElementById('modal-classroom').style.display = 'flex';
     }
@@ -128,8 +149,11 @@
       document.getElementById('step2-error').style.display = 'none';
       document.getElementById('form-classroom').reset();
       document.getElementById('schedule-rows').innerHTML = '';
+      document.querySelector('#modal-step1 h3').textContent = 'Buat Classroom Baru';
+      document.getElementById('btn-lanjut').textContent = 'Lanjut →';
       showStep(1);
       createdClassroom = null;
+      editClassroomId  = null;
     }
 
     function prependNewCard(hasSchedule) {
@@ -175,21 +199,38 @@
       btn.disabled = true;
       btn.textContent = 'Menyimpan...';
 
-      const { data: classroom, error } = await api.createClassroom(currentTeacherId, name, subject, description);
-
-      if (error || !classroom) {
-        modalError.textContent = 'Gagal membuat classroom: ' + (error?.message ?? 'respons tidak dikenali');
-        modalError.style.display = 'block';
+      if (editClassroomId) {
+        // ── Mode Edit ──
+        const { data: updated, error } = await api.updateClassroom(editClassroomId, name, subject, description);
+        if (error || !updated) {
+          modalError.textContent = 'Gagal menyimpan: ' + (error?.message ?? 'respons tidak dikenali');
+          modalError.style.display = 'block';
+          btn.disabled = false;
+          btn.textContent = 'Simpan';
+          return;
+        }
+        const card = document.querySelector('.classroom-card[data-id="' + editClassroomId + '"]');
+        if (card) {
+          card.querySelector('.card-name').textContent    = updated.name;
+          card.querySelector('.card-subject').textContent = updated.subject || '';
+        }
+        resetModal();
+      } else {
+        // ── Mode Create (tidak berubah) ──
+        const { data: classroom, error } = await api.createClassroom(currentTeacherId, name, subject, description);
+        if (error || !classroom) {
+          modalError.textContent = 'Gagal membuat classroom: ' + (error?.message ?? 'respons tidak dikenali');
+          modalError.style.display = 'block';
+          btn.disabled = false;
+          btn.textContent = 'Lanjut →';
+          return;
+        }
+        createdClassroom = classroom;
         btn.disabled = false;
         btn.textContent = 'Lanjut →';
-        return;
+        modalError.style.display = 'none';
+        showStep(2);
       }
-
-      createdClassroom = classroom;
-      btn.disabled = false;
-      btn.textContent = 'Lanjut →';
-      modalError.style.display = 'none';
-      showStep(2);
     });
 
     document.getElementById('btn-tambah-hari').addEventListener('click', addScheduleRow);
