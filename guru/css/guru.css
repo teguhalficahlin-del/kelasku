@@ -1314,6 +1314,10 @@ h2.panel-header.open .panel-collapse-arrow {
   border-color: var(--gold);
   box-shadow: 0 0 0 3px var(--gold-muted);
 }
+.add-day-sel option {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+}
 .btn-add-day-confirm {
   flex: 1;
   background: transparent;
