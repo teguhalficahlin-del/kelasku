@@ -1039,10 +1039,47 @@ td { padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border); }
 .card-meta  { font-size: var(--fs-ui); color: var(--text-muted); }
 .card-actions {
   display: flex;
-  gap: .35rem;
-  flex-wrap: wrap;
-  margin-top: .25rem;
+  gap: var(--space-sm);
+  margin-top: var(--space-sm);
+}
+
+.card-actions .btn-edit-cl,
+.card-actions .btn-hapus-cl,
+.card-actions .btn-kelola {
+  flex: 1;
+  min-height: var(--btn-h-sm);
+  display: flex;
   align-items: center;
+  justify-content: center;
+  font-size: var(--fs-ui);
+  font-weight: var(--fw-medium);
+  font-family: inherit;
+  border-radius: var(--btn-r);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition), color var(--transition);
+}
+
+.card-actions .btn-edit-cl,
+.card-actions .btn-kelola {
+  background: none;
+  color: var(--gold);
+  border: 1.5px solid var(--gold-border);
+}
+.card-actions .btn-edit-cl:hover,
+.card-actions .btn-kelola:hover {
+  background: var(--gold-muted);
+  border-color: var(--gold);
+}
+
+.card-actions .btn-hapus-cl {
+  background: none;
+  color: var(--danger);
+  border: 1.5px solid var(--danger-border);
+}
+.card-actions .btn-hapus-cl:hover {
+  background: var(--danger-bg);
+  border-color: var(--danger);
 }
 
 /* ── Tab navigation ── */
