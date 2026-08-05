@@ -161,7 +161,7 @@ header {
 }
 
 .header-brand {
-  font-size: var(--fs-body);
+  font-size: var(--fs-display);
   font-weight: var(--fw-bold);
   color: var(--gold);
   letter-spacing: -0.02em;
@@ -180,7 +180,7 @@ header {
 }
 
 #btn-logout {
-  font-size: var(--fs-caption);
+  font-size: var(--fs-ui);
   font-weight: var(--fw-medium);
   color: var(--text-secondary);
   background: none;
