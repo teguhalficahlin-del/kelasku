@@ -256,11 +256,6 @@
             `<button class="btn-pg-next">→</button>` +
           `</div>` +
           `<div class="abs-siswa-list"></div>` +
-          `<div class="pagination-bar">` +
-            `<button class="btn-pg-prev">←</button>` +
-            `<span class="page-label"></span>` +
-            `<button class="btn-pg-next">→</button>` +
-          `</div>` +
           (!done
             ? `<div class="abs-save-row">` +
                 `<button class="btn-simpan-absensi">Simpan Absensi</button>` +
