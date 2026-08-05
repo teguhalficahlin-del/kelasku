@@ -182,9 +182,9 @@ header {
 #btn-logout {
   font-size: var(--fs-ui);
   font-weight: var(--fw-medium);
-  color: var(--text-secondary);
+  color: var(--gold);
   background: none;
-  border: 1px solid var(--border);
+  border: 1.5px solid var(--gold-border);
   border-radius: var(--r-sm);
   padding: 0 1rem;
   height: 44px;
@@ -194,9 +194,9 @@ header {
   white-space: nowrap;
 }
 #btn-logout:hover {
-  background: var(--bg-elevated);
-  border-color: var(--border-strong);
-  color: var(--text-primary);
+  background: var(--gold-muted);
+  border-color: var(--gold);
+  color: var(--gold);
 }
 
 main {
@@ -421,19 +421,19 @@ main {
 }
 
 #btn-batal {
-  background: var(--bg-elevated);
-  color: var(--text-secondary);
-  border: 1px solid var(--border);
+  background: none;
+  color: var(--gold);
+  border: 1.5px solid var(--gold-border);
   padding: 0 var(--btn-px);
   min-height: var(--btn-h);
   border-radius: var(--btn-r);
   font-size: var(--fs-ui);
   font-weight: var(--fw-medium);
   cursor: pointer;
-  transition: background var(--transition);
+  transition: background var(--transition), border-color var(--transition);
   font-family: inherit;
 }
-#btn-batal:hover { background: rgba(255,255,255,0.05); }
+#btn-batal:hover { background: var(--gold-muted); border-color: var(--gold); }
 
 .modal-box button[type="submit"] {
   width: auto;
@@ -521,19 +521,19 @@ main {
   gap: .5rem;
 }
 #btn-lewati {
-  background: transparent;
-  color: var(--text-secondary);
-  border: 1px solid var(--border);
+  background: none;
+  color: var(--gold);
+  border: 1.5px solid var(--gold-border);
   padding: 0 var(--btn-px);
   min-height: var(--btn-h);
   border-radius: var(--btn-r);
   font-size: var(--fs-ui);
   font-weight: var(--fw-medium);
   cursor: pointer;
-  transition: background var(--transition);
+  transition: background var(--transition), border-color var(--transition);
   font-family: inherit;
 }
-#btn-lewati:hover { background: rgba(255,255,255,0.05); }
+#btn-lewati:hover { background: var(--gold-muted); border-color: var(--gold); }
 #btn-simpan-jadwal {
   background: var(--gold);
   color: var(--text-on-gold);
@@ -913,17 +913,17 @@ td { padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border); }
   padding: 0 .625rem;
   font-size: var(--fs-caption);
   font-weight: 600;
-  color: var(--text-secondary);
-  background: var(--bg-surface);
-  border: 1px solid var(--border);
+  color: var(--gold);
+  background: none;
+  border: 1.5px solid var(--gold-border);
   border-radius: var(--r-sm);
   cursor: pointer;
   transition: background var(--transition), border-color var(--transition);
   font-family: inherit;
 }
 .pagination-bar button:hover:not(:disabled) {
-  background: var(--bg-elevated);
-  border-color: var(--text-muted);
+  background: var(--gold-muted);
+  border-color: var(--gold);
 }
 .pagination-bar button:disabled { opacity: .35; cursor: default; }
 .page-label {
@@ -1357,15 +1357,15 @@ td { padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border); }
   font-weight: 600;
   padding: .4rem 1rem;
   border-radius: var(--r-sm);
-  border: 1.5px solid var(--border-strong);
-  background: var(--bg-elevated);
-  color: var(--text-secondary);
+  border: 1.5px solid var(--gold-border);
+  background: none;
+  color: var(--gold);
   cursor: pointer;
   font-family: inherit;
   min-height: var(--btn-h-sm);
-  transition: background var(--transition);
+  transition: background var(--transition), border-color var(--transition);
 }
-#btn-export-excel:hover:not(:disabled) { background: var(--bg-surface); }
+#btn-export-excel:hover:not(:disabled) { background: var(--gold-muted); border-color: var(--gold); }
 #btn-export-excel:disabled { opacity: .45; cursor: not-allowed; }
 
 /* Share overlay — glassmorphism */

@@ -209,22 +209,22 @@ header {
   display: inline-block;
   width: auto;
   background: none;
-  border: 1px solid var(--border);
+  border: 1.5px solid var(--gold-border);
   border-radius: var(--r-sm);
   padding: 0 1rem;
   height: 44px;
   font-size: var(--fs-ui);
   font-weight: var(--fw-medium);
-  color: var(--text-secondary);
+  color: var(--gold);
   cursor: pointer;
   margin-top: 0;
   transition: background var(--transition), border-color var(--transition), color var(--transition);
   font-family: inherit;
 }
 #btn-logout:hover {
-  background: var(--bg-elevated);
-  border-color: var(--border-strong);
-  color: var(--text-primary);
+  background: var(--gold-muted);
+  border-color: var(--gold);
+  color: var(--gold);
 }
 
 main {
