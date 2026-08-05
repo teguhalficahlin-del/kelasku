@@ -302,7 +302,7 @@ main h2 {
 }
 
 .card-name {
-  font-size: var(--fs-body);
+  font-size: var(--fs-h3);
   font-weight: var(--fw-semibold);
   color: var(--text-primary);
   letter-spacing: -0.01em;
@@ -344,9 +344,9 @@ main h2 {
 }
 
 .sch-section-title {
-  font-size: var(--fs-badge);
+  font-size: var(--fs-h3);
   font-weight: var(--fw-bold);
-  color: var(--text-muted);
+  color: var(--text-primary);
   text-transform: uppercase;
   letter-spacing: .06em;
   margin-bottom: .125rem;
@@ -359,7 +359,7 @@ main h2 {
 }
 
 .sch-day-name {
-  font-size: var(--fs-badge);
+  font-size: var(--fs-h3);
   font-weight: var(--fw-bold);
   color: var(--text-secondary);
 }
@@ -402,7 +402,7 @@ main h2 {
 }
 
 .sch-reason {
-  font-size: var(--fs-badge);
+  font-size: var(--fs-caption);
   color: var(--text-muted);
   font-style: italic;
 }
@@ -432,8 +432,8 @@ main h2 {
 .att-apply { font-size: var(--fs-caption); font-weight: 600; padding: .2rem .6rem; border-radius: 4px; border: 1.5px solid var(--border-strong); background: var(--bg-surface); color: var(--text-secondary); cursor: pointer; font-family: inherit; min-height: var(--btn-h-sm); }
 .att-summary { display: flex; gap: .35rem 1rem; flex-wrap: wrap; font-size: var(--fs-caption); padding: .5rem .75rem; background: var(--bg-elevated); border-radius: 6px; margin-bottom: .5rem; }
 .att-h { color: var(--success); }
-.att-s { color: #f59e0b; }
-.att-i { color: #60a5fa; }
+.att-s { color: var(--color-sakit); }
+.att-i { color: var(--color-izin); }
 .att-a { color: var(--danger); }
 .att-empty { font-size: var(--fs-caption); color: var(--text-muted); padding: .25rem 0; }
 .att-table-wrap { overflow-x: auto; }
@@ -442,6 +442,6 @@ main h2 {
 .att-table td { padding: .35rem .4rem; border-bottom: 1px solid rgba(255,255,255,0.04); color: var(--text-primary); }
 .att-table tr:last-child td { border-bottom: none; }
 .att-row-h td:last-child { color: var(--success); font-weight: 600; }
-.att-row-s td:last-child { color: #f59e0b; font-weight: 600; }
-.att-row-i td:last-child { color: #60a5fa; font-weight: 600; }
+.att-row-s td:last-child { color: var(--color-sakit); font-weight: 600; }
+.att-row-i td:last-child { color: var(--color-izin); font-weight: 600; }
 .att-row-a td:last-child { color: var(--danger); font-weight: 600; }

@@ -38,6 +38,8 @@
   --warning:      #FBBF24;
   --warning-bg:   rgba(251,191,36,0.15);
   --danger-border: rgba(248,113,113,0.3); /* border komponen danger */
+  --color-sakit:  #f59e0b;               /* Amber-500 — status Sakit (absensi) */
+  --color-izin:   #60A5FA;               /* Blue-400  — status Izin (absensi) */
   --transition:    150ms ease;             /* durasi animasi standar */
 
   /* Shadow */
