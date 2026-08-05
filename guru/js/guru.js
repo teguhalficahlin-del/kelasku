@@ -75,6 +75,7 @@
         '</div>' +
         '<div class="card-body-collapse">' +
           '<div class="card-subject">' + escHtml(classroom.subject || '') + '</div>' +
+          (classroom.description ? '<div class="card-desc">' + escHtml(classroom.description) + '</div>' : '') +
           '<div class="card-count">' + count + ' siswa terdaftar</div>' +
           noSchBanner +
           '<div class="card-actions">' +
@@ -324,10 +325,7 @@
 
     document.getElementById('btn-tambah-hari').addEventListener('click', addScheduleRow);
 
-    document.getElementById('btn-lewati').addEventListener('click', function () {
-      prependNewCard(false);
-      resetModal();
-    });
+    document.getElementById('btn-lewati')?.remove();
 
     document.getElementById('btn-simpan-jadwal').addEventListener('click', async function () {
       const rows  = [...document.querySelectorAll('#schedule-rows tr')];

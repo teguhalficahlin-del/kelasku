@@ -306,10 +306,23 @@ main {
   margin-bottom: 0.4rem;
 }
 
+.card-desc {
+  font-size: var(--fs-caption);
+  color: var(--text-muted);
+  margin-top: var(--space-xs);
+  margin-bottom: 0.4rem;
+}
+
 .card-count {
   font-size: var(--fs-ui);
   color: var(--text-muted);
   margin-bottom: 1rem;
+}
+
+.opsional {
+  color: var(--gold);
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-regular);
 }
 
 .btn-kelola {
