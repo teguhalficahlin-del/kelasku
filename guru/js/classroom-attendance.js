@@ -16,6 +16,10 @@
   // Per-session in-memory state: { siswa: [...], page: 0 }
   const sessionState = {};
 
+  // Auto-status timer
+  let _todaySchedules = [];
+  let _sessionTimerId = null;
+
   // Rekap cache
   let _rekapPerSiswa   = null;
   let _rekapDateRange  = null;
@@ -234,6 +238,7 @@
 
     const block = document.createElement('div');
     block.className = 'abs-session';
+    block.dataset.scheduleId = sid;
 
     const hasSiswa = siswa.length > 0;
 
@@ -335,6 +340,8 @@
     const tanggal = todayStr();
     const [schedules, roster] = await Promise.all([loadTodaySchedules(), loadRoster()]);
 
+    _todaySchedules = schedules;
+
     container.innerHTML = '';
     const dayEl = document.createElement('p');
     dayEl.className   = 'abs-day-header';
@@ -352,6 +359,47 @@
     for (const sch of schedules) {
       container.appendChild(await renderSession(sch, roster, tanggal));
     }
+
+    // Snapshot status awal setiap sesi untuk deteksi perubahan oleh timer
+    _todaySchedules.forEach(s => { s._lastKnownStatus = sessionStatus(s); });
+  }
+
+  // ---- In-place disable saat sesi AKTIF → SELESAI ----
+  function disableSessionBlock(block) {
+    const badge = block.querySelector('.badge-aktif');
+    if (badge) { badge.className = 'badge-nonaktif'; badge.textContent = 'SELESAI'; }
+    block.querySelectorAll('.abs-status-btn').forEach(b => { b.disabled = true; });
+    const saveRow = block.querySelector('.abs-save-row');
+    if (saveRow) {
+      const msg = document.createElement('p');
+      msg.className   = 'abs-disabled-msg';
+      msg.textContent = 'Sesi telah selesai. Data absensi tidak dapat diubah.';
+      saveRow.replaceWith(msg);
+    }
+  }
+
+  // ---- Timer: cek perubahan status setiap 30 detik ----
+  function syncSessionStatuses() {
+    const container = document.getElementById('absensi-container');
+    if (!container || _todaySchedules.length === 0) return;
+
+    let needsRerender = false;
+    _todaySchedules.forEach(sch => {
+      const newStatus = sessionStatus(sch);
+      if (newStatus === sch._lastKnownStatus) return;
+
+      if (sch._lastKnownStatus === 'BELUM_MULAI' && newStatus === 'AKTIF') {
+        // Form sedang disabled — re-render aman, tidak ada data guru yang hilang
+        needsRerender = true;
+      } else if (sch._lastKnownStatus === 'AKTIF' && newStatus === 'SELESAI') {
+        // Disable in-place agar perubahan status siswa yang belum disimpan tetap terlihat
+        const block = container.querySelector(`.abs-session[data-schedule-id="${sch.id}"]`);
+        if (block) disableSessionBlock(block);
+      }
+      sch._lastKnownStatus = newStatus;
+    });
+
+    if (needsRerender) renderAbsensi();
   }
 
   // ---- Rekap ----
@@ -510,6 +558,9 @@
       renderRekap();
     }
     await renderAbsensi();
+    // Restart timer — clear dulu agar tidak ada interval ganda (leak prevention)
+    if (_sessionTimerId) clearInterval(_sessionTimerId);
+    _sessionTimerId = setInterval(syncSessionStatuses, 30_000);
   }
 
   window.addEventListener('DOMContentLoaded', async function () {
@@ -524,6 +575,10 @@
       .from('profiles').select('id').eq('user_id', session.user.id).single();
     if (!prof) return;
     teacherId = prof.id;
+
+    window.addEventListener('beforeunload', () => {
+      if (_sessionTimerId) clearInterval(_sessionTimerId);
+    });
 
     const tabJadwal = document.getElementById('tab-jadwal');
     if (tabJadwal) {
