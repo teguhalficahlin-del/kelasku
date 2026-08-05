@@ -266,7 +266,7 @@
       document.getElementById('schedule-rows').appendChild(tr);
     }
 
-    document.getElementById('btn-buat-classroom').addEventListener('click', openModal);
+    document.getElementById('btn-buat-classroom').addEventListener('click', () => openModal());
     document.getElementById('btn-batal').addEventListener('click', resetModal);
 
     document.getElementById('modal-backdrop').addEventListener('click', function () {
