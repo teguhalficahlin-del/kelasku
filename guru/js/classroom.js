@@ -905,10 +905,66 @@
   }
 
   // -------------------------------------------------------------------------
+  // Collapse sections
+  // -------------------------------------------------------------------------
+
+  function initCollapseSections(containerEl) {
+    var panels = containerEl.querySelectorAll('.panel');
+    panels.forEach(function (panel, idx) {
+      var h2 = panel.querySelector('h2');
+      if (!h2 || h2.dataset.collapseInit) return;
+      h2.dataset.collapseInit = '1';
+      h2.classList.add('panel-header');
+
+      var arrow = document.createElement('span');
+      arrow.className = 'panel-collapse-arrow';
+      arrow.textContent = '▾';
+      h2.appendChild(arrow);
+
+      var body = document.createElement('div');
+      body.className = 'panel-body-collapse';
+      Array.from(panel.childNodes).forEach(function (child) {
+        if (child !== h2) body.appendChild(child);
+      });
+      panel.appendChild(body);
+
+      if (idx === 0) {
+        h2.classList.add('open');
+        body.style.display = '';
+      } else {
+        body.style.display = 'none';
+      }
+
+      h2.addEventListener('click', function () {
+        var isOpen = h2.classList.contains('open');
+        panels.forEach(function (p) {
+          var ph = p.querySelector('h2.panel-header');
+          var pb = p.querySelector('.panel-body-collapse');
+          if (ph && pb) { ph.classList.remove('open'); pb.style.display = 'none'; }
+        });
+        if (!isOpen) { h2.classList.add('open'); body.style.display = ''; }
+      });
+    });
+  }
+
+  // -------------------------------------------------------------------------
   // Init
   // -------------------------------------------------------------------------
 
   window.addEventListener('DOMContentLoaded', async function () {
+    // Collapse sections — init per tab
+    var panelSiswaEl = document.getElementById('panel-siswa');
+    if (panelSiswaEl) initCollapseSections(panelSiswaEl);
+
+    var panelJadwalEl = document.getElementById('panel-jadwal');
+    var jadwalInitialized = false;
+    var tabJadwalBtn = document.getElementById('tab-jadwal');
+    if (tabJadwalBtn && panelJadwalEl) {
+      tabJadwalBtn.addEventListener('click', function () {
+        if (!jadwalInitialized) { initCollapseSections(panelJadwalEl); jadwalInitialized = true; }
+      });
+    }
+
     const { data: { session } } = await client.auth.getSession();
     if (!session) { window.location.href = 'index.html'; return; }
 

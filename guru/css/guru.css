@@ -1141,6 +1141,27 @@ td { padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border); }
 .tab-btn:hover { color: var(--text-secondary); }
 .tab-btn.active { color: var(--gold); border-bottom-color: var(--gold); }
 
+/* ── Panel collapse ── */
+h2.panel-header {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  user-select: none;
+}
+.panel-collapse-arrow {
+  color: var(--text-muted);
+  font-size: var(--fs-caption);
+  transition: transform var(--transition);
+  margin-left: var(--space-sm);
+}
+h2.panel-header.open .panel-collapse-arrow {
+  transform: rotate(180deg);
+}
+.panel-body-collapse {
+  overflow: hidden;
+}
+
 /* ── Schedule list (flex, no table) ── */
 .sch-list {
   display: flex;
