@@ -205,7 +205,7 @@ git push origin main                  → urutan TERAKHIR
 ## 12. STATUS PROYEK
 
 **Fase saat ini: DEVELOPMENT AKTIF**
-**HEAD:** `54c718d`
+**HEAD:** `995203d`
 
 - [x] Dokumen rancangan selesai (REQUIREMENTS, SCHEMA-v0, ADR-001)
 - [x] Supabase project baru dibuat
@@ -220,7 +220,8 @@ git push origin main                  → urutan TERAKHIR
 - [x] 6 slash commands di `.claude/commands/`
 - [x] Edge Functions deployed: `generate-akun`, `hapus-akun`
 - [ ] Portal Guru: catatan siswa + sesi pembinaan
-- [ ] Portal Guru: forum + jadwal
+- [x] Portal Guru: jadwal classroom (ADR-004)
+- [ ] Portal Guru: forum
 - [ ] Portal Siswa
 - [ ] Portal Ortu
 - [ ] Security audit
@@ -248,6 +249,7 @@ git push origin main                  → urutan TERAKHIR
 20260804000003_fix-fk-student-notes-guidance.sql
 20260804000004_fix-fk-forum-comments.sql
 20260804000005_fix-rls-roster-siswa.sql
+20260805000001_schedules-jadwal.sql
 ```
 
 ---
