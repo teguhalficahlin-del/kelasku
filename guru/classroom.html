@@ -20,8 +20,8 @@
       bottom: 1.5rem;
       left: 50%;
       transform: translateX(-50%);
-      background: #0f172a;
-      color: #f8fafc;
+      background: var(--bg-elevated);
+      color: var(--text-primary);
       padding: .5rem 1.25rem;
       border-radius: 2rem;
       font-size: .8125rem;
@@ -125,15 +125,15 @@
       transition: background var(--transition), color var(--transition);
     }
     .btn-share-siswa {
-      color: #a5b4fc;
-      border-color: rgba(165,180,252,0.5);
+      color: var(--gold);
+      border-color: var(--gold-border);
     }
-    .btn-share-siswa:hover { background: var(--primary-light); }
+    .btn-share-siswa:hover { background: var(--gold-muted); }
     .btn-share-ortu {
-      color: #a78bfa;
-      border-color: rgba(167,139,250,0.4);
+      color: var(--gold);
+      border-color: var(--gold-border);
     }
-    .btn-share-ortu:hover { background: rgba(167,139,250,0.12); }
+    .btn-share-ortu:hover { background: var(--gold-muted); }
 
     /* Roster card layout */
     .card-select-all {
@@ -231,7 +231,7 @@
       transition: color var(--transition), border-color var(--transition);
     }
     .tab-btn:hover { color: var(--text-sec); }
-    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+    .tab-btn.active { color: var(--gold); border-bottom-color: var(--gold); }
 
     /* ── Schedule table ── */
     .schedule-table {
@@ -282,14 +282,15 @@
     }
     .sch-input:focus {
       outline: none;
-      border-color: var(--primary);
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px var(--gold-muted);
     }
     .sch-btn-primary {
-      background: var(--primary) !important;
-      color: #fff !important;
-      border-color: var(--primary) !important;
+      background: var(--gold) !important;
+      color: var(--text-on-gold) !important;
+      border-color: var(--gold) !important;
     }
-    .sch-btn-primary:hover { background: var(--primary-hov) !important; }
+    .sch-btn-primary:hover { background: var(--gold-hover) !important; }
     .sch-btn-danger {
       background: var(--danger) !important;
       color: #fff !important;
@@ -410,19 +411,22 @@
     .abs-btn-alpha.active  { background: var(--danger); color: #fff; border-color: var(--danger); }
     .abs-save-row { display: flex; align-items: center; gap: .75rem; margin-top: .875rem; flex-wrap: wrap; }
     .btn-simpan-absensi {
-      background: var(--primary);
-      color: #fff;
+      background: var(--gold);
+      color: var(--text-on-gold);
       border: none;
       border-radius: var(--r-sm);
       padding: .5rem 1.25rem;
-      font-size: var(--fs-btn);
+      font-size: var(--fs-ui);
       font-weight: 600;
       cursor: pointer;
       font-family: inherit;
       min-height: var(--btn-h);
-      transition: background var(--transition);
+      transition: background var(--transition), box-shadow var(--transition);
     }
-    .btn-simpan-absensi:hover:not(:disabled) { background: var(--primary-hov); }
+    .btn-simpan-absensi:hover:not(:disabled) {
+      background: var(--gold-hover);
+      box-shadow: var(--shadow-gold);
+    }
     .btn-simpan-absensi:disabled { opacity: .5; cursor: default; }
     .abs-save-msg { font-size: var(--fs-caption); }
     .abs-save-ok  { color: var(--success-text); }
@@ -450,7 +454,7 @@
       transition: background var(--transition), color var(--transition), border-color var(--transition);
     }
     .rekap-preset:hover { background: var(--surface-sub); }
-    .rekap-preset.active { background: var(--primary-light); color: var(--primary); border-color: var(--primary); }
+    .rekap-preset.active { background: var(--gold-muted); color: var(--gold); border-color: var(--gold); }
     .rekap-custom-range {
       display: flex;
       align-items: center;
@@ -496,7 +500,7 @@
     .share-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(15,23,42,0.85);
+      background: var(--bg-overlay);
       backdrop-filter: var(--blur);
       -webkit-backdrop-filter: var(--blur);
       z-index: 999;
@@ -506,7 +510,7 @@
       padding: 1rem;
     }
     @supports not (backdrop-filter: blur(1px)) {
-      .share-overlay { background: rgba(15,23,42,0.97); }
+      .share-overlay { background: rgba(10,10,15,0.98); }
     }
     .share-box {
       background: var(--surface-sub);

@@ -1,54 +1,113 @@
 /* ============================================================
-   SIP Mandiri — Dark Premium (siswa portal)
+   SIP Mandiri — Design System (siswa portal)
    ============================================================ */
 
-/* ── Design tokens ── */
+/* ── Design tokens — DESIGN-SYSTEM.md ── */
 :root {
-  --accent:         #6366f1;
-  --accent-hov:     #4f46e5;
-  --accent-light:   rgba(99,102,241,0.15);
-  --surface:        #1e293b;
-  --surface-sub:    #293548;
-  --bg:             #0f172a;
-  --border:         rgba(255,255,255,0.08);
-  --border-strong:  rgba(255,255,255,0.15);
-  --success:        #10b981;
-  --success-bg:     rgba(16,185,129,0.15);
-  --danger:         #f87171;
-  --danger-bg:      rgba(248,113,113,0.15);
-  --danger-border:  rgba(248,113,113,0.3);
-  --warning:        #fbbf24;
-  --warning-bg:     rgba(251,191,36,0.15);
-  --text:           #f1f5f9;
-  --text-sec:       #94a3b8;
-  --text-muted:     #8091a7;   /* brightened from #64748b for WCAG AA */
-  --font:           'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  /* === Warna DS === */
+  --bg-base:      #0A0A0F;
+  --bg-surface:   #13131A;
+  --bg-elevated:  #1C1C26;
+  --bg-overlay:   rgba(10,10,15,0.88);
 
-  /* Fluid typography */
-  --fs-h1:      clamp(19px, 3vw, 24px);
-  --fs-h2:      clamp(17px, 2.5vw, 21px);
-  --fs-body:    clamp(16px, 2.5vw, 18px);
-  --fs-caption: clamp(13px, 1.8vw, 15px);
-  --fs-btn:     clamp(15px, 2vw, 17px);
+  --gold:         #D4AF37;
+  --gold-hover:   #B8960C;
+  --gold-muted:   rgba(212,175,55,0.15);
+  --gold-border:  rgba(212,175,55,0.3);
 
-  /* Fluid sizing */
-  --btn-h:    clamp(48px, 7vw, 56px);
-  --btn-h-sm: clamp(32px, 4.5vw, 40px);
-  --btn-px:   clamp(14px, 2vw, 20px);
-  --btn-py:   clamp(8px, 1.5vw, 12px);
+  --text-on-gold:   #0A0A0F;
+  --text-primary:   #F5F0E8;
+  --text-secondary: #A89880;
+  --text-muted:     #6B5F50;
 
-  /* Radius */
-  --r-sm:  6px;
-  --r-md:  8px;
-  --r-lg:  clamp(8px, 1.5vw, 14px);
+  --border:        rgba(212,175,55,0.12);
+  --border-strong: rgba(212,175,55,0.25);
 
-  /* Elevation */
-  --shadow-card:  0 4px 24px rgba(0,0,0,0.4);
-  --shadow-modal: 0 8px 40px rgba(0,0,0,0.6);
-  --transition:   150ms ease;
-  --glass:        rgba(30,41,59,0.75);
-  --glass-border: rgba(255,255,255,0.1);
+  --success:    #10B981;
+  --success-bg: rgba(16,185,129,0.15);
+  --danger:     #F87171;
+  --danger-bg:  rgba(248,113,113,0.15);
+  --danger-border: rgba(248,113,113,0.3);
+  --warning:    #FBBF24;
+  --warning-bg: rgba(251,191,36,0.15);
+
+  --shadow-card:  0 4px 24px rgba(0,0,0,0.5);
+  --shadow-modal: 0 8px 40px rgba(0,0,0,0.7);
+  --shadow-gold:  0 0 20px rgba(212,175,55,0.15);
+
+  --glass:        rgba(19,19,26,0.75);
+  --glass-border: rgba(212,175,55,0.15);
   --blur:         blur(12px);
+
+  /* === Tipografi DS === */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  --fs-display: clamp(22px, 4vw, 32px);
+  --fs-h1:      clamp(20px, 3.5vw, 28px);
+  --fs-h2:      clamp(18px, 3vw, 24px);
+  --fs-h3:      clamp(16px, 2.5vw, 20px);
+  --fs-body:    clamp(15px, 2.2vw, 18px);
+  --fs-ui:      clamp(14px, 2vw, 16px);
+  --fs-caption: clamp(12px, 1.8vw, 14px);
+  --fs-badge:   clamp(11px, 1.5vw, 13px);
+
+  --fw-regular:  400;
+  --fw-medium:   500;
+  --fw-semibold: 600;
+  --fw-bold:     700;
+
+  --lh-tight:  1.2;
+  --lh-normal: 1.5;
+  --lh-loose:  1.8;
+
+  /* === Tombol DS === */
+  --btn-h:     clamp(48px, 7vw, 56px);
+  --btn-h-sm:  clamp(36px, 5vw, 44px);
+  --btn-h-xs:  clamp(28px, 4vw, 36px);
+  --btn-px:    clamp(16px, 2.5vw, 24px);
+  --btn-px-sm: clamp(10px, 1.5vw, 16px);
+  --btn-r:     8px;
+
+  /* === Card DS === */
+  --card-bg:     var(--bg-surface);
+  --card-border: var(--border);
+  --card-r:      clamp(10px, 1.5vw, 14px);
+  --card-shadow: var(--shadow-card);
+  --card-p:      clamp(14px, 2vw, 20px);
+
+  /* === Input DS === */
+  --input-bg:     rgba(255,255,255,0.04);
+  --input-border: rgba(212,175,55,0.2);
+  --input-r:      8px;
+  --input-py:     clamp(10px, 1.5vw, 14px);
+  --input-px:     clamp(12px, 1.8vw, 16px);
+
+  /* === Spacing DS === */
+  --space-xs:  clamp(4px, 0.8vw, 6px);
+  --space-sm:  clamp(8px, 1.2vw, 12px);
+  --space-md:  clamp(12px, 1.8vw, 18px);
+  --space-lg:  clamp(18px, 2.5vw, 28px);
+  --space-xl:  clamp(28px, 4vw, 40px);
+  --space-2xl: clamp(40px, 6vw, 60px);
+
+  /* === Compat alias — nama lama → DS === */
+  --accent:        var(--gold);
+  --accent-hov:    var(--gold-hover);
+  --accent-light:  var(--gold-muted);
+  --surface:       var(--bg-surface);
+  --surface-sub:   var(--bg-elevated);
+  --bg:            var(--bg-base);
+  --text:          var(--text-primary);
+  --text-sec:      var(--text-secondary);
+  --font:          var(--font-sans);
+  --r-sm:          6px;
+  --r-md:          8px;
+  --r-lg:          var(--card-r);
+  --border-sub:    var(--border);
+  --btn-py:        0px;
+  --fs-btn:        var(--fs-ui);
+
+  --transition: 150ms ease;
 }
 
 /* ── Reset ── */
@@ -56,11 +115,11 @@
 
 /* ── Base ── */
 body {
-  font-family: var(--font);
+  font-family: var(--font-sans);
   font-size: var(--fs-body);
-  line-height: 1.6;
-  background: var(--bg);
-  color: var(--text);
+  line-height: var(--lh-normal);
+  background: var(--bg-base);
+  color: var(--text-primary);
   min-height: 100vh;
   display: flex;
   align-items: flex-start;
@@ -77,8 +136,8 @@ body {
 /* ── Typography ── */
 h1 {
   font-size: var(--fs-h1);
-  font-weight: 700;
-  color: var(--accent);
+  font-weight: var(--fw-bold);
+  color: var(--gold);
   margin-bottom: 1.75rem;
   text-align: center;
   letter-spacing: -0.02em;
@@ -86,17 +145,17 @@ h1 {
 
 h2 {
   font-size: var(--fs-h2);
-  font-weight: 600;
-  color: var(--text);
+  font-weight: var(--fw-semibold);
+  color: var(--text-primary);
   margin-bottom: 1.25rem;
   letter-spacing: -0.01em;
 }
 
 /* ── Section card ── */
 section {
-  background: var(--surface);
+  background: var(--bg-surface);
   border: 1px solid var(--border);
-  border-radius: var(--r-lg);
+  border-radius: var(--card-r);
   box-shadow: var(--shadow-card);
   padding: 2rem;
 }
@@ -105,9 +164,9 @@ section {
 label {
   display: block;
   font-size: var(--fs-caption);
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
   margin-bottom: 0.35rem;
-  color: var(--text-sec);
+  color: var(--text-secondary);
   letter-spacing: 0.03em;
   text-transform: uppercase;
 }
@@ -118,23 +177,24 @@ input[type="email"],
 input[type="password"] {
   display: block;
   width: 100%;
-  padding: 0.625rem 0.875rem;
+  padding: var(--input-py) var(--input-px);
   font-size: var(--fs-body);
-  border: 1.5px solid rgba(255,255,255,0.22);
-  border-radius: var(--r-md);
-  background: var(--surface-sub);
-  color: var(--text);
+  border: 1.5px solid var(--input-border);
+  border-radius: var(--input-r);
+  background: var(--input-bg);
+  color: var(--text-primary);
   margin-bottom: 1.125rem;
   transition: border-color var(--transition), background var(--transition);
   font-family: inherit;
 }
 
-input::placeholder { color: #97a8bb; }
+input::placeholder { color: var(--text-muted); }
 
 input:focus {
   outline: none;
-  border-color: var(--accent);
-  background: var(--surface);
+  border-color: var(--gold);
+  background: var(--bg-surface);
+  box-shadow: 0 0 0 3px var(--gold-muted);
 }
 
 /* ── Buttons ── */
@@ -142,23 +202,26 @@ button[type="button"],
 button[type="submit"] {
   display: block;
   width: 100%;
-  padding: var(--btn-py) var(--btn-px);
+  padding: 0 var(--btn-px);
   min-height: var(--btn-h);
-  font-size: var(--fs-btn);
-  font-weight: 600;
-  color: #ffffff;
-  background: var(--accent-hov);
+  font-size: var(--fs-ui);
+  font-weight: var(--fw-medium);
+  color: var(--text-on-gold);
+  background: var(--gold);
   border: none;
-  border-radius: var(--r-md);
+  border-radius: var(--btn-r);
   cursor: pointer;
   margin-top: 0.5rem;
-  transition: background var(--transition);
+  transition: background var(--transition), box-shadow var(--transition);
   font-family: inherit;
   letter-spacing: 0.01em;
 }
 
 button[type="button"]:hover:not(:disabled),
-button[type="submit"]:hover:not(:disabled) { background: #4338ca; }
+button[type="submit"]:hover:not(:disabled) {
+  background: var(--gold-hover);
+  box-shadow: var(--shadow-gold);
+}
 
 button[type="button"]:disabled,
 button[type="submit"]:disabled { opacity: 0.4; cursor: not-allowed; }
@@ -168,11 +231,11 @@ button[type="submit"]:disabled { opacity: 0.4; cursor: not-allowed; }
   background: var(--danger-bg);
   border: 1px solid var(--danger-border);
   color: var(--danger);
-  border-radius: var(--r-md);
+  border-radius: var(--btn-r);
   padding: 0.75rem 1rem;
   font-size: var(--fs-body);
   margin-top: 0.75rem;
-  line-height: 1.5;
+  line-height: var(--lh-normal);
 }
 
 /* ── Konfirmasi ── */
@@ -180,7 +243,7 @@ button[type="submit"]:disabled { opacity: 0.4; cursor: not-allowed; }
   background: var(--success-bg);
   border: 1px solid rgba(16,185,129,0.3);
   color: var(--success);
-  border-radius: var(--r-md);
+  border-radius: var(--btn-r);
   padding: 0.75rem 1rem;
   font-size: var(--fs-body);
   margin-bottom: 1rem;
@@ -201,10 +264,10 @@ button[type="submit"]:disabled { opacity: 0.4; cursor: not-allowed; }
   padding: 0.75rem 1rem;
   background: var(--warning-bg);
   border: 1px solid rgba(251,191,36,0.3);
-  border-radius: var(--r-md);
+  border-radius: var(--btn-r);
 }
 
-#step-2-msg a { color: var(--accent); text-decoration: none; }
+#step-2-msg a { color: var(--gold); text-decoration: none; }
 #step-2-msg a:hover { text-decoration: underline; }
 
 /* ============================================================
@@ -220,7 +283,7 @@ header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: var(--surface);
+  background: var(--bg-surface);
   padding: 0 1.5rem;
   height: 56px;
   border-bottom: 1px solid var(--border);
@@ -231,8 +294,8 @@ header {
 
 .header-brand {
   font-size: var(--fs-body);
-  font-weight: 700;
-  color: #a5b4fc;
+  font-weight: var(--fw-bold);
+  color: var(--gold);
   letter-spacing: -0.02em;
 }
 
@@ -244,8 +307,8 @@ header {
 
 #siswa-name {
   font-size: var(--fs-caption);
-  font-weight: 500;
-  color: var(--text-sec);
+  font-weight: var(--fw-medium);
+  color: var(--text-secondary);
 }
 
 #btn-logout {
@@ -257,17 +320,17 @@ header {
   padding: 0 1rem;
   height: 44px;
   font-size: var(--fs-caption);
-  font-weight: 500;
-  color: var(--text-sec);
+  font-weight: var(--fw-medium);
+  color: var(--text-secondary);
   cursor: pointer;
   margin-top: 0;
   transition: background var(--transition), border-color var(--transition), color var(--transition);
   font-family: inherit;
 }
 #btn-logout:hover {
-  background: var(--surface-sub);
+  background: var(--bg-elevated);
   border-color: var(--border-strong);
-  color: var(--text);
+  color: var(--text-primary);
 }
 
 main {
@@ -279,23 +342,23 @@ main {
 main h2 {
   margin-bottom: 1.25rem;
   font-size: var(--fs-h2);
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
   letter-spacing: -0.01em;
 }
 
 /* ── Classroom card ── */
 .classroom-card {
-  background: var(--surface);
+  background: var(--bg-surface);
   border: 1px solid var(--border);
-  border-radius: var(--r-lg);
+  border-radius: var(--card-r);
   box-shadow: var(--shadow-card);
   padding: 1.25rem 1.5rem;
   margin-bottom: 0.75rem;
   transition: border-color var(--transition), box-shadow var(--transition);
 }
 .classroom-card:hover {
-  border-color: var(--accent);
-  box-shadow: 0 4px 24px rgba(99,102,241,0.2);
+  border-color: var(--gold-border);
+  box-shadow: var(--shadow-card), var(--shadow-gold);
 }
 
 .card-header {
@@ -308,17 +371,17 @@ main h2 {
 
 .card-name {
   font-size: var(--fs-body);
-  font-weight: 600;
-  color: var(--text);
+  font-weight: var(--fw-semibold);
+  color: var(--text-primary);
   letter-spacing: -0.01em;
 }
 
-/* WCAG fix: accent on tinted bg = 2.79:1 → dark indigo bg + indigo-100 text = 9.27:1 */
 .card-code {
   font-size: var(--fs-caption);
-  font-weight: 700;
-  color: #e0e7ff;
-  background: #312e81;
+  font-weight: var(--fw-bold);
+  color: var(--gold);
+  background: var(--gold-muted);
+  border: 1px solid var(--gold-border);
   border-radius: 4px;
   padding: 0.2rem 0.55rem;
   letter-spacing: 0.08em;
@@ -328,7 +391,7 @@ main h2 {
 
 .card-subject {
   font-size: var(--fs-caption);
-  color: var(--text-sec);
+  color: var(--text-secondary);
   margin-bottom: 0.25rem;
 }
 
@@ -342,22 +405,22 @@ main h2 {
   font-size: var(--fs-caption);
   text-align: center;
   padding: 3rem 0;
-  line-height: 1.7;
+  line-height: var(--lh-loose);
 }
 
 /* ── Jadwal classroom ── */
 .card-schedules {
   margin-top: .875rem;
   padding-top: .75rem;
-  border-top: 1px solid var(--border-sub);
+  border-top: 1px solid var(--border);
   display: flex;
   flex-direction: column;
   gap: .5rem;
 }
 
 .sch-section-title {
-  font-size: .75rem;
-  font-weight: 700;
+  font-size: var(--fs-badge);
+  font-weight: var(--fw-bold);
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: .06em;
@@ -371,9 +434,9 @@ main h2 {
 }
 
 .sch-day-name {
-  font-size: .75rem;
-  font-weight: 700;
-  color: var(--text-sec);
+  font-size: var(--fs-badge);
+  font-weight: var(--fw-bold);
+  color: var(--text-secondary);
 }
 
 .sch-slot {
@@ -386,15 +449,15 @@ main h2 {
 
 .sch-slot-time {
   font-size: var(--fs-caption);
-  color: var(--text);
+  color: var(--text-primary);
 }
 
 .badge-aktif {
   display: inline-block;
-  background: rgba(16,185,129,.15);
-  color: #10b981;
-  font-size: .6875rem;
-  font-weight: 700;
+  background: var(--success-bg);
+  color: var(--success);
+  font-size: var(--fs-badge);
+  font-weight: var(--fw-bold);
   padding: .15rem .5rem;
   border-radius: 99px;
   white-space: nowrap;
@@ -402,17 +465,17 @@ main h2 {
 
 .badge-nonaktif {
   display: inline-block;
-  background: rgba(248,113,113,.15);
-  color: #f87171;
-  font-size: .6875rem;
-  font-weight: 700;
+  background: var(--danger-bg);
+  color: var(--danger);
+  font-size: var(--fs-badge);
+  font-weight: var(--fw-bold);
   padding: .15rem .5rem;
   border-radius: 99px;
   white-space: nowrap;
 }
 
 .sch-reason {
-  font-size: .75rem;
+  font-size: var(--fs-badge);
   color: var(--text-muted);
   font-style: italic;
 }

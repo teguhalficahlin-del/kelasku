@@ -8,59 +8,47 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg:        #0f172a;
-      --surface:   #1e293b;
-      --border:    rgba(255,255,255,0.08);
-      --text:      #f1f5f9;
-      --muted:     #8091a7;   /* brightened from #94a3b8 for WCAG AA on surface */
-      --accent:    #6366f1;
-      --accent-dk: #4f46e5;
-      --accent-bg: rgba(99,102,241,0.15);
+      /* === DESIGN-SYSTEM.md === */
+      --bg-base:      #0A0A0F;
+      --bg-surface:   #13131A;
+      --bg-elevated:  #1C1C26;
 
-      /* Fluid typography */
-      --fs-h1:      clamp(16px, 2vw, 22px);
-      --fs-h2:      clamp(14px, 1.6vw, 18px);
-      --fs-body:    clamp(13px, 1.4vw, 15px);
-      --fs-caption: clamp(11px, 1.2vw, 13px);
-      --fs-btn:     clamp(13px, 1.4vw, 15px);
-      --btn-h:      clamp(40px, 5vw, 48px);
-      --btn-py:     clamp(8px, 1.5vw, 12px);
-      --btn-px:     clamp(14px, 2vw, 20px);
-      --r-card:     clamp(8px, 1.5vw, 14px);
-    }
+      --gold:         #D4AF37;
+      --gold-hover:   #B8960C;
+      --gold-muted:   rgba(212,175,55,0.15);
+      --gold-border:  rgba(212,175,55,0.3);
+      --text-on-gold: #0A0A0F;
 
-    :root[data-theme="dark"] {
-      --bg:        #0f172a;
-      --surface:   #1e293b;
-      --border:    rgba(255,255,255,0.08);
-      --text:      #f1f5f9;
-      --muted:     #94a3b8;
-      --accent:    #6366f1;
-      --accent-dk: #4f46e5;
-      --accent-bg: rgba(99,102,241,0.15);
-    }
+      --text-primary:   #F5F0E8;
+      --text-secondary: #A89880;
+      --text-muted:     #6B5F50;
 
-    :root[data-theme="light"] {
-      --bg:        #0f172a;
-      --surface:   #1e293b;
-      --border:    rgba(255,255,255,0.08);
-      --text:      #f1f5f9;
-      --muted:     #94a3b8;
-      --accent:    #6366f1;
-      --accent-dk: #4f46e5;
-      --accent-bg: rgba(99,102,241,0.15);
+      --border:        rgba(212,175,55,0.12);
+      --shadow-card:   0 4px 24px rgba(0,0,0,0.5);
+      --shadow-gold:   0 0 20px rgba(212,175,55,0.15);
+
+      /* Fluid typography — DS scale */
+      --fs-h1:      clamp(20px, 3.5vw, 28px);
+      --fs-h2:      clamp(18px, 3vw, 24px);
+      --fs-body:    clamp(15px, 2.2vw, 18px);
+      --fs-ui:      clamp(14px, 2vw, 16px);
+      --fs-caption: clamp(12px, 1.8vw, 14px);
+      --btn-h:      clamp(48px, 7vw, 56px);
+      --btn-px:     clamp(16px, 2.5vw, 24px);
+      --r-card:     clamp(10px, 1.5vw, 14px);
     }
 
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       font-size: var(--fs-body);
-      background: var(--bg);
-      color: var(--text);
+      background: var(--bg-base);
+      color: var(--text-primary);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
       padding: 2.5rem 1rem 3rem;
+      -webkit-font-smoothing: antialiased;
     }
 
     .wrap {
@@ -80,7 +68,7 @@
       justify-content: center;
       width: 52px;
       height: 52px;
-      background: var(--accent);
+      background: var(--gold);
       border-radius: 14px;
       margin-bottom: 0.75rem;
     }
@@ -88,13 +76,13 @@
     .brand-mark svg {
       width: 28px;
       height: 28px;
-      fill: #fff;
+      fill: var(--text-on-gold);
     }
 
     .brand h1 {
       font-size: var(--fs-h1);
       font-weight: 700;
-      color: var(--text);
+      color: var(--text-primary);
       letter-spacing: -0.02em;
       line-height: 1.2;
     }
@@ -102,7 +90,7 @@
     .brand .tagline {
       margin-top: 0.4rem;
       font-size: var(--fs-body);
-      color: var(--muted);
+      color: var(--text-secondary);
     }
 
     /* Label seksi */
@@ -111,7 +99,7 @@
       font-weight: 600;
       letter-spacing: 0.08em;
       text-transform: uppercase;
-      color: var(--muted);
+      color: var(--text-muted);
       text-align: center;
       margin-bottom: 1rem;
     }
@@ -132,7 +120,7 @@
 
     .card {
       flex: 1;
-      background: var(--surface);
+      background: var(--bg-surface);
       border: 1.5px solid var(--border);
       border-radius: var(--r-card);
       padding: 1.5rem 1.25rem;
@@ -143,8 +131,8 @@
     }
 
     .card:hover {
-      border-color: var(--accent);
-      box-shadow: 0 4px 24px rgba(99,102,241,0.25);
+      border-color: var(--gold-border);
+      box-shadow: var(--shadow-card), var(--shadow-gold);
     }
 
     .card-icon {
@@ -156,51 +144,51 @@
     .card h2 {
       font-size: var(--fs-h2);
       font-weight: 700;
-      color: var(--text);
+      color: var(--text-primary);
     }
 
     .card p {
       font-size: var(--fs-body);
-      color: var(--muted);
+      color: var(--text-secondary);
       line-height: 1.55;
       flex: 1;
     }
 
     .btn {
-      display: block;
-      text-align: center;
-      padding: var(--btn-py) var(--btn-px);
-      min-height: var(--btn-h);
-      border-radius: 8px;
-      font-size: var(--fs-btn);
-      font-weight: 600;
       display: flex;
       align-items: center;
       justify-content: center;
+      text-align: center;
+      padding: 0 var(--btn-px);
+      min-height: var(--btn-h);
+      border-radius: 8px;
+      font-size: var(--fs-ui);
+      font-weight: 600;
       text-decoration: none;
       margin-top: 0.75rem;
-      transition: background 0.15s, color 0.15s;
+      transition: background 0.15s, box-shadow 0.15s;
     }
 
     .btn-primary {
-      background: var(--accent-dk);
-      color: #fff;
+      background: var(--gold);
+      color: var(--text-on-gold);
     }
 
     .btn-primary:hover {
-      background: #4338ca;
+      background: var(--gold-hover);
+      box-shadow: var(--shadow-gold);
     }
 
     .btn-outline {
-      background: var(--accent-bg);
-      color: #a5b4fc; /* WCAG fix: indigo-300, contrast 8.48:1 vs --bg; was var(--accent) = 2.79:1 */
-      border: 1.5px solid var(--border);
+      background: var(--gold-muted);
+      color: var(--gold);
+      border: 1.5px solid var(--gold-border);
     }
 
     .btn-outline:hover {
-      background: var(--accent);
-      color: #fff;
-      border-color: var(--accent);
+      background: var(--gold);
+      color: var(--text-on-gold);
+      border-color: var(--gold);
     }
 
     /* Footer area */
@@ -211,11 +199,11 @@
 
     .footer p {
       font-size: var(--fs-body);
-      color: var(--muted);
+      color: var(--text-secondary);
     }
 
     .footer a {
-      color: #818cf8;
+      color: var(--gold);
       font-weight: 600;
       text-decoration: none;
     }
@@ -230,7 +218,7 @@
 
     .footer-note {
       font-size: var(--fs-caption);
-      color: var(--muted);
+      color: var(--text-muted);
     }
 
     @media (prefers-reduced-motion: reduce) {
