@@ -338,6 +338,62 @@
     .btn-sm-danger { border-color: var(--danger-border); color: var(--danger); }
     .btn-sm-danger:hover:not(:disabled) { background: var(--danger-bg); }
 
+    /* ── Jadwal: empty state + tambah hari ── */
+    .btn-add-first-sch {
+      display: block;
+      margin: .75rem auto 0;
+      background: transparent;
+      color: var(--gold);
+      border: 1.5px solid var(--gold-border);
+      border-radius: var(--btn-r);
+      font-size: var(--fs-caption);
+      font-weight: var(--fw-medium);
+      min-height: var(--btn-h-sm);
+      padding: 0 var(--btn-px-sm);
+      cursor: pointer;
+      transition: background var(--transition), border-color var(--transition);
+      font-family: inherit;
+    }
+    .btn-add-first-sch:hover { background: var(--gold-muted); border-color: var(--gold); }
+
+    .add-day-bar {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      margin-top: .875rem;
+      flex-wrap: wrap;
+    }
+    .add-day-sel {
+      background: var(--input-bg);
+      border: 1.5px solid var(--input-border);
+      border-radius: var(--input-r);
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: var(--fs-caption);
+      padding: .375rem .5rem;
+      min-height: var(--btn-h-sm);
+    }
+    .add-day-sel:focus {
+      outline: none;
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px var(--gold-muted);
+    }
+    .btn-add-day-confirm {
+      background: transparent;
+      color: var(--gold);
+      border: 1.5px solid var(--gold-border);
+      border-radius: var(--btn-r);
+      font-size: var(--fs-caption);
+      font-weight: var(--fw-medium);
+      min-height: var(--btn-h-sm);
+      padding: 0 var(--btn-px-sm);
+      cursor: pointer;
+      transition: background var(--transition), border-color var(--transition);
+      font-family: inherit;
+      white-space: nowrap;
+    }
+    .btn-add-day-confirm:hover { background: var(--gold-muted); border-color: var(--gold); }
+
     /* ── Absensi ── */
     .abs-day-header {
       font-weight: 600;

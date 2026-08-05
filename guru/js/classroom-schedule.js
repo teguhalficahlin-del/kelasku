@@ -49,7 +49,28 @@
     DAYS.forEach(d => { byDay[d] = []; });
     schedules.forEach(s => { if (byDay[s.day_of_week]) byDay[s.day_of_week].push(s); });
 
-    const wrap  = document.createElement('div');
+    const daysWithSchedule = DAYS.filter(d => byDay[d].length > 0);
+    const emptyDays        = DAYS.filter(d => byDay[d].length === 0);
+
+    el.innerHTML = '';
+
+    // ── Empty state ──
+    if (daysWithSchedule.length === 0) {
+      const msg = document.createElement('p');
+      msg.className   = 'empty-state';
+      msg.textContent = 'Belum ada jadwal untuk classroom ini.';
+      el.appendChild(msg);
+
+      const btn = document.createElement('button');
+      btn.className   = 'btn-add-first-sch';
+      btn.textContent = '+ Tambah Jadwal Pertama';
+      btn.addEventListener('click', () => openModal(null, 'SENIN'));
+      el.appendChild(btn);
+      return;
+    }
+
+    // ── Tabel: hanya hari yang punya jadwal ──
+    const wrap = document.createElement('div');
     wrap.style.overflowX = 'auto';
 
     const tbl   = document.createElement('table');
@@ -61,18 +82,8 @@
 
     const tbody = document.createElement('tbody');
 
-    DAYS.forEach(day => {
+    daysWithSchedule.forEach(day => {
       const rows = byDay[day];
-
-      if (rows.length === 0) {
-        const tr = document.createElement('tr');
-        tr.innerHTML =
-          '<td class="sch-day">' + dayLabel(day) + '</td>' +
-          '<td colspan="2" class="sch-empty">—</td>' +
-          '<td><button class="btn-sm btn-add-day" data-day="' + day + '">+ Tambah</button></td>';
-        tbody.appendChild(tr);
-        return;
-      }
 
       rows.forEach((s, i) => {
         const badge = s.is_active
@@ -106,10 +117,9 @@
 
     tbl.appendChild(tbody);
     wrap.appendChild(tbl);
-    el.innerHTML = '';
     el.appendChild(wrap);
 
-    // Events
+    // Events tabel
     el.querySelectorAll('.btn-add-day').forEach(b =>
       b.addEventListener('click', () => openModal(null, b.dataset.day)));
 
@@ -124,6 +134,31 @@
 
     el.querySelectorAll('.btn-del-sch').forEach(b =>
       b.addEventListener('click', () => delSchedule(b.dataset.id)));
+
+    // ── Bar "+ Tambah Hari" (hanya jika masih ada hari kosong) ──
+    if (emptyDays.length === 0) return;
+
+    const bar = document.createElement('div');
+    bar.className = 'add-day-bar';
+
+    const dayOptions = emptyDays.map(d =>
+      '<option value="' + d + '">' + dayLabel(d) + '</option>'
+    ).join('');
+
+    bar.innerHTML =
+      '<select class="add-day-sel">' +
+        '<option value="">Pilih hari…</option>' +
+        dayOptions +
+      '</select>' +
+      '<button class="btn-add-day-confirm">+ Tambah Hari</button>';
+
+    bar.querySelector('.btn-add-day-confirm').addEventListener('click', function () {
+      const val = bar.querySelector('.add-day-sel').value;
+      if (!val) return;
+      openModal(null, val);
+    });
+
+    el.appendChild(bar);
   }
 
   // ---------------------------------------------------------------------------
