@@ -1624,6 +1624,32 @@ h2.panel-header.open .panel-collapse-arrow {
   font-weight: 600;
 }
 
+/* ── Export Excel header button ────────────────────────────────────────────── */
+
+.btn-export-header {
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-medium);
+  padding: 2px var(--space-sm);
+  border-radius: var(--r-sm);
+  border: 1.5px solid var(--gold-border);
+  background: none;
+  color: var(--gold);
+  cursor: pointer;
+  font-family: inherit;
+  min-height: var(--btn-h-xs);
+  transition: background var(--transition), border-color var(--transition);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.btn-export-header:hover:not(:disabled) {
+  background: var(--gold-muted);
+  border-color: var(--gold);
+}
+.btn-export-header:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 /* ── Rekap pagination ──────────────────────────────────────────────────────── */
 
 .rekap-pagination {

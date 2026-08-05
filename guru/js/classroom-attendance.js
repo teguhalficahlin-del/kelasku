@@ -639,14 +639,24 @@
         `</div>` +
       `</div>` +
       `<button id="rekap-toggle" class="rekap-toggle-btn">Tampilkan</button>` +
-      `<div id="rekap-body" style="display:none"></div>` +
-      `<div id="rekap-export-wrap" style="display:none;margin-top:.75rem">` +
-        `<button id="btn-export-excel" disabled title="Muat rekap dulu sebelum export">Export Excel</button>` +
-      `</div>`;
+      `<div id="rekap-body" style="display:none"></div>`;
 
-    const bodyEl      = container.querySelector('#rekap-body');
-    const exportWrap  = container.querySelector('#rekap-export-wrap');
-    const toggleBtn   = container.querySelector('#rekap-toggle');
+    // Sisipkan tombol Export Excel ke header h2 setelah initCollapseSections wrap
+    const rekapPanel = container.closest('.panel');
+    const rekapH2    = rekapPanel ? rekapPanel.querySelector('h2.panel-header') : null;
+    if (rekapH2) {
+      const exportBtn     = document.createElement('button');
+      exportBtn.id        = 'btn-export-excel';
+      exportBtn.className = 'btn-export-header';
+      exportBtn.disabled  = true;
+      exportBtn.title     = 'Muat rekap dulu sebelum export';
+      exportBtn.textContent = 'Export Excel';
+      const arrow = rekapH2.querySelector('.panel-collapse-arrow');
+      rekapH2.insertBefore(exportBtn, arrow);
+    }
+
+    const bodyEl   = container.querySelector('#rekap-body');
+    const toggleBtn = container.querySelector('#rekap-toggle');
 
     // Toggle tampilkan / sembunyikan
     toggleBtn.addEventListener('click', () => {
@@ -660,17 +670,16 @@
         }
         refreshRekap(f, t, bodyEl);
         bodyEl.style.display = 'block';
-        exportWrap.style.display = 'block';
         toggleBtn.textContent = 'Sembunyikan';
       } else {
         bodyEl.style.display = 'none';
-        exportWrap.style.display = 'none';
         toggleBtn.textContent = 'Tampilkan';
       }
     });
 
     // Export
-    container.querySelector('#btn-export-excel').addEventListener('click', () => {
+    const exportBtnEl = document.getElementById('btn-export-excel');
+    if (exportBtnEl) exportBtnEl.addEventListener('click', () => {
       if (_rekapPerSiswa && _rekapDateRange)
         exportExcel(_rekapPerSiswa, _rekapDateRange.fromDate, _rekapDateRange.toDate);
     });
