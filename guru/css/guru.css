@@ -704,7 +704,7 @@ main {
 
 #cl-name {
   font-weight: var(--fw-semibold);
-  font-size: var(--fs-body);
+  font-size: var(--fs-display);
   color: var(--text-primary);
   letter-spacing: -0.01em;
   overflow: hidden;
@@ -725,6 +725,10 @@ main {
   padding: 0 0 1rem;
 }
 
+#cl-subject {
+  font-size: var(--fs-ui);
+}
+
 /* ── Panel ── */
 .panel {
   background: var(--bg-surface);
@@ -736,7 +740,7 @@ main {
 }
 
 .panel h2 {
-  font-size: var(--fs-body);
+  font-size: var(--fs-h2);
   font-weight: var(--fw-semibold);
   margin-bottom: 0.875rem;
   color: var(--text-primary);
@@ -819,7 +823,7 @@ input[type="file"] { font-size: var(--fs-body); }
   align-items: center;
   padding: 0 var(--btn-px-sm);
   min-height: var(--btn-h);
-  font-size: var(--fs-caption);
+  font-size: var(--fs-ui);
   font-weight: var(--fw-semibold);
   color: var(--gold);
   background: var(--bg-surface);
@@ -842,7 +846,7 @@ input[type="file"] { font-size: var(--fs-body); }
   align-items: center;
   padding: 0 var(--btn-px-sm);
   min-height: var(--btn-h);
-  font-size: var(--fs-caption);
+  font-size: var(--fs-ui);
   font-weight: var(--fw-semibold);
   color: var(--danger);
   background: var(--bg-surface);
