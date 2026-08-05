@@ -679,7 +679,8 @@
 
     // Export
     const exportBtnEl = document.getElementById('btn-export-excel');
-    if (exportBtnEl) exportBtnEl.addEventListener('click', () => {
+    if (exportBtnEl) exportBtnEl.addEventListener('click', function (e) {
+      e.stopPropagation();
       if (_rekapPerSiswa && _rekapDateRange)
         exportExcel(_rekapPerSiswa, _rekapDateRange.fromDate, _rekapDateRange.toDate);
     });

@@ -1640,6 +1640,7 @@ h2.panel-header.open .panel-collapse-arrow {
   transition: background var(--transition), border-color var(--transition);
   white-space: nowrap;
   flex-shrink: 0;
+  margin-left: auto;
 }
 .btn-export-header:hover:not(:disabled) {
   background: var(--gold-muted);
