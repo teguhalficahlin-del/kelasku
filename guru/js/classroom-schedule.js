@@ -113,13 +113,11 @@
     el.querySelectorAll('.btn-del-sch').forEach(b =>
       b.addEventListener('click', () => delSchedule(b.dataset.id)));
 
-    // ── Bar "+ Tambah Hari" (hanya jika masih ada hari kosong) ──
-    if (emptyDays.length === 0) return;
-
+    // ── Bar "+ Tambah Hari" (selalu tampil jika ada jadwal) ──
     const bar = document.createElement('div');
     bar.className = 'add-day-bar';
 
-    const dayOptions = emptyDays.map(d =>
+    const dayOptions = DAYS.map(d =>
       '<option value="' + d + '">' + dayLabel(d) + '</option>'
     ).join('');
 
