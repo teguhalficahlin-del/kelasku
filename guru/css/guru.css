@@ -673,6 +673,11 @@ main {
   color: var(--text-primary);
 }
 
+.panel > h2.panel-header {
+  font-size: var(--fs-h3);
+  color: var(--gold);
+}
+
 .hint {
   font-size: var(--fs-ui);
   color: var(--text-muted);
