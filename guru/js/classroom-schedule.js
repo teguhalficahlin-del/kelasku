@@ -340,7 +340,24 @@
   // ---------------------------------------------------------------------------
 
   async function delSchedule(id) {
-    if (!window.confirm('Hapus jadwal ini? Tindakan ini tidak bisa dibatalkan.')) return;
+    const { count, error: cntErr } = await client
+      .from('attendance')
+      .select('*', { count: 'exact', head: true })
+      .eq('schedule_id', id);
+
+    if (cntErr) { alert('Gagal memeriksa data absensi: ' + cntErr.message); return; }
+
+    if (count > 0) {
+      window.alert(
+        `Jadwal ini memiliki ${count} sesi absensi yang tersimpan.\n\n` +
+        `Menghapus jadwal akan MENGHAPUS PERMANEN seluruh data absensi tersebut dan tidak bisa dibatalkan.\n\n` +
+        `Sebaiknya download rekap absensi terlebih dahulu (tab Absensi → Rekap → Export Excel) sebelum melanjutkan.`
+      );
+      if (!window.confirm(`Anda yakin ingin menghapus jadwal beserta ${count} sesi absensi ini?`)) return;
+    } else {
+      if (!window.confirm('Hapus jadwal ini? Tindakan ini tidak bisa dibatalkan.')) return;
+    }
+
     const { error } = await client.from('schedules').delete().eq('id', id);
     if (error) { alert('Gagal hapus: ' + error.message); return; }
     await load();
