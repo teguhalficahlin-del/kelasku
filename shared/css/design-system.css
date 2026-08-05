@@ -37,6 +37,8 @@
   --danger-bg:    rgba(248,113,113,0.15);
   --warning:      #FBBF24;
   --warning-bg:   rgba(251,191,36,0.15);
+  --danger-border: rgba(248,113,113,0.3); /* border komponen danger */
+  --transition:    150ms ease;             /* durasi animasi standar */
 
   /* Shadow */
   --shadow-card:  0 4px 24px rgba(0,0,0,0.5);
