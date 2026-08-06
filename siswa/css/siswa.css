@@ -464,6 +464,7 @@ main h2 {
 .att-pg-label { font-size: var(--fs-caption); color: var(--text-muted); }
 
 /* ── Catatan dari Guru ── */
+.notes-section { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--card-r); padding: var(--card-p); margin-top: var(--space-md); width: 100%; box-sizing: border-box; }
 .note-item {
   border-bottom: 1px solid var(--border);
   padding-bottom: var(--space-sm);
