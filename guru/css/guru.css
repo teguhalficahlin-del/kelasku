@@ -1740,6 +1740,12 @@ h2.panel-header.open .panel-collapse-arrow {
   text-transform: none;
   font-weight: var(--fw-regular);
   letter-spacing: normal;
+  font-size: calc(var(--fs-caption) * 1.5);
+}
+#panel-catatan input[type="checkbox"] {
+  accent-color: var(--gold);
+  transform: scale(1.5);
+  transform-origin: left center;
 }
 
 #notes-form button[type=submit] {
