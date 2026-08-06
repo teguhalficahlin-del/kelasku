@@ -205,7 +205,7 @@ git push origin main                  → urutan TERAKHIR
 ## 12. STATUS PROYEK
 
 **Fase saat ini: DEVELOPMENT AKTIF**
-**HEAD:** `631e503`
+**HEAD:** `c9b5d16`
 
 - [x] Dokumen rancangan selesai (REQUIREMENTS, SCHEMA-v0, ADR-001)
 - [x] Supabase project baru dibuat
@@ -219,6 +219,7 @@ git push origin main                  → urutan TERAKHIR
 - [x] Hapus akun siswa + ortu (end-to-end)
 - [x] 6 slash commands di `.claude/commands/`
 - [x] Edge Functions deployed: `generate-akun`, `hapus-akun`
+- [x] Portal Guru: tab Penilaian — assessment_items + student_grades (sesi 6 Agustus 2026)
 - [ ] Portal Guru: catatan siswa + sesi pembinaan
 - [x] Portal Guru: jadwal classroom (ADR-004)
 - [x] Portal Guru: absensi classroom (ADR-005)
@@ -233,7 +234,23 @@ git push origin main                  → urutan TERAKHIR
 - Test 4.4: progress generate semua (butuh siswa baru tanpa akun)
 - Test 8.4–8.5: cross-classroom isolation (butuh guru kedua)
 
-**Fitur & fix sesi 6 Agustus 2026 (HEAD 2e7044f → 631e503):**
+**Fitur & fix sesi 6 Agustus 2026 — penilaian (HEAD ca290cb → c9b5d16):**
+
+Arsitektur penilaian final (dua tabel menggantikan lima tabel lama):
+- `assessment_items` (dari ALTER+RENAME `learning_objectives`): `id`, `classroom_id`,
+  `teacher_id`, `academic_year`, `semester`, `judul`, `tipe` (CP/TP/KKTP/NILAI/LAINNYA),
+  `konten`, `urutan`, `is_visible_siswa`, `is_visible_ortu`, `is_active`
+- `student_grades` (dari ALTER+RENAME `grade_summaries`): `id`, `classroom_id`,
+  `teacher_id`, `student_id`, `academic_year`, `semester`, `judul`, `nilai_angka`,
+  `deskripsi`, `is_published`
+- DROP: `tp_assessments`, `assessment_criteria`, `grading_settings`, schema `core`
+- RLS: guru via `fn_is_classroom_owner`, siswa/ortu via `fn_is_classroom_member` +
+  `is_visible_siswa/ortu` (items) atau `is_published` (grades)
+- UI: tab "Penilaian" di `classroom.html` + `classroom-assessment.js` (lazy init,
+  event delegation, CRUD kedua tabel, modal form, validasi `academic_year`)
+- Portal siswa + ortu: section Nilai (hanya baris `is_published = true`)
+
+**Fitur & fix sesi 6 Agustus 2026 — absensi (HEAD 2e7044f → 631e503):**
 
 Fix:
 - Dropdown pilih hari — semua 6 hari selalu tersedia (bukan hanya hari kosong)
@@ -281,6 +298,11 @@ Label:
 20260804000005_fix-rls-roster-siswa.sql
 20260805000001_schedules-jadwal.sql
 20260805000002_attendance.sql
+20260806000001_assessment-core-schema.sql
+20260806000003_assessment-tables.sql
+20260806000004_assessment-rls.sql
+20260806000005_assessment-rpc.sql
+20260806000006_assessment-revisi.sql
 ```
 
 ---
