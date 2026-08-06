@@ -334,7 +334,7 @@ function renderChildGradesSection(classroomId, studentId) {
           `<span class="badge-tipe ${cls}">${escHtml(item.tipe)}</span>` +
           `<span style="font-weight:var(--fw-semibold);color:var(--text-primary);">${escHtml(item.judul)}</span>` +
           `</div>` +
-          (item.konten ? `<p style="font-size:var(--fs-caption);color:var(--text-muted);margin:0;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;">${escHtml(item.konten)}</p>` : '') +
+          (item.konten ? `<p class="pai-konten" style="display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;">${escHtml(item.konten)}</p>` : '') +
           `</div>`;
       }).join('');
     }
@@ -359,6 +359,30 @@ function renderChildGradesSection(classroomId, studentId) {
     }
 
     body.innerHTML = html;
+
+    body.querySelectorAll('.pai-konten').forEach(p => {
+      if (p.scrollHeight > p.offsetHeight) {
+        const btn = document.createElement('button');
+        btn.textContent = 'Selengkapnya ▼';
+        btn.style.cssText = 'background:none;border:none;color:var(--gold);font-size:var(--fs-caption);cursor:pointer;padding:0;margin-top:var(--space-xs);display:block;font-family:inherit;';
+        let expanded = false;
+        btn.addEventListener('click', () => {
+          expanded = !expanded;
+          if (expanded) {
+            p.style.display = 'block';
+            p.style.overflow = 'visible';
+            p.style.webkitLineClamp = 'unset';
+            btn.textContent = 'Sembunyikan ▲';
+          } else {
+            p.style.display = '-webkit-box';
+            p.style.overflow = 'hidden';
+            p.style.webkitLineClamp = '3';
+            btn.textContent = 'Selengkapnya ▼';
+          }
+        });
+        p.after(btn);
+      }
+    });
   });
 
   return wrap;
