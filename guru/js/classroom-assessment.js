@@ -470,9 +470,22 @@
   function initFilter() {
     const yearInp = document.getElementById('pai-year');
     const semSel  = document.getElementById('pai-semester');
-    const btn     = document.getElementById('btn-pai-filter');
-    if (!btn) return;
 
+    // Hapus tombol Tampilkan dari DOM — diganti auto-load
+    const btn = document.getElementById('btn-pai-filter');
+    if (btn) btn.remove();
+
+    // Buat error element inline, sisipkan setelah filter row
+    const filterRow = document.getElementById('penilaian-filter-row');
+    let errEl = document.getElementById('pai-filter-error');
+    if (!errEl && filterRow) {
+      errEl = document.createElement('div');
+      errEl.id        = 'pai-filter-error';
+      errEl.style.cssText = 'color:var(--danger);font-size:var(--fs-caption);min-height:1.2rem;margin-top:var(--space-xs);';
+      filterRow.insertAdjacentElement('afterend', errEl);
+    }
+
+    // Set defaults
     const now = new Date();
     const y   = now.getFullYear();
     const defaultYear = (now.getMonth() >= 6)
@@ -483,17 +496,24 @@
     _semester = now.getMonth() >= 6 ? 1 : 2;
     if (semSel) semSel.value = String(_semester);
 
-    btn.addEventListener('click', async () => {
+    function applyFilter() {
       const yv = yearInp ? yearInp.value.trim() : '';
       const sv = semSel  ? parseInt(semSel.value, 10) : 1;
       if (!YEAR_RE.test(yv)) {
-        alert('Format tahun ajaran tidak valid. Contoh: 2025/2026');
+        if (errEl) errEl.textContent = 'Format tidak valid. Contoh: 2025/2026';
         return;
       }
+      if (errEl) errEl.textContent = '';
       _year     = yv;
       _semester = sv;
-      await Promise.all([loadItems(), loadGrades()]);
-    });
+      Promise.all([loadItems(), loadGrades()]);
+    }
+
+    if (yearInp) {
+      yearInp.addEventListener('change', applyFilter);
+      yearInp.addEventListener('blur',   applyFilter);
+    }
+    if (semSel) semSel.addEventListener('change', applyFilter);
   }
 
   // -----------------------------------------------------------------------
@@ -547,9 +567,9 @@
   async function initAssessmentTab(cId, tId) {
     classroomId = cId;
     teacherId   = tId;
+    initFilter();    // set _year + _semester defaults sebelum query
     await Promise.all([loadRoster(), loadItems(), loadGrades()]);
     initCollapse();
-    initFilter();
     initDelegation();
     _loaded = true;
   }
