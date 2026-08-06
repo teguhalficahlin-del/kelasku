@@ -1759,3 +1759,37 @@ h2.panel-header.open .panel-collapse-arrow {
   background: var(--bg-surface);
   color: var(--text-primary);
 }
+
+/* ── Note card action buttons ── */
+.btn-note-edit,
+.btn-note-delete {
+  min-height: var(--btn-h-sm);
+  padding: 0 var(--btn-px-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--fs-ui);
+  font-weight: var(--fw-medium);
+  font-family: inherit;
+  border-radius: var(--btn-r);
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition), color var(--transition);
+}
+.btn-note-edit {
+  background: none;
+  color: var(--gold);
+  border: 1.5px solid var(--gold-border);
+}
+.btn-note-edit:hover {
+  background: var(--gold-muted);
+  border-color: var(--gold);
+}
+.btn-note-delete {
+  background: none;
+  color: var(--danger);
+  border: 1.5px solid var(--danger-border);
+}
+.btn-note-delete:hover {
+  background: var(--danger-bg);
+  border-color: var(--danger);
+}
