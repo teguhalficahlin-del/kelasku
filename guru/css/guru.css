@@ -1710,3 +1710,37 @@ h2.panel-header.open .panel-collapse-arrow {
   font-family: inherit;
   padding: 0;
 }
+
+/* ── Panel Catatan — scoped overrides ────────────────────────────────────── */
+
+#panel-catatan select,
+#panel-catatan textarea {
+  background: var(--input-bg);
+  color: var(--text-primary);
+  border: 1.5px solid var(--input-border);
+  border-radius: var(--input-r);
+  padding: var(--input-py) var(--input-px);
+  font-family: inherit;
+  font-size: var(--fs-body);
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+#panel-catatan select:focus,
+#panel-catatan textarea:focus {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px var(--gold-muted);
+}
+
+#panel-catatan label {
+  text-transform: none;
+  font-weight: var(--fw-regular);
+  letter-spacing: normal;
+}
+
+#notes-form button[type=submit] {
+  width: auto;
+  display: inline-flex;
+  align-items: center;
+}
