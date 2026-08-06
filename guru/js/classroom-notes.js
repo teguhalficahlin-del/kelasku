@@ -343,6 +343,37 @@
   }
 
   // ---------------------------------------------------------------------------
+  // Collapse sections (single-expand, "Tulis Catatan" default open)
+  // ---------------------------------------------------------------------------
+
+  function initCollapseSections() {
+    const headers = document.querySelectorAll('#panel-catatan h2.panel-header');
+    headers.forEach((h2, idx) => {
+      const body = document.getElementById(h2.dataset.panel);
+      if (!body) return;
+      if (idx === 0) {
+        h2.classList.add('open');
+        body.style.display = '';
+      } else {
+        h2.classList.remove('open');
+        body.style.display = 'none';
+      }
+      h2.addEventListener('click', () => {
+        const isOpen = h2.classList.contains('open');
+        headers.forEach(hh => {
+          hh.classList.remove('open');
+          const b = document.getElementById(hh.dataset.panel);
+          if (b) b.style.display = 'none';
+        });
+        if (!isOpen) {
+          h2.classList.add('open');
+          body.style.display = '';
+        }
+      });
+    });
+  }
+
+  // ---------------------------------------------------------------------------
   // Init tab catatan
   // ---------------------------------------------------------------------------
 
@@ -350,6 +381,7 @@
     await Promise.all([loadRoster(), loadNotes()]);
     initForm();
     initFilter();
+    initCollapseSections();
   }
 
   // ---------------------------------------------------------------------------

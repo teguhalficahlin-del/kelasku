@@ -78,33 +78,37 @@
     <!-- Catatan Siswa -->
     <div id="panel-catatan" style="display:none">
       <div class="panel">
-        <h2>Tulis Catatan</h2>
-        <form id="notes-form">
-          <div style="display:flex;flex-direction:column;gap:.5rem;">
-            <select id="notes-student-select" required>
-              <option value="">— Pilih siswa —</option>
-            </select>
-            <textarea id="notes-content" rows="4" maxlength="1000"
-              placeholder="Tulis catatan tentang siswa ini… (maks. 1000 karakter)" required
-              style="resize:vertical;"></textarea>
-            <div style="display:flex;gap:1rem;font-size:.875rem;flex-wrap:wrap;">
-              <label><input type="checkbox" id="notes-vis-student"> Tampilkan ke siswa</label>
-              <label><input type="checkbox" id="notes-vis-parent"> Tampilkan ke ortu</label>
+        <h2 class="panel-header" data-panel="notes-form-body">Tulis Catatan <span class="panel-collapse-arrow">▼</span></h2>
+        <div class="panel-body-collapse" id="notes-form-body">
+          <form id="notes-form">
+            <div style="display:flex;flex-direction:column;gap:.5rem;">
+              <select id="notes-student-select" required>
+                <option value="">— Pilih siswa —</option>
+              </select>
+              <textarea id="notes-content" rows="4" maxlength="1000"
+                placeholder="Tulis catatan tentang siswa ini… (maks. 1000 karakter)" required
+                style="resize:vertical;"></textarea>
+              <div style="display:flex;gap:1rem;font-size:.875rem;flex-wrap:wrap;">
+                <label><input type="checkbox" id="notes-vis-student"> Tampilkan ke siswa</label>
+                <label><input type="checkbox" id="notes-vis-parent"> Tampilkan ke ortu</label>
+              </div>
+              <button type="submit">Simpan Catatan</button>
             </div>
-            <button type="submit">Simpan Catatan</button>
-          </div>
-        </form>
-        <div id="notes-status" style="display:none;margin-top:.5rem;font-size:.875rem;"></div>
+          </form>
+          <div id="notes-status" style="display:none;margin-top:.5rem;font-size:.875rem;"></div>
+        </div>
       </div>
 
       <div class="panel">
-        <h2>Riwayat Catatan</h2>
-        <div style="margin-bottom:.75rem;">
-          <select id="notes-filter-student">
-            <option value="">Semua siswa</option>
-          </select>
+        <h2 class="panel-header" data-panel="notes-list-body">Riwayat Catatan <span class="panel-collapse-arrow">▼</span></h2>
+        <div class="panel-body-collapse" id="notes-list-body">
+          <div style="margin-bottom:.75rem;">
+            <select id="notes-filter-student">
+              <option value="">Semua siswa</option>
+            </select>
+          </div>
+          <div id="notes-list"></div>
         </div>
-        <div id="notes-list"></div>
       </div>
     </div><!-- /panel-catatan -->
 
