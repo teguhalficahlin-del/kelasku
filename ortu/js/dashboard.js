@@ -231,7 +231,7 @@ function renderCard(classroom, guruName, siswaNama, schedules, linkedStudentId) 
     '</div>' +
     '<div class="card-subject">'   + escHtml(classroom.subject ?? '')    + '</div>' +
     '<div class="card-teacher">Guru: '          + escHtml(guruName)      + '</div>' +
-    '<div class="card-student">Siswa dipantau: ' + escHtml(siswaNama)    + '</div>';
+    '<div class="card-student">Siswa: ' + escHtml(siswaNama)             + '</div>';
   card.appendChild(renderScheduleSection(schedules));
   if (linkedStudentId) card.appendChild(renderChildAttendanceSection(classroom.id, linkedStudentId, siswaNama));
   return card;
@@ -256,7 +256,7 @@ async function init() {
     return;
   }
 
-  document.getElementById('ortu-name').textContent = profile.full_name;
+  document.getElementById('ortu-name').textContent = session.user.user_metadata?.nama || profile.full_name;
 
   const list = document.getElementById('classroom-list');
 
