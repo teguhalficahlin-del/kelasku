@@ -1604,6 +1604,107 @@ h2.panel-header.open .panel-collapse-arrow {
 }
 .share-box button { align-self: flex-end; }
 
+/* ── Assessment modal — dark theme inputs, controls, tombol ── */
+#assessment-modal .modal-body label {
+  display: block;
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-semibold);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: .375rem;
+}
+#assessment-modal .modal-body input[type="text"],
+#assessment-modal .modal-body input[type="number"],
+#assessment-modal .modal-body select,
+#assessment-modal .modal-body textarea {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  padding: var(--input-py) var(--input-px);
+  font-size: var(--fs-body);
+  font-family: inherit;
+  border: 1.5px solid var(--input-border);
+  border-radius: var(--input-r);
+  background: var(--input-bg);
+  color: var(--text-primary);
+  margin-bottom: .875rem;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+#assessment-modal .modal-body select {
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+#assessment-modal .modal-body textarea {
+  resize: vertical;
+  min-height: 90px;
+  line-height: 1.5;
+}
+#assessment-modal .modal-body input[type="text"]:focus,
+#assessment-modal .modal-body input[type="number"]:focus,
+#assessment-modal .modal-body select:focus,
+#assessment-modal .modal-body textarea:focus {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px var(--gold-muted);
+  background: var(--bg-surface);
+}
+#assessment-modal .modal-body input[type="checkbox"] {
+  accent-color: var(--gold);
+  width: 1rem;
+  height: 1rem;
+  cursor: pointer;
+  margin-right: .375rem;
+  vertical-align: middle;
+}
+#assessment-modal .modal-body label.checkbox-label {
+  display: flex;
+  align-items: center;
+  font-size: var(--fs-ui);
+  font-weight: var(--fw-regular);
+  color: var(--text-secondary);
+  text-transform: none;
+  letter-spacing: normal;
+  cursor: pointer;
+  margin-bottom: .5rem;
+}
+#assessment-modal .modal-cancel {
+  background: transparent;
+  color: var(--gold);
+  border: 1.5px solid var(--gold-border);
+  padding: 0 var(--btn-px);
+  min-height: var(--btn-h);
+  border-radius: var(--btn-r);
+  font-size: var(--fs-ui);
+  font-weight: var(--fw-medium);
+  font-family: inherit;
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition);
+}
+#assessment-modal .modal-cancel:hover {
+  background: var(--gold-muted);
+  border-color: var(--gold);
+}
+#assessment-modal .modal-save {
+  background: var(--gold);
+  color: var(--text-on-gold);
+  border: none;
+  padding: 0 var(--btn-px);
+  min-height: var(--btn-h);
+  border-radius: var(--btn-r);
+  font-size: var(--fs-ui);
+  font-weight: var(--fw-semibold);
+  font-family: inherit;
+  cursor: pointer;
+  transition: opacity var(--transition);
+}
+#assessment-modal .modal-save:hover { opacity: .88; }
+#assessment-modal .modal-save:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+}
+
 /* ═══════════════════════════════════════════════════════
    DASHBOARD PAGE — dipindah dari guru/dashboard.html
    ═══════════════════════════════════════════════════════ */
