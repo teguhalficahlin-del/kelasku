@@ -5,13 +5,13 @@
   let classroomId = null;
   let teacherId   = null;
   let _roster     = [];
-  let _items      = [];   // assessment_items
-  let _grades     = [];   // student_grades
+  let _items      = [];
+  let _grades     = [];
   let _loaded     = false;
   let _year       = '';
   let _semester   = 1;
 
-  const YEAR_RE = /^\d{4}\/\d{4}$/;
+  const YEAR_RE   = /^\d{4}\/\d{4}$/;
   const TIPE_LIST = ['CP','TP','KKTP','NILAI','LAINNYA'];
 
   function esc(s) {
@@ -29,21 +29,20 @@
   // -----------------------------------------------------------------------
 
   async function loadItems() {
-    const listEl = document.getElementById('penilaian-items-list');
-    if (listEl) listEl.innerHTML = '<p class="empty-state">Memuat…</p>';
     const { data, error } = await client
       .from('assessment_items')
-      .select('id, judul, tipe, konten, urutan, is_visible_siswa, is_visible_ortu')
+      .select('id, judul, tipe, konten, urutan, parent_id, is_visible_siswa, is_visible_ortu')
       .eq('classroom_id', classroomId)
       .eq('academic_year', _year)
       .eq('semester', _semester)
       .order('urutan').order('judul');
     if (error) {
-      if (listEl) listEl.innerHTML = '<p class="empty-state">Gagal memuat: ' + esc(error.message) + '</p>';
+      const listEl = document.getElementById('penilaian-items-list');
+      if (listEl) listEl.innerHTML = '<p class="empty-state">Gagal memuat item: ' + esc(error.message) + '</p>';
+      _items = [];
       return;
     }
     _items = data || [];
-    renderItems();
   }
 
   async function saveItem(payload) {
@@ -51,7 +50,7 @@
       .from('assessment_items')
       .insert({ ...payload, classroom_id: classroomId, teacher_id: teacherId,
                 academic_year: _year, semester: _semester })
-      .select('id, judul, tipe, konten, urutan, is_visible_siswa, is_visible_ortu')
+      .select('id, judul, tipe, konten, urutan, parent_id, is_visible_siswa, is_visible_ortu')
       .single();
     if (error) throw error;
     return data;
@@ -72,21 +71,20 @@
   // -----------------------------------------------------------------------
 
   async function loadGrades() {
-    const listEl = document.getElementById('penilaian-grades-list');
-    if (listEl) listEl.innerHTML = '<p class="empty-state">Memuat…</p>';
     const { data, error } = await client
       .from('student_grades')
-      .select('id, student_id, judul, nilai_angka, deskripsi, is_published')
+      .select('id, student_id, judul, nilai_angka, deskripsi, is_published, assessment_item_id, tanggal_penilaian, tipe_penilaian, bobot')
       .eq('classroom_id', classroomId)
       .eq('academic_year', _year)
       .eq('semester', _semester)
       .order('judul').order('student_id');
     if (error) {
-      if (listEl) listEl.innerHTML = '<p class="empty-state">Gagal memuat: ' + esc(error.message) + '</p>';
+      const listEl = document.getElementById('penilaian-grades-list');
+      if (listEl) listEl.innerHTML = '<p class="empty-state">Gagal memuat nilai: ' + esc(error.message) + '</p>';
+      _grades = [];
       return;
     }
     _grades = data || [];
-    renderGrades();
   }
 
   async function saveGrade(payload) {
@@ -94,7 +92,7 @@
       .from('student_grades')
       .insert({ ...payload, classroom_id: classroomId, teacher_id: teacherId,
                 academic_year: _year, semester: _semester })
-      .select('id, student_id, judul, nilai_angka, deskripsi, is_published')
+      .select('id, student_id, judul, nilai_angka, deskripsi, is_published, assessment_item_id, tanggal_penilaian, tipe_penilaian, bobot')
       .single();
     if (error) throw error;
     return data;
@@ -137,8 +135,118 @@
   }
 
   // -----------------------------------------------------------------------
-  // Render — assessment_items
+  // TP helper — untuk dropdown
   // -----------------------------------------------------------------------
+
+  function tpItems() {
+    return _items.filter(i => i.tipe === 'TP' && !i.parent_id);
+  }
+
+  function tpSelectOpts(selectedId) {
+    return '<option value="">— Nilai bebas (tidak terikat TP) —</option>' +
+      tpItems().map(tp =>
+        `<option value="${esc(tp.id)}"${tp.id === selectedId ? ' selected' : ''}>${esc(tp.judul)}</option>`
+      ).join('');
+  }
+
+  function parentTpSelectOpts(selectedId) {
+    return '<option value="">— Tidak ada (item mandiri) —</option>' +
+      tpItems().map(tp =>
+        `<option value="${esc(tp.id)}"${tp.id === selectedId ? ' selected' : ''}>${esc(tp.judul)}</option>`
+      ).join('');
+  }
+
+  // -----------------------------------------------------------------------
+  // Load + Render — terpadu
+  // -----------------------------------------------------------------------
+
+  async function loadAndRender() {
+    const listEl = document.getElementById('penilaian-items-list');
+    if (listEl) listEl.innerHTML = '<p class="empty-state">Memuat…</p>';
+    await Promise.all([loadItems(), loadGrades()]);
+    renderAll();
+  }
+
+  function renderAll() {
+    renderItems();
+    renderFreeGrades();
+  }
+
+  // -----------------------------------------------------------------------
+  // Render — accordion hierarkis
+  // -----------------------------------------------------------------------
+
+  function gradeRow(g) {
+    return `<tr data-id="${esc(g.id)}">
+      <td>${esc(rosterName(g.student_id))}</td>
+      <td>${g.nilai_angka != null ? esc(g.nilai_angka) : '—'}</td>
+      <td>${g.tipe_penilaian ? esc(g.tipe_penilaian) : '—'}</td>
+      <td>${g.tanggal_penilaian ? esc(g.tanggal_penilaian) : '—'}</td>
+      <td class="sg-desc">${g.deskripsi ? esc(g.deskripsi) : '—'}</td>
+      <td class="sg-actions">
+        <button class="btn-sm btn-sg-edit" data-id="${esc(g.id)}">Edit</button>
+        <button class="btn-sm btn-danger btn-sg-delete" data-id="${esc(g.id)}">Hapus</button>
+      </td>
+    </tr>`;
+  }
+
+  function renderItemAccordion(item, isChild) {
+    const children   = isChild ? [] : _items.filter(i => i.parent_id === item.id);
+    const itemGrades = item.tipe === 'TP'
+      ? _grades.filter(g => g.assessment_item_id === item.id)
+      : [];
+
+    const visBadges = [
+      item.is_visible_siswa ? '<span class="badge-vis">Siswa ✓</span>' : '',
+      item.is_visible_ortu  ? '<span class="badge-vis">Ortu ✓</span>'  : '',
+    ].filter(Boolean).join(' ');
+
+    const kontenHtml = item.konten
+      ? `<p class="pai-konten-body">${esc(item.konten)}</p>`
+      : '';
+
+    const childrenHtml = children.length
+      ? `<div class="pai-children">${children.map(c => renderItemAccordion(c, true)).join('')}</div>`
+      : '';
+
+    let gradesSubHtml = '';
+    if (item.tipe === 'TP') {
+      const gradesBodyHtml = itemGrades.length
+        ? `<div class="sg-table-wrap"><table class="sg-table">
+            <thead><tr>
+              <th>Nama Siswa</th><th>Nilai</th><th>Tipe</th><th>Tanggal</th><th>Deskripsi</th><th>Aksi</th>
+            </tr></thead>
+            <tbody>${itemGrades.map(gradeRow).join('')}</tbody>
+          </table></div>`
+        : `<p class="empty-state" style="font-size:var(--fs-caption);padding:var(--space-xs) 0;">Belum ada nilai untuk TP ini.</p>`;
+      gradesSubHtml = `
+        <div class="pai-grades-sub">
+          <div class="pai-grades-sub-title">Nilai Siswa</div>
+          ${gradesBodyHtml}
+          <button class="btn-sm btn-sg-add-for-tp" data-item-id="${esc(item.id)}"
+            style="margin-top:var(--space-xs);">+ Tambah Nilai</button>
+        </div>`;
+    }
+
+    const hasBody = kontenHtml || childrenHtml || gradesSubHtml;
+
+    return `
+      <div class="pai-accordion-item${isChild ? ' pai-accordion-child' : ''}" data-id="${esc(item.id)}">
+        <div class="pai-accordion-header">
+          <div class="pai-accordion-summary">
+            <span class="badge-tipe ${tipeBadgeClass(item.tipe)}">${esc(item.tipe)}</span>
+            <span class="pai-accordion-title">${esc(item.judul)}</span>
+            ${visBadges}
+          </div>
+          <div class="pai-accordion-actions">
+            <button class="btn-sm btn-pai-edit" data-id="${esc(item.id)}">Edit</button>
+            <button class="btn-sm btn-danger btn-pai-delete" data-id="${esc(item.id)}">Hapus</button>
+            ${hasBody ? '<span class="pai-chevron" aria-hidden="true">▼</span>' : ''}
+          </div>
+        </div>
+        ${hasBody ? `<div class="pai-accordion-body" style="display:none;">${kontenHtml}${childrenHtml}${gradesSubHtml}</div>` : ''}
+      </div>`;
+  }
 
   function renderItems() {
     const listEl = document.getElementById('penilaian-items-list');
@@ -146,69 +254,45 @@
     if (!listEl) return;
     if (addBtn) addBtn.style.display = '';
 
-    if (_items.length === 0) {
+    const rootItems = _items.filter(i => !i.parent_id);
+    if (rootItems.length === 0) {
       listEl.innerHTML = '<p class="empty-state">Belum ada item penilaian untuk filter ini.</p>';
       return;
     }
-
-    listEl.innerHTML = _items.map(item => {
-      const visBadges = [
-        item.is_visible_siswa ? '<span class="badge-vis">Siswa ✓</span>' : '',
-        item.is_visible_ortu  ? '<span class="badge-vis">Ortu ✓</span>'  : '',
-      ].filter(Boolean).join(' ');
-      return `
-      <div class="pai-card card-row" data-id="${esc(item.id)}">
-        <div class="card-row-info">
-          <span class="card-name">${esc(item.judul)}</span>
-          <span class="badge-tipe ${tipeBadgeClass(item.tipe)}">${esc(item.tipe)}</span>
-          ${visBadges}
-          ${item.urutan != null ? `<span class="cl-label">Urutan ${esc(item.urutan)}</span>` : ''}
-        </div>
-        ${item.konten ? `<p class="pai-konten">${esc(item.konten)}</p>` : ''}
-        <div class="card-row-actions">
-          <button class="btn-sm btn-pai-edit" data-id="${esc(item.id)}">Edit</button>
-          <button class="btn-sm btn-danger btn-pai-delete" data-id="${esc(item.id)}">Hapus</button>
-        </div>
-      </div>`;
-    }).join('');
+    listEl.innerHTML = rootItems.map(item => renderItemAccordion(item, false)).join('');
   }
 
-  // -----------------------------------------------------------------------
-  // Render — student_grades
-  // -----------------------------------------------------------------------
-
-  function renderGrades() {
+  function renderFreeGrades() {
     const listEl = document.getElementById('penilaian-grades-list');
     const addBtn = document.getElementById('btn-sg-add');
     if (!listEl) return;
     if (addBtn) addBtn.style.display = '';
 
-    if (_grades.length === 0) {
-      listEl.innerHTML = '<p class="empty-state">Belum ada data nilai untuk filter ini.</p>';
-      return;
-    }
+    const freeGrades = _grades.filter(g => !g.assessment_item_id);
+    const tableHtml = freeGrades.length
+      ? `<div class="sg-table-wrap"><table class="sg-table">
+          <thead><tr>
+            <th>Nama Siswa</th><th>Judul</th><th>Nilai</th><th>Tipe</th>
+            <th>Tanggal</th><th>Deskripsi</th><th>Published</th><th>Aksi</th>
+          </tr></thead>
+          <tbody>${freeGrades.map(g => `
+            <tr data-id="${esc(g.id)}">
+              <td>${esc(rosterName(g.student_id))}</td>
+              <td>${esc(g.judul)}</td>
+              <td>${g.nilai_angka != null ? esc(g.nilai_angka) : '—'}</td>
+              <td>${g.tipe_penilaian ? esc(g.tipe_penilaian) : '—'}</td>
+              <td>${g.tanggal_penilaian ? esc(g.tanggal_penilaian) : '—'}</td>
+              <td class="sg-desc">${g.deskripsi ? esc(g.deskripsi) : '—'}</td>
+              <td><span class="${g.is_published ? 'badge-aktif' : 'badge-nonaktif'}">${g.is_published ? 'Ya' : 'Tidak'}</span></td>
+              <td class="sg-actions">
+                <button class="btn-sm btn-sg-edit" data-id="${esc(g.id)}">Edit</button>
+                <button class="btn-sm btn-danger btn-sg-delete" data-id="${esc(g.id)}">Hapus</button>
+              </td>
+            </tr>`).join('')}</tbody>
+        </table></div>`
+      : '<p class="empty-state" style="font-size:var(--fs-caption);">Belum ada nilai bebas untuk filter ini.</p>';
 
-    listEl.innerHTML =
-      `<div class="sg-table-wrap"><table class="sg-table">
-        <thead><tr>
-          <th>Nama Siswa</th><th>Judul Penilaian</th>
-          <th>Nilai</th><th>Deskripsi</th><th>Published</th><th>Aksi</th>
-        </tr></thead>
-        <tbody>` +
-      _grades.map(g => `
-        <tr data-id="${esc(g.id)}">
-          <td>${esc(rosterName(g.student_id))}</td>
-          <td>${esc(g.judul)}</td>
-          <td>${g.nilai_angka != null ? esc(g.nilai_angka) : '—'}</td>
-          <td class="sg-desc">${g.deskripsi ? esc(g.deskripsi) : '—'}</td>
-          <td><span class="${g.is_published ? 'badge-aktif' : 'badge-nonaktif'}">${g.is_published ? 'Ya' : 'Tidak'}</span></td>
-          <td class="sg-actions">
-            <button class="btn-sm btn-sg-edit" data-id="${esc(g.id)}">Edit</button>
-            <button class="btn-sm btn-danger btn-sg-delete" data-id="${esc(g.id)}">Hapus</button>
-          </td>
-        </tr>`
-      ).join('') +
-      `</tbody></table></div>`;
+    listEl.innerHTML = tableHtml;
   }
 
   // -----------------------------------------------------------------------
@@ -242,10 +326,7 @@
     const saveBtn  = box.querySelector('.modal-save');
     const cancelBtn = box.querySelector('.modal-cancel');
 
-    function close() {
-      overlay.remove();
-      document.removeEventListener('keydown', onEsc);
-    }
+    function close() { overlay.remove(); document.removeEventListener('keydown', onEsc); }
     function onEsc(e) { if (e.key === 'Escape') close(); }
     document.addEventListener('keydown', onEsc);
     overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
@@ -273,9 +354,11 @@
   // -----------------------------------------------------------------------
 
   function itemFormHtml(item) {
-    const tipeOpts = TIPE_LIST.map(t =>
+    const tipeOpts   = TIPE_LIST.map(t =>
       `<option value="${t}"${item && item.tipe === t ? ' selected' : ''}>${t}</option>`
     ).join('');
+    const parentOpts = parentTpSelectOpts(item ? item.parent_id : null);
+
     return `
       <div style="display:flex;flex-direction:column;gap:var(--space-sm);">
         <label style="font-size:var(--fs-caption);color:var(--text-secondary);">Judul *
@@ -286,7 +369,13 @@
         <label style="font-size:var(--fs-caption);color:var(--text-secondary);">Tipe
           <select id="pai-f-tipe" style="display:block;width:100%;margin-top:4px;">${tipeOpts}</select>
         </label>
-        <label style="font-size:var(--fs-caption);color:var(--text-secondary);">Konten (opsional)
+        <label style="font-size:var(--fs-caption);color:var(--text-secondary);">Parent TP <span class="opsional">(opsional)</span>
+          <select id="pai-f-parent" style="display:block;width:100%;margin-top:4px;">${parentOpts}</select>
+        </label>
+        <div id="pai-f-parent-warn" style="display:none;color:var(--warning);font-size:var(--fs-caption);">
+          ⚠ Parent biasanya hanya untuk tipe KKTP.
+        </div>
+        <label style="font-size:var(--fs-caption);color:var(--text-secondary);">Konten <span class="opsional">(opsional)</span>
           <textarea id="pai-f-konten" rows="3" maxlength="2000"
             placeholder="Isi teks bebas…"
             style="display:block;width:100%;margin-top:4px;resize:vertical;">${item ? esc(item.konten || '') : ''}</textarea>
@@ -309,14 +398,16 @@
       isEdit ? 'Edit Item Penilaian' : 'Tambah Item Penilaian',
       itemFormHtml(item),
       async (b, errEl) => {
-        const judul   = b.querySelector('#pai-f-judul').value.trim();
-        const tipe    = b.querySelector('#pai-f-tipe').value;
-        const konten  = b.querySelector('#pai-f-konten').value.trim() || null;
-        const urutan  = parseInt(b.querySelector('#pai-f-urutan').value, 10) || 1;
-        const visS    = b.querySelector('#pai-f-vis-siswa').checked;
-        const visO    = b.querySelector('#pai-f-vis-ortu').checked;
+        const judul    = b.querySelector('#pai-f-judul').value.trim();
+        const tipe     = b.querySelector('#pai-f-tipe').value;
+        const parentId = b.querySelector('#pai-f-parent').value || null;
+        const konten   = b.querySelector('#pai-f-konten').value.trim() || null;
+        const urutan   = parseInt(b.querySelector('#pai-f-urutan').value, 10) || 1;
+        const visS     = b.querySelector('#pai-f-vis-siswa').checked;
+        const visO     = b.querySelector('#pai-f-vis-ortu').checked;
         if (!judul) { errEl.textContent = 'Judul tidak boleh kosong.'; throw new Error(''); }
-        const payload = { judul, tipe, konten, urutan, is_visible_siswa: visS, is_visible_ortu: visO };
+        const payload = { judul, tipe, parent_id: parentId, konten, urutan,
+                          is_visible_siswa: visS, is_visible_ortu: visO };
         if (isEdit) {
           await updateItem(item.id, payload);
           const idx = _items.findIndex(i => i.id === item.id);
@@ -325,9 +416,22 @@
           const newItem = await saveItem(payload);
           _items.push(newItem);
         }
-        renderItems();
+        renderAll();
       }
     );
+
+    const parentSel = box.querySelector('#pai-f-parent');
+    const tipeEl    = box.querySelector('#pai-f-tipe');
+    const warnEl    = box.querySelector('#pai-f-parent-warn');
+    function checkWarn() {
+      const hasParent = parentSel && parentSel.value;
+      const notKktp   = tipeEl && tipeEl.value !== 'KKTP';
+      if (warnEl) warnEl.style.display = hasParent && notKktp ? '' : 'none';
+    }
+    if (parentSel) parentSel.addEventListener('change', checkWarn);
+    if (tipeEl)    tipeEl.addEventListener('change', checkWarn);
+    checkWarn();
+
     setTimeout(() => box.querySelector('#pai-f-judul')?.focus(), 50);
   }
 
@@ -335,29 +439,49 @@
   // Form — student_grades
   // -----------------------------------------------------------------------
 
-  function gradeFormHtml(grade) {
+  function gradeFormHtml(grade, preselectedItemId) {
+    const today  = new Date().toISOString().split('T')[0];
+    const tpOpts = tpSelectOpts(grade ? grade.assessment_item_id : (preselectedItemId || null));
+
     return `
       <div style="display:flex;flex-direction:column;gap:var(--space-sm);">
         <label style="font-size:var(--fs-caption);color:var(--text-secondary);">Siswa *
-          <select id="sg-f-student" style="display:block;width:100%;margin-top:4px;"
-            ${grade ? 'disabled' : ''}>
+          <select id="sg-f-student" style="display:block;width:100%;margin-top:4px;" ${grade ? 'disabled' : ''}>
             <option value="">— Pilih siswa —</option>
             ${rosterSelectOpts(grade ? grade.student_id : '')}
           </select>
+        </label>
+        <label style="font-size:var(--fs-caption);color:var(--text-secondary);">Tautkan ke TP <span class="opsional">(opsional)</span>
+          <select id="sg-f-tp" style="display:block;width:100%;margin-top:4px;">${tpOpts}</select>
         </label>
         <label style="font-size:var(--fs-caption);color:var(--text-secondary);">Judul Penilaian *
           <input type="text" id="sg-f-judul" value="${grade ? esc(grade.judul) : ''}"
             placeholder="cth: UTS, TP1, Proyek" maxlength="200"
             style="display:block;width:100%;margin-top:4px;">
         </label>
-        <label style="font-size:var(--fs-caption);color:var(--text-secondary);">Nilai (0–100)
+        <label style="font-size:var(--fs-caption);color:var(--text-secondary);">Nilai (0–100) <span class="opsional">(opsional)</span>
           <input type="number" id="sg-f-nilai" min="0" max="100" step="0.01"
             value="${grade && grade.nilai_angka != null ? esc(grade.nilai_angka) : ''}"
-            placeholder="Opsional"
+            placeholder="Opsional" style="display:block;width:100%;margin-top:4px;">
+        </label>
+        <label style="font-size:var(--fs-caption);color:var(--text-secondary);">Tanggal Penilaian <span class="opsional">(opsional)</span>
+          <input type="date" id="sg-f-tanggal"
+            value="${grade && grade.tanggal_penilaian ? esc(grade.tanggal_penilaian) : today}"
             style="display:block;width:100%;margin-top:4px;">
         </label>
-        <label style="font-size:var(--fs-caption);color:var(--text-secondary);">Deskripsi (opsional)
-          <textarea id="sg-f-deskripsi" rows="3" maxlength="1000"
+        <label style="font-size:var(--fs-caption);color:var(--text-secondary);">Tipe Penilaian <span class="opsional">(opsional)</span>
+          <input type="text" id="sg-f-tipe-penilaian"
+            value="${grade && grade.tipe_penilaian ? esc(grade.tipe_penilaian) : ''}"
+            placeholder="cth: Formatif, Sumatif, Proyek" maxlength="100"
+            style="display:block;width:100%;margin-top:4px;">
+        </label>
+        <label style="font-size:var(--fs-caption);color:var(--text-secondary);">Bobot (0–100) <span class="opsional">(opsional)</span>
+          <input type="number" id="sg-f-bobot" min="0" max="100" step="0.01"
+            value="${grade && grade.bobot != null ? esc(grade.bobot) : ''}"
+            placeholder="0–100" style="display:block;width:100%;margin-top:4px;">
+        </label>
+        <label style="font-size:var(--fs-caption);color:var(--text-secondary);">Deskripsi <span class="opsional">(opsional)</span>
+          <textarea id="sg-f-deskripsi" rows="2" maxlength="1000"
             placeholder="Catatan naratif…"
             style="display:block;width:100%;margin-top:4px;resize:vertical;">${grade && grade.deskripsi ? esc(grade.deskripsi) : ''}</textarea>
         </label>
@@ -368,17 +492,21 @@
       </div>`;
   }
 
-  function openGradeForm(grade) {
+  function openGradeForm(grade, preselectedItemId) {
     const isEdit = !!grade;
     openModal(
       isEdit ? 'Edit Nilai Siswa' : 'Tambah Nilai Siswa',
-      gradeFormHtml(grade),
+      gradeFormHtml(grade, preselectedItemId),
       async (b, errEl) => {
-        const studentId  = isEdit ? grade.student_id : b.querySelector('#sg-f-student').value;
-        const judul      = b.querySelector('#sg-f-judul').value.trim();
-        const nilaiRaw   = b.querySelector('#sg-f-nilai').value.trim();
-        const deskripsi  = b.querySelector('#sg-f-deskripsi').value.trim() || null;
-        const published  = b.querySelector('#sg-f-published').checked;
+        const studentId     = isEdit ? grade.student_id : b.querySelector('#sg-f-student').value;
+        const tpId          = b.querySelector('#sg-f-tp')?.value || null;
+        const judul         = b.querySelector('#sg-f-judul').value.trim();
+        const nilaiRaw      = b.querySelector('#sg-f-nilai').value.trim();
+        const tanggalRaw    = b.querySelector('#sg-f-tanggal').value.trim();
+        const tipePenilaian = b.querySelector('#sg-f-tipe-penilaian').value.trim() || null;
+        const bobotRaw      = b.querySelector('#sg-f-bobot').value.trim();
+        const deskripsi     = b.querySelector('#sg-f-deskripsi').value.trim() || null;
+        const published     = b.querySelector('#sg-f-published').checked;
 
         if (!studentId) { errEl.textContent = 'Pilih siswa terlebih dahulu.'; throw new Error(''); }
         if (!judul)     { errEl.textContent = 'Judul penilaian tidak boleh kosong.'; throw new Error(''); }
@@ -387,21 +515,35 @@
         if (nilaiRaw !== '') {
           nilai_angka = parseFloat(nilaiRaw);
           if (isNaN(nilai_angka) || nilai_angka < 0 || nilai_angka > 100) {
-            errEl.textContent = 'Nilai harus antara 0 dan 100.';
-            throw new Error('');
+            errEl.textContent = 'Nilai harus antara 0 dan 100.'; throw new Error('');
           }
         }
 
-        const payload = { student_id: studentId, judul, nilai_angka, deskripsi, is_published: published };
+        let bobot = null;
+        if (bobotRaw !== '') {
+          bobot = parseFloat(bobotRaw);
+          if (isNaN(bobot) || bobot < 0 || bobot > 100) {
+            errEl.textContent = 'Bobot harus antara 0 dan 100.'; throw new Error('');
+          }
+        }
+
+        const changedFields = {
+          judul, nilai_angka, deskripsi, is_published: published,
+          assessment_item_id: tpId || null,
+          tanggal_penilaian: tanggalRaw || null,
+          tipe_penilaian: tipePenilaian,
+          bobot
+        };
+
         if (isEdit) {
-          await updateGrade(grade.id, { judul, nilai_angka, deskripsi, is_published: published });
-          const idx = _grades.findIndex(g => g.id === grade.id);
-          if (idx !== -1) _grades[idx] = { ..._grades[idx], judul, nilai_angka, deskripsi, is_published: published };
+          await updateGrade(grade.id, changedFields);
+          const idx = _grades.findIndex(gr => gr.id === grade.id);
+          if (idx !== -1) _grades[idx] = { ..._grades[idx], ...changedFields };
         } else {
-          const newGrade = await saveGrade(payload);
+          const newGrade = await saveGrade({ student_id: studentId, ...changedFields });
           _grades.push(newGrade);
         }
-        renderGrades();
+        renderAll();
       }
     );
   }
@@ -411,11 +553,11 @@
   // -----------------------------------------------------------------------
 
   async function confirmDeleteItem(id) {
-    if (!window.confirm('Hapus item penilaian ini? Tindakan ini tidak bisa dibatalkan.')) return;
+    if (!window.confirm('Hapus item penilaian ini? KKTP di bawahnya akan ikut terhapus.')) return;
     try {
       await deleteItem(id);
-      _items = _items.filter(i => i.id !== id);
-      renderItems();
+      _items = _items.filter(i => i.id !== id && i.parent_id !== id);
+      renderAll();
     } catch (err) {
       alert('Gagal hapus: ' + (err.message || 'Error tidak diketahui.'));
     }
@@ -426,14 +568,14 @@
     try {
       await deleteGrade(id);
       _grades = _grades.filter(g => g.id !== id);
-      renderGrades();
+      renderAll();
     } catch (err) {
       alert('Gagal hapus: ' + (err.message || 'Error tidak diketahui.'));
     }
   }
 
   // -----------------------------------------------------------------------
-  // Collapse (pola identik dengan classroom-notes.js)
+  // Collapse — panel sections (pola identik dengan classroom-notes.js)
   // -----------------------------------------------------------------------
 
   function initCollapse() {
@@ -464,18 +606,16 @@
   }
 
   // -----------------------------------------------------------------------
-  // Filter row
+  // Filter
   // -----------------------------------------------------------------------
 
   function initFilter() {
     const yearInp = document.getElementById('pai-year');
     const semSel  = document.getElementById('pai-semester');
 
-    // Hapus tombol Tampilkan dari DOM — diganti auto-load
     const btn = document.getElementById('btn-pai-filter');
     if (btn) btn.remove();
 
-    // Buat error element inline, sisipkan setelah filter row
     const filterRow = document.getElementById('penilaian-filter-row');
     let errEl = document.getElementById('pai-filter-error');
     if (!errEl && filterRow) {
@@ -485,18 +625,15 @@
       filterRow.insertAdjacentElement('afterend', errEl);
     }
 
-    // Set defaults
     const now = new Date();
     const y   = now.getFullYear();
-    const defaultYear = (now.getMonth() >= 6)
-      ? `${y}/${y+1}`
-      : `${y-1}/${y}`;
+    const defaultYear = (now.getMonth() >= 6) ? `${y}/${y+1}` : `${y-1}/${y}`;
     if (yearInp) yearInp.value = defaultYear;
     _year     = defaultYear;
     _semester = now.getMonth() >= 6 ? 1 : 2;
     if (semSel) semSel.value = String(_semester);
 
-    function applyFilter() {
+    async function applyFilter() {
       const yv = yearInp ? yearInp.value.trim() : '';
       const sv = semSel  ? parseInt(semSel.value, 10) : 1;
       if (!YEAR_RE.test(yv)) {
@@ -506,7 +643,7 @@
       if (errEl) errEl.textContent = '';
       _year     = yv;
       _semester = sv;
-      Promise.all([loadItems(), loadGrades()]);
+      await loadAndRender();
     }
 
     if (yearInp) {
@@ -521,41 +658,59 @@
   // -----------------------------------------------------------------------
 
   function initDelegation() {
-    const itemsList  = document.getElementById('penilaian-items-list');
-    const gradesList = document.getElementById('penilaian-grades-list');
-    const addItemBtn = document.getElementById('btn-pai-add');
+    const itemsList   = document.getElementById('penilaian-items-list');
+    const gradesList  = document.getElementById('penilaian-grades-list');
+    const addItemBtn  = document.getElementById('btn-pai-add');
     const addGradeBtn = document.getElementById('btn-sg-add');
 
-    if (addItemBtn) {
-      addItemBtn.addEventListener('click', () => openItemForm(null));
-    }
-    if (addGradeBtn) {
-      addGradeBtn.addEventListener('click', () => openGradeForm(null));
-    }
+    if (addItemBtn)  addItemBtn.addEventListener('click', () => openItemForm(null));
+    if (addGradeBtn) addGradeBtn.addEventListener('click', () => openGradeForm(null, null));
 
     if (itemsList) {
       itemsList.addEventListener('click', e => {
-        const editBtn   = e.target.closest('.btn-pai-edit');
-        const deleteBtn = e.target.closest('.btn-pai-delete');
-        if (editBtn) {
-          const id = editBtn.dataset.id;
-          const item = _items.find(i => i.id === id);
-          if (item) openItemForm(item);
+        // Accordion toggle — klik header tapi bukan tombol
+        const header = e.target.closest('.pai-accordion-header');
+        if (header && !e.target.closest('button')) {
+          const accordionItem = header.closest('.pai-accordion-item');
+          const body    = accordionItem?.querySelector(':scope > .pai-accordion-body');
+          const chevron = header.querySelector('.pai-chevron');
+          if (body) {
+            const isOpen = body.style.display !== 'none';
+            body.style.display = isOpen ? 'none' : '';
+            if (chevron) chevron.style.transform = isOpen ? '' : 'rotate(180deg)';
+          }
+          return;
         }
-        if (deleteBtn) confirmDeleteItem(deleteBtn.dataset.id);
+
+        const editBtn  = e.target.closest('.btn-pai-edit');
+        const delBtn   = e.target.closest('.btn-pai-delete');
+        const addTpBtn = e.target.closest('.btn-sg-add-for-tp');
+        const sgEdit   = e.target.closest('.btn-sg-edit');
+        const sgDel    = e.target.closest('.btn-sg-delete');
+
+        if (editBtn) {
+          const found = _items.find(i => i.id === editBtn.dataset.id);
+          if (found) openItemForm(found);
+        }
+        if (delBtn)   confirmDeleteItem(delBtn.dataset.id);
+        if (addTpBtn) openGradeForm(null, addTpBtn.dataset.itemId);
+        if (sgEdit) {
+          const found = _grades.find(gr => gr.id === sgEdit.dataset.id);
+          if (found) openGradeForm(found, null);
+        }
+        if (sgDel) confirmDeleteGrade(sgDel.dataset.id);
       });
     }
 
     if (gradesList) {
       gradesList.addEventListener('click', e => {
-        const editBtn   = e.target.closest('.btn-sg-edit');
-        const deleteBtn = e.target.closest('.btn-sg-delete');
-        if (editBtn) {
-          const id = editBtn.dataset.id;
-          const grade = _grades.find(g => g.id === id);
-          if (grade) openGradeForm(grade);
+        const sgEdit = e.target.closest('.btn-sg-edit');
+        const sgDel  = e.target.closest('.btn-sg-delete');
+        if (sgEdit) {
+          const found = _grades.find(gr => gr.id === sgEdit.dataset.id);
+          if (found) openGradeForm(found, null);
         }
-        if (deleteBtn) confirmDeleteGrade(deleteBtn.dataset.id);
+        if (sgDel) confirmDeleteGrade(sgDel.dataset.id);
       });
     }
   }
@@ -567,8 +722,9 @@
   async function initAssessmentTab(cId, tId) {
     classroomId = cId;
     teacherId   = tId;
-    initFilter();    // set _year + _semester defaults sebelum query
+    initFilter();
     await Promise.all([loadRoster(), loadItems(), loadGrades()]);
+    renderAll();
     initCollapse();
     initDelegation();
     _loaded = true;
@@ -579,14 +735,14 @@
   // -----------------------------------------------------------------------
 
   window.addEventListener('DOMContentLoaded', async function () {
-    const tabSiswa    = document.getElementById('tab-siswa');
-    const tabJadwal   = document.getElementById('tab-jadwal');
-    const tabCatatan  = document.getElementById('tab-catatan');
+    const tabSiswa     = document.getElementById('tab-siswa');
+    const tabJadwal    = document.getElementById('tab-jadwal');
+    const tabCatatan   = document.getElementById('tab-catatan');
     const tabPenilaian = document.getElementById('tab-penilaian');
 
-    const panelSiswa    = document.getElementById('panel-siswa');
-    const panelJadwal   = document.getElementById('panel-jadwal');
-    const panelCatatan  = document.getElementById('panel-catatan');
+    const panelSiswa     = document.getElementById('panel-siswa');
+    const panelJadwal    = document.getElementById('panel-jadwal');
+    const panelCatatan   = document.getElementById('panel-catatan');
     const panelPenilaian = document.getElementById('panel-penilaian');
 
     if (!tabPenilaian || !panelPenilaian) return;
@@ -604,7 +760,6 @@
       if (cId) try { localStorage.setItem('sip_tab_' + cId, 'penilaian'); } catch (_) {}
 
       if (!_loaded) {
-        // Ambil teacherId dari sesi (classroom-notes.js sudah set, tapi kita mandiri)
         const { data: { session } } = await window.supabaseClient.auth.getSession();
         if (!session) return;
         const _cId = new URLSearchParams(window.location.search).get('id');
@@ -616,7 +771,6 @@
       }
     });
 
-    // Sembunyikan panel penilaian saat tab lain diklik
     [tabSiswa, tabJadwal, tabCatatan].forEach(t => {
       if (!t) return;
       t.addEventListener('click', () => {
@@ -625,7 +779,6 @@
       });
     });
 
-    // Restore tab penilaian dari localStorage
     const cId = new URLSearchParams(window.location.search).get('id');
     if (cId) {
       const savedTab = localStorage.getItem('sip_tab_' + cId);

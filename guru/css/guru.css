@@ -2033,3 +2033,91 @@ h2.panel-header.open .panel-collapse-arrow {
   gap: var(--space-xs);
   white-space: nowrap;
 }
+
+/* ── Assessment accordion — hierarki pai-accordion ── */
+.pai-accordion-item {
+  border: 1px solid var(--border);
+  border-radius: var(--card-r);
+  background: var(--bg-surface);
+  margin-bottom: var(--space-sm);
+  overflow: hidden;
+}
+.pai-accordion-child {
+  background: var(--bg-elevated);
+  border-color: var(--border);
+  margin-left: var(--space-md);
+  margin-top: var(--space-xs);
+  margin-bottom: var(--space-xs);
+}
+.pai-accordion-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--card-p);
+  cursor: pointer;
+  user-select: none;
+  transition: background 150ms;
+}
+.pai-accordion-header:hover { background: var(--gold-muted); }
+.pai-accordion-summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+  flex: 1;
+  min-width: 0;
+}
+.pai-accordion-title {
+  font-size: var(--fs-ui);
+  font-weight: var(--fw-medium);
+  color: var(--text-primary);
+}
+.pai-accordion-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  flex-shrink: 0;
+}
+.pai-chevron {
+  font-size: var(--fs-caption);
+  color: var(--text-muted);
+  display: inline-block;
+  transition: transform 200ms;
+  line-height: 1;
+  min-width: 14px;
+  text-align: center;
+}
+.pai-accordion-body {
+  padding: var(--space-sm) var(--card-p) var(--card-p);
+  border-top: 1px solid var(--border);
+}
+.pai-konten-body {
+  font-size: var(--fs-caption);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-sm);
+  white-space: pre-wrap;
+  line-height: var(--lh-normal);
+}
+.pai-children { margin-bottom: var(--space-sm); }
+.pai-grades-sub {
+  margin-top: var(--space-sm);
+  padding-top: var(--space-sm);
+  border-top: 1px solid var(--border);
+}
+.pai-grades-sub-title {
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-semibold);
+  color: var(--gold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: var(--space-xs);
+}
+.sg-free-title {
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-semibold);
+  color: var(--text-secondary);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: var(--space-xs);
+}
