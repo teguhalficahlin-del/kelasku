@@ -234,7 +234,51 @@ function renderCard(classroom, guruName, siswaNama, schedules, linkedStudentId) 
     '<div class="card-student">Siswa: ' + escHtml(siswaNama)             + '</div>';
   card.appendChild(renderScheduleSection(schedules));
   if (linkedStudentId) card.appendChild(renderChildAttendanceSection(classroom.id, linkedStudentId, siswaNama));
+  if (linkedStudentId) card.appendChild(renderChildNotesSection(classroom.id, linkedStudentId));
   return card;
+}
+
+async function getChildNotes(classroomId, linkedStudentId) {
+  const { data } = await db.from('student_notes')
+    .select('id, content, is_visible_to_student, is_visible_to_parent, created_at')
+    .eq('classroom_id', classroomId)
+    .eq('student_id', linkedStudentId)
+    .eq('is_visible_to_parent', true)
+    .order('created_at', { ascending: false });
+  return data || [];
+}
+
+function renderChildNotesSection(classroomId, linkedStudentId) {
+  const wrap = document.createElement('div');
+  wrap.className = 'notes-section';
+
+  const title = document.createElement('div');
+  title.className = 'sch-section-title';
+  title.textContent = 'Catatan dari Guru';
+  wrap.appendChild(title);
+
+  const body = document.createElement('div');
+  body.innerHTML = '<p class="att-empty">Memuat…</p>';
+  wrap.appendChild(body);
+
+  getChildNotes(classroomId, linkedStudentId).then(rows => {
+    if (rows.length === 0) {
+      body.innerHTML = '<p class="att-empty">Belum ada catatan untuk anak Anda.</p>';
+      return;
+    }
+    const MONTH_ID = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+    body.innerHTML = rows.map(n => {
+      const d = new Date(n.created_at);
+      const tgl = `${d.getDate()} ${MONTH_ID[d.getMonth()]} ${d.getFullYear()}`;
+      const vis = n.is_visible_to_student ? '👨‍👩‍👦 Siswa &amp; Ortu' : '👨‍👩‍👧 Ortu saja';
+      return `<div class="note-item">
+        <div class="note-item-meta">${escHtml(tgl)} · <span style="font-size:.8rem;color:var(--color-text-muted)">${vis}</span></div>
+        <div class="note-item-content">${escHtml(n.content)}</div>
+      </div>`;
+    }).join('');
+  });
+
+  return wrap;
 }
 
 function renderEmpty() {

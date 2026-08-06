@@ -235,7 +235,51 @@ function renderCard(classroom, guruName, namaOrtu, schedules, studentId) {
     '</div>';
   card.appendChild(renderScheduleSection(schedules));
   if (studentId) card.appendChild(renderAttendanceSection(classroom.id, studentId));
+  if (studentId) card.appendChild(renderNotesSection(classroom.id, studentId));
   return card;
+}
+
+async function getMyNotes(classroomId, studentId) {
+  const { data } = await db.from('student_notes')
+    .select('id, content, is_visible_to_student, is_visible_to_parent, created_at')
+    .eq('classroom_id', classroomId)
+    .eq('student_id', studentId)
+    .eq('is_visible_to_student', true)
+    .order('created_at', { ascending: false });
+  return data || [];
+}
+
+function renderNotesSection(classroomId, studentId) {
+  const wrap = document.createElement('div');
+  wrap.className = 'notes-section';
+
+  const title = document.createElement('div');
+  title.className = 'sch-section-title';
+  title.textContent = 'Catatan dari Guru';
+  wrap.appendChild(title);
+
+  const body = document.createElement('div');
+  body.innerHTML = '<p class="att-empty">Memuat…</p>';
+  wrap.appendChild(body);
+
+  getMyNotes(classroomId, studentId).then(rows => {
+    if (rows.length === 0) {
+      body.innerHTML = '<p class="att-empty">Belum ada catatan untukmu.</p>';
+      return;
+    }
+    const MONTH_ID = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+    body.innerHTML = rows.map(n => {
+      const d = new Date(n.created_at);
+      const tgl = `${d.getDate()} ${MONTH_ID[d.getMonth()]} ${d.getFullYear()}`;
+      const vis = n.is_visible_to_parent ? '👨‍👩‍👦 Siswa &amp; Ortu' : '🎓 Siswa saja';
+      return `<div class="note-item">
+        <div class="note-item-meta">${escHtml(tgl)} · <span style="font-size:.8rem;color:var(--color-text-muted)">${vis}</span></div>
+        <div class="note-item-content">${escHtml(n.content)}</div>
+      </div>`;
+    }).join('');
+  });
+
+  return wrap;
 }
 
 function renderEmpty() {

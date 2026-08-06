@@ -27,6 +27,7 @@
     <div class="tab-bar">
       <button class="tab-btn active" id="tab-siswa">Kelola Siswa</button>
       <button class="tab-btn" id="tab-jadwal">Jadwal &amp; Absensi</button>
+      <button class="tab-btn" id="tab-catatan">Catatan</button>
     </div>
 
     <div id="panel-siswa">
@@ -74,6 +75,39 @@
     </section>
     </div><!-- /panel-siswa -->
 
+    <!-- Catatan Siswa -->
+    <div id="panel-catatan" style="display:none">
+      <div class="panel">
+        <h2>Tulis Catatan</h2>
+        <form id="notes-form">
+          <div style="display:flex;flex-direction:column;gap:.5rem;">
+            <select id="notes-student-select" required>
+              <option value="">— Pilih siswa —</option>
+            </select>
+            <textarea id="notes-content" rows="4" maxlength="1000"
+              placeholder="Tulis catatan tentang siswa ini… (maks. 1000 karakter)" required
+              style="resize:vertical;"></textarea>
+            <div style="display:flex;gap:1rem;font-size:.875rem;flex-wrap:wrap;">
+              <label><input type="checkbox" id="notes-vis-student"> Tampilkan ke siswa</label>
+              <label><input type="checkbox" id="notes-vis-parent"> Tampilkan ke ortu</label>
+            </div>
+            <button type="submit">Simpan Catatan</button>
+          </div>
+        </form>
+        <div id="notes-status" style="display:none;margin-top:.5rem;font-size:.875rem;"></div>
+      </div>
+
+      <div class="panel">
+        <h2>Riwayat Catatan</h2>
+        <div style="margin-bottom:.75rem;">
+          <select id="notes-filter-student">
+            <option value="">Semua siswa</option>
+          </select>
+        </div>
+        <div id="notes-list"></div>
+      </div>
+    </div><!-- /panel-catatan -->
+
     <!-- Jadwal & Absensi -->
     <div id="panel-jadwal" style="display:none">
       <div class="panel">
@@ -102,5 +136,6 @@
   <script src="js/classroom.js"></script>
   <script src="js/classroom-schedule.js"></script>
   <script src="js/classroom-attendance.js"></script>
+  <script src="js/classroom-notes.js"></script>
 </body>
 </html>
