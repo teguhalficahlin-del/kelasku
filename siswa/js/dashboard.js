@@ -63,12 +63,12 @@ function renderAttendanceSection(classroomId, studentId) {
   wrap.className = 'att-section';
 
   const PAGE_SIZE = 10;
-  let currentPreset = 'bulan';
+  let currentPreset = 'hari';
   let _rows = [];
   let _page = 1;
 
   wrap.innerHTML =
-    `<div class="att-title">Kehadiran Saya</div>` +
+    `<div class="att-title">Kehadiran</div>` +
     `<div class="att-filters">` +
       ['hari','minggu','bulan','semester'].map(p =>
         `<button class="att-preset${p===currentPreset?' active':''}" data-preset="${p}">${
