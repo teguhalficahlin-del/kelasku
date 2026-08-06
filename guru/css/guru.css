@@ -1126,25 +1126,28 @@ td { padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border); }
 /* ── Tab navigation ── */
 .tab-bar {
   display: flex;
-  gap: .25rem;
+  gap: .375rem;
   margin-bottom: 1.25rem;
-  border-bottom: 1px solid var(--border);
+  border-bottom: none;
 }
 .tab-btn {
-  background: none;
-  border: none;
-  border-bottom: 2px solid transparent;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--card-r);
   padding: .5rem .875rem;
   font-size: var(--fs-h3);
   font-weight: 600;
   color: var(--text-muted);
   cursor: pointer;
   font-family: inherit;
-  margin-bottom: -1px;
-  transition: color var(--transition), border-color var(--transition);
+  transition: background var(--transition), border-color var(--transition), color var(--transition);
 }
-.tab-btn:hover { color: var(--text-secondary); }
-.tab-btn.active { color: var(--gold); border-bottom-color: var(--gold); }
+.tab-btn:hover { color: var(--text-secondary); border-color: var(--border-strong); }
+.tab-btn.active {
+  background: var(--gold-muted);
+  border-color: var(--gold);
+  color: var(--gold);
+}
 
 /* ── Panel collapse ── */
 h2.panel-header {
@@ -1743,4 +1746,9 @@ h2.panel-header.open .panel-collapse-arrow {
   width: auto;
   display: inline-flex;
   align-items: center;
+}
+
+#panel-catatan select option {
+  background: var(--bg-surface);
+  color: var(--text-primary);
 }
