@@ -284,7 +284,7 @@ main h2 {
   border-left: 1px solid var(--border);
   border-right: 1px solid var(--border);
   padding: var(--space-xs) var(--card-p);
-  font-size: var(--fs-caption);
+  font-size: var(--fs-ui);
   color: var(--text-secondary);
   margin-bottom: 0;
   transition: border-color var(--transition);
@@ -347,8 +347,8 @@ main h2 {
 
 .sch-section-title {
   font-size: var(--fs-h3);
-  font-weight: var(--fw-bold);
-  color: var(--text-primary);
+  font-weight: var(--fw-semibold);
+  color: var(--gold);
   text-transform: uppercase;
   letter-spacing: .06em;
   margin-bottom: .125rem;
@@ -362,7 +362,7 @@ main h2 {
 
 .sch-day-name {
   font-size: var(--fs-h3);
-  font-weight: var(--fw-bold);
+  font-weight: var(--fw-semibold);
   color: var(--text-secondary);
 }
 
@@ -377,7 +377,7 @@ main h2 {
 }
 
 .sch-slot-time {
-  font-size: var(--fs-caption);
+  font-size: var(--fs-body);
   color: var(--text-primary);
 }
 
@@ -419,7 +419,7 @@ main h2 {
    ═══════════════════════════════════════════════════════ */
 
 .att-section { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--card-r); padding: var(--card-p); margin: 0; width: 100%; box-sizing: border-box; }
-.att-title { font-weight: 700; font-size: var(--fs-caption); color: var(--text-secondary); margin-bottom: .5rem; }
+.att-title { font-weight: var(--fw-semibold); font-size: var(--fs-h3); color: var(--gold); margin-bottom: .5rem; }
 .att-filters { display: flex; gap: .3rem; flex-wrap: wrap; margin-bottom: .5rem; }
 .att-preset {
   font-size: var(--fs-caption); font-weight: 600; padding: .2rem .6rem; border-radius: 99px;
