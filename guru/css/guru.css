@@ -1746,6 +1746,7 @@ h2.panel-header.open .panel-collapse-arrow {
   accent-color: var(--gold);
   transform: scale(1.5);
   transform-origin: left center;
+  margin-right: .5rem;
 }
 
 #notes-form button[type=submit] {
