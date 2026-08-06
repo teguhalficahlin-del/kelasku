@@ -235,6 +235,7 @@ function renderCard(classroom, guruName, siswaNama, schedules, linkedStudentId) 
   card.appendChild(renderScheduleSection(schedules));
   if (linkedStudentId) card.appendChild(renderChildAttendanceSection(classroom.id, linkedStudentId, siswaNama));
   if (linkedStudentId) card.appendChild(renderChildNotesSection(classroom.id, linkedStudentId));
+  if (linkedStudentId) card.appendChild(renderChildGradesSection(classroom.id, linkedStudentId));
   return card;
 }
 
@@ -276,6 +277,55 @@ function renderChildNotesSection(classroomId, linkedStudentId) {
         <div class="note-item-content">${escHtml(n.content)}</div>
       </div>`;
     }).join('');
+  });
+
+  return wrap;
+}
+
+async function getChildGrades(classroomId, studentId) {
+  const { data } = await db.from('student_grades')
+    .select('id, judul, nilai_angka, deskripsi, academic_year, semester')
+    .eq('classroom_id', classroomId)
+    .eq('student_id', studentId)
+    .eq('is_published', true)
+    .order('academic_year', { ascending: false })
+    .order('semester', { ascending: false })
+    .order('judul');
+  return data || [];
+}
+
+function renderChildGradesSection(classroomId, studentId) {
+  const wrap = document.createElement('div');
+  wrap.className = 'notes-section';
+
+  const title = document.createElement('div');
+  title.className = 'sch-section-title';
+  title.textContent = 'Nilai';
+  wrap.appendChild(title);
+
+  const body = document.createElement('div');
+  body.innerHTML = '<p class="att-empty">Memuat…</p>';
+  wrap.appendChild(body);
+
+  getChildGrades(classroomId, studentId).then(rows => {
+    if (rows.length === 0) {
+      body.innerHTML = '';
+      return;
+    }
+    body.innerHTML =
+      '<div class="sg-table-wrap"><table class="sg-table"><thead><tr>' +
+      '<th>Tahun Ajaran</th><th>Sem</th><th>Judul</th><th>Nilai</th><th>Deskripsi</th>' +
+      '</tr></thead><tbody>' +
+      rows.map(g =>
+        `<tr>` +
+        `<td>${escHtml(g.academic_year)}</td>` +
+        `<td>${escHtml(g.semester)}</td>` +
+        `<td>${escHtml(g.judul)}</td>` +
+        `<td>${g.nilai_angka != null ? escHtml(g.nilai_angka) : '—'}</td>` +
+        `<td>${g.deskripsi ? escHtml(g.deskripsi) : '—'}</td>` +
+        `</tr>`
+      ).join('') +
+      '</tbody></table></div>';
   });
 
   return wrap;
