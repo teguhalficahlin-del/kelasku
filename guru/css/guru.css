@@ -2128,6 +2128,7 @@ h2.panel-header.open .panel-collapse-arrow {
   align-items: center;
   gap: var(--space-xs);
   padding: var(--space-xs) var(--space-sm);
+  min-height: var(--btn-h-sm);
   border-radius: var(--r-md);
   position: relative;
   transition: background 120ms;
@@ -2153,7 +2154,7 @@ h2.panel-header.open .panel-collapse-arrow {
   background: transparent;
   color: var(--text-primary);
   font-family: inherit;
-  font-size: var(--fs-ui);
+  font-size: var(--fs-body);
   flex: 1;
   min-width: 0;
   padding: 2px var(--space-xs);
@@ -2175,10 +2176,10 @@ h2.panel-header.open .panel-collapse-arrow {
 
 .pai-inline-add {
   display: block;
-  font-size: var(--fs-caption);
-  color: var(--text-muted);
+  font-size: var(--fs-ui);
+  color: var(--gold);
   cursor: pointer;
-  padding: var(--space-xs) var(--space-sm);
+  padding: var(--space-xs) 0;
   border-radius: var(--r-md);
   user-select: none;
   transition: color 120ms, background 120ms;
@@ -2192,12 +2193,11 @@ h2.panel-header.open .panel-collapse-arrow {
 .pai-level-3 { padding-left: calc(var(--space-lg) * 3); }
 
 .pai-inline-arrow {
-  color: var(--gold-border);
-  font-size: var(--fs-caption);
+  color: var(--gold);
+  font-size: var(--fs-ui);
   flex-shrink: 0;
   user-select: none;
   line-height: 1;
-  filter: brightness(1.5);
 }
 
 .pai-inline-btn {
