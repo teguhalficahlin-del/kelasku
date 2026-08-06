@@ -11,6 +11,7 @@ function _dateToStr(d) {
 }
 function _getPresetRange(preset) {
   const now = new Date(); const y = now.getFullYear(), m = now.getMonth(), d = now.getDate();
+  if (preset === 'hari') return [_todayStr(), _todayStr()];
   if (preset === 'minggu') {
     const day = now.getDay(); const diff = day === 0 ? -6 : 1 - day;
     return [_dateToStr(new Date(y,m,d+diff)), _dateToStr(new Date(y,m,d+diff+6))];
@@ -36,11 +37,11 @@ function _buildAttSummary(rows) {
 }
 function _renderAttSummary(c, total) {
   const pct = n => total ? Math.round(n/total*100) : 0;
-  return `<div class="att-summary">` +
-    `<span class="att-h">H: <strong>${c.HADIR}</strong> (${pct(c.HADIR)}%)</span>` +
-    `<span class="att-s">S: <strong>${c.SAKIT}</strong> (${pct(c.SAKIT)}%)</span>` +
-    `<span class="att-i">I: <strong>${c.IZIN}</strong> (${pct(c.IZIN)}%)</span>` +
-    `<span class="att-a">A: <strong>${c.ALPHA}</strong> (${pct(c.ALPHA)}%)</span>` +
+  return `<div class="att-sum-grid">` +
+    `<div class="att-sum-card att-sum-hadir"><div class="att-sum-label">Hadir</div><div class="att-sum-num">${c.HADIR}</div><div class="att-sum-pct">${pct(c.HADIR)}%</div></div>` +
+    `<div class="att-sum-card att-sum-sakit"><div class="att-sum-label">Sakit</div><div class="att-sum-num">${c.SAKIT}</div><div class="att-sum-pct">${pct(c.SAKIT)}%</div></div>` +
+    `<div class="att-sum-card att-sum-izin"><div class="att-sum-label">Izin</div><div class="att-sum-num">${c.IZIN}</div><div class="att-sum-pct">${pct(c.IZIN)}%</div></div>` +
+    `<div class="att-sum-card att-sum-alpha"><div class="att-sum-label">Alpha</div><div class="att-sum-num">${c.ALPHA}</div><div class="att-sum-pct">${pct(c.ALPHA)}%</div></div>` +
   `</div>`;
 }
 function _renderAttTable(rows) {
@@ -61,12 +62,18 @@ function renderAttendanceSection(classroomId, studentId) {
   const wrap = document.createElement('div');
   wrap.className = 'att-section';
 
+  const PAGE_SIZE = 10;
   let currentPreset = 'bulan';
+  let _rows = [];
+  let _page = 1;
+
   wrap.innerHTML =
     `<div class="att-title">Kehadiran Saya</div>` +
     `<div class="att-filters">` +
-      ['minggu','bulan','semester','custom'].map(p =>
-        `<button class="att-preset${p===currentPreset?' active':''}" data-preset="${p}">${p==='minggu'?'Minggu ini':p==='bulan'?'Bulan ini':p==='semester'?'Semester ini':'Custom'}</button>`
+      ['hari','minggu','bulan','semester','custom'].map(p =>
+        `<button class="att-preset${p===currentPreset?' active':''}" data-preset="${p}">${
+          p==='hari'?'Hari ini':p==='minggu'?'Minggu ini':p==='bulan'?'Bulan ini':p==='semester'?'Semester ini':'Custom'
+        }</button>`
       ).join('') +
     `</div>` +
     `<div class="att-custom-range" style="display:none">` +
@@ -79,11 +86,30 @@ function renderAttendanceSection(classroomId, studentId) {
   const bodyEl      = wrap.querySelector('.att-body');
   const customRange = wrap.querySelector('.att-custom-range');
 
+  function renderPage() {
+    const total = _rows.length;
+    const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+    if (_page > totalPages) _page = totalPages;
+    const slice = _rows.slice((_page-1)*PAGE_SIZE, _page*PAGE_SIZE);
+    let html = total > 0 ? _renderAttSummary(_buildAttSummary(_rows), total) : '';
+    html += _renderAttTable(slice);
+    if (total > PAGE_SIZE) {
+      html += `<div class="att-pagination">` +
+        `<button class="att-pg-btn" data-dir="-1"${_page===1?' disabled':''}>←</button>` +
+        `<span class="att-pg-label">Hal. ${_page} / ${totalPages}</span>` +
+        `<button class="att-pg-btn" data-dir="1"${_page===totalPages?' disabled':''}>→</button>` +
+      `</div>`;
+    }
+    bodyEl.innerHTML = html;
+    bodyEl.querySelectorAll('.att-pg-btn').forEach(b => {
+      b.addEventListener('click', () => { _page += Number(b.dataset.dir); renderPage(); });
+    });
+  }
+
   async function refresh(from, to) {
     bodyEl.innerHTML = '<p class="att-empty">Memuat…</p>';
-    const rows = await getMyAttendance(classroomId, studentId, from, to);
-    const c    = _buildAttSummary(rows);
-    bodyEl.innerHTML = _renderAttSummary(c, rows.length) + _renderAttTable(rows);
+    _rows = await getMyAttendance(classroomId, studentId, from, to);
+    renderPage();
   }
 
   const [f0, t0] = _getPresetRange(currentPreset);
@@ -94,6 +120,7 @@ function renderAttendanceSection(classroomId, studentId) {
       wrap.querySelectorAll('.att-preset').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       currentPreset = btn.dataset.preset;
+      _page = 1;
       if (currentPreset === 'custom') { customRange.style.display = ''; }
       else { customRange.style.display = 'none'; const [f,t] = _getPresetRange(currentPreset); refresh(f,t); }
     });
@@ -102,7 +129,7 @@ function renderAttendanceSection(classroomId, studentId) {
   wrap.querySelector('.att-apply').addEventListener('click', () => {
     const f = wrap.querySelector(`#att-from-${classroomId}`).value;
     const t = wrap.querySelector(`#att-to-${classroomId}`).value;
-    if (f && t && f <= t) refresh(f, t);
+    if (f && t && f <= t) { _page = 1; refresh(f, t); }
   });
 
   return wrap;
@@ -159,21 +186,18 @@ function renderScheduleSection(schedules) {
 
   const title = document.createElement('div');
   title.className = 'sch-section-title';
-  title.textContent = 'Jadwal';
+  title.textContent = 'Jadwal Belajar';
   div.appendChild(title);
 
   activeDays.forEach(day => {
-    const group = document.createElement('div');
-    group.className = 'sch-day-group';
-
-    const dayEl = document.createElement('div');
-    dayEl.className = 'sch-day-name';
-    dayEl.textContent = dayLabel(day);
-    group.appendChild(dayEl);
-
     byDay[day].forEach(s => {
       const slot = document.createElement('div');
       slot.className = 'sch-slot';
+
+      const dayEl = document.createElement('span');
+      dayEl.className = 'sch-day-name';
+      dayEl.textContent = dayLabel(day);
+      slot.appendChild(dayEl);
 
       const timeEl = document.createElement('span');
       timeEl.className   = 'sch-slot-time';
@@ -192,10 +216,8 @@ function renderScheduleSection(schedules) {
         slot.appendChild(reason);
       }
 
-      group.appendChild(slot);
+      div.appendChild(slot);
     });
-
-    div.appendChild(group);
   });
 
   return div;

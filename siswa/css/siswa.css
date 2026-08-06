@@ -200,7 +200,7 @@ header {
 }
 
 #siswa-name {
-  font-size: var(--fs-caption);
+  font-size: var(--fs-h2);
   font-weight: var(--fw-medium);
   color: var(--text-secondary);
 }
@@ -364,21 +364,27 @@ main h2 {
   font-size: var(--fs-h3);
   font-weight: var(--fw-semibold);
   color: var(--text-secondary);
+  min-width: 70px;
+  flex-shrink: 0;
 }
 
 .sch-slot {
   display: flex;
   align-items: center;
-  gap: .5rem;
+  gap: var(--space-sm);
   flex-wrap: wrap;
-  padding-left: .625rem;
+  padding: var(--space-xs) 0;
+  border-bottom: 1px solid var(--border);
   width: 100%;
   box-sizing: border-box;
 }
 
+.sch-slot:last-child { border-bottom: none; }
+
 .sch-slot-time {
   font-size: var(--fs-body);
   color: var(--text-primary);
+  flex: 1;
 }
 
 .badge-aktif {
@@ -407,6 +413,7 @@ main h2 {
   font-size: var(--fs-caption);
   color: var(--text-muted);
   font-style: italic;
+  width: 100%;
 }
 
 .sch-empty-msg {
@@ -432,11 +439,15 @@ main h2 {
 .att-custom-range { display: flex; gap: .4rem; flex-wrap: wrap; align-items: center; margin-bottom: .5rem; font-size: var(--fs-caption); color: var(--text-secondary); }
 .att-date-inp { padding: .2rem .4rem; border: 1.5px solid var(--border-strong); border-radius: 4px; background: var(--bg-surface); color: var(--text-primary); font-size: var(--fs-caption); font-family: inherit; }
 .att-apply { font-size: var(--fs-caption); font-weight: 600; padding: .2rem .6rem; border-radius: 4px; border: 1.5px solid var(--border-strong); background: var(--bg-surface); color: var(--text-secondary); cursor: pointer; font-family: inherit; min-height: var(--btn-h-sm); }
-.att-summary { display: flex; gap: .35rem 1rem; flex-wrap: wrap; font-size: var(--fs-caption); padding: .5rem .75rem; background: var(--bg-elevated); border-radius: 6px; margin-bottom: .5rem; }
-.att-h { color: var(--success); }
-.att-s { color: var(--color-sakit); }
-.att-i { color: var(--color-izin); }
-.att-a { color: var(--danger); }
+.att-sum-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: var(--space-xs); margin-bottom: .625rem; }
+.att-sum-card { border-radius: 6px; border: 1px solid var(--border); padding: .4rem .5rem; text-align: center; }
+.att-sum-label { font-size: var(--fs-badge); font-weight: var(--fw-semibold); text-transform: uppercase; letter-spacing: .04em; opacity: .75; }
+.att-sum-num { font-size: var(--fs-h3); font-weight: var(--fw-bold); line-height: 1.2; }
+.att-sum-pct { font-size: var(--fs-badge); opacity: .75; }
+.att-sum-hadir { background: var(--gold-muted); border-color: var(--gold-border); color: var(--gold); }
+.att-sum-sakit { background: var(--warning-bg); border-color: var(--border-strong); color: var(--color-sakit); }
+.att-sum-izin  { background: var(--bg-elevated); border-color: var(--border-strong); color: var(--color-izin); }
+.att-sum-alpha { background: var(--danger-bg); border-color: var(--danger-border); color: var(--danger); }
 .att-empty { font-size: var(--fs-caption); color: var(--text-muted); padding: .25rem 0; }
 .att-table-wrap { overflow-x: auto; }
 .att-table { width: 100%; border-collapse: collapse; font-size: var(--fs-caption); }
@@ -447,3 +458,8 @@ main h2 {
 .att-row-s td:last-child { color: var(--color-sakit); font-weight: 600; }
 .att-row-i td:last-child { color: var(--color-izin); font-weight: 600; }
 .att-row-a td:last-child { color: var(--danger); font-weight: 600; }
+.att-pagination { display: flex; align-items: center; justify-content: center; gap: var(--space-sm); margin-top: .5rem; }
+.att-pg-btn { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 6px; border: 1.5px solid var(--border-strong); background: var(--bg-elevated); color: var(--text-secondary); font-size: var(--fs-body); cursor: pointer; font-family: inherit; transition: background var(--transition), border-color var(--transition); }
+.att-pg-btn:hover:not(:disabled) { background: var(--gold-muted); border-color: var(--gold); color: var(--gold); }
+.att-pg-btn:disabled { opacity: .35; cursor: not-allowed; }
+.att-pg-label { font-size: var(--fs-caption); color: var(--text-muted); }
