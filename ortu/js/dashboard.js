@@ -282,6 +282,15 @@ function renderChildNotesSection(classroomId, linkedStudentId) {
   return wrap;
 }
 
+async function getChildItems(classroomId) {
+  const { data } = await db.from('assessment_items')
+    .select('id, judul, tipe, konten, urutan, academic_year, semester')
+    .eq('classroom_id', classroomId)
+    .eq('is_visible_ortu', true)
+    .order('urutan', { ascending: true });
+  return data || [];
+}
+
 async function getChildGrades(classroomId, studentId) {
   const { data } = await db.from('student_grades')
     .select('id, judul, nilai_angka, deskripsi, academic_year, semester')
@@ -294,38 +303,62 @@ async function getChildGrades(classroomId, studentId) {
   return data || [];
 }
 
+const TIPE_CLASS = { CP: 'badge-cp', TP: 'badge-tp', KKTP: 'badge-kktp', NILAI: 'badge-nilai', LAINNYA: 'badge-lainnya' };
+
 function renderChildGradesSection(classroomId, studentId) {
   const wrap = document.createElement('div');
   wrap.className = 'notes-section';
 
   const title = document.createElement('div');
   title.className = 'sch-section-title';
-  title.textContent = 'Nilai';
+  title.textContent = 'Penilaian';
   wrap.appendChild(title);
 
   const body = document.createElement('div');
   body.innerHTML = '<p class="att-empty">Memuat…</p>';
   wrap.appendChild(body);
 
-  getChildGrades(classroomId, studentId).then(rows => {
-    if (rows.length === 0) {
-      body.innerHTML = '';
+  Promise.all([getChildItems(classroomId), getChildGrades(classroomId, studentId)]).then(([items, grades]) => {
+    if (items.length === 0 && grades.length === 0) {
+      body.innerHTML = '<p class="att-empty">Belum ada penilaian untuk kelas ini.</p>';
       return;
     }
-    body.innerHTML =
-      '<div class="sg-table-wrap"><table class="sg-table"><thead><tr>' +
-      '<th>Tahun Ajaran</th><th>Sem</th><th>Judul</th><th>Nilai</th><th>Deskripsi</th>' +
-      '</tr></thead><tbody>' +
-      rows.map(g =>
-        `<tr>` +
-        `<td>${escHtml(g.academic_year)}</td>` +
-        `<td>${escHtml(g.semester)}</td>` +
-        `<td>${escHtml(g.judul)}</td>` +
-        `<td>${g.nilai_angka != null ? escHtml(g.nilai_angka) : '—'}</td>` +
-        `<td>${g.deskripsi ? escHtml(g.deskripsi) : '—'}</td>` +
-        `</tr>`
-      ).join('') +
-      '</tbody></table></div>';
+    let html = '';
+
+    if (items.length > 0) {
+      html += `<div style="font-size:var(--fs-caption);font-weight:var(--fw-semibold);color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:.5rem;">Dokumen Penilaian</div>`;
+      html += items.map(item => {
+        const cls = TIPE_CLASS[item.tipe] || 'badge-lainnya';
+        return `<div style="padding:.625rem 0;border-bottom:1px solid var(--border);">` +
+          `<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.25rem;">` +
+          `<span class="badge-tipe ${cls}">${escHtml(item.tipe)}</span>` +
+          `<span style="font-weight:var(--fw-semibold);color:var(--text-primary);">${escHtml(item.judul)}</span>` +
+          `</div>` +
+          (item.konten ? `<p style="font-size:var(--fs-caption);color:var(--text-muted);margin:0;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;">${escHtml(item.konten)}</p>` : '') +
+          `</div>`;
+      }).join('');
+    }
+
+    if (grades.length > 0) {
+      if (items.length > 0) html += `<div style="margin-top:.875rem;"></div>`;
+      html += `<div style="font-size:var(--fs-caption);font-weight:var(--fw-semibold);color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:.5rem;">Nilai</div>`;
+      html +=
+        '<div class="sg-table-wrap"><table class="sg-table"><thead><tr>' +
+        '<th>Tahun Ajaran</th><th>Sem</th><th>Judul</th><th>Nilai</th><th>Deskripsi</th>' +
+        '</tr></thead><tbody>' +
+        grades.map(g =>
+          `<tr>` +
+          `<td>${escHtml(g.academic_year)}</td>` +
+          `<td>${escHtml(g.semester)}</td>` +
+          `<td>${escHtml(g.judul)}</td>` +
+          `<td style="font-weight:var(--fw-semibold);color:var(--gold);">${g.nilai_angka != null ? escHtml(String(g.nilai_angka)) : '—'}</td>` +
+          `<td style="color:var(--text-muted);">${g.deskripsi ? escHtml(g.deskripsi) : '—'}</td>` +
+          `</tr>`
+        ).join('') +
+        '</tbody></table></div>';
+    }
+
+    body.innerHTML = html;
   });
 
   return wrap;
