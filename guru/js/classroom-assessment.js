@@ -675,8 +675,8 @@
           const body    = accordionItem?.querySelector(':scope > .pai-accordion-body');
           const chevron = header.querySelector('.pai-chevron');
           if (body) {
-            const isOpen = body.style.display !== 'none';
-            body.style.display = isOpen ? 'none' : '';
+            const isOpen = body.style.display === 'block';
+            body.style.display = isOpen ? 'none' : 'block';
             if (chevron) chevron.style.transform = isOpen ? '' : 'rotate(180deg)';
           }
           return;
