@@ -230,8 +230,9 @@ function renderCard(classroom, guruName, namaOrtu, schedules, studentId) {
       '<span class="card-code">'    + escHtml(classroom.classroom_code)   + '</span>' +
     '</div>' +
     '<div class="card-subject">'  + escHtml(classroom.subject ?? '')    + '</div>' +
-    '<div class="card-teacher">Guru: ' + escHtml(guruName)              + '</div>' +
-    (namaOrtu ? '<div class="card-teacher">Ortu: ' + escHtml(namaOrtu) + '</div>' : '');
+    '<div class="card-teacher">Guru: ' + escHtml(guruName) +
+      (namaOrtu ? '<br>Ortu: ' + escHtml(namaOrtu) : '') +
+    '</div>';
   card.appendChild(renderScheduleSection(schedules));
   if (studentId) card.appendChild(renderAttendanceSection(classroom.id, studentId));
   return card;
