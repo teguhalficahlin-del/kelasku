@@ -142,10 +142,12 @@ async function getProfile(userId) {
 async function getClassrooms(profileId) {
   const { data, error } = await db
     .from('classroom_roster')
-    .select('classrooms(id, name, subject, classroom_code, teacher_id)')
+    .select('nama_ortu, classrooms(id, name, subject, classroom_code, teacher_id)')
     .eq('profile_id', profileId);
   if (error) throw error;
-  return data.map(row => row.classrooms).filter(Boolean);
+  return data
+    .filter(row => row.classrooms)
+    .map(row => ({ classroom: row.classrooms, nama_ortu: row.nama_ortu || null }));
 }
 
 async function getSchedules(classroomId) {
@@ -219,7 +221,7 @@ async function getGuruName(teacherId) {
   return data;
 }
 
-function renderCard(classroom, guruName, schedules, studentId) {
+function renderCard(classroom, guruName, namaOrtu, schedules, studentId) {
   const card = document.createElement('div');
   card.className = 'classroom-card';
   card.innerHTML =
@@ -228,7 +230,8 @@ function renderCard(classroom, guruName, schedules, studentId) {
       '<span class="card-code">'    + escHtml(classroom.classroom_code)   + '</span>' +
     '</div>' +
     '<div class="card-subject">'  + escHtml(classroom.subject ?? '')    + '</div>' +
-    '<div class="card-teacher">Guru: ' + escHtml(guruName)              + '</div>';
+    '<div class="card-teacher">Guru: ' + escHtml(guruName)              + '</div>' +
+    (namaOrtu ? '<div class="card-teacher">Ortu: ' + escHtml(namaOrtu) + '</div>' : '');
   card.appendChild(renderScheduleSection(schedules));
   if (studentId) card.appendChild(renderAttendanceSection(classroom.id, studentId));
   return card;
@@ -273,12 +276,12 @@ async function init() {
     return;
   }
 
-  for (const classroom of classrooms) {
+  for (const { classroom, nama_ortu } of classrooms) {
     const [guruName, schedules] = await Promise.all([
       getGuruName(classroom.teacher_id),
       getSchedules(classroom.id),
     ]);
-    list.appendChild(renderCard(classroom, guruName, schedules, profile.id));
+    list.appendChild(renderCard(classroom, guruName, nama_ortu, schedules, profile.id));
   }
 }
 
