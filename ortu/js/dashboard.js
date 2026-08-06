@@ -71,21 +71,15 @@ function renderChildAttendanceSection(classroomId, studentId, siswaNama) {
   wrap.innerHTML =
     `<div class="att-title">Kehadiran ${escHtml(siswaNama)}</div>` +
     `<div class="att-filters">` +
-      ['hari','minggu','bulan','semester','custom'].map(p =>
+      ['hari','minggu','bulan','semester'].map(p =>
         `<button class="att-preset${p===currentPreset?' active':''}" data-preset="${p}">${
-          p==='hari'?'Hari ini':p==='minggu'?'Minggu ini':p==='bulan'?'Bulan ini':p==='semester'?'Semester ini':'Custom'
+          p==='hari'?'Hari ini':p==='minggu'?'Minggu ini':p==='bulan'?'Bulan ini':'Semester ini'
         }</button>`
       ).join('') +
     `</div>` +
-    `<div class="att-custom-range" style="display:none">` +
-      `<label>Dari <input type="date" class="att-date-inp" id="att-from-${uid}"></label>` +
-      `<label>Sampai <input type="date" class="att-date-inp" id="att-to-${uid}"></label>` +
-      `<button class="att-apply">Terapkan</button>` +
-    `</div>` +
     `<div class="att-body"><p class="att-empty">Memuat…</p></div>`;
 
-  const bodyEl      = wrap.querySelector('.att-body');
-  const customRange = wrap.querySelector('.att-custom-range');
+  const bodyEl = wrap.querySelector('.att-body');
 
   function renderPage() {
     const total = _rows.length;
@@ -122,15 +116,9 @@ function renderChildAttendanceSection(classroomId, studentId, siswaNama) {
       btn.classList.add('active');
       currentPreset = btn.dataset.preset;
       _page = 1;
-      if (currentPreset === 'custom') { customRange.style.display = ''; }
-      else { customRange.style.display = 'none'; const [f,t] = _getPresetRange(currentPreset); refresh(f,t); }
+      const [f,t] = _getPresetRange(currentPreset);
+      refresh(f,t);
     });
-  });
-
-  wrap.querySelector('.att-apply').addEventListener('click', () => {
-    const f = wrap.querySelector(`#att-from-${uid}`).value;
-    const t = wrap.querySelector(`#att-to-${uid}`).value;
-    if (f && t && f <= t) { _page = 1; refresh(f, t); }
   });
 
   return wrap;
