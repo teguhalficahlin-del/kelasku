@@ -136,11 +136,13 @@ ${renderCpSubsection(cp)}
 ${renderTpSubsection(tps, kktps)}`;
 
     // Tampilkan tombol toggle hanya jika teks CP overflow 3 baris
-    const cpText = document.getElementById('pai-cp-text');
-    const cpBtn  = document.getElementById('pai-cp-toggle');
-    if (cpText && cpBtn) {
-      cpBtn.style.display = cpText.scrollHeight > cpText.offsetHeight ? 'block' : 'none';
-    }
+    requestAnimationFrame(() => {
+      const cpText = document.getElementById('pai-cp-text');
+      const cpBtn  = document.getElementById('pai-cp-toggle');
+      if (cpText && cpBtn) {
+        cpBtn.style.display = cpText.scrollHeight > cpText.offsetHeight ? 'block' : 'none';
+      }
+    });
   }
 
   function renderCpSubsection(cp) {
