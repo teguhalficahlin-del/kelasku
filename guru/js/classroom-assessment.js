@@ -522,10 +522,10 @@ ${tpSection}`,
     const kktpResults = (asmt.jenis === 'SUMATIF') ? await loadKktpResults(asmt.id) : [];
 
     const DIAG_OPTS = [
-      ['BELUM_TERLIHAT', 'Belum Terlihat'],
-      ['MULAI_TERLIHAT', 'Mulai Terlihat'],
-      ['SUDAH_TERLIHAT', 'Sudah Terlihat'],
-      ['MELAMPAUI',      'Melampaui'],
+      ['Belum Berkembang',  'Belum Berkembang'],
+      ['Mulai Berkembang',  'Mulai Berkembang'],
+      ['Berkembang',        'Berkembang'],
+      ['Sangat Berkembang', 'Sangat Berkembang'],
     ];
 
     const kktps = asmt.tp_id
