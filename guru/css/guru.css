@@ -2451,15 +2451,14 @@ h2.panel-header.open .panel-collapse-arrow {
 }
 
 .pai-kktp-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1rem 1fr auto 6.5rem;
   align-items: center;
-  gap: var(--space-sm);
+  gap: var(--space-xs);
   padding: var(--space-xs) 0;
   font-size: var(--fs-caption);
   color: var(--text-secondary);
   border-bottom: 1px dashed var(--border);
-  flex-wrap: nowrap;
-  min-width: 0;
 }
 .pai-kktp-row:last-of-type { border-bottom: none; }
 
@@ -2479,10 +2478,8 @@ h2.panel-header.open .panel-collapse-arrow {
 .pai-kktp-actions {
   display: flex;
   gap: var(--space-xs);
-  flex-shrink: 0;
   width: 6.5rem;
   justify-content: flex-end;
-  margin-left: auto;
 }
 
 .pai-kktp-actions .btn-sm {
