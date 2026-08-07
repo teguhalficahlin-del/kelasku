@@ -125,15 +125,24 @@
       `<div class="penilaian-filter-row" id="penilaian-filter-row">
   <input id="pai-year" type="text" placeholder="2025/2026"
     value="${esc(_year)}" maxlength="9" style="max-width:140px;">
-  <select id="pai-semester">
-    <option value="1"${_semester === 1 ? ' selected' : ''}>Semester 1</option>
-    <option value="2"${_semester === 2 ? ' selected' : ''}>Semester 2</option>
-  </select>
+  <div class="custom-select" id="pai-semester-wrap">
+    <div class="custom-select-trigger" id="pai-semester-trigger"
+         role="button" aria-haspopup="listbox" tabindex="0">
+      <span id="pai-semester-label">Semester ${_semester}</span>
+      <span class="custom-select-arrow">▾</span>
+    </div>
+    <ul class="custom-select-list" id="pai-semester-list"
+        role="listbox" style="display:none">
+      <li class="custom-select-option${_semester === 1 ? ' selected' : ''}" data-value="1" role="option">Semester 1</li>
+      <li class="custom-select-option${_semester === 2 ? ' selected' : ''}" data-value="2" role="option">Semester 2</li>
+    </ul>
+  </div>
 </div>
 <div id="pai-filter-error"
   style="color:var(--danger);font-size:var(--fs-caption);min-height:1.2rem;margin-top:var(--space-xs);"></div>
 ${renderCpSubsection(cp)}
 ${renderTpSubsection(tps, kktps)}`;
+    initSemesterDropdown();
   }
 
   function renderCpSubsection(cp) {
@@ -554,6 +563,61 @@ ${renderTpSubsection(tps, kktps)}`;
 
   // ─── Filter ─────────────────────────────────────────────────────────────────
 
+  function initSemesterDropdown() {
+    const trigger = document.getElementById('pai-semester-trigger');
+    const list    = document.getElementById('pai-semester-list');
+    const label   = document.getElementById('pai-semester-label');
+    if (!trigger || !list || !label) return;
+
+    function openList() {
+      list.style.display = '';
+      trigger.classList.add('open');
+      trigger.setAttribute('aria-expanded', 'true');
+    }
+    function closeList() {
+      list.style.display = 'none';
+      trigger.classList.remove('open');
+      trigger.setAttribute('aria-expanded', 'false');
+    }
+    function isOpen() { return list.style.display !== 'none'; }
+
+    trigger.addEventListener('click', e => {
+      e.stopPropagation();
+      isOpen() ? closeList() : openList();
+    });
+
+    trigger.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); isOpen() ? closeList() : openList(); }
+      if (e.key === 'Escape') closeList();
+      if (e.key === 'ArrowDown') { e.preventDefault(); openList(); list.querySelector('.custom-select-option')?.focus(); }
+    });
+
+    list.querySelectorAll('.custom-select-option').forEach((opt, idx, opts) => {
+      opt.setAttribute('tabindex', '-1');
+      opt.addEventListener('keydown', e => {
+        if (e.key === 'ArrowDown') { e.preventDefault(); opts[idx + 1]?.focus(); }
+        if (e.key === 'ArrowUp')   { e.preventDefault(); idx === 0 ? trigger.focus() : opts[idx - 1]?.focus(); }
+        if (e.key === 'Escape')    { closeList(); trigger.focus(); }
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); opt.click(); }
+      });
+      opt.addEventListener('click', async () => {
+        const val = parseInt(opt.dataset.value, 10);
+        _semester = val;
+        label.textContent = opt.textContent;
+        list.querySelectorAll('.custom-select-option').forEach(o => o.classList.remove('selected'));
+        opt.classList.add('selected');
+        closeList();
+        trigger.focus();
+        await loadAll();
+        renderAll();
+      });
+    });
+
+    document.addEventListener('click', e => {
+      if (!document.getElementById('pai-semester-wrap')?.contains(e.target)) closeList();
+    });
+  }
+
   function initFilter() {
     const now = new Date();
     const y   = now.getFullYear();
@@ -561,29 +625,27 @@ ${renderTpSubsection(tps, kktps)}`;
     _semester = now.getMonth() >= 6 ? 1 : 2;
 
     renderPerencanaan();
+    initSemesterDropdown();
 
     const body = document.getElementById('pai-perencanaan-body');
     if (!body) return;
 
     async function applyFilter() {
       const yearInp = document.getElementById('pai-year');
-      const semSel  = document.getElementById('pai-semester');
       const errEl   = document.getElementById('pai-filter-error');
       const yv = yearInp ? yearInp.value.trim() : '';
-      const sv = semSel  ? parseInt(semSel.value, 10) : 1;
       if (!YEAR_RE.test(yv)) {
         if (errEl) errEl.textContent = 'Format tidak valid. Contoh: 2025/2026';
         return;
       }
       if (errEl) errEl.textContent = '';
-      _year     = yv;
-      _semester = sv;
+      _year = yv;
       await loadAll();
       renderAll();
     }
 
     body.addEventListener('change', async e => {
-      if (e.target.id === 'pai-year' || e.target.id === 'pai-semester') await applyFilter();
+      if (e.target.id === 'pai-year') await applyFilter();
     });
     body.addEventListener('blur', async e => {
       if (e.target.id === 'pai-year') await applyFilter();

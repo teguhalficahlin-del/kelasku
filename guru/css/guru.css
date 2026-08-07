@@ -1963,23 +1963,82 @@ h2.panel-header.open .panel-collapse-arrow {
   color: var(--text-muted);
 }
 
-#pai-semester {
+/* ── Custom select dropdown (semester filter) ── */
+.custom-select {
+  position: relative;
+  display: inline-block;
+}
+
+.custom-select-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-xs);
+  padding: var(--input-py) var(--input-px);
   background: var(--input-bg);
-  -webkit-appearance: none;
-  appearance: none;
   border: 1px solid var(--input-border);
   border-radius: var(--input-r);
   color: var(--text-primary);
-  padding: var(--input-py) var(--input-px);
   font-size: var(--fs-body);
   font-family: inherit;
   cursor: pointer;
+  min-width: 8rem;
+  user-select: none;
+  transition: border-color var(--transition), box-shadow var(--transition);
 }
 
-#pai-semester:focus {
+.custom-select-trigger:focus {
   outline: none;
   border-color: var(--gold);
   box-shadow: 0 0 0 3px var(--gold-muted);
+}
+
+.custom-select-trigger.open {
+  border-color: var(--gold);
+}
+
+.custom-select-arrow {
+  color: var(--gold);
+  margin-left: auto;
+  transition: transform var(--transition);
+  line-height: 1;
+}
+
+.custom-select-trigger.open .custom-select-arrow {
+  transform: rotate(180deg);
+}
+
+.custom-select-list {
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 0;
+  min-width: 100%;
+  background: var(--bg-elevated);
+  border: 1px solid var(--gold);
+  border-radius: var(--r-md);
+  z-index: 200;
+  list-style: none;
+  padding: var(--space-xs) 0;
+  margin: 0;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+}
+
+.custom-select-option {
+  padding: var(--space-xs) var(--input-px);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: var(--fs-body);
+  transition: background var(--transition), color var(--transition);
+}
+
+.custom-select-option:hover {
+  background: var(--gold-muted);
+  color: var(--gold);
+}
+
+.custom-select-option.selected {
+  color: var(--gold);
+  font-weight: var(--fw-semibold);
 }
 
 /* Tambah Item / Tambah Nilai buttons */
