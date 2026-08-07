@@ -700,24 +700,26 @@ ${tpSection}`,
   // ─── Inline delete confirm (pelaksanaan) ─────────────────────────────────────
 
   function confirmAsmtDelete(origBtn, id, label) {
-    const clone = origBtn.cloneNode(true);
-    const wrap  = document.createElement('span');
-    wrap.style.cssText = 'display:inline-flex;align-items:center;gap:var(--space-xs);flex-wrap:wrap;';
-    wrap.innerHTML = `<span style="font-size:var(--fs-caption);color:var(--text-secondary);white-space:nowrap;">Hapus "${esc(label)}"?</span>`;
+    const card = origBtn.closest('.pai-tp-row');
+    origBtn.style.display = 'none';
+
+    const bar = document.createElement('div');
+    bar.style.cssText = 'display:flex;align-items:center;gap:var(--space-xs);flex-wrap:wrap;padding:var(--space-xs) 0 0 0;border-top:1px solid var(--border);margin-top:var(--space-xs);';
+    bar.innerHTML = `<span style="flex:1;min-width:0;font-size:var(--fs-caption);color:var(--text-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Hapus "${esc(label)}"?</span>`;
 
     const yesBtn = document.createElement('button');
     yesBtn.className   = 'btn-sm btn-sm-danger';
-    yesBtn.style.cssText = 'font-size:var(--fs-badge);min-height:var(--btn-h-xs);padding:0 var(--btn-px-sm);';
+    yesBtn.style.cssText = 'font-size:var(--fs-badge);min-height:var(--btn-h-xs);padding:0 var(--btn-px-sm);flex-shrink:0;';
     yesBtn.textContent = 'Ya';
 
     const noBtn = document.createElement('button');
     noBtn.className    = 'btn-sm';
-    noBtn.style.cssText = 'font-size:var(--fs-badge);min-height:var(--btn-h-xs);padding:0 var(--btn-px-sm);';
+    noBtn.style.cssText = 'font-size:var(--fs-badge);min-height:var(--btn-h-xs);padding:0 var(--btn-px-sm);flex-shrink:0;';
     noBtn.textContent  = 'Tidak';
 
-    wrap.appendChild(yesBtn);
-    wrap.appendChild(noBtn);
-    origBtn.replaceWith(wrap);
+    bar.appendChild(yesBtn);
+    bar.appendChild(noBtn);
+    card.appendChild(bar);
 
     yesBtn.addEventListener('click', async () => {
       yesBtn.disabled = true;
@@ -726,11 +728,12 @@ ${tpSection}`,
         await loadAll();
         renderPelaksanaan();
       } catch (err) {
-        wrap.replaceWith(clone);
+        bar.remove();
+        origBtn.style.display = '';
         alert('Gagal hapus: ' + (err.message || 'Error tidak diketahui.'));
       }
     });
-    noBtn.addEventListener('click', () => { wrap.replaceWith(clone); });
+    noBtn.addEventListener('click', () => { bar.remove(); origBtn.style.display = ''; });
   }
 
   // ─── Event delegation — Pelaksanaan ─────────────────────────────────────────
