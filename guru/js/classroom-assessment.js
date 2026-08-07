@@ -199,7 +199,7 @@ ${renderTpSubsection(tps, kktps)}`;
       return `
 <div class="pai-kktp-row">
   <span class="pai-kktp-bullet">•</span>
-  <span style="flex:1;min-width:0;word-break:break-word;">${esc(k.judul)}</span>
+  <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(k.judul)}</span>
   ${range}
   <button class="btn-sm" data-action="kktp-edit" data-id="${esc(k.id)}"
     style="font-size:var(--fs-badge);min-height:var(--btn-h-xs);padding:0 var(--btn-px-sm);flex-shrink:0;">Edit</button>

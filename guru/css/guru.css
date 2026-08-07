@@ -2446,7 +2446,7 @@ h2.panel-header.open .panel-collapse-arrow {
 
 /* â”€â”€ KKTP list â”€â”€ */
 .pai-kktp-list {
-  padding-left: var(--space-md);
+  padding-left: var(--space-sm);
   margin-top: var(--space-xs);
 }
 
@@ -2466,8 +2466,6 @@ h2.panel-header.open .panel-collapse-arrow {
 .pai-kktp-bullet {
   color: var(--text-muted);
   flex-shrink: 0;
-  white-space: nowrap;
-  min-width: 80px;
 }
 
 .pai-kktp-range {
