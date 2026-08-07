@@ -1940,6 +1940,8 @@ h2.panel-header.open .panel-collapse-arrow {
 .penilaian-filter-row input[type="text"],
 #panel-penilaian select {
   background: var(--input-bg);
+  -webkit-appearance: none;
+  appearance: none;
   border: 1px solid var(--input-border);
   border-radius: var(--input-r);
   color: var(--text-primary);
