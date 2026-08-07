@@ -1963,6 +1963,26 @@ h2.panel-header.open .panel-collapse-arrow {
   color: var(--text-muted);
 }
 
+#pai-semester {
+  background: var(--input-bg);
+  -webkit-appearance: none;
+  appearance: none;
+  border: 1px solid var(--input-border);
+  border-radius: var(--input-r);
+  color: var(--text-primary);
+  padding: var(--input-py) var(--input-px);
+  font-size: var(--fs-body);
+  font-family: inherit;
+  cursor: pointer;
+  width: 100%;
+}
+
+#pai-semester:focus {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px var(--gold-muted);
+}
+
 /* Tambah Item / Tambah Nilai buttons */
 #btn-pai-add,
 #btn-sg-add {
