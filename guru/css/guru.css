@@ -1570,9 +1570,10 @@ h2.panel-header.open .panel-collapse-arrow {
   -webkit-backdrop-filter: var(--blur);
   z-index: 999;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  padding: 1rem;
+  padding: var(--space-lg) var(--space-sm);
+  overflow-y: auto;
 }
 @supports not (backdrop-filter: blur(1px)) {
   .share-overlay { background: rgba(10,10,15,0.98); }
@@ -2255,7 +2256,6 @@ h2.panel-header.open .panel-collapse-arrow {
   border: 1px solid var(--border);
   border-radius: var(--card-r);
   margin-bottom: var(--space-sm);
-  overflow: hidden;
 }
 
 .pai-section-header {
@@ -2299,7 +2299,6 @@ h2.panel-header.open .panel-collapse-arrow {
   border: 1px solid var(--border);
   border-radius: var(--r-md);
   margin-bottom: var(--space-sm);
-  overflow: hidden;
 }
 
 .pai-subsec-header {

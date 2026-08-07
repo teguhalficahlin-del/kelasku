@@ -253,7 +253,7 @@ ${visBadges ? `<div style="margin:var(--space-xs) 0;">${visBadges}</div>` : ''}
     overlay.id        = 'assessment-modal';
     overlay.className = 'share-overlay';
     overlay.innerHTML = `
-<div class="modal-box" style="overflow-y:auto;max-height:90vh;">
+<div class="modal-box" style="width:min(480px,92vw);max-height:85vh;overflow-y:auto;border-radius:var(--card-r);padding:var(--card-p);">
   <h3>${esc(title)}</h3>
   <div class="modal-body">${bodyHtml}</div>
   <div id="pai-modal-err"
