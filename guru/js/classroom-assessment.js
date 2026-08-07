@@ -134,15 +134,6 @@
   style="color:var(--danger);font-size:var(--fs-caption);min-height:1.2rem;margin-top:var(--space-xs);"></div>
 ${renderCpSubsection(cp)}
 ${renderTpSubsection(tps, kktps)}`;
-
-    // Tampilkan tombol toggle hanya jika teks CP overflow 3 baris
-    requestAnimationFrame(() => {
-      const cpText = document.getElementById('pai-cp-text');
-      const cpBtn  = document.getElementById('pai-cp-toggle');
-      if (cpText && cpBtn) {
-        cpBtn.style.display = cpText.scrollHeight > cpText.offsetHeight ? 'block' : 'none';
-      }
-    });
   }
 
   function renderCpSubsection(cp) {
@@ -173,7 +164,7 @@ ${visBadges ? `<div style="margin:var(--space-xs) 0;">${visBadges}</div>` : ''}
     <span class="pai-subsec-title">Capaian Pembelajaran</span>
     <span class="pai-chevron">▼</span>
   </div>
-  <div class="pai-subsec-body">${bodyHtml}</div>
+  <div class="pai-subsec-body" id="pai-cp-subsec-body">${bodyHtml}</div>
 </div>`;
   }
 
@@ -504,6 +495,17 @@ ${visBadges ? `<div style="margin:var(--space-xs) 0;">${visBadges}</div>` : ''}
           const isOpen = subsecBody.style.display !== 'none';
           subsecBody.style.display = isOpen ? 'none' : '';
           if (chevron) chevron.style.transform = isOpen ? '' : 'rotate(180deg)';
+          // Cek tombol Selengkapnya saat CP dibuka
+          if (!isOpen && subsecBody.id === 'pai-cp-subsec-body') {
+            requestAnimationFrame(() => {
+              const cpText = document.getElementById('pai-cp-text');
+              const cpBtn  = document.getElementById('pai-cp-toggle');
+              if (cpText && cpBtn) {
+                cpBtn.style.display =
+                  cpText.scrollHeight > cpText.offsetHeight ? 'block' : 'none';
+              }
+            });
+          }
         }
         return;
       }
