@@ -1974,7 +1974,6 @@ h2.panel-header.open .panel-collapse-arrow {
   font-size: var(--fs-body);
   font-family: inherit;
   cursor: pointer;
-  width: 100%;
 }
 
 #pai-semester:focus {
