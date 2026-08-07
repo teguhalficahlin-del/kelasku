@@ -1638,7 +1638,7 @@ h2.panel-header.open .panel-collapse-arrow {
 }
 #assessment-modal .modal-body textarea {
   resize: vertical;
-  min-height: 120px;
+  min-height: 200px;
   line-height: 1.5;
 }
 #assessment-modal .modal-body input[type="text"]:focus,
@@ -1668,6 +1668,7 @@ h2.panel-header.open .panel-collapse-arrow {
   letter-spacing: normal;
   cursor: pointer;
   margin-bottom: .5rem;
+  margin-top: -.375rem;
 }
 #assessment-modal .modal-cancel {
   background: transparent;
