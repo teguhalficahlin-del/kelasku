@@ -2330,6 +2330,33 @@ h2.panel-header.open .panel-collapse-arrow {
   margin-bottom: var(--space-sm);
 }
 
+.pai-cp-text {
+  font-size: var(--fs-body);
+  color: var(--text-primary);
+  line-height: var(--lh-loose);
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin-bottom: var(--space-xs);
+}
+
+.pai-cp-clamped {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.pai-cp-toggle {
+  background: none;
+  border: none;
+  color: var(--gold);
+  font-size: var(--fs-caption);
+  cursor: pointer;
+  padding: var(--space-xs) 0;
+  display: block;
+  font-family: inherit;
+}
+
 /* ── TP row ── */
 .pai-tp-row {
   display: flex;

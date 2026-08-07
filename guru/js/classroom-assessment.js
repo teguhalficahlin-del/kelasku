@@ -134,6 +134,13 @@
   style="color:var(--danger);font-size:var(--fs-caption);min-height:1.2rem;margin-top:var(--space-xs);"></div>
 ${renderCpSubsection(cp)}
 ${renderTpSubsection(tps, kktps)}`;
+
+    // Tampilkan tombol toggle hanya jika teks CP overflow 3 baris
+    const cpText = document.getElementById('pai-cp-text');
+    const cpBtn  = document.getElementById('pai-cp-toggle');
+    if (cpText && cpBtn) {
+      cpBtn.style.display = cpText.scrollHeight > cpText.offsetHeight ? 'block' : 'none';
+    }
   }
 
   function renderCpSubsection(cp) {
@@ -148,7 +155,10 @@ ${renderTpSubsection(tps, kktps)}`;
         cp.is_visible_ortu  ? '<span class="badge-tipe badge-kktp">Ortu ✓</span>'  : ''
       ].filter(Boolean).join(' ');
       bodyHtml = `
-<p class="pai-cp-konten">${esc(cp.konten || '—')}</p>
+<div class="pai-cp-preview">
+  <p class="pai-cp-text pai-cp-clamped" id="pai-cp-text">${esc(cp.konten || '—')}</p>
+  <button class="pai-cp-toggle" id="pai-cp-toggle" style="display:none;">Selengkapnya</button>
+</div>
 ${visBadges ? `<div style="margin:var(--space-xs) 0;">${visBadges}</div>` : ''}
 <div class="pai-item-actions">
   <button class="btn-sm" data-action="cp-edit" data-id="${esc(cp.id)}">Edit</button>
@@ -473,6 +483,16 @@ ${visBadges ? `<div style="margin:var(--space-xs) 0;">${visBadges}</div>` : ''}
     if (!body) return;
 
     body.addEventListener('click', e => {
+      // Toggle Selengkapnya / Sembunyikan
+      if (e.target.id === 'pai-cp-toggle') {
+        const txt = document.getElementById('pai-cp-text');
+        const tog = e.target;
+        if (!txt) return;
+        const clamped = txt.classList.toggle('pai-cp-clamped');
+        tog.textContent = clamped ? 'Selengkapnya' : 'Sembunyikan';
+        return;
+      }
+
       // Subsec header collapse — but not if a button inside was clicked
       const subsecHdr = e.target.closest('.pai-subsec-header');
       if (subsecHdr && !e.target.closest('[data-action]')) {
