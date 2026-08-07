@@ -205,7 +205,7 @@ git push origin main                  → urutan TERAKHIR
 ## 12. STATUS PROYEK
 
 **Fase saat ini: DEVELOPMENT AKTIF**
-**HEAD:** `c9b5d16`
+**HEAD:** `2d0b7a1`
 
 - [x] Dokumen rancangan selesai (REQUIREMENTS, SCHEMA-v0, ADR-001)
 - [x] Supabase project baru dibuat
@@ -220,6 +220,7 @@ git push origin main                  → urutan TERAKHIR
 - [x] 6 slash commands di `.claude/commands/`
 - [x] Edge Functions deployed: `generate-akun`, `hapus-akun`
 - [x] Portal Guru: tab Penilaian — assessment_items + student_grades (sesi 6 Agustus 2026)
+- [x] Portal Guru: Penilaian section Perencanaan selesai — CP/TP/KKTP CRUD, TP collapsed, grid KKTP, custom dropdown semester (sesi 7–8 Agustus 2026)
 - [ ] Portal Guru: catatan siswa + sesi pembinaan
 - [x] Portal Guru: jadwal classroom (ADR-004)
 - [x] Portal Guru: absensi classroom (ADR-005)
@@ -278,6 +279,20 @@ Label:
 - Tab "Siswa" → "Kelola Siswa"
 - Heading "Jadwal Mingguan" → "Jadwal Mengajar"
 
+**Fitur & fix sesi 7–8 Agustus 2026 — Penilaian section Perencanaan (HEAD c9b5d16 → 2d0b7a1):**
+
+UX & layout:
+- TP default collapsed — konten + KKTP dibungkus `pai-tp-body` hidden saat tab dibuka
+- KKTP row: layout grid (`1rem minmax(7rem,1fr) 4.5rem 6.5rem`) — tombol Edit/Hapus selalu sejajar vertikal
+- Custom dropdown `#pai-semester-wrap` menggantikan `<select>` native — dark theme penuh,
+  keyboard navigation (Enter/Space/Escape/ArrowUp/ArrowDown), `initSemesterDropdown()`
+  dipanggil ulang setiap `renderPerencanaan()` agar listener tidak hilang setelah CRUD
+
+Migrations baru:
+- `20260807000001_*` — hierarchy assessment items
+- `20260807000002_*` — KKTP batas range (batas_bawah, batas_atas)
+- `20260808000001_*` — unique fix parent_id
+
 **Migrations (urut kronologis):**
 ```
 20260730000001_init-schema.sql
@@ -303,6 +318,9 @@ Label:
 20260806000004_assessment-rls.sql
 20260806000005_assessment-rpc.sql
 20260806000006_assessment-revisi.sql
+20260807000001_assessment-hierarchy.sql
+20260807000002_assessment-kktp-range.sql
+20260808000001_assessment-unique-fix.sql
 ```
 
 ---
