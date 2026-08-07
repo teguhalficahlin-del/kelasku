@@ -4,10 +4,12 @@
 
   let classroomId = null;
   let teacherId   = null;
-  let _roster     = [];
-  let _items      = [];
-  let _grades     = [];
-  let _loaded     = false;
+  let _roster      = [];
+  let _items       = [];
+  let _grades      = [];
+  let _assessments = [];
+  let _pelTab      = 'DIAGNOSTIK';
+  let _loaded      = false;
   let _year       = '';
   let _semester   = 1;
 
@@ -59,7 +61,7 @@
   async function loadGrades() {
     const { data, error } = await client
       .from('student_grades')
-      .select('id, student_id, judul, nilai_angka, deskripsi, is_published, assessment_item_id, tanggal_penilaian, tipe_penilaian, bobot')
+      .select('id, student_id, judul, nilai_angka, deskripsi, is_published, assessment_item_id, tanggal_penilaian, tipe_penilaian, bobot, assessment_id')
       .eq('classroom_id', classroomId)
       .eq('academic_year', _year)
       .eq('semester', _semester)
@@ -101,7 +103,7 @@
   }
 
   async function loadAll() {
-    await Promise.all([loadItems(), loadGrades()]);
+    await Promise.all([loadItems(), loadGrades(), loadAssessments()]);
   }
 
   // ─── Render ─────────────────────────────────────────────────────────────────
@@ -246,16 +248,534 @@ ${renderTpSubsection(tps, kktps)}`;
 </div>`;
   }
 
+  // ─── API — assessments ──────────────────────────────────────────────────────
+
+  async function loadAssessments() {
+    const { data, error } = await client
+      .from('assessments')
+      .select('id, judul, teknik, tanggal, jenis, tp_id, tindak_lanjut, catatan_tl')
+      .eq('classroom_id', classroomId)
+      .eq('academic_year', _year)
+      .eq('semester', _semester)
+      .order('tanggal', { ascending: false }).order('judul');
+    _assessments = error ? [] : (data || []);
+  }
+
+  async function saveAssessment(payload) {
+    const { data, error } = await client
+      .from('assessments')
+      .insert({ ...payload, classroom_id: classroomId, teacher_id: teacherId,
+                academic_year: _year, semester: _semester })
+      .select('id').single();
+    if (error) throw error;
+    return data;
+  }
+
+  async function updateAssessment(id, payload) {
+    const { error } = await client.from('assessments').update(payload).eq('id', id);
+    if (error) throw error;
+  }
+
+  async function deleteAssessmentById(id) {
+    const { error } = await client.from('assessments').delete().eq('id', id);
+    if (error) throw error;
+  }
+
+  async function loadAssessmentGrades(assessmentId) {
+    const { data, error } = await client
+      .from('student_grades')
+      .select('id, student_id, nilai_angka, deskripsi')
+      .eq('assessment_id', assessmentId);
+    return error ? [] : (data || []);
+  }
+
+  async function upsertAssessmentGrade(assessmentId, studentId, judulAsmt, payload) {
+    const { error } = await client.from('student_grades').upsert({
+      classroom_id: classroomId, teacher_id: teacherId,
+      academic_year: _year,      semester: _semester,
+      student_id: studentId,     assessment_id: assessmentId,
+      judul: judulAsmt,          is_published: false,
+      ...payload
+    }, { onConflict: 'classroom_id,student_id,assessment_id' });
+    if (error) throw error;
+  }
+
+  async function loadKktpResults(assessmentId) {
+    const { data, error } = await client
+      .from('assessment_kktp_results')
+      .select('id, student_id, kktp_id, tercapai')
+      .eq('assessment_id', assessmentId);
+    return error ? [] : (data || []);
+  }
+
+  async function upsertKktpResult(assessmentId, studentId, kktpId, tercapai) {
+    const { error } = await client.from('assessment_kktp_results').upsert({
+      assessment_id: assessmentId, student_id: studentId,
+      kktp_id: kktpId,            classroom_id: classroomId,
+      teacher_id: teacherId,      tercapai
+    }, { onConflict: 'assessment_id,student_id,kktp_id' });
+    if (error) throw error;
+  }
+
+  // ─── Render — Pelaksanaan ────────────────────────────────────────────────────
+
   function renderPelaksanaan() {
     const body = document.getElementById('pai-pelaksanaan-body');
     if (!body) return;
-    body.innerHTML =
-      '<p class="pai-placeholder">🚧 Segera hadir — Fitur Pelaksanaan Penilaian sedang dalam pengembangan.</p>';
+
+    const diagn = _assessments.filter(a => a.jenis === 'DIAGNOSTIK_NK' || a.jenis === 'DIAGNOSTIK_K');
+    const form  = _assessments.filter(a => a.jenis === 'FORMATIF');
+    const sum   = _assessments.filter(a => a.jenis === 'SUMATIF');
+
+    const counterParts = [];
+    if (diagn.length) counterParts.push(`${diagn.length} Diagnostik`);
+    if (form.length)  counterParts.push(`${form.length} Formatif`);
+    if (sum.length)   counterParts.push(`${sum.length} Sumatif`);
+    const counter = counterParts.length
+      ? `<p style="font-size:var(--fs-caption);color:var(--text-secondary);margin:0 0 var(--space-sm) 0;">${counterParts.join(' · ')}</p>`
+      : '';
+
+    const tabStyle = (t) => t === _pelTab
+      ? `background:var(--gold);color:var(--text-on-gold);border:none;border-radius:var(--btn-r);padding:var(--space-xs) var(--space-sm);font-size:var(--fs-caption);font-weight:var(--fw-medium);cursor:pointer;min-height:var(--btn-h-xs);`
+      : `background:var(--bg-elevated);color:var(--text-secondary);border:1px solid var(--border);border-radius:var(--btn-r);padding:var(--space-xs) var(--space-sm);font-size:var(--fs-caption);font-weight:var(--fw-medium);cursor:pointer;min-height:var(--btn-h-xs);`;
+
+    const tabs = ['DIAGNOSTIK', 'FORMATIF', 'SUMATIF'].map(t =>
+      `<button style="${tabStyle(t)}" data-action="pel-tab" data-tab="${t}">${t.charAt(0) + t.slice(1).toLowerCase()}</button>`
+    ).join('');
+
+    body.innerHTML = `${counter}
+<div style="display:flex;gap:var(--space-xs);margin-bottom:var(--space-md);flex-wrap:wrap;">${tabs}</div>
+<div id="pel-tab-content"></div>`;
+
+    renderPelTabContent();
+  }
+
+  function renderPelTabContent() {
+    const content = document.getElementById('pel-tab-content');
+    if (!content) return;
+
+    let asmts;
+    if (_pelTab === 'DIAGNOSTIK') {
+      asmts = _assessments.filter(a => a.jenis === 'DIAGNOSTIK_NK' || a.jenis === 'DIAGNOSTIK_K');
+    } else if (_pelTab === 'FORMATIF') {
+      asmts = _assessments.filter(a => a.jenis === 'FORMATIF');
+    } else {
+      asmts = _assessments.filter(a => a.jenis === 'SUMATIF');
+    }
+
+    const label = _pelTab === 'DIAGNOSTIK' ? 'Diagnostik' : _pelTab === 'FORMATIF' ? 'Formatif' : 'Sumatif';
+    const cards = asmts.map(a => renderAsmtCard(a)).join('');
+
+    content.innerHTML = `${cards || `<p class="pai-placeholder" style="padding:var(--space-md) 0;text-align:left;">Belum ada entri ${label}.</p>`}
+<button class="btn-sm" data-action="pel-add" style="margin-top:var(--space-sm);">+ Tambah Penilaian</button>`;
+  }
+
+  function renderAsmtCard(a) {
+    const gradeCount = _grades.filter(g => g.assessment_id === a.id).length;
+    const isComplete = _roster.length > 0 && gradeCount >= _roster.length;
+    const statusColor = isComplete
+      ? 'var(--success)'
+      : (_roster.length > 0 ? 'var(--warning)' : 'var(--text-muted)');
+    const statusLabel = _roster.length > 0
+      ? (isComplete ? '✓ Lengkap' : `${gradeCount}/${_roster.length}`)
+      : '—';
+
+    const tp       = a.tp_id ? _items.find(i => i.id === a.tp_id) : null;
+    const jenisMap = { DIAGNOSTIK_NK: 'D-NK', DIAGNOSTIK_K: 'D-K', FORMATIF: 'F', SUMATIF: 'S' };
+    const jenisLabel = jenisMap[a.jenis] || a.jenis;
+
+    const tlRow = a.tindak_lanjut
+      ? `<div style="font-size:var(--fs-caption);padding:var(--space-xs) 0 0 0;border-top:1px solid var(--border);color:var(--text-secondary);margin-top:var(--space-xs);">TL: ${esc(a.tindak_lanjut)}${a.catatan_tl ? ' — ' + esc(a.catatan_tl) : ''}</div>`
+      : '';
+
+    return `
+<div class="pai-tp-row" style="flex-direction:column;gap:var(--space-xs);margin-bottom:var(--space-sm);">
+  <div style="display:flex;align-items:flex-start;gap:var(--space-sm);">
+    <div style="flex:1;min-width:0;">
+      <div style="display:flex;align-items:center;gap:var(--space-xs);flex-wrap:wrap;margin-bottom:var(--space-xs);">
+        <span style="font-size:var(--fs-badge);font-weight:var(--fw-medium);background:var(--gold-muted);color:var(--gold);border-radius:99px;padding:2px 8px;">${jenisLabel}</span>
+        <span style="font-weight:var(--fw-medium);font-size:var(--fs-ui);">${esc(a.judul)}</span>
+      </div>
+      ${a.teknik ? `<div style="font-size:var(--fs-caption);color:var(--text-secondary);">Teknik: ${esc(a.teknik)}</div>` : ''}
+      ${tp ? `<div style="font-size:var(--fs-caption);color:var(--text-secondary);">TP: ${esc(tp.judul)}</div>` : ''}
+      ${a.tanggal ? `<div style="font-size:var(--fs-caption);color:var(--text-muted);">${esc(a.tanggal)}</div>` : ''}
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:var(--space-xs);flex-shrink:0;">
+      <span style="font-size:var(--fs-badge);color:${statusColor};font-weight:var(--fw-medium);white-space:nowrap;">${statusLabel}</span>
+      <div class="pai-item-actions">
+        <button class="btn-sm" data-action="pel-nilai" data-id="${esc(a.id)}">Isi Nilai</button>
+        <button class="btn-sm" data-action="pel-edit" data-id="${esc(a.id)}">Edit</button>
+        <button class="btn-sm btn-sm-danger" data-action="pel-del" data-id="${esc(a.id)}">Hapus</button>
+      </div>
+    </div>
+  </div>
+  ${tlRow}
+</div>`;
+  }
+
+  // ─── Modal Pelaksanaan — Step 1 (header entri) ───────────────────────────────
+
+  function openAsmtHeaderModal(asmt) {
+    const tps = _items
+      .filter(i => i.tipe === 'TP' && !i.parent_id)
+      .sort((a, b) => (a.urutan ?? 999) - (b.urutan ?? 999));
+
+    const jenisOpts = [
+      { val: 'DIAGNOSTIK_NK', label: 'Diagnostik Non-Kognitif' },
+      { val: 'DIAGNOSTIK_K',  label: 'Diagnostik Kognitif' },
+      { val: 'FORMATIF',      label: 'Formatif' },
+      { val: 'SUMATIF',       label: 'Sumatif' },
+    ];
+    const currJenis = asmt?.jenis || 'FORMATIF';
+
+    const jenisSelect = jenisOpts.map(o =>
+      `<option value="${o.val}"${currJenis === o.val ? ' selected' : ''}>${o.label}</option>`
+    ).join('');
+
+    const tpOpts = tps.map(t =>
+      `<option value="${esc(t.id)}"${asmt?.tp_id === t.id ? ' selected' : ''}>${esc(t.judul)}</option>`
+    ).join('');
+
+    const tpSection = tps.length
+      ? `<label id="pai-modal-tp-label">Tujuan Pembelajaran</label>
+         <select id="pai-modal-tp">
+           <option value="">— Tidak ada / opsional —</option>
+           ${tpOpts}
+         </select>
+         <div id="pai-kktp-preview" style="margin-top:var(--space-xs);font-size:var(--fs-caption);color:var(--text-muted);"></div>`
+      : `<p style="font-size:var(--fs-caption);color:var(--text-muted);margin:var(--space-xs) 0;">Belum ada TP di semester ini.</p>`;
+
+    openModal({
+      title: asmt ? 'Edit Entri Penilaian' : 'Tambah Entri Penilaian',
+      bodyHtml: `
+<label>Judul <span style="color:var(--danger);">*</span></label>
+<input type="text" id="pai-modal-judul" value="${esc(asmt?.judul || '')}" maxlength="200"
+  placeholder="Contoh: Ulangan Harian 1">
+<label>Jenis Penilaian <span style="color:var(--danger);">*</span></label>
+<select id="pai-modal-jenis">${jenisSelect}</select>
+<label>Teknik <span style="font-weight:var(--fw-regular);color:var(--text-muted);">(opsional)</span></label>
+<input type="text" id="pai-modal-teknik" value="${esc(asmt?.teknik || '')}" maxlength="200"
+  placeholder="Contoh: Tes Tertulis, Observasi">
+<label>Tanggal <span style="font-weight:var(--fw-regular);color:var(--text-muted);">(opsional)</span></label>
+<input type="date" id="pai-modal-tanggal" value="${esc(asmt?.tanggal || '')}">
+${tpSection}`,
+      onSave: async (overlay, close) => {
+        const judul   = overlay.querySelector('#pai-modal-judul').value.trim();
+        const jenis   = overlay.querySelector('#pai-modal-jenis').value;
+        const teknik  = overlay.querySelector('#pai-modal-teknik').value.trim() || null;
+        const tanggal = overlay.querySelector('#pai-modal-tanggal').value || null;
+        const tp_id   = overlay.querySelector('#pai-modal-tp')?.value || null;
+        if (!judul) throw new Error('Judul tidak boleh kosong.');
+
+        const payload = { judul, jenis, teknik, tanggal, tp_id: tp_id || null };
+        let asmtId;
+        if (asmt) {
+          await updateAssessment(asmt.id, payload);
+          asmtId = asmt.id;
+        } else {
+          const res = await saveAssessment(payload);
+          asmtId = res.id;
+        }
+        await loadAssessments();
+        renderPelaksanaan();
+        close();
+        if (!asmt) {
+          const newAsmt = _assessments.find(a => a.id === asmtId);
+          if (newAsmt) openAsmtNilaiModal(newAsmt);
+        }
+      }
+    });
+
+    if (!tps.length) return;
+    const overlay  = document.getElementById('assessment-modal');
+    if (!overlay) return;
+    const jenisEl  = overlay.querySelector('#pai-modal-jenis');
+    const tpLabel  = overlay.querySelector('#pai-modal-tp-label');
+    const tpSelect = overlay.querySelector('#pai-modal-tp');
+    const kktpPrev = overlay.querySelector('#pai-kktp-preview');
+
+    function updateKktpPreview(tpId) {
+      if (jenisEl.value !== 'SUMATIF' || !tpId) { kktpPrev.innerHTML = ''; return; }
+      const kktps = _items.filter(i => i.tipe === 'KKTP' && i.parent_id === tpId);
+      if (!kktps.length) { kktpPrev.innerHTML = 'Belum ada KKTP untuk TP ini.'; return; }
+      kktpPrev.innerHTML = 'KKTP: ' + kktps.map(k => esc(k.judul)).join(' · ');
+    }
+
+    function updateTpVisibility() {
+      const jenis = jenisEl.value;
+      const hide  = jenis === 'DIAGNOSTIK_NK';
+      tpLabel.style.display  = hide ? 'none' : '';
+      tpSelect.style.display = hide ? 'none' : '';
+      if (hide) { tpSelect.value = ''; kktpPrev.innerHTML = ''; return; }
+      updateKktpPreview(tpSelect.value);
+    }
+
+    jenisEl.addEventListener('change', updateTpVisibility);
+    tpSelect.addEventListener('change', () => updateKktpPreview(tpSelect.value));
+    updateTpVisibility();
+  }
+
+  // ─── Modal Pelaksanaan — Step 2 (input nilai per siswa) ─────────────────────
+
+  async function openAsmtNilaiModal(asmt) {
+    const grades      = await loadAssessmentGrades(asmt.id);
+    const kktpResults = (asmt.jenis === 'SUMATIF') ? await loadKktpResults(asmt.id) : [];
+
+    const DIAG_OPTS = [
+      ['BELUM_TERLIHAT', 'Belum Terlihat'],
+      ['MULAI_TERLIHAT', 'Mulai Terlihat'],
+      ['SUDAH_TERLIHAT', 'Sudah Terlihat'],
+      ['MELAMPAUI',      'Melampaui'],
+    ];
+
+    const kktps = asmt.tp_id
+      ? _items.filter(i => i.tipe === 'KKTP' && i.parent_id === asmt.tp_id)
+              .sort((a, b) => (a.urutan ?? 999) - (b.urutan ?? 999))
+      : [];
+
+    const isDiag = asmt.jenis === 'DIAGNOSTIK_NK' || asmt.jenis === 'DIAGNOSTIK_K';
+    const isForm = asmt.jenis === 'FORMATIF';
+    const isSum  = asmt.jenis === 'SUMATIF';
+
+    const gradeMap  = new Map(grades.map(g => [g.student_id, g]));
+    const kktpMap   = new Map();
+    kktpResults.forEach(r => { kktpMap.set(r.student_id + '|' + r.kktp_id, r.tercapai); });
+
+    let headerRow = '';
+    if (isForm && _roster.length > 1) {
+      headerRow = `<div style="margin-bottom:var(--space-sm);">
+  <button type="button" id="pel-copy-all" class="btn-sm"
+    style="font-size:var(--fs-caption);">Salin ke semua yang kosong</button>
+  <span style="font-size:var(--fs-badge);color:var(--text-muted);margin-left:var(--space-xs);">salin baris pertama ke siswa lain yang belum diisi</span>
+</div>`;
+    }
+
+    const rows = !_roster.length
+      ? '<p class="pai-placeholder">Belum ada siswa di classroom ini.</p>'
+      : _roster.map(s => {
+          const existing = gradeMap.get(s.id);
+
+          if (isDiag) {
+            const currVal = existing?.deskripsi || '';
+            const opts = DIAG_OPTS.map(([v, l]) =>
+              `<option value="${v}"${currVal === v ? ' selected' : ''}>${l}</option>`
+            ).join('');
+            return `
+<div style="display:flex;align-items:center;gap:var(--space-sm);padding:var(--space-sm) 0;border-bottom:1px solid var(--border);">
+  <span style="flex:1;font-size:var(--fs-caption);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(s.full_name)}</span>
+  <select class="pel-diag-select" data-student-id="${esc(s.id)}" style="flex-shrink:0;">
+    <option value="">— Pilih —</option>${opts}
+  </select>
+</div>`;
+          }
+
+          if (isForm) {
+            const currVal = existing?.deskripsi || '';
+            return `
+<div style="padding:var(--space-sm) 0;border-bottom:1px solid var(--border);">
+  <div style="font-size:var(--fs-caption);color:var(--text-secondary);margin-bottom:var(--space-xs);">${esc(s.full_name)}</div>
+  <textarea class="pel-form-textarea" data-student-id="${esc(s.id)}" rows="2"
+    placeholder="Catatan formatif…">${esc(currVal)}</textarea>
+</div>`;
+          }
+
+          if (isSum) {
+            const currNilai = existing?.nilai_angka != null ? existing.nilai_angka : '';
+            const kktpRows = kktps.map(k => {
+              const tercapai = kktpMap.get(s.id + '|' + k.id) || false;
+              return `<label style="display:flex;align-items:center;gap:var(--space-xs);font-size:var(--fs-caption);padding:2px 0;cursor:pointer;">
+  <input type="checkbox" class="pel-kktp-cb"
+    data-student-id="${esc(s.id)}" data-kktp-id="${esc(k.id)}"${tercapai ? ' checked' : ''}>
+  <span>${esc(k.judul)}</span>
+</label>`;
+            }).join('');
+            return `
+<div style="padding:var(--space-sm) 0;border-bottom:1px solid var(--border);">
+  <div style="display:flex;align-items:center;gap:var(--space-sm);">
+    <span style="flex:1;font-size:var(--fs-caption);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(s.full_name)}</span>
+    <input type="number" class="pel-sum-nilai" data-student-id="${esc(s.id)}"
+      min="0" max="100" step="0.5" value="${esc(String(currNilai))}"
+      style="flex-shrink:0;max-width:80px;" placeholder="0–100">
+  </div>
+  ${kktpRows ? `<div style="margin-top:var(--space-xs);padding-left:var(--space-md);">${kktpRows}</div>` : ''}
+</div>`;
+          }
+
+          return '';
+        }).join('');
+
+    const needsTl = isForm || isSum;
+    openModal({
+      title:     `Isi Nilai — ${esc(asmt.judul)}`,
+      bodyHtml:  headerRow + `<div style="max-height:55vh;overflow-y:auto;">${rows}</div>`,
+      saveLabel: needsTl ? 'Selesai & Tindak Lanjut' : 'Selesai',
+      onSave: async (overlay, close) => {
+        if (isDiag) {
+          const selects = overlay.querySelectorAll('.pel-diag-select');
+          await Promise.all([...selects].map(sel => {
+            if (!sel.value) return Promise.resolve();
+            return upsertAssessmentGrade(asmt.id, sel.dataset.studentId, asmt.judul,
+              { deskripsi: sel.value, nilai_angka: null });
+          }));
+        } else if (isForm) {
+          const areas = overlay.querySelectorAll('.pel-form-textarea');
+          await Promise.all([...areas].map(ta => {
+            const val = ta.value.trim();
+            if (!val) return Promise.resolve();
+            return upsertAssessmentGrade(asmt.id, ta.dataset.studentId, asmt.judul,
+              { deskripsi: val, nilai_angka: null });
+          }));
+        } else if (isSum) {
+          const inputs = overlay.querySelectorAll('.pel-sum-nilai');
+          const cbs    = overlay.querySelectorAll('.pel-kktp-cb');
+          await Promise.all([...inputs].map(inp => {
+            const val = inp.value.trim();
+            if (val === '') return Promise.resolve();
+            const nilai = parseFloat(val);
+            if (isNaN(nilai) || nilai < 0 || nilai > 100) return Promise.resolve();
+            return upsertAssessmentGrade(asmt.id, inp.dataset.studentId, asmt.judul,
+              { nilai_angka: nilai, deskripsi: null });
+          }));
+          await Promise.all([...cbs].map(cb =>
+            upsertKktpResult(asmt.id, cb.dataset.studentId, cb.dataset.kktpId, cb.checked)
+          ));
+        }
+        await loadAll();
+        renderPelaksanaan();
+        close();
+        if (needsTl) {
+          const updatedAsmt = _assessments.find(a => a.id === asmt.id);
+          if (updatedAsmt) openAsmtTlModal(updatedAsmt);
+        }
+      }
+    });
+
+    if (isForm && _roster.length > 1) {
+      const overlay = document.getElementById('assessment-modal');
+      overlay?.querySelector('#pel-copy-all')?.addEventListener('click', () => {
+        const areas = overlay.querySelectorAll('.pel-form-textarea');
+        const src   = areas[0]?.value;
+        if (!src) return;
+        areas.forEach((a, i) => { if (i > 0 && !a.value) a.value = src; });
+      });
+    }
+  }
+
+  // ─── Modal Pelaksanaan — Step 3 (tindak lanjut) ──────────────────────────────
+
+  function openAsmtTlModal(asmt) {
+    const tlOpts = [
+      { val: 'PENGAYAAN',    label: 'Pengayaan' },
+      { val: 'PENGUATAN',    label: 'Penguatan' },
+      { val: 'PENDAMPINGAN', label: 'Pendampingan' },
+    ];
+    const tlSelect = tlOpts.map(o =>
+      `<option value="${o.val}"${asmt.tindak_lanjut === o.val ? ' selected' : ''}>${o.label}</option>`
+    ).join('');
+
+    openModal({
+      title:     `Tindak Lanjut — ${esc(asmt.judul)}`,
+      bodyHtml: `
+<label>Tindak Lanjut <span style="color:var(--danger);">*</span></label>
+<select id="pai-modal-tl">
+  <option value="">— Pilih —</option>
+  ${tlSelect}
+</select>
+<label>Catatan <span style="font-weight:var(--fw-regular);color:var(--text-muted);">(opsional)</span></label>
+<textarea id="pai-modal-catatan-tl" rows="3" maxlength="1000"
+  placeholder="Catatan tindak lanjut…">${esc(asmt.catatan_tl || '')}</textarea>`,
+      saveLabel: 'Simpan Tindak Lanjut',
+      onSave: async (overlay, close) => {
+        const tl     = overlay.querySelector('#pai-modal-tl').value;
+        const catatan = overlay.querySelector('#pai-modal-catatan-tl').value.trim() || null;
+        if (!tl) throw new Error('Pilih tindak lanjut terlebih dahulu.');
+        await updateAssessment(asmt.id, { tindak_lanjut: tl, catatan_tl: catatan });
+        await loadAssessments();
+        renderPelaksanaan();
+        close();
+      }
+    });
+  }
+
+  // ─── Inline delete confirm (pelaksanaan) ─────────────────────────────────────
+
+  function confirmAsmtDelete(origBtn, id, label) {
+    const clone = origBtn.cloneNode(true);
+    const wrap  = document.createElement('span');
+    wrap.style.cssText = 'display:inline-flex;align-items:center;gap:var(--space-xs);flex-wrap:wrap;';
+    wrap.innerHTML = `<span style="font-size:var(--fs-caption);color:var(--text-secondary);white-space:nowrap;">Hapus "${esc(label)}"?</span>`;
+
+    const yesBtn = document.createElement('button');
+    yesBtn.className   = 'btn-sm btn-sm-danger';
+    yesBtn.style.cssText = 'font-size:var(--fs-badge);min-height:var(--btn-h-xs);padding:0 var(--btn-px-sm);';
+    yesBtn.textContent = 'Ya';
+
+    const noBtn = document.createElement('button');
+    noBtn.className    = 'btn-sm';
+    noBtn.style.cssText = 'font-size:var(--fs-badge);min-height:var(--btn-h-xs);padding:0 var(--btn-px-sm);';
+    noBtn.textContent  = 'Tidak';
+
+    wrap.appendChild(yesBtn);
+    wrap.appendChild(noBtn);
+    origBtn.replaceWith(wrap);
+
+    yesBtn.addEventListener('click', async () => {
+      yesBtn.disabled = true;
+      try {
+        await deleteAssessmentById(id);
+        await loadAll();
+        renderPelaksanaan();
+      } catch (err) {
+        wrap.replaceWith(clone);
+        alert('Gagal hapus: ' + (err.message || 'Error tidak diketahui.'));
+      }
+    });
+    noBtn.addEventListener('click', () => { wrap.replaceWith(clone); });
+  }
+
+  // ─── Event delegation — Pelaksanaan ─────────────────────────────────────────
+
+  function initPelDelegation() {
+    const body = document.getElementById('pai-pelaksanaan-body');
+    if (!body) return;
+
+    body.addEventListener('click', e => {
+      const btn = e.target.closest('[data-action]');
+      if (!btn) return;
+      const action = btn.dataset.action;
+
+      switch (action) {
+        case 'pel-tab':
+          if (btn.dataset.tab && btn.dataset.tab !== _pelTab) {
+            _pelTab = btn.dataset.tab;
+            renderPelaksanaan();
+          }
+          break;
+        case 'pel-add':
+          openAsmtHeaderModal(null);
+          break;
+        case 'pel-edit': {
+          const asmt = _assessments.find(a => a.id === btn.dataset.id);
+          if (asmt) openAsmtHeaderModal(asmt);
+          break;
+        }
+        case 'pel-nilai': {
+          const asmt = _assessments.find(a => a.id === btn.dataset.id);
+          if (asmt) openAsmtNilaiModal(asmt);
+          break;
+        }
+        case 'pel-del': {
+          const asmt = _assessments.find(a => a.id === btn.dataset.id);
+          if (asmt) confirmAsmtDelete(btn, asmt.id, asmt.judul);
+          break;
+        }
+      }
+    });
   }
 
   // ─── Modal helper ───────────────────────────────────────────────────────────
 
-  function openModal({ title, bodyHtml, onSave }) {
+  function openModal({ title, bodyHtml, onSave, saveLabel = 'Simpan' }) {
     document.getElementById('assessment-modal')?.remove();
 
     const overlay = document.createElement('div');
@@ -284,6 +804,7 @@ ${renderTpSubsection(tps, kktps)}`;
     document.addEventListener('keydown', onEsc);
 
     const saveBtn = overlay.querySelector('.modal-save');
+    saveBtn.textContent = saveLabel;
     saveBtn.addEventListener('click', async () => {
       const errEl = overlay.querySelector('#pai-modal-err');
       errEl.textContent = '';
@@ -678,11 +1199,12 @@ ${renderTpSubsection(tps, kktps)}`;
     }
 
     initCollapse();
-    renderPelaksanaan();
     initFilter();
     initDelegation();
+    initPelDelegation();
     await Promise.all([loadRoster(), loadAll()]);
     renderPerencanaan();
+    renderPelaksanaan();
     _loaded = true;
   }
 
