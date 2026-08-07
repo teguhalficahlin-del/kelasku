@@ -256,12 +256,12 @@ ${visBadges ? `<div style="margin:var(--space-xs) 0;">${visBadges}</div>` : ''}
     overlay.id        = 'assessment-modal';
     overlay.className = 'share-overlay';
     overlay.innerHTML = `
-<div class="modal-box" style="position:fixed;inset:0;width:100%;height:100%;max-height:100%;overflow-y:auto;border-radius:0;padding:var(--card-p);background:var(--bg-surface);border:none;z-index:1000;">
-  <h3>${esc(title)}</h3>
-  <div class="modal-body">${bodyHtml}</div>
+<div class="modal-box" style="position:fixed;inset:0;width:100%;height:100%;display:flex;flex-direction:column;border-radius:0;padding:0;background:var(--bg-surface);border:none;z-index:1000;">
+  <h3 style="padding:var(--card-p) var(--card-p) 0;">${esc(title)}</h3>
+  <div class="modal-body" style="flex:1;overflow-y:auto;padding:var(--card-p);">${bodyHtml}</div>
   <div id="pai-modal-err"
-    style="color:var(--danger);font-size:var(--fs-caption);min-height:1.2rem;margin:.375rem 0;"></div>
-  <div class="modal-actions">
+    style="color:var(--danger);font-size:var(--fs-caption);min-height:1.2rem;margin:.375rem 0;padding:0 var(--card-p);"></div>
+  <div class="modal-actions" style="padding:var(--space-sm) var(--card-p) var(--card-p);">
     <button type="button" class="modal-cancel">Batal</button>
     <button type="button" class="modal-save">Simpan</button>
   </div>
