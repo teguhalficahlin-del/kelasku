@@ -150,7 +150,7 @@ ${renderTpSubsection(tps, kktps)}`;
       bodyHtml = `
 <div class="pai-cp-preview">
   <p class="pai-cp-text pai-cp-clamped" id="pai-cp-text">${esc(cp.konten || '—')}</p>
-  <button class="pai-cp-toggle" id="pai-cp-toggle" style="display:none;">Selengkapnya</button>
+  ${cp.konten && cp.konten.length > 100 ? `<button class="pai-cp-toggle" id="pai-cp-toggle">Selengkapnya</button>` : ''}
 </div>
 ${visBadges ? `<div style="margin:var(--space-xs) 0;">${visBadges}</div>` : ''}
 <div class="pai-item-actions">
@@ -495,17 +495,6 @@ ${visBadges ? `<div style="margin:var(--space-xs) 0;">${visBadges}</div>` : ''}
           const isOpen = subsecBody.style.display !== 'none';
           subsecBody.style.display = isOpen ? 'none' : '';
           if (chevron) chevron.style.transform = isOpen ? '' : 'rotate(180deg)';
-          // Cek tombol Selengkapnya saat CP dibuka
-          if (!isOpen && subsecBody.id === 'pai-cp-subsec-body') {
-            requestAnimationFrame(() => {
-              const cpText = document.getElementById('pai-cp-text');
-              const cpBtn  = document.getElementById('pai-cp-toggle');
-              if (cpText && cpBtn) {
-                cpBtn.style.display =
-                  cpText.scrollHeight > cpText.offsetHeight ? 'block' : 'none';
-              }
-            });
-          }
         }
         return;
       }
