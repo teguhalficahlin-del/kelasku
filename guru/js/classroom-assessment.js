@@ -562,8 +562,8 @@ ${tpSection}`,
             ).join('');
             return `
 <div style="display:flex;align-items:center;gap:var(--space-sm);padding:var(--space-sm) 0;border-bottom:1px solid var(--border);">
-  <span style="flex:1;font-size:var(--fs-caption);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(s.full_name)}</span>
-  <select class="pel-diag-select" data-student-id="${esc(s.id)}" style="flex-shrink:0;">
+  <span style="flex:1;min-width:0;font-size:var(--fs-caption);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(s.full_name)}</span>
+  <select class="pel-diag-select" data-student-id="${esc(s.id)}" style="flex-shrink:0;max-width:10rem;">
     <option value="">— Pilih —</option>${opts}
   </select>
 </div>`;
@@ -592,7 +592,7 @@ ${tpSection}`,
             return `
 <div style="padding:var(--space-sm) 0;border-bottom:1px solid var(--border);">
   <div style="display:flex;align-items:center;gap:var(--space-sm);">
-    <span style="flex:1;font-size:var(--fs-caption);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(s.full_name)}</span>
+    <span style="flex:1;min-width:0;font-size:var(--fs-caption);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(s.full_name)}</span>
     <input type="number" class="pel-sum-nilai" data-student-id="${esc(s.id)}"
       min="0" max="100" step="0.5" value="${esc(String(currNilai))}"
       style="flex-shrink:0;max-width:80px;" placeholder="0–100">
