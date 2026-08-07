@@ -164,7 +164,7 @@ ${visBadges ? `<div style="margin:var(--space-xs) 0;">${visBadges}</div>` : ''}
     <span class="pai-subsec-title">Capaian Pembelajaran</span>
     <span class="pai-chevron">▼</span>
   </div>
-  <div class="pai-subsec-body" id="pai-cp-subsec-body">${bodyHtml}</div>
+  <div class="pai-subsec-body" id="pai-cp-subsec-body" style="display:none">${bodyHtml}</div>
 </div>`;
   }
 
@@ -183,7 +183,7 @@ ${visBadges ? `<div style="margin:var(--space-xs) 0;">${visBadges}</div>` : ''}
     <span class="pai-subsec-title">Tujuan Pembelajaran${count > 0 ? ' (' + count + ')' : ''}</span>
     <span class="pai-chevron">▼</span>
   </div>
-  <div class="pai-subsec-body">
+  <div class="pai-subsec-body" style="display:none">
     ${count === 0
       ? '<p class="pai-placeholder" style="padding:var(--space-md) 0;text-align:left;">Belum ada Tujuan Pembelajaran.</p>'
       : tpItems}
@@ -569,6 +569,12 @@ ${visBadges ? `<div style="margin:var(--space-xs) 0;">${visBadges}</div>` : ''}
         if (chevron) chevron.style.transform = isOpen ? '' : 'rotate(180deg)';
       });
     });
+
+    // Perencanaan default terbuka
+    const perBody = document.getElementById('pai-perencanaan-body');
+    const perChev = document.querySelector('#pai-perencanaan-header .pai-section-chevron');
+    if (perBody) perBody.style.display = '';
+    if (perChev) perChev.style.transform = 'rotate(180deg)';
   }
 
   // ─── Filter ─────────────────────────────────────────────────────────────────
