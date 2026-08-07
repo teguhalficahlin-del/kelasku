@@ -819,6 +819,22 @@ ${tpSection}`,
       }
     });
 
+    const _ms = document.createElement('style');
+    _ms.textContent = `
+#assessment-modal .modal-body label{display:block;font-size:var(--fs-caption);font-weight:var(--fw-medium);color:var(--text-primary);margin-top:var(--space-sm);margin-bottom:var(--space-xs);}
+#assessment-modal .modal-body input:not([type=checkbox]):not(.pel-sum-nilai),
+#assessment-modal .modal-body select:not(.pel-diag-select),
+#assessment-modal .modal-body textarea:not(.pel-form-textarea){width:100%;box-sizing:border-box;display:block;background:var(--input-bg);border:1px solid var(--input-border);border-radius:var(--input-r);color:var(--text-primary);font-size:var(--fs-ui);padding:var(--input-py) var(--input-px);font-family:inherit;}
+#assessment-modal .modal-body input::placeholder,
+#assessment-modal .modal-body textarea::placeholder{color:var(--text-muted);opacity:1;}
+#assessment-modal .modal-body input[type=date]{color-scheme:dark;}
+#assessment-modal .modal-body input[type=date][value=""]::-webkit-datetime-edit-month-field,
+#assessment-modal .modal-body input[type=date][value=""]::-webkit-datetime-edit-day-field,
+#assessment-modal .modal-body input[type=date][value=""]::-webkit-datetime-edit-year-field,
+#assessment-modal .modal-body input[type=date][value=""]::-webkit-datetime-edit-text{color:var(--text-muted);}
+#assessment-modal .modal-body select option{background:var(--bg-elevated);color:var(--text-primary);}`;
+    overlay.querySelector('.modal-box').appendChild(_ms);
+
     document.body.appendChild(overlay);
     overlay.querySelector('textarea, input')?.focus();
   }
