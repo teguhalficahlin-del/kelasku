@@ -201,10 +201,12 @@ ${renderTpSubsection(tps, kktps)}`;
   <span class="pai-kktp-bullet">•</span>
   <span style="flex:1;min-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(k.judul)}</span>
   ${range}
-  <button class="btn-sm" data-action="kktp-edit" data-id="${esc(k.id)}"
-    style="font-size:0.65rem;min-height:1.4rem;padding:0 0.3rem;flex-shrink:0;">Edit</button>
-  <button class="btn-sm btn-sm-danger" data-action="kktp-del" data-id="${esc(k.id)}"
-    style="font-size:0.65rem;min-height:1.4rem;padding:0 0.3rem;flex-shrink:0;">Hapus</button>
+  <div style="display:flex;gap:var(--space-xs);flex-shrink:0;width:fit-content;margin-left:auto;">
+    <button class="btn-sm" data-action="kktp-edit" data-id="${esc(k.id)}"
+      style="font-size:0.65rem;min-height:1.4rem;width:3rem;padding:0;flex-shrink:0;text-align:center;">Edit</button>
+    <button class="btn-sm btn-sm-danger" data-action="kktp-del" data-id="${esc(k.id)}"
+      style="font-size:0.65rem;min-height:1.4rem;width:3rem;padding:0;flex-shrink:0;text-align:center;">Hapus</button>
+  </div>
 </div>`;
     }).join('');
 
