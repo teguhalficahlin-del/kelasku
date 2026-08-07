@@ -227,6 +227,10 @@ ${visBadges ? `<div style="margin:var(--space-xs) 0;">${visBadges}</div>` : ''}
       ${visText ? `<span class="pai-tp-vis">👁 ${esc(visText)}</span>` : ''}
       <span class="pai-tp-count">${kktpList.length} KKTP</span>
     </div>
+    ${tp.konten ? `
+    <p class="pai-cp-text pai-cp-clamped" id="pai-tp-text-${esc(tp.id)}">${esc(tp.konten)}</p>
+    ${tp.konten.length > 100 ? `<button class="pai-cp-toggle" id="pai-tp-toggle-${esc(tp.id)}">Selengkapnya</button>` : ''}
+    ` : ''}
     <div class="pai-kktp-list" id="pai-kktp-list-${esc(tp.id)}" style="display:none">
       ${kktpRows || '<p style="font-size:var(--fs-caption);color:var(--text-muted);margin:var(--space-xs) 0;">Belum ada KKTP.</p>'}
       <button class="btn-sm" data-action="kktp-add" data-tp-id="${esc(tp.id)}"
@@ -477,9 +481,12 @@ ${visBadges ? `<div style="margin:var(--space-xs) 0;">${visBadges}</div>` : ''}
 
     body.addEventListener('click', e => {
       // Toggle Selengkapnya / Sembunyikan
-      if (e.target.id === 'pai-cp-toggle') {
-        const txt = document.getElementById('pai-cp-text');
+      if (e.target.classList.contains('pai-cp-toggle')) {
         const tog = e.target;
+        const txtId = tog.id === 'pai-cp-toggle'
+          ? 'pai-cp-text'
+          : 'pai-tp-text-' + tog.id.replace('pai-tp-toggle-', '');
+        const txt = document.getElementById(txtId);
         if (!txt) return;
         const clamped = txt.classList.toggle('pai-cp-clamped');
         tog.textContent = clamped ? 'Selengkapnya' : 'Sembunyikan';
