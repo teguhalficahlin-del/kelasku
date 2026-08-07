@@ -1167,7 +1167,6 @@ h2.panel-header.open .panel-collapse-arrow {
   transform: rotate(180deg);
 }
 .panel-body-collapse {
-  overflow: hidden;
 }
 
 /* ── Schedule list (flex, no table) ── */
@@ -1572,7 +1571,7 @@ h2.panel-header.open .panel-collapse-arrow {
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  padding: var(--space-lg) var(--space-sm);
+  padding: var(--space-md) var(--space-sm);
   overflow-y: auto;
 }
 @supports not (backdrop-filter: blur(1px)) {
@@ -2041,7 +2040,6 @@ h2.panel-header.open .panel-collapse-arrow {
   border-radius: var(--card-r);
   background: var(--bg-surface);
   margin-bottom: var(--space-sm);
-  overflow: hidden;
 }
 .pai-accordion-child {
   background: var(--bg-elevated);
