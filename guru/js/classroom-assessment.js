@@ -218,14 +218,16 @@ ${renderTpSubsection(tps, kktps)}`;
       <span class="pai-tp-title">${esc(tp.judul)}</span>
       <span class="pai-tp-count">${kktpList.length} KKTP</span>
     </div>
+    <div id="pai-tp-body-${esc(tp.id)}" style="display:none">
     ${tp.konten ? `
-    <p class="pai-cp-text pai-cp-clamped" id="pai-tp-text-${esc(tp.id)}">${esc(tp.konten)}</p>
-    ${tp.konten.length > 100 ? `<button class="pai-cp-toggle" id="pai-tp-toggle-${esc(tp.id)}">Selengkapnya</button>` : ''}
+      <p class="pai-cp-text pai-cp-clamped" id="pai-tp-text-${esc(tp.id)}">${esc(tp.konten)}</p>
+      ${tp.konten.length > 100 ? `<button class="pai-cp-toggle" id="pai-tp-toggle-${esc(tp.id)}">Selengkapnya</button>` : ''}
     ` : ''}
-    <div class="pai-kktp-list" id="pai-kktp-list-${esc(tp.id)}" style="display:none">
-      ${kktpRows || '<p style="font-size:var(--fs-caption);color:var(--text-muted);margin:var(--space-xs) 0;">Belum ada KKTP.</p>'}
-      <button class="btn-sm" data-action="kktp-add" data-tp-id="${esc(tp.id)}"
-        style="font-size:var(--fs-caption);min-height:var(--btn-h-xs);padding:0 var(--btn-px-sm);margin-top:var(--space-xs);">+ Tambah KKTP</button>
+      <div class="pai-kktp-list" id="pai-kktp-list-${esc(tp.id)}">
+        ${kktpRows || '<p style="font-size:var(--fs-caption);color:var(--text-muted);margin:var(--space-xs) 0;">Belum ada KKTP.</p>'}
+        <button class="btn-sm" data-action="kktp-add" data-tp-id="${esc(tp.id)}"
+          style="font-size:var(--fs-caption);min-height:var(--btn-h-xs);padding:0 var(--btn-px-sm);margin-top:var(--space-xs);">+ Tambah KKTP</button>
+      </div>
     </div>
   </div>
   <div class="pai-item-actions" style="flex-shrink:0;align-self:flex-start;">
@@ -514,10 +516,10 @@ ${renderTpSubsection(tps, kktps)}`;
           break;
         case 'tp-toggle': {
           const tpId = btn.dataset.tpId;
-          const list = document.getElementById('pai-kktp-list-' + tpId);
-          if (!list) break;
-          const isOpen = list.style.display !== 'none';
-          list.style.display = isOpen ? 'none' : '';
+          const body = document.getElementById('pai-tp-body-' + tpId);
+          if (!body) break;
+          const isOpen = body.style.display === 'block';
+          body.style.display = isOpen ? 'none' : 'block';
           btn.textContent    = isOpen ? '▶' : '▼';
           break;
         }
