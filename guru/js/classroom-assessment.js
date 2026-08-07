@@ -143,16 +143,11 @@ ${renderTpSubsection(tps, kktps)}`;
 <p class="pai-placeholder" style="padding:var(--space-md) 0;text-align:left;">Belum ada Capaian Pembelajaran.</p>
 <button class="btn-sm" data-action="cp-add">+ Tambah Capaian Pembelajaran</button>`;
     } else {
-      const visBadges = [
-        cp.is_visible_siswa ? '<span class="badge-tipe badge-tp">Siswa ✓</span>' : '',
-        cp.is_visible_ortu  ? '<span class="badge-tipe badge-kktp">Ortu ✓</span>'  : ''
-      ].filter(Boolean).join(' ');
       bodyHtml = `
 <div class="pai-cp-preview">
   <p class="pai-cp-text pai-cp-clamped" id="pai-cp-text">${esc(cp.konten || '—')}</p>
   ${cp.konten && cp.konten.length > 100 ? `<button class="pai-cp-toggle" id="pai-cp-toggle">Selengkapnya</button>` : ''}
 </div>
-${visBadges ? `<div style="margin:var(--space-xs) 0;">${visBadges}</div>` : ''}
 <div class="pai-item-actions">
   <button class="btn-sm" data-action="cp-edit" data-id="${esc(cp.id)}">Edit</button>
   <button class="btn-sm btn-sm-danger" data-action="cp-del" data-id="${esc(cp.id)}">Hapus</button>
@@ -206,15 +201,12 @@ ${visBadges ? `<div style="margin:var(--space-xs) 0;">${visBadges}</div>` : ''}
   <span class="pai-kktp-bullet">•</span>
   <span style="flex:1;min-width:0;word-break:break-word;">${esc(k.judul)}</span>
   ${range}
+  <button class="btn-sm" data-action="kktp-edit" data-id="${esc(k.id)}"
+    style="font-size:var(--fs-badge);min-height:var(--btn-h-xs);padding:0 var(--btn-px-sm);flex-shrink:0;">Edit</button>
   <button class="btn-sm btn-sm-danger" data-action="kktp-del" data-id="${esc(k.id)}"
     style="font-size:var(--fs-badge);min-height:var(--btn-h-xs);padding:0 var(--btn-px-sm);flex-shrink:0;">Hapus</button>
 </div>`;
     }).join('');
-
-    const visText = [
-      tp.is_visible_siswa ? 'Siswa' : '',
-      tp.is_visible_ortu  ? 'Ortu'  : ''
-    ].filter(Boolean).join(', ');
 
     return `
 <div class="pai-tp-row">
@@ -224,7 +216,6 @@ ${visBadges ? `<div style="margin:var(--space-xs) 0;">${visBadges}</div>` : ''}
         data-tp-id="${esc(tp.id)}" data-count="${kktpList.length}"
         title="Lihat/tutup KKTP">▶</button>
       <span class="pai-tp-title">${esc(tp.judul)}</span>
-      ${visText ? `<span class="pai-tp-vis">👁 ${esc(visText)}</span>` : ''}
       <span class="pai-tp-count">${kktpList.length} KKTP</span>
     </div>
     ${tp.konten ? `
@@ -308,25 +299,14 @@ ${visBadges ? `<div style="margin:var(--space-xs) 0;">${visBadges}</div>` : ''}
       bodyHtml: `
 <label>Konten <span style="color:var(--danger);">*</span></label>
 <textarea id="pai-modal-konten" rows="4" maxlength="2000"
-  placeholder="Deskripsi capaian pembelajaran…">${esc(cp?.konten || '')}</textarea>
-<label class="checkbox-label">
-  <input type="checkbox" id="pai-modal-vis-siswa"${cp?.is_visible_siswa ? ' checked' : ''}>
-  Tampilkan ke Siswa
-</label>
-<label class="checkbox-label">
-  <input type="checkbox" id="pai-modal-vis-ortu"${cp?.is_visible_ortu ? ' checked' : ''}>
-  Tampilkan ke Ortu
-</label>`,
+  placeholder="Deskripsi capaian pembelajaran…">${esc(cp?.konten || '')}</textarea>`,
       onSave: async (overlay, close) => {
         const konten = overlay.querySelector('#pai-modal-konten').value.trim();
         if (!konten) throw new Error('Konten CP tidak boleh kosong.');
-        const vis_siswa = overlay.querySelector('#pai-modal-vis-siswa').checked;
-        const vis_ortu  = overlay.querySelector('#pai-modal-vis-ortu').checked;
         if (cp) {
-          await updateItem(cp.id, { konten, is_visible_siswa: vis_siswa, is_visible_ortu: vis_ortu });
+          await updateItem(cp.id, { konten });
         } else {
-          await saveItem({ judul: 'CP', tipe: 'CP', konten, urutan: 1,
-                           parent_id: null, is_visible_siswa: vis_siswa, is_visible_ortu: vis_ortu });
+          await saveItem({ judul: 'CP', tipe: 'CP', konten, urutan: 1, parent_id: null });
         }
         await loadAll();
         renderPerencanaan();
@@ -354,26 +334,15 @@ ${visBadges ? `<div style="margin:var(--space-xs) 0;">${visBadges}</div>` : ''}
   <span style="font-weight:var(--fw-regular);color:var(--text-muted);">(opsional)</span>
 </label>
 <textarea id="pai-modal-konten" rows="3" maxlength="2000"
-  placeholder="Deskripsi tambahan…">${esc(tp?.konten || '')}</textarea>
-<label class="checkbox-label">
-  <input type="checkbox" id="pai-modal-vis-siswa"${tp?.is_visible_siswa ? ' checked' : ''}>
-  Tampilkan ke Siswa
-</label>
-<label class="checkbox-label">
-  <input type="checkbox" id="pai-modal-vis-ortu"${tp?.is_visible_ortu ? ' checked' : ''}>
-  Tampilkan ke Ortu
-</label>`,
+  placeholder="Deskripsi tambahan…">${esc(tp?.konten || '')}</textarea>`,
       onSave: async (overlay, close) => {
         const judul = overlay.querySelector('#pai-modal-judul').value.trim();
         if (!judul) throw new Error('Judul TP tidak boleh kosong.');
         const konten    = overlay.querySelector('#pai-modal-konten').value.trim() || null;
-        const vis_siswa = overlay.querySelector('#pai-modal-vis-siswa').checked;
-        const vis_ortu  = overlay.querySelector('#pai-modal-vis-ortu').checked;
         if (tp) {
-          await updateItem(tp.id, { judul, konten, is_visible_siswa: vis_siswa, is_visible_ortu: vis_ortu });
+          await updateItem(tp.id, { judul, konten });
         } else {
-          await saveItem({ judul, tipe: 'TP', konten, urutan: nextUrutan,
-                           parent_id: null, is_visible_siswa: vis_siswa, is_visible_ortu: vis_ortu });
+          await saveItem({ judul, tipe: 'TP', konten, urutan: nextUrutan, parent_id: null });
         }
         await loadAll();
         renderPerencanaan();
@@ -426,8 +395,7 @@ ${visBadges ? `<div style="margin:var(--space-xs) 0;">${visBadges}</div>` : ''}
           await updateItem(kktp.id, { judul, batas_bawah, batas_atas });
         } else {
           await saveItem({ judul, tipe: 'KKTP', konten: null, urutan: nextUrutan,
-                           parent_id: parentTpId, batas_bawah, batas_atas,
-                           is_visible_siswa: false, is_visible_ortu: false });
+                           parent_id: parentTpId, batas_bawah, batas_atas });
         }
         await loadAll();
         renderPerencanaan();
@@ -536,6 +504,11 @@ ${visBadges ? `<div style="margin:var(--space-xs) 0;">${visBadges}</div>` : ''}
         case 'kktp-add':
           openKktpModal(null, btn.dataset.tpId);
           break;
+        case 'kktp-edit': {
+          const kktp = _items.find(i => i.id === btn.dataset.id);
+          if (kktp) openKktpModal(kktp, kktp.parent_id);
+          break;
+        }
         case 'kktp-del':
           confirmItemDelete(btn, btn.dataset.id, 'KKTP ini');
           break;
