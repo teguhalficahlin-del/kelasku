@@ -2248,3 +2248,47 @@ h2.panel-header.open .panel-collapse-arrow {
   color: var(--text-secondary);
   white-space: nowrap;
 }
+
+/* ── Penilaian sections ── */
+.pai-section {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--card-r);
+  margin-bottom: var(--space-sm);
+  overflow: hidden;
+}
+
+.pai-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-sm) var(--card-p);
+  cursor: pointer;
+  user-select: none;
+  transition: background var(--transition);
+}
+.pai-section-header:hover { background: var(--gold-muted); }
+
+.pai-section-title {
+  font-size: var(--fs-ui);
+  font-weight: var(--fw-semibold);
+  color: var(--gold);
+}
+
+.pai-section-chevron {
+  color: var(--gold);
+  font-size: var(--fs-caption);
+  transition: transform var(--transition);
+}
+
+.pai-section-body {
+  padding: var(--card-p);
+  border-top: 1px solid var(--border);
+}
+
+.pai-placeholder {
+  text-align: center;
+  color: var(--text-muted);
+  padding: var(--space-xl) var(--card-p);
+  font-size: var(--fs-ui);
+}
