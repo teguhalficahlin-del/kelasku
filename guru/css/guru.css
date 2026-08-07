@@ -2452,7 +2452,7 @@ h2.panel-header.open .panel-collapse-arrow {
 
 .pai-kktp-row {
   display: grid;
-  grid-template-columns: 1rem 1fr 4.5rem 6.5rem;
+  grid-template-columns: 1rem minmax(7rem,1fr) 4.5rem 6.5rem;
   align-items: center;
   gap: var(--space-xs);
   padding: var(--space-xs) 0;
