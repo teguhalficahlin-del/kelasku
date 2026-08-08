@@ -31,6 +31,8 @@
       <button class="tab-btn" id="tab-penilaian">Penilaian</button>
     </div>
 
+    <div id="help-strip" class="help-strip">💡 Petunjuk penggunaan tab ini</div>
+
     <div id="panel-siswa">
     <!-- Tambah siswa manual -->
     <section class="panel">
@@ -158,6 +160,16 @@
       </div>
     </div>
 
+    <div id="help-overlay" class="help-overlay" style="display:none">
+      <div class="help-modal">
+        <div class="help-modal-header">
+          <span id="help-title"></span>
+          <button id="help-close">×</button>
+        </div>
+        <p id="help-intro"></p>
+        <div id="help-body"></div>
+      </div>
+    </div>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>

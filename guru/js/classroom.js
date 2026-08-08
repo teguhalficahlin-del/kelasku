@@ -1041,4 +1041,105 @@
     await loadRoster();
   });
 
+  // -------------------------------------------------------------------------
+  // Help Overlay
+  // -------------------------------------------------------------------------
+
+  window.currentTab = 'siswa';
+
+  var HELP_CONTENT = {
+    siswa: {
+      title: 'Kelola Siswa',
+      intro: 'Tab ini adalah titik awal sebelum siswa bisa menggunakan SIP Mandiri. Daftarkan seluruh siswa terlebih dahulu, generate akun, lalu bagikan kredensial. Siswa yang belum punya akun tidak bisa login ke portal siswa maupun orang tuanya.',
+      items: [
+        { text: 'Tambah Siswa — isi <strong>Nama Lengkap</strong>, <strong>NIS</strong>, dan <strong>Nama Ortu</strong> (opsional), lalu klik Tambah. NIS harus unik per kelas.' },
+        { text: 'Upload Daftar Siswa — klik <strong>Download Template Excel</strong> untuk unduh format yang benar. Kolom yang dikenali: <code>nama, nis, nama_ortu</code>. Upload file CSV, XLSX, atau XLS lalu klik Import. Header row di-skip otomatis jika NIS bukan angka. Jika NIS sudah ada, data diperbarui (upsert).' },
+        { text: 'Generate Terpilih — centang siswa yang belum punya akun → klik <strong>Generate Terpilih</strong>. Sistem membuat akun siswa sekaligus akun orang tua. Jangan refresh selama proses berlangsung — lihat banner kuning sebagai tanda proses aktif.' },
+        { text: 'Setelah generate, salin kredensial dari modal yang muncul — kredensial tidak bisa dilihat ulang setelah modal ditutup.' },
+        { text: 'Bagikan ke siswa: klik <strong>Salin Link Siswa</strong> atau tampilkan QR Code. Bagikan ke orang tua: klik <strong>Salin Link Ortu</strong>.' },
+        { text: 'Hapus Terpilih — centang siswa → klik <strong>Hapus Terpilih</strong>. Akun siswa dan orang tua dihapus permanen beserta seluruh datanya.' }
+      ]
+    },
+    jadwal: {
+      title: 'Jadwal & Absensi',
+      intro: 'Tab ini menghubungkan waktu mengajar dengan pencatatan kehadiran. Jadwal yang diatur di sini menjadi dasar form absensi — tanpa jadwal, absensi tidak bisa dilakukan. Rekap kehadiran bisa diunduh kapan saja sebagai laporan.',
+      items: [
+        { text: 'Tambah Jadwal — klik <strong>+ Tambah Jadwal</strong> di section Jadwal Mengajar → pilih hari, jam mulai, jam selesai. Sistem otomatis menolak jika jadwal bentrok dengan kelas lain.' },
+        { text: 'Untuk ubah jadwal: klik <strong>Edit</strong>. Untuk hentikan sementara: klik <strong>Nonaktifkan</strong> dan isi keterangan wajib. Hapus jadwal hanya jika tidak ada data absensi — sistem memberi peringatan sebelum hapus.' },
+        { text: 'Absensi Hari Ini — form absensi hanya aktif saat jam mengajar sedang berlangsung. Status default semua siswa: <strong>H (Hadir)</strong>. Klik tombol <strong>S / I / A</strong> untuk ubah. Klik <strong>Simpan Absensi</strong> sebelum jam sesi berakhir — setelah berakhir form terkunci otomatis.' },
+        { text: 'Rekap Absensi — atur rentang tanggal dari/sampai → lihat ringkasan H/S/I/A per siswa beserta persentase kehadiran. Klik <strong>Export Excel</strong> untuk unduh file <code>rekap-absensi-{dari}-sd-{sampai}.xlsx</code>.' }
+      ]
+    },
+    catatan: {
+      title: 'Catatan',
+      intro: 'Tab ini menggantikan fungsi buku catatan guru. Gunakan untuk mendokumentasikan perkembangan, perilaku, atau prestasi siswa secara individual — atau untuk menyampaikan pengumuman ke seluruh kelas. Catatan bisa dikontrol visibilitasnya: hanya untuk arsip guru, atau dibagikan ke siswa dan orang tua.',
+      items: [
+        { text: 'Buka section <strong>Tulis Catatan</strong> → pilih siswa dari dropdown. Jika tidak pilih siswa, catatan berlaku sebagai pengumuman seluruh kelas.' },
+        { text: 'Tulis catatan di kolom teks (maks. 1000 karakter). Centang <strong>Tampilkan ke Siswa</strong> dan/atau <strong>Tampilkan ke Ortu</strong> untuk atur siapa yang bisa melihat. Klik <strong>Simpan Catatan</strong>.' },
+        { text: 'Catatan yang dicentang langsung muncul di dashboard siswa atau orang tua yang bersangkutan.' },
+        { text: 'Buka section <strong>Riwayat Catatan</strong> untuk lihat semua catatan. Gunakan dropdown filter untuk tampilkan catatan satu siswa saja. Klik <strong>Edit</strong> untuk ubah isi atau visibilitas, klik <strong>Hapus</strong> untuk hapus permanen.' }
+      ]
+    },
+    penilaian: {
+      title: 'Penilaian',
+      intro: 'Tab ini mencakup seluruh siklus penilaian Kurikulum Merdeka — dari perencanaan (CP, TP, KKTP) hingga pelaksanaan dan publikasi hasil. Mulai dari Perencanaan sebelum mengisi nilai. Nilai yang belum dipublikasikan tidak terlihat oleh siswa maupun orang tua.',
+      items: [
+        { text: 'Perencanaan — isi <strong>Tahun Ajaran</strong> (contoh: <code>2025/2026</code>) dan pilih <strong>Semester</strong> → klik <strong>Tampilkan</strong>. Tambah CP (Capaian Pembelajaran) — hanya satu per semester. Tambah TP (Tujuan Pembelajaran) sebanyak yang dibutuhkan. Tambah KKTP di bawah setiap TP sebagai kriteria ketercapaian — isi nama, batas bawah, dan batas atas nilai.' },
+        {
+          text: 'Pelaksanaan — klik <strong>+ Tambah Item</strong> → isi judul, pilih jenis, pilih teknik, isi tanggal, dan kaitkan dengan TP jika ada.',
+          sub: [
+            { name: 'D-NK (Diagnostik Non-Kognitif)', desc: 'Gunakan di awal semester atau sebelum unit baru untuk mengetahui kondisi emosional, minat, dan latar belakang siswa. Hasilnya membantu guru menyesuaikan pendekatan pembelajaran.' },
+            { name: 'D-K (Diagnostik Kognitif)', desc: 'Gunakan sebelum memulai materi baru untuk mengukur pengetahuan awal siswa. Hasilnya menentukan apakah perlu remediasi atau bisa langsung lanjut.' },
+            { name: 'Formatif', desc: 'Gunakan selama proses pembelajaran berlangsung untuk memantau perkembangan siswa secara berkelanjutan. Tidak harus berupa angka — bisa catatan observasi, unjuk kerja, atau kuis singkat.' },
+            { name: 'Sumatif', desc: 'Gunakan di akhir unit atau semester untuk mengukur ketercapaian TP secara keseluruhan. Bisa berupa Skor (angka 0–100) atau Rubrik (penilaian per kriteria dengan bobot).' }
+          ]
+        },
+        { text: 'Untuk Sumatif tipe Rubrik: tambah kriteria dengan nama, bobot (%), dan deskripsi per level — total bobot harus tepat 100%.' },
+        { text: 'Klik <strong>Isi Nilai</strong> pada setiap entri → isi nilai per siswa: D-NK (deskripsi teks), D-K (Paham Utuh/Sebagian/Tidak Paham), Formatif (teks, gunakan <strong>Salin ke semua yang kosong</strong>), Sumatif Skor (angka 0–100, label muncul otomatis), Sumatif Rubrik (pilih level per kriteria, skor dihitung otomatis).' },
+        { text: 'Setelah isi nilai, tentukan <strong>Tindak Lanjut</strong> per siswa: Pengayaan / Penguatan / Pendampingan.' },
+        { text: 'Klik <strong>Publikasikan</strong> agar nilai muncul di portal siswa dan orang tua. Status berubah menjadi <strong>Dipublikasi</strong>. Klik <strong>Batalkan Publikasi</strong> untuk tarik kembali kapan saja.' }
+      ]
+    }
+  };
+
+  function renderHelpItem(item) {
+    var subHtml = '';
+    if (item.sub && item.sub.length) {
+      subHtml = item.sub.map(function (s) {
+        return '<div class="help-subitem"><strong>' + s.name + '</strong> — <span class="help-subitem-desc">' + s.desc + '</span></div>';
+      }).join('');
+    }
+    return '<div class="help-item"><div class="help-item-row"><span class="help-item-arrow">→</span><span class="help-item-text">' + item.text + '</span></div>' + subHtml + '</div>';
+  }
+
+  function openHelp(tabKey) {
+    var content = HELP_CONTENT[tabKey];
+    if (!content) return;
+    document.getElementById('help-title').textContent = content.title;
+    document.getElementById('help-intro').textContent = content.intro;
+    document.getElementById('help-body').innerHTML = content.items.map(renderHelpItem).join('');
+    var overlay = document.getElementById('help-overlay');
+    overlay.style.display = 'flex';
+    requestAnimationFrame(function () { overlay.classList.add('help-overlay-visible'); });
+  }
+
+  function closeHelp() {
+    var overlay = document.getElementById('help-overlay');
+    overlay.classList.remove('help-overlay-visible');
+    setTimeout(function () { overlay.style.display = 'none'; }, 200);
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    var strip = document.getElementById('help-strip');
+    if (strip) strip.addEventListener('click', function () { openHelp(window.currentTab); });
+    var closeBtn = document.getElementById('help-close');
+    if (closeBtn) closeBtn.addEventListener('click', closeHelp);
+    var overlay = document.getElementById('help-overlay');
+    if (overlay) {
+      overlay.addEventListener('click', function (e) {
+        if (!e.target.closest('.help-modal')) closeHelp();
+      });
+    }
+  });
+
 }());

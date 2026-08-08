@@ -1742,6 +1742,7 @@ ${tpSection}
     const allPanels = [panelSiswa, panelJadwal, panelCatatan, panelPenilaian].filter(Boolean);
 
     tabPenilaian.addEventListener('click', async () => {
+      window.currentTab = 'penilaian';
       allTabs.forEach(t => t.classList.remove('active'));
       tabPenilaian.classList.add('active');
       allPanels.forEach(p => { p.style.display = 'none'; });

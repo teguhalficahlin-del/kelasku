@@ -423,6 +423,7 @@
 
     // Tab switching — catatan
     tabCatatan.addEventListener('click', async () => {
+      window.currentTab = 'catatan';
       [tabSiswa, tabJadwal].forEach(t => { if (t) t.classList.remove('active'); });
       tabCatatan.classList.add('active');
       if (panelSiswa)  panelSiswa.style.display  = 'none';

@@ -388,6 +388,7 @@
 
     if (tabSiswa && tabJadwal && panelSiswa && panelJadwal) {
       tabSiswa.addEventListener('click', () => {
+        window.currentTab = 'siswa';
         tabSiswa.classList.add('active');
         tabJadwal.classList.remove('active');
         panelSiswa.style.display  = '';
@@ -396,6 +397,7 @@
         if (_cId) try { localStorage.setItem('sip_tab_' + _cId, 'siswa'); } catch (_) {}
       });
       tabJadwal.addEventListener('click', () => {
+        window.currentTab = 'jadwal';
         tabJadwal.classList.add('active');
         tabSiswa.classList.remove('active');
         panelSiswa.style.display  = 'none';
