@@ -461,6 +461,7 @@ async function init() {
   try {
     profile = await getProfile(session.user.id);
   } catch {
+    await db.auth.signOut();
     window.location.href = 'index.html';
     return;
   }
