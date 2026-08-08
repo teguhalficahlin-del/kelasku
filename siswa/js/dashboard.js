@@ -292,15 +292,33 @@ async function getMyItems(classroomId) {
   return data || [];
 }
 
+function fmtTgl(s) {
+  if (!s) return null;
+  const p = s.split('-');
+  return `${p[2]}/${p[1]}/${p[0].slice(2)}`;
+}
+function gradePredikat(n) {
+  if (n == null) return null;
+  if (n >= 81) return ['Sangat Baik', 'var(--success)'];
+  if (n >= 61) return ['Baik', 'var(--success)'];
+  if (n >= 41) return ['Cukup', 'var(--warning)'];
+  return ['Perlu Bimbingan', 'var(--danger)'];
+}
+const JENIS_BADGE = {
+  DIAGNOSTIK_NK: { label: 'D-NK', bg: 'var(--gold-muted)', color: 'var(--gold)' },
+  DIAGNOSTIK_K:  { label: 'D-K',  bg: 'var(--gold-muted)', color: 'var(--gold)' },
+  FORMATIF:      { label: 'F',    bg: 'var(--warning-bg)', color: 'var(--warning)' },
+  SUMATIF:       { label: 'S',    bg: 'var(--success-bg)', color: 'var(--success)' },
+};
+const TL_COLOR = { PENGAYAAN: 'var(--success)', PENGUATAN: 'var(--warning)', PENDAMPINGAN: 'var(--danger)' };
+
 async function getMyGrades(classroomId, studentId) {
   const { data } = await db.from('student_grades')
-    .select('id, judul, nilai_angka, deskripsi, academic_year, semester')
+    .select('id, nilai_angka, deskripsi, tindak_lanjut, assessments!inner(jenis, judul, teknik, tanggal)')
     .eq('classroom_id', classroomId)
     .eq('student_id', studentId)
     .eq('is_published', true)
-    .order('academic_year', { ascending: false })
-    .order('semester', { ascending: false })
-    .order('judul');
+    .order('created_at', { ascending: false });
   return data || [];
 }
 
@@ -320,10 +338,6 @@ function renderGradesSection(classroomId, studentId) {
   wrap.appendChild(body);
 
   Promise.all([getMyItems(classroomId), getMyGrades(classroomId, studentId)]).then(([items, grades]) => {
-    if (items.length === 0 && grades.length === 0) {
-      body.innerHTML = '<p class="att-empty">Belum ada penilaian untuk kelas ini.</p>';
-      return;
-    }
     let html = '';
 
     if (items.length > 0) {
@@ -343,20 +357,46 @@ function renderGradesSection(classroomId, studentId) {
     if (grades.length > 0) {
       if (items.length > 0) html += `<div style="margin-top:.875rem;"></div>`;
       html += `<div style="font-size:var(--fs-caption);font-weight:var(--fw-semibold);color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:.5rem;">Nilai</div>`;
-      html +=
-        '<div class="sg-table-wrap"><table class="sg-table"><thead><tr>' +
-        '<th>Tahun Ajaran</th><th>Sem</th><th>Judul</th><th>Nilai</th><th>Deskripsi</th>' +
-        '</tr></thead><tbody>' +
-        grades.map(g =>
-          `<tr>` +
-          `<td>${escHtml(g.academic_year)}</td>` +
-          `<td>${escHtml(g.semester)}</td>` +
-          `<td>${escHtml(g.judul)}</td>` +
-          `<td style="font-weight:var(--fw-semibold);color:var(--gold);">${g.nilai_angka != null ? escHtml(String(g.nilai_angka)) : '—'}</td>` +
-          `<td style="color:var(--text-muted);">${g.deskripsi ? escHtml(g.deskripsi) : '—'}</td>` +
-          `</tr>`
-        ).join('') +
-        '</tbody></table></div>';
+      html += grades.map(g => {
+        const asmt = g.assessments;
+        const badge = JENIS_BADGE[asmt.jenis] || { label: asmt.jenis, bg: 'var(--gold-muted)', color: 'var(--gold)' };
+        const isSumatif = asmt.jenis === 'SUMATIF';
+        let nilaiHtml = '';
+        if (isSumatif && g.nilai_angka != null) {
+          const pred = gradePredikat(g.nilai_angka);
+          nilaiHtml = `<div style="text-align:right;flex-shrink:0;">` +
+            `<span style="font-weight:var(--fw-semibold);color:var(--gold);">${escHtml(String(g.nilai_angka))}</span>` +
+            (pred ? ` <span style="font-size:var(--fs-caption);color:${pred[1]};">${escHtml(pred[0])}</span>` : '') +
+            `</div>`;
+        }
+        const meta = [asmt.teknik, fmtTgl(asmt.tanggal)].filter(Boolean).join(' · ');
+        let tlHtml = '';
+        if (g.tindak_lanjut) {
+          const tlLabel = g.tindak_lanjut.charAt(0) + g.tindak_lanjut.slice(1).toLowerCase();
+          tlHtml = `<span style="color:${TL_COLOR[g.tindak_lanjut] || 'var(--text-muted)'};font-weight:var(--fw-semibold);font-size:var(--fs-caption);">${escHtml(tlLabel)}</span>`;
+        }
+        const showDesk = !isSumatif && g.deskripsi;
+        return `<div style="padding:.625rem 0;border-bottom:1px solid var(--border);">` +
+          `<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;margin-bottom:.2rem;">` +
+            `<div style="display:flex;align-items:center;gap:.5rem;flex:1;min-width:0;">` +
+              `<span style="flex-shrink:0;padding:.15rem .4rem;border-radius:.25rem;font-size:var(--fs-caption);font-weight:var(--fw-semibold);background:${badge.bg};color:${badge.color};">${escHtml(badge.label)}</span>` +
+              `<span style="font-weight:var(--fw-semibold);color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(asmt.judul)}</span>` +
+            `</div>` +
+            nilaiHtml +
+          `</div>` +
+          (meta || tlHtml ?
+            `<div style="display:flex;justify-content:space-between;align-items:center;font-size:var(--fs-caption);color:var(--text-muted);">` +
+              `<span>${meta ? escHtml(meta) : ''}</span>` +
+              tlHtml +
+            `</div>` : '') +
+          (showDesk ? `<p class="pai-konten" style="margin-top:.25rem;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;color:var(--text-secondary);font-size:var(--fs-caption);">${escHtml(g.deskripsi)}</p>` : '') +
+          `</div>`;
+      }).join('');
+    }
+
+    if (!html) {
+      body.innerHTML = '<p class="att-empty">Belum ada penilaian yang dipublikasikan.</p>';
+      return;
     }
 
     body.innerHTML = html;
