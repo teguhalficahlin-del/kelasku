@@ -66,13 +66,18 @@ function statusBadge(status) {
 }
 
 function actionButtons(guru) {
+  const hapusBtn = `<button class="btn-aksi btn-hapus" data-id="${guru.id}" data-nama="${guru.full_name}">Hapus</button>`;
   if (guru.status === 'AKTIF') {
     return `
       <button class="btn-aksi btn-perpanjang" data-id="${guru.id}" data-nama="${guru.full_name}">Perpanjang</button>
       <button class="btn-aksi btn-nonaktif"   data-id="${guru.id}" data-nama="${guru.full_name}">Nonaktifkan</button>
+      ${hapusBtn}
     `;
   }
-  return `<button class="btn-aksi btn-aktifkan" data-id="${guru.id}" data-nama="${guru.full_name}">Aktifkan</button>`;
+  return `
+    <button class="btn-aksi btn-aktifkan" data-id="${guru.id}" data-nama="${guru.full_name}">Aktifkan</button>
+    ${hapusBtn}
+  `;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -189,6 +194,20 @@ document.getElementById('guru-list').addEventListener('click', async (e) => {
       await loadGurus();
     } catch (err) {
       alert('Gagal perpanjang: ' + err.message);
+      await loadGurus();
+    }
+  }
+
+  if (btn.classList.contains('btn-hapus')) {
+    const konfirmasi = prompt('Ketik nama guru untuk konfirmasi hapus:\n' + guruNama);
+    if (konfirmasi !== guruNama) { alert('Nama tidak cocok. Hapus dibatalkan.'); return; }
+    btn.disabled = true;
+    btn.textContent = 'Menghapus…';
+    try {
+      await callAdmin(_token, { action: 'delete_guru', guru_id: guruId });
+      await loadGurus();
+    } catch (err) {
+      alert('Gagal hapus: ' + err.message);
       await loadGurus();
     }
   }

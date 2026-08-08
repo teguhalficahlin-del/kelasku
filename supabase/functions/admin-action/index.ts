@@ -178,5 +178,58 @@ Deno.serve(async (req) => {
     return json({ success: true, expires_at: new_expires });
   }
 
+  // -- delete_guru ----------------------------------------------------------
+  if (action === 'delete_guru') {
+    const guru_id = body.guru_id as string;
+    if (!guru_id) return json({ error: 'guru_id wajib' }, 400);
+
+    // 1. Ambil user_id guru dari profiles sebelum cascade hapus
+    const { data: guruProfile, error: guruFetchErr } = await admin
+      .from('profiles')
+      .select('user_id')
+      .eq('id', guru_id)
+      .eq('role', 'GURU')
+      .single();
+
+    if (guruFetchErr || !guruProfile) return json({ error: 'Guru tidak ditemukan' }, 404);
+
+    // 2. Ambil semua classroom milik guru
+    const { data: classrooms, error: clErr } = await admin
+      .from('classrooms')
+      .select('id')
+      .eq('teacher_id', guru_id);
+
+    if (clErr) return json({ error: clErr.message }, 500);
+
+    // 3. Hapus akun Auth siswa dan ortu di setiap classroom
+    for (const classroom of (classrooms ?? [])) {
+      const { data: members, error: memErr } = await admin
+        .from('classroom_members')
+        .select('profile_id')
+        .eq('classroom_id', classroom.id)
+        .in('member_role', ['SISWA', 'ORTU']);
+
+      if (memErr) return json({ error: memErr.message }, 500);
+
+      for (const member of (members ?? [])) {
+        const { data: memberProfile, error: mpErr } = await admin
+          .from('profiles')
+          .select('user_id')
+          .eq('id', member.profile_id)
+          .single();
+
+        if (mpErr || !memberProfile?.user_id) continue;
+
+        await admin.auth.admin.deleteUser(memberProfile.user_id);
+      }
+    }
+
+    // 4. Hapus akun Auth guru — CASCADE DB hapus profiles → classrooms → semua data
+    const { error: deleteErr } = await admin.auth.admin.deleteUser(guruProfile.user_id);
+    if (deleteErr) return json({ error: deleteErr.message }, 500);
+
+    return json({ success: true });
+  }
+
   return json({ error: 'Action tidak dikenal: ' + action }, 400);
 });

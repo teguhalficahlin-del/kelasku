@@ -351,3 +351,14 @@ main {
   color: #fff;
   border-color: var(--danger);
 }
+
+.btn-hapus {
+  background: var(--danger-bg);
+  color: var(--danger);
+  border-color: var(--danger-border);
+}
+.btn-hapus:hover:not(:disabled) {
+  background: var(--danger);
+  color: #fff;
+  border-color: var(--danger);
+}
