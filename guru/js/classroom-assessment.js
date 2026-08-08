@@ -779,7 +779,7 @@ ${tpSection}
 
   async function openAsmtNilaiModal(asmt) {
     const grades      = await loadAssessmentGrades(asmt.id);
-    const kktpResults = (asmt.jenis === 'SUMATIF') ? await loadKktpResults(asmt.id) : [];
+    const kktpResults = (asmt.jenis === 'SUMATIF' && asmt.format_penilaian === 'RUBRIK') ? await loadKktpResults(asmt.id) : [];
     const sumFormat   = (asmt.jenis === 'SUMATIF') ? (asmt.format_penilaian || 'SKOR') : null;
     const rubrikCriteria = (sumFormat === 'RUBRIK') ? await loadRubrikCriteria(asmt.id) : [];
     const rubrikResults  = (sumFormat === 'RUBRIK') ? await loadRubrikResults(asmt.id) : [];
@@ -916,7 +916,6 @@ ${tpSection}
       style="flex-shrink:0;max-width:80px;" placeholder="0–100">
     <span class="pel-sum-pred" style="flex-shrink:0;font-size:var(--fs-caption);min-width:7rem;"></span>
   </div>
-  ${kktpRows ? `<div style="margin-top:var(--space-xs);padding-left:var(--space-md);">${kktpRows}</div>` : ''}
 </div>`;
           }
 
@@ -991,7 +990,6 @@ ${tpSection}
             ));
           } else {
             const inputs = overlay.querySelectorAll('.pel-sum-nilai');
-            const cbs    = overlay.querySelectorAll('.pel-kktp-cb');
             await Promise.all([...inputs].map(inp => {
               const val = inp.value.trim();
               if (val === '') return Promise.resolve();
@@ -1000,9 +998,6 @@ ${tpSection}
               return upsertAssessmentGrade(asmt.id, inp.dataset.studentId, asmt.judul,
                 { nilai_angka: nilai, deskripsi: null });
             }));
-            await Promise.all([...cbs].map(cb =>
-              upsertKktpResult(asmt.id, cb.dataset.studentId, cb.dataset.kktpId, cb.checked)
-            ));
           }
         }
         await loadAll();
