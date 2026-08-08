@@ -220,12 +220,12 @@ Deno.serve(async (req) => {
 
         if (mpErr || !memberProfile?.user_id) continue;
 
-        await admin.auth.admin.deleteUser(memberProfile.user_id);
+        await admin.rpc('delete_auth_user', { uid: memberProfile.user_id });
       }
     }
 
     // 4. Hapus akun Auth guru — CASCADE DB hapus profiles → classrooms → semua data
-    const { error: deleteErr } = await admin.auth.admin.deleteUser(guruProfile.user_id);
+    const { error: deleteErr } = await admin.rpc('delete_auth_user', { uid: guruProfile.user_id });
     if (deleteErr) return json({ error: deleteErr.message }, 500);
 
     return json({ success: true });
