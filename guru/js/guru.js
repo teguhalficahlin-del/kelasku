@@ -559,11 +559,11 @@ window.initCustomSelect = function (nativeEl, onChange) {
       const banner  = document.getElementById('trial-banner');
       const btnBuat = document.getElementById('btn-buat-classroom');
 
-      if (ts.status === 'trial') {
+      if (ts.status === 'TRIAL') {
         banner.className   = 'trial-banner trial-info';
         banner.textContent = 'Trial aktif — ' + ts.hari_tersisa + ' hari tersisa.';
         banner.style.display = 'block';
-      } else if (ts.status === 'expired') {
+      } else if (ts.status === 'EXPIRED') {
         banner.className   = 'trial-banner trial-expired';
         banner.textContent = 'Trial habis. Hubungi admin untuk aktivasi.';
         banner.style.display = 'block';
