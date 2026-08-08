@@ -167,8 +167,13 @@ header {
 main {
   width: min(1000px, 100%);
   margin: 0 auto;
-  padding: 1.5rem var(--space-md);
+  padding: 1.5rem var(--space-sm);
   box-sizing: border-box;
+}
+
+#guru-list {
+  margin: 0;
+  padding: 0;
 }
 
 /* ── Toolbar ── */
@@ -216,6 +221,8 @@ main {
 
 /* ── Guru card list ── */
 .guru-card {
+  width: 100%;
+  box-sizing: border-box;
   background: var(--bg-surface);
   border: 1px solid var(--border);
   border-radius: var(--card-r);
