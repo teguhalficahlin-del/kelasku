@@ -482,22 +482,22 @@ ${renderTpSubsection(tps, kktps)}`;
       ${tp ? `<div style="font-size:var(--fs-caption);color:var(--text-secondary);">TP: ${esc(tp.judul)}</div>` : ''}
       ${a.tanggal ? `<div style="font-size:var(--fs-caption);color:var(--text-muted);">${esc(a.tanggal)}</div>` : ''}
     </div>
-    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:var(--space-xs);flex-shrink:0;">
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0;">
       <span style="font-size:var(--fs-badge);color:${statusColor};font-weight:var(--fw-medium);white-space:nowrap;">${statusLabel}</span>
       ${a.is_published
         ? `<span style="font-size:var(--fs-badge);color:var(--success);font-weight:var(--fw-medium);white-space:nowrap;">● Dipublikasi</span>`
         : `<span style="font-size:var(--fs-badge);color:var(--text-muted);font-weight:var(--fw-medium);white-space:nowrap;">○ Belum dipublikasi</span>`
       }
-      <div class="pai-item-actions">
-        <button class="btn-sm" data-action="pel-nilai" data-id="${esc(a.id)}">Isi Nilai</button>
-        <button class="btn-sm" data-action="pel-edit" data-id="${esc(a.id)}">Edit</button>
-        <button class="btn-sm btn-sm-danger" data-action="pel-del" data-id="${esc(a.id)}">Hapus</button>
-        ${a.is_published
-          ? `<button class="btn-sm" data-action="pel-unpublish" data-id="${esc(a.id)}" style="color:var(--success);border-color:var(--success);">✓ Batalkan Publikasi</button>`
-          : `<button class="btn-sm" data-action="pel-publish" data-id="${esc(a.id)}" style="color:var(--success);border-color:var(--success);">Publikasikan</button>`
-        }
-      </div>
     </div>
+  </div>
+  <div class="pai-item-actions" style="flex-wrap:wrap;">
+    <button class="btn-sm" data-action="pel-nilai" data-id="${esc(a.id)}">Isi Nilai</button>
+    <button class="btn-sm" data-action="pel-edit" data-id="${esc(a.id)}">Edit</button>
+    <button class="btn-sm btn-sm-danger" data-action="pel-del" data-id="${esc(a.id)}">Hapus</button>
+    ${a.is_published
+      ? `<button class="btn-sm btn-sm-danger" data-action="pel-unpublish" data-id="${esc(a.id)}">✓ Batalkan Publikasi</button>`
+      : `<button class="btn-sm" data-action="pel-publish" data-id="${esc(a.id)}" style="color:var(--success);border-color:var(--success-bg);">Publikasikan</button>`
+    }
   </div>
   ${tlRow}
 </div>`;
