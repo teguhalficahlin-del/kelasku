@@ -214,53 +214,59 @@ main {
   padding: 2rem 0;
 }
 
-/* ── Table ── */
-.table-scroll {
-  overflow-x: auto;
+/* ── Guru card list ── */
+.guru-card {
+  background: var(--bg-surface);
   border: 1px solid var(--border);
   border-radius: var(--card-r);
-  background: var(--bg-surface);
+  padding: 1rem;
+  margin-bottom: 0.75rem;
   box-shadow: var(--shadow-card);
+  transition: border-color var(--transition);
+}
+.guru-card:hover { border-color: var(--border-strong); }
+
+.guru-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: var(--fs-body);
-  min-width: 680px;
-}
-
-thead {
-  background: var(--bg-elevated);
-  border-bottom: 1px solid var(--border);
-}
-
-th {
-  text-align: left;
-  padding: 0.75rem 1rem;
-  color: var(--text-muted);
-  font-size: var(--fs-caption);
+.guru-nama {
   font-weight: var(--fw-semibold);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  white-space: nowrap;
+  font-size: var(--fs-h3);
+  color: var(--text-primary);
+  word-break: break-word;
 }
 
-td {
-  padding: 0.75rem 1rem;
-  border-bottom: 1px solid var(--border);
-  vertical-align: middle;
+.guru-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: var(--fs-caption);
+  color: var(--text-secondary);
+  margin-top: 0.5rem;
 }
 
-tr:last-child td { border-bottom: none; }
+.guru-stats {
+  display: flex;
+  gap: 1rem;
+  font-size: var(--fs-caption);
+  color: var(--text-muted);
+  margin-top: 0.5rem;
+}
 
-tr:hover td { background: rgba(212,175,55,0.03); }
+.guru-aksi {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  flex-wrap: wrap;
+}
 
-.col-nama { font-weight: var(--fw-semibold); color: var(--text-primary); }
-.col-user { font-family: ui-monospace, monospace; font-size: var(--fs-caption); color: var(--text-secondary); }
-.col-date { font-size: var(--fs-caption); color: var(--text-secondary); white-space: nowrap; }
-.col-num  { text-align: center; color: var(--text-secondary); }
-.col-aksi { white-space: nowrap; }
+@media (max-width: 400px) {
+  .btn-aksi { flex: 1; min-width: 80px; }
+}
 
 /* ── Status badges ── */
 .status-badge {

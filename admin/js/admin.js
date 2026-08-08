@@ -96,7 +96,7 @@ async function loadGurus() {
   const errEl   = document.getElementById('error-state');
   const tableEl = document.getElementById('table-wrap');
   const emptyEl = document.getElementById('empty-state');
-  const tbody   = document.getElementById('guru-tbody');
+  const list    = document.getElementById('guru-list');
 
   loadEl.style.display  = 'block';
   errEl.style.display   = 'none';
@@ -109,22 +109,30 @@ async function loadGurus() {
     tableEl.style.display = 'block';
 
     if (!data || data.length === 0) {
-      tbody.innerHTML = '';
+      list.innerHTML = '';
       emptyEl.style.display = 'block';
       return;
     }
 
     emptyEl.style.display = 'none';
-    tbody.innerHTML = data.map(g => `
-      <tr data-id="${g.id}">
-        <td class="col-nama">${g.full_name || '—'}</td>
-        <td class="col-user">${g.username || '—'}</td>
-        <td class="col-date">${formatDate(g.created_at)}</td>
-        <td>${statusBadge(g.status)}</td>
-        <td class="col-num">${g.hari_tersisa > 0 ? g.hari_tersisa + ' hari' : '—'}</td>
-        <td class="col-num">${g.classroom_count}</td>
-        <td class="col-aksi">${actionButtons(g)}</td>
-      </tr>
+    list.innerHTML = data.map(g => `
+      <div class="guru-card" data-id="${g.id}">
+        <div class="guru-card-header">
+          <span class="guru-nama">${g.full_name || '—'}</span>
+          ${statusBadge(g.status)}
+        </div>
+        <div class="guru-meta">
+          <span class="guru-email">${g.username || '—'}</span>
+          <span class="guru-date">Daftar: ${formatDate(g.created_at)}</span>
+        </div>
+        <div class="guru-stats">
+          <span>Sisa: ${g.hari_tersisa > 0 ? g.hari_tersisa + ' hari' : '—'}</span>
+          <span>${g.classroom_count} classroom</span>
+        </div>
+        <div class="guru-aksi">
+          ${actionButtons(g)}
+        </div>
+      </div>
     `).join('');
 
   } catch (err) {
@@ -137,7 +145,7 @@ async function loadGurus() {
 // Action handlers (event delegation pada tbody)
 // ─────────────────────────────────────────────────────────────────────────────
 
-document.getElementById('guru-tbody').addEventListener('click', async (e) => {
+document.getElementById('guru-list').addEventListener('click', async (e) => {
   const btn = e.target.closest('.btn-aksi');
   if (!btn) return;
 
