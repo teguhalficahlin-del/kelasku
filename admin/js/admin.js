@@ -82,13 +82,17 @@ function actionButtons(guru) {
 let _token = null;
 
 function showDashboard() {
-  document.getElementById('login-view').style.display    = 'none';
+  document.getElementById('login-view').style.display     = 'none';
   document.getElementById('dashboard-view').style.display = 'block';
+  document.body.classList.remove('login-state');
+  document.body.classList.add('dashboard-state');
 }
 
 function showLogin() {
   document.getElementById('dashboard-view').style.display = 'none';
-  document.getElementById('login-view').style.display    = 'block';
+  document.getElementById('login-view').style.display     = 'block';
+  document.body.classList.remove('dashboard-state');
+  document.body.classList.add('login-state');
 }
 
 async function loadGurus() {

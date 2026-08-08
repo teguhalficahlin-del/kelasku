@@ -25,6 +25,12 @@ body.login-state {
   padding: 2.5rem 0;
 }
 
+/* ── Dashboard state — reset flex dari login-state ── */
+body.dashboard-state {
+  display: block;
+  padding: 0;
+}
+
 .container {
   width: min(480px, 100%);
   margin: 0 auto;
@@ -172,12 +178,12 @@ header {
 
 main {
   width: 100%;
-  padding: 1rem 0.75rem;
+  padding: 1rem var(--space-md);
   box-sizing: border-box;
 }
 
 @media (min-width: 640px) {
-  main { padding: 1.5rem var(--space-sm); }
+  main { padding: 1.5rem var(--space-md); }
 }
 
 #guru-list {
