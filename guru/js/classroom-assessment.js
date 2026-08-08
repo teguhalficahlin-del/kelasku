@@ -63,7 +63,7 @@
   async function loadGrades() {
     const { data, error } = await client
       .from('student_grades')
-      .select('id, student_id, judul, nilai_angka, deskripsi, is_published, assessment_item_id, tanggal_penilaian, tipe_penilaian, bobot, assessment_id, tindak_lanjut')
+      .select('id, student_id, judul, nilai_angka, deskripsi, is_published, assessment_id, tindak_lanjut')
       .eq('classroom_id', classroomId)
       .eq('academic_year', _year)
       .eq('semester', _semester)
@@ -288,7 +288,7 @@ ${renderTpSubsection(tps, kktps)}`;
       .update({ is_published: true }).eq('id', id);
     if (e1) throw e1;
     const { error: e2 } = await client.from('student_grades')
-      .update({ is_published: true }).eq('assessment_id', id);
+      .update({ is_published: true }).eq('assessment_id', id).eq('classroom_id', classroomId);
     if (e2) throw e2;
   }
 
@@ -297,7 +297,7 @@ ${renderTpSubsection(tps, kktps)}`;
       .update({ is_published: false }).eq('id', id);
     if (e1) throw e1;
     const { error: e2 } = await client.from('student_grades')
-      .update({ is_published: false }).eq('assessment_id', id);
+      .update({ is_published: false }).eq('assessment_id', id).eq('classroom_id', classroomId);
     if (e2) throw e2;
   }
 
@@ -468,10 +468,6 @@ ${renderTpSubsection(tps, kktps)}`;
       tp        ? esc(tp.judul)   : '',
       tanggalFmt,
     ].filter(Boolean);
-    const metaRow = metaParts.length
-      ? `<div style="font-size:var(--fs-badge);color:var(--text-muted);margin-top:2px;">${metaParts.join(' · ')}</div>`
-      : '';
-
     const tlCount = _grades.filter(g => g.assessment_id === a.id && g.tindak_lanjut).length;
     const tlRow = tlCount > 0
       ? `<div style="font-size:var(--fs-caption);padding:var(--space-xs) 0 0 0;border-top:1px solid var(--border);color:var(--text-secondary);margin-top:var(--space-xs);">TL: ${tlCount === total && total > 0 ? '✓ ' : ''}${tlCount}/${total} siswa</div>`
@@ -627,7 +623,7 @@ ${tpSection}
             throw new Error(`Total bobot harus 100 (saat ini: ${Math.round(totalBobot * 100) / 100}).`);
         }
 
-        const payload = { judul, jenis, teknik, tanggal, tp_id: tp_id || null, format_penilaian: format };
+        const payload = { judul, jenis, teknik, tanggal, tp_id: tp_id || null, format_penilaian: (jenis === 'SUMATIF' && format) ? format : 'SKOR' };
         let asmtId;
         if (asmt) {
           await updateAssessment(asmt.id, payload);
@@ -635,6 +631,12 @@ ${tpSection}
         } else {
           const res = await saveAssessment(payload);
           asmtId = res.id;
+        }
+
+        // Hapus kriteria lama jika ganti dari SUMATIF RUBRIK ke jenis/format lain
+        if (asmt && _origCriteriaIds.length > 0 && !(jenis === 'SUMATIF' && format === 'RUBRIK')) {
+          for (const oldId of _origCriteriaIds) await deleteRubrikCriteria(oldId);
+          _origCriteriaIds = [];
         }
 
         // Simpan kriteria rubrik
@@ -1013,7 +1015,13 @@ ${tpSection}
             const inputs = overlay.querySelectorAll('.pel-sum-nilai');
             await Promise.all([...inputs].map(inp => {
               const val = inp.value.trim();
-              if (val === '') return Promise.resolve();
+              if (val === '') {
+                if (!gradeMap.has(inp.dataset.studentId)) return Promise.resolve();
+                return client.from('student_grades').delete()
+                  .eq('classroom_id', classroomId).eq('assessment_id', asmt.id)
+                  .eq('student_id', inp.dataset.studentId)
+                  .then(({ error }) => { if (error) throw error; });
+              }
               const nilai = parseFloat(val);
               if (isNaN(nilai) || nilai < 0 || nilai > 100) return Promise.resolve();
               return upsertAssessmentGrade(asmt.id, inp.dataset.studentId, asmt.judul,
@@ -1105,18 +1113,22 @@ ${tpSection}
     ];
 
     const rows = _roster.map(s => {
-      const currTl = tlMap.get(s.id) || '';
-      const grade  = grades.find(g => g.student_id === s.id);
+      const currTl   = tlMap.get(s.id) || '';
+      const grade    = grades.find(g => g.student_id === s.id);
+      const hasGrade = !!grade;
       const nilaiLabel = grade?.nilai_angka != null
         ? `<span style="font-size:var(--fs-badge);color:var(--text-muted);margin-left:var(--space-xs);">${esc(String(grade.nilai_angka))}</span>`
+        : '';
+      const noGradeNote = !hasGrade
+        ? `<span style="font-size:var(--fs-badge);color:var(--text-muted);margin-left:var(--space-xs);">(belum ada nilai)</span>`
         : '';
       const opts = TL_OPTS.map(o =>
         `<option value="${o.val}"${currTl === o.val ? ' selected' : ''}>${o.label}</option>`
       ).join('');
       return `
 <div style="display:flex;align-items:center;gap:var(--space-sm);padding:var(--space-xs) 0;border-bottom:1px solid var(--border);">
-  <span style="flex:1;min-width:0;font-size:var(--fs-ui);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(s.full_name)}${nilaiLabel}</span>
-  <select class="pel-tl-select" data-student-id="${esc(s.id)}" style="flex-shrink:0;max-width:11rem;">
+  <span style="flex:1;min-width:0;font-size:var(--fs-ui);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(s.full_name)}${nilaiLabel}${noGradeNote}</span>
+  <select class="pel-tl-select" data-student-id="${esc(s.id)}" style="flex-shrink:0;max-width:11rem;"${!hasGrade ? ' disabled' : ''}>
     <option value="">— Pilih —</option>
     ${opts}
   </select>
@@ -1130,7 +1142,7 @@ ${tpSection}
         : '<p style="color:var(--text-muted);">Belum ada siswa di kelas ini.</p>',
       saveLabel: 'Simpan Tindak Lanjut',
       onSave: async (overlay, close) => {
-        const selects = [...overlay.querySelectorAll('.pel-tl-select')];
+        const selects = [...overlay.querySelectorAll('.pel-tl-select:not([disabled])')];
         await Promise.all(selects.map(sel =>
           upsertTindakLanjut(asmt.id, sel.dataset.studentId, sel.value || null)
         ));
