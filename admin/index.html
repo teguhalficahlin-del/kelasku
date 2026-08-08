@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin — SIP Mandiri</title>
+  <link rel="stylesheet" href="../shared/css/design-system.css">
+  <link rel="stylesheet" href="../shared/css/components.css">
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body class="login-state">
+
+  <!-- ================================================================
+       STATE 1: Login
+       ================================================================ -->
+  <div id="login-view" class="container">
+    <h1>SIP Mandiri</h1>
+
+    <section>
+      <h2>Admin Login</h2>
+
+      <div id="login-error" class="error-msg" style="display:none;"></div>
+
+      <form id="form-login">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" required placeholder="admin@email.com" autocomplete="email">
+
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required placeholder="Password Anda" autocomplete="current-password">
+
+        <button type="submit" id="btn-masuk">Masuk</button>
+      </form>
+    </section>
+  </div>
+
+  <!-- ================================================================
+       STATE 2: Dashboard
+       ================================================================ -->
+  <div id="dashboard-view" style="display:none;">
+    <header>
+      <span class="header-brand">Admin SIP Mandiri</span>
+      <button id="btn-logout">Keluar</button>
+    </header>
+
+    <main>
+      <div class="table-toolbar">
+        <h2>Daftar Guru</h2>
+        <button id="btn-refresh" class="btn-refresh">↻ Refresh</button>
+      </div>
+
+      <div id="loading-state" class="loading-msg">Memuat data guru…</div>
+      <div id="error-state" class="error-msg" style="display:none;"></div>
+
+      <div id="table-wrap" style="display:none;">
+        <div class="table-scroll">
+          <table id="guru-table">
+            <thead>
+              <tr>
+                <th>Nama</th>
+                <th>Username</th>
+                <th>Tanggal Daftar</th>
+                <th>Status</th>
+                <th>Sisa Hari</th>
+                <th>Classroom</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="guru-tbody"></tbody>
+          </table>
+        </div>
+        <p id="empty-state" class="empty-state" style="display:none;">Belum ada guru terdaftar.</p>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>
