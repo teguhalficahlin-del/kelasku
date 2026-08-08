@@ -528,7 +528,8 @@ ${tpSection}
 <div id="pai-format-wrap" style="display:none;">
   <label>Format Penilaian</label>
   <select id="pai-modal-format">
-    <option value="SKOR"${(asmt?.format_penilaian || 'SKOR') !== 'RUBRIK' ? ' selected' : ''}>Skor (0–100)</option>
+    <option value="">— Pilih format —</option>
+    <option value="SKOR"${asmt?.format_penilaian === 'SKOR' ? ' selected' : ''}>Skor (0–100)</option>
     <option value="RUBRIK"${asmt?.format_penilaian === 'RUBRIK' ? ' selected' : ''}>Rubrik</option>
   </select>
 </div>
