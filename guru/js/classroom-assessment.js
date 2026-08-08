@@ -451,36 +451,41 @@ ${renderTpSubsection(tps, kktps)}`;
 
   function renderAsmtCard(a) {
     const gradeCount = _grades.filter(g => g.assessment_id === a.id).length;
-    const isComplete = _roster.length > 0 && gradeCount >= _roster.length;
+    const total      = _roster.length;
+    const isComplete = total > 0 && gradeCount >= total;
     const statusColor = isComplete
       ? 'var(--success)'
-      : (_roster.length > 0 ? 'var(--warning)' : 'var(--text-muted)');
-    const statusLabel = _roster.length > 0
-      ? (isComplete ? '✓ Lengkap' : `${gradeCount}/${_roster.length}`)
-      : '—';
+      : (total > 0 ? 'var(--warning)' : 'var(--text-muted)');
+    const statusLabel = total > 0 ? `${gradeCount}/${total} dinilai` : '—';
 
     const tp       = a.tp_id ? _items.find(i => i.id === a.tp_id) : null;
     const jenisMap = { DIAGNOSTIK_NK: 'D-NK', DIAGNOSTIK_K: 'D-K', FORMATIF: 'F', SUMATIF: 'S' };
     const jenisLabel = jenisMap[a.jenis] || a.jenis;
 
-    const tlCount  = _grades.filter(g => g.assessment_id === a.id && g.tindak_lanjut).length;
-    const tlTotal  = _roster.length;
+    const metaParts = [
+      a.teknik  ? `Teknik: ${esc(a.teknik)}` : '',
+      tp        ? `TP: ${esc(tp.judul)}`      : '',
+      a.tanggal ? esc(a.tanggal)              : '',
+    ].filter(Boolean);
+    const metaRow = metaParts.length
+      ? `<div style="font-size:var(--fs-caption);color:var(--text-secondary);margin-top:2px;">${metaParts.join(' · ')}</div>`
+      : '';
+
+    const tlCount = _grades.filter(g => g.assessment_id === a.id && g.tindak_lanjut).length;
     const tlRow = tlCount > 0
-      ? `<div style="font-size:var(--fs-caption);padding:var(--space-xs) 0 0 0;border-top:1px solid var(--border);color:var(--text-secondary);margin-top:var(--space-xs);">TL: ${tlCount === tlTotal && tlTotal > 0 ? '✓ ' : ''}${tlCount}/${tlTotal} siswa</div>`
+      ? `<div style="font-size:var(--fs-caption);padding:var(--space-xs) 0 0 0;border-top:1px solid var(--border);color:var(--text-secondary);margin-top:var(--space-xs);">TL: ${tlCount === total && total > 0 ? '✓ ' : ''}${tlCount}/${total} siswa</div>`
       : '';
 
     return `
 <div class="pai-tp-row" style="flex-direction:column;gap:var(--space-xs);margin-bottom:var(--space-sm);">
   <div style="display:flex;align-items:flex-start;gap:var(--space-sm);">
     <div style="flex:1;min-width:0;">
-      <div style="display:flex;align-items:center;gap:var(--space-xs);flex-wrap:wrap;margin-bottom:var(--space-xs);">
+      <div style="display:flex;align-items:center;gap:var(--space-xs);flex-wrap:wrap;">
         <span style="font-size:var(--fs-badge);font-weight:var(--fw-medium);background:var(--gold-muted);color:var(--gold);border-radius:99px;padding:2px 8px;">${jenisLabel}</span>
         ${a.format_penilaian === 'RUBRIK' ? `<span style="font-size:var(--fs-badge);font-weight:var(--fw-medium);background:var(--warning-bg);color:var(--warning);border-radius:99px;padding:2px 8px;">Rubrik</span>` : ''}
         <span style="font-weight:var(--fw-semibold);font-size:var(--fs-body);">${esc(a.judul)}</span>
       </div>
-      ${a.teknik ? `<div style="font-size:var(--fs-caption);color:var(--text-secondary);">Teknik: ${esc(a.teknik)}</div>` : ''}
-      ${tp ? `<div style="font-size:var(--fs-caption);color:var(--text-secondary);">TP: ${esc(tp.judul)}</div>` : ''}
-      ${a.tanggal ? `<div style="font-size:var(--fs-caption);color:var(--text-muted);">${esc(a.tanggal)}</div>` : ''}
+      ${metaRow}
     </div>
     <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0;">
       <span style="font-size:var(--fs-badge);color:${statusColor};font-weight:var(--fw-medium);white-space:nowrap;">${statusLabel}</span>
