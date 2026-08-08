@@ -477,22 +477,26 @@ ${renderTpSubsection(tps, kktps)}`;
       ? `<div style="font-size:var(--fs-caption);padding:var(--space-xs) 0 0 0;border-top:1px solid var(--border);color:var(--text-secondary);margin-top:var(--space-xs);">TL: ${tlCount === total && total > 0 ? '✓ ' : ''}${tlCount}/${total} siswa</div>`
       : '';
 
+    const metaContent = metaParts.length
+      ? `<span style="font-size:var(--fs-badge);color:var(--text-muted);">${metaParts.join(' · ')}</span>`
+      : '';
+
     return `
 <div class="pai-tp-row" style="flex-direction:column;gap:var(--space-xs);margin-bottom:var(--space-sm);">
-  <div style="display:flex;align-items:flex-start;gap:var(--space-sm);">
-    <div style="flex:1;min-width:0;">
-      <div style="display:flex;align-items:center;gap:var(--space-xs);flex-wrap:wrap;">
-        <span style="font-size:var(--fs-badge);font-weight:var(--fw-medium);background:var(--gold-muted);color:var(--gold);border-radius:99px;padding:2px 8px;">${jenisLabel}</span>
-        ${a.format_penilaian === 'RUBRIK' ? `<span style="font-size:var(--fs-badge);font-weight:var(--fw-medium);background:var(--warning-bg);color:var(--warning);border-radius:99px;padding:2px 8px;">Rubrik</span>` : ''}
-        <span style="font-weight:var(--fw-semibold);font-size:var(--fs-body);">${esc(a.judul)}</span>
-      </div>
-      ${metaRow}
+  <div style="display:grid;grid-template-columns:1fr auto;column-gap:var(--space-sm);row-gap:2px;align-items:start;">
+    <div style="display:flex;align-items:center;gap:var(--space-xs);flex-wrap:wrap;min-width:0;">
+      <span style="font-size:var(--fs-badge);font-weight:var(--fw-medium);background:var(--gold-muted);color:var(--gold);border-radius:99px;padding:2px 8px;flex-shrink:0;">${jenisLabel}</span>
+      ${a.format_penilaian === 'RUBRIK' ? `<span style="font-size:var(--fs-badge);font-weight:var(--fw-medium);background:var(--warning-bg);color:var(--warning);border-radius:99px;padding:2px 8px;flex-shrink:0;">Rubrik</span>` : ''}
+      <span style="font-weight:var(--fw-semibold);font-size:var(--fs-body);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(a.judul)}</span>
     </div>
-    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0;">
-      <span style="font-size:var(--fs-badge);color:${statusColor};font-weight:var(--fw-medium);white-space:nowrap;">${statusLabel}</span>
+    <div style="text-align:right;white-space:nowrap;">
+      <span style="font-size:var(--fs-badge);color:${statusColor};font-weight:var(--fw-medium);">${statusLabel}</span>
+    </div>
+    <div style="min-width:0;">${metaContent}</div>
+    <div style="text-align:right;white-space:nowrap;">
       ${a.is_published
-        ? `<span style="font-size:var(--fs-badge);color:var(--success);font-weight:var(--fw-medium);white-space:nowrap;">● Dipublikasi</span>`
-        : `<span style="font-size:var(--fs-badge);color:var(--text-muted);font-weight:var(--fw-medium);white-space:nowrap;">○ Belum dipublikasi</span>`
+        ? `<span style="font-size:var(--fs-badge);color:var(--success);font-weight:var(--fw-medium);">● Dipublikasi</span>`
+        : `<span style="font-size:var(--fs-badge);color:var(--text-muted);font-weight:var(--fw-medium);">○ Belum dipublikasi</span>`
       }
     </div>
   </div>
