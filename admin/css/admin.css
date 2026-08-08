@@ -300,8 +300,6 @@ main {
 
 /* ── Action buttons ── */
 .btn-aksi {
-  flex: 1;
-  min-width: 80px;
   font-size: var(--fs-caption);
   font-weight: var(--fw-semibold);
   padding: 0.3rem 0.75rem;
@@ -314,10 +312,6 @@ main {
   white-space: nowrap;
 }
 .btn-aksi:disabled { opacity: 0.5; cursor: not-allowed; }
-
-@media (min-width: 640px) {
-  .btn-aksi { flex: none; min-width: unset; }
-}
 
 .btn-aktifkan {
   background: var(--success-bg);
