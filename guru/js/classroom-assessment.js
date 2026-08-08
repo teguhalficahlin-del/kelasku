@@ -63,7 +63,7 @@
   async function loadGrades() {
     const { data, error } = await client
       .from('student_grades')
-      .select('id, student_id, judul, nilai_angka, deskripsi, is_published, assessment_item_id, tanggal_penilaian, tipe_penilaian, bobot, assessment_id')
+      .select('id, student_id, judul, nilai_angka, deskripsi, is_published, assessment_item_id, tanggal_penilaian, tipe_penilaian, bobot, assessment_id, tindak_lanjut')
       .eq('classroom_id', classroomId)
       .eq('academic_year', _year)
       .eq('semester', _semester)
@@ -304,7 +304,7 @@ ${renderTpSubsection(tps, kktps)}`;
   async function loadAssessmentGrades(assessmentId) {
     const { data, error } = await client
       .from('student_grades')
-      .select('id, student_id, nilai_angka, deskripsi')
+      .select('id, student_id, nilai_angka, deskripsi, tindak_lanjut')
       .eq('assessment_id', assessmentId);
     return error ? [] : (data || []);
   }
@@ -318,6 +318,15 @@ ${renderTpSubsection(tps, kktps)}`;
       judul: judulAsmt,          is_published: isPublished,
       ...payload
     }, { onConflict: 'classroom_id,student_id,assessment_id' });
+    if (error) throw error;
+  }
+
+  async function upsertTindakLanjut(assessmentId, studentId, tindakLanjut) {
+    const { error } = await client.from('student_grades')
+      .update({ tindak_lanjut: tindakLanjut || null })
+      .eq('assessment_id', assessmentId)
+      .eq('student_id', studentId)
+      .eq('classroom_id', classroomId);
     if (error) throw error;
   }
 
@@ -454,8 +463,10 @@ ${renderTpSubsection(tps, kktps)}`;
     const jenisMap = { DIAGNOSTIK_NK: 'D-NK', DIAGNOSTIK_K: 'D-K', FORMATIF: 'F', SUMATIF: 'S' };
     const jenisLabel = jenisMap[a.jenis] || a.jenis;
 
-    const tlRow = a.tindak_lanjut
-      ? `<div style="font-size:var(--fs-caption);padding:var(--space-xs) 0 0 0;border-top:1px solid var(--border);color:var(--text-secondary);margin-top:var(--space-xs);">TL: ${esc(a.tindak_lanjut)}${a.catatan_tl ? ' — ' + esc(a.catatan_tl) : ''}</div>`
+    const tlCount  = _grades.filter(g => g.assessment_id === a.id && g.tindak_lanjut).length;
+    const tlTotal  = _roster.length;
+    const tlRow = tlCount > 0
+      ? `<div style="font-size:var(--fs-caption);padding:var(--space-xs) 0 0 0;border-top:1px solid var(--border);color:var(--text-secondary);margin-top:var(--space-xs);">TL: ${tlCount === tlTotal && tlTotal > 0 ? '✓ ' : ''}${tlCount}/${tlTotal} siswa</div>`
       : '';
 
     return `
@@ -1005,7 +1016,7 @@ ${tpSection}
         close();
         if (needsTl) {
           const updatedAsmt = _assessments.find(a => a.id === asmt.id);
-          if (updatedAsmt) openAsmtTlModal(updatedAsmt);
+          if (updatedAsmt) await openAsmtTlModal(updatedAsmt);
         }
       }
     });
@@ -1073,34 +1084,47 @@ ${tpSection}
 
   // ─── Modal Pelaksanaan — Step 3 (tindak lanjut) ──────────────────────────────
 
-  function openAsmtTlModal(asmt) {
-    const tlOpts = [
+  async function openAsmtTlModal(asmt) {
+    const grades = await loadAssessmentGrades(asmt.id);
+    const tlMap  = new Map(grades.map(g => [g.student_id, g.tindak_lanjut || '']));
+
+    const TL_OPTS = [
       { val: 'PENGAYAAN',    label: 'Pengayaan' },
       { val: 'PENGUATAN',    label: 'Penguatan' },
       { val: 'PENDAMPINGAN', label: 'Pendampingan' },
     ];
-    const tlSelect = tlOpts.map(o =>
-      `<option value="${o.val}"${asmt.tindak_lanjut === o.val ? ' selected' : ''}>${o.label}</option>`
-    ).join('');
+
+    const rows = _roster.map(s => {
+      const currTl = tlMap.get(s.id) || '';
+      const grade  = grades.find(g => g.student_id === s.id);
+      const nilaiLabel = grade?.nilai_angka != null
+        ? `<span style="font-size:var(--fs-badge);color:var(--text-muted);margin-left:var(--space-xs);">${esc(String(grade.nilai_angka))}</span>`
+        : '';
+      const opts = TL_OPTS.map(o =>
+        `<option value="${o.val}"${currTl === o.val ? ' selected' : ''}>${o.label}</option>`
+      ).join('');
+      return `
+<div style="display:flex;align-items:center;gap:var(--space-sm);padding:var(--space-xs) 0;border-bottom:1px solid var(--border);">
+  <span style="flex:1;min-width:0;font-size:var(--fs-ui);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(s.full_name)}${nilaiLabel}</span>
+  <select class="pel-tl-select" data-student-id="${esc(s.id)}" style="flex-shrink:0;max-width:11rem;">
+    <option value="">— Pilih —</option>
+    ${opts}
+  </select>
+</div>`;
+    }).join('');
 
     openModal({
       title:     `Tindak Lanjut — ${esc(asmt.judul)}`,
-      bodyHtml: `
-<label>Tindak Lanjut <span style="color:var(--danger);">*</span></label>
-<select id="pai-modal-tl">
-  <option value="">— Pilih —</option>
-  ${tlSelect}
-</select>
-<label>Catatan <span style="font-weight:var(--fw-regular);color:var(--text-muted);">(opsional)</span></label>
-<textarea id="pai-modal-catatan-tl" rows="3" maxlength="1000"
-  placeholder="Catatan tindak lanjut…">${esc(asmt.catatan_tl || '')}</textarea>`,
+      bodyHtml:  rows.length
+        ? `<div style="max-height:55vh;overflow-y:auto;">${rows}</div>`
+        : '<p style="color:var(--text-muted);">Belum ada siswa di kelas ini.</p>',
       saveLabel: 'Simpan Tindak Lanjut',
       onSave: async (overlay, close) => {
-        const tl     = overlay.querySelector('#pai-modal-tl').value;
-        const catatan = overlay.querySelector('#pai-modal-catatan-tl').value.trim() || null;
-        if (!tl) throw new Error('Pilih tindak lanjut terlebih dahulu.');
-        await updateAssessment(asmt.id, { tindak_lanjut: tl, catatan_tl: catatan });
-        await loadAssessments();
+        const selects = [...overlay.querySelectorAll('.pel-tl-select')];
+        await Promise.all(selects.map(sel =>
+          upsertTindakLanjut(asmt.id, sel.dataset.studentId, sel.value || null)
+        ));
+        await loadAll();
         renderPelaksanaan();
         close();
       }
