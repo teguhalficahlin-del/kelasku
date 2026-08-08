@@ -395,7 +395,7 @@ ${renderTpSubsection(tps, kktps)}`;
     <div style="flex:1;min-width:0;">
       <div style="display:flex;align-items:center;gap:var(--space-xs);flex-wrap:wrap;margin-bottom:var(--space-xs);">
         <span style="font-size:var(--fs-badge);font-weight:var(--fw-medium);background:var(--gold-muted);color:var(--gold);border-radius:99px;padding:2px 8px;">${jenisLabel}</span>
-        <span style="font-weight:var(--fw-medium);font-size:var(--fs-ui);">${esc(a.judul)}</span>
+        <span style="font-weight:var(--fw-semibold);font-size:var(--fs-body);">${esc(a.judul)}</span>
       </div>
       ${a.teknik ? `<div style="font-size:var(--fs-caption);color:var(--text-secondary);">Teknik: ${esc(a.teknik)}</div>` : ''}
       ${tp ? `<div style="font-size:var(--fs-caption);color:var(--text-secondary);">TP: ${esc(tp.judul)}</div>` : ''}
@@ -551,7 +551,7 @@ ${tpSection}`,
       headerRow = `<div style="margin-bottom:var(--space-sm);">
   <button type="button" id="pel-copy-all" class="btn-sm"
     style="font-size:var(--fs-caption);">Salin ke semua yang kosong</button>
-  <span style="font-size:var(--fs-badge);color:var(--text-muted);margin-left:var(--space-xs);">salin baris pertama ke siswa lain yang belum diisi</span>
+  <span style="font-size:var(--fs-caption);color:var(--text-muted);margin-left:var(--space-xs);">salin baris pertama ke siswa lain yang belum diisi</span>
 </div>`;
     }
 
@@ -567,7 +567,7 @@ ${tpSection}`,
             ).join('');
             return `
 <div style="display:flex;align-items:center;gap:var(--space-sm);padding:var(--space-sm) 0;border-bottom:1px solid var(--border);">
-  <span style="flex:1;min-width:0;font-size:var(--fs-caption);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(s.full_name)}</span>
+  <span style="flex:1;min-width:0;font-size:var(--fs-ui);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(s.full_name)}</span>
   <select class="pel-diag-select" data-student-id="${esc(s.id)}" style="flex-shrink:0;max-width:10rem;">
     <option value="">— Pilih —</option>${opts}
   </select>
@@ -578,7 +578,7 @@ ${tpSection}`,
             const currVal = existing?.deskripsi || '';
             return `
 <div style="padding:var(--space-sm) 0;border-bottom:1px solid var(--border);">
-  <div style="font-size:var(--fs-caption);color:var(--text-secondary);margin-bottom:var(--space-xs);">${esc(s.full_name)}</div>
+  <div style="font-size:var(--fs-ui);color:var(--text-primary);margin-bottom:var(--space-xs);">${esc(s.full_name)}</div>
   <textarea class="pel-form-textarea" data-student-id="${esc(s.id)}" rows="2"
     placeholder="Catatan formatif…">${esc(currVal)}</textarea>
 </div>`;
@@ -597,7 +597,7 @@ ${tpSection}`,
             return `
 <div style="padding:var(--space-sm) 0;border-bottom:1px solid var(--border);">
   <div style="display:flex;align-items:center;gap:var(--space-sm);">
-    <span style="flex:1;min-width:0;font-size:var(--fs-caption);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(s.full_name)}</span>
+    <span style="flex:1;min-width:0;font-size:var(--fs-ui);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(s.full_name)}</span>
     <input type="number" class="pel-sum-nilai" data-student-id="${esc(s.id)}"
       min="0" max="100" step="0.5" value="${esc(String(currNilai))}"
       style="flex-shrink:0;max-width:80px;" placeholder="0–100">
@@ -726,12 +726,12 @@ ${tpSection}`,
 
     const yesBtn = document.createElement('button');
     yesBtn.className   = 'btn-sm btn-sm-danger';
-    yesBtn.style.cssText = 'font-size:var(--fs-badge);min-height:var(--btn-h-xs);padding:0 var(--btn-px-sm);flex-shrink:0;';
+    yesBtn.style.cssText = 'font-size:var(--fs-caption);min-height:var(--btn-h-xs);padding:0 var(--btn-px-sm);flex-shrink:0;';
     yesBtn.textContent = 'Ya';
 
     const noBtn = document.createElement('button');
     noBtn.className    = 'btn-sm';
-    noBtn.style.cssText = 'font-size:var(--fs-badge);min-height:var(--btn-h-xs);padding:0 var(--btn-px-sm);flex-shrink:0;';
+    noBtn.style.cssText = 'font-size:var(--fs-caption);min-height:var(--btn-h-xs);padding:0 var(--btn-px-sm);flex-shrink:0;';
     noBtn.textContent  = 'Tidak';
 
     bar.appendChild(yesBtn);
@@ -983,12 +983,12 @@ ${tpSection}`,
 
     const yesBtn = document.createElement('button');
     yesBtn.className  = 'btn-sm btn-sm-danger';
-    yesBtn.style.cssText = 'font-size:var(--fs-badge);min-height:var(--btn-h-xs);padding:0 var(--btn-px-sm);';
+    yesBtn.style.cssText = 'font-size:var(--fs-caption);min-height:var(--btn-h-xs);padding:0 var(--btn-px-sm);';
     yesBtn.textContent = 'Ya';
 
     const noBtn = document.createElement('button');
     noBtn.className   = 'btn-sm';
-    noBtn.style.cssText = 'font-size:var(--fs-badge);min-height:var(--btn-h-xs);padding:0 var(--btn-px-sm);';
+    noBtn.style.cssText = 'font-size:var(--fs-caption);min-height:var(--btn-h-xs);padding:0 var(--btn-px-sm);';
     noBtn.textContent = 'Tidak';
 
     wrap.appendChild(yesBtn);
