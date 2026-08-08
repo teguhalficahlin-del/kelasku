@@ -130,13 +130,19 @@ header {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
   background: var(--bg-surface);
-  padding: 0 1.5rem;
-  height: 56px;
+  padding: 0.75rem 1rem;
+  min-height: 56px;
   border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
   z-index: 10;
+}
+
+@media (min-width: 640px) {
+  header { padding: 0 1.5rem; }
 }
 
 .header-brand {
@@ -165,10 +171,13 @@ header {
 }
 
 main {
-  width: min(1000px, 100%);
-  margin: 0 auto;
-  padding: 1.5rem var(--space-sm);
+  width: 100%;
+  padding: 1rem 0.75rem;
   box-sizing: border-box;
+}
+
+@media (min-width: 640px) {
+  main { padding: 1.5rem var(--space-sm); }
 }
 
 #guru-list {
@@ -176,17 +185,13 @@ main {
   padding: 0;
 }
 
-@media (max-width: 600px) {
-  main {
-    padding: 1rem 0.5rem;
-  }
-}
-
 /* ── Toolbar ── */
 .table-toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
   margin-bottom: 1rem;
 }
 
@@ -277,10 +282,6 @@ main {
   flex-wrap: wrap;
 }
 
-@media (max-width: 400px) {
-  .btn-aksi { flex: 1; min-width: 80px; }
-}
-
 /* ── Status badges ── */
 .status-badge {
   display: inline-block;
@@ -299,6 +300,8 @@ main {
 
 /* ── Action buttons ── */
 .btn-aksi {
+  flex: 1;
+  min-width: 80px;
   font-size: var(--fs-caption);
   font-weight: var(--fw-semibold);
   padding: 0.3rem 0.75rem;
@@ -310,8 +313,11 @@ main {
   transition: background var(--transition), color var(--transition), border-color var(--transition);
   white-space: nowrap;
 }
-.btn-aksi + .btn-aksi { margin-left: 0.375rem; }
 .btn-aksi:disabled { opacity: 0.5; cursor: not-allowed; }
+
+@media (min-width: 640px) {
+  .btn-aksi { flex: none; min-width: unset; }
+}
 
 .btn-aktifkan {
   background: var(--success-bg);
