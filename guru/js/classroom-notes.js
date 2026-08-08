@@ -8,6 +8,8 @@
   let _notes      = [];
   let _filterStudentId = '';
   let _notesLoaded = false;
+  let _notesSelInst    = null;
+  let _notesFilterInst = null;
 
   function esc(s) {
     return String(s ?? '')
@@ -100,9 +102,28 @@
     ).join('');
 
     sel.innerHTML = '<option value="">— Pilih siswa —</option>' + opts;
-
     if (filterSel) {
       filterSel.innerHTML = '<option value="">Semua siswa</option>' + opts;
+    }
+
+    if (window.initCustomSelect) {
+      if (_notesSelInst) {
+        _notesSelInst.refresh();
+      } else {
+        _notesSelInst = window.initCustomSelect(sel);
+        _notesSelInst.el.style.width = '100%';
+      }
+      if (filterSel) {
+        if (_notesFilterInst) {
+          _notesFilterInst.refresh();
+        } else {
+          _notesFilterInst = window.initCustomSelect(filterSel, function (val) {
+            _filterStudentId = val;
+            renderNotesList();
+          });
+          _notesFilterInst.el.style.width = '100%';
+        }
+      }
     }
   }
 
@@ -172,7 +193,7 @@
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const studentId = document.getElementById('notes-student-select').value;
+      const studentId = _notesSelInst ? _notesSelInst.getValue() : document.getElementById('notes-student-select').value;
       const content   = document.getElementById('notes-content').value.trim();
       const visS      = document.getElementById('notes-vis-student').checked;
       const visP      = document.getElementById('notes-vis-parent').checked;
@@ -200,6 +221,7 @@
         _notes.unshift(note);
         renderNotesList();
         form.reset();
+        if (_notesSelInst) _notesSelInst.setValue('');
         statusEl.textContent   = '✓ Catatan berhasil disimpan.';
         statusEl.className     = 'status-ok';
         statusEl.style.display = 'block';
@@ -220,6 +242,7 @@
   // ---------------------------------------------------------------------------
 
   function initFilter() {
+    if (_notesFilterInst) return;
     const filterSel = document.getElementById('notes-filter-student');
     if (!filterSel) return;
     filterSel.addEventListener('change', () => {

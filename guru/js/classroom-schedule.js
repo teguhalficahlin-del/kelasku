@@ -128,8 +128,13 @@
       '</select>' +
       '<button class="btn-add-day-confirm">+ Tambah Hari</button>';
 
+    const dayBarInst = window.initCustomSelect
+      ? window.initCustomSelect(bar.querySelector('.add-day-sel'))
+      : null;
+    if (dayBarInst) dayBarInst.el.style.flex = '1';
+
     bar.querySelector('.btn-add-day-confirm').addEventListener('click', function () {
-      const val = bar.querySelector('.add-day-sel').value;
+      const val = dayBarInst ? dayBarInst.getValue() : bar.querySelector('.add-day-sel').value;
       if (!val) return;
       openModal(null, val);
     });
@@ -184,6 +189,11 @@
     const errEl   = box.querySelector('#sch-err');
     const btnSave = box.querySelector('#sch-simpan');
 
+    const dayInst = window.initCustomSelect
+      ? window.initCustomSelect(box.querySelector('#sch-day'))
+      : null;
+    if (dayInst) dayInst.el.style.width = '100%';
+
     function close() { overlay.remove(); document.removeEventListener('keydown', onEsc); }
     function onEsc(e) { if (e.key === 'Escape') close(); }
     document.addEventListener('keydown', onEsc);
@@ -191,7 +201,7 @@
     overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
 
     btnSave.addEventListener('click', async () => {
-      const day   = box.querySelector('#sch-day').value;
+      const day   = dayInst ? dayInst.getValue() : box.querySelector('#sch-day').value;
       const start = box.querySelector('#sch-start').value;
       const end   = box.querySelector('#sch-end').value;
 
