@@ -414,6 +414,18 @@ ${renderTpSubsection(tps, kktps)}`;
 </div>`;
   }
 
+  // ─── Teknik per jenis penilaian (Panduan PPA Kemendikdasmen 2025) ─────────────
+
+  const TEKNIK_MAP = {
+    DIAGNOSTIK_NK: ['Observasi', 'Wawancara', 'Kuesioner'],
+    DIAGNOSTIK_K:  ['Tes Lisan', 'Tes Tertulis', 'Pertanyaan Terbuka'],
+    FORMATIF:      ['Observasi', 'Jurnal Reflektif', 'Penilaian Diri',
+                    'Penilaian Antarteman', 'Penugasan', 'Diskusi', 'Presentasi',
+                    'Exit Ticket', 'Peta Konsep'],
+    SUMATIF:       ['Tes Tertulis', 'Tes Lisan', 'Penugasan', 'Projek',
+                    'Portofolio', 'Praktik/Unjuk Kerja'],
+  };
+
   // ─── Modal Pelaksanaan — Step 1 (header entri) ───────────────────────────────
 
   function openAsmtHeaderModal(asmt) {
@@ -455,15 +467,21 @@ ${renderTpSubsection(tps, kktps)}`;
 <label>Jenis Penilaian <span style="color:var(--danger);">*</span></label>
 <select id="pai-modal-jenis">${jenisSelect}</select>
 <label>Teknik <span style="font-weight:var(--fw-regular);color:var(--text-muted);">(opsional)</span></label>
-<input type="text" id="pai-modal-teknik" value="${esc(asmt?.teknik || '')}" maxlength="200"
-  placeholder="Contoh: Tes Tertulis, Observasi">
+<select id="pai-modal-teknik-select"></select>
+<input type="text" id="pai-modal-teknik-custom" maxlength="200"
+  placeholder="Tuliskan teknik lainnya…"
+  style="display:none;margin-top:var(--space-xs);">
 <label>Tanggal <span style="font-weight:var(--fw-regular);color:var(--text-muted);">(opsional)</span></label>
 <input type="date" id="pai-modal-tanggal" value="${esc(asmt?.tanggal || '')}">
 ${tpSection}`,
       onSave: async (overlay, close) => {
         const judul   = overlay.querySelector('#pai-modal-judul').value.trim();
         const jenis   = overlay.querySelector('#pai-modal-jenis').value;
-        const teknik  = overlay.querySelector('#pai-modal-teknik').value.trim() || null;
+        const _teknikSel    = overlay.querySelector('#pai-modal-teknik-select');
+        const _teknikCustom = overlay.querySelector('#pai-modal-teknik-custom');
+        const teknik        = _teknikSel.value === 'LAINNYA'
+          ? (_teknikCustom.value.trim() || null)
+          : (_teknikSel.value || null);
         const tanggal = overlay.querySelector('#pai-modal-tanggal').value || null;
         const tp_id   = overlay.querySelector('#pai-modal-tp')?.value || null;
         if (!judul) throw new Error('Judul tidak boleh kosong.');
@@ -491,10 +509,33 @@ ${tpSection}`,
       }
     });
 
-    if (!tps.length) return;
     const overlay  = document.getElementById('assessment-modal');
     if (!overlay) return;
-    const jenisEl  = overlay.querySelector('#pai-modal-jenis');
+    const jenisEl      = overlay.querySelector('#pai-modal-jenis');
+    const teknikSelEl  = overlay.querySelector('#pai-modal-teknik-select');
+    const teknikCustomEl = overlay.querySelector('#pai-modal-teknik-custom');
+
+    function updateTeknikOpts(jenis, currentTeknik) {
+      const opts   = TEKNIK_MAP[jenis] || [];
+      const inList = currentTeknik && opts.includes(currentTeknik);
+      teknikSelEl.innerHTML =
+        '<option value="">— Pilih teknik —</option>' +
+        opts.map(t => `<option value="${esc(t)}"${currentTeknik === t ? ' selected' : ''}>${esc(t)}</option>`).join('') +
+        `<option value="LAINNYA"${(!inList && currentTeknik) ? ' selected' : ''}>Lainnya…</option>`;
+      const showCustom = teknikSelEl.value === 'LAINNYA';
+      teknikCustomEl.style.display = showCustom ? '' : 'none';
+      if (showCustom && currentTeknik && !inList) teknikCustomEl.value = currentTeknik;
+    }
+
+    updateTeknikOpts(jenisEl.value, asmt?.teknik || null);
+    jenisEl.addEventListener('change', () => updateTeknikOpts(jenisEl.value, null));
+    teknikSelEl.addEventListener('change', () => {
+      const isLainnya = teknikSelEl.value === 'LAINNYA';
+      teknikCustomEl.style.display = isLainnya ? '' : 'none';
+      if (!isLainnya) teknikCustomEl.value = '';
+    });
+
+    if (!tps.length) return;
     const tpLabel  = overlay.querySelector('#pai-modal-tp-label');
     const tpSelect = overlay.querySelector('#pai-modal-tp');
     const kktpPrev = overlay.querySelector('#pai-kktp-preview');
@@ -526,21 +567,40 @@ ${tpSection}`,
     const grades      = await loadAssessmentGrades(asmt.id);
     const kktpResults = (asmt.jenis === 'SUMATIF') ? await loadKktpResults(asmt.id) : [];
 
-    const DIAG_OPTS = [
-      ['Belum Berkembang',  'Belum Berkembang'],
-      ['Mulai Berkembang',  'Mulai Berkembang'],
-      ['Berkembang',        'Berkembang'],
-      ['Sangat Berkembang', 'Sangat Berkembang'],
+    const DK_OPTS = [
+      ['Paham Utuh',    'Paham Utuh'],
+      ['Paham Sebagian','Paham Sebagian'],
+      ['Tidak Paham',   'Tidak Paham'],
     ];
+
+    function getDnkPlaceholder(teknik) {
+      const t = (teknik || '').toLowerCase();
+      if (t.includes('observasi'))  return 'Contoh: Siswa terlihat antusias dan aktif berinteraksi dengan teman, gaya belajar cenderung visual…';
+      if (t.includes('wawancara'))  return 'Contoh: Siswa menyampaikan bahwa merasa nyaman belajar dalam kelompok kecil, lebih mudah memahami materi dengan gambar…';
+      if (t.includes('kuesioner'))  return 'Contoh: Berdasarkan kuesioner, siswa menunjukkan minat tinggi pada praktik langsung dan cenderung belajar mandiri…';
+      return 'Contoh: Catatan kondisi sosial-emosional dan kesiapan belajar siswa…';
+    }
+
+    function getFormPlaceholder(teknik) {
+      const t = (teknik || '').toLowerCase();
+      if (t.includes('observasi'))         return 'Contoh: Siswa mampu menjelaskan konsep dengan kalimat sendiri, aktif dalam diskusi kelompok…';
+      if (t.includes('jurnal'))            return 'Contoh: Hari ini saya belajar tentang… Yang belum saya pahami adalah…';
+      if (t.includes('penilaian diri'))    return 'Contoh: Saya merasa sudah memahami materi namun masih kesulitan pada bagian…';
+      if (t.includes('antarteman'))        return 'Contoh: Teman saya menunjukkan kemampuan yang baik dalam… dan perlu meningkatkan…';
+      if (t.includes('penugasan'))         return 'Contoh: Siswa menyelesaikan tugas dengan…';
+      return 'Contoh: Catatan perkembangan belajar siswa…';
+    }
 
     const kktps = asmt.tp_id
       ? _items.filter(i => i.tipe === 'KKTP' && i.parent_id === asmt.tp_id)
               .sort((a, b) => (a.urutan ?? 999) - (b.urutan ?? 999))
       : [];
 
-    const isDiag = asmt.jenis === 'DIAGNOSTIK_NK' || asmt.jenis === 'DIAGNOSTIK_K';
-    const isForm = asmt.jenis === 'FORMATIF';
-    const isSum  = asmt.jenis === 'SUMATIF';
+    const isDiagNk = asmt.jenis === 'DIAGNOSTIK_NK';
+    const isDiagK  = asmt.jenis === 'DIAGNOSTIK_K';
+    const isDiag   = isDiagNk || isDiagK;
+    const isForm   = asmt.jenis === 'FORMATIF';
+    const isSum    = asmt.jenis === 'SUMATIF';
 
     const gradeMap  = new Map(grades.map(g => [g.student_id, g]));
     const kktpMap   = new Map();
@@ -560,15 +620,25 @@ ${tpSection}`,
       : _roster.map(s => {
           const existing = gradeMap.get(s.id);
 
-          if (isDiag) {
+          if (isDiagNk) {
             const currVal = existing?.deskripsi || '';
-            const opts = DIAG_OPTS.map(([v, l]) =>
+            return `
+<div style="padding:var(--space-sm) 0;border-bottom:1px solid var(--border);">
+  <div style="font-size:var(--fs-ui);color:var(--text-primary);margin-bottom:var(--space-xs);">${esc(s.full_name)}</div>
+  <textarea class="pel-diag-nk-textarea" data-student-id="${esc(s.id)}" rows="2"
+    placeholder="${esc(getDnkPlaceholder(asmt.teknik))}">${esc(currVal)}</textarea>
+</div>`;
+          }
+
+          if (isDiagK) {
+            const currVal = existing?.deskripsi || '';
+            const opts = DK_OPTS.map(([v, l]) =>
               `<option value="${v}"${currVal === v ? ' selected' : ''}>${l}</option>`
             ).join('');
             return `
 <div style="display:flex;align-items:center;gap:var(--space-sm);padding:var(--space-sm) 0;border-bottom:1px solid var(--border);">
   <span style="flex:1;min-width:0;font-size:var(--fs-ui);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(s.full_name)}</span>
-  <select class="pel-diag-select" data-student-id="${esc(s.id)}" style="flex-shrink:0;max-width:10rem;">
+  <select class="pel-diag-k-select" data-student-id="${esc(s.id)}" style="flex-shrink:0;max-width:10rem;">
     <option value="">— Pilih —</option>${opts}
   </select>
 </div>`;
@@ -580,7 +650,7 @@ ${tpSection}`,
 <div style="padding:var(--space-sm) 0;border-bottom:1px solid var(--border);">
   <div style="font-size:var(--fs-ui);color:var(--text-primary);margin-bottom:var(--space-xs);">${esc(s.full_name)}</div>
   <textarea class="pel-form-textarea" data-student-id="${esc(s.id)}" rows="2"
-    placeholder="Catatan formatif…">${esc(currVal)}</textarea>
+    placeholder="${esc(getFormPlaceholder(asmt.teknik))}">${esc(currVal)}</textarea>
 </div>`;
           }
 
@@ -616,8 +686,22 @@ ${tpSection}`,
       bodyHtml:  headerRow + `<div style="max-height:55vh;overflow-y:auto;">${rows}</div>`,
       saveLabel: needsTl ? 'Selesai & Tindak Lanjut' : 'Selesai',
       onSave: async (overlay, close) => {
-        if (isDiag) {
-          const selects = overlay.querySelectorAll('.pel-diag-select');
+        if (isDiagNk) {
+          const areas = overlay.querySelectorAll('.pel-diag-nk-textarea');
+          await Promise.all([...areas].map(ta => {
+            const val = ta.value.trim();
+            if (!val) {
+              if (!gradeMap.has(ta.dataset.studentId)) return Promise.resolve();
+              return client.from('student_grades').delete()
+                .eq('classroom_id', classroomId).eq('assessment_id', asmt.id)
+                .eq('student_id', ta.dataset.studentId)
+                .then(({ error }) => { if (error) throw error; });
+            }
+            return upsertAssessmentGrade(asmt.id, ta.dataset.studentId, asmt.judul,
+              { deskripsi: val, nilai_angka: null });
+          }));
+        } else if (isDiagK) {
+          const selects = overlay.querySelectorAll('.pel-diag-k-select');
           await Promise.all([...selects].map(sel => {
             if (!sel.value) {
               if (!gradeMap.has(sel.dataset.studentId)) return Promise.resolve();
@@ -686,9 +770,9 @@ ${tpSection}`,
         const v = parseFloat(inp.value);
         if (inp.value.trim() === '' || isNaN(v)) { span.textContent = ''; span.style.color = ''; return; }
         let label, color;
-        if (v >= 91)      { label = 'Sangat Baik';     color = 'var(--success)'; }
-        else if (v >= 71) { label = 'Baik';            color = 'var(--success)'; }
-        else if (v >= 61) { label = 'Cukup';           color = 'var(--warning)'; }
+        if (v >= 81)      { label = 'Sangat Baik';     color = 'var(--success)'; }
+        else if (v >= 61) { label = 'Baik';            color = 'var(--success)'; }
+        else if (v >= 41) { label = 'Cukup';           color = 'var(--warning)'; }
         else              { label = 'Perlu Bimbingan'; color = 'var(--danger)'; }
         span.textContent = label;
         span.style.color = color;
