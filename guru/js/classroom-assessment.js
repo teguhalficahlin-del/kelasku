@@ -462,13 +462,14 @@ ${renderTpSubsection(tps, kktps)}`;
     const jenisMap = { DIAGNOSTIK_NK: 'D-NK', DIAGNOSTIK_K: 'D-K', FORMATIF: 'F', SUMATIF: 'S' };
     const jenisLabel = jenisMap[a.jenis] || a.jenis;
 
+    const tanggalFmt = a.tanggal ? (() => { const [y,m,d] = a.tanggal.split('-'); return `${d}/${m}/${y.slice(2)}`; })() : '';
     const metaParts = [
-      a.teknik  ? `Teknik: ${esc(a.teknik)}` : '',
-      tp        ? `TP: ${esc(tp.judul)}`      : '',
-      a.tanggal ? esc(a.tanggal)              : '',
+      a.teknik  ? esc(a.teknik)   : '',
+      tp        ? esc(tp.judul)   : '',
+      tanggalFmt,
     ].filter(Boolean);
     const metaRow = metaParts.length
-      ? `<div style="font-size:var(--fs-caption);color:var(--text-secondary);margin-top:2px;">${metaParts.join(' · ')}</div>`
+      ? `<div style="font-size:var(--fs-badge);color:var(--text-muted);margin-top:2px;">${metaParts.join(' · ')}</div>`
       : '';
 
     const tlCount = _grades.filter(g => g.assessment_id === a.id && g.tindak_lanjut).length;
@@ -495,13 +496,13 @@ ${renderTpSubsection(tps, kktps)}`;
       }
     </div>
   </div>
-  <div class="pai-item-actions" style="flex-wrap:wrap;">
-    <button class="btn-sm" data-action="pel-nilai" data-id="${esc(a.id)}">Isi Nilai</button>
-    <button class="btn-sm" data-action="pel-edit" data-id="${esc(a.id)}">Edit</button>
-    <button class="btn-sm btn-sm-danger" data-action="pel-del" data-id="${esc(a.id)}">Hapus</button>
+  <div class="pai-item-actions" style="flex-wrap:wrap;width:100%;">
+    <button class="btn-sm" data-action="pel-nilai" data-id="${esc(a.id)}" style="flex:1;">Isi Nilai</button>
+    <button class="btn-sm" data-action="pel-edit" data-id="${esc(a.id)}" style="flex:1;">Edit</button>
+    <button class="btn-sm btn-sm-danger" data-action="pel-del" data-id="${esc(a.id)}" style="flex:1;">Hapus</button>
     ${a.is_published
-      ? `<button class="btn-sm btn-sm-danger" data-action="pel-unpublish" data-id="${esc(a.id)}">✓ Batalkan Publikasi</button>`
-      : `<button class="btn-sm" data-action="pel-publish" data-id="${esc(a.id)}" style="color:var(--success);border-color:var(--success-bg);">Publikasikan</button>`
+      ? `<button class="btn-sm btn-sm-danger" data-action="pel-unpublish" data-id="${esc(a.id)}" style="flex:1;">✓ Batalkan Publikasi</button>`
+      : `<button class="btn-sm" data-action="pel-publish" data-id="${esc(a.id)}" style="flex:1;color:var(--success);border-color:var(--success-bg);">Publikasikan</button>`
     }
   </div>
   ${tlRow}
