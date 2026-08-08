@@ -601,6 +601,7 @@ ${tpSection}`,
     <input type="number" class="pel-sum-nilai" data-student-id="${esc(s.id)}"
       min="0" max="100" step="0.5" value="${esc(String(currNilai))}"
       style="flex-shrink:0;max-width:80px;" placeholder="0–100">
+    <span class="pel-sum-pred" style="flex-shrink:0;font-size:var(--fs-caption);min-width:7rem;"></span>
   </div>
   ${kktpRows ? `<div style="margin-top:var(--space-xs);padding-left:var(--space-md);">${kktpRows}</div>` : ''}
 </div>`;
@@ -674,6 +675,27 @@ ${tpSection}`,
         const src   = areas[0]?.value;
         if (!src) return;
         areas.forEach((a, i) => { if (i > 0 && !a.value) a.value = src; });
+      });
+    }
+
+    if (isSum) {
+      const overlay = document.getElementById('assessment-modal');
+      function updateSumPred(inp) {
+        const span = inp.parentElement.querySelector('.pel-sum-pred');
+        if (!span) return;
+        const v = parseFloat(inp.value);
+        if (inp.value.trim() === '' || isNaN(v)) { span.textContent = ''; span.style.color = ''; return; }
+        let label, color;
+        if (v >= 91)      { label = 'Sangat Baik';     color = 'var(--success)'; }
+        else if (v >= 71) { label = 'Baik';            color = 'var(--success)'; }
+        else if (v >= 61) { label = 'Cukup';           color = 'var(--warning)'; }
+        else              { label = 'Perlu Bimbingan'; color = 'var(--danger)'; }
+        span.textContent = label;
+        span.style.color = color;
+      }
+      overlay?.querySelectorAll('.pel-sum-nilai').forEach(inp => {
+        updateSumPred(inp);
+        inp.addEventListener('input', () => updateSumPred(inp));
       });
     }
   }
