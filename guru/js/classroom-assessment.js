@@ -105,7 +105,7 @@
   }
 
   async function loadAll() {
-    await Promise.all([loadItems(), loadGrades(), loadAssessments()]);
+    await Promise.all([loadItems(), loadGrades(), loadAssessments(), loadRoster()]);
   }
 
   // ─── Render ─────────────────────────────────────────────────────────────────
@@ -1137,6 +1137,7 @@ ${tpSection}
         case 'pel-tab':
           if (btn.dataset.tab && btn.dataset.tab !== _pelTab) {
             _pelTab = btn.dataset.tab;
+            try { localStorage.setItem('sip_pel_tab_' + classroomId, _pelTab); } catch (_) {}
             renderPelaksanaan();
           }
           break;
@@ -1348,7 +1349,11 @@ ${tpSection}
 
     const wrap = document.createElement('span');
     wrap.style.cssText = 'display:inline-flex;align-items:center;gap:var(--space-xs);flex-wrap:wrap;';
-    wrap.innerHTML = `<span style="font-size:var(--fs-caption);color:var(--text-secondary);white-space:nowrap;">Hapus ${esc(label)}?</span>`;
+    const _asmtRefs = _assessments.filter(a => a.tp_id === id);
+    const _warnHtml = _asmtRefs.length
+      ? `<span style="font-size:var(--fs-caption);color:var(--warning);display:block;margin-bottom:var(--space-xs);">TP ini digunakan oleh ${_asmtRefs.length} entri penilaian. Setelah dihapus, referensi TP pada entri tersebut akan hilang.</span>`
+      : '';
+    wrap.innerHTML = `${_warnHtml}<span style="font-size:var(--fs-caption);color:var(--text-secondary);white-space:nowrap;">Hapus ${esc(label)}?</span>`;
 
     const yesBtn = document.createElement('button');
     yesBtn.className  = 'btn-sm btn-sm-danger';
@@ -1585,6 +1590,7 @@ ${tpSection}
   async function initAssessmentTab(cId, tId) {
     classroomId = cId;
     teacherId   = tId;
+    try { _pelTab = localStorage.getItem('sip_pel_tab_' + cId) || 'DIAGNOSTIK'; } catch (_) { _pelTab = 'DIAGNOSTIK'; }
 
     const panel = document.getElementById('panel-penilaian');
     if (panel) {
@@ -1609,7 +1615,7 @@ ${tpSection}
     initFilter();
     initDelegation();
     initPelDelegation();
-    await Promise.all([loadRoster(), loadAll()]);
+    await loadAll();
     renderPerencanaan();
     renderPelaksanaan();
     _loaded = true;
