@@ -606,4 +606,50 @@ window.initCustomSelect = function (nativeEl, onChange) {
     });
   }
 
+  // -------------------------------------------------------------------------
+  // Help Dashboard
+  // -------------------------------------------------------------------------
+
+  var HELP_DASHBOARD = {
+    title: 'Panduan Dashboard',
+    intro: 'Halaman ini adalah pusat kendali semua classroom Anda.',
+    items: [
+      { text: 'Klik <strong>+ Buat Classroom</strong> untuk membuat ruang kelas baru. Satu classroom mewakili satu kelas dan satu mata pelajaran — jika mengajar 3 kelas berbeda, buat 3 classroom terpisah. Gunakan kolom <strong>Deskripsi</strong> untuk mencatat nama sekolah atau keterangan tambahan, contoh: <em>SMP Negeri 1 Banyuwangi</em>.' },
+      { text: 'Saat membuat classroom, Anda bisa langsung menambahkan <strong>jadwal mengajar</strong> di langkah kedua — atau lewati dulu dan atur jadwal belakangan via tombol <strong>Kelola</strong>. Tanpa jadwal, fitur absensi tidak bisa digunakan.' },
+      { text: 'Setelah berhasil simpan, setiap classroom akan menampilkan kode unik, jumlah siswa, dan status jadwal. Klik <strong>Kelola</strong> untuk masuk dan mengelola siswa, jadwal, catatan, serta penilaian.' },
+      { text: 'Klik <strong>Edit</strong> untuk ubah nama kelas, mata pelajaran, atau deskripsi. Klik <strong>Hapus</strong> untuk hapus classroom beserta seluruh datanya secara permanen.' },
+      { text: 'Banner kuning di atas menunjukkan sisa hari trial Anda. Hubungi admin untuk aktivasi akun setelah trial berakhir.' }
+    ]
+  };
+
+  function renderHelpItemDashboard(item) {
+    return '<div class="help-item"><div class="help-item-row"><span class="help-item-arrow">→</span><span class="help-item-text">' + item.text + '</span></div></div>';
+  }
+
+  function openHelpDashboard() {
+    document.getElementById('help-title').textContent = HELP_DASHBOARD.title;
+    document.getElementById('help-intro').textContent = HELP_DASHBOARD.intro;
+    document.getElementById('help-body').innerHTML = HELP_DASHBOARD.items.map(renderHelpItemDashboard).join('');
+    var overlay = document.getElementById('help-overlay');
+    overlay.style.display = 'flex';
+    requestAnimationFrame(function () { overlay.classList.add('help-overlay-visible'); });
+  }
+
+  function closeHelpDashboard() {
+    var overlay = document.getElementById('help-overlay');
+    overlay.classList.remove('help-overlay-visible');
+    setTimeout(function () { overlay.style.display = 'none'; }, 200);
+  }
+
+  var strip = document.getElementById('help-strip');
+  if (strip) strip.addEventListener('click', openHelpDashboard);
+  var closeBtn = document.getElementById('help-close');
+  if (closeBtn) closeBtn.addEventListener('click', closeHelpDashboard);
+  var overlay = document.getElementById('help-overlay');
+  if (overlay) {
+    overlay.addEventListener('click', function (e) {
+      if (!e.target.closest('.help-modal')) closeHelpDashboard();
+    });
+  }
+
 }());
