@@ -21,13 +21,14 @@ function _getPresetRange(preset) {
   return [_todayStr(), _todayStr()];
 }
 async function getMyAttendance(classroomId, studentId, fromDate, toDate) {
-  const { data } = await db.from('attendance')
+  const { data, error } = await db.from('attendance')
     .select('tanggal,status,schedules(start_time,end_time)')
     .eq('classroom_id', classroomId)
     .eq('student_id', studentId)
     .gte('tanggal', fromDate)
     .lte('tanggal', toDate)
     .order('tanggal', { ascending: false });
+  if (error) { console.error('getMyAttendance', error); return []; }
   return data || [];
 }
 function _buildAttSummary(rows) {
@@ -102,7 +103,13 @@ function renderAttendanceSection(classroomId, studentId) {
 
   async function refresh(from, to) {
     bodyEl.innerHTML = '<p class="att-empty">Memuat…</p>';
-    _rows = await getMyAttendance(classroomId, studentId, from, to);
+    try {
+      _rows = await getMyAttendance(classroomId, studentId, from, to);
+    } catch (err) {
+      console.error('attendance', err);
+      bodyEl.innerHTML = '<p class="att-empty">Gagal memuat data. Coba muat ulang halaman.</p>';
+      return;
+    }
     renderPage();
   }
 
@@ -132,7 +139,7 @@ function dayLabel(d) { return d[0] + d.slice(1).toLowerCase(); }
 async function getProfile(userId) {
   const { data, error } = await db
     .from('profiles')
-    .select('id, full_name, nis')
+    .select('id, full_name, nis, role')
     .eq('user_id', userId)
     .single();
   if (error) throw error;
@@ -241,12 +248,13 @@ function renderCard(classroom, guruName, namaOrtu, schedules, studentId) {
 }
 
 async function getMyNotes(classroomId, studentId) {
-  const { data } = await db.from('student_notes')
+  const { data, error } = await db.from('student_notes')
     .select('id, content, is_visible_to_student, is_visible_to_parent, created_at')
     .eq('classroom_id', classroomId)
     .eq('student_id', studentId)
     .eq('is_visible_to_student', true)
     .order('created_at', { ascending: false });
+  if (error) { console.error('getMyNotes', error); return []; }
   return data || [];
 }
 
@@ -268,16 +276,17 @@ function renderNotesSection(classroomId, studentId) {
       body.innerHTML = '<p class="att-empty">Belum ada catatan untukmu.</p>';
       return;
     }
-    const MONTH_ID = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
     body.innerHTML = rows.map(n => {
-      const d = new Date(n.created_at);
-      const tgl = `${d.getDate()} ${MONTH_ID[d.getMonth()]} ${d.getFullYear()}`;
+      const tgl = fmtTgl(n.created_at.slice(0, 10));
       const vis = n.is_visible_to_parent ? '👨‍👩‍👦 Siswa &amp; Ortu' : '🎓 Siswa saja';
       return `<div class="note-item">
         <div class="note-item-meta">${escHtml(tgl)} · <span style="font-size:.8rem;color:var(--color-text-muted)">${vis}</span></div>
         <div class="note-item-content">${escHtml(n.content)}</div>
       </div>`;
     }).join('');
+  }).catch(err => {
+    console.error('notes', err);
+    body.innerHTML = '<p class="att-empty">Gagal memuat data. Coba muat ulang halaman.</p>';
   });
 
   return wrap;
@@ -288,6 +297,7 @@ async function getMyItems(classroomId) {
     .select('id, judul, tipe, konten, urutan, academic_year, semester')
     .eq('classroom_id', classroomId)
     .eq('is_visible_siswa', true)
+    .eq('is_active', true)
     .order('urutan', { ascending: true });
   return data || [];
 }
@@ -313,12 +323,13 @@ const JENIS_BADGE = {
 const TL_COLOR = { PENGAYAAN: 'var(--success)', PENGUATAN: 'var(--warning)', PENDAMPINGAN: 'var(--danger)' };
 
 async function getMyGrades(classroomId, studentId) {
-  const { data } = await db.from('student_grades')
+  const { data, error } = await db.from('student_grades')
     .select('id, nilai_angka, deskripsi, tindak_lanjut, assessments!inner(jenis, judul, teknik, tanggal)')
     .eq('classroom_id', classroomId)
     .eq('student_id', studentId)
     .eq('is_published', true)
     .order('created_at', { ascending: false });
+  if (error) { console.error('getMyGrades', error); return []; }
   return data || [];
 }
 
@@ -424,6 +435,9 @@ function renderGradesSection(classroomId, studentId) {
         p.after(btn);
       }
     });
+  }).catch(err => {
+    console.error('grades', err);
+    body.innerHTML = '<p class="att-empty">Gagal memuat data. Coba muat ulang halaman.</p>';
   });
 
   return wrap;
@@ -452,6 +466,11 @@ async function init() {
   }
 
   document.getElementById('siswa-name').textContent = profile.full_name;
+
+  if (profile.role !== 'SISWA') {
+    document.getElementById('classroom-list').innerHTML = '<p class="error-msg">Portal ini khusus untuk siswa. Silakan buka portal yang sesuai.</p>';
+    return;
+  }
 
   const list = document.getElementById('classroom-list');
 

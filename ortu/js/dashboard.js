@@ -21,13 +21,14 @@ function _getPresetRange(preset) {
   return [_todayStr(), _todayStr()];
 }
 async function getChildAttendance(classroomId, studentId, fromDate, toDate) {
-  const { data } = await db.from('attendance')
+  const { data, error } = await db.from('attendance')
     .select('tanggal,status,schedules(start_time,end_time)')
     .eq('classroom_id', classroomId)
     .eq('student_id', studentId)
     .gte('tanggal', fromDate)
     .lte('tanggal', toDate)
     .order('tanggal', { ascending: false });
+  if (error) { console.error('getChildAttendance', error); return []; }
   return data || [];
 }
 function _buildAttSummary(rows) {
@@ -64,12 +65,11 @@ function renderChildAttendanceSection(classroomId, studentId, siswaNama) {
 
   const PAGE_SIZE = 10;
   let currentPreset = 'hari';
-  const uid = classroomId.slice(0,8);
   let _rows = [];
   let _page = 1;
 
   wrap.innerHTML =
-    `<div class="att-title">Kehadiran</div>` +
+    `<div class="att-title">Kehadiran ${escHtml(siswaNama)}</div>` +
     `<div class="att-filters">` +
       ['hari','minggu','bulan','semester'].map(p =>
         `<button class="att-preset${p===currentPreset?' active':''}" data-preset="${p}">${
@@ -103,7 +103,13 @@ function renderChildAttendanceSection(classroomId, studentId, siswaNama) {
 
   async function refresh(from, to) {
     bodyEl.innerHTML = '<p class="att-empty">Memuat…</p>';
-    _rows = await getChildAttendance(classroomId, studentId, from, to);
+    try {
+      _rows = await getChildAttendance(classroomId, studentId, from, to);
+    } catch (err) {
+      console.error('attendance', err);
+      bodyEl.innerHTML = '<p class="att-empty">Gagal memuat data. Coba muat ulang halaman.</p>';
+      return;
+    }
     renderPage();
   }
 
@@ -133,7 +139,7 @@ function dayLabel(d) { return d[0] + d.slice(1).toLowerCase(); }
 async function getProfile(userId) {
   const { data, error } = await db
     .from('profiles')
-    .select('id, full_name')
+    .select('id, full_name, role')
     .eq('user_id', userId)
     .single();
   if (error) throw error;
@@ -240,12 +246,13 @@ function renderCard(classroom, guruName, siswaNama, schedules, linkedStudentId) 
 }
 
 async function getChildNotes(classroomId, linkedStudentId) {
-  const { data } = await db.from('student_notes')
+  const { data, error } = await db.from('student_notes')
     .select('id, content, is_visible_to_student, is_visible_to_parent, created_at')
     .eq('classroom_id', classroomId)
     .eq('student_id', linkedStudentId)
     .eq('is_visible_to_parent', true)
     .order('created_at', { ascending: false });
+  if (error) { console.error('getChildNotes', error); return []; }
   return data || [];
 }
 
@@ -267,16 +274,17 @@ function renderChildNotesSection(classroomId, linkedStudentId) {
       body.innerHTML = '<p class="att-empty">Belum ada catatan untuk anak Anda.</p>';
       return;
     }
-    const MONTH_ID = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
     body.innerHTML = rows.map(n => {
-      const d = new Date(n.created_at);
-      const tgl = `${d.getDate()} ${MONTH_ID[d.getMonth()]} ${d.getFullYear()}`;
+      const tgl = fmtTgl(n.created_at.slice(0, 10));
       const vis = n.is_visible_to_student ? '👨‍👩‍👦 Siswa &amp; Ortu' : '👨‍👩‍👧 Ortu saja';
       return `<div class="note-item">
         <div class="note-item-meta">${escHtml(tgl)} · <span style="font-size:.8rem;color:var(--color-text-muted)">${vis}</span></div>
         <div class="note-item-content">${escHtml(n.content)}</div>
       </div>`;
     }).join('');
+  }).catch(err => {
+    console.error('notes', err);
+    body.innerHTML = '<p class="att-empty">Gagal memuat data. Coba muat ulang halaman.</p>';
   });
 
   return wrap;
@@ -287,6 +295,7 @@ async function getChildItems(classroomId) {
     .select('id, judul, tipe, konten, urutan, academic_year, semester')
     .eq('classroom_id', classroomId)
     .eq('is_visible_ortu', true)
+    .eq('is_active', true)
     .order('urutan', { ascending: true });
   return data || [];
 }
@@ -312,12 +321,13 @@ const JENIS_BADGE = {
 const TL_COLOR = { PENGAYAAN: 'var(--success)', PENGUATAN: 'var(--warning)', PENDAMPINGAN: 'var(--danger)' };
 
 async function getChildGrades(classroomId, studentId) {
-  const { data } = await db.from('student_grades')
+  const { data, error } = await db.from('student_grades')
     .select('id, nilai_angka, deskripsi, tindak_lanjut, assessments!inner(jenis, judul, teknik, tanggal)')
     .eq('classroom_id', classroomId)
     .eq('student_id', studentId)
     .eq('is_published', true)
     .order('created_at', { ascending: false });
+  if (error) { console.error('getChildGrades', error); return []; }
   return data || [];
 }
 
@@ -423,6 +433,9 @@ function renderChildGradesSection(classroomId, studentId) {
         p.after(btn);
       }
     });
+  }).catch(err => {
+    console.error('grades', err);
+    body.innerHTML = '<p class="att-empty">Gagal memuat data. Coba muat ulang halaman.</p>';
   });
 
   return wrap;
@@ -431,7 +444,7 @@ function renderChildGradesSection(classroomId, studentId) {
 function renderEmpty() {
   const el = document.createElement('p');
   el.className = 'empty-state';
-  el.textContent = 'Belum ada classroom. Daftar menggunakan kode dari guru.';
+  el.textContent = 'Belum ada classroom yang terhubung ke akun Anda. Hubungi guru untuk menautkan akun ini.';
   return el;
 }
 
@@ -448,6 +461,11 @@ async function init() {
   }
 
   document.getElementById('ortu-name').textContent = session.user.user_metadata?.nama || profile.full_name;
+
+  if (profile.role !== 'ORTU') {
+    document.getElementById('classroom-list').innerHTML = '<p class="error-msg">Portal ini khusus untuk orang tua/wali. Silakan buka portal yang sesuai.</p>';
+    return;
+  }
 
   const list = document.getElementById('classroom-list');
 
