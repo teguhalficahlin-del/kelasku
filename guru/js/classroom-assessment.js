@@ -945,7 +945,7 @@ ${tpSection}
           return '';
         }).join('');
 
-    const needsTl = isForm || isSum;
+    const needsTl = isDiagK || isForm || isSum;
     openModal({
       title:     `Isi Nilai — ${esc(asmt.judul)}`,
       bodyHtml:  headerRow + `<div style="max-height:55vh;overflow-y:auto;">${rows}</div>`,
@@ -994,6 +994,8 @@ ${tpSection}
           }));
         } else if (isSum) {
           if (sumFormat === 'RUBRIK') {
+            if (rubrikCriteria.length === 0)
+              throw new Error('Tidak ada kriteria rubrik. Edit entri untuk menambahkan kriteria.');
             const checkedRadios = [...overlay.querySelectorAll('.pel-rubrik-radio:checked')];
             const cbs = overlay.querySelectorAll('.pel-kktp-cb');
             await Promise.all(checkedRadios.map(r =>
@@ -1008,12 +1010,26 @@ ${tpSection}
               upsertAssessmentGrade(asmt.id, sid, asmt.judul,
                 { nilai_angka: Math.round(total * 100) / 100, deskripsi: null })
             ));
+            const filledStudents = new Set(studentScores.keys());
+            const toDelete = [...gradeMap.keys()].filter(sid => !filledStudents.has(sid));
+            await Promise.all(toDelete.map(sid =>
+              client.from('student_grades').delete()
+                .eq('classroom_id', classroomId).eq('assessment_id', asmt.id)
+                .eq('student_id', sid)
+                .then(({ error }) => { if (error) throw error; })
+            ));
             await Promise.all([...cbs].map(cb =>
               upsertKktpResult(asmt.id, cb.dataset.studentId, cb.dataset.kktpId, cb.checked)
             ));
           } else {
-            const inputs = overlay.querySelectorAll('.pel-sum-nilai');
-            await Promise.all([...inputs].map(inp => {
+            const inputs = [...overlay.querySelectorAll('.pel-sum-nilai')];
+            const invalidInputs = inputs.filter(inp => {
+              const v = parseFloat(inp.value.trim());
+              return inp.value.trim() !== '' && (isNaN(v) || v < 0 || v > 100);
+            });
+            if (invalidInputs.length > 0)
+              throw new Error('Nilai harus berupa angka antara 0–100.');
+            await Promise.all(inputs.map(inp => {
               const val = inp.value.trim();
               if (val === '') {
                 if (!gradeMap.has(inp.dataset.studentId)) return Promise.resolve();
@@ -1023,7 +1039,6 @@ ${tpSection}
                   .then(({ error }) => { if (error) throw error; });
               }
               const nilai = parseFloat(val);
-              if (isNaN(nilai) || nilai < 0 || nilai > 100) return Promise.resolve();
               return upsertAssessmentGrade(asmt.id, inp.dataset.studentId, asmt.judul,
                 { nilai_angka: nilai, deskripsi: null });
             }));
@@ -1118,7 +1133,9 @@ ${tpSection}
       const hasGrade = !!grade;
       const nilaiLabel = grade?.nilai_angka != null
         ? `<span style="font-size:var(--fs-badge);color:var(--text-muted);margin-left:var(--space-xs);">${esc(String(grade.nilai_angka))}</span>`
-        : '';
+        : grade?.deskripsi
+          ? `<span style="font-size:var(--fs-badge);color:var(--success);margin-left:var(--space-xs);">✓ ada catatan</span>`
+          : '';
       const noGradeNote = !hasGrade
         ? `<span style="font-size:var(--fs-badge);color:var(--text-muted);margin-left:var(--space-xs);">(belum ada nilai)</span>`
         : '';
