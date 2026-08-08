@@ -255,7 +255,7 @@ ${renderTpSubsection(tps, kktps)}`;
   async function loadAssessments() {
     const { data, error } = await client
       .from('assessments')
-      .select('id, judul, teknik, tanggal, jenis, tp_id, tindak_lanjut, catatan_tl, format_penilaian')
+      .select('id, judul, teknik, tanggal, jenis, tp_id, tindak_lanjut, catatan_tl, format_penilaian, is_published')
       .eq('classroom_id', classroomId)
       .eq('academic_year', _year)
       .eq('semester', _semester)
@@ -283,6 +283,24 @@ ${renderTpSubsection(tps, kktps)}`;
     if (error) throw error;
   }
 
+  async function publishAssessment(id) {
+    const { error: e1 } = await client.from('assessments')
+      .update({ is_published: true }).eq('id', id);
+    if (e1) throw e1;
+    const { error: e2 } = await client.from('student_grades')
+      .update({ is_published: true }).eq('assessment_id', id);
+    if (e2) throw e2;
+  }
+
+  async function unpublishAssessment(id) {
+    const { error: e1 } = await client.from('assessments')
+      .update({ is_published: false }).eq('id', id);
+    if (e1) throw e1;
+    const { error: e2 } = await client.from('student_grades')
+      .update({ is_published: false }).eq('assessment_id', id);
+    if (e2) throw e2;
+  }
+
   async function loadAssessmentGrades(assessmentId) {
     const { data, error } = await client
       .from('student_grades')
@@ -292,11 +310,12 @@ ${renderTpSubsection(tps, kktps)}`;
   }
 
   async function upsertAssessmentGrade(assessmentId, studentId, judulAsmt, payload) {
+    const isPublished = _assessments.find(a => a.id === assessmentId)?.is_published ?? false;
     const { error } = await client.from('student_grades').upsert({
       classroom_id: classroomId, teacher_id: teacherId,
       academic_year: _year,      semester: _semester,
       student_id: studentId,     assessment_id: assessmentId,
-      judul: judulAsmt,          is_published: false,
+      judul: judulAsmt,          is_published: isPublished,
       ...payload
     }, { onConflict: 'classroom_id,student_id,assessment_id' });
     if (error) throw error;
@@ -454,10 +473,18 @@ ${renderTpSubsection(tps, kktps)}`;
     </div>
     <div style="display:flex;flex-direction:column;align-items:flex-end;gap:var(--space-xs);flex-shrink:0;">
       <span style="font-size:var(--fs-badge);color:${statusColor};font-weight:var(--fw-medium);white-space:nowrap;">${statusLabel}</span>
+      ${a.is_published
+        ? `<span style="font-size:var(--fs-badge);color:var(--success);font-weight:var(--fw-medium);white-space:nowrap;">● Dipublikasi</span>`
+        : `<span style="font-size:var(--fs-badge);color:var(--text-muted);font-weight:var(--fw-medium);white-space:nowrap;">○ Belum dipublikasi</span>`
+      }
       <div class="pai-item-actions">
         <button class="btn-sm" data-action="pel-nilai" data-id="${esc(a.id)}">Isi Nilai</button>
         <button class="btn-sm" data-action="pel-edit" data-id="${esc(a.id)}">Edit</button>
         <button class="btn-sm btn-sm-danger" data-action="pel-del" data-id="${esc(a.id)}">Hapus</button>
+        ${a.is_published
+          ? `<button class="btn-sm" data-action="pel-unpublish" data-id="${esc(a.id)}" style="color:var(--success);border-color:var(--success);">✓ Batalkan Publikasi</button>`
+          : `<button class="btn-sm" data-action="pel-publish" data-id="${esc(a.id)}" style="color:var(--success);border-color:var(--success);">Publikasikan</button>`
+        }
       </div>
     </div>
   </div>
@@ -1157,6 +1184,22 @@ ${tpSection}
         case 'pel-del': {
           const asmt = _assessments.find(a => a.id === btn.dataset.id);
           if (asmt) confirmAsmtDelete(btn, asmt.id, asmt.judul);
+          break;
+        }
+        case 'pel-publish': {
+          btn.disabled = true;
+          publishAssessment(btn.dataset.id)
+            .then(() => loadAssessments())
+            .then(() => renderPelaksanaan())
+            .catch(err => { btn.disabled = false; alert('Gagal publikasi: ' + err.message); });
+          break;
+        }
+        case 'pel-unpublish': {
+          btn.disabled = true;
+          unpublishAssessment(btn.dataset.id)
+            .then(() => loadAssessments())
+            .then(() => renderPelaksanaan())
+            .catch(err => { btn.disabled = false; alert('Gagal batalkan publikasi: ' + err.message); });
           break;
         }
       }
