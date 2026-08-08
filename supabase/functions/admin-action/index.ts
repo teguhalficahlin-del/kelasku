@@ -62,7 +62,7 @@ Deno.serve(async (req) => {
       .select(`
         id,
         full_name,
-        username,
+        email,
         created_at,
         is_active,
         trial_started_at,
@@ -98,7 +98,7 @@ Deno.serve(async (req) => {
       return {
         id:               g.id,
         full_name:        g.full_name,
-        username:         g.username,
+        username:         g.email,
         created_at:       g.created_at,
         is_active:        g.is_active,
         trial_started_at: g.trial_started_at,
