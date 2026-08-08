@@ -13,6 +13,7 @@ Deno.serve(async (req) => {
   try {
     // Body dibaca satu kali di sini — stream tidak bisa dibaca dua kali
     const { nis, nama, nama_ortu, classroom_code, classroom_id } = await req.json();
+    const namaOrtuClean = (nama_ortu ?? '').trim();
 
     if (!nis || !nama || !classroom_code || !classroom_id) {
       return Response.json(
@@ -72,11 +73,10 @@ Deno.serve(async (req) => {
 
     const siswaEmail = `${nis}.${classroomCode}@sipmandiri.local`;
     const ortuEmail  = `ortu.${nis}.${classroomCode}@sipmandiri.local`;
-    const password   = nis;
 
     const { data: siswaAuth, error: siswaErr } = await admin.auth.admin.createUser({
       email:         siswaEmail,
-      password,
+      password:      nis,
       email_confirm: true,
       user_metadata: { nama, role: 'SISWA', classroom_id },
     });
@@ -107,36 +107,38 @@ Deno.serve(async (req) => {
       siswaProfileId = sp?.id ?? null;
     }
 
-    // Aktifkan roster
-    if (siswaProfileId) {
-      const { data: rosterRow } = await admin
-        .from('classroom_roster')
-        .select('id')
-        .eq('classroom_id', classroom_id)
-        .eq('nis', nis)
-        .single();
-      if (rosterRow) {
-        await admin.rpc('fn_activate_roster', {
-          p_roster_id:  rosterRow.id,
-          p_profile_id: siswaProfileId,
-        });
-      }
-
-      // Masukkan siswa ke classroom_members agar fn_is_classroom_member() return TRUE
-      // Tanpa ini RLS forum/jadwal/catatan menolak akses siswa
-      await admin.from('classroom_members').upsert({
-        classroom_id,
-        teacher_id:  callerProfile.id,
-        profile_id:  siswaProfileId,
-        member_role: 'SISWA',
-      }, { onConflict: 'classroom_id,profile_id', ignoreDuplicates: true });
+    if (!siswaProfileId) {
+      throw new Error(`Profil siswa tidak ditemukan setelah insert: ${nis}`);
     }
 
+    // Aktifkan roster
+    const { data: rosterRow } = await admin
+      .from('classroom_roster')
+      .select('id')
+      .eq('classroom_id', classroom_id)
+      .eq('nis', nis)
+      .single();
+    if (rosterRow) {
+      await admin.rpc('fn_activate_roster', {
+        p_roster_id:  rosterRow.id,
+        p_profile_id: siswaProfileId,
+      });
+    }
+
+    // Masukkan siswa ke classroom_members agar fn_is_classroom_member() return TRUE
+    // Tanpa ini RLS forum/jadwal/catatan menolak akses siswa
+    await admin.from('classroom_members').upsert({
+      classroom_id,
+      teacher_id:  callerProfile.id,
+      profile_id:  siswaProfileId,
+      member_role: 'SISWA',
+    }, { onConflict: 'classroom_id,profile_id', ignoreDuplicates: true });
+
     // Update nama_ortu di roster jika dikirim
-    if (nama_ortu) {
+    if (namaOrtuClean) {
       const { error: rosterErr } = await admin
         .from('classroom_roster')
-        .update({ nama_ortu })
+        .update({ nama_ortu: namaOrtuClean })
         .eq('classroom_id', classroom_id)
         .eq('nis', nis);
       if (rosterErr) console.error('nama_ortu update gagal:', rosterErr.message);
@@ -147,12 +149,12 @@ Deno.serve(async (req) => {
     // -------------------------------------------------------------------------
 
     let ortuEmailResult: string | null = null;
-    if (nama_ortu) {
+    if (namaOrtuClean) {
       const { data: ortuAuth, error: ortuErr } = await admin.auth.admin.createUser({
         email:         ortuEmail,
-        password,
+        password:      nis,
         email_confirm: true,
-        user_metadata: { nama: nama_ortu, role: 'ORTU', classroom_id },
+        user_metadata: { nama: namaOrtuClean, role: 'ORTU', classroom_id },
       });
 
       const ortuAlreadyExists = ortuErr?.message === 'A user with this email address has already been registered';
@@ -201,7 +203,7 @@ Deno.serve(async (req) => {
     }
 
     return Response.json(
-      { success: true, siswa_email: siswaEmail, ortu_email: ortuEmailResult, password },
+      { success: true, siswa_email: siswaEmail, ortu_email: ortuEmailResult, nis },
       { headers: CORS_HEADERS },
     );
   } catch (err) {

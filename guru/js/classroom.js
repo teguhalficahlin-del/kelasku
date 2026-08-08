@@ -150,7 +150,7 @@
           this.disabled    = false;
           this.textContent = 'Generate Akun';
         } else {
-          showCredentialsModal(row.full_name, result.siswa_email, result.ortu_email, result.password);
+          showCredentialsModal(row.full_name, result.siswa_email, result.ortu_email, result.nis || row.nis);
           await loadRoster();
         }
       });
@@ -404,6 +404,13 @@
       return;
     }
 
+    const nisExisting = new Set(currentRows.map(function(r) { return r.nis; }));
+    const duplikat    = rows.filter(function(r) { return nisExisting.has(r.nis); });
+    if (duplikat.length > 0) {
+      resultEl.textContent   = 'Peringatan: ' + duplikat.length + ' NIS sudah ada di roster dan akan diperbarui: ' + duplikat.map(function(r) { return r.nis; }).join(', ');
+      resultEl.style.display = 'block';
+    }
+
     const { error } = await client
       .from('classroom_roster')
       .upsert(rows, { onConflict: 'classroom_id,nis' });
@@ -451,7 +458,7 @@
       body: JSON.stringify({
         nis:            siswa.nis,
         nama:           siswa.full_name,
-        nama_ortu:      siswa.nama_ortu || null,
+        nama_ortu:      (siswa.nama_ortu || '').trim() || null,
         classroom_code: currentClassroom.classroom_code,
         classroom_id:   currentClassroomId,
       }),
@@ -459,7 +466,7 @@
 
     const json = await res.json();
     if (!json.success) return { error: json.error || 'Generate akun gagal.' };
-    return { siswa_email: json.siswa_email, ortu_email: json.ortu_email, password: json.password };
+    return { siswa_email: json.siswa_email, ortu_email: json.ortu_email, nis: json.nis };
   }
 
   // -------------------------------------------------------------------------
@@ -546,19 +553,22 @@
     resultEl.style.display = 'none';
 
     try {
-      var berhasil = 0;
-      var gagal    = 0;
+      var berhasil  = 0;
+      var gagal     = 0;
+      var gagalNama = [];
       for (var i = 0; i < targets.length; i++) {
         var row = targets[i];
         btnGen.textContent = 'Memproses ' + row.full_name + '... (' + (i + 1) + '/' + targets.length + ')';
         var result = await generateSingleAccount(row);
-        if (result.error) { gagal++; } else { berhasil++; }
+        if (result.error) { gagal++; gagalNama.push(row.full_name); } else { berhasil++; }
       }
 
       btnGen.classList.remove('btn-processing');
       if (banner) { banner.style.display = 'none'; }
 
-      resultEl.textContent   = 'Selesai: ' + berhasil + ' berhasil, ' + gagal + ' gagal.';
+      var msg = 'Selesai: ' + berhasil + '/' + targets.length + ' berhasil.';
+      if (gagalNama.length > 0) msg += ' Gagal (' + gagal + '): ' + gagalNama.join(', ') + '.';
+      resultEl.textContent   = msg;
       resultEl.style.display = 'block';
 
       if (listEl) {
