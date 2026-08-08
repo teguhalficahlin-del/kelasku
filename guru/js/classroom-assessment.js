@@ -12,7 +12,8 @@
   let _loaded      = false;
   let _year       = '';
   let _semester   = 1;
-  let _sdAC       = null;
+  let _sdAC            = null;
+  let _origCriteriaIds = [];
 
   const YEAR_RE = /^\d{4}\/\d{4}$/;
 
@@ -254,7 +255,7 @@ ${renderTpSubsection(tps, kktps)}`;
   async function loadAssessments() {
     const { data, error } = await client
       .from('assessments')
-      .select('id, judul, teknik, tanggal, jenis, tp_id, tindak_lanjut, catatan_tl')
+      .select('id, judul, teknik, tanggal, jenis, tp_id, tindak_lanjut, catatan_tl, format_penilaian')
       .eq('classroom_id', classroomId)
       .eq('academic_year', _year)
       .eq('semester', _semester)
@@ -315,6 +316,55 @@ ${renderTpSubsection(tps, kktps)}`;
       kktp_id: kktpId,            classroom_id: classroomId,
       teacher_id: teacherId,      tercapai
     }, { onConflict: 'assessment_id,student_id,kktp_id' });
+    if (error) throw error;
+  }
+
+  // ─── API — assessment_rubric_criteria ───────────────────────────────────────
+
+  async function loadRubrikCriteria(assessmentId) {
+    const { data, error } = await client
+      .from('assessment_rubric_criteria')
+      .select('id, urutan, judul, bobot, deskripsi_baru_berkembang, deskripsi_layak, deskripsi_cakap, deskripsi_mahir')
+      .eq('assessment_id', assessmentId)
+      .order('urutan');
+    return error ? [] : (data || []);
+  }
+
+  async function saveRubrikCriteria(payload) {
+    const { data, error } = await client
+      .from('assessment_rubric_criteria')
+      .insert({ ...payload, classroom_id: classroomId, teacher_id: teacherId })
+      .select('id').single();
+    if (error) throw error;
+    return data;
+  }
+
+  async function updateRubrikCriteria(id, payload) {
+    const { error } = await client.from('assessment_rubric_criteria').update(payload).eq('id', id);
+    if (error) throw error;
+  }
+
+  async function deleteRubrikCriteria(id) {
+    const { error } = await client.from('assessment_rubric_criteria').delete().eq('id', id);
+    if (error) throw error;
+  }
+
+  // ─── API — assessment_rubric_results ────────────────────────────────────────
+
+  async function loadRubrikResults(assessmentId) {
+    const { data, error } = await client
+      .from('assessment_rubric_results')
+      .select('id, student_id, criteria_id, level')
+      .eq('assessment_id', assessmentId);
+    return error ? [] : (data || []);
+  }
+
+  async function upsertRubrikResult(assessmentId, criteriaId, studentId, level) {
+    const { error } = await client.from('assessment_rubric_results').upsert({
+      assessment_id: assessmentId, criteria_id: criteriaId,
+      student_id: studentId,       classroom_id: classroomId,
+      teacher_id: teacherId,       level
+    }, { onConflict: 'assessment_id,criteria_id,student_id' });
     if (error) throw error;
   }
 
@@ -395,6 +445,7 @@ ${renderTpSubsection(tps, kktps)}`;
     <div style="flex:1;min-width:0;">
       <div style="display:flex;align-items:center;gap:var(--space-xs);flex-wrap:wrap;margin-bottom:var(--space-xs);">
         <span style="font-size:var(--fs-badge);font-weight:var(--fw-medium);background:var(--gold-muted);color:var(--gold);border-radius:99px;padding:2px 8px;">${jenisLabel}</span>
+        ${a.format_penilaian === 'RUBRIK' ? `<span style="font-size:var(--fs-badge);font-weight:var(--fw-medium);background:var(--warning-bg);color:var(--warning);border-radius:99px;padding:2px 8px;">Rubrik</span>` : ''}
         <span style="font-weight:var(--fw-semibold);font-size:var(--fs-body);">${esc(a.judul)}</span>
       </div>
       ${a.teknik ? `<div style="font-size:var(--fs-caption);color:var(--text-secondary);">Teknik: ${esc(a.teknik)}</div>` : ''}
@@ -428,7 +479,7 @@ ${renderTpSubsection(tps, kktps)}`;
 
   // ─── Modal Pelaksanaan — Step 1 (header entri) ───────────────────────────────
 
-  function openAsmtHeaderModal(asmt) {
+  async function openAsmtHeaderModal(asmt) {
     const tps = _items
       .filter(i => i.tipe === 'TP' && !i.parent_id)
       .sort((a, b) => (a.urutan ?? 999) - (b.urutan ?? 999));
@@ -473,7 +524,22 @@ ${renderTpSubsection(tps, kktps)}`;
   style="display:none;margin-top:var(--space-xs);">
 <label>Tanggal <span style="font-weight:var(--fw-regular);color:var(--text-muted);">(opsional)</span></label>
 <input type="date" id="pai-modal-tanggal" value="${esc(asmt?.tanggal || '')}">
-${tpSection}`,
+${tpSection}
+<div id="pai-format-wrap" style="display:none;">
+  <label>Format Penilaian</label>
+  <select id="pai-modal-format">
+    <option value="SKOR"${(asmt?.format_penilaian || 'SKOR') !== 'RUBRIK' ? ' selected' : ''}>Skor (0–100)</option>
+    <option value="RUBRIK"${asmt?.format_penilaian === 'RUBRIK' ? ' selected' : ''}>Rubrik</option>
+  </select>
+</div>
+<div id="pai-criteria-wrap" style="display:none;">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-top:var(--space-sm);margin-bottom:var(--space-xs);">
+    <span style="font-size:var(--fs-caption);font-weight:var(--fw-medium);color:var(--text-secondary);">Kriteria Rubrik</span>
+    <span id="pai-sisa-bobot" style="font-size:var(--fs-caption);color:var(--text-muted);">Total: 0 / 100</span>
+  </div>
+  <div id="pai-criteria-list"></div>
+  <button type="button" id="pai-add-kriteria" class="btn-sm" style="margin-top:var(--space-xs);">+ Tambah Kriteria</button>
+</div>`,
       onSave: async (overlay, close) => {
         const judul   = overlay.querySelector('#pai-modal-judul').value.trim();
         const jenis   = overlay.querySelector('#pai-modal-jenis').value;
@@ -490,7 +556,26 @@ ${tpSection}`,
             (jenis === 'FORMATIF' ? 'Formatif' : 'Sumatif') + '.');
         }
 
-        const payload = { judul, jenis, teknik, tanggal, tp_id: tp_id || null };
+        const format = overlay.querySelector('#pai-modal-format')?.value || 'SKOR';
+
+        // Validasi kriteria rubrik
+        let criteriaRows = [];
+        if (jenis === 'SUMATIF' && format === 'RUBRIK') {
+          criteriaRows = [...overlay.querySelectorAll('.pai-kriteria-row')];
+          if (!criteriaRows.length) throw new Error('Tambahkan minimal 1 kriteria rubrik.');
+          let totalBobot = 0;
+          for (const row of criteriaRows) {
+            const kJudul = row.querySelector('.pai-kr-judul').value.trim();
+            const kBobot = parseFloat(row.querySelector('.pai-kr-bobot').value);
+            if (!kJudul) throw new Error('Setiap kriteria harus memiliki judul.');
+            if (isNaN(kBobot) || kBobot <= 0) throw new Error('Bobot setiap kriteria harus lebih dari 0.');
+            totalBobot += kBobot;
+          }
+          if (Math.abs(totalBobot - 100) > 0.01)
+            throw new Error(`Total bobot harus 100 (saat ini: ${Math.round(totalBobot * 100) / 100}).`);
+        }
+
+        const payload = { judul, jenis, teknik, tanggal, tp_id: tp_id || null, format_penilaian: format };
         let asmtId;
         if (asmt) {
           await updateAssessment(asmt.id, payload);
@@ -499,6 +584,36 @@ ${tpSection}`,
           const res = await saveAssessment(payload);
           asmtId = res.id;
         }
+
+        // Simpan kriteria rubrik
+        if (jenis === 'SUMATIF' && format === 'RUBRIK') {
+          const currentDbIds = new Set(criteriaRows
+            .filter(r => r.dataset.dbid).map(r => r.dataset.dbid));
+          if (asmt) {
+            for (const oldId of _origCriteriaIds) {
+              if (!currentDbIds.has(oldId)) await deleteRubrikCriteria(oldId);
+            }
+          }
+          for (let i = 0; i < criteriaRows.length; i++) {
+            const row = criteriaRows[i];
+            const kp = {
+              assessment_id: asmtId, urutan: i + 1,
+              judul: row.querySelector('.pai-kr-judul').value.trim(),
+              bobot: parseFloat(row.querySelector('.pai-kr-bobot').value),
+              deskripsi_baru_berkembang: row.querySelector('.pai-kr-bb').value.trim() || null,
+              deskripsi_layak:  row.querySelector('.pai-kr-layak').value.trim() || null,
+              deskripsi_cakap:  row.querySelector('.pai-kr-cakap').value.trim() || null,
+              deskripsi_mahir:  row.querySelector('.pai-kr-mahir').value.trim() || null,
+            };
+            if (row.dataset.dbid) {
+              const { assessment_id, ...upd } = kp;
+              await updateRubrikCriteria(row.dataset.dbid, upd);
+            } else {
+              await saveRubrikCriteria(kp);
+            }
+          }
+        }
+
         await loadAssessments();
         renderPelaksanaan();
         close();
@@ -511,9 +626,12 @@ ${tpSection}`,
 
     const overlay  = document.getElementById('assessment-modal');
     if (!overlay) return;
-    const jenisEl      = overlay.querySelector('#pai-modal-jenis');
-    const teknikSelEl  = overlay.querySelector('#pai-modal-teknik-select');
+    const jenisEl       = overlay.querySelector('#pai-modal-jenis');
+    const teknikSelEl   = overlay.querySelector('#pai-modal-teknik-select');
     const teknikCustomEl = overlay.querySelector('#pai-modal-teknik-custom');
+    const formatWrap    = overlay.querySelector('#pai-format-wrap');
+    const formatEl      = overlay.querySelector('#pai-modal-format');
+    const criteriaWrap  = overlay.querySelector('#pai-criteria-wrap');
 
     function updateTeknikOpts(jenis, currentTeknik) {
       const opts   = TEKNIK_MAP[jenis] || [];
@@ -527,13 +645,79 @@ ${tpSection}`,
       if (showCustom && currentTeknik && !inList) teknikCustomEl.value = currentTeknik;
     }
 
+    function updateCriteriaVisibility() {
+      criteriaWrap.style.display =
+        (jenisEl.value === 'SUMATIF' && formatEl.value === 'RUBRIK') ? '' : 'none';
+    }
+
+    function updateFormatVisibility() {
+      const isSumatif = jenisEl.value === 'SUMATIF';
+      formatWrap.style.display = isSumatif ? '' : 'none';
+      if (!isSumatif) formatEl.value = 'SKOR';
+      updateCriteriaVisibility();
+    }
+
+    function updateSisaBobot() {
+      const total = [...overlay.querySelectorAll('.pai-kr-bobot')]
+        .reduce((s, el) => s + (parseFloat(el.value) || 0), 0);
+      const el = overlay.querySelector('#pai-sisa-bobot');
+      if (!el) return;
+      el.textContent = `Total: ${Math.round(total * 100) / 100} / 100`;
+      el.style.color = Math.abs(total - 100) < 0.01 ? 'var(--success)' : 'var(--text-muted)';
+    }
+
+    function appendCriteriaRow(criterion) {
+      const list = overlay.querySelector('#pai-criteria-list');
+      const div  = document.createElement('div');
+      div.className = 'pai-kriteria-row';
+      if (criterion?.id) div.dataset.dbid = criterion.id;
+      div.style.cssText = 'background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--r-md);padding:var(--space-sm);margin-bottom:var(--space-xs);';
+      div.innerHTML = `
+<div style="display:flex;gap:var(--space-xs);align-items:flex-start;">
+  <input type="text" class="pai-kr-judul" placeholder="Nama kriteria…" style="flex:1;" value="${esc(criterion?.judul || '')}">
+  <input type="number" class="pai-kr-bobot" placeholder="Bobot %" min="0.5" max="100" step="0.5" value="${esc(String(criterion?.bobot ?? ''))}" style="width:5.5rem;flex-shrink:0;">
+  <button type="button" class="btn-sm btn-sm-danger pai-kr-del" style="flex-shrink:0;min-height:var(--btn-h-xs);">✕</button>
+</div>
+<details style="margin-top:var(--space-xs);">
+  <summary style="font-size:var(--fs-caption);color:var(--text-muted);cursor:pointer;">Deskripsi per level (opsional)</summary>
+  <div style="display:grid;gap:var(--space-xs);margin-top:var(--space-xs);">
+    <textarea class="pai-kr-bb" rows="1" placeholder="Baru Berkembang…">${esc(criterion?.deskripsi_baru_berkembang || '')}</textarea>
+    <textarea class="pai-kr-layak" rows="1" placeholder="Layak…">${esc(criterion?.deskripsi_layak || '')}</textarea>
+    <textarea class="pai-kr-cakap" rows="1" placeholder="Cakap…">${esc(criterion?.deskripsi_cakap || '')}</textarea>
+    <textarea class="pai-kr-mahir" rows="1" placeholder="Mahir…">${esc(criterion?.deskripsi_mahir || '')}</textarea>
+  </div>
+</details>`;
+      div.querySelector('.pai-kr-del').addEventListener('click', () => { div.remove(); updateSisaBobot(); });
+      div.querySelector('.pai-kr-bobot').addEventListener('input', updateSisaBobot);
+      list.appendChild(div);
+      updateSisaBobot();
+    }
+
+    // Load kriteria existing jika edit mode RUBRIK
+    if (asmt?.format_penilaian === 'RUBRIK') {
+      try {
+        const existing = await loadRubrikCriteria(asmt.id);
+        _origCriteriaIds = existing.map(k => k.id);
+        existing.forEach(k => appendCriteriaRow(k));
+      } catch (e) { _origCriteriaIds = []; }
+    } else {
+      _origCriteriaIds = [];
+    }
+
     updateTeknikOpts(jenisEl.value, asmt?.teknik || null);
-    jenisEl.addEventListener('change', () => updateTeknikOpts(jenisEl.value, null));
+    updateFormatVisibility();
+
+    jenisEl.addEventListener('change', () => {
+      updateTeknikOpts(jenisEl.value, null);
+      updateFormatVisibility();
+    });
     teknikSelEl.addEventListener('change', () => {
       const isLainnya = teknikSelEl.value === 'LAINNYA';
       teknikCustomEl.style.display = isLainnya ? '' : 'none';
       if (!isLainnya) teknikCustomEl.value = '';
     });
+    formatEl.addEventListener('change', updateCriteriaVisibility);
+    overlay.querySelector('#pai-add-kriteria')?.addEventListener('click', () => appendCriteriaRow(null));
 
     if (!tps.length) return;
     const tpLabel  = overlay.querySelector('#pai-modal-tp-label');
@@ -566,6 +750,10 @@ ${tpSection}`,
   async function openAsmtNilaiModal(asmt) {
     const grades      = await loadAssessmentGrades(asmt.id);
     const kktpResults = (asmt.jenis === 'SUMATIF') ? await loadKktpResults(asmt.id) : [];
+    const sumFormat   = (asmt.jenis === 'SUMATIF') ? (asmt.format_penilaian || 'SKOR') : null;
+    const rubrikCriteria = (sumFormat === 'RUBRIK') ? await loadRubrikCriteria(asmt.id) : [];
+    const rubrikResults  = (sumFormat === 'RUBRIK') ? await loadRubrikResults(asmt.id) : [];
+    const rubrikResultsMap = new Map(rubrikResults.map(r => [r.student_id + '|' + r.criteria_id, r.level]));
 
     const DK_OPTS = [
       ['Paham Utuh',    'Paham Utuh'],
@@ -655,7 +843,6 @@ ${tpSection}`,
           }
 
           if (isSum) {
-            const currNilai = existing?.nilai_angka != null ? existing.nilai_angka : '';
             const kktpRows = kktps.map(k => {
               const tercapai = kktpMap.get(s.id + '|' + k.id) || false;
               return `<label style="display:flex;align-items:center;gap:var(--space-xs);font-size:var(--fs-caption);padding:2px 0;cursor:pointer;">
@@ -664,6 +851,32 @@ ${tpSection}`,
   <span>${esc(k.judul)}</span>
 </label>`;
             }).join('');
+
+            if (sumFormat === 'RUBRIK') {
+              const LEVEL_LABELS = ['Baru Berkembang', 'Layak', 'Cakap', 'Mahir'];
+              const criteriaHtml = rubrikCriteria.map(k => {
+                const currLevel = rubrikResultsMap.get(s.id + '|' + k.id) || 0;
+                const descs = [k.deskripsi_baru_berkembang, k.deskripsi_layak, k.deskripsi_cakap, k.deskripsi_mahir];
+                const radios = [1,2,3,4].map(lv => {
+                  const desc = descs[lv - 1];
+                  return `<label style="display:flex;align-items:flex-start;gap:var(--space-xs);font-size:var(--fs-caption);padding:2px 0;cursor:pointer;"><input type="radio" class="pel-rubrik-radio" name="rubrik-${esc(s.id)}-${esc(k.id)}" data-student-id="${esc(s.id)}" data-criteria-id="${esc(k.id)}" data-bobot="${esc(String(k.bobot))}" value="${lv}"${currLevel === lv ? ' checked' : ''}><span style="flex:1;">${esc(LEVEL_LABELS[lv - 1])}${desc ? `<span style="display:block;font-size:var(--fs-badge);color:var(--text-muted);margin-top:2px;">${esc(desc)}</span>` : ''}</span></label>`;
+                }).join('');
+                return `<div style="padding:var(--space-xs) 0;border-bottom:1px solid var(--border);"><div style="font-size:var(--fs-caption);font-weight:var(--fw-medium);color:var(--text-secondary);margin-bottom:var(--space-xs);">${esc(k.judul)} <span style="color:var(--text-muted);">(bobot ${k.bobot}%)</span></div><div>${radios}</div></div>`;
+              }).join('');
+              return `
+<div class="pel-rubrik-student" data-student-id="${esc(s.id)}" style="padding:var(--space-sm) 0;border-bottom:1px solid var(--border);">
+  <div style="display:flex;align-items:center;gap:var(--space-sm);margin-bottom:var(--space-xs);">
+    <span style="flex:1;min-width:0;font-size:var(--fs-ui);font-weight:var(--fw-medium);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(s.full_name)}</span>
+    <span class="pel-rubrik-skor-val" data-student-id="${esc(s.id)}" style="font-size:var(--fs-caption);color:var(--text-muted);"></span>
+    <span class="pel-sum-pred" data-student-id="${esc(s.id)}" style="flex-shrink:0;font-size:var(--fs-caption);min-width:7rem;text-align:right;"></span>
+  </div>
+  <div>${criteriaHtml || '<p style="font-size:var(--fs-caption);color:var(--text-muted);">Belum ada kriteria rubrik.</p>'}</div>
+  ${kktpRows ? `<div style="margin-top:var(--space-xs);padding-left:var(--space-md);">${kktpRows}</div>` : ''}
+</div>`;
+            }
+
+            // SKOR path
+            const currNilai = existing?.nilai_angka != null ? existing.nilai_angka : '';
             return `
 <div style="padding:var(--space-sm) 0;border-bottom:1px solid var(--border);">
   <div style="display:flex;align-items:center;gap:var(--space-sm);">
@@ -728,19 +941,39 @@ ${tpSection}`,
               { deskripsi: val, nilai_angka: null });
           }));
         } else if (isSum) {
-          const inputs = overlay.querySelectorAll('.pel-sum-nilai');
-          const cbs    = overlay.querySelectorAll('.pel-kktp-cb');
-          await Promise.all([...inputs].map(inp => {
-            const val = inp.value.trim();
-            if (val === '') return Promise.resolve();
-            const nilai = parseFloat(val);
-            if (isNaN(nilai) || nilai < 0 || nilai > 100) return Promise.resolve();
-            return upsertAssessmentGrade(asmt.id, inp.dataset.studentId, asmt.judul,
-              { nilai_angka: nilai, deskripsi: null });
-          }));
-          await Promise.all([...cbs].map(cb =>
-            upsertKktpResult(asmt.id, cb.dataset.studentId, cb.dataset.kktpId, cb.checked)
-          ));
+          if (sumFormat === 'RUBRIK') {
+            const checkedRadios = [...overlay.querySelectorAll('.pel-rubrik-radio:checked')];
+            const cbs = overlay.querySelectorAll('.pel-kktp-cb');
+            await Promise.all(checkedRadios.map(r =>
+              upsertRubrikResult(asmt.id, r.dataset.criteriaId, r.dataset.studentId, parseInt(r.value))
+            ));
+            const studentScores = new Map();
+            checkedRadios.forEach(r => {
+              const sid = r.dataset.studentId;
+              studentScores.set(sid, (studentScores.get(sid) || 0) + (parseInt(r.value) / 4) * parseFloat(r.dataset.bobot));
+            });
+            await Promise.all([...studentScores.entries()].map(([sid, total]) =>
+              upsertAssessmentGrade(asmt.id, sid, asmt.judul,
+                { nilai_angka: Math.round(total * 100) / 100, deskripsi: null })
+            ));
+            await Promise.all([...cbs].map(cb =>
+              upsertKktpResult(asmt.id, cb.dataset.studentId, cb.dataset.kktpId, cb.checked)
+            ));
+          } else {
+            const inputs = overlay.querySelectorAll('.pel-sum-nilai');
+            const cbs    = overlay.querySelectorAll('.pel-kktp-cb');
+            await Promise.all([...inputs].map(inp => {
+              const val = inp.value.trim();
+              if (val === '') return Promise.resolve();
+              const nilai = parseFloat(val);
+              if (isNaN(nilai) || nilai < 0 || nilai > 100) return Promise.resolve();
+              return upsertAssessmentGrade(asmt.id, inp.dataset.studentId, asmt.judul,
+                { nilai_angka: nilai, deskripsi: null });
+            }));
+            await Promise.all([...cbs].map(cb =>
+              upsertKktpResult(asmt.id, cb.dataset.studentId, cb.dataset.kktpId, cb.checked)
+            ));
+          }
         }
         await loadAll();
         renderPelaksanaan();
@@ -764,23 +997,52 @@ ${tpSection}`,
 
     if (isSum) {
       const overlay = document.getElementById('assessment-modal');
-      function updateSumPred(inp) {
-        const span = inp.parentElement.querySelector('.pel-sum-pred');
-        if (!span) return;
-        const v = parseFloat(inp.value);
-        if (inp.value.trim() === '' || isNaN(v)) { span.textContent = ''; span.style.color = ''; return; }
-        let label, color;
-        if (v >= 81)      { label = 'Sangat Baik';     color = 'var(--success)'; }
-        else if (v >= 61) { label = 'Baik';            color = 'var(--success)'; }
-        else if (v >= 41) { label = 'Cukup';           color = 'var(--warning)'; }
-        else              { label = 'Perlu Bimbingan'; color = 'var(--danger)'; }
-        span.textContent = label;
-        span.style.color = color;
+      if (sumFormat === 'RUBRIK') {
+        function updateRubrikStudentSkor(studentId) {
+          let total = 0, allFilled = rubrikCriteria.length > 0;
+          rubrikCriteria.forEach(k => {
+            const r = overlay?.querySelector(`input[name="rubrik-${studentId}-${k.id}"]:checked`);
+            if (r) total += (parseInt(r.value) / 4) * k.bobot;
+            else allFilled = false;
+          });
+          total = Math.round(total * 100) / 100;
+          const skorEl = overlay?.querySelector(`.pel-rubrik-skor-val[data-student-id="${studentId}"]`);
+          const predEl = overlay?.querySelector(`.pel-sum-pred[data-student-id="${studentId}"]`);
+          if (skorEl) skorEl.textContent = allFilled ? String(total) : `${total} (belum lengkap)`;
+          if (predEl) {
+            if (!allFilled || !rubrikCriteria.length) { predEl.textContent = ''; predEl.style.color = ''; return; }
+            let label, color;
+            if (total >= 81)      { label = 'Sangat Baik';     color = 'var(--success)'; }
+            else if (total >= 61) { label = 'Baik';            color = 'var(--success)'; }
+            else if (total >= 41) { label = 'Cukup';           color = 'var(--warning)'; }
+            else                  { label = 'Perlu Bimbingan'; color = 'var(--danger)'; }
+            predEl.textContent = label;
+            predEl.style.color = color;
+          }
+        }
+        overlay?.querySelectorAll('.pel-rubrik-radio').forEach(r => {
+          updateRubrikStudentSkor(r.dataset.studentId);
+          r.addEventListener('change', () => updateRubrikStudentSkor(r.dataset.studentId));
+        });
+      } else {
+        function updateSumPred(inp) {
+          const span = inp.parentElement.querySelector('.pel-sum-pred');
+          if (!span) return;
+          const v = parseFloat(inp.value);
+          if (inp.value.trim() === '' || isNaN(v)) { span.textContent = ''; span.style.color = ''; return; }
+          let label, color;
+          if (v >= 81)      { label = 'Sangat Baik';     color = 'var(--success)'; }
+          else if (v >= 61) { label = 'Baik';            color = 'var(--success)'; }
+          else if (v >= 41) { label = 'Cukup';           color = 'var(--warning)'; }
+          else              { label = 'Perlu Bimbingan'; color = 'var(--danger)'; }
+          span.textContent = label;
+          span.style.color = color;
+        }
+        overlay?.querySelectorAll('.pel-sum-nilai').forEach(inp => {
+          updateSumPred(inp);
+          inp.addEventListener('input', () => updateSumPred(inp));
+        });
       }
-      overlay?.querySelectorAll('.pel-sum-nilai').forEach(inp => {
-        updateSumPred(inp);
-        inp.addEventListener('input', () => updateSumPred(inp));
-      });
     }
   }
 
