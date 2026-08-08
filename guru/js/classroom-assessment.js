@@ -12,6 +12,7 @@
   let _loaded      = false;
   let _year       = '';
   let _semester   = 1;
+  let _sdAC       = null;
 
   const YEAR_RE = /^\d{4}\/\d{4}$/;
 
@@ -466,6 +467,10 @@ ${tpSection}`,
         const tanggal = overlay.querySelector('#pai-modal-tanggal').value || null;
         const tp_id   = overlay.querySelector('#pai-modal-tp')?.value || null;
         if (!judul) throw new Error('Judul tidak boleh kosong.');
+        if ((jenis === 'FORMATIF' || jenis === 'SUMATIF') && !tp_id && tps.length > 0) {
+          throw new Error('Pilih Tujuan Pembelajaran untuk penilaian ' +
+            (jenis === 'FORMATIF' ? 'Formatif' : 'Sumatif') + '.');
+        }
 
         const payload = { judul, jenis, teknik, tanggal, tp_id: tp_id || null };
         let asmtId;
@@ -613,7 +618,13 @@ ${tpSection}`,
         if (isDiag) {
           const selects = overlay.querySelectorAll('.pel-diag-select');
           await Promise.all([...selects].map(sel => {
-            if (!sel.value) return Promise.resolve();
+            if (!sel.value) {
+              if (!gradeMap.has(sel.dataset.studentId)) return Promise.resolve();
+              return client.from('student_grades').delete()
+                .eq('classroom_id', classroomId).eq('assessment_id', asmt.id)
+                .eq('student_id', sel.dataset.studentId)
+                .then(({ error }) => { if (error) throw error; });
+            }
             return upsertAssessmentGrade(asmt.id, sel.dataset.studentId, asmt.judul,
               { deskripsi: sel.value, nilai_angka: null });
           }));
@@ -621,7 +632,13 @@ ${tpSection}`,
           const areas = overlay.querySelectorAll('.pel-form-textarea');
           await Promise.all([...areas].map(ta => {
             const val = ta.value.trim();
-            if (!val) return Promise.resolve();
+            if (!val) {
+              if (!gradeMap.has(ta.dataset.studentId)) return Promise.resolve();
+              return client.from('student_grades').delete()
+                .eq('classroom_id', classroomId).eq('assessment_id', asmt.id)
+                .eq('student_id', ta.dataset.studentId)
+                .then(({ error }) => { if (error) throw error; });
+            }
             return upsertAssessmentGrade(asmt.id, ta.dataset.studentId, asmt.judul,
               { deskripsi: val, nilai_angka: null });
           }));
@@ -818,7 +835,7 @@ ${tpSection}`,
       } catch (err) {
         errEl.textContent   = 'Gagal: ' + (err.message || 'Error tidak diketahui.');
         saveBtn.disabled    = false;
-        saveBtn.textContent = 'Simpan';
+        saveBtn.textContent = saveLabel;
       }
     });
 
@@ -1104,6 +1121,9 @@ ${tpSection}`,
   // ─── Filter ─────────────────────────────────────────────────────────────────
 
   function initSemesterDropdown() {
+    if (_sdAC) { _sdAC.abort(); }
+    _sdAC = new AbortController();
+
     const trigger = document.getElementById('pai-semester-trigger');
     const list    = document.getElementById('pai-semester-list');
     const label   = document.getElementById('pai-semester-label');
@@ -1155,7 +1175,7 @@ ${tpSection}`,
 
     document.addEventListener('click', e => {
       if (!document.getElementById('pai-semester-wrap')?.contains(e.target)) closeList();
-    });
+    }, { signal: _sdAC.signal });
   }
 
   function initFilter() {
@@ -1165,7 +1185,6 @@ ${tpSection}`,
     _semester = now.getMonth() >= 6 ? 1 : 2;
 
     renderPerencanaan();
-    initSemesterDropdown();
 
     const body = document.getElementById('pai-perencanaan-body');
     if (!body) return;
