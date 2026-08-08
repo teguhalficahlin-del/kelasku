@@ -584,7 +584,10 @@ ${tpSection}
             (jenis === 'FORMATIF' ? 'Formatif' : 'Sumatif') + '.');
         }
 
-        const format = overlay.querySelector('#pai-modal-format')?.value || 'SKOR';
+        const format = overlay.querySelector('#pai-modal-format')?.value || '';
+        if (jenis === 'SUMATIF' && !format) {
+          throw new Error('Pilih format penilaian untuk Sumatif.');
+        }
 
         // Validasi kriteria rubrik
         let criteriaRows = [];
@@ -681,7 +684,6 @@ ${tpSection}
     function updateFormatVisibility() {
       const isSumatif = jenisEl.value === 'SUMATIF';
       formatWrap.style.display = isSumatif ? '' : 'none';
-      if (!isSumatif) formatEl.value = 'SKOR';
       updateCriteriaVisibility();
     }
 
