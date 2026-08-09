@@ -446,10 +446,9 @@
     }
     function fmtExportDate(s) {
       if (!s) return '';
-      const d  = new Date(s);
-      const dd = String(d.getDate()).padStart(2, '0');
-      const mm = String(d.getMonth() + 1).padStart(2, '0');
-      return `${dd}/${mm}/${d.getFullYear()}`;
+      const part = s.slice(0, 10); // 'YYYY-MM-DD' — tidak terpengaruh timezone browser
+      const [y, m, d] = part.split('-');
+      return `${d}/${m}/${y}`;
     }
 
     const slug     = slugify(window._classroomName || '');
@@ -464,7 +463,7 @@
     function noteToRow(n) {
       const s = _roster.find(r => r.id === n.student_id);
       return [
-        s ? s.full_name : '—',
+        s ? (s.full_name || '—') : '—',
         s ? (s.nis || '') : '',
         fmtExportDate(n.created_at),
         n.content || '',
