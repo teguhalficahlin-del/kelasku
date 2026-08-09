@@ -141,12 +141,22 @@
       <li class="custom-select-option${_semester === 2 ? ' selected' : ''}" data-value="2" role="option">Semester 2</li>
     </ul>
   </div>
+  <button id="btn-export-penilaian" class="btn-sm" style="flex-shrink:0;margin-left:auto;">Export Excel</button>
 </div>
+<small style="font-size:var(--fs-caption);color:var(--text-muted);font-style:italic;margin-top:0.35rem;display:block;">Lakukan export sebelum semester berakhir untuk menyimpan data secara lokal.</small>
 <div id="pai-filter-error"
   style="color:var(--danger);font-size:var(--fs-caption);min-height:1.2rem;margin-top:var(--space-xs);"></div>
 ${renderCpSubsection(cp)}
 ${renderTpSubsection(tps, kktps)}`;
     initSemesterDropdown();
+    document.getElementById('btn-export-penilaian')?.addEventListener('click', e => {
+      e.stopPropagation();
+      if (!_assessments || _assessments.length === 0) {
+        alert('Belum ada entri penilaian untuk di-export.');
+        return;
+      }
+      exportPenilaian();
+    });
   }
 
   function renderCpSubsection(cp) {
@@ -1568,6 +1578,66 @@ ${tpSection}
         }
       }
     });
+  }
+
+  // ─── Export Penilaian (4 sheet) ─────────────────────────────────────────────
+
+  function exportPenilaian() {
+    function slugify(s) {
+      return String(s || '').toLowerCase()
+        .replace(/\s+/g, '-')
+        .replace(/[^a-z0-9-]/g, '')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '');
+    }
+    function fmtDate(s) {
+      if (!s) return '';
+      const [y, m, d] = s.split('-');
+      return `${d}/${m}/${y}`;
+    }
+
+    const slug     = slugify(window._classroomName || '');
+    const yearSlug = (_year || '').replace('/', '-');
+    const today    = new Date().toISOString().slice(0, 10);
+    const parts    = ['penilaian'];
+    if (slug) parts.push(slug);
+    parts.push(yearSlug, `sem${_semester}`, today);
+    const filename = parts.join('-') + '.xlsx';
+
+    const JENIS_MAP = { DIAGNOSTIK_NK: 'D-NK', DIAGNOSTIK_K: 'D-K', FORMATIF: 'Formatif', SUMATIF: 'Sumatif' };
+    const TL_MAP    = { PENGAYAAN: 'Pengayaan', PENGUATAN: 'Penguatan', PENDAMPINGAN: 'Pendampingan' };
+    const HEADER    = ['Nama Siswa', 'NIS', 'Judul Penilaian', 'Jenis', 'Tanggal', 'Nilai/Deskripsi', 'Tindak Lanjut', 'Status Publikasi'];
+
+    function buildRows(asmts) {
+      const result = [];
+      for (const a of asmts) {
+        for (const s of _roster) {
+          const g = _grades.find(gr => gr.assessment_id === a.id && gr.student_id === s.id);
+          result.push([
+            s.full_name,
+            s.nis || '',
+            a.judul || '',
+            JENIS_MAP[a.jenis] || a.jenis || '',
+            fmtDate(a.tanggal),
+            g ? (g.nilai_angka != null ? String(g.nilai_angka) : (g.deskripsi || '')) : '',
+            g ? (TL_MAP[g.tindak_lanjut] || '—') : '—',
+            a.is_published ? 'Dipublikasi' : 'Belum Dipublikasi',
+          ]);
+        }
+      }
+      return result;
+    }
+
+    const diagAsmts = _assessments.filter(a => a.jenis === 'DIAGNOSTIK_NK' || a.jenis === 'DIAGNOSTIK_K');
+    const formAsmts = _assessments.filter(a => a.jenis === 'FORMATIF');
+    const sumAsmts  = _assessments.filter(a => a.jenis === 'SUMATIF');
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([HEADER, ...buildRows(_assessments)]), 'Semua Nilai');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([HEADER, ...buildRows(diagAsmts)]),    'Diagnostik');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([HEADER, ...buildRows(formAsmts)]),    'Formatif');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([HEADER, ...buildRows(sumAsmts)]),     'Sumatif');
+    XLSX.writeFile(wb, filename);
   }
 
   // ─── Collapse ───────────────────────────────────────────────────────────────
