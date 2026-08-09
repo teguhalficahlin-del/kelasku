@@ -78,9 +78,18 @@ Deno.serve(async (req) => {
     const { error: e5 } = await admin.from('student_grades').delete().eq('classroom_id', cid);
     if (e5) return json({ error: 'Gagal hapus student_grades: ' + e5.message }, 500);
 
+    const { error: e6 } = await admin.from('assessment_rubric_results').delete().eq('classroom_id', cid);
+    if (e6) return json({ error: 'Gagal hapus rubric_results: ' + e6.message }, 500);
+
+    const { error: e7 } = await admin.from('assessment_rubric_criteria').delete().eq('classroom_id', cid);
+    if (e7) return json({ error: 'Gagal hapus rubric_criteria: ' + e7.message }, 500);
+
+    const { error: e8 } = await admin.from('assessment_kktp_results').delete().eq('classroom_id', cid);
+    if (e8) return json({ error: 'Gagal hapus kktp_results: ' + e8.message }, 500);
+
     // assessments (pelaksanaan) jika ada
-    const { error: e6 } = await admin.from('assessments').delete().eq('classroom_id', cid);
-    if (e6) return json({ error: 'Gagal hapus assessments: ' + e6.message }, 500);
+    const { error: e9 } = await admin.from('assessments').delete().eq('classroom_id', cid);
+    if (e9) return json({ error: 'Gagal hapus assessments: ' + e9.message }, 500);
   }
 
   // -------------------------------------------------------------------------
