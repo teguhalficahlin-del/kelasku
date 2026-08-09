@@ -1764,6 +1764,26 @@ h2.panel-header.open .panel-collapse-arrow {
   font-weight: var(--fw-semibold);
 }
 
+#semester-banner {
+  padding: .625rem 1rem;
+  border-radius: var(--r-sm);
+  margin-bottom: 1rem;
+  font-size: var(--fs-body);
+  line-height: 1.5;
+}
+.semester-banner.semester-persiapan {
+  background: rgba(234,179,8,0.12);
+  color: #ca8a04;
+  border: 1px solid rgba(234,179,8,0.3);
+  font-weight: var(--fw-medium);
+}
+.semester-banner.semester-terkunci {
+  background: var(--danger-bg);
+  color: var(--danger);
+  border: 1px solid var(--danger-border);
+  font-weight: var(--fw-semibold);
+}
+
 /* ── Tombol Mulai Semester Baru ── */
 .btn-semester-baru {
   display: block;

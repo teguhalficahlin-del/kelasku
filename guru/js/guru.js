@@ -702,11 +702,14 @@ window.initCustomSelect = function (nativeEl, onChange) {
       var overlay = document.querySelector('.locked-overlay');
       if (overlay) overlay.remove();
 
-      var banner = document.getElementById('trial-banner');
-      if (banner) banner.style.display = 'none';
+      var semBanner = document.getElementById('semester-banner');
+      if (semBanner) semBanner.style.display = 'none';
 
       var btnSem = document.getElementById('btn-mulai-semester');
       if (btnSem) btnSem.remove();
+
+      var btnBuat = document.getElementById('btn-buat-classroom');
+      if (btnBuat) btnBuat.disabled = false;
 
       alert('Reset semester berhasil. Selamat memulai semester baru!');
 
@@ -719,11 +722,15 @@ window.initCustomSelect = function (nativeEl, onChange) {
   function applySemesterUI(phase) {
     if (!phase || phase.fase === 'aktif') return;
 
-    var banner = document.getElementById('trial-banner');
+    var trialBanner = document.getElementById('trial-banner');
+    var isExpired = trialBanner && trialBanner.classList.contains('trial-expired');
+    if (isExpired) return;
+
+    var banner = document.getElementById('semester-banner');
     if (!banner) return;
 
     if (phase.fase === 'persiapan') {
-      banner.className   = 'trial-banner semester-persiapan';
+      banner.className   = 'semester-banner semester-persiapan';
       banner.textContent = 'Semester ' + phase.sem + ' segera berakhir — export data Anda sebelum terlambat.';
       banner.style.display = 'block';
 
@@ -736,7 +743,7 @@ window.initCustomSelect = function (nativeEl, onChange) {
       var helpStrip = document.getElementById('help-strip');
       if (helpStrip) helpStrip.insertAdjacentElement('afterend', btnSem);
     } else if (phase.fase === 'terkunci') {
-      banner.className   = 'trial-banner semester-terkunci';
+      banner.className   = 'semester-banner semester-terkunci';
       banner.textContent = 'Semester ' + phase.sem + ' telah berakhir. Reset diperlukan untuk melanjutkan.';
       banner.style.display = 'block';
 
