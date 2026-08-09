@@ -6,7 +6,10 @@
   let classroomId = null;
   let _roster     = [];   // { id, full_name, nis }
   let _notes      = [];
-  let _filterStudentId = '';
+  let _filterStudentId   = '';
+  let _filterVisibilitas = '';
+  let _filterFrom        = '';
+  let _filterTo          = '';
   let _notesLoaded = false;
   let _notesSelInst    = null;
   let _notesFilterInst = null;
@@ -140,9 +143,16 @@
     const el = document.getElementById('notes-list');
     if (!el) return;
 
-    const rows = _filterStudentId
+    let rows = _filterStudentId
       ? _notes.filter(n => n.student_id === _filterStudentId)
-      : _notes;
+      : [..._notes];
+
+    if (_filterVisibilitas === 'siswa')      rows = rows.filter(n => n.is_visible_to_student);
+    else if (_filterVisibilitas === 'ortu')  rows = rows.filter(n => n.is_visible_to_parent);
+    else if (_filterVisibilitas === 'keduanya') rows = rows.filter(n => n.is_visible_to_student && n.is_visible_to_parent);
+
+    if (_filterFrom) rows = rows.filter(n => n.created_at.slice(0, 10) >= _filterFrom);
+    if (_filterTo)   rows = rows.filter(n => n.created_at.slice(0, 10) <= _filterTo);
 
     if (rows.length === 0) {
       el.innerHTML = '<p class="empty-state">Belum ada catatan.</p>';
@@ -366,6 +376,117 @@
   }
 
   // ---------------------------------------------------------------------------
+  // Filter tambahan: visibilitas + rentang waktu
+  // ---------------------------------------------------------------------------
+
+  function initExtraFilters() {
+    const listEl = document.getElementById('notes-list');
+    if (!listEl) return;
+
+    const wrap = document.createElement('div');
+    wrap.id = 'notes-extra-filters';
+    wrap.style.cssText = 'display:flex;flex-wrap:wrap;gap:var(--space-xs);align-items:center;margin-bottom:var(--space-sm);';
+
+    const visLabel = document.createElement('label');
+    visLabel.textContent = 'Visibilitas';
+    visLabel.style.cssText = 'font-size:var(--fs-caption);color:var(--text-secondary);margin-bottom:0;flex-shrink:0;text-transform:none;letter-spacing:normal;font-weight:var(--fw-medium);';
+
+    const visSel = document.createElement('select');
+    visSel.id = 'notes-filter-vis';
+    visSel.style.cssText = 'flex:1;min-width:9rem;max-width:12rem;';
+    visSel.innerHTML =
+      '<option value="">Semua</option>' +
+      '<option value="siswa">Ke Siswa saja</option>' +
+      '<option value="ortu">Ke Ortu saja</option>' +
+      '<option value="keduanya">Siswa &amp; Ortu</option>';
+
+    const fromLabel = document.createElement('label');
+    fromLabel.textContent = 'Dari';
+    fromLabel.style.cssText = 'font-size:var(--fs-caption);color:var(--text-secondary);margin-bottom:0;flex-shrink:0;text-transform:none;letter-spacing:normal;font-weight:var(--fw-medium);';
+
+    const fromInput = document.createElement('input');
+    fromInput.type = 'date';
+    fromInput.id   = 'notes-filter-from';
+    fromInput.style.cssText = 'flex:1;min-width:8rem;max-width:10rem;';
+
+    const toLabel = document.createElement('label');
+    toLabel.textContent = 'Sampai';
+    toLabel.style.cssText = 'font-size:var(--fs-caption);color:var(--text-secondary);margin-bottom:0;flex-shrink:0;text-transform:none;letter-spacing:normal;font-weight:var(--fw-medium);';
+
+    const toInput = document.createElement('input');
+    toInput.type = 'date';
+    toInput.id   = 'notes-filter-to';
+    toInput.style.cssText = 'flex:1;min-width:8rem;max-width:10rem;';
+
+    wrap.appendChild(visLabel);
+    wrap.appendChild(visSel);
+    wrap.appendChild(fromLabel);
+    wrap.appendChild(fromInput);
+    wrap.appendChild(toLabel);
+    wrap.appendChild(toInput);
+
+    listEl.insertAdjacentElement('beforebegin', wrap);
+
+    visSel.addEventListener('change', () => { _filterVisibilitas = visSel.value; renderNotesList(); });
+    fromInput.addEventListener('change', () => { _filterFrom = fromInput.value; renderNotesList(); });
+    toInput.addEventListener('change',   () => { _filterTo   = toInput.value;   renderNotesList(); });
+  }
+
+  // ---------------------------------------------------------------------------
+  // Export Catatan (4 sheet)
+  // ---------------------------------------------------------------------------
+
+  function exportCatatan() {
+    function slugify(s) {
+      return String(s || '').toLowerCase()
+        .replace(/\s+/g, '-')
+        .replace(/[^a-z0-9-]/g, '')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '');
+    }
+    function fmtExportDate(s) {
+      if (!s) return '';
+      const d  = new Date(s);
+      const dd = String(d.getDate()).padStart(2, '0');
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      return `${dd}/${mm}/${d.getFullYear()}`;
+    }
+
+    const slug     = slugify(window._classroomName || '');
+    const today    = new Date().toISOString().slice(0, 10);
+    const parts    = ['catatan'];
+    if (slug) parts.push(slug);
+    parts.push(today);
+    const filename = parts.join('-') + '.xlsx';
+
+    const HEADER = ['Nama Siswa', 'NIS', 'Tanggal', 'Isi Catatan', 'Ke Siswa', 'Ke Ortu'];
+
+    function noteToRow(n) {
+      const s = _roster.find(r => r.id === n.student_id);
+      return [
+        s ? s.full_name : '—',
+        s ? (s.nis || '') : '',
+        fmtExportDate(n.created_at),
+        n.content || '',
+        n.is_visible_to_student ? 'Ya' : 'Tidak',
+        n.is_visible_to_parent  ? 'Ya' : 'Tidak',
+      ];
+    }
+
+    const all      = _notes;
+    const keSiswa  = _notes.filter(n => n.is_visible_to_student);
+    const keOrtu   = _notes.filter(n => n.is_visible_to_parent);
+    const keduanya = _notes.filter(n => n.is_visible_to_student && n.is_visible_to_parent);
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([HEADER, ...all.map(noteToRow)]),      'Semua Catatan');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([HEADER, ...keSiswa.map(noteToRow)]),  'Ke Siswa');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([HEADER, ...keOrtu.map(noteToRow)]),   'Ke Ortu');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([HEADER, ...keduanya.map(noteToRow)]), 'Siswa & Ortu');
+    XLSX.writeFile(wb, filename);
+  }
+
+  // ---------------------------------------------------------------------------
   // Collapse sections (single-expand, "Tulis Catatan" default open)
   // ---------------------------------------------------------------------------
 
@@ -381,6 +502,31 @@
         h2.classList.remove('open');
         body.style.display = 'none';
       }
+
+      // Tombol Export Excel di header Riwayat Catatan (idx 1)
+      if (idx === 1) {
+        const exportBtn       = document.createElement('button');
+        exportBtn.id          = 'btn-export-catatan';
+        exportBtn.className   = 'btn-export-header';
+        exportBtn.textContent = 'Export Excel';
+        exportBtn.addEventListener('click', e => {
+          e.stopPropagation();
+          if (!_notes || _notes.length === 0) {
+            alert('Belum ada catatan untuk di-export.');
+            return;
+          }
+          exportCatatan();
+        });
+        const arrow = h2.querySelector('.panel-collapse-arrow');
+        if (arrow) h2.insertBefore(exportBtn, arrow);
+        else h2.appendChild(exportBtn);
+
+        const hint = document.createElement('small');
+        hint.style.cssText = 'font-size:var(--fs-caption);color:var(--text-muted);font-style:italic;margin-top:0.35rem;display:block;';
+        hint.textContent   = 'Lakukan export sebelum semester berakhir untuk menyimpan data secara lokal.';
+        body.insertAdjacentElement('afterbegin', hint);
+      }
+
       h2.addEventListener('click', () => {
         const isOpen = h2.classList.contains('open');
         headers.forEach(hh => {
@@ -405,6 +551,7 @@
     initForm();
     initFilter();
     initCollapseSections();
+    initExtraFilters();
   }
 
   // ---------------------------------------------------------------------------
