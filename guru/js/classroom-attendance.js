@@ -516,7 +516,7 @@
       }).join('');
       const moreNotif = s.sessions.length >= REKAP_SESI_MAX
         ? `<div class="rekap-more-notif">Data lebih dari ${REKAP_SESI_MAX} entri. ` +
-          `<button class="rekap-btn-export-hint">Download rekap Excel</button> untuk melihat semua data.</div>`
+          `<button class="rekap-btn-export-hint">Download Excel</button> untuk melihat rekap dan detail kehadiran per sesi.</div>`
         : '';
       return `<div class="rekap-siswa-row">` +
         `<div class="rekap-siswa-header">` +
@@ -621,16 +621,38 @@
     parts.push(fromDate, 'sd', toDate, today);
     const filename = parts.join('-') + '.xlsx';
 
-    const wsData = [
-      ['Nama', 'H', 'S', 'I', 'A', '% Hadir'],
+    function fmtTanggal(s) {
+      if (!s) return '';
+      const [y, m, d] = s.split('-');
+      return `${d}/${m}/${y}`;
+    }
+
+    // Sheet 1: Rekap per siswa
+    const wsRekap = [
+      ['Nama', 'NIS', 'H', 'S', 'I', 'A', '% Hadir'],
       ...perSiswa.map(s => {
         const t = s.HADIR + s.SAKIT + s.IZIN + s.ALPHA;
-        return [s.full_name, s.HADIR, s.SAKIT, s.IZIN, s.ALPHA,
+        return [s.full_name, s.nis || '', s.HADIR, s.SAKIT, s.IZIN, s.ALPHA,
           (t ? Math.round(s.HADIR / t * 100) : 0) + '%'];
       }),
     ];
+
+    // Sheet 2: Detail per sesi (sort: tanggal asc, lalu nama)
+    const detailRows = [];
+    perSiswa.forEach(s => {
+      s.sessions.forEach(ses => {
+        detailRows.push({ nama: s.full_name, nis: s.nis || '', tanggal: ses.tanggal, status: ses.status });
+      });
+    });
+    detailRows.sort((a, b) => a.tanggal.localeCompare(b.tanggal) || a.nama.localeCompare(b.nama));
+    const wsDetail = [
+      ['Nama', 'NIS', 'Tanggal', 'Status'],
+      ...detailRows.map(r => [r.nama, r.nis, fmtTanggal(r.tanggal), r.status]),
+    ];
+
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(wsData), 'Rekap Absensi');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(wsRekap),  'Rekap Absensi');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(wsDetail), 'Detail Per Sesi');
     XLSX.writeFile(wb, filename);
   }
 
