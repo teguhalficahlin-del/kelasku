@@ -1029,6 +1029,7 @@
       .single();
     if (clError || !classroom) { window.location.href = 'dashboard.html'; return; }
     currentClassroom = classroom;
+    window._classroomName = classroom.name;
 
     document.getElementById('cl-name').textContent    = classroom.name;
     document.getElementById('cl-code').textContent    = classroom.classroom_code;

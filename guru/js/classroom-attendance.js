@@ -605,7 +605,22 @@
     // tombol export tidak pernah disabled — tidak perlu di-enable di sini
   }
 
+  function slugify(s) {
+    return String(s || '').toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9-]/g, '')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '');
+  }
+
   function exportExcel(perSiswa, fromDate, toDate) {
+    const slug     = slugify(window._classroomName || '');
+    const today    = new Date().toISOString().slice(0, 10);
+    const parts    = ['rekap-absensi'];
+    if (slug) parts.push(slug);
+    parts.push(fromDate, 'sd', toDate, today);
+    const filename = parts.join('-') + '.xlsx';
+
     const wsData = [
       ['Nama', 'H', 'S', 'I', 'A', '% Hadir'],
       ...perSiswa.map(s => {
@@ -616,7 +631,7 @@
     ];
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(wsData), 'Rekap Absensi');
-    XLSX.writeFile(wb, `rekap-absensi-${fromDate}-sd-${toDate}.xlsx`);
+    XLSX.writeFile(wb, filename);
   }
 
   function renderRekap() {
@@ -627,6 +642,7 @@
     const [defaultFrom, defaultTo] = getPresetRange('bulan');
 
     container.innerHTML =
+      `<small style="font-size:var(--fs-caption);color:var(--text-muted);font-style:italic;margin-top:0.35rem;display:block;">Lakukan export sebelum semester berakhir untuk menyimpan data secara lokal.</small>` +
       `<div class="rekap-date-range">` +
         `<div class="rekap-date-group">` +
           `<label class="rekap-date-label" for="rekap-from">Dari</label>` +
