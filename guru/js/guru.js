@@ -601,6 +601,7 @@ window.initCustomSelect = function (nativeEl, onChange) {
       }
 
       applyTrialUI(trialStatus);
+      applySemesterUI(getCurrentSemesterPhase());
 
       await loadClassrooms(currentTeacherId);
     });
@@ -650,6 +651,101 @@ window.initCustomSelect = function (nativeEl, onChange) {
     overlay.addEventListener('click', function (e) {
       if (!e.target.closest('.help-modal')) closeHelpDashboard();
     });
+  }
+
+  // -------------------------------------------------------------------------
+  // Semester Phase
+  // -------------------------------------------------------------------------
+
+  var SEMESTER_PHASES = [
+    { sem: 2, fase: 'aktif',     mmdd_start: '01-01', mmdd_end: '06-14' },
+    { sem: 2, fase: 'persiapan', mmdd_start: '06-15', mmdd_end: '06-29' },
+    { sem: 2, fase: 'terkunci',  mmdd_start: '06-30', mmdd_end: '06-30' },
+    { sem: 1, fase: 'aktif',     mmdd_start: '07-01', mmdd_end: '12-14' },
+    { sem: 1, fase: 'persiapan', mmdd_start: '12-15', mmdd_end: '12-30' },
+    { sem: 1, fase: 'terkunci',  mmdd_start: '12-31', mmdd_end: '12-31' },
+  ];
+
+  function getCurrentSemesterPhase() {
+    var now   = new Date();
+    var month = String(now.getMonth() + 1).padStart(2, '0');
+    var day   = String(now.getDate()).padStart(2, '0');
+    var mmdd  = month + '-' + day;
+    for (var i = 0; i < SEMESTER_PHASES.length; i++) {
+      var p = SEMESTER_PHASES[i];
+      if (mmdd >= p.mmdd_start && mmdd <= p.mmdd_end) return p;
+    }
+    return null;
+  }
+
+  async function handleSemesterReset() {
+    var ok = confirm('Tindakan ini akan menghapus semua data absensi, catatan, jadwal, dan penilaian dari seluruh classroom Anda secara permanen. Lanjutkan?');
+    if (!ok) return;
+
+    var btn = document.getElementById('btn-mulai-semester-overlay') || document.getElementById('btn-mulai-semester');
+    if (btn) { btn.disabled = true; btn.textContent = 'Memproses…'; }
+
+    try {
+      var sessionData = await window.supabaseClient.auth.getSession();
+      var token = sessionData && sessionData.data && sessionData.data.session && sessionData.data.session.access_token;
+      if (!token) throw new Error('Sesi tidak valid');
+
+      var SUPABASE_URL = 'https://teccdzetrdjowqemnuuc.supabase.co';
+      var res  = await fetch(SUPABASE_URL + '/functions/v1/semester-reset', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      });
+      var data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Reset gagal');
+
+      var overlay = document.querySelector('.locked-overlay');
+      if (overlay) overlay.remove();
+
+      var banner = document.getElementById('trial-banner');
+      if (banner) banner.style.display = 'none';
+
+      var btnSem = document.getElementById('btn-mulai-semester');
+      if (btnSem) btnSem.remove();
+
+      alert('Reset semester berhasil. Selamat memulai semester baru!');
+
+    } catch (err) {
+      alert('Gagal reset: ' + err.message);
+      if (btn) { btn.disabled = false; btn.textContent = 'Mulai Semester Baru'; }
+    }
+  }
+
+  function applySemesterUI(phase) {
+    if (!phase || phase.fase === 'aktif') return;
+
+    var banner = document.getElementById('trial-banner');
+    if (!banner) return;
+
+    if (phase.fase === 'persiapan') {
+      banner.className   = 'trial-banner semester-persiapan';
+      banner.textContent = 'Semester ' + phase.sem + ' segera berakhir — export data Anda sebelum terlambat.';
+      banner.style.display = 'block';
+    } else if (phase.fase === 'terkunci') {
+      banner.className   = 'trial-banner semester-terkunci';
+      banner.textContent = 'Semester ' + phase.sem + ' telah berakhir. Reset diperlukan untuk melanjutkan.';
+      banner.style.display = 'block';
+
+      var overlay = document.createElement('div');
+      overlay.className = 'locked-overlay';
+      overlay.innerHTML =
+        '<div class="locked-modal">' +
+          '<h2>Semester Berakhir</h2>' +
+          '<p>Semua fitur terkunci hingga Anda memulai semester baru.</p>' +
+          '<div class="warning-list">' +
+            '<div class="warning-item">Pastikan Anda sudah export data semester ini sebelum melanjutkan.</div>' +
+            '<div class="warning-item">Pastikan nama kelas dan daftar siswa diperbarui setelah semester atau kelas baru dimulai.</div>' +
+          '</div>' +
+          '<button class="btn-semester-baru" id="btn-mulai-semester-overlay">Mulai Semester Baru</button>' +
+        '</div>';
+      document.body.appendChild(overlay);
+      document.getElementById('btn-mulai-semester-overlay').addEventListener('click', handleSemesterReset);
+    }
   }
 
 }());
