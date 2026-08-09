@@ -717,8 +717,12 @@
     const exportBtnEl = document.getElementById('btn-export-excel');
     if (exportBtnEl) exportBtnEl.addEventListener('click', function (e) {
       e.stopPropagation();
-      if (!_rekapPerSiswa || _rekapPerSiswa.length === 0) {
-        alert('Tampilkan rekap dulu sebelum export.');
+      if (!_rekapPerSiswa) {
+        alert('Tampilkan rekap terlebih dahulu sebelum export.');
+        return;
+      }
+      if (_rekapPerSiswa.length === 0) {
+        alert('Tidak ada data absensi dalam rentang tanggal ini.');
         return;
       }
       exportExcel(_rekapPerSiswa, _rekapDateRange.fromDate, _rekapDateRange.toDate);

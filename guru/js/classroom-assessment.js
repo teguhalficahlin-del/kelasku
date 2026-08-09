@@ -152,7 +152,7 @@ ${renderTpSubsection(tps, kktps)}`;
     document.getElementById('btn-export-penilaian')?.addEventListener('click', e => {
       e.stopPropagation();
       if (!_assessments || _assessments.length === 0) {
-        alert('Belum ada entri penilaian untuk di-export.');
+        alert('Belum ada data pelaksanaan penilaian untuk tahun ajaran dan semester ini. Isi nilai di section Pelaksanaan terlebih dahulu.');
         return;
       }
       exportPenilaian();
