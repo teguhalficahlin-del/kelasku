@@ -1784,6 +1784,13 @@ h2.panel-header.open .panel-collapse-arrow {
 .btn-semester-baru:hover:not(:disabled) {
   background: #b91c1c;
 }
+.btn-semester-baru.btn-semester-persiapan {
+  background: var(--gold);
+  color: var(--text-on-gold);
+}
+.btn-semester-baru.btn-semester-persiapan:hover:not(:disabled) {
+  background: var(--gold-hover);
+}
 
 /* ── Locked overlay (fase terkunci) ── */
 .locked-overlay {

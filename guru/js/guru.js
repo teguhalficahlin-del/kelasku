@@ -726,6 +726,15 @@ window.initCustomSelect = function (nativeEl, onChange) {
       banner.className   = 'trial-banner semester-persiapan';
       banner.textContent = 'Semester ' + phase.sem + ' segera berakhir — export data Anda sebelum terlambat.';
       banner.style.display = 'block';
+
+      var btnSem = document.createElement('button');
+      btnSem.id        = 'btn-mulai-semester';
+      btnSem.className = 'btn-semester-baru btn-semester-persiapan';
+      btnSem.textContent = 'Mulai Semester Baru';
+      btnSem.addEventListener('click', handleSemesterReset);
+
+      var helpStrip = document.getElementById('help-strip');
+      if (helpStrip) helpStrip.insertAdjacentElement('afterend', btnSem);
     } else if (phase.fase === 'terkunci') {
       banner.className   = 'trial-banner semester-terkunci';
       banner.textContent = 'Semester ' + phase.sem + ' telah berakhir. Reset diperlukan untuk melanjutkan.';
