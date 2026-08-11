@@ -756,6 +756,11 @@
     <label class="rp-q-label">P-7. Cara penilaian akhir yang ingin Anda gunakan *</label>
   </div>
 
+  <div class="rp-q" id="rp-q-p8">
+    <label class="rp-q-label">Dimensi Profil Lulusan yang ingin difokuskan semester ini</label>
+    <div style="font-size:var(--fs-caption);color:var(--text-muted);margin-bottom:var(--space-xs);">Berdasarkan Permendikdasmen No. 10 Tahun 2025</div>
+  </div>
+
   <div id="rp-step3b-error" class="error-msg" style="display:none;"></div>
   <div class="rp-action-row">
     ${btnSecondary('rp-btn-back3b','← Kembali ke profil kelas')}
@@ -780,6 +785,7 @@
 
     attachLainnya(renderChips(['Fasilitator — siswa lebih aktif','Presenter — guru lebih banyak menjelaskan','Coach — banyak feedback individual'], 'gaya_mengajar', el('rp-q-p6'), false, false), 'Jelaskan gaya mengajar Anda');
     attachLainnya(renderChips(['Tes tertulis','Presentasi / unjuk kerja','Portofolio','Observasi lapangan','Produk / karya','Jurnal refleksi'], 'penilaian_utama', el('rp-q-p7'), false, false), 'Contoh: penilaian diri (self-assessment)');
+    renderChips(['Semua dimensi terintegrasi','Keimanan & Ketakwaan','Kewargaan','Penalaran Kritis','Kreativitas','Kolaborasi','Kemandirian','Kesehatan','Komunikasi'], 'dimensi_profil', el('rp-q-p8'), true, false);
 
     // Restore JP
     const jpEl = el('rp-jp');
@@ -801,6 +807,7 @@
     }
     restoreChips(body.querySelector('[data-key="gaya_mengajar"]'),   pref.gaya_mengajar);
     restoreChips(body.querySelector('[data-key="penilaian_utama"]'), pref.penilaian_utama);
+    restoreChips(body.querySelector('[data-key="dimensi_profil"]'),  pref.dimensi_profil);
 
     el('rp-btn-back3b').addEventListener('click', renderStep3DNK);
     el('rp-btn-gen-atp').addEventListener('click', handleStep3PrefSubmit);
@@ -828,6 +835,7 @@
                           : pendekatan,
       gaya_mengajar:    getGroup('gaya_mengajar')[0] || '',
       penilaian_utama:  getGroup('penilaian_utama')[0] || '',
+      dimensi_profil:   getGroup('dimensi_profil'),
     };
 
     // Generate ATP
