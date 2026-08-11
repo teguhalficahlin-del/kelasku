@@ -210,6 +210,40 @@
     return wrap;
   }
 
+  // Pre-select chips dari nilai tersimpan (string atau array).
+  // Nilai bebas (bukan value chip standar) → pilih chip Lainnya + isi input.
+  function restoreChips(groupEl, savedValues) {
+    if (!groupEl) return;
+    const vals = Array.isArray(savedValues)
+      ? savedValues.filter(Boolean)
+      : (savedValues ? [savedValues] : []);
+    if (!vals.length) return;
+
+    const standardChips = [...groupEl.querySelectorAll('.rp-chip')].filter(c => c.dataset.isLainnya !== '1');
+    const standardValues = new Set(standardChips.map(c => c.dataset.value));
+    const lainnyaChip = groupEl.querySelector('.rp-chip[data-is-lainnya="1"]');
+    const lainnyaInput = groupEl.parentElement?.querySelector('.rp-lainnya-input');
+    const freeTexts = [];
+
+    vals.forEach(v => {
+      if (standardValues.has(v)) {
+        standardChips.find(c => c.dataset.value === v)?.classList.add('selected');
+      } else if (v === 'Lainnya') {
+        lainnyaChip?.classList.add('selected');
+      } else {
+        freeTexts.push(v);
+      }
+    });
+
+    if (freeTexts.length && lainnyaChip) {
+      lainnyaChip.classList.add('selected');
+      if (lainnyaInput) {
+        lainnyaInput.value = freeTexts[0];
+        lainnyaInput.style.display = 'block';
+      }
+    }
+  }
+
   // ─── CP fetch ───────────────────────────────────────────────────────────────
 
   async function fetchCpData(mapelKey, faseKey) {
@@ -522,6 +556,19 @@
       if (wrap) wrap.classList.toggle('visible', val === 'Ada mitra, nama di bawah');
     });
 
+    // Restore chips dari _ans.smk
+    if (_ans.smk) {
+      restoreChips(body.querySelector('[data-key="rumpun"]'),        _ans.smk.rumpun);
+      restoreChips(body.querySelector('[data-key="tujuan"]'),        _ans.smk.tujuan);
+      restoreChips(body.querySelector('[data-key="status_pkl"]'),    _ans.smk.status_pkl);
+      restoreChips(body.querySelector('[data-key="target_sertif"]'), _ans.smk.target_sertif);
+      restoreChips(body.querySelector('[data-key="pola_jadwal"]'),   _ans.smk.pola_jadwal);
+      restoreChips(body.querySelector('[data-key="durasi_proyek"]'), _ans.smk.durasi_proyek);
+      restoreChips(body.querySelector('[data-key="hubungan_dudi"]'), _ans.smk.hubungan_dudi);
+      restoreChips(body.querySelector('[data-key="mitra_dudi"]'),    _ans.smk.mitra_dudi);
+      if (_ans.smk.mitra_dudi === 'Ada mitra, nama di bawah') el('rp-smk-mitra-wrap')?.classList.add('visible');
+    }
+
     el('rp-btn-back2').addEventListener('click', () => { _step = 1; renderStep1(); });
     el('rp-btn-smk-next').addEventListener('click', handleStep2Submit);
   }
@@ -604,6 +651,15 @@
     attachLainnya(renderChips(['Hampir tidak ada pengetahuan awal','Ada sedikit, tidak terstruktur','Cukup memadai','Sudah cukup kuat'], 'pengetahuan_awal', el('rp-q-dk1'), false, false), 'Jelaskan pengetahuan awal siswa');
     attachLainnya(renderChips(['Sulit abstraksi','Sulit membaca instruksi panjang','Mudah lupa','Tidak percaya diri mencoba','Tidak ada hambatan berarti'], 'hambatan_kognitif', el('rp-q-dk2'), false, false), 'Jelaskan hambatan yang sering muncul');
     attachLainnya(renderChips(['Perlu banyak panduan guru','Bisa mandiri dengan panduan tulis','Bisa mandiri sepenuhnya','Bervariasi antarindividu'], 'kesiapan_mandiri', el('rp-q-dk3'), false, false), 'Jelaskan kesiapan mandiri siswa');
+
+    // Restore chips dari _ans.dnk_dk
+    const dnk = _ans.dnk_dk || {};
+    restoreChips(body.querySelector('[data-key="kondisi_emosi"]'),    dnk.kondisi_emosi);
+    restoreChips(body.querySelector('[data-key="motivasi"]'),         dnk.motivasi);
+    restoreChips(body.querySelector('[data-key="gaya_belajar"]'),     dnk.gaya_belajar);
+    restoreChips(body.querySelector('[data-key="pengetahuan_awal"]'), dnk.pengetahuan_awal);
+    restoreChips(body.querySelector('[data-key="hambatan_kognitif"]'),dnk.hambatan_kognitif);
+    restoreChips(body.querySelector('[data-key="kesiapan_mandiri"]'), dnk.kesiapan_mandiri);
 
     el('rp-btn-back3').addEventListener('click', () => {
       if (_ans.jenjang === 'SMK') { _step = 2; renderStep2(); }
@@ -692,6 +748,23 @@
 
     attachLainnya(renderChips(['Fasilitator — siswa lebih aktif','Presenter — guru lebih banyak menjelaskan','Koach — banyak feedback individual'], 'gaya_mengajar', el('rp-q-p6'), false, false), 'Jelaskan gaya mengajar Anda');
     attachLainnya(renderChips(['Tes tertulis','Presentasi / unjuk kerja','Portofolio','Observasi lapangan','Produk / karya','Jurnal refleksi'], 'penilaian_utama', el('rp-q-p7'), false, false), 'Contoh: penilaian diri (self-assessment)');
+
+    // Restore chips dari _ans.preferensi
+    const pref = _ans.preferensi || {};
+    restoreChips(body.querySelector('[data-key="karakter"]'),        pref.karakter);
+    restoreChips(body.querySelector('[data-key="kemandirian"]'),     pref.kemandirian);
+    restoreChips(body.querySelector('[data-key="prioritas_elemen"]'),pref.prioritas_elemen);
+    const pend = pref.pendekatan || '';
+    if (pend.startsWith('Campuran')) {
+      restoreChips(body.querySelector('[data-key="pendekatan"]'), 'Campuran');
+      el('rp-p5-cond')?.classList.add('visible');
+      const kombiVals = pend.replace(/^Campuran:\s*/, '').split(' + ').map(s => s.trim()).filter(Boolean);
+      restoreChips(body.querySelector('[data-key="pendekatan_kombi"]'), kombiVals);
+    } else {
+      restoreChips(body.querySelector('[data-key="pendekatan"]'), pend);
+    }
+    restoreChips(body.querySelector('[data-key="gaya_mengajar"]'),   pref.gaya_mengajar);
+    restoreChips(body.querySelector('[data-key="penilaian_utama"]'), pref.penilaian_utama);
 
     el('rp-btn-back3b').addEventListener('click', renderStep3DNK);
     el('rp-btn-gen-atp').addEventListener('click', handleStep3PrefSubmit);
@@ -887,6 +960,17 @@
     attachLainnya(renderChips(['Buku teks pemerintah (BSE)','LKS dari sekolah','Modul buatan guru','Bahan dari DUDI','Tidak ada bahan cetak'], 'materi_cetak', el('rp-q-k6'), true, false), 'Contoh: modul khusus dari DUDI');
     attachLainnya(renderChips(['Ceramah panjang tanpa aktivitas','Hafalan teks','Kerja kelompok besar (> 5 orang)','Presentasi individual di depan kelas','Menulis panjang tangan','Aktivitas outdoor','Tugas membeli bahan'], 'aktivitas_dihindari', el('rp-q-k7'), true, false), 'Contoh: permainan kompetitif, aktivitas fisik intens');
     attachLainnya(renderChips(['Siswa sering ngobrol','Perhatian mudah teralih','Perbedaan kemampuan sangat lebar','Banyak siswa datang terlambat','Ketidakhadiran tinggi','Konflik antar siswa','Motivasi sangat rendah','Ruang kelas sempit / panas'], 'kendala', el('rp-q-k8'), true, false), 'Contoh: siswa sering tidak membawa buku');
+
+    // Restore chips dari _ans.konteks_kelas
+    restoreChips(body.querySelector('[data-key="jumlah_siswa"]'),        kk.jumlah_siswa);
+    restoreChips(body.querySelector('[data-key="abk"]'),                 kk.abk);
+    if (kk.abk === 'Ada ABK') el('rp-k2-cond')?.classList.add('visible');
+    restoreChips(body.querySelector('[data-key="fasilitas"]'),           kk.fasilitas);
+    restoreChips(body.querySelector('[data-key="situasi_hp"]'),          kk.situasi_hp);
+    restoreChips(body.querySelector('[data-key="akses_internet"]'),      kk.akses_internet);
+    restoreChips(body.querySelector('[data-key="materi_cetak"]'),        kk.materi_cetak);
+    restoreChips(body.querySelector('[data-key="aktivitas_dihindari"]'), kk.aktivitas_dihindari);
+    restoreChips(body.querySelector('[data-key="kendala"]'),             kk.kendala);
 
     el('rp-btn-back5').addEventListener('click', () => { _step = 4; renderStep4(_atpList); });
     el('rp-btn-gen-rencana').addEventListener('click', handleStep5Submit);
