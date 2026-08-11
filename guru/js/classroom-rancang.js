@@ -316,14 +316,8 @@
   </div>
 
   <div class="rp-q">
-    <label class="rp-q-label" for="rp-fase">3. Fase capaian pembelajaran *</label>
-    <select id="rp-fase" class="rp-input">
-      <option value="">— Pilih fase —</option>
-      ${FASE_OPTS.map(f =>
-        `<option value="${f.value}"${_ans.fase===f.value?' selected':''}>${f.label}</option>`
-      ).join('')}
-    </select>
-    <div id="rp-fase-warning" class="rp-fase-warning" style="display:none;font-size:var(--fs-caption);color:var(--warning);margin-top:4px;"></div>
+    <label class="rp-q-label">3. Fase capaian pembelajaran *</label>
+    <div id="rp-fase-chips" class="rp-chip-group"></div>
   </div>
 
   <div id="rp-step1-error" class="error-msg" style="display:none;"></div>
@@ -333,30 +327,34 @@
   </div>
 </div>`;
 
-    function checkFaseJenjang() {
-      const jenjang = body.querySelector('#rp-jenjang-chips .rp-chip.selected')?.dataset.value || '';
-      const fase = el('rp-fase')?.value || '';
-      const warn = el('rp-fase-warning');
-      if (!warn || !jenjang || !fase) { if (warn) warn.style.display = 'none'; return; }
-      const FASE_MAP = {
-        SD:  ['fase_a','fase_b','fase_c'],
-        SMP: ['fase_d'],
-        SMA: ['fase_e','fase_f'],
-        SMK: ['fase_e','fase_f'],
-      };
-      const FASE_LABEL = { fase_a:'Fase A', fase_b:'Fase B', fase_c:'Fase C', fase_d:'Fase D', fase_e:'Fase E', fase_f:'Fase F' };
-      const JENJANG_LABEL = { SD:'SD', SMP:'SMP', SMA:'SMA/sederajat', SMK:'SMK' };
-      const valid = FASE_MAP[jenjang] || [];
-      if (!valid.includes(fase)) {
-        const faseNama = FASE_LABEL[fase] || fase;
-        const jenjangNama = JENJANG_LABEL[jenjang] || jenjang;
-        const saranJenjang = Object.entries(FASE_MAP).find(([, v]) => v.includes(fase))?.[0];
-        const saran = saranJenjang ? ` — biasanya untuk ${JENJANG_LABEL[saranJenjang] || saranJenjang}` : '';
-        warn.textContent = `${faseNama}${saran}. Pastikan ini sesuai dengan kelas Anda.`;
-        warn.style.display = 'block';
-      } else {
-        warn.style.display = 'none';
+    const FASE_MAP = {
+      SD:  ['fase_a','fase_b','fase_c'],
+      SMP: ['fase_d'],
+      SMA: ['fase_e','fase_f'],
+      SMK: ['fase_e','fase_f'],
+    };
+
+    function filterFase(jenjang) {
+      const wrap = el('rp-fase-chips');
+      if (!wrap) return;
+      const opts = jenjang ? (FASE_MAP[jenjang] || []) : [];
+      if (!opts.length) {
+        wrap.innerHTML = `<span class="rp-fase-placeholder">Pilih jenjang terlebih dahulu</span>`;
+        return;
       }
+      const prevFase = _ans.fase && opts.includes(_ans.fase) ? _ans.fase : null;
+      const autoFase = opts.length === 1 ? opts[0] : prevFase;
+      wrap.innerHTML = opts.map(v => {
+        const f = FASE_OPTS.find(o => o.value === v);
+        const sel = (autoFase === v) ? ' selected' : '';
+        return `<div class="rp-chip${sel}" data-value="${v}">${f ? f.label : v}</div>`;
+      }).join('');
+      wrap.querySelectorAll('.rp-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+          wrap.querySelectorAll('.rp-chip').forEach(c => c.classList.remove('selected'));
+          chip.classList.add('selected');
+        });
+      });
     }
 
     // Chip jenjang — single select
@@ -364,12 +362,11 @@
       chip.addEventListener('click', () => {
         body.querySelectorAll('#rp-jenjang-chips .rp-chip').forEach(c => c.classList.remove('selected'));
         chip.classList.add('selected');
-        checkFaseJenjang();
+        filterFase(chip.dataset.value);
       });
     });
 
-    el('rp-fase').addEventListener('change', checkFaseJenjang);
-    checkFaseJenjang();
+    filterFase(_ans.jenjang);
 
     el('rp-btn-cp').addEventListener('click', handleStep1Submit);
   }
@@ -379,7 +376,7 @@
 
     const mapel = (el('rp-mapel')?.value || '').trim();
     const jenjang = el('rp-body')?.querySelector('#rp-jenjang-chips .rp-chip.selected')?.dataset.value || '';
-    const fase = el('rp-fase')?.value || '';
+    const fase = el('rp-fase-chips')?.querySelector('.rp-chip.selected')?.dataset.value || '';
 
     if (!mapel) { showError('rp-step1-error', 'Isi nama mata pelajaran.'); return; }
     if (!jenjang) { showError('rp-step1-error', 'Pilih jenjang sekolah.'); return; }

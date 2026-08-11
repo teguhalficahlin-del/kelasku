@@ -2969,6 +2969,12 @@ h2.panel-header.open .panel-collapse-arrow {
   gap: var(--space-xs);
 }
 
+.rp-fase-placeholder {
+  font-size: var(--fs-caption);
+  color: var(--text-muted);
+  font-style: italic;
+}
+
 .rp-chip {
   display: inline-flex;
   align-items: center;
