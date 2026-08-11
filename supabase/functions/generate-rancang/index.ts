@@ -27,10 +27,14 @@ Berikut adalah teks CP normatif untuk setiap elemen:
 
 ${lines}
 
-Untuk SETIAP elemen di atas, tulis 1 kalimat ringkasan konkret dengan format:
-"Bayangkan siswa Anda: [deskripsi singkat kemampuan konkret yang akan dimiliki siswa, bukan parafrase CP]"
+Untuk SETIAP elemen di atas, tulis ringkasan konkret dengan format:
+"Bayangkan siswa Anda: [deskripsi kemampuan konkret yang akan dimiliki siswa, bukan parafrase CP]"
 
-Gunakan bahasa guru kepada guru — bukan bahasa akademik. Fokus pada apa yang akan BISA DILAKUKAN siswa secara nyata di dunia sehari-hari atau dunia kerja.
+ATURAN WAJIB:
+1. Cakup SEMUA aspek yang disebutkan dalam teks CP normatif — jangan ada yang dibuang atau digabung menjadi satu frasa umum.
+2. Panjang ringkasan proporsional dengan kompleksitas CP: CP yang menyebut banyak kemampuan = ringkasan lebih panjang (boleh 2–4 kalimat).
+3. Setiap aspek CP normatif diterjemahkan ke skenario nyata yang bisa dibayangkan guru — bukan bahasa akademik.
+4. Gunakan bahasa guru kepada guru. Fokus pada apa yang akan BISA DILAKUKAN siswa secara nyata di kelas, sehari-hari, atau dunia kerja.
 
 Format output JSON:
 {
@@ -218,7 +222,7 @@ Deno.serve(async (req) => {
       konteks as Record<string, unknown>,
       elemen_list as Array<{ nama: string; cp_normatif: string }>
     );
-    maxTokens = 1000;
+    maxTokens = 2000;
   } else if (mode === 'atp') {
     if (!konteks || !preferensi) {
       return json({ error: 'atp membutuhkan konteks dan preferensi' }, 400);
