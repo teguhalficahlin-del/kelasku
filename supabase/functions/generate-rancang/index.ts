@@ -179,6 +179,44 @@ Skema output JSON:
 }`;
 }
 
+// ─── API helper ──────────────────────────────────────────────────────────────
+
+async function callWithRetry(payload: Record<string, unknown>, maxRetry = 2): Promise<string> {
+  const apiKey = Deno.env.get('ANTHROPIC_API_KEY')!;
+  let lastErr: unknown;
+  for (let attempt = 0; attempt <= maxRetry; attempt++) {
+    if (attempt > 0) {
+      await new Promise((r) => setTimeout(r, 300 * attempt));
+    }
+    try {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        const errText = await res.text().catch(() => '');
+        console.error('Anthropic API error:', res.status, errText);
+        if (res.status >= 400 && res.status < 500) {
+          throw new Error(`Anthropic 4xx: ${res.status}`);
+        }
+        lastErr = new Error(`Anthropic ${res.status}: ${errText}`);
+        continue;
+      }
+      const data = await res.json();
+      return data?.content?.[0]?.text ?? '';
+    } catch (err) {
+      if (err instanceof Error && err.message.startsWith('Anthropic 4xx')) throw err;
+      lastErr = err;
+    }
+  }
+  throw lastErr;
+}
+
 // ─── Main handler ─────────────────────────────────────────────────────────────
 
 Deno.serve(async (req) => {
@@ -190,8 +228,7 @@ Deno.serve(async (req) => {
     return json({ error: 'Method tidak diizinkan' }, 405);
   }
 
-  const apiKey = Deno.env.get('ANTHROPIC_API_KEY');
-  if (!apiKey) {
+  if (!Deno.env.get('ANTHROPIC_API_KEY')) {
     return json({ error: 'Konfigurasi server tidak lengkap' }, 500);
   }
 
@@ -235,29 +272,12 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: maxTokens,
-        system: SYSTEM_PROMPT,
-        messages: [{ role: 'user', content: prompt }],
-      }),
+    const raw = await callWithRetry({
+      model: 'claude-sonnet-4-6',
+      max_tokens: maxTokens,
+      system: SYSTEM_PROMPT,
+      messages: [{ role: 'user', content: prompt }],
     });
-
-    if (!res.ok) {
-      const errText = await res.text().catch(() => '');
-      console.error('Anthropic API error:', res.status, errText);
-      return json({ error: 'AI tidak tersedia saat ini. Coba lagi dalam beberapa menit.' }, 502);
-    }
-
-    const data = await res.json();
-    const raw = data?.content?.[0]?.text ?? '';
 
     // Parse JSON dari response AI
     let parsed: unknown;
