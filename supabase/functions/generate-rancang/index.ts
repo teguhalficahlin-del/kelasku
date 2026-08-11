@@ -88,7 +88,7 @@ Preferensi Guru:
 - Elemen CP diprioritaskan: ${Array.isArray(preferensi?.prioritas_elemen) ? preferensi.prioritas_elemen.join(', ') : preferensi?.prioritas_elemen}
 - Pendekatan pembelajaran: ${preferensi?.pendekatan}
 - Gaya mengajar: ${preferensi?.gaya_mengajar}
-- Cara penilaian utama: ${preferensi?.penilaian_utama}
+- Cara penilaian akhir: ${preferensi?.penilaian_utama}
 
 Tugas: Susun 6–12 Tujuan Pembelajaran (TP) yang membentuk alur koheren untuk satu tahun penuh (dua semester). Setiap TP harus:
 1. Ditulis dengan kata kerja operasional yang bisa diobservasi
@@ -131,7 +131,7 @@ ${dnk_dk ? `- Profil kelas: emosi ${dnk_dk.kondisi_emosi}, motivasi ${dnk_dk.mot
 Preferensi Guru:
 - Pendekatan: ${preferensi?.pendekatan}
 - Gaya mengajar: ${preferensi?.gaya_mengajar}
-- Penilaian utama: ${preferensi?.penilaian_utama}
+- Penilaian akhir: ${preferensi?.penilaian_utama}
 
 Kondisi Kelas:
 - Jumlah siswa: ${konteks_kelas?.jumlah_siswa}
