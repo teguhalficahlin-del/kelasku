@@ -116,6 +116,32 @@ Skema output JSON:
 function buildRencanaPrompt(payload: Record<string, unknown>) {
   const { konteks, smk, dnk_dk, preferensi, tp_terpilih, konteks_kelas } = payload as Record<string, Record<string, unknown>>;
 
+  const isGenreBased = String(preferensi?.pendekatan || '').includes('Genre-Based');
+  const pendekatanInstruksi = isGenreBased
+    ? `KERANGKA AKTIVITAS — GENRE-BASED PEDAGOGY (Kemendikdasmen 2025):
+Setiap pertemuan WAJIB mengikuti siklus berikut secara berurutan:
+1. BKoF (Building Knowledge of the Field) — bangun pengetahuan konteks dan tujuan teks
+2. MoT (Modelling of the Text) — guru modelkan teks target, analisis struktur dan fitur kebahasaan
+3. JCoT (Joint Construction of the Text) — guru dan siswa membangun teks bersama (scaffolding)
+4. ICoT (Independent Construction of the Text) — siswa memproduksi teks secara mandiri
+
+Pastikan setiap tahap terlihat jelas di kolom "aktivitas" setiap pertemuan.
+Teks yang digunakan harus sesuai genre yang relevan dengan konteks siswa.
+
+Pembelajaran harus bersifat:
+- Berkesadaran: murid tahu tujuan belajar dan termotivasi secara intrinsik
+- Bermakna: terhubung dengan konteks nyata siswa (jurusan, daerah, kehidupan)
+- Menggembirakan: suasana positif, menantang, memotivasi — bukan sekadar tugas`
+    : `PRINSIP PEMBELAJARAN MENDALAM (Permendikdasmen No. 10 Tahun 2025): Setiap pertemuan WAJIB memuat tiga pengalaman belajar secara berurutan:
+1. MEMAHAMI — murid aktif mengonstruksi pengetahuan dari berbagai sumber/konteks
+2. MENGAPLIKASI — murid menghubungkan ide, menganalisis, membangun solusi konkret
+3. MEREFLEKSI — murid mengevaluasi dan memaknai proses belajar mereka sendiri
+
+Pembelajaran harus bersifat:
+- Berkesadaran: murid tahu tujuan belajar dan termotivasi secara intrinsik
+- Bermakna: terhubung dengan konteks nyata siswa (jurusan, daerah, kehidupan)
+- Menggembirakan: suasana positif, menantang, memotivasi — bukan sekadar tugas`;
+
   return `Tujuan Pembelajaran yang dirancang:
 - Judul: ${tp_terpilih?.judul}
 - Deskripsi: ${tp_terpilih?.deskripsi}
@@ -148,15 +174,7 @@ ${konteks_kelas?.daerah ? `- Daerah: ${konteks_kelas.daerah}` : ''}
 
 Hasilkan rencana pembelajaran dalam 5 komponen. Sesuaikan dengan kondisi nyata kelas — jangan rekomendasikan alat/metode yang tidak tersedia.
 
-PRINSIP PEMBELAJARAN MENDALAM (Permendikdasmen No. 10 Tahun 2025): Setiap pertemuan WAJIB memuat tiga pengalaman belajar secara berurutan:
-1. MEMAHAMI — murid aktif mengonstruksi pengetahuan dari berbagai sumber/konteks
-2. MENGAPLIKASI — murid menghubungkan ide, menganalisis, membangun solusi konkret
-3. MEREFLEKSI — murid mengevaluasi dan memaknai proses belajar mereka sendiri
-
-Pembelajaran harus bersifat:
-- Berkesadaran: murid tahu tujuan belajar dan termotivasi secara intrinsik
-- Bermakna: terhubung dengan konteks nyata siswa (jurusan, daerah, kehidupan)
-- Menggembirakan: suasana positif, menantang, memotivasi — bukan sekadar tugas
+${pendekatanInstruksi}
 
 Dimensi Profil Lulusan yang dipilih guru WAJIB terlihat dalam aktivitas — sebutkan secara eksplisit di kolom "catatan_guru" pertemuan mana dimensi apa yang dikembangkan, contoh: "Pertemuan ini mengembangkan dimensi Kolaborasi dan Komunikasi melalui diskusi kelompok."
 
