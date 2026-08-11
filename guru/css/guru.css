@@ -6,6 +6,26 @@
 /* â”€â”€ Reset â”€â”€ */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* ── Global select dark theme ── */
+select {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+select:focus {
+  outline: none;
+  border-color: var(--gold);
+}
+select option {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+}
+select option:checked {
+  background: var(--gold-muted);
+  color: var(--gold);
+}
+
 /* â”€â”€ Base â”€â”€ */
 body {
   font-family: var(--font-sans);
