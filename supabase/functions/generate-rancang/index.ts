@@ -277,7 +277,7 @@ Deno.serve(async (req) => {
       return json({ error: 'atp membutuhkan konteks dan preferensi' }, 400);
     }
     prompt = buildAtpPrompt({ konteks, smk, dnk_dk, preferensi });
-    maxTokens = 2000;
+    maxTokens = 4000;
   } else {
     if (!konteks || !tp_terpilih || !konteks_kelas) {
       return json({ error: 'rencana membutuhkan konteks, tp_terpilih, dan konteks_kelas' }, 400);
