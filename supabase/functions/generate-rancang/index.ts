@@ -10,6 +10,15 @@ function json(body: unknown, status = 200) {
   });
 }
 
+const SYSTEM_PROMPT = `Kamu adalah asisten perancang pembelajaran untuk guru Indonesia.
+Keahlianmu: Kurikulum Merdeka, backward design, konteks SMK dan SMA.
+
+Aturan output yang tidak boleh dilanggar:
+- Selalu kembalikan JSON valid tanpa teks tambahan apapun
+- Jangan tambahkan penjelasan, komentar, atau kalimat pengantar
+- Jangan gunakan markdown fence — langsung tulis JSON mentah
+- Gunakan bahasa Indonesia yang natural dan praktis untuk guru`;
+
 // ─── Prompt builders ─────────────────────────────────────────────────────────
 
 function buildCpSummaryPrompt(konteks: Record<string, unknown>, elemenList: Array<{ nama: string; cp_normatif: string }>) {
@@ -17,9 +26,7 @@ function buildCpSummaryPrompt(konteks: Record<string, unknown>, elemenList: Arra
     `Elemen ${i + 1}: ${e.nama}\nCP Normatif:\n${e.cp_normatif}`
   ).join('\n\n');
 
-  return `Kamu adalah konsultan kurikulum Kurikulum Merdeka yang membantu guru memahami Capaian Pembelajaran (CP).
-
-Mata pelajaran: ${konteks.mapel}
+  return `Mata pelajaran: ${konteks.mapel}
 Jenjang: ${konteks.jenjang}
 Fase: ${konteks.fase}
 
@@ -34,17 +41,15 @@ ATURAN WAJIB:
 1. Cakup SEMUA aspek yang disebutkan dalam teks CP normatif — jangan ada yang dibuang atau digabung menjadi satu frasa umum.
 2. Panjang ringkasan proporsional dengan kompleksitas CP: CP yang menyebut banyak kemampuan = ringkasan lebih panjang (boleh 2–4 kalimat).
 3. Setiap aspek CP normatif diterjemahkan ke skenario nyata yang bisa dibayangkan guru — bukan bahasa akademik.
-4. Gunakan bahasa guru kepada guru. Fokus pada apa yang akan BISA DILAKUKAN siswa secara nyata di kelas, sehari-hari, atau dunia kerja.
+4. Fokus pada apa yang akan BISA DILAKUKAN siswa secara nyata di kelas, sehari-hari, atau dunia kerja.
 
-Format output JSON:
+Skema output JSON:
 {
   "ringkasan": [
     { "elemen": "Nama Elemen 1", "konkret": "Bayangkan siswa Anda: ..." },
     { "elemen": "Nama Elemen 2", "konkret": "Bayangkan siswa Anda: ..." }
   ]
-}
-
-Hanya output JSON, tanpa teks lain.`;
+}`;
 }
 
 function buildAtpPrompt(payload: Record<string, unknown>) {
@@ -69,9 +74,7 @@ Profil kelas (DNK/DK):
 - Hambatan kognitif: ${dnk_dk.hambatan_kognitif}
 - Kesiapan mandiri: ${dnk_dk.kesiapan_mandiri}` : '';
 
-  return `Kamu adalah perancang kurikulum Kurikulum Merdeka yang membantu guru menyusun Alur Tujuan Pembelajaran (ATP).
-
-Konteks Pembelajaran:
+  return `Konteks Pembelajaran:
 - Mata pelajaran: ${konteks.mapel}
 - Jenjang: ${konteks.jenjang}
 - Fase: ${konteks.fase}
@@ -87,13 +90,13 @@ Preferensi Guru:
 - Gaya mengajar: ${preferensi?.gaya_mengajar}
 - Cara penilaian utama: ${preferensi?.penilaian_utama}
 
-Tugas kamu: Susun 3–6 Tujuan Pembelajaran (TP) yang membentuk alur koheren dari awal hingga akhir semester. Setiap TP harus:
+Tugas: Susun 3–6 Tujuan Pembelajaran (TP) yang membentuk alur koheren dari awal hingga akhir semester. Setiap TP harus:
 1. Ditulis dengan kata kerja operasional yang bisa diobservasi
 2. Menunjukkan jenjang taksonomi yang meningkat (dari mudah ke kompleks)
 3. Relevan dengan konteks siswa dan preferensi guru
 4. Realistis dalam JP yang tersedia
 
-Format output JSON:
+Skema output JSON:
 {
   "tp_list": [
     {
@@ -105,17 +108,13 @@ Format output JSON:
       "catatan": "Alasan urutan / konteks khusus (opsional)"
     }
   ]
-}
-
-Hanya output JSON, tanpa teks lain.`;
+}`;
 }
 
 function buildRencanaPrompt(payload: Record<string, unknown>) {
   const { konteks, smk, dnk_dk, preferensi, tp_terpilih, konteks_kelas } = payload as Record<string, Record<string, unknown>>;
 
-  return `Kamu adalah perancang pembelajaran Kurikulum Merdeka yang membantu guru merancang rencana pertemuan yang realistis dan kontekstual.
-
-Tujuan Pembelajaran yang dirancang:
+  return `Tujuan Pembelajaran yang dirancang:
 - Judul: ${tp_terpilih?.judul}
 - Deskripsi: ${tp_terpilih?.deskripsi}
 - Elemen CP: ${tp_terpilih?.elemen_cp}
@@ -145,7 +144,7 @@ ${konteks_kelas?.daerah ? `- Daerah: ${konteks_kelas.daerah}` : ''}
 
 Hasilkan rencana pembelajaran dalam 5 komponen. Sesuaikan dengan kondisi nyata kelas — jangan rekomendasikan alat/metode yang tidak tersedia.
 
-Format output JSON:
+Skema output JSON:
 {
   "tujuan_praktis": "Tujuan pembelajaran dalam bahasa yang mudah dipahami siswa (1–2 kalimat)",
   "pertemuan": [
@@ -177,9 +176,7 @@ Format output JSON:
     "penguatan": "Aktivitas untuk siswa yang hampir mencapai TP",
     "pendampingan": "Aktivitas untuk siswa yang belum mencapai TP"
   }
-}
-
-Hanya output JSON, tanpa teks lain.`;
+}`;
 }
 
 // ─── Main handler ─────────────────────────────────────────────────────────────
@@ -248,6 +245,7 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
         max_tokens: maxTokens,
+        system: SYSTEM_PROMPT,
         messages: [{ role: 'user', content: prompt }],
       }),
     });
