@@ -753,7 +753,7 @@
     <label class="rp-q-label">P-6. Gaya mengajar Anda *</label>
   </div>
   <div class="rp-q" id="rp-q-p7">
-    <label class="rp-q-label">P-7. Cara penilaian utama yang ingin Anda gunakan *</label>
+    <label class="rp-q-label">P-7. Cara penilaian akhir yang ingin Anda gunakan *</label>
   </div>
 
   <div id="rp-step3b-error" class="error-msg" style="display:none;"></div>
