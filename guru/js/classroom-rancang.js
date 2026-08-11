@@ -726,6 +726,12 @@
 <div class="rp-block">
   <div class="rp-block-title">Preferensi Pembelajaran</div>
 
+  <div class="rp-q">
+    <label class="rp-q-label" for="rp-jp">P-1. Berapa JP (jam pelajaran) mapel ini per minggu?</label>
+    <input type="number" id="rp-jp" class="rp-input" placeholder="Contoh: 2" min="1" max="10"
+      value="" style="max-width:120px;">
+  </div>
+
   <div class="rp-q" id="rp-q-p2">
     <label class="rp-q-label">P-2. Karakter kelas ini (bisa lebih dari satu) *</label>
   </div>
@@ -775,6 +781,10 @@
     attachLainnya(renderChips(['Fasilitator — siswa lebih aktif','Presenter — guru lebih banyak menjelaskan','Koach — banyak feedback individual'], 'gaya_mengajar', el('rp-q-p6'), false, false), 'Jelaskan gaya mengajar Anda');
     attachLainnya(renderChips(['Tes tertulis','Presentasi / unjuk kerja','Portofolio','Observasi lapangan','Produk / karya','Jurnal refleksi'], 'penilaian_utama', el('rp-q-p7'), false, false), 'Contoh: penilaian diri (self-assessment)');
 
+    // Restore JP
+    const jpEl = el('rp-jp');
+    if (jpEl) jpEl.value = _ans.jp_per_minggu || '';
+
     // Restore chips dari _ans.preferensi
     const pref = _ans.preferensi || {};
     restoreChips(body.querySelector('[data-key="karakter"]'),        pref.karakter);
@@ -804,6 +814,9 @@
       const g = body.querySelector(`.rp-chip-group[data-key="${key}"]`);
       return g ? getChipValues(g) : [];
     };
+
+    const jp = parseInt(el('rp-jp')?.value || '0');
+    _ans.jp_per_minggu = jp || null;
 
     const pendekatan = getGroup('pendekatan')[0] || '';
     _ans.preferensi = {
