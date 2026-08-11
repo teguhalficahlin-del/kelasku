@@ -3034,7 +3034,7 @@ h2.panel-header.open .panel-collapse-arrow {
 .rp-cp-elemen-nama {
   font-size: var(--fs-ui);
   font-weight: var(--fw-semibold);
-  color: var(--text-primary);
+  color: var(--gold);
   margin-bottom: var(--space-xs);
 }
 
