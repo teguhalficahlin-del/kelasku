@@ -3315,6 +3315,11 @@ h2.panel-header.open .panel-collapse-arrow {
 
 .rp-input::placeholder { color: var(--text-muted); }
 
+.rp-lainnya-input {
+  display: none;
+  margin-top: var(--space-xs);
+}
+
 /* ── Textarea ── */
 .rp-textarea {
   width: 100%;

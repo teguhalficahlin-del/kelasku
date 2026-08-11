@@ -123,12 +123,42 @@
   }
 
   function getChipValues(groupEl) {
-    return [...groupEl.querySelectorAll('.rp-chip.selected')].map(c => c.dataset.value);
+    return [...groupEl.querySelectorAll('.rp-chip.selected')].map(c => {
+      if (c.dataset.isLainnya === '1') {
+        const input = groupEl.parentElement?.querySelector('.rp-lainnya-input');
+        const val = input?.value.trim();
+        return val || 'Lainnya';
+      }
+      return c.dataset.value;
+    });
   }
 
   function validateChips(groupEl) {
     if (groupEl.dataset.required !== '1') return true;
     return getChipValues(groupEl).length > 0;
+  }
+
+  function attachLainnya(wrap, placeholder) {
+    const multi = wrap.dataset.multi === '1';
+    const chip = document.createElement('div');
+    chip.className = 'rp-chip';
+    chip.textContent = 'Lainnya';
+    chip.dataset.value = 'Lainnya';
+    chip.dataset.isLainnya = '1';
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'rp-lainnya-input rp-input';
+    input.placeholder = placeholder;
+    chip.addEventListener('click', () => {
+      if (!multi) wrap.querySelectorAll('.rp-chip').forEach(c => c.classList.remove('selected'));
+      chip.classList.toggle('selected');
+      const show = chip.classList.contains('selected');
+      input.style.display = show ? 'block' : 'none';
+      if (show) input.focus(); else input.value = '';
+    });
+    wrap.appendChild(chip);
+    wrap.parentElement.appendChild(input);
+    return wrap;
   }
 
   // ─── CP fetch ───────────────────────────────────────────────────────────────
@@ -424,17 +454,17 @@
 </div>`;
 
     // Build chips setelah HTML ada
-    renderChips(['Normatif','Adaptif','Produktif'], 'rumpun', el('rp-q-smk2'), false, true);
-    renderChips(['PKL / Magang','Dunia Kerja Nyata','Sertifikasi Kompetensi','LKS','Konsep Dasar','Kewirausahaan','UMKM Lokal','Literasi / Numerasi','Lainnya'], 'tujuan', el('rp-q-smk3'), true, false);
-    renderChips(['Belum PKL','Sedang PKL','Sudah selesai PKL','Tidak ada PKL'], 'status_pkl', el('rp-q-smk4'), false, true);
-    renderChips(['Tidak ada target sertifikasi','Sertifikasi kompetensi (LSP)','Uji Kompetensi Keahlian (UKK)','Sertifikat industri langsung'], 'target_sertif', el('rp-q-smk5'), false, true);
-    renderChips(['Sistem blok (semua JP produktif 1 hari)','Tersebar harian','Campuran blok & harian','Tidak menentu'], 'pola_jadwal', el('rp-q-smk6'), false, true);
-    renderChips(['1–2 minggu','3–4 minggu','5–8 minggu','Lebih dari 8 minggu'], 'durasi_proyek', el('rp-q-smk7'), false, true);
-    renderChips(['Kunjungan industri','Prakerin / PKL','Guest teacher','Sponsorship alat','Tidak ada hubungan'], 'hubungan_dudi', el('rp-q-smk8'), true, false);
+    attachLainnya(renderChips(['Normatif','Adaptif','Produktif'], 'rumpun', el('rp-q-smk2'), false, false), 'Contoh: Bisnis & Manajemen');
+    attachLainnya(renderChips(['PKL / Magang','Dunia Kerja Nyata','Sertifikasi Kompetensi','LKS','Konsep Dasar','Kewirausahaan','UMKM Lokal','Literasi / Numerasi'], 'tujuan', el('rp-q-smk3'), true, false), 'Contoh: keterampilan wirausaha digital');
+    attachLainnya(renderChips(['Belum PKL','Sedang PKL','Sudah selesai PKL','Tidak ada PKL'], 'status_pkl', el('rp-q-smk4'), false, false), 'Jelaskan status PKL siswa');
+    attachLainnya(renderChips(['Tidak ada target sertifikasi','Sertifikasi kompetensi (LSP)','Uji Kompetensi Keahlian (UKK)','Sertifikat industri langsung'], 'target_sertif', el('rp-q-smk5'), false, false), 'Contoh: sertifikat pelatihan industri');
+    attachLainnya(renderChips(['Sistem blok (semua JP produktif 1 hari)','Tersebar harian','Campuran blok & harian','Tidak menentu'], 'pola_jadwal', el('rp-q-smk6'), false, false), 'Jelaskan pola jadwal produktif');
+    attachLainnya(renderChips(['1–2 minggu','3–4 minggu','5–8 minggu','Lebih dari 8 minggu'], 'durasi_proyek', el('rp-q-smk7'), false, false), 'Contoh: 2 minggu intensif');
+    attachLainnya(renderChips(['Kunjungan industri','Prakerin / PKL','Guest teacher','Sponsorship alat','Tidak ada hubungan'], 'hubungan_dudi', el('rp-q-smk8'), true, false), 'Contoh: kerjasama startup lokal');
 
     // SMK-10 mitra
     const mitra10Wrap = el('rp-q-smk10');
-    const mitra10Chips = renderChips(['Tidak ada mitra aktif','Ada mitra, nama di bawah'], 'mitra_dudi', mitra10Wrap, false, true);
+    const mitra10Chips = renderChips(['Tidak ada mitra aktif','Ada mitra, nama di bawah'], 'mitra_dudi', mitra10Wrap, false, false);
     mitra10Chips.addEventListener('click', () => {
       const val = getChipValues(mitra10Chips)[0];
       const wrap = el('rp-smk-mitra-wrap');
@@ -446,20 +476,8 @@
   }
 
   function handleStep2Submit() {
-    const jurusan = (el('rp-smk-jurusan')?.value || '').trim();
-    if (!jurusan) { showError('rp-step2-error','Isi jurusan siswa.'); return; }
-
-    // Kumpulkan chip values
-    const body = el('rp-body');
-    const groups = body.querySelectorAll('.rp-chip-group[data-required="1"]');
-    for (const g of groups) {
-      if (getChipValues(g).length === 0) {
-        showError('rp-step2-error', 'Pilih minimal satu opsi di setiap pertanyaan bertanda wajib.');
-        return;
-      }
-    }
-
     showError('rp-step2-error', '');
+    const body = el('rp-body');
     const getGroup = key => {
       const g = body.querySelector(`.rp-chip-group[data-key="${key}"]`);
       return g ? getChipValues(g) : [];
@@ -527,12 +545,12 @@
   </div>
 </div>`;
 
-    renderChips(['Semangat & positif','Biasa saja / netral','Mudah bosan','Cemas / tertekan','Banyak konflik sosial'], 'kondisi_emosi', el('rp-q-dnk1'), false, true);
-    renderChips(['Ingin nilai bagus','Ingin bisa praktik nyata','Dorongan dari orang tua','Belum jelas motivasinya','Motivasi sangat rendah'], 'motivasi', el('rp-q-dnk2'), false, true);
-    renderChips(['Visual (gambar, diagram)','Auditori (diskusi, penjelasan)','Kinestetik (praktik, gerak)','Campuran'], 'gaya_belajar', el('rp-q-dnk3'), false, true);
-    renderChips(['Hampir tidak ada pengetahuan awal','Ada sedikit, tidak terstruktur','Cukup memadai','Sudah cukup kuat'], 'pengetahuan_awal', el('rp-q-dk1'), false, true);
-    renderChips(['Sulit abstraksi','Sulit membaca instruksi panjang','Mudah lupa','Tidak percaya diri mencoba','Tidak ada hambatan berarti'], 'hambatan_kognitif', el('rp-q-dk2'), false, true);
-    renderChips(['Perlu banyak panduan guru','Bisa mandiri dengan panduan tulis','Bisa mandiri sepenuhnya','Bervariasi antarindividu'], 'kesiapan_mandiri', el('rp-q-dk3'), false, true);
+    attachLainnya(renderChips(['Semangat & positif','Biasa saja / netral','Mudah bosan','Cemas / tertekan','Banyak konflik sosial'], 'kondisi_emosi', el('rp-q-dnk1'), false, false), 'Jelaskan kondisi emosi siswa');
+    attachLainnya(renderChips(['Ingin nilai bagus','Ingin bisa praktik nyata','Dorongan dari orang tua','Belum jelas motivasinya','Motivasi sangat rendah'], 'motivasi', el('rp-q-dnk2'), false, false), 'Jelaskan motivasi dominan siswa');
+    attachLainnya(renderChips(['Visual (gambar, diagram)','Auditori (diskusi, penjelasan)','Kinestetik (praktik, gerak)','Campuran'], 'gaya_belajar', el('rp-q-dnk3'), false, false), 'Jelaskan gaya belajar siswa');
+    attachLainnya(renderChips(['Hampir tidak ada pengetahuan awal','Ada sedikit, tidak terstruktur','Cukup memadai','Sudah cukup kuat'], 'pengetahuan_awal', el('rp-q-dk1'), false, false), 'Jelaskan pengetahuan awal siswa');
+    attachLainnya(renderChips(['Sulit abstraksi','Sulit membaca instruksi panjang','Mudah lupa','Tidak percaya diri mencoba','Tidak ada hambatan berarti'], 'hambatan_kognitif', el('rp-q-dk2'), false, false), 'Jelaskan hambatan yang sering muncul');
+    attachLainnya(renderChips(['Perlu banyak panduan guru','Bisa mandiri dengan panduan tulis','Bisa mandiri sepenuhnya','Bervariasi antarindividu'], 'kesiapan_mandiri', el('rp-q-dk3'), false, false), 'Jelaskan kesiapan mandiri siswa');
 
     el('rp-btn-back3').addEventListener('click', () => {
       if (_ans.jenjang === 'SMK') { _step = 2; renderStep2(); }
@@ -542,14 +560,8 @@
   }
 
   function handleStep3DNKSubmit() {
-    const body = el('rp-body');
-    const groups = body.querySelectorAll('.rp-chip-group[data-required="1"]');
-    for (const g of groups) {
-      if (getChipValues(g).length === 0) {
-        showError('rp-step3a-error','Pilih minimal satu opsi di setiap pertanyaan.'); return;
-      }
-    }
     showError('rp-step3a-error','');
+    const body = el('rp-body');
     const getGroup = key => {
       const g = body.querySelector(`.rp-chip-group[data-key="${key}"]`);
       return g ? getChipValues(g) : [];
@@ -609,13 +621,13 @@
   </div>
 </div>`;
 
-    renderChips(['Aktif bertanya','Pasif mendengarkan','Suka kerja kelompok','Suka kerja mandiri','Mudah terdistraksi','Kompetitif'], 'karakter', el('rp-q-p2'), true, true);
-    renderChips(['Perlu panduan langkah demi langkah','Bisa mengikuti panduan tertulis','Bisa eksplorasi mandiri'], 'kemandirian', el('rp-q-p3'), false, true);
-    renderChips(elemenOpts, 'prioritas_elemen', el('rp-q-p4'), true, true);
+    attachLainnya(renderChips(['Aktif bertanya','Pasif mendengarkan','Suka kerja kelompok','Suka kerja mandiri','Mudah terdistraksi','Kompetitif'], 'karakter', el('rp-q-p2'), true, false), 'Contoh: mudah terprovokasi, suka kompetisi');
+    attachLainnya(renderChips(['Perlu panduan langkah demi langkah','Bisa mengikuti panduan tertulis','Bisa eksplorasi mandiri'], 'kemandirian', el('rp-q-p3'), false, false), 'Jelaskan tingkat kemandirian siswa');
+    renderChips(elemenOpts, 'prioritas_elemen', el('rp-q-p4'), true, false);
 
     // P5 pendekatan — single, dengan conditional multi
     const p5Wrap = el('rp-q-p5');
-    const p5Chips = renderChips(['Langsung / Direct Instruction','Inquiry / Penemuan','PBL (Problem-Based)','PjBL (Project-Based)','Campuran'], 'pendekatan', p5Wrap, false, true);
+    const p5Chips = renderChips(['Langsung / Direct Instruction','Inquiry / Penemuan','PBL (Problem-Based)','PjBL (Project-Based)','Campuran'], 'pendekatan', p5Wrap, false, false);
     p5Chips.id = 'rp-p5-chips';
     p5Chips.addEventListener('click', () => {
       const val = getChipValues(p5Chips)[0];
@@ -624,8 +636,8 @@
     });
     renderChips(['Langsung','Inquiry','PBL','PjBL'], 'pendekatan_kombi', el('rp-p5-kombi-chips')?.parentElement || p5Wrap, true, false);
 
-    renderChips(['Fasilitator — siswa lebih aktif','Presenter — guru lebih banyak menjelaskan','Koach — banyak feedback individual'], 'gaya_mengajar', el('rp-q-p6'), false, true);
-    renderChips(['Tes tertulis','Presentasi / unjuk kerja','Portofolio','Observasi lapangan','Produk / karya','Jurnal refleksi'], 'penilaian_utama', el('rp-q-p7'), false, true);
+    attachLainnya(renderChips(['Fasilitator — siswa lebih aktif','Presenter — guru lebih banyak menjelaskan','Koach — banyak feedback individual'], 'gaya_mengajar', el('rp-q-p6'), false, false), 'Jelaskan gaya mengajar Anda');
+    attachLainnya(renderChips(['Tes tertulis','Presentasi / unjuk kerja','Portofolio','Observasi lapangan','Produk / karya','Jurnal refleksi'], 'penilaian_utama', el('rp-q-p7'), false, false), 'Contoh: penilaian diri (self-assessment)');
 
     el('rp-btn-back3b').addEventListener('click', renderStep3DNK);
     el('rp-btn-gen-atp').addEventListener('click', handleStep3PrefSubmit);
@@ -633,15 +645,8 @@
 
   async function handleStep3PrefSubmit() {
     if (_genAtp) return;
-    const body = el('rp-body');
-    const groups = body.querySelectorAll('.rp-chip-group[data-required="1"]');
-    for (const g of groups) {
-      if (getChipValues(g).length === 0) {
-        showError('rp-step3b-error','Pilih minimal satu opsi di setiap pertanyaan.'); return;
-      }
-    }
     showError('rp-step3b-error','');
-
+    const body = el('rp-body');
     const getGroup = key => {
       const g = body.querySelector(`.rp-chip-group[data-key="${key}"]`);
       return g ? getChipValues(g) : [];
@@ -810,9 +815,9 @@
   </div>
 </div>`;
 
-    renderChips(['< 20 siswa','20–30 siswa','31–36 siswa','> 36 siswa'], 'jumlah_siswa', el('rp-q-k1'), false, true);
+    attachLainnya(renderChips(['< 20 siswa','20–30 siswa','31–36 siswa','> 36 siswa'], 'jumlah_siswa', el('rp-q-k1'), false, false), 'Masukkan jumlah siswa');
 
-    const k2Chips = renderChips(['Tidak ada ABK','Ada ABK'], 'abk', el('rp-q-k2'), false, true);
+    const k2Chips = renderChips(['Tidak ada ABK','Ada ABK'], 'abk', el('rp-q-k2'), false, false);
     k2Chips.id = 'rp-k2-chips';
     k2Chips.addEventListener('click', () => {
       const val = getChipValues(k2Chips)[0];
@@ -820,12 +825,12 @@
       if (cond) cond.classList.toggle('visible', val === 'Ada ABK');
     });
 
-    renderChips(['Proyektor / LCD','Lab komputer','Koneksi WiFi','Printer','Lembar kerja cetak','Tidak ada fasilitas khusus'], 'fasilitas', el('rp-q-k3'), true, true);
-    renderChips(['HP dilarang','HP boleh untuk belajar','HP bebas','Tidak ada kebijakan jelas','Sebagian besar tidak punya HP'], 'situasi_hp', el('rp-q-k4'), false, true);
-    renderChips(['Tidak ada internet','Kadang ada, tidak stabil','Ada WiFi sekolah (stabil)'], 'akses_internet', el('rp-q-k5'), false, true);
-    renderChips(['Buku teks pemerintah (BSE)','LKS dari sekolah','Modul buatan guru','Bahan dari DUDI','Tidak ada bahan cetak'], 'materi_cetak', el('rp-q-k6'), true, false);
-    renderChips(['Ceramah panjang tanpa aktivitas','Hafalan teks','Kerja kelompok besar (> 5 orang)','Presentasi individual di depan kelas','Menulis panjang tangan','Aktivitas outdoor','Tugas membeli bahan'], 'aktivitas_dihindari', el('rp-q-k7'), true, false);
-    renderChips(['Siswa sering ngobrol','Perhatian mudah teralih','Perbedaan kemampuan sangat lebar','Banyak siswa datang terlambat','Ketidakhadiran tinggi','Konflik antar siswa','Motivasi sangat rendah','Ruang kelas sempit / panas'], 'kendala', el('rp-q-k8'), true, false);
+    attachLainnya(renderChips(['Proyektor / LCD','Lab komputer','Koneksi WiFi','Printer','Lembar kerja cetak','Tidak ada fasilitas khusus'], 'fasilitas', el('rp-q-k3'), true, false), 'Contoh: papan tulis digital, TV layar besar');
+    attachLainnya(renderChips(['HP dilarang','HP boleh untuk belajar','HP bebas','Tidak ada kebijakan jelas','Sebagian besar tidak punya HP'], 'situasi_hp', el('rp-q-k4'), false, false), 'Jelaskan situasi HP di kelas');
+    attachLainnya(renderChips(['Tidak ada internet','Kadang ada, tidak stabil','Ada WiFi sekolah (stabil)'], 'akses_internet', el('rp-q-k5'), false, false), 'Jelaskan kondisi internet di kelas');
+    attachLainnya(renderChips(['Buku teks pemerintah (BSE)','LKS dari sekolah','Modul buatan guru','Bahan dari DUDI','Tidak ada bahan cetak'], 'materi_cetak', el('rp-q-k6'), true, false), 'Contoh: modul khusus dari DUDI');
+    attachLainnya(renderChips(['Ceramah panjang tanpa aktivitas','Hafalan teks','Kerja kelompok besar (> 5 orang)','Presentasi individual di depan kelas','Menulis panjang tangan','Aktivitas outdoor','Tugas membeli bahan'], 'aktivitas_dihindari', el('rp-q-k7'), true, false), 'Contoh: permainan kompetitif, aktivitas fisik intens');
+    attachLainnya(renderChips(['Siswa sering ngobrol','Perhatian mudah teralih','Perbedaan kemampuan sangat lebar','Banyak siswa datang terlambat','Ketidakhadiran tinggi','Konflik antar siswa','Motivasi sangat rendah','Ruang kelas sempit / panas'], 'kendala', el('rp-q-k8'), true, false), 'Contoh: siswa sering tidak membawa buku');
 
     el('rp-btn-back5').addEventListener('click', () => { _step = 4; renderStep4(_atpList); });
     el('rp-btn-gen-rencana').addEventListener('click', handleStep5Submit);
@@ -833,15 +838,8 @@
 
   async function handleStep5Submit() {
     if (_genRencana) return;
-    const body = el('rp-body');
-    const groups = body.querySelectorAll('.rp-chip-group[data-required="1"]');
-    for (const g of groups) {
-      if (getChipValues(g).length === 0) {
-        showError('rp-step5-error','Pilih minimal satu opsi di setiap pertanyaan bertanda wajib.'); return;
-      }
-    }
     showError('rp-step5-error','');
-
+    const body = el('rp-body');
     const getGroup = key => {
       const g = body.querySelector(`.rp-chip-group[data-key="${key}"]`);
       return g ? getChipValues(g) : [];
