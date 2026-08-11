@@ -778,7 +778,7 @@
     });
     renderChips(['Langsung','Inquiry','PBL','PjBL'], 'pendekatan_kombi', el('rp-p5-kombi-chips')?.parentElement || p5Wrap, true, false);
 
-    attachLainnya(renderChips(['Fasilitator — siswa lebih aktif','Presenter — guru lebih banyak menjelaskan','Koach — banyak feedback individual'], 'gaya_mengajar', el('rp-q-p6'), false, false), 'Jelaskan gaya mengajar Anda');
+    attachLainnya(renderChips(['Fasilitator — siswa lebih aktif','Presenter — guru lebih banyak menjelaskan','Coach — banyak feedback individual'], 'gaya_mengajar', el('rp-q-p6'), false, false), 'Jelaskan gaya mengajar Anda');
     attachLainnya(renderChips(['Tes tertulis','Presentasi / unjuk kerja','Portofolio','Observasi lapangan','Produk / karya','Jurnal refleksi'], 'penilaian_utama', el('rp-q-p7'), false, false), 'Contoh: penilaian diri (self-assessment)');
 
     // Restore JP
