@@ -217,6 +217,19 @@ async function callWithRetry(payload: Record<string, unknown>, maxRetry = 2): Pr
   throw lastErr;
 }
 
+// ─── JSON extractor ───────────────────────────────────────────────────────────
+
+function extractJson(raw: string): unknown {
+  try { return JSON.parse(raw.trim()); } catch (_) {}
+  const fence = raw.match(/```(?:json)?\s*([\s\S]*?)```/s);
+  if (fence) { try { return JSON.parse(fence[1].trim()); } catch (_) {} }
+  const start = raw.indexOf('{');
+  const end = raw.lastIndexOf('}');
+  if (start !== -1 && end > start) {
+    try { return JSON.parse(raw.slice(start, end + 1).trim()); } catch (_) {} }
+  throw new Error('Tidak bisa ekstrak JSON dari output AI');
+}
+
 // ─── Main handler ─────────────────────────────────────────────────────────────
 
 Deno.serve(async (req) => {
@@ -279,14 +292,9 @@ Deno.serve(async (req) => {
       messages: [{ role: 'user', content: prompt }],
     });
 
-    // Parse JSON dari response AI
     let parsed: unknown;
     try {
-      const fenceMatch = raw.match(/```(?:json)?\s*([\s\S]*?)```/s);
-      const jsonStr = fenceMatch
-        ? fenceMatch[1]
-        : raw.slice(raw.indexOf('{'), raw.lastIndexOf('}') + 1);
-      parsed = JSON.parse(jsonStr.trim());
+      parsed = extractJson(raw);
     } catch {
       console.error('Gagal parse JSON dari AI:', raw.slice(0, 200));
       return json({ error: 'AI menghasilkan format yang tidak valid. Coba lagi.' }, 502);
