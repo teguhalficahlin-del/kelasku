@@ -133,6 +133,8 @@ Preferensi Guru:
 - Gaya mengajar: ${preferensi?.gaya_mengajar}
 - Penilaian akhir: ${preferensi?.penilaian_utama}
 
+Dimensi Profil Lulusan yang difokuskan: ${Array.isArray(preferensi?.dimensi_profil) && (preferensi.dimensi_profil as string[]).length ? ((preferensi.dimensi_profil as string[]).includes('Semua dimensi terintegrasi') ? 'Semua dimensi (keimanan & ketakwaan, kewargaan, penalaran kritis, kreativitas, kolaborasi, kemandirian, kesehatan, komunikasi)' : (preferensi.dimensi_profil as string[]).join(', ')) : 'Tidak ditentukan — integrasikan dimensi yang paling relevan'}
+
 Kondisi Kelas:
 - Jumlah siswa: ${konteks_kelas?.jumlah_siswa}
 - ABK: ${konteks_kelas?.abk}
@@ -145,6 +147,18 @@ Kondisi Kelas:
 ${konteks_kelas?.daerah ? `- Daerah: ${konteks_kelas.daerah}` : ''}
 
 Hasilkan rencana pembelajaran dalam 5 komponen. Sesuaikan dengan kondisi nyata kelas — jangan rekomendasikan alat/metode yang tidak tersedia.
+
+PRINSIP PEMBELAJARAN MENDALAM (Permendikdasmen No. 10 Tahun 2025): Setiap pertemuan WAJIB memuat tiga pengalaman belajar secara berurutan:
+1. MEMAHAMI — murid aktif mengonstruksi pengetahuan dari berbagai sumber/konteks
+2. MENGAPLIKASI — murid menghubungkan ide, menganalisis, membangun solusi konkret
+3. MEREFLEKSI — murid mengevaluasi dan memaknai proses belajar mereka sendiri
+
+Pembelajaran harus bersifat:
+- Berkesadaran: murid tahu tujuan belajar dan termotivasi secara intrinsik
+- Bermakna: terhubung dengan konteks nyata siswa (jurusan, daerah, kehidupan)
+- Menggembirakan: suasana positif, menantang, memotivasi — bukan sekadar tugas
+
+Dimensi Profil Lulusan yang dipilih guru WAJIB terlihat dalam aktivitas — sebutkan secara eksplisit di kolom "catatan_guru" pertemuan mana dimensi apa yang dikembangkan, contoh: "Pertemuan ini mengembangkan dimensi Kolaborasi dan Komunikasi melalui diskusi kelompok."
 
 Skema output JSON:
 {
