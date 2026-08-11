@@ -484,6 +484,7 @@
       return g ? getChipValues(g) : [];
     };
 
+    const jurusan = (el('rp-smk-jurusan')?.value || '').trim();
     _ans.smk = {
       jurusan,
       rumpun:          getGroup('rumpun')[0] || '',
