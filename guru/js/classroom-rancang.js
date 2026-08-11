@@ -323,6 +323,7 @@
         `<option value="${f.value}"${_ans.fase===f.value?' selected':''}>${f.label}</option>`
       ).join('')}
     </select>
+    <div id="rp-fase-warning" class="rp-fase-warning" style="display:none;font-size:var(--fs-caption);color:var(--warning);margin-top:4px;"></div>
   </div>
 
   <div id="rp-step1-error" class="error-msg" style="display:none;"></div>
@@ -332,13 +333,43 @@
   </div>
 </div>`;
 
+    function checkFaseJenjang() {
+      const jenjang = body.querySelector('#rp-jenjang-chips .rp-chip.selected')?.dataset.value || '';
+      const fase = el('rp-fase')?.value || '';
+      const warn = el('rp-fase-warning');
+      if (!warn || !jenjang || !fase) { if (warn) warn.style.display = 'none'; return; }
+      const FASE_MAP = {
+        SD:  ['fase_a','fase_b','fase_c'],
+        SMP: ['fase_d'],
+        SMA: ['fase_e','fase_f'],
+        SMK: ['fase_e','fase_f'],
+      };
+      const FASE_LABEL = { fase_a:'Fase A', fase_b:'Fase B', fase_c:'Fase C', fase_d:'Fase D', fase_e:'Fase E', fase_f:'Fase F' };
+      const JENJANG_LABEL = { SD:'SD', SMP:'SMP', SMA:'SMA/sederajat', SMK:'SMK' };
+      const valid = FASE_MAP[jenjang] || [];
+      if (!valid.includes(fase)) {
+        const faseNama = FASE_LABEL[fase] || fase;
+        const jenjangNama = JENJANG_LABEL[jenjang] || jenjang;
+        const saranJenjang = Object.entries(FASE_MAP).find(([, v]) => v.includes(fase))?.[0];
+        const saran = saranJenjang ? ` — biasanya untuk ${JENJANG_LABEL[saranJenjang] || saranJenjang}` : '';
+        warn.textContent = `${faseNama}${saran}. Pastikan ini sesuai dengan kelas Anda.`;
+        warn.style.display = 'block';
+      } else {
+        warn.style.display = 'none';
+      }
+    }
+
     // Chip jenjang — single select
     body.querySelectorAll('#rp-jenjang-chips .rp-chip').forEach(chip => {
       chip.addEventListener('click', () => {
         body.querySelectorAll('#rp-jenjang-chips .rp-chip').forEach(c => c.classList.remove('selected'));
         chip.classList.add('selected');
+        checkFaseJenjang();
       });
     });
+
+    el('rp-fase').addEventListener('change', checkFaseJenjang);
+    checkFaseJenjang();
 
     el('rp-btn-cp').addEventListener('click', handleStep1Submit);
   }
