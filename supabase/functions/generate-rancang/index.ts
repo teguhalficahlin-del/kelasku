@@ -234,7 +234,7 @@ Deno.serve(async (req) => {
       return json({ error: 'rencana membutuhkan konteks, tp_terpilih, dan konteks_kelas' }, 400);
     }
     prompt = buildRencanaPrompt({ konteks, smk, dnk_dk, preferensi, tp_terpilih, konteks_kelas });
-    maxTokens = 4000;
+    maxTokens = 6000;
   }
 
   try {
@@ -264,9 +264,11 @@ Deno.serve(async (req) => {
     // Parse JSON dari response AI
     let parsed: unknown;
     try {
-      // Ambil JSON block jika ada markdown fence
-      const jsonMatch = raw.match(/```(?:json)?\s*([\s\S]*?)```/) || [null, raw];
-      parsed = JSON.parse(jsonMatch[1].trim());
+      const fenceMatch = raw.match(/```(?:json)?\s*([\s\S]*?)```/s);
+      const jsonStr = fenceMatch
+        ? fenceMatch[1]
+        : raw.slice(raw.indexOf('{'), raw.lastIndexOf('}') + 1);
+      parsed = JSON.parse(jsonStr.trim());
     } catch {
       console.error('Gagal parse JSON dari AI:', raw.slice(0, 200));
       return json({ error: 'AI menghasilkan format yang tidak valid. Coba lagi.' }, 502);
