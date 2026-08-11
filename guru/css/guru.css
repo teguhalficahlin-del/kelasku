@@ -3021,9 +3021,31 @@ h2.panel-header.open .panel-collapse-arrow {
   margin-bottom: var(--space-xs);
 }
 
-.rp-cp-elemen-konkret {
+.rp-cp-elemen-layer {
+  margin-top: var(--space-xs);
+}
+
+.rp-cp-layer-label {
+  display: block;
+  font-size: var(--fs-badge);
+  font-weight: var(--fw-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 2px;
+}
+.rp-cp-layer-label--normatif { color: var(--text-muted); }
+.rp-cp-layer-label--praktik  { color: var(--gold); }
+
+.rp-cp-normatif {
   font-size: var(--fs-caption);
   color: var(--text-secondary);
+  font-style: italic;
+  line-height: var(--lh-loose);
+}
+
+.rp-cp-elemen-konkret {
+  font-size: var(--fs-caption);
+  color: var(--text-primary);
   line-height: var(--lh-loose);
 }
 

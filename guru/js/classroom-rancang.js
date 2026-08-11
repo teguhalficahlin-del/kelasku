@@ -312,10 +312,14 @@
       const konkret = r?.konkret || null;
       return `<div class="rp-cp-elemen">
   <div class="rp-cp-elemen-nama">${esc(e.nama)}</div>
-  ${konkret
-    ? `<div class="rp-cp-elemen-konkret">${esc(konkret)}</div>`
-    : `<div class="rp-cp-elemen-konkret" style="color:var(--text-muted);font-style:italic;">${esc(e.cp_normatif.slice(0, 120))}…</div>`
-  }
+  <div class="rp-cp-elemen-layer">
+    <span class="rp-cp-layer-label rp-cp-layer-label--normatif">CP Normatif</span>
+    <div class="rp-cp-normatif">${esc(e.cp_normatif)}</div>
+  </div>
+  ${konkret ? `<div class="rp-cp-elemen-layer">
+    <span class="rp-cp-layer-label rp-cp-layer-label--praktik">Dalam praktik</span>
+    <div class="rp-cp-elemen-konkret">${esc(konkret)}</div>
+  </div>` : ''}
 </div>`;
     }).join('');
     div.innerHTML = `<div class="rp-cp-card-label">CP ${esc(label)}</div>${rows}`;
