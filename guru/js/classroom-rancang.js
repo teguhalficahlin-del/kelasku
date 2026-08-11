@@ -383,6 +383,7 @@
       existingBtn.onclick = () => {
         if (_ans.jenjang === 'SMK') { _step = 2; renderStep2(); }
         else { _ans.smk = null; _step = 3; renderStep3DNK(); }
+        saveRpState();
       };
     }
   }
@@ -500,6 +501,7 @@
     };
 
     _step = 3;
+    saveRpState();
     renderStep3DNK();
   }
 
@@ -576,6 +578,7 @@
       hambatan_kognitif:getGroup('hambatan_kognitif')[0] || '',
       kesiapan_mandiri: getGroup('kesiapan_mandiri')[0] || '',
     };
+    saveRpState();
     renderStep3Pref();
   }
 
@@ -683,6 +686,7 @@
       _atpList = result?.tp_list || [];
       if (!_atpList.length) throw new Error('ATP kosong');
       _step = 4;
+      saveRpState();
       renderStep4(_atpList);
     } catch (err) {
       _step = 3;
@@ -760,6 +764,7 @@
     _ans.tp_terpilih = tp;
     showError('rp-atp-error','');
     _step = 5;
+    saveRpState();
     renderStep5();
   }
 
@@ -859,6 +864,7 @@
       kendala:             getGroup('kendala'),
       daerah:              (el('rp-k9-daerah')?.value || '').trim(),
     };
+    saveRpState();
 
     _genRencana = true;
     const btn = el('rp-btn-gen-rencana');
@@ -988,6 +994,7 @@ ${sec1}${sec2}${sec3}${sec4}${sec5}
   // ─── Reset ──────────────────────────────────────────────────────────────────
 
   function resetAll() {
+    if (_cId) { try { localStorage.removeItem('rp_state_' + _cId); } catch (_) {} }
     Object.assign(_ans, { mapel:'', jenjang:'', fase:'', jp_per_minggu:'', smk:null, dnk_dk:{}, preferensi:{}, tp_terpilih:null, konteks_kelas:{} });
     _cpElemen = []; _cpRingkasan = []; _atpList = [];
     _genCp = false; _genAtp = false; _genRencana = false;
@@ -995,18 +1002,61 @@ ${sec1}${sec2}${sec3}${sec4}${sec5}
     renderStep1();
   }
 
+  // ─── Persist & Restore ──────────────────────────────────────────────────────
+
+  function saveRpState() {
+    if (!_cId) return;
+    try {
+      localStorage.setItem('rp_state_' + _cId, JSON.stringify({ step: _step, ans: _ans, atpList: _atpList }));
+    } catch (_) {}
+  }
+
+  async function restoreRpState() {
+    if (!_cId) return false;
+    let saved;
+    try {
+      const raw = localStorage.getItem('rp_state_' + _cId);
+      if (!raw) return false;
+      saved = JSON.parse(raw);
+    } catch (_) {
+      try { localStorage.removeItem('rp_state_' + _cId); } catch (_) {}
+      return false;
+    }
+    const { step, ans, atpList } = saved || {};
+    if (!step || !ans) return false;
+
+    Object.assign(_ans, ans);
+    _atpList = Array.isArray(atpList) ? atpList : [];
+    _step = step;
+
+    if (step >= 2 && ans.mapel && ans.fase) {
+      try {
+        const cpFase = await fetchCpData(normalizeMapelKey(ans.mapel), ans.fase);
+        if (cpFase) _cpElemen = cpFase.elemen || [];
+      } catch (_) {}
+    }
+
+    switch (step) {
+      case 2: renderStep2(); break;
+      case 3: renderStep3DNK(); break;
+      case 4: if (_atpList.length) { renderStep4(_atpList); } else { renderStep1(); } break;
+      case 5: renderStep5(); break;
+      default: renderStep1(); break;
+    }
+    return true;
+  }
+
   // ─── Init ───────────────────────────────────────────────────────────────────
 
-  function initRancangTab(cId) {
+  async function initRancangTab(cId) {
     _cId = cId;
     const panel = el('panel-rancang');
     if (!panel) return;
     panel.innerHTML = `
 <div class="rp-step-bar" id="rp-step-bar"></div>
 <div id="rp-body"></div>`;
-    // Alias untuk step bar agar renderStepBar() bekerja
-    // rp-step-bar sudah langsung di panel
-    renderStep1();
+    const restored = await restoreRpState();
+    if (!restored) renderStep1();
     _loaded = true;
   }
 
