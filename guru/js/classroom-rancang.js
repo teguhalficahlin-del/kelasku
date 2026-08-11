@@ -774,7 +774,7 @@
 
     // P5 pendekatan — single, dengan conditional multi
     const p5Wrap = el('rp-q-p5');
-    const p5Chips = renderChips(['Langsung / Direct Instruction','Linear','Inquiry / Penemuan','Discovery / Penemuan Mandiri','PBL (Problem-Based)','PjBL (Project-Based)','Tematik','Spiral','Campuran'], 'pendekatan', p5Wrap, false, false);
+    const p5Chips = renderChips(['Langsung / Direct Instruction','Linear','Inquiry / Penemuan','Discovery / Penemuan Mandiri','PBL (Problem-Based)','PjBL (Project-Based)','Tematik','Spiral','Genre-Based (BKoF→MoT→JCoT→ICoT)','Task-Based (TBLT)','CLIL (Bahasa + Konten Mapel Lain)','Campuran'], 'pendekatan', p5Wrap, false, false);
     p5Chips.id = 'rp-p5-chips';
     p5Chips.addEventListener('click', () => {
       const val = getChipValues(p5Chips)[0];
