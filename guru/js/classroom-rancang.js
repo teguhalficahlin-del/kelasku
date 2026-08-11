@@ -569,7 +569,7 @@
     attachLainnya(renderChips(['PKL / Magang','Dunia Kerja Nyata','Sertifikasi Kompetensi','LKS','Konsep Dasar','Kewirausahaan','UMKM Lokal','Literasi / Numerasi'], 'tujuan', el('rp-q-smk3'), true, false), 'Contoh: keterampilan wirausaha digital');
     attachLainnya(renderChips(['Belum PKL','Sedang PKL','Sudah selesai PKL','Tidak ada PKL'], 'status_pkl', el('rp-q-smk4'), false, false), 'Jelaskan status PKL siswa');
     attachLainnya(renderChips(['Tidak ada target sertifikasi','Sertifikasi kompetensi (LSP)','Uji Kompetensi Keahlian (UKK)','Sertifikat industri langsung'], 'target_sertif', el('rp-q-smk5'), false, false), 'Contoh: sertifikat pelatihan industri');
-    attachLainnya(renderChips(['Sistem blok (semua JP produktif 1 hari)','Tersebar harian','Campuran blok & harian','Tidak menentu'], 'pola_jadwal', el('rp-q-smk6'), false, false), 'Jelaskan pola jadwal produktif');
+    attachLainnya(renderChips(['Sistem blok (semua JP produktif 1 hari)','Tersebar harian','Tetap mingguan (jadwal rutin)','Campuran blok & harian','Tidak menentu'], 'pola_jadwal', el('rp-q-smk6'), false, false), 'Jelaskan pola jadwal produktif');
     attachLainnya(renderChips(['1–2 minggu','3–4 minggu','5–8 minggu','Lebih dari 8 minggu'], 'durasi_proyek', el('rp-q-smk7'), false, false), 'Contoh: 2 minggu intensif');
     attachLainnya(renderChips(['Kunjungan industri','Prakerin / PKL','Guest teacher','Sponsorship alat','Tidak ada hubungan'], 'hubungan_dudi', el('rp-q-smk8'), true, false), 'Contoh: kerjasama startup lokal');
 
