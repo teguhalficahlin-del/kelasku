@@ -309,7 +309,7 @@
         } catch {
           _cpRingkasan = _cpElemen.map(e => ({ elemen: e.nama, konkret: null }));
         }
-        renderCpPreview(cpFase.label);
+        renderCpPreview(cpFase.label, cpFase.cp_umum);
       } else {
         _cpElemen = [];
         _cpRingkasan = [];
@@ -334,9 +334,10 @@
     wrap.appendChild(div);
   }
 
-  function renderCpPreview(label) {
+  function renderCpPreview(label, cpUmum) {
     const div = el('rp-cp-preview');
     if (!div) return;
+    const umum = cpUmum?.trim() ? `<div style="font-size:var(--fs-caption);color:var(--text-secondary);margin-bottom:var(--space-md)">${esc(cpUmum.trim())}</div>` : '';
     const rows = _cpElemen.map((e, i) => {
       const r = _cpRingkasan.find(x => x.elemen === e.nama);
       const konkret = r?.konkret || null;
@@ -352,7 +353,7 @@
   </div>` : ''}
 </div>`;
     }).join('');
-    div.innerHTML = `<div class="rp-cp-card-label">CP ${esc(label)}</div>${rows}`;
+    div.innerHTML = `<div class="rp-cp-card-label">CP ${esc(label)}</div>${umum}${rows}`;
     appendStep1Next();
   }
 
