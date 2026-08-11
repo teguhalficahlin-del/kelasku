@@ -22,6 +22,8 @@
   // Elemen CP yang sudah di-fetch
   let _cpElemen = [];    // array { nama, cp_normatif }
   let _cpRingkasan = []; // array { elemen, konkret } dari AI
+  let _cpLabel = '';
+  let _cpUmum = '';
 
   // ATP hasil generate
   let _atpList = [];
@@ -400,6 +402,8 @@
 
       if (cpFase) {
         _cpElemen = cpFase.elemen || [];
+        _cpLabel = cpFase.label || '';
+        _cpUmum = cpFase.cp_umum || '';
         // Generate ringkasan AI
         renderCpLoading(cpFase.label);
         try {
@@ -416,6 +420,8 @@
       } else {
         _cpElemen = [];
         _cpRingkasan = [];
+        _cpLabel = '';
+        _cpUmum = '';
         renderCpNotice(mapel);
       }
     } finally {
@@ -1150,7 +1156,7 @@ ${sec1}${sec2}${sec3}${sec4}${sec5}
   function resetAll() {
     if (_cId) { try { localStorage.removeItem('rp_state_' + _cId); } catch (_) {} }
     Object.assign(_ans, { mapel:'', jenjang:'', fase:'', jp_per_minggu:'', smk:null, dnk_dk:{}, preferensi:{}, tp_terpilih:null, konteks_kelas:{} });
-    _cpElemen = []; _cpRingkasan = []; _atpList = []; _rencana = null;
+    _cpElemen = []; _cpRingkasan = []; _cpLabel = ''; _cpUmum = ''; _atpList = []; _rencana = null;
     _genCp = false; _genAtp = false; _genRencana = false;
     _step = 1;
     renderStep1();
@@ -1161,7 +1167,11 @@ ${sec1}${sec2}${sec3}${sec4}${sec5}
   function saveRpState() {
     if (!_cId) return;
     try {
-      localStorage.setItem('rp_state_' + _cId, JSON.stringify({ step: _step, ans: _ans, atpList: _atpList }));
+      localStorage.setItem('rp_state_' + _cId, JSON.stringify({
+        step: _step, ans: _ans, atpList: _atpList,
+        cpElemen: _cpElemen, cpRingkasan: _cpRingkasan,
+        cpLabel: _cpLabel, cpUmum: _cpUmum,
+      }));
     } catch (_) {}
   }
 
@@ -1176,19 +1186,16 @@ ${sec1}${sec2}${sec3}${sec4}${sec5}
       try { localStorage.removeItem('rp_state_' + _cId); } catch (_) {}
       return false;
     }
-    const { step, ans, atpList } = saved || {};
+    const { step, ans, atpList, cpElemen, cpRingkasan, cpLabel, cpUmum } = saved || {};
     if (!step || !ans) return false;
 
     Object.assign(_ans, ans);
     _atpList = Array.isArray(atpList) ? atpList : [];
+    _cpElemen = Array.isArray(cpElemen) ? cpElemen : [];
+    _cpRingkasan = Array.isArray(cpRingkasan) ? cpRingkasan : [];
+    _cpLabel = cpLabel || '';
+    _cpUmum = cpUmum || '';
     _step = step;
-
-    if (step >= 2 && ans.mapel && ans.fase) {
-      try {
-        const cpFase = await fetchCpData(normalizeMapelKey(ans.mapel), ans.fase);
-        if (cpFase) _cpElemen = cpFase.elemen || [];
-      } catch (_) {}
-    }
 
     switch (step) {
       case 2: renderStep2(); break;
@@ -1197,6 +1204,18 @@ ${sec1}${sec2}${sec3}${sec4}${sec5}
       case 5: renderStep5(); break;
       default: renderStep1(); break;
     }
+
+    if (_cpElemen.length && _cpLabel) {
+      const wrap = el('rp-body')?.querySelector('.rp-block');
+      if (wrap && !el('rp-cp-preview')) {
+        const div = document.createElement('div');
+        div.id = 'rp-cp-preview';
+        div.className = 'rp-cp-card';
+        wrap.appendChild(div);
+      }
+      renderCpPreview(_cpLabel, _cpUmum);
+    }
+
     return true;
   }
 
