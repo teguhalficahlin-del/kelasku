@@ -130,8 +130,9 @@
         ? `<div class="rp-step-line ${lineClass}"></div>`
         : '';
       const nav = isStepNavigable(n) ? ' rp-step-dot--nav' : '';
+      const disabled = (n === 2 && !isStepNavigable(2)) ? ' rp-step-dot--disabled' : '';
       return `<div class="rp-step ${cls}">
-  <div class="rp-step-dot${nav}" data-step="${n}">${n < _step ? '✓' : n}</div>
+  <div class="rp-step-dot${nav}${disabled}" data-step="${n}">${n < _step ? '✓' : n}</div>
   <div class="rp-step-lbl">${esc(lbl)}</div>
 </div>${line}`;
     }).join('');
@@ -324,12 +325,6 @@
     </select>
   </div>
 
-  <div class="rp-q">
-    <label class="rp-q-label" for="rp-jp">4. Jumlah JP per minggu untuk mapel ini *</label>
-    <input type="number" id="rp-jp" class="rp-input" placeholder="Contoh: 4" min="1" max="40"
-      value="${esc(_ans.jp_per_minggu)}" style="max-width:120px;">
-  </div>
-
   <div id="rp-step1-error" class="error-msg" style="display:none;"></div>
 
   <div class="rp-action-row">
@@ -354,18 +349,15 @@
     const mapel = (el('rp-mapel')?.value || '').trim();
     const jenjang = el('rp-body')?.querySelector('#rp-jenjang-chips .rp-chip.selected')?.dataset.value || '';
     const fase = el('rp-fase')?.value || '';
-    const jp = (el('rp-jp')?.value || '').trim();
 
     if (!mapel) { showError('rp-step1-error', 'Isi nama mata pelajaran.'); return; }
     if (!jenjang) { showError('rp-step1-error', 'Pilih jenjang sekolah.'); return; }
     if (!fase) { showError('rp-step1-error', 'Pilih fase capaian pembelajaran.'); return; }
-    if (!jp || isNaN(Number(jp)) || Number(jp) < 1) { showError('rp-step1-error', 'Isi JP per minggu (angka minimal 1).'); return; }
 
     showError('rp-step1-error', '');
     _ans.mapel = mapel;
     _ans.jenjang = jenjang;
     _ans.fase = fase;
-    _ans.jp_per_minggu = jp;
 
     // Cari CP di JSON
     const mapelKey = normalizeMapelKey(mapel);

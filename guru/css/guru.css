@@ -2895,6 +2895,7 @@ h2.panel-header.open .panel-collapse-arrow {
   transition: opacity var(--transition), background var(--transition), border-color var(--transition), color var(--transition);
 }
 .rp-step-dot--nav:hover { opacity: 0.8; }
+.rp-step-dot--disabled { opacity: 0.4; cursor: not-allowed; }
 
 .rp-step.active .rp-step-dot {
   background: var(--gold-muted);
