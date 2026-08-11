@@ -26,6 +26,9 @@
   // ATP hasil generate
   let _atpList = [];
 
+  // Hasil generate rencana terakhir (untuk navigasi balik ke step 6)
+  let _rencana = null;
+
   // Step saat ini: 1–6
   let _step = 1;
 
@@ -78,6 +81,44 @@
 
   const STEPS = ['Konteks','SMK','Prefer.','ATP','Kelas','Output'];
 
+  function isStepNavigable(n) {
+    switch (n) {
+      case 1: return true;
+      case 2: return !!_ans.mapel && _ans.jenjang === 'SMK';
+      case 3: return !!_ans.mapel;
+      case 4: return _atpList.length > 0;
+      case 5: return !!_ans.tp_terpilih;
+      case 6: return !!_rencana;
+      default: return false;
+    }
+  }
+
+  function navigateToStep(n) {
+    switch (n) {
+      case 1: _step = 1; renderStep1(); break;
+      case 2:
+        if (_ans.jenjang === 'SMK') { _step = 2; renderStep2(); }
+        else { _step = 3; renderStep3DNK(); }
+        break;
+      case 3:
+        if (!_ans.mapel) return;
+        _step = 3; renderStep3DNK();
+        break;
+      case 4:
+        if (!_atpList.length) return;
+        _step = 4; renderStep4(_atpList);
+        break;
+      case 5:
+        if (!_ans.tp_terpilih) return;
+        _step = 5; renderStep5();
+        break;
+      case 6:
+        if (!_rencana) { if (_ans.tp_terpilih) { _step = 5; renderStep5(); } return; }
+        _step = 6; renderStep6(_rencana);
+        break;
+    }
+  }
+
   function renderStepBar() {
     const wrap = el('rp-step-bar');
     if (!wrap) return;
@@ -88,11 +129,19 @@
       const line = n < STEPS.length
         ? `<div class="rp-step-line ${lineClass}"></div>`
         : '';
+      const nav = isStepNavigable(n) ? ' rp-step-dot--nav' : '';
       return `<div class="rp-step ${cls}">
-  <div class="rp-step-dot">${n < _step ? '✓' : n}</div>
+  <div class="rp-step-dot${nav}" data-step="${n}">${n < _step ? '✓' : n}</div>
   <div class="rp-step-lbl">${esc(lbl)}</div>
 </div>${line}`;
     }).join('');
+
+    wrap.onclick = e => {
+      const dot = e.target.closest('.rp-step-dot--nav');
+      if (!dot) return;
+      const n = parseInt(dot.dataset.step);
+      if (n) navigateToStep(n);
+    };
   }
 
   // ─── Chip builder ───────────────────────────────────────────────────────────
@@ -904,6 +953,7 @@
   }
 
   function renderStep6(data) {
+    _rencana = data;
     _step = 6;
     renderStepBar();
     const body = el('rp-body');
@@ -996,7 +1046,7 @@ ${sec1}${sec2}${sec3}${sec4}${sec5}
   function resetAll() {
     if (_cId) { try { localStorage.removeItem('rp_state_' + _cId); } catch (_) {} }
     Object.assign(_ans, { mapel:'', jenjang:'', fase:'', jp_per_minggu:'', smk:null, dnk_dk:{}, preferensi:{}, tp_terpilih:null, konteks_kelas:{} });
-    _cpElemen = []; _cpRingkasan = []; _atpList = [];
+    _cpElemen = []; _cpRingkasan = []; _atpList = []; _rencana = null;
     _genCp = false; _genAtp = false; _genRencana = false;
     _step = 1;
     renderStep1();

@@ -1144,17 +1144,21 @@ td { padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border); }
   gap: .375rem;
   margin-bottom: 1.25rem;
   border-bottom: none;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 .tab-btn {
   background: var(--bg-surface);
   border: 1px solid var(--border);
   border-radius: var(--card-r);
   padding: .5rem .875rem;
-  font-size: var(--fs-h3);
+  font-size: clamp(0.7rem, 2.8vw, var(--fs-h3));
   font-weight: 600;
   color: var(--text-muted);
   cursor: pointer;
   font-family: inherit;
+  min-height: 44px;
+  white-space: nowrap;
   transition: background var(--transition), border-color var(--transition), color var(--transition);
 }
 .tab-btn:hover { color: var(--text-secondary); border-color: var(--border-strong); }
@@ -2885,6 +2889,12 @@ h2.panel-header.open .panel-collapse-arrow {
   border-color: var(--gold);
   color: var(--text-on-gold);
 }
+
+.rp-step-dot--nav {
+  cursor: pointer;
+  transition: opacity var(--transition), background var(--transition), border-color var(--transition), color var(--transition);
+}
+.rp-step-dot--nav:hover { opacity: 0.8; }
 
 .rp-step.active .rp-step-dot {
   background: var(--gold-muted);
