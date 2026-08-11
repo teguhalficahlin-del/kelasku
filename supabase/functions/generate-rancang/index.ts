@@ -90,17 +90,19 @@ Preferensi Guru:
 - Gaya mengajar: ${preferensi?.gaya_mengajar}
 - Cara penilaian utama: ${preferensi?.penilaian_utama}
 
-Tugas: Susun 3–6 Tujuan Pembelajaran (TP) yang membentuk alur koheren dari awal hingga akhir semester. Setiap TP harus:
+Tugas: Susun 6–12 Tujuan Pembelajaran (TP) yang membentuk alur koheren untuk satu tahun penuh (dua semester). Setiap TP harus:
 1. Ditulis dengan kata kerja operasional yang bisa diobservasi
 2. Menunjukkan jenjang taksonomi yang meningkat (dari mudah ke kompleks)
 3. Relevan dengan konteks siswa dan preferensi guru
-4. Realistis dalam JP yang tersedia
+4. Jika JP per minggu tersedia, hitung estimasi JP per TP berdasarkan jumlah minggu efektif (asumsi 36 minggu/tahun dikurangi UTS, UAS, dan libur nasional = sekitar 28 minggu efektif)
+5. Tandai setiap TP dengan semester (1 atau 2) agar guru tahu kapan TP tersebut diajarkan
 
 Skema output JSON:
 {
   "tp_list": [
     {
       "urutan": 1,
+      "semester": 1,
       "judul": "Judul singkat TP",
       "deskripsi": "Kalimat TP lengkap dengan kata kerja operasional",
       "elemen_cp": "Nama elemen CP yang dikover",
