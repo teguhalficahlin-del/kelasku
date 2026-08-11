@@ -1,0 +1,276 @@
+const CORS_HEADERS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+function json(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+  });
+}
+
+// ─── Prompt builders ─────────────────────────────────────────────────────────
+
+function buildCpSummaryPrompt(konteks: Record<string, unknown>, elemenList: Array<{ nama: string; cp_normatif: string }>) {
+  const lines = elemenList.map((e, i) =>
+    `Elemen ${i + 1}: ${e.nama}\nCP Normatif:\n${e.cp_normatif}`
+  ).join('\n\n');
+
+  return `Kamu adalah konsultan kurikulum Kurikulum Merdeka yang membantu guru memahami Capaian Pembelajaran (CP).
+
+Mata pelajaran: ${konteks.mapel}
+Jenjang: ${konteks.jenjang}
+Fase: ${konteks.fase}
+
+Berikut adalah teks CP normatif untuk setiap elemen:
+
+${lines}
+
+Untuk SETIAP elemen di atas, tulis 1 kalimat ringkasan konkret dengan format:
+"Bayangkan siswa Anda: [deskripsi singkat kemampuan konkret yang akan dimiliki siswa, bukan parafrase CP]"
+
+Gunakan bahasa guru kepada guru — bukan bahasa akademik. Fokus pada apa yang akan BISA DILAKUKAN siswa secara nyata di dunia sehari-hari atau dunia kerja.
+
+Format output JSON:
+{
+  "ringkasan": [
+    { "elemen": "Nama Elemen 1", "konkret": "Bayangkan siswa Anda: ..." },
+    { "elemen": "Nama Elemen 2", "konkret": "Bayangkan siswa Anda: ..." }
+  ]
+}
+
+Hanya output JSON, tanpa teks lain.`;
+}
+
+function buildAtpPrompt(payload: Record<string, unknown>) {
+  const { konteks, smk, dnk_dk, preferensi } = payload as Record<string, Record<string, unknown>>;
+
+  const smkSection = smk ? `
+Konteks SMK:
+- Jurusan: ${smk.jurusan}
+- Rumpun: ${smk.rumpun}
+- Tujuan utama: ${Array.isArray(smk.tujuan) ? smk.tujuan.join(', ') : smk.tujuan}
+- Status PKL: ${smk.status_pkl}
+- Pola jadwal: ${smk.pola_jadwal}
+- Hubungan DUDI: ${Array.isArray(smk.hubungan_dudi) ? smk.hubungan_dudi.join(', ') : '-'}
+- Industri dominan: ${smk.industri_dominan}` : '';
+
+  const dnkSection = dnk_dk ? `
+Profil kelas (DNK/DK):
+- Kondisi emosi dominan: ${dnk_dk.kondisi_emosi}
+- Motivasi belajar: ${dnk_dk.motivasi}
+- Gaya belajar dominan: ${dnk_dk.gaya_belajar}
+- Pengetahuan awal: ${dnk_dk.pengetahuan_awal}
+- Hambatan kognitif: ${dnk_dk.hambatan_kognitif}
+- Kesiapan mandiri: ${dnk_dk.kesiapan_mandiri}` : '';
+
+  return `Kamu adalah perancang kurikulum Kurikulum Merdeka yang membantu guru menyusun Alur Tujuan Pembelajaran (ATP).
+
+Konteks Pembelajaran:
+- Mata pelajaran: ${konteks.mapel}
+- Jenjang: ${konteks.jenjang}
+- Fase: ${konteks.fase}
+- JP per minggu: ${konteks.jp_per_minggu}
+${smkSection}
+${dnkSection}
+
+Preferensi Guru:
+- Karakter kelas: ${Array.isArray(preferensi?.karakter) ? preferensi.karakter.join(', ') : preferensi?.karakter}
+- Kemandirian siswa: ${preferensi?.kemandirian}
+- Elemen CP diprioritaskan: ${Array.isArray(preferensi?.prioritas_elemen) ? preferensi.prioritas_elemen.join(', ') : preferensi?.prioritas_elemen}
+- Pendekatan pembelajaran: ${preferensi?.pendekatan}
+- Gaya mengajar: ${preferensi?.gaya_mengajar}
+- Cara penilaian utama: ${preferensi?.penilaian_utama}
+
+Tugas kamu: Susun 3–6 Tujuan Pembelajaran (TP) yang membentuk alur koheren dari awal hingga akhir semester. Setiap TP harus:
+1. Ditulis dengan kata kerja operasional yang bisa diobservasi
+2. Menunjukkan jenjang taksonomi yang meningkat (dari mudah ke kompleks)
+3. Relevan dengan konteks siswa dan preferensi guru
+4. Realistis dalam JP yang tersedia
+
+Format output JSON:
+{
+  "tp_list": [
+    {
+      "urutan": 1,
+      "judul": "Judul singkat TP",
+      "deskripsi": "Kalimat TP lengkap dengan kata kerja operasional",
+      "elemen_cp": "Nama elemen CP yang dikover",
+      "estimasi_jp": 4,
+      "catatan": "Alasan urutan / konteks khusus (opsional)"
+    }
+  ]
+}
+
+Hanya output JSON, tanpa teks lain.`;
+}
+
+function buildRencanaPrompt(payload: Record<string, unknown>) {
+  const { konteks, smk, dnk_dk, preferensi, tp_terpilih, konteks_kelas } = payload as Record<string, Record<string, unknown>>;
+
+  return `Kamu adalah perancang pembelajaran Kurikulum Merdeka yang membantu guru merancang rencana pertemuan yang realistis dan kontekstual.
+
+Tujuan Pembelajaran yang dirancang:
+- Judul: ${tp_terpilih?.judul}
+- Deskripsi: ${tp_terpilih?.deskripsi}
+- Elemen CP: ${tp_terpilih?.elemen_cp}
+- Estimasi JP: ${tp_terpilih?.estimasi_jp} JP (@ ${konteks?.jp_per_minggu} JP/minggu)
+
+Konteks:
+- Mata pelajaran: ${konteks?.mapel}
+- Jenjang: ${konteks?.jenjang} — Fase: ${konteks?.fase}
+${smk ? `- Jurusan SMK: ${smk.jurusan}, Rumpun: ${smk.rumpun}` : ''}
+${dnk_dk ? `- Profil kelas: emosi ${dnk_dk.kondisi_emosi}, motivasi ${dnk_dk.motivasi}, gaya belajar ${dnk_dk.gaya_belajar}` : ''}
+
+Preferensi Guru:
+- Pendekatan: ${preferensi?.pendekatan}
+- Gaya mengajar: ${preferensi?.gaya_mengajar}
+- Penilaian utama: ${preferensi?.penilaian_utama}
+
+Kondisi Kelas:
+- Jumlah siswa: ${konteks_kelas?.jumlah_siswa}
+- ABK: ${konteks_kelas?.abk}
+- Fasilitas: ${Array.isArray(konteks_kelas?.fasilitas) ? konteks_kelas.fasilitas.join(', ') : konteks_kelas?.fasilitas}
+- Situasi HP: ${konteks_kelas?.situasi_hp}
+- Akses internet: ${konteks_kelas?.akses_internet}
+- Materi cetak: ${Array.isArray(konteks_kelas?.materi_cetak) ? konteks_kelas.materi_cetak.join(', ') : konteks_kelas?.materi_cetak}
+- Aktivitas dihindari: ${Array.isArray(konteks_kelas?.aktivitas_dihindari) ? konteks_kelas.aktivitas_dihindari.join(', ') : '-'}
+- Kendala kelas: ${Array.isArray(konteks_kelas?.kendala) ? konteks_kelas.kendala.join(', ') : '-'}
+${konteks_kelas?.daerah ? `- Daerah: ${konteks_kelas.daerah}` : ''}
+
+Hasilkan rencana pembelajaran dalam 5 komponen. Sesuaikan dengan kondisi nyata kelas — jangan rekomendasikan alat/metode yang tidak tersedia.
+
+Format output JSON:
+{
+  "tujuan_praktis": "Tujuan pembelajaran dalam bahasa yang mudah dipahami siswa (1–2 kalimat)",
+  "pertemuan": [
+    {
+      "no": 1,
+      "judul": "Judul pertemuan",
+      "durasi_jp": 2,
+      "aktivitas": "Deskripsi urutan aktivitas belajar",
+      "sumber": "Sumber/media yang digunakan",
+      "catatan_guru": "Tips pelaksanaan"
+    }
+  ],
+  "asesmen": {
+    "jenis": "Jenis asesmen",
+    "instrumen": "Deskripsi instrumen/soal",
+    "kktp": [
+      { "level": "Baru Berkembang", "deskripsi": "..." },
+      { "level": "Berkembang Sesuai Harapan", "deskripsi": "..." },
+      { "level": "Sangat Berkembang", "deskripsi": "..." }
+    ]
+  },
+  "lks": {
+    "judul": "Judul LKS",
+    "instruksi": "Petunjuk pengerjaan",
+    "pertanyaan": ["Pertanyaan 1", "Pertanyaan 2", "Pertanyaan 3"]
+  },
+  "tindak_lanjut": {
+    "pengayaan": "Aktivitas untuk siswa yang sudah mencapai TP",
+    "penguatan": "Aktivitas untuk siswa yang hampir mencapai TP",
+    "pendampingan": "Aktivitas untuk siswa yang belum mencapai TP"
+  }
+}
+
+Hanya output JSON, tanpa teks lain.`;
+}
+
+// ─── Main handler ─────────────────────────────────────────────────────────────
+
+Deno.serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: CORS_HEADERS });
+  }
+
+  if (req.method !== 'POST') {
+    return json({ error: 'Method tidak diizinkan' }, 405);
+  }
+
+  const apiKey = Deno.env.get('ANTHROPIC_API_KEY');
+  if (!apiKey) {
+    return json({ error: 'Konfigurasi server tidak lengkap' }, 500);
+  }
+
+  let body: Record<string, unknown>;
+  try {
+    body = await req.json();
+  } catch {
+    return json({ error: 'Request body tidak valid' }, 400);
+  }
+
+  const { mode, konteks, smk, dnk_dk, preferensi, tp_terpilih, konteks_kelas, elemen_list } = body;
+
+  if (!mode || !['cp_summary', 'atp', 'rencana'].includes(mode as string)) {
+    return json({ error: 'mode harus: cp_summary | atp | rencana' }, 400);
+  }
+
+  let prompt: string;
+  let maxTokens: number;
+
+  if (mode === 'cp_summary') {
+    if (!konteks || !Array.isArray(elemen_list) || elemen_list.length === 0) {
+      return json({ error: 'cp_summary membutuhkan konteks dan elemen_list' }, 400);
+    }
+    prompt = buildCpSummaryPrompt(
+      konteks as Record<string, unknown>,
+      elemen_list as Array<{ nama: string; cp_normatif: string }>
+    );
+    maxTokens = 1000;
+  } else if (mode === 'atp') {
+    if (!konteks || !preferensi) {
+      return json({ error: 'atp membutuhkan konteks dan preferensi' }, 400);
+    }
+    prompt = buildAtpPrompt({ konteks, smk, dnk_dk, preferensi });
+    maxTokens = 2000;
+  } else {
+    if (!konteks || !tp_terpilih || !konteks_kelas) {
+      return json({ error: 'rencana membutuhkan konteks, tp_terpilih, dan konteks_kelas' }, 400);
+    }
+    prompt = buildRencanaPrompt({ konteks, smk, dnk_dk, preferensi, tp_terpilih, konteks_kelas });
+    maxTokens = 4000;
+  }
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: maxTokens,
+        messages: [{ role: 'user', content: prompt }],
+      }),
+    });
+
+    if (!res.ok) {
+      const errText = await res.text().catch(() => '');
+      console.error('Anthropic API error:', res.status, errText);
+      return json({ error: 'AI tidak tersedia saat ini. Coba lagi dalam beberapa menit.' }, 502);
+    }
+
+    const data = await res.json();
+    const raw = data?.content?.[0]?.text ?? '';
+
+    // Parse JSON dari response AI
+    let parsed: unknown;
+    try {
+      // Ambil JSON block jika ada markdown fence
+      const jsonMatch = raw.match(/```(?:json)?\s*([\s\S]*?)```/) || [null, raw];
+      parsed = JSON.parse(jsonMatch[1].trim());
+    } catch {
+      console.error('Gagal parse JSON dari AI:', raw.slice(0, 200));
+      return json({ error: 'AI menghasilkan format yang tidak valid. Coba lagi.' }, 502);
+    }
+
+    return json({ result: parsed });
+  } catch (err) {
+    console.error('generate-rancang error:', err);
+    return json({ error: 'Terjadi kesalahan server. Coba lagi.' }, 500);
+  }
+});

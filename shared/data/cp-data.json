@@ -1,0 +1,180 @@
+{
+  "bahasa_inggris": {
+    "fase_e": {
+      "label": "Bahasa Inggris Fase E (Kelas X SMA/SMK/MA)",
+      "elemen": [
+        {
+          "nama": "Menyimak – Berbicara",
+          "cp_normatif": "Pada akhir Fase E, peserta didik menggunakan bahasa Inggris untuk berkomunikasi dengan guru, teman sebaya dan orang lain dalam berbagai macam situasi dan tujuan. Mereka menggunakan dan merespon pertanyaan dan menggunakan strategi untuk memulai, mempertahankan dan menyimpulkan percakapan dan diskusi. Mereka memahami dan mengidentifikasi ide utama dan detail relevan dari diskusi atau presentasi mengenai berbagai macam topik. Mereka menggunakan bahasa Inggris untuk menyampaikan opini terhadap isu yang dekat dengan kehidupan pemuda dan untuk membahas minat. Mereka memberikan dan mempertahankan pendapatnya, membuat perbandingan dan mengevaluasi perspektifnya sendiri dan perspektif orang lain. Mereka menggunakan strategi koreksi diri dan mengklarifikasi kesalahpahaman."
+        },
+        {
+          "nama": "Membaca – Memirsa",
+          "cp_normatif": "Pada akhir Fase E, peserta didik membaca dan merespon berbagai macam teks seperti narasi, deskriptif, ekspositori, prosedural, argumentatif dan teks persuasif yang menggunakan berbagai mode, media dan konteks. Mereka membaca untuk mempelajari sesuatu atau untuk mendapatkan informasi. Mereka mencari, membuat sintesis dan mengevaluasi detil spesifik dan inti dari berbagai macam sumber. Mereka membaca berbagai teks sastra dan teks nonfiksi. Mereka mengidentifikasi tujuan penulis, mengembangkan keterampilan berargumen dengan mendukung klaim menggunakan detail yang relevan dan akurat dari teks. Mereka mengidentifikasi asumsi penulis, bias dan kerangka yang digunakan. Mereka menggunakan fitur-fitur teks untuk meningkatkan pemahaman."
+        },
+        {
+          "nama": "Menulis – Mempresentasikan",
+          "cp_normatif": "Pada akhir Fase E, peserta didik menulis berbagai jenis teks fiksi dan nonfiksi, melalui aktivitas yang dipandu, menggunakan kosakata yang tepat sasaran dan struktur kalimat yang beragam untuk menyatakan ide, gagasan, pikiran, perasaan, dan untuk memenuhi kebutuhan sehari-hari seperti mengirim email atau pun pesan kepada teman. Mereka menyampaikan ide menggunakan berbagai media seperti teks tertulis, infografis, dan media lain yang sesuai. Mereka menggunakan fitur-fitur bahasa secara tepat dan menyunting tulisan mereka sendiri."
+        }
+      ]
+    },
+    "fase_f": {
+      "label": "Bahasa Inggris Fase F (Kelas XI–XII SMA/SMK/MA)",
+      "elemen": [
+        {
+          "nama": "Menyimak – Berbicara",
+          "cp_normatif": "Pada akhir Fase F, peserta didik menggunakan bahasa Inggris untuk berkomunikasi dengan situasi sosial, semi-formal dan formal. Mereka menggunakan dan merespon pertanyaan, pernyataan, dan percakapan kompleks secara efektif, menyajikan ide dengan jelas dan terstruktur dalam diskusi dan presentasi mengenai berbagai macam topik. Mereka mendukung pendapatnya dengan alasan dan bukti yang relevan, mempertimbangkan perspektif orang lain dan menyesuaikan bahasa yang digunakan sesuai situasi dan audiens."
+        },
+        {
+          "nama": "Membaca – Memirsa",
+          "cp_normatif": "Pada akhir Fase F, peserta didik membaca dan merespon berbagai teks kompleks seperti teks persuasif, ekspositori, dan teks yang mengandung argumen dan narasi sastra, serta teks dari berbagai sumber media. Mereka mengevaluasi informasi, membuat kesimpulan berdasarkan bukti, mengidentifikasi sudut pandang penulis dan bias, serta menggunakan pengetahuan dan pengalaman pribadi untuk mengkritisi teks. Mereka menerapkan strategi membaca kritis untuk meningkatkan pemahaman mendalam."
+        },
+        {
+          "nama": "Menulis – Mempresentasikan",
+          "cp_normatif": "Pada akhir Fase F, peserta didik menulis berbagai jenis teks yang lebih kompleks menggunakan berbagai struktur organisasi teks dan menggunakan berbagai cara untuk mengembangkan argumen dan narasi. Mereka menggunakan kosakata yang beragam dan struktur kalimat yang kompleks dan efektif. Mereka menyunting tulisan sendiri secara mandiri. Mereka menyampaikan presentasi yang terstruktur dengan menggunakan berbagai media untuk mendukung presentasi mereka."
+        }
+      ]
+    }
+  },
+  "matematika": {
+    "fase_e": {
+      "label": "Matematika Fase E (Kelas X SMA/SMK/MA)",
+      "elemen": [
+        {
+          "nama": "Bilangan",
+          "cp_normatif": "Di akhir fase E, peserta didik dapat menggeneralisasi sifat-sifat bilangan berpangkat (termasuk bilangan pangkat pecahan). Mereka dapat menerapkan barisan dan deret aritmetika dan geometri, termasuk masalah yang terkait bunga tunggal dan bunga majemuk."
+        },
+        {
+          "nama": "Aljabar dan Fungsi",
+          "cp_normatif": "Di akhir fase E, peserta didik dapat menginterpretasi ekspresi eksponensial. Mereka dapat menyelesaikan sistem persamaan linear tiga variabel, sistem pertidaksamaan linear dua variabel, persamaan dan fungsi kuadrat dan persamaan dan fungsi eksponensial dan logaritma. Mereka dapat memodelkan fenomena dan data menggunakan fungsi linear, kuadrat, eksponensial, dan fungsi berbentuk lainnya (jika datanya cocok) termasuk melakukan transformasi fungsi untuk menyesuaikan data."
+        },
+        {
+          "nama": "Geometri",
+          "cp_normatif": "Di akhir fase E, peserta didik dapat mendeskripsikan jarak dalam ruang (antar titik, titik ke garis, dan titik ke bidang). Mereka dapat menentukan dan menganalisis aturan sinus dan cosinus serta menggunakannya untuk menyelesaikan masalah yang melibatkan segitiga. Mereka dapat menggunakan rumus luas segitiga dan menerapkannya."
+        },
+        {
+          "nama": "Analisis Data dan Peluang",
+          "cp_normatif": "Di akhir fase E, peserta didik dapat merepresentasi dan menginterpretasi data dengan cara menentukan jangkauan kuartil dan persentil, membuat dan menginterpretasi box plot (box-and-whisker plot) dan menggunakannya untuk membandingkan himpunan data. Mereka dapat membuat dan menginterpretasi scatter plot, mengenali asosiasi dan tren dalam scatter plot. Mereka dapat mengidentifikasi dan menggunakan frekuensi relatif untuk memprediksi hasil dari suatu kejadian. Mereka dapat membedakan antara korelasi dan kausalitas. Mereka dapat menentukan ruang sampel dan menentukan peluang dengan pendekatan frekuensi relatif dan klasikal."
+        },
+        {
+          "nama": "Kalkulus",
+          "cp_normatif": "Di akhir fase E, peserta didik dapat memahami laju perubahan dan laju perubahan rata-rata, serta laju perubahan sesaat secara intuitif, dan menginterpretasikan secara geometri sebagai gradien garis singgung kurva."
+        }
+      ]
+    },
+    "fase_f": {
+      "label": "Matematika Fase F (Kelas XI–XII SMA/MA)",
+      "elemen": [
+        {
+          "nama": "Aljabar dan Fungsi",
+          "cp_normatif": "Di akhir fase F, peserta didik dapat memodelkan siklus menggunakan fungsi trigonometri dan menyelesaikan persamaan trigonometri sederhana. Mereka dapat membuktikan dan menerapkan identitas trigonometri, persamaan trigonometri, dan aturan cosinus untuk menyelesaikan masalah. Mereka dapat menyatakan solusi ke persamaan dan pertidaksamaan linear-kuadrat dan kuadrat-kuadrat."
+        },
+        {
+          "nama": "Kalkulus",
+          "cp_normatif": "Di akhir fase F, peserta didik dapat memahami konsep limit, turunan, dan integral, dan dapat menerapkannya untuk memodelkan dan menyelesaikan berbagai permasalahan. Mereka dapat menentukan turunan fungsi komposit menggunakan aturan rantai, dan turunan fungsi implisit dan eksplisit, serta menggunakannya untuk menentukan nilai-nilai ekstrem. Mereka dapat menentukan integral tentu dengan menggunakan teorema dasar kalkulus dan menerapkannya untuk menghitung luas daerah."
+        },
+        {
+          "nama": "Analisis Data dan Peluang",
+          "cp_normatif": "Di akhir fase F, peserta didik dapat menggunakan distribusi peluang dan dapat menghitung nilai yang diharapkan. Mereka dapat menggunakan teknik permutasi dan kombinasi untuk menghitung peluang kejadian majemuk. Mereka dapat menginterpretasi dan membandingkan distribusi data dengan menggunakan statistik ringkasan dan visualisasi berbagai representasi data."
+        }
+      ]
+    }
+  },
+  "bahasa_indonesia": {
+    "fase_e": {
+      "label": "Bahasa Indonesia Fase E (Kelas X SMA/SMK/MA)",
+      "elemen": [
+        {
+          "nama": "Menyimak",
+          "cp_normatif": "Peserta didik mampu mengevaluasi dan mengkreasi informasi berupa gagasan, pikiran, perasaan, pandangan, arahan atau pesan yang akurat dari menyimak berbagai tipe teks (nonfiksi dan fiksi) dalam bentuk monolog, dialog, dan gelar wicara."
+        },
+        {
+          "nama": "Membaca dan Memirsa",
+          "cp_normatif": "Peserta didik mampu mengevaluasi informasi berupa gagasan, pikiran, pandangan, arahan atau pesan dari berbagai jenis teks, misalnya deskripsi, laporan, narasi, rekon, eksplanasi, eksposisi dan diskusi, dari teks visual dan audiovisual untuk menemukan makna yang tersurat dan tersirat. Peserta didik menginterpretasikan informasi untuk mengungkapkan gagasan dan perasaan simpati, peduli, empati dan/atau pendapat pro/kontra dari teks visual dan audiovisual secara kreatif. Peserta didik menggunakan sumber lain untuk menilai akurasi dan kualitas data serta membandingkan isi teks."
+        },
+        {
+          "nama": "Berbicara dan Mempresentasikan",
+          "cp_normatif": "Peserta didik mampu mengolah dan menyajikan gagasan, pikiran, pandangan, arahan atau pesan untuk tujuan pengajuan usul, perumusan masalah, dan solusi dalam bentuk monolog dan dialog secara logis, runtut, kritis, dan kreatif. Peserta didik mampu mengkreasi ungkapan sesuai dengan norma kesopanan dalam berkomunikasi. Peserta didik berkontribusi lebih aktif dalam diskusi dengan mempersiapkan materi diskusi, melaksanakan tugas dan fungsi dalam diskusi."
+        },
+        {
+          "nama": "Menulis",
+          "cp_normatif": "Peserta didik mampu menulis gagasan, pikiran, pandangan, arahan atau pesan tertulis untuk berbagai tujuan secara logis, kritis, dan kreatif dalam bentuk teks informasional dan/atau fiksi. Peserta didik mampu menulis teks eksposisi hasil penelitian dan teks fungsional dunia kerja. Peserta didik mampu mengalihwahanakan satu teks ke teks lainnya untuk tujuan ekonomi kreatif. Peserta didik mampu menerbitkan hasil tulisan di media cetak maupun digital."
+        }
+      ]
+    },
+    "fase_f": {
+      "label": "Bahasa Indonesia Fase F (Kelas XI–XII SMA/SMK/MA)",
+      "elemen": [
+        {
+          "nama": "Menyimak",
+          "cp_normatif": "Peserta didik mampu mengevaluasi berbagai gagasan dan pandangan berdasarkan kaidah logika berpikir dari menyimak berbagai jenis teks (nonfiksi dan fiksi) dalam bentuk monolog, dialog, dan gelar wicara; mengkreasi ungkapan sesuai norma kesopanan."
+        },
+        {
+          "nama": "Membaca dan Memirsa",
+          "cp_normatif": "Peserta didik mampu mengevaluasi berbagai gagasan dan pandangan berdasarkan kaidah logika berpikir dari membaca berbagai tipe teks (nonfiksi dan fiksi). Peserta didik mampu mengapresiasi teks fiksi dan nonfiksi. Peserta didik mampu mengidentifikasi dan menganalisis berbagai jenis teks dalam konteks sastra, budaya, dan sosial. Peserta didik mampu mengkritisi sajian visual dan audiovisual secara kreatif dan kritis."
+        },
+        {
+          "nama": "Berbicara dan Mempresentasikan",
+          "cp_normatif": "Peserta didik mampu mengkreasi dan mengolah gagasan dalam bentuk monolog dan dialog secara kritis, kreatif, dan imajinatif. Peserta didik mampu mengungkapkan simpati, empati, peduli, perasaan, dan penghargaan secara kreatif. Peserta didik mampu berdiskusi secara aktif, konstruktif, kritis, dan santun."
+        },
+        {
+          "nama": "Menulis",
+          "cp_normatif": "Peserta didik mampu menulis gagasan, pikiran, pandangan, pengetahuan metakognisi untuk berbagai tujuan secara logis, kritis, dan imajinatif dalam bentuk teks sastra dan nonsastra. Peserta didik mampu menulis teks refleksi diri. Peserta didik mampu mengalihwahanakan satu teks ke teks lainnya untuk tujuan ekonomi kreatif. Peserta didik mampu menerbitkan hasil tulisan di media cetak maupun digital."
+        }
+      ]
+    }
+  },
+  "ipa": {
+    "fase_e": {
+      "label": "IPA Fase E (Kelas X SMA/MA — lintas minat)",
+      "elemen": [
+        {
+          "nama": "Pemahaman IPA",
+          "cp_normatif": "Peserta didik mampu mengamati, menyelidiki dan menjelaskan fenomena sesuai kaidah kerja ilmiah dalam menjelaskan konsep kimia dalam kehidupan sehari hari; menerapkan konsep fisika dalam kehidupan sehari-hari; mempelajari aspek-aspek yang berkaitan dengan biologi mulai dari aspek molekuler sampai ekosistem serta mengidentifikasi keterkaitan antar aspek tersebut."
+        },
+        {
+          "nama": "Keterampilan Proses",
+          "cp_normatif": "Peserta didik mampu mengamati, mempertanyakan dan memprediksi; merencanakan dan melakukan penyelidikan; memproses, menganalisis data dan informasi; mengevaluasi dan merefleksi; serta mengomunikasikan proses dan hasil penemuannya secara akurat dan jujur kepada orang lain menggunakan berbagai media."
+        }
+      ]
+    }
+  },
+  "informatika": {
+    "fase_e": {
+      "label": "Informatika Fase E (Kelas X SMA/SMK/MA)",
+      "elemen": [
+        {
+          "nama": "Berpikir Komputasional",
+          "cp_normatif": "Pada akhir fase E, peserta didik mampu menerapkan strategi algoritmik standar untuk menghasilkan beberapa solusi persoalan dengan data diskrit bervolume tidak kecil pada kehidupan sehari-hari maupun otomasi."
+        },
+        {
+          "nama": "Teknologi Informasi dan Komunikasi",
+          "cp_normatif": "Pada akhir fase E, peserta didik mampu memanfaatkan berbagai aplikasi secara bersamaan dan optimal untuk berkomunikasi, bekerja sama, berbagi, bekerja dan membuat laporan atau presentasi visual yang meyakinkan. Peserta didik mampu memahami HAKI, lisensi, aspek teknis dan hukum dari penggunaan informasi."
+        },
+        {
+          "nama": "Sistem Komputer",
+          "cp_normatif": "Pada akhir fase E, peserta didik mampu menjelaskan cara kerja komputer dan jaringan komputer, menjelaskan permasalahan dan cara meningkatkan keamanan siber. Peserta didik mampu memahami enkripsi simetris dan asimetris."
+        },
+        {
+          "nama": "Jaringan Komputer dan Internet",
+          "cp_normatif": "Pada akhir fase E, peserta didik mampu menjelaskan Internet dan jaringan lokal, cara kerja pengiriman data via internet, menggunakan enkripsi untuk memproteksi data, serta mampu mencari informasi, berkomunikasi dan berkolaborasi secara aman menggunakan internet."
+        },
+        {
+          "nama": "Analisis Data",
+          "cp_normatif": "Pada akhir fase E, peserta didik mampu memahami aspek privasi dan keamanan data, mengumpulkan, merepresentasikan data, menghubungkan data dari berbagai sumber untuk menghasilkan kesimpulan, serta memvisualisasikan data menggunakan banyak cara."
+        },
+        {
+          "nama": "Algoritma dan Pemrograman",
+          "cp_normatif": "Pada akhir fase E, peserta didik mampu menerapkan notasi algoritmik dan paradigma pemrograman prosedural ke dalam suatu bahasa pemrograman, menerapkan struktur data non-primitif built-in yang ada pada suatu bahasa pemrograman, membuat program untuk berinteraksi dengan konten digital."
+        },
+        {
+          "nama": "Dampak Sosial Informatika",
+          "cp_normatif": "Pada akhir fase E, peserta didik mampu memahami sejarah perkembangan komputer dan tokoh-tokohnya, memahami hak kekayaan intelektual, lisensi, aspek teknis, hukum, ekonomi, lingkungan dan sosial dari produk TIK, memahami berbagai bidang studi dan karier di bidang informatika."
+        },
+        {
+          "nama": "Praktik Lintas Bidang",
+          "cp_normatif": "Pada akhir fase E, peserta didik mampu bergotong royong untuk mengidentifikasi persoalan, merancang, mengimplementasi, menguji, dan menyempurnakan artefak komputasional sebagai solusi persoalan masyarakat, dengan mempertimbangkan dampak dari solusi tersebut."
+        }
+      ]
+    }
+  }
+}
