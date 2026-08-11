@@ -1,178 +1,412 @@
 {
   "bahasa_inggris": {
     "fase_e": {
-      "label": "Bahasa Inggris Fase E (Kelas X SMA/SMK/MA)",
+      "label": "Bahasa Inggris Fase E (Kelas 10 SMA/SMK)",
+      "cp_umum": "Di akhir Fase E, peserta didik mampu menggunakan teks lisan, tulisan, dan visual untuk berkomunikasi sesuai dengan situasi, tujuan pembelajaran, dan pembacanya. Peserta didik telah mempelajari narasi, deskripsi, prosedur, eksposisi, recount, report, dan teks otentik. Peserta didik mampu menggunakan Bahasa Inggris menyampaikan pendapat, berdiskusi topik keseharian, membaca teks untuk mendapatkan informasi, dan membuat teks tulisan dan visual yang beragam.",
       "elemen": [
         {
-          "nama": "Menyimak – Berbicara",
-          "cp_normatif": "Pada akhir Fase E, peserta didik menggunakan bahasa Inggris untuk berkomunikasi dengan guru, teman sebaya dan orang lain dalam berbagai macam situasi dan tujuan. Mereka menggunakan dan merespon pertanyaan dan menggunakan strategi untuk memulai, mempertahankan dan menyimpulkan percakapan dan diskusi. Mereka memahami dan mengidentifikasi ide utama dan detail relevan dari diskusi atau presentasi mengenai berbagai macam topik. Mereka menggunakan bahasa Inggris untuk menyampaikan opini terhadap isu yang dekat dengan kehidupan pemuda dan untuk membahas minat. Mereka memberikan dan mempertahankan pendapatnya, membuat perbandingan dan mengevaluasi perspektifnya sendiri dan perspektif orang lain. Mereka menggunakan strategi koreksi diri dan mengklarifikasi kesalahpahaman."
+          "nama": "Menyimak - Berbicara",
+          "cp_normatif": "Peserta didik menggunakan bahasa Inggris untuk berkomunikasi dengan guru, teman sebaya dan orang lain dalam berbagai macam situasi. Peserta didik memahami alur informasi secara keseluruhan, gagasan utama dan detail dalam teks lisan fiksi dan non-fiksi mengenai berbagai macam topik yang relevan dengan topik sehari-hari atau isu terkini. Peserta didik menggunakan bahasa Inggris untuk mengungkapkan pendapat dan mempertahankan argumen tentang topik yang dibahas."
         },
         {
-          "nama": "Membaca – Memirsa",
-          "cp_normatif": "Pada akhir Fase E, peserta didik membaca dan merespon berbagai macam teks seperti narasi, deskriptif, ekspositori, prosedural, argumentatif dan teks persuasif yang menggunakan berbagai mode, media dan konteks. Mereka membaca untuk mempelajari sesuatu atau untuk mendapatkan informasi. Mereka mencari, membuat sintesis dan mengevaluasi detil spesifik dan inti dari berbagai macam sumber. Mereka membaca berbagai teks sastra dan teks nonfiksi. Mereka mengidentifikasi tujuan penulis, mengembangkan keterampilan berargumen dengan mendukung klaim menggunakan detail yang relevan dan akurat dari teks. Mereka mengidentifikasi asumsi penulis, bias dan kerangka yang digunakan. Mereka menggunakan fitur-fitur teks untuk meningkatkan pemahaman."
+          "nama": "Membaca - Memirsa",
+          "cp_normatif": "Peserta didik membaca dan merespon berbagai macam teks seperti narasi, deskripsi, prosedur, eksposisi, recount, dan report untuk pembelajaran dan pencarian informasi. Peserta didik menganalisis dan menginterpretasi informasi eksplisit dan implisit dalam teks fiksi dan non-fiksi dari teks tulis dan multimodal tentang topik sehari-hari atau isu terkini."
         },
         {
-          "nama": "Menulis – Mempresentasikan",
-          "cp_normatif": "Pada akhir Fase E, peserta didik menulis berbagai jenis teks fiksi dan nonfiksi, melalui aktivitas yang dipandu, menggunakan kosakata yang tepat sasaran dan struktur kalimat yang beragam untuk menyatakan ide, gagasan, pikiran, perasaan, dan untuk memenuhi kebutuhan sehari-hari seperti mengirim email atau pun pesan kepada teman. Mereka menyampaikan ide menggunakan berbagai media seperti teks tertulis, infografis, dan media lain yang sesuai. Mereka menggunakan fitur-fitur bahasa secara tepat dan menyunting tulisan mereka sendiri."
+          "nama": "Menulis - Mempresentasikan",
+          "cp_normatif": "Peserta didik menulis berbagai jenis teks fiksi dan non-fiksi, melalui aktivitas yang dipandu, menggunakan beragam media untuk berkomunikasi dan menyajikan gagasan dengan struktur dan unsur kebahasaan yang sesuai dengan tujuan dan konteks komunikatif."
         }
       ]
     },
     "fase_f": {
-      "label": "Bahasa Inggris Fase F (Kelas XI–XII SMA/SMK/MA)",
+      "label": "Bahasa Inggris Fase F (Kelas 11-12 SMA/SMK)",
+      "cp_umum": "Peserta didik menggunakan bahasa Inggris untuk berkomunikasi dengan guru, teman sebaya dan orang lain dalam berbagai macam situasi dan tujuan. Mereka menguasai pertanyaan terbuka, menginisiasi dan mempertahankan diskusi, memahami ide utama dari presentasi, menyampaikan opini tentang isu sosial, serta menggunakan strategi koreksi diri dan elemen non-verbal untuk komunikasi yang efektif. Peserta didik membaca dan merespon berbagai macam teks seperti narasi, deskripsi, eksposisi, prosedur, argumentasi, dan diskusi secara mandiri, serta menulis berbagai jenis teks fiksi dan faktual dengan kesadaran terhadap tujuan dan target pembaca.",
       "elemen": [
         {
-          "nama": "Menyimak – Berbicara",
-          "cp_normatif": "Pada akhir Fase F, peserta didik menggunakan bahasa Inggris untuk berkomunikasi dengan situasi sosial, semi-formal dan formal. Mereka menggunakan dan merespon pertanyaan, pernyataan, dan percakapan kompleks secara efektif, menyajikan ide dengan jelas dan terstruktur dalam diskusi dan presentasi mengenai berbagai macam topik. Mereka mendukung pendapatnya dengan alasan dan bukti yang relevan, mempertimbangkan perspektif orang lain dan menyesuaikan bahasa yang digunakan sesuai situasi dan audiens."
+          "nama": "Menyimak - Berbicara",
+          "cp_normatif": "Peserta didik menggunakan bahasa Inggris untuk berkomunikasi dengan guru, teman sebaya dan orang lain dalam berbagai macam situasi dan tujuan. Mereka menguasai pertanyaan terbuka, menginisiasi dan mempertahankan diskusi, memahami ide utama dari presentasi, menyampaikan opini tentang isu sosial, serta menggunakan strategi koreksi diri dan elemen non-verbal untuk komunikasi yang efektif."
         },
         {
-          "nama": "Membaca – Memirsa",
-          "cp_normatif": "Pada akhir Fase F, peserta didik membaca dan merespon berbagai teks kompleks seperti teks persuasif, ekspositori, dan teks yang mengandung argumen dan narasi sastra, serta teks dari berbagai sumber media. Mereka mengevaluasi informasi, membuat kesimpulan berdasarkan bukti, mengidentifikasi sudut pandang penulis dan bias, serta menggunakan pengetahuan dan pengalaman pribadi untuk mengkritisi teks. Mereka menerapkan strategi membaca kritis untuk meningkatkan pemahaman mendalam."
+          "nama": "Membaca - Memirsa",
+          "cp_normatif": "Peserta didik membaca dan merespon berbagai macam teks seperti narasi, deskripsi, eksposisi, prosedur, argumentasi, dan diskusi secara mandiri. Peserta didik membaca untuk pembelajaran dan kesenangan, mengevaluasi detail dari teks cetak dan digital, memahami ide pokok, mengidentifikasi tujuan penulis, serta membuat inferensi terhadap informasi tersirat."
         },
         {
-          "nama": "Menulis – Mempresentasikan",
-          "cp_normatif": "Pada akhir Fase F, peserta didik menulis berbagai jenis teks yang lebih kompleks menggunakan berbagai struktur organisasi teks dan menggunakan berbagai cara untuk mengembangkan argumen dan narasi. Mereka menggunakan kosakata yang beragam dan struktur kalimat yang kompleks dan efektif. Mereka menyunting tulisan sendiri secara mandiri. Mereka menyampaikan presentasi yang terstruktur dengan menggunakan berbagai media untuk mendukung presentasi mereka."
-        }
-      ]
-    }
-  },
-  "matematika": {
-    "fase_e": {
-      "label": "Matematika Fase E (Kelas X SMA/SMK/MA)",
-      "elemen": [
-        {
-          "nama": "Bilangan",
-          "cp_normatif": "Di akhir fase E, peserta didik dapat menggeneralisasi sifat-sifat bilangan berpangkat (termasuk bilangan pangkat pecahan). Mereka dapat menerapkan barisan dan deret aritmetika dan geometri, termasuk masalah yang terkait bunga tunggal dan bunga majemuk."
-        },
-        {
-          "nama": "Aljabar dan Fungsi",
-          "cp_normatif": "Di akhir fase E, peserta didik dapat menginterpretasi ekspresi eksponensial. Mereka dapat menyelesaikan sistem persamaan linear tiga variabel, sistem pertidaksamaan linear dua variabel, persamaan dan fungsi kuadrat dan persamaan dan fungsi eksponensial dan logaritma. Mereka dapat memodelkan fenomena dan data menggunakan fungsi linear, kuadrat, eksponensial, dan fungsi berbentuk lainnya (jika datanya cocok) termasuk melakukan transformasi fungsi untuk menyesuaikan data."
-        },
-        {
-          "nama": "Geometri",
-          "cp_normatif": "Di akhir fase E, peserta didik dapat mendeskripsikan jarak dalam ruang (antar titik, titik ke garis, dan titik ke bidang). Mereka dapat menentukan dan menganalisis aturan sinus dan cosinus serta menggunakannya untuk menyelesaikan masalah yang melibatkan segitiga. Mereka dapat menggunakan rumus luas segitiga dan menerapkannya."
-        },
-        {
-          "nama": "Analisis Data dan Peluang",
-          "cp_normatif": "Di akhir fase E, peserta didik dapat merepresentasi dan menginterpretasi data dengan cara menentukan jangkauan kuartil dan persentil, membuat dan menginterpretasi box plot (box-and-whisker plot) dan menggunakannya untuk membandingkan himpunan data. Mereka dapat membuat dan menginterpretasi scatter plot, mengenali asosiasi dan tren dalam scatter plot. Mereka dapat mengidentifikasi dan menggunakan frekuensi relatif untuk memprediksi hasil dari suatu kejadian. Mereka dapat membedakan antara korelasi dan kausalitas. Mereka dapat menentukan ruang sampel dan menentukan peluang dengan pendekatan frekuensi relatif dan klasikal."
-        },
-        {
-          "nama": "Kalkulus",
-          "cp_normatif": "Di akhir fase E, peserta didik dapat memahami laju perubahan dan laju perubahan rata-rata, serta laju perubahan sesaat secara intuitif, dan menginterpretasikan secara geometri sebagai gradien garis singgung kurva."
-        }
-      ]
-    },
-    "fase_f": {
-      "label": "Matematika Fase F (Kelas XI–XII SMA/MA)",
-      "elemen": [
-        {
-          "nama": "Aljabar dan Fungsi",
-          "cp_normatif": "Di akhir fase F, peserta didik dapat memodelkan siklus menggunakan fungsi trigonometri dan menyelesaikan persamaan trigonometri sederhana. Mereka dapat membuktikan dan menerapkan identitas trigonometri, persamaan trigonometri, dan aturan cosinus untuk menyelesaikan masalah. Mereka dapat menyatakan solusi ke persamaan dan pertidaksamaan linear-kuadrat dan kuadrat-kuadrat."
-        },
-        {
-          "nama": "Kalkulus",
-          "cp_normatif": "Di akhir fase F, peserta didik dapat memahami konsep limit, turunan, dan integral, dan dapat menerapkannya untuk memodelkan dan menyelesaikan berbagai permasalahan. Mereka dapat menentukan turunan fungsi komposit menggunakan aturan rantai, dan turunan fungsi implisit dan eksplisit, serta menggunakannya untuk menentukan nilai-nilai ekstrem. Mereka dapat menentukan integral tentu dengan menggunakan teorema dasar kalkulus dan menerapkannya untuk menghitung luas daerah."
-        },
-        {
-          "nama": "Analisis Data dan Peluang",
-          "cp_normatif": "Di akhir fase F, peserta didik dapat menggunakan distribusi peluang dan dapat menghitung nilai yang diharapkan. Mereka dapat menggunakan teknik permutasi dan kombinasi untuk menghitung peluang kejadian majemuk. Mereka dapat menginterpretasi dan membandingkan distribusi data dengan menggunakan statistik ringkasan dan visualisasi berbagai representasi data."
+          "nama": "Menulis - Mempresentasikan",
+          "cp_normatif": "Peserta didik menulis berbagai jenis teks fiksi dan faktual secara mandiri, menunjukkan kesadaran terhadap tujuan dan target pembaca. Mereka merencanakan, menulis, dan merevisi dengan strategi koreksi diri, mengekspresikan ide kompleks menggunakan kosakata beragam, membuat paragraf terstruktur, serta menyajikan informasi dalam bentuk cetak dan digital."
         }
       ]
     }
   },
   "bahasa_indonesia": {
     "fase_e": {
-      "label": "Bahasa Indonesia Fase E (Kelas X SMA/SMK/MA)",
+      "label": "Bahasa Indonesia Fase E (Kelas 10 SMA/SMK)",
+      "cp_umum": "Pada akhir fase E, peserta didik memiliki kemampuan berbahasa untuk berkomunikasi dan bernalar sesuai dengan tujuan, konteks sosial, akademis, dan dunia kerja. Peserta didik mampu memahami, mengolah, menginterpretasi, dan mengevaluasi informasi dari berbagai tipe teks tentang topik yang beragam. Peserta didik mampu menyintesis gagasan dan pendapat dari berbagai sumber, berpartisipasi aktif dalam diskusi dan debat, serta menulis berbagai teks untuk menyampaikan pendapat dan mempresentasikan serta menanggapi informasi nonfiksi dan fiksi secara kritis dan etis.",
       "elemen": [
         {
           "nama": "Menyimak",
-          "cp_normatif": "Peserta didik mampu mengevaluasi dan mengkreasi informasi berupa gagasan, pikiran, perasaan, pandangan, arahan atau pesan yang akurat dari menyimak berbagai tipe teks (nonfiksi dan fiksi) dalam bentuk monolog, dialog, dan gelar wicara."
+          "cp_normatif": "Peserta didik mampu mengevaluasi dan mengkreasi informasi berupa gagasan, pikiran, perasaan, pandangan, arahan atau pesan yang akurat dari menyimak berbagai jenis teks (nonfiksi dan fiksi) dalam bentuk monolog, dialog, dan gelar wicara."
         },
         {
           "nama": "Membaca dan Memirsa",
-          "cp_normatif": "Peserta didik mampu mengevaluasi informasi berupa gagasan, pikiran, pandangan, arahan atau pesan dari berbagai jenis teks, misalnya deskripsi, laporan, narasi, rekon, eksplanasi, eksposisi dan diskusi, dari teks visual dan audiovisual untuk menemukan makna yang tersurat dan tersirat. Peserta didik menginterpretasikan informasi untuk mengungkapkan gagasan dan perasaan simpati, peduli, empati dan/atau pendapat pro/kontra dari teks visual dan audiovisual secara kreatif. Peserta didik menggunakan sumber lain untuk menilai akurasi dan kualitas data serta membandingkan isi teks."
+          "cp_normatif": "Peserta didik mampu mengevaluasi informasi berupa gagasan, pikiran, pandangan, arahan atau pesan dari berbagai jenis teks, misalnya deskripsi, laporan, narasi, rekon, eksplanasi, eksposisi dan diskusi, dari teks visual dan audiovisual untuk menemukan makna yang tersurat dan tersirat. Peserta didik mampu menginterpretasi dan mengintegrasikan teks untuk mengungkapkan simpati, empati, peduli, dan pendapat pro/kontra dari teks visual dan audiovisual."
         },
         {
           "nama": "Berbicara dan Mempresentasikan",
-          "cp_normatif": "Peserta didik mampu mengolah dan menyajikan gagasan, pikiran, pandangan, arahan atau pesan untuk tujuan pengajuan usul, perumusan masalah, dan solusi dalam bentuk monolog dan dialog secara logis, runtut, kritis, dan kreatif. Peserta didik mampu mengkreasi ungkapan sesuai dengan norma kesopanan dalam berkomunikasi. Peserta didik berkontribusi lebih aktif dalam diskusi dengan mempersiapkan materi diskusi, melaksanakan tugas dan fungsi dalam diskusi."
+          "cp_normatif": "Peserta didik mampu mengolah dan menyajikan gagasan, pikiran, pandangan, arahan atau pesan untuk tujuan pengajuan usul, perumusan masalah, dan solusi dalam bentuk monolog, dialog, dan gelar wicara secara logis, runtut, kritis, dan kreatif. Peserta didik mampu mengkreasi ungkapan sesuai dengan norma kesopanan dalam berkomunikasi dan berkontribusi lebih aktif dalam diskusi."
         },
         {
           "nama": "Menulis",
-          "cp_normatif": "Peserta didik mampu menulis gagasan, pikiran, pandangan, arahan atau pesan tertulis untuk berbagai tujuan secara logis, kritis, dan kreatif dalam bentuk teks informasional dan/atau fiksi. Peserta didik mampu menulis teks eksposisi hasil penelitian dan teks fungsional dunia kerja. Peserta didik mampu mengalihwahanakan satu teks ke teks lainnya untuk tujuan ekonomi kreatif. Peserta didik mampu menerbitkan hasil tulisan di media cetak maupun digital."
+          "cp_normatif": "Peserta didik mampu menulis gagasan, pikiran, pandangan, arahan atau pesan tertulis untuk berbagai tujuan secara logis, kritis, dan kreatif dalam bentuk teks informasional dan/atau fiksi. Peserta didik mampu menulis teks eksposisi hasil penelitian dan teks fungsional dunia kerja. Peserta didik mampu mengalihwahanakan satu teks ke teks lainnya untuk tujuan ekonomi kreatif."
         }
       ]
     },
     "fase_f": {
-      "label": "Bahasa Indonesia Fase F (Kelas XI–XII SMA/SMK/MA)",
+      "label": "Bahasa Indonesia Fase F (Kelas 11-12 SMA/SMK)",
+      "cp_umum": "Pada akhir fase F, peserta didik memiliki kemampuan berbahasa untuk berkomunikasi dan bernalar sesuai dengan tujuan, konteks sosial, akademis, dan dunia kerja. Peserta didik mampu memahami, mengolah, menginterpretasi, dan mengevaluasi berbagai tipe teks tentang topik yang beragam. Peserta didik mampu mengkreasi gagasan dan pendapat untuk berbagai tujuan; peserta didik mampu berpartisipasi aktif dalam kegiatan berbahasa yang melibatkan banyak orang; dan peserta didik mampu menulis berbagai teks untuk merefleksi dan mengaktualisasi diri untuk selalu berkarya dengan mengutamakan penggunaan bahasa Indonesia di berbagai media untuk memajukan peradaban bangsa.",
       "elemen": [
         {
           "nama": "Menyimak",
-          "cp_normatif": "Peserta didik mampu mengevaluasi berbagai gagasan dan pandangan berdasarkan kaidah logika berpikir dari menyimak berbagai jenis teks (nonfiksi dan fiksi) dalam bentuk monolog, dialog, dan gelar wicara; mengkreasi ungkapan sesuai norma kesopanan."
+          "cp_normatif": "Peserta didik mampu mengevaluasi berbagai gagasan dan pandangan berdasarkan kaidah logika berpikir dari menyimak berbagai jenis teks (nonfiksi dan fiksi) dalam bentuk monolog, dialog, dan gelar wicara. Peserta didik mampu mengkreasi dan mengapresiasi pesan serta mengontekstualisasikan dengan pengalaman diri sendiri."
         },
         {
           "nama": "Membaca dan Memirsa",
-          "cp_normatif": "Peserta didik mampu mengevaluasi berbagai gagasan dan pandangan berdasarkan kaidah logika berpikir dari membaca berbagai tipe teks (nonfiksi dan fiksi). Peserta didik mampu mengapresiasi teks fiksi dan nonfiksi. Peserta didik mampu mengidentifikasi dan menganalisis berbagai jenis teks dalam konteks sastra, budaya, dan sosial. Peserta didik mampu mengkritisi sajian visual dan audiovisual secara kreatif dan kritis."
+          "cp_normatif": "Peserta didik mampu mengevaluasi gagasan dan pandangan berdasarkan kaidah logika berpikir dari membaca berbagai tipe teks di media cetak dan elektronik. Peserta didik mampu mengapresiasi teks fiksi dan nonfiksi dalam bentuk membaca ekstensif."
         },
         {
           "nama": "Berbicara dan Mempresentasikan",
-          "cp_normatif": "Peserta didik mampu mengkreasi dan mengolah gagasan dalam bentuk monolog dan dialog secara kritis, kreatif, dan imajinatif. Peserta didik mampu mengungkapkan simpati, empati, peduli, perasaan, dan penghargaan secara kreatif. Peserta didik mampu berdiskusi secara aktif, konstruktif, kritis, dan santun."
+          "cp_normatif": "Peserta didik mampu menyajikan gagasan, pikiran, dan kreativitas dalam berbahasa dalam bentuk monolog, dialog, dan gelar wicara secara logis, sistematis, kritis, dan kreatif. Peserta didik mampu mempertahankan hasil penelitian, serta menyampaikan dan mendiskusikan rumusan masalah dan solusi-solusi terhadap persoalan umum."
         },
         {
           "nama": "Menulis",
-          "cp_normatif": "Peserta didik mampu menulis gagasan, pikiran, pandangan, pengetahuan metakognisi untuk berbagai tujuan secara logis, kritis, dan imajinatif dalam bentuk teks sastra dan nonsastra. Peserta didik mampu menulis teks refleksi diri. Peserta didik mampu mengalihwahanakan satu teks ke teks lainnya untuk tujuan ekonomi kreatif. Peserta didik mampu menerbitkan hasil tulisan di media cetak maupun digital."
+          "cp_normatif": "Peserta didik mampu menulis gagasan, pikiran, pandangan, pengetahuan metakognisi untuk berbagai tujuan secara logis, kritis, dan kreatif. Peserta didik mampu menulis teks sastra dalam bentuk puisi, prosa, dan drama. Peserta didik mampu menulis teks refleksi diri dan teks fungsional dunia kerja."
         }
       ]
     }
   },
-  "ipa": {
+  "matematika": {
     "fase_e": {
-      "label": "IPA Fase E (Kelas X SMA/MA — lintas minat)",
+      "label": "Matematika Fase E (Kelas 10 SMA/SMK)",
       "elemen": [
         {
-          "nama": "Pemahaman IPA",
-          "cp_normatif": "Peserta didik mampu mengamati, menyelidiki dan menjelaskan fenomena sesuai kaidah kerja ilmiah dalam menjelaskan konsep kimia dalam kehidupan sehari hari; menerapkan konsep fisika dalam kehidupan sehari-hari; mempelajari aspek-aspek yang berkaitan dengan biologi mulai dari aspek molekuler sampai ekosistem serta mengidentifikasi keterkaitan antar aspek tersebut."
+          "nama": "Bilangan",
+          "cp_normatif": "Di akhir fase E, peserta didik dapat menggeneralisasi sifat-sifat bilangan berpangkat (termasuk bilangan pangkat pecahan). Peserta didik mengaplikasikan barisan dan deret aritmetika dan geometri, termasuk masalah yang terkait bunga tunggal dan bunga majemuk."
         },
         {
-          "nama": "Keterampilan Proses",
-          "cp_normatif": "Peserta didik mampu mengamati, mempertanyakan dan memprediksi; merencanakan dan melakukan penyelidikan; memproses, menganalisis data dan informasi; mengevaluasi dan merefleksi; serta mengomunikasikan proses dan hasil penemuannya secara akurat dan jujur kepada orang lain menggunakan berbagai media."
+          "nama": "Aljabar dan Fungsi",
+          "cp_normatif": "Di akhir fase E, peserta didik dapat menyelesaikan masalah yang berkaitan dengan sistem persamaan linear tiga variabel dan sistem pertidaksamaan linear dua variabel. Peserta didik dapat menyelesaikan masalah yang berkaitan dengan persamaan dan fungsi kuadrat (termasuk akar imajiner), dan persamaan dan fungsi eksponensial (berbasis sama) dengan menggunakan sifat-sifat yang bersesuaian."
+        },
+        {
+          "nama": "Geometri",
+          "cp_normatif": "Di akhir fase E, peserta didik dapat menyelesaikan permasalahan segitiga siku-siku yang melibatkan perbandingan trigonometri dan aplikasinya."
+        },
+        {
+          "nama": "Analisis Data dan Peluang",
+          "cp_normatif": "Di akhir fase E, peserta didik dapat merepresentasikan data menggunakan jangkauan kuartil dan interkuartil. Peserta didik dapat membuat dan menginterpretasi box plot (box-and-whisker plot) dan menggunakannya untuk membandingkan himpunan data. Peserta didik dapat menggunakan histogram dan dot plot sesuai kebutuhan. Peserta didik dapat menggunakan diagram pencar untuk menganalisis hubungan dua variabel numerik dan mengevaluasi laporan statistika di media. Peserta didik memahami konsep peluang bersyarat dan kejadian yang saling bebas serta menentukan peluangnya."
         }
       ]
+    },
+    "fase_f": {
+      "label": "Matematika Fase F (Kelas 11-12 SMA/SMK)",
+      "elemen": [
+        {
+          "nama": "Bilangan",
+          "cp_normatif": "Di akhir fase F, peserta didik dapat memodelkan pinjaman dan investasi dengan bunga majemuk dan anuitas, serta menyelidiki pengaruh masing-masing parameter dalam model tersebut."
+        },
+        {
+          "nama": "Aljabar dan Fungsi",
+          "cp_normatif": "Di akhir fase F, peserta didik dapat menyatakan data dalam bentuk matriks. Peserta didik dapat menentukan fungsi invers, komposisi fungsi, dan transformasi fungsi untuk memodelkan situasi dunia nyata menggunakan fungsi yang sesuai (linear, kuadrat, eksponensial)."
+        },
+        {
+          "nama": "Geometri",
+          "cp_normatif": "Di akhir fase F, peserta didik dapat menerapkan teorema tentang lingkaran, dan menentukan panjang busur dan luas juring lingkaran. Peserta didik juga dapat menerapkan konsep geometri dalam konteks menentukan lokasi dan jarak di permukaan Bumi."
+        },
+        {
+          "nama": "Analisis Data dan Peluang",
+          "cp_normatif": "Di akhir fase F, peserta didik dapat melakukan penyelidikan statistika data bivariat. Peserta didik dapat mengidentifikasi dan menganalisis asosiasi antara dua variabel kategorikal dan antara dua variabel numerikal. Peserta didik mampu membedakan asosiasi dan kausalitas. Peserta didik dapat memahami konsep peluang bersyarat, permutasi, dan kombinasi untuk menghitung peluang."
+        }
+      ]
+    }
+  },
+  "pendidikan_pancasila": {
+    "fase_e": {
+      "label": "Pendidikan Pancasila Fase E (Kelas 10 SMA/SMK)",
+      "elemen": [
+        {
+          "nama": "Pancasila",
+          "cp_normatif": "Peserta didik dapat menganalisis cara pandang para pendiri negara tentang dasar negara; menganalisis kedudukan Pancasila sebagai dasar negara, pandangan hidup, dan ideologi negara; merumuskan gagasan solutif untuk mengatasi perilaku yang bertentangan dengan nilai Pancasila dalam kehidupan sehari-hari."
+        },
+        {
+          "nama": "Undang-Undang Dasar Negara RI Tahun 1945",
+          "cp_normatif": "Peserta didik mampu menerapkan perilaku taat hukum berdasarkan peraturan yang berlaku di masyarakat; menganalisis tata urutan peraturan perundang-undangan di Indonesia."
+        },
+        {
+          "nama": "Bhinneka Tunggal Ika",
+          "cp_normatif": "Peserta didik dapat menyajikan asal usul dan makna semboyan Bhinneka Tunggal Ika sebagai modal sosial; membangun harmoni dalam keberagaman; dan mengenal gotong royong sebagai perwujudan sistem ekonomi Pancasila yang inklusif dan berkeadilan."
+        },
+        {
+          "nama": "Negara Kesatuan Republik Indonesia",
+          "cp_normatif": "Peserta didik mampu menerapkan perilaku sesuai dengan hak dan kewajiban sebagai warga sekolah, warga masyarakat dan warga negara; memahami peran dan kedudukannya sebagai WNI; memahami sistem pertahanan dan keamanan negara; menganalisis peran Indonesia dalam hubungan antarbangsa dan negara; serta menguraikan nilai-nilai Pancasila dalam pembangunan nasional."
+        }
+      ]
+    },
+    "fase_f": {
+      "label": "Pendidikan Pancasila Fase F (Kelas 11-12 SMA/SMK)",
+      "elemen": [
+        {
+          "nama": "Pancasila",
+          "cp_normatif": "Peserta didik mampu mendeskripsikan rumusan dan keterkaitan sila-sila dalam Pancasila; menganalisis perilaku yang sesuai dengan nilai Pancasila dan membiasakan perilaku tersebut dalam kehidupan sehari-hari."
+        },
+        {
+          "nama": "Undang-Undang Dasar Negara RI Tahun 1945",
+          "cp_normatif": "Peserta didik mampu menganalisis periodisasi pemberlakuan undang-undang dasar di Indonesia; mengidentifikasi jenis hak dan kewajiban asasi manusia dan menganalisis kasus pelanggaran hak serta merumuskan solusinya; memahami sistem pemerintahan di Indonesia."
+        },
+        {
+          "nama": "Bhinneka Tunggal Ika",
+          "cp_normatif": "Peserta didik mampu menganalisis potensi konflik dan bersama-sama memberi solusi yang bermartabat berdasarkan nilai-nilai Pancasila; menginisiasi suatu kegiatan bersama dan menetapkan tujuan bersama dengan prinsip gotong royong."
+        },
+        {
+          "nama": "Negara Kesatuan Republik Indonesia",
+          "cp_normatif": "Peserta didik mampu mendemonstrasikan praktik demokrasi dalam kehidupan berbangsa dan bernegara; menganalisis ancaman disintegrasi bangsa; memahami peran lembaga negara dalam penegakan hak asasi manusia di Indonesia."
+        }
+      ]
+    }
+  },
+  "pjok": {
+    "fase_e": {
+      "label": "PJOK Fase E (Kelas 10 SMA/SMK)",
+      "elemen": [
+        {
+          "nama": "Keterampilan Gerak",
+          "cp_normatif": "Pada akhir fase E peserta didik dapat menunjukkan kemampuan dalam mempraktikkan hasil evaluasi penerapan keterampilan gerak berupa permainan dan olahraga, aktivitas senam, aktivitas gerak berirama, dan aktivitas permainan dan olahraga air (kondisional) secara matang pada permainan, aktivitas jasmani lainnya, dan kehidupan nyata sehari-hari."
+        },
+        {
+          "nama": "Pengetahuan Gerak",
+          "cp_normatif": "Pada akhir fase E peserta didik dapat mengevaluasi fakta, konsep, prinsip, dan prosedur dalam melakukan evaluasi penerapan keterampilan gerak berupa permainan dan olahraga, aktivitas senam, aktivitas gerak berirama, dan aktivitas permainan dan olahraga air (kondisional) pada permainan, aktivitas jasmani lainnya, dan kehidupan nyata sehari-hari."
+        },
+        {
+          "nama": "Pemanfaatan Gerak",
+          "cp_normatif": "Pada akhir fase E peserta didik dapat mengevaluasi fakta, konsep, prinsip, dan prosedur dan mempraktikkan latihan pengembangan kebugaran jasmani terkait kesehatan (physical fitness related health) dan kebugaran jasmani terkait keterampilan (physical fitness related skills), berdasarkan prinsip latihan (Frequency, Intensity, Time, Type/FITT) untuk mendapatkan kebugaran dengan status baik. Peserta didik juga dapat menunjukkan kemampuan dalam mengembangkan pola perilaku hidup sehat berupa penerapan konsep dan prinsip pergaulan sehat antar remaja dan orang lain di sekitarnya."
+        },
+        {
+          "nama": "Pengembangan Karakter dan Internalisasi Nilai-nilai Gerak",
+          "cp_normatif": "Pada akhir fase E peserta didik mengembangkan tanggung jawab sosialnya dalam kelompok kecil untuk melakukan perubahan positif, menunjukkan etika yang baik, saling menghormati, dan mengambil bagian dalam kerja kelompok pada aktivitas jasmani atau kegiatan sosial lainnya. Peserta didik juga dapat menumbuhkembangkan cara menghadapi tantangan dalam aktivitas jasmani."
+        }
+      ]
+    },
+    "fase_f": {
+      "label": "PJOK Fase F (Kelas 11-12 SMA/SMK)",
+      "elemen": [
+        {
+          "nama": "Keterampilan Gerak",
+          "cp_normatif": "Peserta didik dapat menunjukkan kemampuan dalam mempraktikkan hasil rancangan sesuai ragam pola yang ada berupa penerapan keterampilan gerak (motor skills) permainan dan olahraga, aktivitas senam, aktivitas gerak berirama, dan aktivitas permainan dan olahraga air (kondisional) dengan berbagai bentuk taktik dan strategi."
+        },
+        {
+          "nama": "Pengetahuan Gerak",
+          "cp_normatif": "Peserta didik dapat merancang prosedur, strategi, dan taktik dengan mengikuti beragam pola yang ada terkait dengan aktivitas penerapan keterampilan gerak (motor skills) berupa permainan dan olahraga, aktivitas senam, aktivitas gerak berirama, dan aktivitas permainan dan olahraga air (kondisional)."
+        },
+        {
+          "nama": "Pemanfaatan Gerak",
+          "cp_normatif": "Peserta didik dapat merancang dan mempraktikkan program latihan pengembangan kebugaran jasmani terkait kesehatan dan kebugaran jasmani terkait keterampilan sesuai ragam pola yang ada. Peserta didik dapat menganalisis bahaya, cara penularan, dan cara pencegahan HIV/AIDS dan penyakit menular seksual (PMS) lainnya."
+        },
+        {
+          "nama": "Pengembangan Karakter dan Internalisasi Nilai-nilai Gerak",
+          "cp_normatif": "Peserta didik dapat mengambil peran sebagai pemimpin kelompok yang lebih besar dalam aktivitas jasmani dan olahraga dengan tetap menjunjung tinggi moral dan etika, serta dapat menginisiasi pembentukan komunitas peminatan agar orang lain menjalankan etika yang baik, saling menghormati, dan mengambil bagian dalam kerja kelompok sosial lainnya."
+        }
+      ]
+    }
+  },
+  "sejarah": {
+    "fase_e": {
+      "label": "Sejarah Fase E (Kelas 10 SMK)",
+      "cp_umum": "Pada akhir fase E, murid memiliki kemampuan sebagai berikut\n\n1.1. Pemahaman Konsep\nMemahami konsep dasar ilmu sejarah serta menginterpretasi berbagai peristiwa sejarah Indonesia yang berkaitan dengan masa Kerajaan Hindu-Buddha, Kerajaan Islam, Penjajahan Bangsa Barat, hingga Perjuangan Pergerakan Kebangsaan Indonesia. Murid mengaplikasikan keterampilan berpikir sejarah dalam mengkritisi peristiwa masa lalu yang relevan dengan bidang kejuruannya.\n\n1.2. Keterampilan Proses\nMemahami konsep dasar ilmu sejarah dan mampu berpikir sejarah melalui proses mengamati fenomena sejarah, menanya, mengumpulkan informasi, menganalisis informasi, mengomunikasikan dan mengaitkannya dengan muatan vokasional yang sesuai dengan kompetensi kejuruan yang diampunya. Secara spesifik keterampilan proses belajar sejarah mencakup keterampilan berpikir diakronis (kronologis), berpikir sinkronis, analisis dan interpretasi sejarah, penulisan sejarah secara sederhana, analisis isu kesejarahan serta, menemukan kebermaknaan peristiwa sejarah pada masa kerajaan Hindu-Buddha, kerajaan Islam, penjajahan bangsa Barat, perlawanan rakyat daerah terhadap penjajah, pergerakan kebangsaan Indonesia.",
+      "elemen": [
+        {
+          "nama": "Pemahaman Konsep Sejarah",
+          "cp_normatif": "Peserta didik mampu memahami konsep dasar ilmu sejarah yang dapat digunakan untuk menjelaskan peristiwa sejarah. Peserta didik mampu menganalisis manusia sebagai subjek dan objek sejarah, menganalisis peristiwa sejarah dalam skala lokal, nasional, dan global dalam perspektif kronologis dan diakronis. Peserta didik menguasai konsep asal usul nenek moyang, jalur rempah, kerajaan Hindu-Buddha, dan kerajaan Islam dalam perspektif temporal dan spasial yang beragam."
+        },
+        {
+          "nama": "Keterampilan Proses Sejarah",
+          "cp_normatif": "Peserta didik mampu mengamati, menanya, mengumpulkan informasi, mengorganisasikan informasi, dan menarik kesimpulan menggunakan prosedur sejarah. Peserta didik mampu melakukan penelitian sejarah lokal, menjelaskan hubungan sebab-akibat, melakukan analisis multiperspektif, membandingkan dalam skala geografis yang berbeda, mengontekstualisasikan dengan isu kontemporer, dan mengolah informasi sejarah dalam format digital dan non-digital."
+        }
+      ]
+    },
+    "fase_f": {
+      "label": "Sejarah Fase F (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir fase F, murid memiliki kemampuan sebagai berikut\n\n2.1. Pemahaman Konsep\nMemahami kehidupan bangsa Indonesia pada masa pendudukan Jepang, proklamasi kemerdekaan Indonesia, upaya mempertahankan kemerdekaan, masa pemerintahan Sukarno, masa pemerintahan Suharto, dan masa reformasi dengan menggunakan konsep-konsep dasar ilmu sejarah. Murid memiliki kesadaran sejarah sebagai wujud literasi dan empati terhadap perjalanan bangsa. Selain itu, murid juga memiliki kemampuan mengaitkan nilai-nilai sejarah yang relevan dengan kompetensi kejuruan dalam menghadapi tantangan dan peluang di dunia kerja serta dunia industri yang terus berkembang.\n\n2.2. Keterampilan Proses\nMengaplikasikan literasi sejarah, membangun kesadaran sejarah, dan merumuskan penelitian sejarah secara sederhana melalui proses mengamati fenomena sejarah, menanya, mengumpulkan informasi, menganalisis informasi, mengomunikasikan, dan mengaitkannya dengan muatan vokasional sesuai dengan kompetensi kejuruannya. Secara spesifik keterampilan proses belajar sejarah mencakup keterampilan berpikir diakronis (kronologis), berpikir sinkronis, analisis dan interpretasi sejarah, penulisan sejarah secara sederhana, analisis isu kesejarahan serta menemukan kebermaknaan peristiwa sejarah pendudukan Jepang, proklamasi kemerdekaan Indonesia, mempertahankan kemerdekaan Indonesia, orde lama, orde baru, dan reformasi.",
+      "elemen": []
     }
   },
   "informatika": {
     "fase_e": {
-      "label": "Informatika Fase E (Kelas X SMA/SMK/MA)",
+      "label": "Informatika Fase E (Kelas 10 SMA/SMK)",
       "elemen": [
         {
-          "nama": "Berpikir Komputasional",
-          "cp_normatif": "Pada akhir fase E, peserta didik mampu menerapkan strategi algoritmik standar untuk menghasilkan beberapa solusi persoalan dengan data diskrit bervolume tidak kecil pada kehidupan sehari-hari maupun otomasi."
+          "nama": "Berpikir Komputasional (BK)",
+          "cp_normatif": "Menerapkan strategi algoritmik standar untuk menghasilkan beberapa solusi persoalan dengan data diskrit bervolume tidak kecil pada kehidupan sehari-hari maupun implementasinya dalam program komputer."
         },
         {
-          "nama": "Teknologi Informasi dan Komunikasi",
-          "cp_normatif": "Pada akhir fase E, peserta didik mampu memanfaatkan berbagai aplikasi secara bersamaan dan optimal untuk berkomunikasi, bekerja sama, berbagi, bekerja dan membuat laporan atau presentasi visual yang meyakinkan. Peserta didik mampu memahami HAKI, lisensi, aspek teknis dan hukum dari penggunaan informasi."
+          "nama": "Teknologi Informasi dan Komunikasi (TIK)",
+          "cp_normatif": "Memanfaatkan berbagai aplikasi secara bersamaan dan optimal untuk berkomunikasi, mencari sumber data yang akan diolah menjadi informasi, baik di dunia nyata maupun di internet, serta mahir menggunakan fitur lanjut aplikasi perkantoran (pengolah kata, angka, dan presentasi) beserta otomasinya."
         },
         {
-          "nama": "Sistem Komputer",
-          "cp_normatif": "Pada akhir fase E, peserta didik mampu menjelaskan cara kerja komputer dan jaringan komputer, menjelaskan permasalahan dan cara meningkatkan keamanan siber. Peserta didik mampu memahami enkripsi simetris dan asimetris."
+          "nama": "Sistem Komputer (SK)",
+          "cp_normatif": "Memahami peran sistem operasi dan mekanisme internal yang terjadi pada interaksi antara perangkat keras, perangkat lunak, dan pengguna."
         },
         {
-          "nama": "Jaringan Komputer dan Internet",
-          "cp_normatif": "Pada akhir fase E, peserta didik mampu menjelaskan Internet dan jaringan lokal, cara kerja pengiriman data via internet, menggunakan enkripsi untuk memproteksi data, serta mampu mencari informasi, berkomunikasi dan berkolaborasi secara aman menggunakan internet."
+          "nama": "Jaringan dan Komunikasi Internet (JKI)",
+          "cp_normatif": "Menerapkan konektivitas jaringan lokal, komunikasi data via ponsel, konektivitas internet melalui jaringan kabel dan nirkabel (bluetooth, wifi, internet), enkripsi untuk memproteksi data."
         },
         {
-          "nama": "Analisis Data",
-          "cp_normatif": "Pada akhir fase E, peserta didik mampu memahami aspek privasi dan keamanan data, mengumpulkan, merepresentasikan data, menghubungkan data dari berbagai sumber untuk menghasilkan kesimpulan, serta memvisualisasikan data menggunakan banyak cara."
+          "nama": "Analisis Data (AD)",
+          "cp_normatif": "Memahami aspek privasi dan keamanan data, mengumpulkan dan mengintegrasikan data dari berbagai sumber untuk menghasilkan visualisasi, memodelkan data, serta menerapkan siklus pengolahan data dengan perkakas yang sesuai."
         },
         {
-          "nama": "Algoritma dan Pemrograman",
-          "cp_normatif": "Pada akhir fase E, peserta didik mampu menerapkan notasi algoritmik dan paradigma pemrograman prosedural ke dalam suatu bahasa pemrograman, menerapkan struktur data non-primitif built-in yang ada pada suatu bahasa pemrograman, membuat program untuk berinteraksi dengan konten digital."
+          "nama": "Algoritma dan Pemrograman (AP)",
+          "cp_normatif": "Menerapkan praktik baik konsep pemrograman prosedural dalam salah satu bahasa pemrograman prosedural dan mengembangkan program terstruktur dalam bentuk beberapa fungsi yang saling memanggil."
         },
         {
-          "nama": "Dampak Sosial Informatika",
-          "cp_normatif": "Pada akhir fase E, peserta didik mampu memahami sejarah perkembangan komputer dan tokoh-tokohnya, memahami hak kekayaan intelektual, lisensi, aspek teknis, hukum, ekonomi, lingkungan dan sosial dari produk TIK, memahami berbagai bidang studi dan karier di bidang informatika."
+          "nama": "Dampak Sosial Informatika (DSI)",
+          "cp_normatif": "Memahami sejarah perkembangan komputer, sejarah internet, hak kekayaan intelektual, privasi, lisensi, dan aspek teknis, hukum, ekonomi, lingkungan, dan sosial dari produk TIK."
         },
         {
-          "nama": "Praktik Lintas Bidang",
-          "cp_normatif": "Pada akhir fase E, peserta didik mampu bergotong royong untuk mengidentifikasi persoalan, merancang, mengimplementasi, menguji, dan menyempurnakan artefak komputasional sebagai solusi persoalan masyarakat, dengan mempertimbangkan dampak dari solusi tersebut."
+          "nama": "Proyek Lintas Bidang (PLB)",
+          "cp_normatif": "Bergotong royong dalam tim inklusif untuk mengerjakan proyek bertema Informatika yang membutuhkan penyelesaian masalah komputasional secara kreatif, dengan mengidentifikasi persoalan, merancang, mengimplementasi, menguji, dan menyempurnakan program komputer berbasis algoritma."
+        }
+      ]
+    }
+  },
+  "projek_ipas": {
+    "fase_e": {
+      "label": "Projek IPAS Fase E (Kelas 10 SMK)",
+      "cp_umum": "Pada akhir Fase E, murid memiliki kemampuan sebagai berikut.\n\n1. Menjelaskan Fenomena secara Ilmiah\nMenjelaskan pengetahuan ilmiah; membuat prediksi sederhana disertai dengan pembuktian fenomena-fenomena yang terjadi di lingkungan sekitarnya dilihat dari berbagai aspek seperti makhluk hidup dan lingkungannya, zat dan perubahannya, energi dan perubahannya, keruangan dan konektivitas antarruang dan antarwaktu, interaksi, komunikasi, sosialisasi, institusi sosial dan dinamika sosial, serta perilaku ekonomi dan kesejahteraan dan mengaitkan fenomena-fenomena tersebut dengan keterampilan teknis pada bidang keahliannya.\n\n2. Menyusun Penyelidikan Ilmiah\nMenyusun percobaan dengan menerapkan prosedur penyelidikan ilmiah dan memeriksa kekurangan atau kesalahan pada rancangan percobaan ilmiah tersebut.\n\n3. Merefleksikan Data dan Bukti-bukti secara Ilmiah\nMembuktikan dengan prinsip dasar melalui data dan bukti dari berbagai sumber seperti tabel hasil, grafik, atau sumber data lain untuk membangun sebuah argumen dan dapat mempertahankan argumen tersebut dengan penjelasan ilmiah, mengomunikasikan proses dan hasil, dan melakukan refleksi diri terhadap tahapan kegiatan yang dilakukan.",
+      "elemen": [
+        {
+          "nama": "Menjelaskan Fenomena Secara Ilmiah",
+          "cp_normatif": "Peserta didik memahami pengetahuan ilmiah dan menerapkannya; atau membuat prediksi sederhana disertai dengan pembuktiannya. Peserta didik menjelaskan fenomena-fenomena yang terjadi di lingkungan sekitarnya dilihat dari berbagai aspek seperti makhluk hidup dan lingkungannya; zat dan perubahannya; energi dan perubahannya; bumi dan antariksa; keruangan dan konektivitas antar ruang dan waktu; interaksi, komunikasi, sosialisasi, institusi sosial dan dinamika sosial; serta perilaku ekonomi dan kesejahteraan. Peserta didik juga mengaitkan fenomena-fenomena tersebut dengan keterampilan teknis pada bidang keahliannya."
+        },
+        {
+          "nama": "Mendesain dan Mengevaluasi Penyelidikan Ilmiah",
+          "cp_normatif": "Peserta didik dapat menentukan dan mengikuti prosedur yang tepat untuk melakukan penyelidikan ilmiah, menjelaskan cara penyelidikan yang tepat untuk suatu pertanyaan ilmiah, serta dapat mengidentifikasi kekurangan atau kesalahan pada desain percobaan ilmiah."
+        },
+        {
+          "nama": "Menerjemahkan Data dan Bukti Secara Ilmiah",
+          "cp_normatif": "Peserta didik dapat menerjemahkan data dan bukti dari berbagai sumber untuk membangun sebuah argumen. Peserta didik dapat mengidentifikasi kesimpulan yang benar diambil dari tabel hasil percobaan, melakukan refleksi terhadap proses sains yang telah dilakukan, dan mengkomunikasikan hasil penyelidikan secara tertulis maupun lisan."
+        }
+      ]
+    }
+  },
+  "projek_kreatif_kewirausahaan": {
+    "fase_f": {
+      "label": "Projek Kreatif dan Kewirausahaan Fase F (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir fase F, peserta didik mampu mengaktualisasikan kompetensi yang dipelajarinya untuk memperkuat kompetensinya dengan menghasilkan produk (barang dan/atau layanan jasa) yang sesuai, inovatif, memiliki nilai ekonomis dan sesuai dengan kebutuhan pelanggan serta membangun usaha (berwirausaha) yang berkelanjutan dengan memanfaatkan peluang yang tersedia, baik usaha yang terkait dengan keahliannya maupun usaha-usaha lainnya yang lebih sesuai dengan perkembangan pasar dengan dilandasi pemahaman tentang penyelesaian perselisihan hubungan industrial.",
+      "elemen": [
+        {
+          "nama": "Kegiatan Produksi",
+          "cp_normatif": "Peserta didik mampu menyusun rencana produksi meliputi menetapkan jenis dan jumlah produk, menetapkan desain/rancangan produk, menyiapkan alat dan bahan, serta menghitung biaya produksi. Peserta didik mampu membuat/memproduksi produk berdasarkan kriteria standar/spesifikasi produk, melakukan pengendalian kualitas/mutu produk (quality assurance), menyusun kemasan produk, menerapkan strategi distribusi, dan menangani keluhan pelanggan."
+        },
+        {
+          "nama": "Kewirausahaan",
+          "cp_normatif": "Peserta didik mampu membaca peluang usaha dengan mengidentifikasi potensi yang ada di lingkungan internal dan eksternal SMK, dan menentukan jenis usaha. Peserta didik mampu menyusun proposal usaha (business plan) yang meliputi perencanaan usaha, biaya produksi, break even point (BEP), dan return of investment (ROI). Peserta didik mampu memasarkan produk dengan menentukan segmen pasar, menetapkan harga jual produk, dan menentukan media promosi yang digunakan untuk memasarkan produk. Peserta didik mampu menerapkan prinsip-prinsip Hak atas Kekayaan Intelektual (HAKI). Peserta didik mampu menyusun laporan keuangan berupa laporan neraca, laba rugi, perubahan modal, dan arus kas."
+        }
+      ]
+    }
+  },
+  "seni_musik": {
+    "fase_e": {
+      "label": "Seni Musik Fase E (Kelas 10 SMA/SMK)",
+      "elemen": [
+        {
+          "nama": "Mengalami (Experiencing)",
+          "cp_normatif": "Pada akhir fase ini, peserta didik mampu menyimak, melibatkan diri secara aktif dalam pengalaman atas kesan terhadap bunyi-musik, peka dan paham, serta secara sadar melibatkan konteks sajian musik dan berpartisipasi aktif dalam sajian musik yang berguna bagi perbaikan hidup baik untuk diri sendiri, sesama, lingkungan, dan alam semesta."
+        },
+        {
+          "nama": "Merefleksikan (Reflecting)",
+          "cp_normatif": "Memberi dan menerima umpan balik secara kritis mengenai suatu karya dan penciptaan karya musik secara runtut dan terperinci dengan menggunakan kosa kata yang tepat."
+        },
+        {
+          "nama": "Berpikir dan Bekerja Secara Artistik (Thinking and Working Artistically)",
+          "cp_normatif": "Pada akhir fase ini, peserta didik mampu menjalani kebiasaan baik dan rutin dalam berpraktik musik sejak dari persiapan, saat, maupun usai berpraktik musik dengan kesadaran untuk perkembangan dan perbaikan kelancaran serta keluwesan bermusik, serta memilih, memainkan, menghasilkan, menganalisis, dan merefleksi karya-karya musik secara aktif, kreatif, artistik, dan musikal secara bebas dan bertanggung jawab, serta sensitif terhadap fenomena kehidupan manusia."
+        },
+        {
+          "nama": "Menciptakan (Creating)",
+          "cp_normatif": "Pada akhir fase ini, peserta didik mampu menghasilkan gagasan dan karya musik yang otentik dalam sebuah sajian dengan kepekaan akan unsur-unsur bunyi-musik baik intrinsik maupun ekstrinsik, keragaman konteks, melibatkan praktik-praktik selain musik (bentuk seni yang lain) baik secara terencana maupun situasional yang berguna bagi perbaikan hidup diri sendiri, sesama, lingkungan, dan alam semesta."
+        },
+        {
+          "nama": "Berdampak (Impacting)",
+          "cp_normatif": "Pada akhir fase ini, peserta didik mampu menjalani kebiasaan baik dan rutin dalam berpraktik musik dan aktif dalam kegiatan-kegiatan bermusik lewat bernyanyi, memainkan media bunyi-musik dan memperluas wilayah praktik musiknya dengan praktik-praktik lain di luar musik serta terus mengusahakan mendapatkan pengalaman dan kesan baik dan berharga bagi perbaikan dan kemajuan diri sendiri secara utuh dan bersama."
+        }
+      ]
+    }
+  },
+  "seni_rupa": {
+    "fase_e": {
+      "label": "Seni Rupa Fase E (Kelas 10 SMA/SMK)",
+      "elemen": [
+        {
+          "nama": "Mengalami (Experiencing)",
+          "cp_normatif": "Pada akhir fase E, peserta didik mampu mengamati, mengenal, merekam dan menuangkan pengalaman dan pengamatannya terhadap lingkungan, perasaan, empati atau penilaiannya secara visual dengan menggunakan proporsi, gestur, ruang yang rinci."
+        },
+        {
+          "nama": "Menciptakan (Creating)",
+          "cp_normatif": "Pada akhir fase E, peserta didik mampu menciptakan karya seni yang menunjukkan pilihan keterampilan, medium dan pengetahuan elemen seni rupa atau prinsip desain tertentu yang sesuai dengan tujuan karyanya."
+        },
+        {
+          "nama": "Merefleksikan (Reflecting)",
+          "cp_normatif": "Pada akhir fase E, peserta didik mampu secara kritis mengevaluasi dan menganalisa efektivitas pesan dan penggunaan medium sebuah karya, pribadi maupun orang lain."
+        },
+        {
+          "nama": "Berpikir dan Bekerja Artistik (Thinking and Working Artistically)",
+          "cp_normatif": "Pada akhir fase E, peserta didik mampu berkarya dan mengapresiasi berdasarkan perasaan, empati dan penilaian pada karya seni secara ekspresif, produktif, inventif dan inovatif. Peserta didik mampu menggunakan kreativitasnya, mengajukan pertanyaan yang bermakna dan mengembangkan gagasan dan menggunakan berbagai sudut pandang untuk mendapatkan gagasan, menciptakan peluang, menjawab tantangan dan menyelesaikan masalah dalam kehidupan sehari-hari. Peserta didik juga mampu bekerja secara mandiri, bergotong royong maupun berkolaborasi dengan bidang keilmuan lain atau masyarakat di lingkungan sekitar."
+        },
+        {
+          "nama": "Berdampak (Impacting)",
+          "cp_normatif": "Pada akhir fase E, peserta didik mampu membuat karya sendiri atas dasar perasaan, minat, nalar dan sesuai akar budaya pada masyarakatnya."
+        }
+      ]
+    }
+  },
+  "seni_teater": {
+    "fase_e": {
+      "label": "Seni Teater Fase E (Kelas 10 SMA/SMK)",
+      "elemen": [
+        {
+          "nama": "Mengalami (Experiencing)",
+          "cp_normatif": "Latihan olah tubuh dan vokal merupakan dasar keaktoran yang dilakukan untuk penguasaan gerak tubuh agar mampu memainkan beragam karakter, kemudian penguasaan membaca dialog atau naskah dengan penekanan kuat pada ekspresi wajah, artikulasi dan intonasi. Eksplorasi bahasa tubuh, wajah, dan suara untuk menunjukkan kepekaan terhadap persoalan sosial, dan eksplorasi komunikasi non-verbal."
+        },
+        {
+          "nama": "Merefleksikan (Reflecting)",
+          "cp_normatif": "Murid mengenali, mengidentifikasi, mengelompokkan, membandingkan, dan mengevaluasi karya teater."
+        },
+        {
+          "nama": "Berpikir dan Bekerja Secara Artistik (Thinking and Working Artistically)",
+          "cp_normatif": "Proses dilakukan oleh peserta didik berpikir dan bermain dengan tata artistik panggung, mulai dari mengeksplorasi, merancang, dan memproduksi, dan memainkan tata artistik panggung."
+        },
+        {
+          "nama": "Mengekspresikan (Expressing)",
+          "cp_normatif": "Murid mengekspresikan diri melalui karya dan pertunjukan teater secara mandiri maupun bersama."
+        },
+        {
+          "nama": "Berdampak (Impacting)",
+          "cp_normatif": "Proses belajar dan produk akhir mencerminkan Profil Lulusan melalui observasi dan pengumpulan data."
+        }
+      ]
+    }
+  },
+  "seni_tari": {
+    "fase_e": {
+      "label": "Seni Tari Fase E (Kelas 10 SMA/SMK)",
+      "elemen": [
+        {
+          "nama": "Gerak Dasar Tari",
+          "cp_normatif": "Meliputi mengidentifikasi anatomi tubuh yang melibatkan gerak di semua bagian dari anggota tubuh manusia, melatih teknik-teknik gerak tari, melatih kepekaan irama."
+        },
+        {
+          "nama": "Tari Tradisi",
+          "cp_normatif": "Meliputi mengidentifikasi gerak tari, fungsi tari, teknik gerak, dan karakteristik tari."
+        },
+        {
+          "nama": "Tari Kreasi",
+          "cp_normatif": "Meliputi keterampilan dalam menyajikan ragam tari, dan kreativitas tari."
         }
       ]
     }
