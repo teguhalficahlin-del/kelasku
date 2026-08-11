@@ -655,7 +655,7 @@
   <div class="rp-section-label">Kognitif (DK)</div>
 
   <div class="rp-q" id="rp-q-dk1">
-    <label class="rp-q-label">DK-1. Pengetahuan awal tentang topik ini *</label>
+    <label class="rp-q-label">DK-1. Pengetahuan awal siswa tentang mapel ini secara umum *</label>
   </div>
   <div class="rp-q" id="rp-q-dk2">
     <label class="rp-q-label">DK-2. Hambatan kognitif yang sering muncul *</label>
@@ -674,7 +674,7 @@
     attachLainnya(renderChips(['Semangat & positif','Biasa saja / netral','Mudah bosan','Cemas / tertekan','Banyak konflik sosial'], 'kondisi_emosi', el('rp-q-dnk1'), false, false), 'Jelaskan kondisi emosi siswa');
     attachLainnya(renderChips(['Ingin nilai bagus','Ingin bisa praktik nyata','Dorongan dari orang tua','Belum jelas motivasinya','Motivasi sangat rendah'], 'motivasi', el('rp-q-dnk2'), false, false), 'Jelaskan motivasi dominan siswa');
     attachLainnya(renderChips(['Visual (gambar, diagram)','Auditori (diskusi, penjelasan)','Kinestetik (praktik, gerak)','Campuran'], 'gaya_belajar', el('rp-q-dnk3'), false, false), 'Jelaskan gaya belajar siswa');
-    attachLainnya(renderChips(['Hampir tidak ada pengetahuan awal','Ada sedikit, tidak terstruktur','Cukup memadai','Sudah cukup kuat'], 'pengetahuan_awal', el('rp-q-dk1'), false, false), 'Jelaskan pengetahuan awal siswa');
+    attachLainnya(renderChips(['Hampir tidak ada — baru pertama belajar mapel ini','Ada sedikit, tapi tidak terstruktur','Cukup memadai untuk lanjut ke materi baru','Sudah kuat — siswa punya fondasi yang baik'], 'pengetahuan_awal', el('rp-q-dk1'), false, false), 'Jelaskan pengetahuan awal siswa');
     attachLainnya(renderChips(['Sulit abstraksi','Sulit membaca instruksi panjang','Mudah lupa','Tidak percaya diri mencoba','Tidak ada hambatan berarti'], 'hambatan_kognitif', el('rp-q-dk2'), false, false), 'Jelaskan hambatan yang sering muncul');
     attachLainnya(renderChips(['Perlu banyak panduan guru','Bisa mandiri dengan panduan tulis','Bisa mandiri sepenuhnya','Bervariasi antarindividu'], 'kesiapan_mandiri', el('rp-q-dk3'), false, false), 'Jelaskan kesiapan mandiri siswa');
 
