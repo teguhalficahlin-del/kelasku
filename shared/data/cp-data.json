@@ -1578,6 +1578,7 @@
   },
   "dasar_dasar_teknik_perawatan_gedung": {
     "bidang": "Teknologi Konstruksi dan Properti",
+    "program_keahlian": "Teknik Perawatan Gedung",
     "jenjang": [
       "SMK"
     ],
@@ -1610,6 +1611,7 @@
   },
   "dasar_dasar_konstruksi_dan_perawatan_bangunan_sipil": {
     "bidang": "Teknologi Konstruksi dan Properti",
+    "program_keahlian": "Konstruksi dan Perawatan Bangunan Sipil",
     "jenjang": [
       "SMK"
     ],
@@ -1642,6 +1644,7 @@
   },
   "dasar_dasar_teknik_konstruksi_dan_perumahan": {
     "bidang": "Teknologi Konstruksi dan Properti",
+    "program_keahlian": "Teknik Konstruksi dan Perumahan",
     "jenjang": [
       "SMK"
     ],
@@ -1674,6 +1677,7 @@
   },
   "dasar_dasar_desain_pemodelan_dan_informasi_bangunan": {
     "bidang": "Teknologi Konstruksi dan Properti",
+    "program_keahlian": "Desain Pemodelan dan Informasi Bangunan",
     "jenjang": [
       "SMK"
     ],
@@ -1706,6 +1710,7 @@
   },
   "dasar_dasar_teknik_furnitur": {
     "bidang": "Teknologi Konstruksi dan Properti",
+    "program_keahlian": "Teknik Furnitur",
     "jenjang": [
       "SMK"
     ],
@@ -1742,6 +1747,7 @@
   },
   "teknik_perawatan_gedung": {
     "bidang": "Teknologi Konstruksi dan Properti",
+    "program_keahlian": "Teknik Perawatan Gedung",
     "jenjang": [
       "SMK"
     ],
@@ -1770,6 +1776,7 @@
   },
   "konstruksi_jalan_irigasi_dan_jembatan": {
     "bidang": "Teknologi Konstruksi dan Properti",
+    "program_keahlian": "Konstruksi dan Perawatan Bangunan Sipil",
     "jenjang": [
       "SMK"
     ],
@@ -1806,6 +1813,7 @@
   },
   "konstruksi_jalan_dan_jembatan": {
     "bidang": "Teknologi Konstruksi dan Properti",
+    "program_keahlian": "Konstruksi dan Perawatan Bangunan Sipil",
     "jenjang": [
       "SMK"
     ],
@@ -1842,6 +1850,7 @@
   },
   "teknik_konstruksi_dan_perumahan": {
     "bidang": "Teknologi Konstruksi dan Properti",
+    "program_keahlian": "Teknik Konstruksi dan Perumahan",
     "jenjang": [
       "SMK"
     ],
@@ -1870,6 +1879,7 @@
   },
   "konstruksi_gedung_dan_sanitasi": {
     "bidang": "Teknologi Konstruksi dan Properti",
+    "program_keahlian": "Teknik Konstruksi dan Perumahan",
     "jenjang": [
       "SMK"
     ],
@@ -1898,6 +1908,7 @@
   },
   "desain_pemodelan_dan_informasi_bangunan": {
     "bidang": "Teknologi Konstruksi dan Properti",
+    "program_keahlian": "Desain Pemodelan dan Informasi Bangunan",
     "jenjang": [
       "SMK"
     ],
@@ -1926,6 +1937,7 @@
   },
   "desain_interior_dan_teknik_furnitur": {
     "bidang": "Teknologi Konstruksi dan Properti",
+    "program_keahlian": "Teknik Furnitur",
     "jenjang": [
       "SMK"
     ],
@@ -1958,6 +1970,7 @@
   },
   "desain_dan_teknik_furnitur": {
     "bidang": "Teknologi Konstruksi dan Properti",
+    "program_keahlian": "Teknik Furnitur",
     "jenjang": [
       "SMK"
     ],
@@ -1986,6 +1999,7 @@
   },
   "dasar_dasar_teknik_mesin": {
     "bidang": "Teknologi Manufaktur dan Rekayasa",
+    "program_keahlian": "Teknik Mesin",
     "jenjang": [
       "SMK"
     ],
@@ -2022,6 +2036,7 @@
   },
   "dasar_dasar_teknik_otomotif": {
     "bidang": "Teknologi Manufaktur dan Rekayasa",
+    "program_keahlian": "Teknik Otomotif",
     "jenjang": [
       "SMK"
     ],
@@ -2062,6 +2077,7 @@
   },
   "dasar_dasar_teknik_pengelasan_dan_fabrikasi_logam": {
     "bidang": "Teknologi Manufaktur dan Rekayasa",
+    "program_keahlian": "Teknik Pengelasan dan Fabrikasi Logam",
     "jenjang": [
       "SMK"
     ],
@@ -2094,6 +2110,7 @@
   },
   "dasar_dasar_teknik_logistik": {
     "bidang": "Teknologi Manufaktur dan Rekayasa",
+    "program_keahlian": "Teknik Logistik",
     "jenjang": [
       "SMK"
     ],
@@ -2130,6 +2147,7 @@
   },
   "dasar_dasar_teknik_pesawat_udara": {
     "bidang": "Teknologi Manufaktur dan Rekayasa",
+    "program_keahlian": "Teknik Pesawat Udara",
     "jenjang": [
       "SMK"
     ],
@@ -2186,6 +2204,7 @@
   },
   "dasar_dasar_teknik_konstruksi_kapal": {
     "bidang": "Teknologi Manufaktur dan Rekayasa",
+    "program_keahlian": "Teknik Konstruksi Kapal",
     "jenjang": [
       "SMK"
     ],
@@ -2214,6 +2233,7 @@
   },
   "teknik_pemesinan": {
     "bidang": "Teknologi Manufaktur dan Rekayasa",
+    "program_keahlian": "Teknik Mesin",
     "jenjang": [
       "SMK"
     ],
@@ -2246,6 +2266,7 @@
   },
   "teknik_mekanik_industri": {
     "bidang": "Teknologi Manufaktur dan Rekayasa",
+    "program_keahlian": "Teknik Mesin",
     "jenjang": [
       "SMK"
     ],
@@ -2282,6 +2303,7 @@
   },
   "teknik_pengecoran_logam": {
     "bidang": "Teknologi Manufaktur dan Rekayasa",
+    "program_keahlian": "Teknik Mesin",
     "jenjang": [
       "SMK"
     ],
@@ -2310,6 +2332,7 @@
   },
   "desain_gambar_mesin": {
     "bidang": "Teknologi Manufaktur dan Rekayasa",
+    "program_keahlian": "Teknik Mesin",
     "jenjang": [
       "SMK"
     ],
@@ -2334,6 +2357,7 @@
   },
   "teknik_pemesinan_pesawat_udara": {
     "bidang": "Teknologi Manufaktur dan Rekayasa",
+    "program_keahlian": "Teknik Mesin",
     "jenjang": [
       "SMK"
     ],
@@ -2366,6 +2390,7 @@
   },
   "teknik_konstruksi_rangka_pesawat_udara": {
     "bidang": "Teknologi Manufaktur dan Rekayasa",
+    "program_keahlian": "Teknik Mesin",
     "jenjang": [
       "SMK"
     ],
@@ -2402,6 +2427,7 @@
   },
   "teknik_pemesinan_kapal": {
     "bidang": "Teknologi Manufaktur dan Rekayasa",
+    "program_keahlian": "Teknik Mesin",
     "jenjang": [
       "SMK"
     ],
@@ -2430,6 +2456,7 @@
   },
   "teknik_kendaraan_ringan": {
     "bidang": "Teknologi Manufaktur dan Rekayasa",
+    "program_keahlian": "Teknik Otomotif",
     "jenjang": [
       "SMK"
     ],
@@ -2474,6 +2501,7 @@
   },
   "teknik_sepeda_motor": {
     "bidang": "Teknologi Manufaktur dan Rekayasa",
+    "program_keahlian": "Teknik Otomotif",
     "jenjang": [
       "SMK"
     ],
@@ -2514,6 +2542,7 @@
   },
   "teknik_alat_berat": {
     "bidang": "Teknologi Manufaktur dan Rekayasa",
+    "program_keahlian": "Teknik Otomotif",
     "jenjang": [
       "SMK"
     ],
@@ -2550,6 +2579,7 @@
   },
   "teknik_ototronik": {
     "bidang": "Teknologi Manufaktur dan Rekayasa",
+    "program_keahlian": "Teknik Otomotif",
     "jenjang": [
       "SMK"
     ],
@@ -2578,6 +2608,7 @@
   },
   "teknik_bodi_kendaraan_ringan": {
     "bidang": "Teknologi Manufaktur dan Rekayasa",
+    "program_keahlian": "Teknik Otomotif",
     "jenjang": [
       "SMK"
     ],
@@ -2606,6 +2637,7 @@
   },
   "teknik_pengelasan": {
     "bidang": "Teknologi Manufaktur dan Rekayasa",
+    "program_keahlian": "Teknik Pengelasan dan Fabrikasi Logam",
     "jenjang": [
       "SMK"
     ],
@@ -2642,6 +2674,7 @@
   },
   "teknik_pengelasan_kapal": {
     "bidang": "Teknologi Manufaktur dan Rekayasa",
+    "program_keahlian": "Teknik Pengelasan dan Fabrikasi Logam",
     "jenjang": [
       "SMK"
     ],
@@ -2682,6 +2715,7 @@
   },
   "teknik_konstruksi_badan_pesawat_udara": {
     "bidang": "Teknologi Manufaktur dan Rekayasa",
+    "program_keahlian": "Teknik Pengelasan dan Fabrikasi Logam",
     "jenjang": [
       "SMK"
     ],
@@ -2718,6 +2752,7 @@
   },
   "teknik_fabrikasi_logam_dan_manufaktur": {
     "bidang": "Teknologi Manufaktur dan Rekayasa",
+    "program_keahlian": "Teknik Pengelasan dan Fabrikasi Logam",
     "jenjang": [
       "SMK"
     ],
@@ -2746,6 +2781,7 @@
   },
   "teknik_pengendalian_produksi": {
     "bidang": "Teknologi Manufaktur dan Rekayasa",
+    "program_keahlian": "Teknik Logistik",
     "jenjang": [
       "SMK"
     ],
@@ -2774,6 +2810,7 @@
   },
   "teknik_logistik": {
     "bidang": "Teknologi Manufaktur dan Rekayasa",
+    "program_keahlian": "Teknik Logistik",
     "jenjang": [
       "SMK"
     ],
@@ -2806,6 +2843,7 @@
   },
   "teknik_mekatronika": {
     "bidang": "Teknologi Manufaktur dan Rekayasa",
+    "program_keahlian": "Teknik Elektronika",
     "jenjang": [
       "SMK"
     ],
@@ -2838,6 +2876,7 @@
   },
   "airframe_powerplant": {
     "bidang": "Teknologi Manufaktur dan Rekayasa",
+    "program_keahlian": "Teknik Pesawat Udara",
     "jenjang": [
       "SMK"
     ],
@@ -2866,6 +2905,7 @@
   },
   "desain_rancang_bangun_kapal": {
     "bidang": "Teknologi Manufaktur dan Rekayasa",
+    "program_keahlian": "Teknik Konstruksi Kapal",
     "jenjang": [
       "SMK"
     ],
@@ -2898,6 +2938,7 @@
   },
   "konstruksi_kapal_baja": {
     "bidang": "Teknologi Manufaktur dan Rekayasa",
+    "program_keahlian": "Teknik Konstruksi Kapal",
     "jenjang": [
       "SMK"
     ],
@@ -2934,6 +2975,7 @@
   },
   "konstruksi_kapal_non_baja": {
     "bidang": "Teknologi Manufaktur dan Rekayasa",
+    "program_keahlian": "Teknik Konstruksi Kapal",
     "jenjang": [
       "SMK"
     ],
@@ -2966,6 +3008,7 @@
   },
   "interior_kapal": {
     "bidang": "Teknologi Manufaktur dan Rekayasa",
+    "program_keahlian": "Teknik Konstruksi Kapal",
     "jenjang": [
       "SMK"
     ],
@@ -3002,6 +3045,7 @@
   },
   "dasar_dasar_pengembangan_perangkat_lunak_dan_gim": {
     "bidang": "Teknologi Informasi dan Komunikasi",
+    "program_keahlian": "Pengembangan Perangkat Lunak dan Gim",
     "jenjang": [
       "SMK"
     ],
@@ -3034,6 +3078,7 @@
   },
   "dasar_dasar_teknik_jaringan_komputer_dan_telekomunikasi": {
     "bidang": "Teknologi Informasi dan Komunikasi",
+    "program_keahlian": "Teknik Jaringan Komputer dan Telekomunikasi",
     "jenjang": [
       "SMK"
     ],
@@ -3062,6 +3107,7 @@
   },
   "dasar_dasar_broadcasting_dan_perfilman": {
     "bidang": "Teknologi Informasi dan Komunikasi",
+    "program_keahlian": "Broadcasting dan Perfilman",
     "jenjang": [
       "SMK"
     ],
@@ -3090,6 +3136,7 @@
   },
   "dasar_dasar_animasi": {
     "bidang": "Teknologi Informasi dan Komunikasi",
+    "program_keahlian": "Animasi",
     "jenjang": [
       "SMK"
     ],
@@ -3130,6 +3177,7 @@
   },
   "rekayasa_perangkat_lunak": {
     "bidang": "Teknologi Informasi dan Komunikasi",
+    "program_keahlian": "Pengembangan Perangkat Lunak dan Gim",
     "jenjang": [
       "SMK"
     ],
@@ -3158,6 +3206,7 @@
   },
   "pengembangan_gim": {
     "bidang": "Teknologi Informasi dan Komunikasi",
+    "program_keahlian": "Pengembangan Perangkat Lunak dan Gim",
     "jenjang": [
       "SMK"
     ],
@@ -3186,6 +3235,7 @@
   },
   "sistem_informasi_jaringan_dan_aplikasi": {
     "bidang": "Teknologi Informasi dan Komunikasi",
+    "program_keahlian": "Pengembangan Perangkat Lunak dan Gim",
     "jenjang": [
       "SMK"
     ],
@@ -3218,6 +3268,7 @@
   },
   "teknik_komputer_dan_jaringan": {
     "bidang": "Teknologi Informasi dan Komunikasi",
+    "program_keahlian": "Teknik Jaringan Komputer dan Telekomunikasi",
     "jenjang": [
       "SMK"
     ],
@@ -3246,6 +3297,7 @@
   },
   "teknik_jaringan_akses_telekomunikasi": {
     "bidang": "Teknologi Informasi dan Komunikasi",
+    "program_keahlian": "Teknik Jaringan Komputer dan Telekomunikasi",
     "jenjang": [
       "SMK"
     ],
@@ -3282,6 +3334,7 @@
   },
   "teknik_transmisi_telekomunikasi": {
     "bidang": "Teknologi Informasi dan Komunikasi",
+    "program_keahlian": "Teknik Jaringan Komputer dan Telekomunikasi",
     "jenjang": [
       "SMK"
     ],
@@ -3314,6 +3367,7 @@
   },
   "teknik_audio_video": {
     "bidang": "Teknologi Informasi dan Komunikasi",
+    "program_keahlian": "Teknik Elektronika",
     "jenjang": [
       "SMK"
     ],
@@ -3382,6 +3436,7 @@
   },
   "teknik_elektronika_industri": {
     "bidang": "Teknologi Informasi dan Komunikasi",
+    "program_keahlian": "Teknik Elektronika",
     "jenjang": [
       "SMK"
     ],
@@ -3418,6 +3473,7 @@
   },
   "teknik_otomasi_industri": {
     "bidang": "Teknologi Informasi dan Komunikasi",
+    "program_keahlian": "Teknik Elektronika",
     "jenjang": [
       "SMK"
     ],
@@ -3454,6 +3510,7 @@
   },
   "teknik_elektronika_komunikasi": {
     "bidang": "Teknologi Informasi dan Komunikasi",
+    "program_keahlian": "Teknik Elektronika",
     "jenjang": [
       "SMK"
     ],
@@ -3490,6 +3547,7 @@
   },
   "teknik_instrumentasi_medik": {
     "bidang": "Teknologi Informasi dan Komunikasi",
+    "program_keahlian": "Teknik Elektronika",
     "jenjang": [
       "SMK"
     ],
@@ -3538,6 +3596,7 @@
   },
   "teknik_elektronika_pesawat_udara": {
     "bidang": "Teknologi Informasi dan Komunikasi",
+    "program_keahlian": "Teknik Elektronika",
     "jenjang": [
       "SMK"
     ],
@@ -3574,6 +3633,7 @@
   },
   "instrumentasi_dan_otomatisasi_proses": {
     "bidang": "Teknologi Informasi dan Komunikasi",
+    "program_keahlian": "Teknik Elektronika",
     "jenjang": [
       "SMK"
     ],
@@ -3610,6 +3670,7 @@
   },
   "electrical_avionic": {
     "bidang": "Teknologi Informasi dan Komunikasi",
+    "program_keahlian": "Teknik Pesawat Udara",
     "jenjang": [
       "SMK"
     ],
@@ -3646,6 +3707,7 @@
   },
   "produksi_dan_siaran_program_radio": {
     "bidang": "Teknologi Informasi dan Komunikasi",
+    "program_keahlian": "Broadcasting dan Perfilman",
     "jenjang": [
       "SMK"
     ],
@@ -3682,6 +3744,7 @@
   },
   "produksi_dan_siaran_program_televisi": {
     "bidang": "Teknologi Informasi dan Komunikasi",
+    "program_keahlian": "Broadcasting dan Perfilman",
     "jenjang": [
       "SMK"
     ],
@@ -3726,6 +3789,7 @@
   },
   "produksi_film": {
     "bidang": "Teknologi Informasi dan Komunikasi",
+    "program_keahlian": "Broadcasting dan Perfilman",
     "jenjang": [
       "SMK"
     ],
@@ -3762,6 +3826,7 @@
   },
   "animasi": {
     "bidang": "Teknologi Informasi dan Komunikasi",
+    "program_keahlian": "Animasi",
     "jenjang": [
       "SMK"
     ],
@@ -3786,6 +3851,7 @@
   },
   "dasar_dasar_teknik_ketenagalistrikan": {
     "bidang": "Energi dan Pertambangan",
+    "program_keahlian": "Teknik Ketenagalistrikan",
     "jenjang": [
       "SMK"
     ],
@@ -3822,6 +3888,7 @@
   },
   "dasar_dasar_teknik_energi_terbarukan": {
     "bidang": "Energi dan Pertambangan",
+    "program_keahlian": "Teknik Energi Terbarukan",
     "jenjang": [
       "SMK"
     ],
@@ -3854,6 +3921,7 @@
   },
   "dasar_dasar_teknik_geospasial": {
     "bidang": "Energi dan Pertambangan",
+    "program_keahlian": "Teknik Geospasial",
     "jenjang": [
       "SMK"
     ],
@@ -3874,6 +3942,7 @@
   },
   "dasar_dasar_teknik_geologi": {
     "bidang": "Energi dan Pertambangan",
+    "program_keahlian": "Teknik Geologi Pertambangan",
     "jenjang": [
       "SMK"
     ],
@@ -3906,6 +3975,7 @@
   },
   "dasar_dasar_teknik_perminyakan": {
     "bidang": "Energi dan Pertambangan",
+    "program_keahlian": "Teknik Perminyakan",
     "jenjang": [
       "SMK"
     ],
@@ -3938,6 +4008,7 @@
   },
   "dasar_dasar_kimia_analisis": {
     "bidang": "Energi dan Pertambangan",
+    "program_keahlian": "Kimia Analisis",
     "jenjang": [
       "SMK"
     ],
@@ -3970,6 +4041,7 @@
   },
   "dasar_dasar_teknik_kimia_industri": {
     "bidang": "Energi dan Pertambangan",
+    "program_keahlian": "Teknik Kimia Industri",
     "jenjang": [
       "SMK"
     ],
@@ -4002,6 +4074,7 @@
   },
   "dasar_dasar_teknik_tekstil": {
     "bidang": "Energi dan Pertambangan",
+    "program_keahlian": "Teknik Tekstil",
     "jenjang": [
       "SMK"
     ],
@@ -4038,6 +4111,7 @@
   },
   "teknik_instalasi_tenaga_listrik": {
     "bidang": "Energi dan Pertambangan",
+    "program_keahlian": "Teknik Ketenagalistrikan",
     "jenjang": [
       "SMK"
     ],
@@ -4078,6 +4152,7 @@
   },
   "teknik_pembangkit_tenaga_listrik": {
     "bidang": "Energi dan Pertambangan",
+    "program_keahlian": "Teknik Ketenagalistrikan",
     "jenjang": [
       "SMK"
     ],
@@ -4118,6 +4193,7 @@
   },
   "teknik_jaringan_tenaga_listrik": {
     "bidang": "Energi dan Pertambangan",
+    "program_keahlian": "Teknik Ketenagalistrikan",
     "jenjang": [
       "SMK"
     ],
@@ -4150,6 +4226,7 @@
   },
   "teknik_pemanasan_tata_udara_dan_pendinginan": {
     "bidang": "Energi dan Pertambangan",
+    "program_keahlian": "Teknik Ketenagalistrikan",
     "jenjang": [
       "SMK"
     ],
@@ -4178,6 +4255,7 @@
   },
   "teknik_kelistrikan_pesawat_udara": {
     "bidang": "Energi dan Pertambangan",
+    "program_keahlian": "Teknik Ketenagalistrikan",
     "jenjang": [
       "SMK"
     ],
@@ -4214,6 +4292,7 @@
   },
   "teknik_kelistrikan_kapal": {
     "bidang": "Energi dan Pertambangan",
+    "program_keahlian": "Teknik Ketenagalistrikan",
     "jenjang": [
       "SMK"
     ],
@@ -4246,6 +4325,7 @@
   },
   "teknik_energi_surya_hidro_dan_angin": {
     "bidang": "Energi dan Pertambangan",
+    "program_keahlian": "Teknik Energi Terbarukan",
     "jenjang": [
       "SMK"
     ],
@@ -4274,6 +4354,7 @@
   },
   "teknik_energi_biomassa": {
     "bidang": "Energi dan Pertambangan",
+    "program_keahlian": "Teknik Energi Terbarukan",
     "jenjang": [
       "SMK"
     ],
@@ -4302,6 +4383,7 @@
   },
   "teknik_geomatika": {
     "bidang": "Energi dan Pertambangan",
+    "program_keahlian": "Teknik Geospasial",
     "jenjang": [
       "SMK"
     ],
@@ -4326,6 +4408,7 @@
   },
   "informasi_geospasial": {
     "bidang": "Energi dan Pertambangan",
+    "program_keahlian": "Teknik Geospasial",
     "jenjang": [
       "SMK"
     ],
@@ -4354,6 +4437,7 @@
   },
   "geologi_pertambangan": {
     "bidang": "Energi dan Pertambangan",
+    "program_keahlian": "Teknik Geologi Pertambangan",
     "jenjang": [
       "SMK"
     ],
@@ -4390,6 +4474,7 @@
   },
   "teknik_produksi_minyak_dan_gas": {
     "bidang": "Energi dan Pertambangan",
+    "program_keahlian": "Teknik Perminyakan",
     "jenjang": [
       "SMK"
     ],
@@ -4430,6 +4515,7 @@
   },
   "teknik_pemboran_minyak_dan_gas": {
     "bidang": "Energi dan Pertambangan",
+    "program_keahlian": "Teknik Perminyakan",
     "jenjang": [
       "SMK"
     ],
@@ -4462,6 +4548,7 @@
   },
   "teknik_pengolahan_minyak_gas_dan_petrokimia": {
     "bidang": "Energi dan Pertambangan",
+    "program_keahlian": "Teknik Perminyakan",
     "jenjang": [
       "SMK"
     ],
@@ -4502,6 +4589,7 @@
   },
   "kimia_analisis": {
     "bidang": "Energi dan Pertambangan",
+    "program_keahlian": "Kimia Analisis",
     "jenjang": [
       "SMK"
     ],
@@ -4538,6 +4626,7 @@
   },
   "analisis_pengujian_laboratorium": {
     "bidang": "Energi dan Pertambangan",
+    "program_keahlian": "Kimia Analisis",
     "jenjang": [
       "SMK"
     ],
@@ -4570,6 +4659,7 @@
   },
   "teknik_kimia_industri": {
     "bidang": "Energi dan Pertambangan",
+    "program_keahlian": "Teknik Kimia Industri",
     "jenjang": [
       "SMK"
     ],
@@ -4602,6 +4692,7 @@
   },
   "kimia_tekstil": {
     "bidang": "Energi dan Pertambangan",
+    "program_keahlian": "Teknik Kimia Industri",
     "jenjang": [
       "SMK"
     ],
@@ -4634,6 +4725,7 @@
   },
   "teknik_pembuatan_serat_filamen": {
     "bidang": "Energi dan Pertambangan",
+    "program_keahlian": "Teknik Tekstil",
     "jenjang": [
       "SMK"
     ],
@@ -4666,6 +4758,7 @@
   },
   "teknik_pembuatan_benang_stapel": {
     "bidang": "Energi dan Pertambangan",
+    "program_keahlian": "Teknik Tekstil",
     "jenjang": [
       "SMK"
     ],
@@ -4694,6 +4787,7 @@
   },
   "teknik_pembuatan_kain": {
     "bidang": "Energi dan Pertambangan",
+    "program_keahlian": "Teknik Tekstil",
     "jenjang": [
       "SMK"
     ],
@@ -4726,6 +4820,7 @@
   },
   "teknik_penyempurnaan_tekstil": {
     "bidang": "Energi dan Pertambangan",
+    "program_keahlian": "Teknik Tekstil",
     "jenjang": [
       "SMK"
     ],
@@ -4754,6 +4849,7 @@
   },
   "dasar_dasar_layanan_kesehatan": {
     "bidang": "Kesehatan dan Pekerjaan Sosial",
+    "program_keahlian": "Layanan Kesehatan",
     "jenjang": [
       "SMK"
     ],
@@ -4778,6 +4874,7 @@
   },
   "dasar_dasar_teknik_laboratorium_medik": {
     "bidang": "Kesehatan dan Pekerjaan Sosial",
+    "program_keahlian": "Teknik Laboratorium Medik",
     "jenjang": [
       "SMK"
     ],
@@ -4810,6 +4907,7 @@
   },
   "dasar_dasar_teknologi_farmasi": {
     "bidang": "Kesehatan dan Pekerjaan Sosial",
+    "program_keahlian": "Teknologi Farmasi",
     "jenjang": [
       "SMK"
     ],
@@ -4830,6 +4928,7 @@
   },
   "dasar_dasar_pekerjaan_sosial": {
     "bidang": "Kesehatan dan Pekerjaan Sosial",
+    "program_keahlian": "Pekerjaan Sosial",
     "jenjang": [
       "SMK"
     ],
@@ -4850,6 +4949,7 @@
   },
   "layanan_penunjang_keperawatan_dan_caregiving": {
     "bidang": "Kesehatan dan Pekerjaan Sosial",
+    "program_keahlian": "Layanan Kesehatan",
     "jenjang": [
       "SMK"
     ],
@@ -4874,6 +4974,7 @@
   },
   "layanan_penunjang_dental_care": {
     "bidang": "Kesehatan dan Pekerjaan Sosial",
+    "program_keahlian": "Layanan Kesehatan",
     "jenjang": [
       "SMK"
     ],
@@ -4898,6 +4999,7 @@
   },
   "layanan_penunjang_kefarmasian_klinis_dan_komunitas": {
     "bidang": "Kesehatan dan Pekerjaan Sosial",
+    "program_keahlian": "Teknologi Farmasi",
     "jenjang": [
       "SMK"
     ],
@@ -4926,6 +5028,7 @@
   },
   "farmasi_industri": {
     "bidang": "Kesehatan dan Pekerjaan Sosial",
+    "program_keahlian": "Teknologi Farmasi",
     "jenjang": [
       "SMK"
     ],
@@ -4954,6 +5057,7 @@
   },
   "pekerjaan_sosial": {
     "bidang": "Kesehatan dan Pekerjaan Sosial",
+    "program_keahlian": "Pekerjaan Sosial",
     "jenjang": [
       "SMK"
     ],
@@ -4990,6 +5094,7 @@
   },
   "dasar_dasar_agribisnis_tanaman": {
     "bidang": "Agribisnis dan Agroteknologi",
+    "program_keahlian": "Agribisnis Tanaman",
     "jenjang": [
       "SMK"
     ],
@@ -5010,6 +5115,7 @@
   },
   "dasar_dasar_agribisnis_ternak": {
     "bidang": "Agribisnis dan Agroteknologi",
+    "program_keahlian": "Agribisnis Ternak",
     "jenjang": [
       "SMK"
     ],
@@ -5030,6 +5136,7 @@
   },
   "dasar_dasar_agribisnis_perikanan": {
     "bidang": "Agribisnis dan Agroteknologi",
+    "program_keahlian": "Agribisnis Perikanan",
     "jenjang": [
       "SMK"
     ],
@@ -5054,6 +5161,7 @@
   },
   "dasar_dasar_usaha_pertanian_terpadu": {
     "bidang": "Agribisnis dan Agroteknologi",
+    "program_keahlian": "Usaha Pertanian Terpadu",
     "jenjang": [
       "SMK"
     ],
@@ -5074,6 +5182,7 @@
   },
   "dasar_dasar_agriteknologi_pengolahan_hasil_pertanian": {
     "bidang": "Agribisnis dan Agroteknologi",
+    "program_keahlian": "Agriteknologi Pengolahan Hasil Pertanian",
     "jenjang": [
       "SMK"
     ],
@@ -5094,6 +5203,7 @@
   },
   "dasar_dasar_kehutanan": {
     "bidang": "Agribisnis dan Agroteknologi",
+    "program_keahlian": "Kehutanan",
     "jenjang": [
       "SMK"
     ],
@@ -5114,6 +5224,7 @@
   },
   "agribisnis_tanaman_perkebunan": {
     "bidang": "Agribisnis dan Agroteknologi",
+    "program_keahlian": "Agribisnis Tanaman",
     "jenjang": [
       "SMK"
     ],
@@ -5166,6 +5277,7 @@
   },
   "agribisnis_tanaman_pangan_dan_hortikultura": {
     "bidang": "Agribisnis dan Agroteknologi",
+    "program_keahlian": "Agribisnis Tanaman",
     "jenjang": [
       "SMK"
     ],
@@ -5198,6 +5310,7 @@
   },
   "agribisnis_perbenihan_tanaman": {
     "bidang": "Agribisnis dan Agroteknologi",
+    "program_keahlian": "Agribisnis Tanaman",
     "jenjang": [
       "SMK"
     ],
@@ -5218,6 +5331,7 @@
   },
   "agribisnis_lanskap_dan_pertamanan": {
     "bidang": "Agribisnis dan Agroteknologi",
+    "program_keahlian": "Agribisnis Tanaman",
     "jenjang": [
       "SMK"
     ],
@@ -5258,6 +5372,7 @@
   },
   "agribisnis_ternak_ruminansia": {
     "bidang": "Agribisnis dan Agroteknologi",
+    "program_keahlian": "Agribisnis Ternak",
     "jenjang": [
       "SMK"
     ],
@@ -5302,6 +5417,7 @@
   },
   "agribisnis_ternak_unggas": {
     "bidang": "Agribisnis dan Agroteknologi",
+    "program_keahlian": "Agribisnis Ternak",
     "jenjang": [
       "SMK"
     ],
@@ -5338,6 +5454,7 @@
   },
   "kesehatan_hewan": {
     "bidang": "Agribisnis dan Agroteknologi",
+    "program_keahlian": "Agribisnis Ternak",
     "jenjang": [
       "SMK"
     ],
@@ -5370,6 +5487,7 @@
   },
   "agribisnis_ikan_hias": {
     "bidang": "Agribisnis dan Agroteknologi",
+    "program_keahlian": "Agribisnis Perikanan",
     "jenjang": [
       "SMK"
     ],
@@ -5414,6 +5532,7 @@
   },
   "agribisnis_perikanan_payau_dan_laut": {
     "bidang": "Agribisnis dan Agroteknologi",
+    "program_keahlian": "Agribisnis Perikanan",
     "jenjang": [
       "SMK"
     ],
@@ -5454,6 +5573,7 @@
   },
   "agribisnis_perikanan_air_tawar": {
     "bidang": "Agribisnis dan Agroteknologi",
+    "program_keahlian": "Agribisnis Perikanan",
     "jenjang": [
       "SMK"
     ],
@@ -5490,6 +5610,7 @@
   },
   "agribisnis_rumput_laut": {
     "bidang": "Agribisnis dan Agroteknologi",
+    "program_keahlian": "Agribisnis Perikanan",
     "jenjang": [
       "SMK"
     ],
@@ -5538,6 +5659,7 @@
   },
   "usaha_pertanian_terpadu": {
     "bidang": "Agribisnis dan Agroteknologi",
+    "program_keahlian": "Usaha Pertanian Terpadu",
     "jenjang": [
       "SMK"
     ],
@@ -5570,6 +5692,7 @@
   },
   "mekanisasi_pertanian": {
     "bidang": "Agribisnis dan Agroteknologi",
+    "program_keahlian": "Usaha Pertanian Terpadu",
     "jenjang": [
       "SMK"
     ],
@@ -5606,6 +5729,7 @@
   },
   "agribisnis_pengolahan_hasil_pertanian": {
     "bidang": "Agribisnis dan Agroteknologi",
+    "program_keahlian": "Agriteknologi Pengolahan Hasil Pertanian",
     "jenjang": [
       "SMK"
     ],
@@ -5638,6 +5762,7 @@
   },
   "agribisnis_pengolahan_hasil_perikanan": {
     "bidang": "Agribisnis dan Agroteknologi",
+    "program_keahlian": "Agriteknologi Pengolahan Hasil Pertanian",
     "jenjang": [
       "SMK"
     ],
@@ -5666,6 +5791,7 @@
   },
   "pengawasan_mutu_hasil_pertanian": {
     "bidang": "Agribisnis dan Agroteknologi",
+    "program_keahlian": "Agriteknologi Pengolahan Hasil Pertanian",
     "jenjang": [
       "SMK"
     ],
@@ -5690,6 +5816,7 @@
   },
   "kehutanan": {
     "bidang": "Agribisnis dan Agroteknologi",
+    "program_keahlian": "Kehutanan",
     "jenjang": [
       "SMK"
     ],
@@ -5730,6 +5857,7 @@
   },
   "dasar_dasar_teknika_kapal_penangkap_ikan": {
     "bidang": "Kemaritiman",
+    "program_keahlian": "Teknika Kapal Penangkap Ikan",
     "jenjang": [
       "SMK"
     ],
@@ -5766,6 +5894,7 @@
   },
   "dasar_dasar_nautika_kapal_penangkap_ikan": {
     "bidang": "Kemaritiman",
+    "program_keahlian": "Nautika Kapal Penangkap Ikan",
     "jenjang": [
       "SMK"
     ],
@@ -5802,6 +5931,7 @@
   },
   "dasar_dasar_teknika_kapal_niaga": {
     "bidang": "Kemaritiman",
+    "program_keahlian": "Teknika Kapal Niaga",
     "jenjang": [
       "SMK"
     ],
@@ -5838,6 +5968,7 @@
   },
   "dasar_dasar_nautika_kapal_niaga": {
     "bidang": "Kemaritiman",
+    "program_keahlian": "Nautika Kapal Niaga",
     "jenjang": [
       "SMK"
     ],
@@ -5874,6 +6005,7 @@
   },
   "teknika_kapal_penangkap_ikan": {
     "bidang": "Kemaritiman",
+    "program_keahlian": "Teknika Kapal Penangkap Ikan",
     "jenjang": [
       "SMK"
     ],
@@ -5914,6 +6046,7 @@
   },
   "nautika_kapal_penangkap_ikan": {
     "bidang": "Kemaritiman",
+    "program_keahlian": "Nautika Kapal Penangkap Ikan",
     "jenjang": [
       "SMK"
     ],
@@ -5966,6 +6099,7 @@
   },
   "teknika_kapal_niaga": {
     "bidang": "Kemaritiman",
+    "program_keahlian": "Teknika Kapal Niaga",
     "jenjang": [
       "SMK"
     ],
@@ -6026,6 +6160,7 @@
   },
   "nautika_kapal_niaga": {
     "bidang": "Kemaritiman",
+    "program_keahlian": "Nautika Kapal Niaga",
     "jenjang": [
       "SMK"
     ],
@@ -6086,6 +6221,7 @@
   },
   "dasar_dasar_pemasaran": {
     "bidang": "Bisnis dan Manajemen",
+    "program_keahlian": "Pemasaran",
     "jenjang": [
       "SMK"
     ],
@@ -6106,6 +6242,7 @@
   },
   "dasar_dasar_manajemen_perkantoran_dan_layanan_bisnis": {
     "bidang": "Bisnis dan Manajemen",
+    "program_keahlian": "Manajemen Perkantoran dan Layanan Bisnis",
     "jenjang": [
       "SMK"
     ],
@@ -6126,6 +6263,7 @@
   },
   "dasar_dasar_akuntansi_dan_keuangan_lembaga": {
     "bidang": "Bisnis dan Manajemen",
+    "program_keahlian": "Akuntansi dan Keuangan Lembaga",
     "jenjang": [
       "SMK"
     ],
@@ -6146,6 +6284,7 @@
   },
   "bisnis_digital": {
     "bidang": "Bisnis dan Manajemen",
+    "program_keahlian": "Pemasaran",
     "jenjang": [
       "SMK"
     ],
@@ -6186,6 +6325,7 @@
   },
   "bisnis_ritel": {
     "bidang": "Bisnis dan Manajemen",
+    "program_keahlian": "Pemasaran",
     "jenjang": [
       "SMK"
     ],
@@ -6226,6 +6366,7 @@
   },
   "manajemen_perkantoran": {
     "bidang": "Bisnis dan Manajemen",
+    "program_keahlian": "Manajemen Perkantoran dan Layanan Bisnis",
     "jenjang": [
       "SMK"
     ],
@@ -6262,6 +6403,7 @@
   },
   "manajemen_logistik": {
     "bidang": "Bisnis dan Manajemen",
+    "program_keahlian": "Manajemen Perkantoran dan Layanan Bisnis",
     "jenjang": [
       "SMK"
     ],
@@ -6302,6 +6444,7 @@
   },
   "layanan_perbankan": {
     "bidang": "Bisnis dan Manajemen",
+    "program_keahlian": "Akuntansi dan Keuangan Lembaga",
     "jenjang": [
       "SMK"
     ],
@@ -6334,6 +6477,7 @@
   },
   "layanan_perbankan_syariah": {
     "bidang": "Bisnis dan Manajemen",
+    "program_keahlian": "Akuntansi dan Keuangan Lembaga",
     "jenjang": [
       "SMK"
     ],
@@ -6366,6 +6510,7 @@
   },
   "akuntansi": {
     "bidang": "Bisnis dan Manajemen",
+    "program_keahlian": "Akuntansi dan Keuangan Lembaga",
     "jenjang": [
       "SMK"
     ],
@@ -6394,6 +6539,7 @@
   },
   "dasar_dasar_usaha_layanan_wisata": {
     "bidang": "Pariwisata",
+    "program_keahlian": "Usaha Layanan Pariwisata",
     "jenjang": [
       "SMK"
     ],
@@ -6414,6 +6560,7 @@
   },
   "dasar_dasar_perhotelan": {
     "bidang": "Pariwisata",
+    "program_keahlian": "Perhotelan",
     "jenjang": [
       "SMK"
     ],
@@ -6434,6 +6581,7 @@
   },
   "dasar_dasar_kuliner": {
     "bidang": "Pariwisata",
+    "program_keahlian": "Kuliner",
     "jenjang": [
       "SMK"
     ],
@@ -6454,6 +6602,7 @@
   },
   "dasar_dasar_kecantikan_dan_spa": {
     "bidang": "Pariwisata",
+    "program_keahlian": "Kecantikan dan Spa",
     "jenjang": [
       "SMK"
     ],
@@ -6478,6 +6627,7 @@
   },
   "usaha_layanan_wisata": {
     "bidang": "Pariwisata",
+    "program_keahlian": "Usaha Layanan Pariwisata",
     "jenjang": [
       "SMK"
     ],
@@ -6506,6 +6656,7 @@
   },
   "ekowisata": {
     "bidang": "Pariwisata",
+    "program_keahlian": "Usaha Layanan Pariwisata",
     "jenjang": [
       "SMK"
     ],
@@ -6534,6 +6685,7 @@
   },
   "perhotelan": {
     "bidang": "Pariwisata",
+    "program_keahlian": "Perhotelan",
     "jenjang": [
       "SMK"
     ],
@@ -6558,6 +6710,7 @@
   },
   "kuliner": {
     "bidang": "Pariwisata",
+    "program_keahlian": "Kuliner",
     "jenjang": [
       "SMK"
     ],
@@ -6586,6 +6739,7 @@
   },
   "tata_kecantikan_kulit_dan_rambut": {
     "bidang": "Pariwisata",
+    "program_keahlian": "Kecantikan dan Spa",
     "jenjang": [
       "SMK"
     ],
@@ -6634,6 +6788,7 @@
   },
   "spa_dan_beauty_therapy": {
     "bidang": "Pariwisata",
+    "program_keahlian": "Kecantikan dan Spa",
     "jenjang": [
       "SMK"
     ],
@@ -6662,6 +6817,7 @@
   },
   "dasar_dasar_seni_rupa": {
     "bidang": "Seni dan Ekonomi Kreatif",
+    "program_keahlian": "Seni Rupa",
     "jenjang": [
       "SMK"
     ],
@@ -6698,6 +6854,7 @@
   },
   "dasar_dasar_desain_komunikasi_visual": {
     "bidang": "Seni dan Ekonomi Kreatif",
+    "program_keahlian": "Desain Komunikasi Visual",
     "jenjang": [
       "SMK"
     ],
@@ -6730,6 +6887,7 @@
   },
   "dasar_dasar_desain_dan_produksi_kriya": {
     "bidang": "Seni dan Ekonomi Kreatif",
+    "program_keahlian": "Desain dan Produksi Kriya",
     "jenjang": [
       "SMK"
     ],
@@ -6766,6 +6924,7 @@
   },
   "dasar_dasar_seni_pertunjukan": {
     "bidang": "Seni dan Ekonomi Kreatif",
+    "program_keahlian": "Seni Pertunjukan",
     "jenjang": [
       "SMK"
     ],
@@ -6798,6 +6957,7 @@
   },
   "dasar_dasar_busana": {
     "bidang": "Seni dan Ekonomi Kreatif",
+    "program_keahlian": "Busana",
     "jenjang": [
       "SMK"
     ],
@@ -6818,6 +6978,7 @@
   },
   "seni_lukis": {
     "bidang": "Seni dan Ekonomi Kreatif",
+    "program_keahlian": "Seni Rupa",
     "jenjang": [
       "SMK"
     ],
@@ -6854,6 +7015,7 @@
   },
   "seni_patung": {
     "bidang": "Seni dan Ekonomi Kreatif",
+    "program_keahlian": "Seni Rupa",
     "jenjang": [
       "SMK"
     ],
@@ -6890,6 +7052,7 @@
   },
   "desain_komunikasi_visual": {
     "bidang": "Seni dan Ekonomi Kreatif",
+    "program_keahlian": "Desain Komunikasi Visual",
     "jenjang": [
       "SMK"
     ],
@@ -6918,6 +7081,7 @@
   },
   "teknik_grafika": {
     "bidang": "Seni dan Ekonomi Kreatif",
+    "program_keahlian": "Desain Komunikasi Visual",
     "jenjang": [
       "SMK"
     ],
@@ -6946,6 +7110,7 @@
   },
   "kriya_kreatif_batik_dan_tekstil": {
     "bidang": "Seni dan Ekonomi Kreatif",
+    "program_keahlian": "Desain dan Produksi Kriya",
     "jenjang": [
       "SMK"
     ],
@@ -6974,6 +7139,7 @@
   },
   "kriya_kreatif_kulit_dan_imitasi": {
     "bidang": "Seni dan Ekonomi Kreatif",
+    "program_keahlian": "Desain dan Produksi Kriya",
     "jenjang": [
       "SMK"
     ],
@@ -7002,6 +7168,7 @@
   },
   "kriya_keramik": {
     "bidang": "Seni dan Ekonomi Kreatif",
+    "program_keahlian": "Desain dan Produksi Kriya",
     "jenjang": [
       "SMK"
     ],
@@ -7026,6 +7193,7 @@
   },
   "kriya_kreatif_logam_dan_perhiasan": {
     "bidang": "Seni dan Ekonomi Kreatif",
+    "program_keahlian": "Desain dan Produksi Kriya",
     "jenjang": [
       "SMK"
     ],
@@ -7054,6 +7222,7 @@
   },
   "kriya_kreatif_kayu_dan_rotan": {
     "bidang": "Seni dan Ekonomi Kreatif",
+    "program_keahlian": "Desain dan Produksi Kriya",
     "jenjang": [
       "SMK"
     ],
@@ -7078,6 +7247,7 @@
   },
   "seni_musik_smk": {
     "bidang": "Seni dan Ekonomi Kreatif",
+    "program_keahlian": "Seni Pertunjukan",
     "jenjang": [
       "SMK"
     ],
@@ -7114,6 +7284,7 @@
   },
   "seni_tari_smk": {
     "bidang": "Seni dan Ekonomi Kreatif",
+    "program_keahlian": "Seni Pertunjukan",
     "jenjang": [
       "SMK"
     ],
@@ -7138,6 +7309,7 @@
   },
   "seni_karawitan": {
     "bidang": "Seni dan Ekonomi Kreatif",
+    "program_keahlian": "Seni Pertunjukan",
     "jenjang": [
       "SMK"
     ],
@@ -7166,6 +7338,7 @@
   },
   "seni_pedalangan": {
     "bidang": "Seni dan Ekonomi Kreatif",
+    "program_keahlian": "Seni Pertunjukan",
     "jenjang": [
       "SMK"
     ],
@@ -7194,6 +7367,7 @@
   },
   "seni_teater_smk": {
     "bidang": "Seni dan Ekonomi Kreatif",
+    "program_keahlian": "Seni Pertunjukan",
     "jenjang": [
       "SMK"
     ],
@@ -7226,6 +7400,7 @@
   },
   "tata_artistik_teater": {
     "bidang": "Seni dan Ekonomi Kreatif",
+    "program_keahlian": "Seni Pertunjukan",
     "jenjang": [
       "SMK"
     ],
@@ -7262,6 +7437,7 @@
   },
   "desain_dan_produksi_busana": {
     "bidang": "Seni dan Ekonomi Kreatif",
+    "program_keahlian": "Busana",
     "jenjang": [
       "SMK"
     ],
