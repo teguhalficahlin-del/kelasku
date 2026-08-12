@@ -11,8 +11,10 @@
     mapel: '',           // label human-readable untuk AI payload
     mapelKey: '',        // key JSON cp-data.json
     bidangKeahlian: null, // bidang keahlian SMK, null jika bukan SMK
+    programKeahlian: null, // program keahlian SMK, null jika bukan SMK
     jenjang: '',
     fase: '',
+    elemenTerpilih: [],  // elemen CP yang diampu guru (produktif SMK)
     jp_per_minggu: '',
     smk: null,       // null jika bukan SMK
     dnk_dk: {},
@@ -272,10 +274,12 @@
     el('rp-jenjang-sel').addEventListener('change', e => {
       _ans.jenjang = e.target.value;
       _ans.bidangKeahlian = null;
+      _ans.programKeahlian = null;
       _ans.mapelKey = '';
       _ans.mapel = '';
       _ans.fase = '';
-      ['rp-q-p1b','rp-q-p2','rp-q-p3','rp-step1-btn'].forEach(id => el(id)?.remove());
+      _ans.elemenTerpilih = [];
+      ['rp-q-p1b','rp-q-p1c','rp-q-p2','rp-q-p2b','rp-q-p3','rp-step1-btn'].forEach(id => el(id)?.remove());
       if (!_ans.jenjang) return;
       if (_ans.jenjang === 'SMK') renderStep1P1b();
       else renderStep1P2(_ans.jenjang, null);
@@ -291,7 +295,7 @@
   async function renderStep1P1b() {
     const block = el('rp-body')?.querySelector('.rp-block');
     if (!block) return;
-    ['rp-q-p1b','rp-q-p2','rp-q-p3','rp-step1-btn'].forEach(id => el(id)?.remove());
+    ['rp-q-p1b','rp-q-p1c','rp-q-p2','rp-q-p2b','rp-q-p3','rp-step1-btn'].forEach(id => el(id)?.remove());
 
     const div = document.createElement('div');
     div.id = 'rp-q-p1b';
@@ -319,14 +323,58 @@
 
     el('rp-bidang-sel').addEventListener('change', e => {
       _ans.bidangKeahlian = e.target.value || null;
+      _ans.programKeahlian = null;
       _ans.mapelKey = '';
       _ans.mapel = '';
       _ans.fase = '';
-      ['rp-q-p2','rp-q-p3','rp-step1-btn'].forEach(id => el(id)?.remove());
-      if (_ans.bidangKeahlian) renderStep1P2('SMK', _ans.bidangKeahlian);
+      _ans.elemenTerpilih = [];
+      ['rp-q-p1c','rp-q-p2','rp-q-p2b','rp-q-p3','rp-step1-btn'].forEach(id => el(id)?.remove());
+      if (_ans.bidangKeahlian) renderStep1P1c();
     });
 
-    if (_ans.bidangKeahlian) {
+    if (_ans.bidangKeahlian) renderStep1P1c();
+  }
+
+  async function renderStep1P1c() {
+    const block = el('rp-body')?.querySelector('.rp-block');
+    if (!block) return;
+    ['rp-q-p1c','rp-q-p2','rp-q-p2b','rp-q-p3','rp-step1-btn'].forEach(id => el(id)?.remove());
+
+    const div = document.createElement('div');
+    div.id = 'rp-q-p1c';
+    div.className = 'rp-q';
+    div.innerHTML = `<label class="rp-q-label">3. Program keahlian *</label>${loading('Memuat program keahlian…')}`;
+    block.insertBefore(div, el('rp-step1-error'));
+
+    const data = await loadCpData();
+    const qDiv = el('rp-q-p1c');
+    if (!qDiv || !data) return;
+
+    const programs = [...new Set(
+      Object.values(data)
+        .filter(v => v.bidang === _ans.bidangKeahlian && v.program_keahlian)
+        .map(v => v.program_keahlian)
+    )].sort((a, b) => a.localeCompare(b, 'id'));
+
+    qDiv.innerHTML = `<label class="rp-q-label" for="rp-program-sel">3. Program keahlian *</label>
+<select class="rp-select" id="rp-program-sel">
+  <option value="">— Pilih program keahlian —</option>
+  ${programs.map(p =>
+    `<option value="${esc(p)}"${_ans.programKeahlian===p?' selected':''}>${esc(p)}</option>`
+  ).join('')}
+</select>`;
+
+    el('rp-program-sel').addEventListener('change', e => {
+      _ans.programKeahlian = e.target.value || null;
+      _ans.mapelKey = '';
+      _ans.mapel = '';
+      _ans.fase = '';
+      _ans.elemenTerpilih = [];
+      ['rp-q-p2','rp-q-p2b','rp-q-p3','rp-step1-btn'].forEach(id => el(id)?.remove());
+      if (_ans.programKeahlian) renderStep1P2('SMK', _ans.bidangKeahlian);
+    });
+
+    if (_ans.programKeahlian) {
       renderStep1P2('SMK', _ans.bidangKeahlian, !!_ans.mapelKey);
     }
   }
@@ -351,9 +399,9 @@
   async function renderStep1P2(jenjang, bidang, restore) {
     const block = el('rp-body')?.querySelector('.rp-block');
     if (!block) return;
-    ['rp-q-p2','rp-q-p3','rp-step1-btn'].forEach(id => el(id)?.remove());
+    ['rp-q-p2','rp-q-p2b','rp-q-p3','rp-step1-btn'].forEach(id => el(id)?.remove());
 
-    const qNum = bidang ? '3' : '2';
+    const qNum = _ans.programKeahlian ? '4' : bidang ? '3' : '2';
     const div = document.createElement('div');
     div.id = 'rp-q-p2';
     div.className = 'rp-q';
@@ -366,7 +414,7 @@
 
     const entries = Object.entries(data).filter(([key, v]) =>
       bidang
-        ? (v.bidang === bidang) || (v.bidang === 'Umum' && WHITELIST_MAPEL_UMUM_SMK.includes(key))
+        ? (v.program_keahlian === _ans.programKeahlian) || (v.bidang === 'Umum' && WHITELIST_MAPEL_UMUM_SMK.includes(key))
         : v.jenjang?.includes(jenjang)
     );
 
@@ -389,13 +437,70 @@
       _ans.mapelKey = e.target.value;
       _ans.mapel = selOpt?.textContent.trim() || '';
       _ans.fase = '';
-      ['rp-q-p3','rp-step1-btn'].forEach(id => el(id)?.remove());
-      if (_ans.mapelKey && data[_ans.mapelKey]) renderStep1P3(_ans.mapelKey, data[_ans.mapelKey]);
+      _ans.elemenTerpilih = [];
+      ['rp-q-p2b','rp-q-p3','rp-step1-btn'].forEach(id => el(id)?.remove());
+      if (_ans.mapelKey && data[_ans.mapelKey]) {
+        const entry = data[_ans.mapelKey];
+        if (entry.bidang !== 'Umum') renderStep1P2b(_ans.mapelKey, entry);
+        else renderStep1P3(_ans.mapelKey, entry);
+      }
     });
 
     if (restore && _ans.mapelKey && data[_ans.mapelKey]) {
-      renderStep1P3(_ans.mapelKey, data[_ans.mapelKey], true);
+      const entry = data[_ans.mapelKey];
+      if (entry.bidang !== 'Umum') renderStep1P2b(_ans.mapelKey, entry, true);
+      else renderStep1P3(_ans.mapelKey, entry, true);
     }
+  }
+
+  function renderStep1P2b(mapelKey, entryData, restore) {
+    const block = el('rp-body')?.querySelector('.rp-block');
+    if (!block) return;
+    ['rp-q-p2b','rp-q-p3','rp-step1-btn'].forEach(id => el(id)?.remove());
+
+    // Kumpulkan semua elemen unik dari semua fase yang tersedia di entry
+    const allElemen = [];
+    const seen = new Set();
+    ['fase_e','fase_f'].forEach(fk => {
+      (entryData[fk]?.elemen || []).forEach(elItem => {
+        if (!seen.has(elItem.nama)) {
+          seen.add(elItem.nama);
+          allElemen.push(elItem.nama);
+        }
+      });
+    });
+
+    const div = document.createElement('div');
+    div.id = 'rp-q-p2b';
+    div.className = 'rp-q';
+    div.innerHTML = `<label class="rp-q-label">5. Elemen yang Anda ampu *</label>
+<div class="rp-elemen-list" id="rp-elemen-list">
+  ${allElemen.map(nama => {
+    const checked = (_ans.elemenTerpilih || []).includes(nama);
+    return `<label class="rp-elemen-check${checked ? ' checked' : ''}">
+  <input type="checkbox" value="${esc(nama)}"${checked ? ' checked' : ''}>
+  <span>${esc(nama)}</span>
+</label>`;
+  }).join('')}
+</div>`;
+    block.insertBefore(div, el('rp-step1-error'));
+
+    const listEl = el('rp-elemen-list');
+    function syncElemen() {
+      _ans.elemenTerpilih = [...listEl.querySelectorAll('input[type="checkbox"]:checked')]
+        .map(cb => cb.value);
+      listEl.querySelectorAll('.rp-elemen-check').forEach(lbl => {
+        lbl.classList.toggle('checked', lbl.querySelector('input').checked);
+      });
+      el('rp-q-p3')?.remove();
+      el('rp-step1-btn')?.remove();
+      if (_ans.elemenTerpilih.length > 0) {
+        renderStep1P3(mapelKey, entryData, !!_ans.fase);
+      }
+    }
+    listEl.addEventListener('change', syncElemen);
+
+    if (restore && _ans.elemenTerpilih?.length > 0) syncElemen();
   }
 
   function renderStep1P3(mapelKey, entryData, restore) {
@@ -411,7 +516,8 @@
     };
     const jenjangFases = FASE_PER_JENJANG[_ans.jenjang] || [];
     const availFases = jenjangFases.filter(fk => entryData[fk]);
-    const pNum = _ans.jenjang === 'SMK' ? '4' : '3';
+    const isProduktif = _ans.jenjang === 'SMK' && entryData.bidang !== 'Umum';
+    const pNum = _ans.jenjang !== 'SMK' ? '3' : isProduktif ? '6' : '5';
 
     const div = document.createElement('div');
     div.id = 'rp-q-p3';
@@ -474,6 +580,9 @@
 
     if (!jenjang)  { showError('rp-step1-error', 'Pilih jenjang sekolah.'); return; }
     if (!mapelKey) { showError('rp-step1-error', 'Pilih mata pelajaran.'); return; }
+    if (el('rp-q-p2b') && (!_ans.elemenTerpilih || _ans.elemenTerpilih.length === 0)) {
+      showError('rp-step1-error', 'Pilih minimal satu elemen yang Anda ampu.'); return;
+    }
     if (!fase)     { showError('rp-step1-error', 'Pilih fase capaian pembelajaran.'); return; }
 
     showError('rp-step1-error', '');
@@ -495,6 +604,7 @@
             mode: 'cp_summary',
             konteks: { mapel: _ans.mapel, jenjang, fase },
             elemen_list: _cpElemen,
+            ...(_ans.elemenTerpilih?.length ? { elemen_terpilih: _ans.elemenTerpilih } : {}),
           });
           _cpRingkasan = result?.ringkasan || [];
         } catch {

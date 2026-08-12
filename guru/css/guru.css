@@ -2980,6 +2980,64 @@ h2.panel-header.open .panel-collapse-arrow {
   color: var(--gold);
 }
 
+/* ── P2b — Elemen checkbox list ── */
+.rp-elemen-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  margin-top: var(--space-xs);
+  max-height: 18rem;
+  overflow-y: auto;
+}
+
+.rp-elemen-check {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  cursor: pointer;
+  padding: var(--space-xs) var(--input-px);
+  border-radius: var(--input-r);
+  border: 1px solid var(--border);
+  background: var(--input-bg);
+  transition: border-color var(--transition), background var(--transition);
+  color: var(--text-primary);
+  font-size: var(--fs-ui);
+  user-select: none;
+}
+
+.rp-elemen-check:hover {
+  border-color: var(--gold-border);
+  background: var(--gold-muted);
+}
+
+.rp-elemen-check.checked {
+  border-color: var(--gold-border);
+  background: var(--gold-muted);
+}
+
+.rp-elemen-check input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  border: 1.5px solid var(--border-strong);
+  border-radius: 3px;
+  background: var(--bg-elevated);
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition);
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.rp-elemen-check input[type="checkbox"]:checked {
+  background-color: var(--gold);
+  border-color: var(--gold);
+  background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='%230A0A0F' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
 .rp-q-label {
   font-size: var(--fs-ui);
   font-weight: var(--fw-medium);
