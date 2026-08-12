@@ -641,7 +641,19 @@
     const div = el('rp-cp-preview');
     if (!div) return;
     const umum = cpUmum?.trim() ? `<div style="font-size:var(--fs-caption);color:var(--text-secondary);margin-bottom:var(--space-md)">${esc(cpUmum.trim())}</div>` : '';
-    const rows = _cpElemen.map((e, i) => {
+
+    const filterAktif = _ans.elemenTerpilih && _ans.elemenTerpilih.length > 0;
+    const normalizedPilihan = filterAktif
+      ? _ans.elemenTerpilih.map(s => s.trim().toLowerCase())
+      : null;
+    const elemenTampil = filterAktif
+      ? _cpElemen.filter(e => normalizedPilihan.includes(e.nama.trim().toLowerCase()))
+      : _cpElemen;
+    const labelFilter = filterAktif
+      ? `<div style="font-size:var(--fs-caption);color:var(--gold);margin-bottom:var(--space-sm);">Menampilkan ${elemenTampil.length} elemen sesuai pilihan Anda</div>`
+      : '';
+
+    const rows = elemenTampil.map((e) => {
       const r = _cpRingkasan.find(x => x.elemen === e.nama);
       const konkret = r?.konkret || null;
       return `<div class="rp-cp-elemen">
@@ -656,7 +668,7 @@
   </div>` : ''}
 </div>`;
     }).join('');
-    div.innerHTML = `<div class="rp-cp-card-label">CP ${esc(label)}</div>${umum}${rows}`;
+    div.innerHTML = `<div class="rp-cp-card-label">CP ${esc(label)}</div>${umum}${labelFilter}${rows}`;
     appendStep1Next();
   }
 
