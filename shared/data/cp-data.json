@@ -6363,5 +6363,273 @@
         }
       ]
     }
+  },
+  "dasar_dasar_usaha_layanan_wisata": {
+    "bidang": "Pariwisata",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_e": {
+      "label": "Dasar-dasar Usaha Layanan Wisata",
+      "cp_umum": "Pada akhir Fase E, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Wawasan dunia kerja bidang usaha layanan pariwisata",
+          "cp_normatif": "Menganalisis ruang lingkup industri pariwisata, industri pariwisata sebagai bisnis, program pengembangan pariwisata digital, profesi bidang pariwisata, dan kewirausahaan bidang pariwisata, serta menerapkan alat bantu bisnis umum."
+        },
+        {
+          "nama": "Kecakapan dasar (basic job skills), K3 (Keselamatan Kesehatan dan Keamanan) dan budaya kerja",
+          "cp_normatif": "Menerapkan komunikasi di tempat kerja, penyediaan bantuan kepada wisatawan, pemeliharaan standar kinerja pribadi, mengikuti prosedur sederhana bekerja dalam satu tim, komunikasi dengan wisatawan dan kolega dari berbagai latar belakang, penanganan kesalahpahaman antarbudaya, prosedur kesehatan, keselamatan dan keamanan di tempat kerja, penanganan keadaan darurat, pemeliharaan penampilan pribadi, tindak lanjut mengenai kesehatan, keselamatan dan keamanan serta, serta komunikasi lisan secara efektif."
+        }
+      ]
+    }
+  },
+  "dasar_dasar_perhotelan": {
+    "bidang": "Pariwisata",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_e": {
+      "label": "Dasar-dasar Perhotelan",
+      "cp_umum": "Pada akhir Fase E, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Wawasan dunia kerja bidang perhotelan",
+          "cp_normatif": "Menganalisis aktivitas pekerjaan pada industri perhotelan, jenis fasilitas dan layanan di hotel, perkembangan penerapan teknologi, serta isu-isu global terkait dunia pariwisata dan perhotelan."
+        },
+        {
+          "nama": "Kecakapan kerja dasar (basic job skills), K3, dan budaya kerja",
+          "cp_normatif": "Menerapkan prosedur kesehatan, keselamatan dan keamanan di tempat kerja, serta dasar-dasar pelayanan prima pada industri perhotelan."
+        }
+      ]
+    }
+  },
+  "dasar_dasar_kuliner": {
+    "bidang": "Pariwisata",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_e": {
+      "label": "Dasar-dasar Kuliner",
+      "cp_umum": "Pada akhir Fase E, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Wawasan dunia kerja bidang kuliner",
+          "cp_normatif": "Menganalisis ruang lingkup bisnis industri kuliner, perkembangan dunia kuliner dan pemanfaatan teknologi dalam industri kuliner, profesi atau okupasi dunia kerja dan peluang berwirausaha di bidang kuliner."
+        },
+        {
+          "nama": "Kecakapan kerja dasar (basic job skills), K3, dan budaya kerja bidang kuliner",
+          "cp_normatif": "Menerapkan dasar pelayanan prima melalui komunikasi verbal dan nonverbal dan bekerja sama dengan kolega dan pelanggan dalam lingkungan sosial yang berbeda; menerapkan keamanan pangan dan kebersihan, kesehatan, keselamatan kerja serta kelestarian lingkungan (Cleanliness Health Safety Environmental Sustainability) dengan pengelolaan limbah di bidang kuliner; merancang kebutuhan peralatan dapur (kitchen equipment dan kitchen utensils) dan bahan makanan serta mendeskripsikan kandungan gizinya; menganalisis menu; serta menerapkan persiapan dasar pengolahan (basic cooking preparation) dan metode dasar memasak (basic cooking method)."
+        }
+      ]
+    }
+  },
+  "dasar_dasar_kecantikan_dan_spa": {
+    "bidang": "Pariwisata",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_e": {
+      "label": "Dasar-dasar Kecantikan dan SPA",
+      "cp_umum": "Pada akhir Fase E, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Wawasan dunia kerja bidang Kecantikan dan Spa",
+          "cp_normatif": "Memahami wawasan profil dan karakteristik industri kecantikan dan spa; dan menganalisis perkembangan penerapan teknologi, isu-isu global terkait dunia kecantikan dan spa, serta wirausaha bidang kecantikan dan spa yang profesional."
+        },
+        {
+          "nama": "Kecakapan kerja dasar (basic job skills), K3, dan budaya",
+          "cp_normatif": "Menerapkan dasar penerapan pelayanan prima (excellent service) pada industri kecantikan dan spa, sanitasi hygiene, kesehatan, keselamatan kerja, dan budaya mutu, konsep dasar spa, serta praktik dasar kecantikan kulit dan rambut."
+        },
+        {
+          "nama": "Anatomi dan Fisiologi Kecantikan",
+          "cp_normatif": "Menganalisis anatomi dan fisiologi kecantikan dan menerapkan pengetahuan anatomi dan fisiologi untuk perawatan kecantikan dan spa."
+        }
+      ]
+    }
+  },
+  "usaha_layanan_wisata": {
+    "bidang": "Pariwisata",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Usaha Layanan Wisata",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Pemesanan dan penghitungan tarif transportasi udara, darat, dan laut",
+          "cp_normatif": "Menerapkan pengelolaan reservasi transportasi udara, darat, laut, destinasi wisata dan akomodasi secara manual atau menggunakan komputer, penggunaan bahasa Inggris pada tingkat operasional dasar, penyusunan perhitungan tarif, penyiapan tiket transportasi udara domestik dan internasional, dan identifikasi dokumen perjalanan."
+        },
+        {
+          "nama": "Perencanaan dan pengelolaan perjalanan wisata",
+          "cp_normatif": "Mengembangkan informasi produk dan menerapkan penyediaan informasi dan saran mengenai daerah tujuan wisata, pengaturan jasa pemasok, pengembangan rencana pengemasan paket produk wisata termasuk wisata berkelanjutan menggunakan Bahasa Inggris pada tingkat operasional dasar."
+        },
+        {
+          "nama": "Pengelolaan kegiatan MICE secara luring dan/atau daring",
+          "cp_normatif": "Menerapkan pembuatan proposal penawaran kegiatan MICE, pengelolaan kegiatan MICE secara luring dan/atau daring, dan protokol kegiatan MICE yang sesuai dengan unggulan daerah."
+        },
+        {
+          "nama": "Pemanduan wisata dan memimpin rombongan wisata",
+          "cp_normatif": "Menerapkan prosedur dasar pertolongan pertama, prosedur kesehatan, keselamatan kerja dan lingkungan hidup, kepemanduan wisata dan wisata berkelanjutan, pelayanan pada penjemputan (transfer in) dan pengantaran wisatawan (transfer out), penggunaan Bahasa Inggris pada tingkat operasional dasar, pengembangan dan pemeliharaan pengetahuan umum yang diperlukan oleh pemandu wisata, serta memimpin dan memandu rombongan wisata, mengatur peserta saat tur, dan menyiapkan dan menyajikan informasi wisata."
+        }
+      ]
+    }
+  },
+  "ekowisata": {
+    "bidang": "Pariwisata",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Ekowisata",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Perencanaan dan pengemasan perjalanan ekowisata",
+          "cp_normatif": "Menerapkan perencanaan dan pengemasan program perjalanan ekowisata, penginventarisasian potensi-potensi ekowisata; mengklasifikasikan komponen-komponen pendukung ekowisata; dan menerapkan pengemasan ekowisata berdasarkan pariwisata berkelanjutan."
+        },
+        {
+          "nama": "Penghitungan biaya perjalanan ekowisata",
+          "cp_normatif": "Menganalisis perhitungan harga, menerapkan pelaporan perhitungan harga, tindak lanjut perhitungan harga berdasarkan komponen-komponen biaya perjalanan ekowisata, seperti biaya transportasi, biaya akomodasi, dan komponen biaya lainnya."
+        },
+        {
+          "nama": "Pengorganisasian dan operasionalisasi perjalanan ekowisata",
+          "cp_normatif": "Menerapkan penyusunan langkah-langkah penyelenggaraan perjalanan ekowisata, menjalin hubungan dengan kalangan industri dan masyarakat setempat, penyusunan administrasi penyelenggaraan perjalanan ekowisata, penyusunan pengalokasian sumber daya tur, penyusunan pengembangan rencana operasional, penyusunan pengelolaan risiko operasional, pengoperasian tur di daerah wisata terpencil, koordinasi kegiatan pengoordinasian kegiatan pariwisata budaya yang sesuai, prosedur keselamatan dan keamanan sehingga dapat memantau aktivitas pariwisata yang sesuai dengan budaya, serta penggunaan Bahasa Inggris di tingkat operasional dasar."
+        },
+        {
+          "nama": "Kepemanduan ekowisata",
+          "cp_normatif": "Menganalisis materi interpretatif untuk kegiatan ekowisata, menerapkan pekerjaan sebagai pemandu wisata, menerapkan pengelolaan kegiatan interpretatif, penyusunan penyajian komentar wisata, penggunaan Bahasa Inggris di tingkat operasional dasar, dan keterampilan tambahan lainnya yang sesuai dengan karakteristik wilayah destinasi ekowisata. 5. Pemasaran digital ekowisata Menerapkan penggunaan peralatan media digital, pengelolaan risiko keamanan media digital, pemberdayaan media sosial untuk menarik pelanggan, pemasaran produk ekowisata secara digital, pemantauan kinerja penjualan produk ekowisata pada media digital, dan pelaksanaan transaksi keuangan digital."
+        }
+      ]
+    }
+  },
+  "perhotelan": {
+    "bidang": "Pariwisata",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Perhotelan",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Front Office",
+          "cp_normatif": "Menerapkan layanan front office berdasarkan okupasi telephone operator, reservation staff, bellboy, guest service agent, dan butler."
+        },
+        {
+          "nama": "Housekeeping & Laundry",
+          "cp_normatif": "Menerapkan pengetahuan dan keterampilan sesuai okupasi public area cleaner, room attendant, laundry attendant, dan florist attendant."
+        },
+        {
+          "nama": "Food & Beverage Service",
+          "cp_normatif": "Menerapkan prosedur kerja sesuai okupasi waiter server di restoran dan room service, serta penerimaan dan penyimpanan barang sesuai standar kebersihan dan kerapian."
+        }
+      ]
+    }
+  },
+  "kuliner": {
+    "bidang": "Pariwisata",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Kuliner",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Kebersihan, Kesehatan, Keselamatan dan Kelestarian Lingkungan serta Analisis Bahaya dan Titik Kendali Kritis",
+          "cp_normatif": "Menerapkan prosedur penggunaan alat pelindung diri dan alat pemadam api ringan (APAR), keamanan pangan dan prosedur analisis bahaya dan titik kendali kritis (Hazard Analysis and Critical Control Points/HACCP), kebersihan, kesehatan, keselamatan kerja, dan kelestarian lingkungan dengan pengelolaan limbah di bidang kuliner."
+        },
+        {
+          "nama": "Persiapan Alat Memasak dan Bahan Makanan",
+          "cp_normatif": "Menerapkan penggunaan alat dan bahan sesuai prosedur operasional standar (POS) industri, penyimpanan alat dan bahan sesuai POS serta menganalisis resep dan memilih bahan makanan dengan mempertimbangkan kandungan gizinya."
+        },
+        {
+          "nama": "Pengolahan dan Penyajian Makanan dan Minuman",
+          "cp_normatif": "Menerapkan proses pengolahan makanan dengan berbagai teknik dasar memasak, menghasilkan hidangan Kontinental, Oriental, dan Indonesia; menghasilkan hidangan kue tradisional Indonesia; menghasilkan hidangan penutup (dessert); menghasilkan produk pastry dan bakery, serta menyajikan makanan dan minuman yang meliputi memilih alat hidang, menyusun hidangan, mengatur porsi hidangan, serta membuat hiasan makanan dan minuman."
+        },
+        {
+          "nama": "Pelayanan Makanan dan Minuman",
+          "cp_normatif": "Menerapkan pelayanan makanan dan minuman sesuai dengan prosedur dan sikap kerja berdasarkan standar industri serta prosedur pembuatan minuman panas dan dingin."
+        }
+      ]
+    }
+  },
+  "tata_kecantikan_kulit_dan_rambut": {
+    "bidang": "Pariwisata",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Tata Kecantikan Kulit dan Rambut",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Perawatan wajah",
+          "cp_normatif": "Menerapkan konsep dasar perawatan kulit wajah bermasalah secara manual, dengan teknologi dasar, dan teknologi kekinian (trend technology) serta perawatan kulit wajah khusus dengan terapi estetika wajah teknologi yang diintegrasikan dengan mengoperasikan peralatan terapi estetika wajah dasar."
+        },
+        {
+          "nama": "Perawatan tangan, kaki, dan nail art",
+          "cp_normatif": "Menerapkan konsep dasar perawatan tangan, kaki, nail art, penambahan kuku (nail extension), dan menghias tangan, serta proses kerja pelayanan jasa pada proses kerja perawatan tangan, kaki, nail art, penambahan kuku (nail extension) dan menghias kuku sesuai POS industri."
+        },
+        {
+          "nama": "Rias wajah",
+          "cp_normatif": "Menerapkan konsep dasar rias wajah khusus sesuai desain dan tema, serta mendokumentasikan proses kerja pelayanan jasa rias wajah khusus sesuai desain dan tema dengan menerapkan penampilan secara keseluruhan (total look) sesuai prosedur kerja industri."
+        },
+        {
+          "nama": "Penambahan bulu mata (eyelash extension) dan pengangkatan bulu mata (lash lift)",
+          "cp_normatif": "Menerapkan sejarah dan konsep dasar teknik penambahan bulu mata (eyelash extension) dan pengangkatan bulu mata (lash lift); serta proses kerja pelayanan jasa penambahan bulu mata (eyelash extension) sesuai POS industri."
+        },
+        {
+          "nama": "Penataan sanggul tradisional, modern, dan kreatif",
+          "cp_normatif": "Menganalisis sejarah dan konsep desain sanggul; menerapkan penataan sanggul tradisional, modern, dan kreatif sesuai karakteristik pelanggan dan penampilan secara keseluruhan (total look) sesuai POS industri; serta mendokumentasikan penataan sanggul."
+        },
+        {
+          "nama": "Pemangkasan rambut dan penataan (hair cutting dan styling)",
+          "cp_normatif": "Menganalisis sejarah, tipe, desain dan alat pemangkasan rambut, serta menerapkan dan mendokumentasikan pemangkasan dan penataan rambut menyesuaikan dengan desain dan penampilan secara keseluruhan (total look) sesuai POS industri."
+        },
+        {
+          "nama": "Pengeritingan dan pelurusan rambut (hair texture)",
+          "cp_normatif": "Menganalisis sejarah; menerapkan konsep pengeritingan dan pelurusan rambut; serta mendokumentasikan pengeritingan dan pelurusan dengan melakukan pratata (hair design) sesuai POS standar industri."
+        },
+        {
+          "nama": "Pewarnaan rambut (hair coloring)",
+          "cp_normatif": "Menganalisis sejarah; menerapkan konsep pewarnaan rambut teknik single dan double application dan pewarnaan artistic (highlight, lightening); serta mendokumentasikan teknik single application, double application dan pewarnaan artistic (highlight, lightening) menyesuaikan penampilan secara keseluruhan (total look) sesuai POS industri."
+        },
+        {
+          "nama": "Pemasaran dan penjualan jasa pada usaha kecantikan",
+          "cp_normatif": "Menerapkan strategi dan kelompok pemasaran untuk bisnis, penjualan pada usaha jasa kecantikan, dan dokumentasi penjualan jasa kecantikan."
+        }
+      ]
+    }
+  },
+  "spa_dan_beauty_therapy": {
+    "bidang": "Pariwisata",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "SPA dan Beauty Therapy",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Manicure, pedicure, nail art, dan waxing",
+          "cp_normatif": "Menerapkan penggunaan minyak atsiri (aromatherapy) untuk perawatan spa, refleksi untuk spa perawatan tangan, kaki dan kuku, menghias kuku (nail art), dan pencabutan bulu dengan wax (waxing) dengan teknik aplikasi sesuai jenis wax."
+        },
+        {
+          "nama": "Perawatan wajah (facial beauty aesthetic)",
+          "cp_normatif": "Menerapkan perawatan wajah (facial manual) dengan permasalahan kulit dan perawatan wajah lanjutan dengan berbagai teknologi."
+        },
+        {
+          "nama": "Perawatan badan (body treatment)",
+          "cp_normatif": "Menerapkan olah fisik, pijat badan Indonesia dan internasional untuk relaksasi, pijat punggung, serta perawatan badan meliputi, perawatan payudara, berendam (hydrobath), penguapan (steam), dan sauna. Menerapkan perawatan badan meliputi body scrub/exfoliating, perawatan masker badan tradisional dan khusus (body mask), perawatan masker dengan bahan segar, perawatan lulur dan boreh Bali, perawatan balut badan (body wrap), dan perawatan ratus Jawa."
+        },
+        {
+          "nama": "Penjualan jasa dan produk ritel pada usaha spa dan beauty therapy",
+          "cp_normatif": "Menerapkan jasa layanan dan produk ritel serta harga satuan sesuai dengan segmentasi pasar sesuai usaha spa dan beauty therapy, penyiapan data informasi pengelolaan bisnis, penjualan dan strategi pemasaran, pengelolaan keuangan, analisis kinerja usaha, dan dokumentasi transaksi penjualan."
+        }
+      ]
+    }
   }
 }
