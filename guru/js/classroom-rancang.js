@@ -337,6 +337,23 @@
     }
   }
 
+  // Sumber: Lampiran II & III Kepka BSKAP No. 046/H/KR/2025
+  const WHITELIST_MAPEL_UMUM_SMK = [
+    'pendidikan_pancasila',
+    'bahasa_indonesia',
+    'matematika',
+    'pjok',
+    'bahasa_inggris',
+    'informatika',
+    'seni_musik',
+    'seni_rupa',
+    'seni_tari',
+    'seni_teater',
+    'sejarah',
+    'projek_ipas',
+    'projek_kreatif_kewirausahaan',
+  ];
+
   async function renderStep1P2(jenjang, bidang, restore) {
     const block = el('rp-body')?.querySelector('.rp-block');
     if (!block) return;
@@ -353,9 +370,9 @@
     const qDiv = el('rp-q-p2');
     if (!qDiv || !data) return;
 
-    const entries = Object.entries(data).filter(([, v]) =>
+    const entries = Object.entries(data).filter(([key, v]) =>
       bidang
-        ? (v.bidang === bidang) || (v.bidang === 'Umum' && v.jenjang?.includes('SMK') && (v.fase_e || v.fase_f))
+        ? (v.bidang === bidang) || (v.bidang === 'Umum' && WHITELIST_MAPEL_UMUM_SMK.includes(key))
         : v.jenjang?.includes(jenjang)
     );
 
