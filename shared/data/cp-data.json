@@ -5699,5 +5699,361 @@
         }
       ]
     }
+  },
+  "dasar_dasar_teknika_kapal_penangkap_ikan": {
+    "bidang": "Kemaritiman",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_e": {
+      "label": "Dasar-dasar Teknika Kapal Penangkap Ikan",
+      "cp_umum": "Pada akhir Fase E, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Wawasan Dunia Kerja Bidang Teknika Kapal Penangkap Ikan",
+          "cp_normatif": "Menganalisis rangkaian aktivitas dan tugas pada bidang teknika kapal penangkapan ikan sebagai bagian integral dari penangkapan ikan meliputi kesehatan dan keselamatan kerja awak kapal penangkap ikan (K3LH), organisasi dan manajemen awak kapal."
+        },
+        {
+          "nama": "Prosedur Darurat",
+          "cp_normatif": "Menganalisis penanganan keadaan darurat pada awak kapal penangkap ikan, penanganan darurat pada kapal penangkap ikan."
+        },
+        {
+          "nama": "Tata Laksana Perikanan Yang Bertanggung Jawab atau Code of Conduct for Responsible Fisheries (CCRF) dan Hukum Maritim dan Perikanan",
+          "cp_normatif": "Menganalisis prinsip umum Code of Conduct for Responsible Fisheries (CCRF), Illegal, Unreported, and Unregulated (IUU) Fishing; dan menerapkan persyaratan hukum maritim internasional sesuai dengan perjanjian dan konvensi internasional, mencegah pencemaran laut, menerapkan hukum, peraturan, dan perjanjian nasional lainnya yang relevan (perikanan)."
+        },
+        {
+          "nama": "Konstruksi dan Stabilitas Kapal Penangkap Ikan",
+          "cp_normatif": "Menganalisis fungsi bagian-bagian utama dan konstruksi kapal penangkap ikan serta menerapkan cara mempertahankan stabilitas kapal, dan cara pengaturan muatan ikan hasil tangkap."
+        },
+        {
+          "nama": "Penanganan dan Penyimpanan Ikan Hasil Tangkap",
+          "cp_normatif": "Menerapkan cara menyimpan dan mengamankan hasil tangkapan dan alat tangkap di kapal, prosedur operasi muat dan bongkar hasil tangkapan, identifikasi pengaruh penanganan dan penyimpanan hasil tangkapan terhadap keamanan kapal."
+        },
+        {
+          "nama": "Permesinan Kapal Penangkap Ikan",
+          "cp_normatif": "Menganalisis bagian-bagian mesin penggerak utama penggerak kapal dan mesin bantu kapal penangkap ikan"
+        }
+      ]
+    }
+  },
+  "dasar_dasar_nautika_kapal_penangkap_ikan": {
+    "bidang": "Kemaritiman",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_e": {
+      "label": "Dasar-dasar Nautika Kapal Penangkap Ikan",
+      "cp_umum": "Pada akhir Fase E, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Wawasan dunia kerja di bidang nautika kapal penangkap ikan",
+          "cp_normatif": "Menganalisis aktivitas pekerjaan pada bidang nautika kapal penangkap ikan, persyaratan kerja di kapal, isu-isu global terkait di bidang nautika kapal penangkap ikan, dan pemahaman hukum maritim dan perikanan."
+        },
+        {
+          "nama": "Prosedur darurat dan SAR",
+          "cp_normatif": "Menerapkan kesehatan dan keselamatan kerja (K3) personil kapal penangkap ikan, hubungan antar manusia di atas kapal, respon situasi darurat kapal penangkap ikan, penanggulangan keadaan darurat; dan mengevaluasi pelaksanaan SAR untuk menolong orang dan kapal lain sesuai SOP."
+        },
+        {
+          "nama": "Konstruksi dan stabilitas kapal penangkap ikan",
+          "cp_normatif": "Menganalisis fungsi bagian-bagian utama dan konstruksi kapal penangkap ikan, ketentuan dan persyaratan sekat kedap air, dasar berganda, peralatan lensa dan ballast serta penataan instalasi kemudi kapal dan poros baling-baling; stabilitas kapal, pengaturan muatan ikan hasil tangkapan, dan peraturan Biro Klasifikasi Indonesia (BKI) untuk kapal penangkap ikan."
+        },
+        {
+          "nama": "Permesinan kapal penangkap ikan",
+          "cp_normatif": "Menganalisis prinsip kerja sistem pengoperasian, perbaikan dan perawatan mesin utama dan mesin bantu kapal penangkap ikan, dan kebutuhan bahan bakar minyak."
+        },
+        {
+          "nama": "Teknik penangkapan, penanganan, dan penyimpanan ikan hasil tangkapan",
+          "cp_normatif": "Menganalisis daerah operasi penangkapan ikan (Fishing Ground); serta menerapkan pengoperasian berbagai alat penangkap ikan, penanganan cepat hasil tangkapan di atas dek, penanganan ikan secara higienis, penjagaan mutu ikan di atas kapal, penyimpanan, pembongkaran, dan pemasaran ikan hasil tangkapan."
+        },
+        {
+          "nama": "Tata laksana perikanan yang bertanggung jawab atau Code of Conduct for Responsible Fisheries (CCRF)",
+          "cp_normatif": "Menerapkan prinsip umum Code of Conduct for Responsible Fisheries (CCRF); Illegal, Unreported, and Unregulated (IUU) Fishing; dan selektivitas dan ukuran alat tangkap sesuai ketentuan peraturan yang berlaku."
+        }
+      ]
+    }
+  },
+  "dasar_dasar_teknika_kapal_niaga": {
+    "bidang": "Kemaritiman",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_e": {
+      "label": "Dasar-dasar Teknika Kapal Niaga",
+      "cp_umum": "Pada akhir Fase E, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Wawasan dunia kerja di bidang teknika kapal niaga",
+          "cp_normatif": "Menganalisis aktivitas pekerjaan pada bidang teknika kapal niaga, antara lain Lembaga yang terkait dengan pelayaran kapal niaga dan Isu-isu teknologi di bidang teknika kapal niaga."
+        },
+        {
+          "nama": "Prosedur darurat dan SAR (Emergency Procedures and SAR)",
+          "cp_normatif": "Menerapkan prosedur keselamatan dan keadaan darurat, seperti kesehatan dan keselamatan pelayaran awak kapal, respon terhadap situasi darurat, penggunaan isyarat bahaya, pengorganisasian tindakan dalam keadaan darurat, identifikasi lintas penyelamatan diri, serta melakukan SAR."
+        },
+        {
+          "nama": "Undang-undang Pelayaran dan Konvensi Internasional (Basic Knowledge of IMO Convention)",
+          "cp_normatif": "Menerapkan undang‑undang pelayaran serta menjamin keselamatan pelayaran sebagaimana dituangkan dalam SOLAS 1974 yang mengatur tentang persyaratan konstruksi keselamatan kapal, keselamatan manusia, dan barang-barang yang diangkut."
+        },
+        {
+          "nama": "Kepedulian lingkungan dan pencegahan polusi (Environment Awareness and Pollution of Prevention)",
+          "cp_normatif": "Menerapkan tindakan pencegahan pencemaran lingkungan laut sesuai (MARPOL 73/78), serta prosedur pengoperasian peralatan anti-polusi dan menerapkan tindakan proaktif perlindungan lingkungan laut"
+        },
+        {
+          "nama": "Budaya keselamatan, keamanan, dan pelayanan (Safety, Security and Service Culture)",
+          "cp_normatif": "Menerapkan manajemen keselamatan di atas kapal, seperti (planning, organizing, actuating and controlling)."
+        },
+        {
+          "nama": "Konstruksi dan Stabilitas Kapal (ship construction and stability)",
+          "cp_normatif": "Menganalisis bagian-bagian kapal niaga, seperti dimensi pokok bangunan kapal, bentuk-bentuk kapal, ukuran pokok, tonnage, dasar berganda, gading, kulit kapal, geladak, sekat, pintu kedap air, kemudi, bentuk profil dan perhitungan stabilitas kapal."
+        }
+      ]
+    }
+  },
+  "dasar_dasar_nautika_kapal_niaga": {
+    "bidang": "Kemaritiman",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_e": {
+      "label": "Dasar-dasar Nautika Kapal Niaga",
+      "cp_umum": "Pada akhir Fase E, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Wawasan dunia kerja bidang Nautika Kapal Niaga",
+          "cp_normatif": "Menganalisis aktivitas pekerjaan pada bidang nautika kapal niaga dan pengetahuan tentang lembaga yang terkait dengan pelayaran kapal niaga serta serta Isu-isu global di bidang nautika kapal niaga."
+        },
+        {
+          "nama": "Prosedur darurat dan SAR (Emergency Procedure and SAR)",
+          "cp_normatif": "Menerapkan prosedur menghadapi situasi darurat, penilaian awal kerusakan dan pengendalian kerusakan, tindakan setelah tabrakan, prosedur meninggalkan kapal, serta melakukan operasi SAR."
+        },
+        {
+          "nama": "Undang-undang Pelayaran dan Konvensi Internasional",
+          "cp_normatif": "Menerapkan hukum maritim, laut teritorial dan zona yang bersebelahan, selat internasional, laut lepas, jalur muatan, keselamatan hidup di laut, penerapan SOLAS, Penerapan ILO, life-saving, radio telegraphy dan radiotelephony, serta manajemen keselamatan internasional."
+        },
+        {
+          "nama": "Kepedulian lingkungan dan pencegahan polusi",
+          "cp_normatif": "Menerapkan MARPOL 73/78, penanganan dan pencegahan polusi di laut, pengendalian pembuangan minyak, buku catatan minyak dan operasi kargo/ballast, serta rencana darurat penanganan pencemaran lingkungan di laut."
+        },
+        {
+          "nama": "Budaya keselamatan, keamanan dan pelayanan",
+          "cp_normatif": "Menerapkan dinas jaga, manajemen keselamatan dan keamanan, komunikasi dan kerja sama tim, kuesioner penilaian diri, serta faktor di balik kesalahan manusia."
+        },
+        {
+          "nama": "Konstruksi dan stabilitas (ship construction and stability)",
+          "cp_normatif": "Menganalisis bagian-bagian kapal, dimensi pokok, bentuk, ukuran, tonnage, dan perhitungan stabilitas kapal."
+        }
+      ]
+    }
+  },
+  "teknika_kapal_penangkap_ikan": {
+    "bidang": "Kemaritiman",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Teknika Kapal Penangkap Ikan",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Mesin penggerak kapal penangkap ikan",
+          "cp_normatif": "Menerapkan pengoperasian tenaga penggerak kapal dan perawatan motor tempel serta motor diesel."
+        },
+        {
+          "nama": "Mesin bantu kapal penangkap ikan",
+          "cp_normatif": "Menerapkan pengoperasian, perawatan, dan perbaikan mesin bantu (termasuk perpipaan, ketel uap dan sistem kemudi) sistem hidrolik dan peralatan penanganan hasil tangkapan serta menganalisis kerusakan dan tindakan pencegahan sesuai prosedur."
+        },
+        {
+          "nama": "Listrik dan sistem kontrol kapal penangkap ikan",
+          "cp_normatif": "Menerapkan pengoperasian, pemeriksaan, dan perawatan peralatan kelistrikan dan peralatan kontrol."
+        },
+        {
+          "nama": "Mesin pendingin",
+          "cp_normatif": "Menerapkan pengoperasian, perawatan, dan perbaikan mesin pendingin di kapal penangkap ikan mulai dari instalasi sistem refrigerasi (kompresor, kondensor, evaporator dan expansion valve) hingga penyambungan pipa pendingin."
+        },
+        {
+          "nama": "Ilmu bahan, bahan bakar dan pelumas",
+          "cp_normatif": "Menganalisis bahan‑bahan teknik (logam dan nonlogam), proses pembuatan logam, karakteristik bahan teknik (sifat fisika, sifat kimia dan sifat mekanis), serta bahan bakar dan pelumas mulai dari jenis, sifat, dan kegunaannya."
+        },
+        {
+          "nama": "Dinas jaga",
+          "cp_normatif": "Menerapkan dinas jaga mesin (pengaturan dan serah terima dinas jaga mesin) dan pembuatan laporan (pengecekan parameter, komponen-komponen, tindakan perawatan dan perbaikan) sesuai prosedur."
+        },
+        {
+          "nama": "Bahan dan alat tangkap penangkap ikan",
+          "cp_normatif": "Menganalisis jenis bahan, alat, dan karakteristik alat penangkapan ikan sesuai dengan daerah penangkapan (fishing ground) dan jenis ikan, serta menerapkan perawatan, perbaikan, dan penggunaan alat penangkapan ikan sesuai prosedur."
+        }
+      ]
+    }
+  },
+  "nautika_kapal_penangkap_ikan": {
+    "bidang": "Kemaritiman",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Nautika Kapal Penangkap Ikan",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Perencanaan pelayaran",
+          "cp_normatif": "Menerapkan perencanaan pelayaran dengan berbagai peta laut dan buku publikasi navigasi; membaca tanda-tanda, simbol-simbol, keterangan-keterangan di peta laut, sistem pelampungan dan perambuan; serta menerapkan pelaporan buku harian kapal (log book)."
+        },
+        {
+          "nama": "Ilmu pelayaran datar",
+          "cp_normatif": "Menentukan bentuk, ukuran, koordinat, dan arah di bumi, penghitungan haluan dan jauh, variasi, deviasi, sembir, rimban, dan haluan di atas arus, serta menerapkan pembuatan rute pelayaran, penentuan posisi kapal dengan berbagai baringan benda darat, benda angkasa, sextant, daftar ilmu pelayaran, dan buku almanak nautika, serta navigasi elektronik."
+        },
+        {
+          "nama": "Navigasi radar dan elektronik",
+          "cp_normatif": "Menerapkan pengoperasian radar dan berbagai peralatan navigasi elektronik yang ada di kapal penangkap ikan, antara lain Radio Direction Finder (RDF), fish finder, sonar, Global Positioning System (GPS), Very High Frequency (VHF), Single Side Band (SSB), Vessel Monitoring Aid (VMA), Vessel Monitoring System (VMS), International Maritime Satellite Organization (INMARSAT), dan Automatic Identification System (AIS)."
+        },
+        {
+          "nama": "Dinas jaga/P2TL",
+          "cp_normatif": "Menerapkan prosedur dinas jaga dan Peraturan Pencegahan Tubrukan di Laut (P2TL), penggunaan berbagai penerangan di kapal dan sosok benda."
+        },
+        {
+          "nama": "Kompas magnet dan kompas gyro",
+          "cp_normatif": "Menganalisis arah mata angin; menerapkan penggunaan kompas magnet dan kompas gyro; dan menghitung daftar deviasi pedoman untuk menentukan haluan kapal."
+        },
+        {
+          "nama": "Olah gerak dan pengendalian kapal kapal penangkap ikan",
+          "cp_normatif": "Menganalisis faktor-faktor yang mempengaruhi olah gerak kapal; mengemudikan kapal, sandar dan lepas dermaga, olah gerak di perairan sempit dan dangkal, berlabuh jangkar; dan menerapkan olah gerak kapal pada saat setting dan hauling dengan menggunakan berbagai alat penangkap ikan, serta pertolongan terhadap orang yang terjatuh di laut dalam semua kondisi."
+        },
+        {
+          "nama": "Komunikasi",
+          "cp_normatif": "Menerapkan komunikasi dengan bendera semboyan internasional, isyarat morse lengan, cahaya, semaphore, bunyi, radio telefoni dan telegrafi serta menerapkan penerimaan dan pengiriman jenis berita bahaya, serta menggunakan sistem GMDSS sesuai standar IMO."
+        },
+        {
+          "nama": "Meteorologi dan oceanografi",
+          "cp_normatif": "Menerapkan pembacaan dan pelaporan informasi meteorologi dan oseanografi pada kegiatan operasi penangkapan ikan."
+        },
+        {
+          "nama": "Manajemen kapal penangkap ikan",
+          "cp_normatif": "Menerapkan manajemen kapal penangkap ikan yang mencakup struktur organisasi, pembagian tugas di kapal, pelaporan kegiatan penangkapan ikan, serta docking."
+        },
+        {
+          "nama": "Bahan dan alat tangkap",
+          "cp_normatif": "Menentukan jenis dan sifat bahan, penomoran benang, menghitung hanging ratio, shortening, daya apung, dan daya tenggelam, serta menerapkan desain, pembuatan, perawatan, dan perbaikan alat penangkap ikan yang terbuat dari bahan jaring, tali dan pancing."
+        }
+      ]
+    }
+  },
+  "teknika_kapal_niaga": {
+    "bidang": "Kemaritiman",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Teknika Kapal Niaga",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Dinas jaga mesin (engineering watch)",
+          "cp_normatif": "Menerapkan prosedur jaga laut, jaga pelabuhan, dan jaga saat berlabuh jangkar, mulai dari serah terima jaga, pelaksanaan tugas rutin, pengisian log book, hingga penyelesaian jaga, serta menilai kesesuaiannya dengan peraturan perundang-undangan dan STCW 1978 Amandemen 2010."
+        },
+        {
+          "nama": "Mesin penggerak utama (main propulsion engine)",
+          "cp_normatif": "Menganalisis pengoperasian mesin penggerak utama kapal, dengan menerapkan fungsi dan cara kerja mesin diesel serta turbin uap; serta menerapkan kinerja sistem pendukung seperti sistem pendingin, pelumasan, bahan bakar, serta melakukan perhitungan sederhana motor diesel dan daya guna turbin uap, termasuk dengan pesawat bantu, jenis-jenis turbin uap, proses konversi tenaga uap menjadi tenaga gerak, segitiga kecepatan, dan perhitungan daya guna turbin uap."
+        },
+        {
+          "nama": "Permesinan bantu (auxiliary machinery)",
+          "cp_normatif": "Menerapkan pengoperasian dan menganalisis permesinan bantu di kapal, antara lain generator diesel, pompa-pompa, kompresor udara, purifier dan clarifier, oily water separator (OWS), alat penghantar panas (heat exchanger), fresh water generator, incinerator, sewage plant, mesin jangkar dan penggulung tros, mesin kemudi, mesin pendingin, penataan pipa, dan perhitungan sederhana pompa-pompa."
+        },
+        {
+          "nama": "Sistem kelistrikan kapal (marine electrical system)",
+          "cp_normatif": "Menerapkan pengoperasian sistem kelistrikan kapal, antara lain perawatan sistem kelistrikan, rangkaian listrik, alat ukur, prinsip dasar kelistrikan generator alternating current (AC) dan direct current (DC)."
+        },
+        {
+          "nama": "Elektronika (electronics)",
+          "cp_normatif": "Menerapkan sistem elektronik di kapal, antara lain dasar-dasar elektronika, penghantar arus listrik, jenis-jenis dioda, transistor, kapasitor, induktor, penerima sinyal (receiver), penguat, dan relay."
+        },
+        {
+          "nama": "Sistem kontrol (control system)",
+          "cp_normatif": "Menerapkan pengoperasian sistem kontrol di kapal, antara lain alat pengukuran sistem kontrol, instrumen panel kontrol, dan sistem kontrol pada permesinan kapal."
+        },
+        {
+          "nama": "Ilmu bahan (fabrication and repair materials)",
+          "cp_normatif": "Menganalisis jenis dan sifat bahan material yang digunakan di kapal, antara lain dasar metalurgi, bahan nonmetallic, jenis-jenis baja, heat treatment, bahan pengasah, dan bahan pelumas."
+        },
+        {
+          "nama": "Menggambar desain permesinan (marine engineering drawing and design)",
+          "cp_normatif": "Menerapkan pembuatan dan menganalisis desain gambar komponen permesinan kapal, antara lain tipe gambar, garis kerja dan ukuran, proyeksi aksonometri, proyeksi ortogonal, gambar potongan, dan gambar kerja."
+        },
+        {
+          "nama": "Perawatan dan perbaikan permesinan kapal (maintenance and repair)",
+          "cp_normatif": "Menganalisis pelaksanaan perawatan dan perbaikan permesinan kapal, antara lain troubleshooting, alat ukur, perbaikan darurat/sementara, jadwal perawatan, dan perbaikan sesuai dengan planning maintenance system (PMS)."
+        },
+        {
+          "nama": "Penggunaan peralatan kerja manual dan bertenaga (use of hand and power tools)",
+          "cp_normatif": "Menerapkan pengoperasian peralatan kerja manual dan otomatis serta peralatan bertenaga, antara lain perkakas tangan, alat ukur, jenis-jenis las, dan mesin perkakas."
+        },
+        {
+          "nama": "Sistem perawatan permesinan kapal (marine engineering maintenance system)",
+          "cp_normatif": "Menerapkan penentuan jenis kegiatan pada sistem perawatan permesinan kapal, prosedur perencanaan, penjadwalan, pelaksanaan perawatan, administrasi perawatan, dan pemakaian suku cadang sesuai standar manajemen keselamatan internasional."
+        },
+        {
+          "nama": "Kepemimpinan, etos kerja, dan keterampilan kerja sama tim (leadership and teamworking skills)",
+          "cp_normatif": "Menerapkan kepemimpinan, etos kerja, dan keterampilan kerja sama tim di kapal, antara lain latihan orang jatuh ke laut, latihan orang meninggalkan kapal, latihan kebakaran di kamar mesin sesuai dengan International Safety Management Code (ISM Code)."
+        }
+      ]
+    }
+  },
+  "nautika_kapal_niaga": {
+    "bidang": "Kemaritiman",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Nautika Kapal Niaga",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Ilmu pelayaran datar (terrestrial navigation)",
+          "cp_normatif": "Menerapkan cara menentukan posisi kapal dengan benda-benda di darat yang meliputi proyeksi bumi, peta, sistem pelampung IALA, buku publikasi navigasi, dan buku harian kapal."
+        },
+        {
+          "nama": "Sistem navigasi elektronik (electronic navigation system)",
+          "cp_normatif": "Menerapkan pengoperasian navigasi elektronik untuk menentukan posisi kapal dengan menggunakan GPS, ECDIS, Navtex, AIS, RADAR, Echo-sounders, dan ARPA."
+        },
+        {
+          "nama": "Sistem kemudi dan kompas (compasses and steering system)",
+          "cp_normatif": "Menerapkan pengoperasian sistem kemudi dan kompas di kapal berupa penentuan arah medan magnet bumi dan penyimpangan arah kapal, penggunaan kompas magnet, kesalahan pedoman magnet, perawatan kompas magnet, koreksi kompas dan azimuth, penggunaan kompas gasing (gyro compass), perhitungan compass error di kapal dan sistem kemudi manual dan otomatis."
+        },
+        {
+          "nama": "Meteorologi (meteorology)",
+          "cp_normatif": "Menerapkan instrumen meteorologi sebagai sumber data kapal dalam pelayaran berupa susunan atmosfer bumi, jenis-jenis awan, proses pembentukan front, tekanan udara/angin, kelembaban udara, arus, perkiraan cuaca di laut, dan penggunaan skala beaufort."
+        },
+        {
+          "nama": "Peraturan Pencegahan Tubrukan di Laut (P2TL) dan dinas jaga (collisions regulation and watchkeeping for officer)",
+          "cp_normatif": "Menerapkan peraturan internasional tentang pencegahan tubrukan di laut (International Regulations for Preventing Collisions at Sea) 1972 dan prosedur dinas jaga di pelabuhan, di laut, berlabuh jangkar, dan petunjuk pengoperasian kapal."
+        },
+        {
+          "nama": "Olah gerak dan pengendalian kapal (ship maneuvering and handling)",
+          "cp_normatif": "Menerapkan tata cara olah gerak kapal dan pengendalian kapal, baik dalam keadaan berlayar di laut, di alur pelayaran sempit, di perairan dangkal, saat berlabuh jangkar, bersandar di dermaga, tender, olah gerak menolong korban di laut untuk mencapai tujuan dengan safety dan secure."
+        },
+        {
+          "nama": "Komunikasi dan isyarat visual pelayaran (visual sign and communication)",
+          "cp_normatif": "Menerapkan prosedur komunikasi antar kapal, antara kapal dengan pelabuhan, antara kapal dengan stasiun radio pantai, komunikasi marabahaya dan isyarat visual pelayaran sesuai dengan ANNEX IV Colreg 1972 berupa isyarat bendera, isyarat cahaya, dan isyarat bunyi."
+        },
+        {
+          "nama": "Penanganan dan pengaturan muatan (cargo handling and stowage include cargo space inspection and reporting)",
+          "cp_normatif": "Menerapkan prinsip-prinsip penanganan, pengaturan, perencanaan, perawatan muatan berupa pemadatan muatan, full and down, dan administrasi dokumen-dokumen muatan."
+        },
+        {
+          "nama": "Kecakapan bahari (seaman ship)",
+          "cp_normatif": "Menerapkan penggunaan peralatan kerja, penunjang perawatan, pemeliharaan alat-alat yang ada di atas kapal, khususnya peralatan kerja untuk deck berupa perlengkapan blok dan takal (jangkar, windlass, mooring, arrangement, bolder), penataan kemudi, alat-alat penolong, alat-alat semboyan, alat pencegah pencemaran di laut, dan SOPEP (Shipboard Oil Pollution Emergency Plan) serta penggunaan berbagai jenis tali yang digunakan di atas kapal untuk membuat lashing wire, merawat tali tambat, dan peralatan bongkar muat."
+        },
+        {
+          "nama": "Pelayaran astronomi (celestial navigation)",
+          "cp_normatif": "Menerapkan penentuan posisi kapal dengan menggunakan benda angkasa berupa sistem tata surya, sistem bola angkasa, almanak nautika, sextant, titik lintang polaris, lintang tengah hari, dan perhitungan posisi kapal."
+        },
+        {
+          "nama": "Permesinan kapal (ship machinery)",
+          "cp_normatif": "Menganalisis klasifikasi mesin kapal, pengoperasian mesin utama, mesin bantu, sistem perpipaan, dan mesin pompa di kapal niaga."
+        },
+        {
+          "nama": "Kepemimpinan, etos kerja dan keterampilan kerja sama tim (leadership and team working skill)",
+          "cp_normatif": "Menerapkan management crew di atas kapal dan pelaksanaan training, antara lain latihan orang jatuh ke laut, latihan orang meninggalkan kapal, dan latihan kebakaran sesuai dengan International Safety Management Code (ISM Code)."
+        }
+      ]
+    }
   }
 }
