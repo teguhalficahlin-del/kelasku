@@ -38,6 +38,27 @@
     }
   },
   "bahasa_indonesia": {
+    "fase_a": {
+      "label": "Bahasa Indonesia Fase A (Kelas 1–2 SD)",
+      "elemen": [
+        {
+          "nama": "Menyimak",
+          "cp_normatif": "Memahami informasi dari teks nonsastra berbentuk teks aural (teks yang dibacakan dan/atau didengarkan) berupa percakapan yang berkaitan dengan diri, keluarga, dan/atau lingkungan sekitar; dan memahami pesan teks sastra berbentuk teks aural."
+        },
+        {
+          "nama": "Membaca dan Memirsa",
+          "cp_normatif": "Membaca kata-kata sederhana dengan fasih dari bacaan dan/atau tayangan yang dipirsa tentang diri, keluarga, kesehatan, dan/atau lingkungan sekitar; dan memahami isi bacaan dan/atau tayangan yang dipirsa tentang diri, keluarga, kesehatan, dan/atau lingkungan sekitar."
+        },
+        {
+          "nama": "Berbicara dan Mempresentasikan",
+          "cp_normatif": "Merespons dengan bertanya tentang sesuatu, menjawab, dan menanggapi komentar orang lain (teman, pendidik, dan/atau orang dewasa) dengan baik dan santun dalam suatu percakapan tentang diri, keluarga, kesehatan, dan/atau lingkungan sekitar; mengungkapkan perasaan dan gagasan secara lisan dengan atau tanpa bantuan gambar; dan menceritakan kembali isi berbagai tipe teks yang dibaca, dipirsa, atau didengar tentang diri, keluarga, kesehatan, dan/atau lingkungan sekitar."
+        },
+        {
+          "nama": "Menulis",
+          "cp_normatif": "Menulis permulaan dengan benar di atas kertas dan/atau melalui media digital; mengembangkan tulisan tangan yang semakin baik; dan menulis berbagai tipe teks sederhana tentang diri, keluarga, dan/atau lingkungan sekitar dengan beberapa kalimat sederhana."
+        }
+      ]
+    },
     "fase_e": {
       "label": "Bahasa Indonesia Fase E (Kelas 10 SMA/SMK)",
       "cp_umum": "Pada akhir fase E, peserta didik memiliki kemampuan berbahasa untuk berkomunikasi dan bernalar sesuai dengan tujuan, konteks sosial, akademis, dan dunia kerja. Peserta didik mampu memahami, mengolah, menginterpretasi, dan mengevaluasi informasi dari berbagai tipe teks tentang topik yang beragam. Peserta didik mampu menyintesis gagasan dan pendapat dari berbagai sumber, berpartisipasi aktif dalam diskusi dan debat, serta menulis berbagai teks untuk menyampaikan pendapat dan mempresentasikan serta menanggapi informasi nonfiksi dan fiksi secara kritis dan etis.",
@@ -84,6 +105,31 @@
     }
   },
   "matematika": {
+    "fase_a": {
+      "label": "Matematika Fase A (Kelas 1–2 SD)",
+      "elemen": [
+        {
+          "nama": "Bilangan",
+          "cp_normatif": "Menunjukkan pemahaman dan memiliki intuisi bilangan (number sense) pada bilangan cacah sampai 100; membaca, menulis, menentukan nilai tempat, membandingkan, mengurutkan, serta melakukan komposisi (menyusun) dan dekomposisi (mengurai) bilangan; melakukan operasi penjumlahan dan pengurangan menggunakan benda-benda konkret yang banyaknya sampai 20; dan menunjukkan pemahaman pecahan sebagai bagian dari keseluruhan melalui konteks membagi sebuah benda atau kumpulan benda sama banyak (pecahan yang diperkenalkan adalah setengah dan seperempat)."
+        },
+        {
+          "nama": "Aljabar",
+          "cp_normatif": "Menunjukan pemahaman makna simbol matematika \"=\" dalam suatu kalimat matematika yang terkait dengan penjumlahan dan pengurangan bilangan cacah sampai 20 menggunakan gambar. Contoh: Murid dapat mengenali, meniru, dan melanjutkan pola bukan bilangan (misalnya, gambar, warna, bunyi/suara)."
+        },
+        {
+          "nama": "Pengukuran",
+          "cp_normatif": "Membandingkan panjang dan berat benda secara langsung, dan membandingkan durasi waktu; mengukur dan mengestimasi panjang dan berat benda menggunakan satuan tidak baku."
+        },
+        {
+          "nama": "Geometri",
+          "cp_normatif": "Mengenal berbagai bangun datar (segitiga, segiempat, segi banyak, lingkaran) dan bangun ruang (balok, kubus, kerucut, dan bola); melakukan komposisi (penyusunan) dan dekomposisi (penguraian) suatu bangun datar (segitiga, segiempat, dan segi banyak); dan menentukan posisi benda terhadap benda lain (kanan, kiri, depan belakang, bawah, atas)."
+        },
+        {
+          "nama": "Analisis Data dan Peluang",
+          "cp_normatif": "Mengurutkan, menyortir, mengelompokkan, membandingkan, dan menyajikan data dari banyak benda dengan menggunakan turus dan piktogram paling banyak 4 kategori."
+        }
+      ]
+    },
     "fase_e": {
       "label": "Matematika Fase E (Kelas 10 SMA/SMK)",
       "elemen": [
@@ -128,6 +174,27 @@
     }
   },
   "pendidikan_pancasila": {
+    "fase_a": {
+      "label": "Pendidikan Pancasila Fase A (Kelas 1–2 SD)",
+      "elemen": [
+        {
+          "nama": "Pancasila",
+          "cp_normatif": "Mengenal bendera negara, lagu kebangsaan, simbol dan sila-sila Pancasila dalam lambang negara Garuda Pancasila dan simbol Pancasila beserta sila-sila Pancasila; menerapkan nilai-nilai Pancasila di lingkungan keluarga."
+        },
+        {
+          "nama": "Undang-Undang Dasar Negara Republik Indonesia Tahun 1945",
+          "cp_normatif": "Mengenal aturan di lingkungan keluarga; menunjukkan dan menceritakan sikap mematuhi aturan di lingkungan keluarga."
+        },
+        {
+          "nama": "Bhinneka Tunggal Ika",
+          "cp_normatif": "Mengenal semboyan Bhinneka Tunggal Ika; mengidentifikasi dan menghargai identitas dirinya sesuai dengan jenis kelamin, hobi, bahasa, serta agama dan kepercayaan di lingkungan sekitar."
+        },
+        {
+          "nama": "Negara Kesatuan Republik Indonesia",
+          "cp_normatif": "Mengenal karakteristik lingkungan tempat tinggal dan sekolah, sebagai bagian dari wilayah Negara Kesatuan Republik Indonesia; menceritakan dan mempraktikkan bekerja sama menjaga lingkungan sekitar dalam keberagaman."
+        }
+      ]
+    },
     "fase_e": {
       "label": "Pendidikan Pancasila Fase E (Kelas 10 SMA/SMK)",
       "elemen": [
@@ -172,6 +239,27 @@
     }
   },
   "pjok": {
+    "fase_a": {
+      "label": "PJOK Fase A (Kelas 1–2 SD)",
+      "elemen": [
+        {
+          "nama": "Terampil Bergerak",
+          "cp_normatif": "Mempraktikkan keterampilan gerak fundamental dan menerapkannya dalam berbagai situasi gerak yang berbeda; mengeksplorasi berbagai strategi gerak; dan mengeksplorasi berbagai konsep gerak serta menyimpulkan efektivitasnya."
+        },
+        {
+          "nama": "Belajar Melalui Gerak",
+          "cp_normatif": "Menaati peraturan untuk menumbuhkan fair play di dalam berbagai aktivitas jasmani; menerapkan strategi kolaborasi ketika berpartisipasi dalam aktivitas jasmani."
+        },
+        {
+          "nama": "Bergaya Hidup Aktif",
+          "cp_normatif": "Berpartisipasi di dalam berbagai aktivitas jasmani dan mengidentifikasi manfaatnya."
+        },
+        {
+          "nama": "Memilih Hidup yang Menyehatkan",
+          "cp_normatif": "Mengenali gaya hidup aktif dan sehat; mengenali manfaat komponen makanan bergizi seimbang; serta mengenali situasi dan potensi yang berisiko terhadap kesehatan dan keselamatan serta strategi mencari bantuan kepada orang dewasa terpercaya."
+        }
+      ]
+    },
     "fase_e": {
       "label": "PJOK Fase E (Kelas 10 SMA/SMK)",
       "elemen": [
@@ -312,6 +400,31 @@
     }
   },
   "seni_musik": {
+    "fase_a": {
+      "label": "Seni Musik Fase A (Kelas 1–2 SD)",
+      "elemen": [
+        {
+          "nama": "Mengalami (Experiencing)",
+          "cp_normatif": "Mengenali unsur-unsur musik (nada dan irama) menggunakan anggota tubuh maupun alat musik."
+        },
+        {
+          "nama": "Merefleksikan (Reflecting)",
+          "cp_normatif": "Melakukan umpan balik mengenai praktik bermain musik diri sendiri atau orang lain menggunakan bahasa sehari-hari."
+        },
+        {
+          "nama": "Berpikir dan Bekerja Artistik (Thinking and Working Artistically)",
+          "cp_normatif": "Menirukan pola irama dan nada menggunakan alat musik ritmis atau melodis; mengenali ragam alat musik dan bunyi yang dihasilkan; mengenali cara memainkan dan membersihkan instrumen/alat musik."
+        },
+        {
+          "nama": "Menciptakan (Creating)",
+          "cp_normatif": "Membuat pola irama menggunakan anggota tubuh atau alat musik ritmis yang tersedia di lingkungan sekitar."
+        },
+        {
+          "nama": "Berdampak (Impacting)",
+          "cp_normatif": "Menunjukkan ekspresi senang dalam kegiatan bermusik."
+        }
+      ]
+    },
     "fase_e": {
       "label": "Seni Musik Fase E (Kelas 10 SMA/SMK)",
       "elemen": [
@@ -339,6 +452,31 @@
     }
   },
   "seni_rupa": {
+    "fase_a": {
+      "label": "Seni Rupa Fase A (Kelas 1–2 SD)",
+      "elemen": [
+        {
+          "nama": "Mengalami (Experiencing)",
+          "cp_normatif": "Mengenali dan menyebutkan unsur-unsur rupa dalam benda-benda di sekitar/karya seni rupa."
+        },
+        {
+          "nama": "Merefleksikan (Reflecting)",
+          "cp_normatif": "Merefleksikan dan mengapresiasi karya diri sendiri."
+        },
+        {
+          "nama": "Berpikir dan Bekerja Artistik (Thinking and Working Artistically)",
+          "cp_normatif": "Mengenali dan menguji coba alat dan/atau bahan yang dimiliki."
+        },
+        {
+          "nama": "Menciptakan (Making/Creating)",
+          "cp_normatif": "Membuat karya seni rupa berdasarkan pengalaman dan hasil pengamatan terhadap lingkungan sekitar."
+        },
+        {
+          "nama": "Berdampak (Impacting)",
+          "cp_normatif": "Menghasilkan karya seni rupa yang berdampak pada perasaan dirinya."
+        }
+      ]
+    },
     "fase_e": {
       "label": "Seni Rupa Fase E (Kelas 10 SMA/SMK)",
       "elemen": [
@@ -366,6 +504,31 @@
     }
   },
   "seni_teater": {
+    "fase_a": {
+      "label": "Seni Teater Fase A (Kelas 1–2 SD)",
+      "elemen": [
+        {
+          "nama": "Mengalami (Experiencing)",
+          "cp_normatif": "Mengamati, merespons, meniru gerak tubuh dan suara sebagai media untuk mengomunikasikan emosi."
+        },
+        {
+          "nama": "Merefleksikan (Reflection)",
+          "cp_normatif": "Mengenali pengalaman dan emosi selama proses berseni teater serta menceritakan sebuah karya dengan kosakata sehari-hari."
+        },
+        {
+          "nama": "Berpikir dan Bekerja Artistik (Thinking and Working Artistically)",
+          "cp_normatif": "Mengenal jenis-jenis properti/alat bantu yang dapat mendukung cerita/permainan peran."
+        },
+        {
+          "nama": "Menciptakan (Creating)",
+          "cp_normatif": "Mengeksplorasi beragam peran mengenai tokoh di sekitar atau rekaan, dan memainkan sebuah lakon pertunjukan."
+        },
+        {
+          "nama": "Berdampak (Impacting)",
+          "cp_normatif": "Memainkan gerak dan lagu sesuai arahan dari pendidik."
+        }
+      ]
+    },
     "fase_e": {
       "label": "Seni Teater Fase E (Kelas 10 SMA/SMK)",
       "elemen": [
@@ -393,6 +556,31 @@
     }
   },
   "seni_tari": {
+    "fase_a": {
+      "label": "Seni Tari Fase A (Kelas 1–2 SD)",
+      "elemen": [
+        {
+          "nama": "Mengalami (Experiencing)",
+          "cp_normatif": "Mengenal bentuk tari sebagai media komunikasi serta mengembangkan kesadaran diri dalam bereksplorasi unsur utama tari meliputi gerak, ruang, tenaga, waktu, gerak di tempat dan gerak berpindah."
+        },
+        {
+          "nama": "Merefleksikan (Reflecting)",
+          "cp_normatif": "Mengidentifikasi unsur utama tari meliputi gerak, ruang, tenaga, waktu, gerak di tempat dan gerak berpindah, serta mengemukakan pencapaian diri secara lisan, tulisan, dan kinestetik."
+        },
+        {
+          "nama": "Berpikir dan Bekerja Artistik (Thinking and Working Artistically)",
+          "cp_normatif": "Meragakan hasil gerak berdasarkan etika sebagai penampil dan penonton dengan keyakinan dan percaya diri saat mengekspresikan ide, perasaan kepada penonton atau lingkungan sekitar."
+        },
+        {
+          "nama": "Menciptakan (Creating)",
+          "cp_normatif": "Mengembangkan unsur utama tari (gerak, ruang, waktu, dan tenaga), gerak di tempat, dan gerak berpindah untuk membuat gerak sederhana yang memiliki kesatuan gerak yang indah."
+        },
+        {
+          "nama": "Berdampak (Impacting)",
+          "cp_normatif": "Menerima proses pembelajaran sehingga tumbuh rasa ingin tahu dan dapat menunjukkan antusiasme yang berdampak pada kemampuan diri dalam menyelesaikan aktivitas pembelajaran tari."
+        }
+      ]
+    },
     "fase_e": {
       "label": "Seni Tari Fase E (Kelas 10 SMA/SMK)",
       "elemen": [
