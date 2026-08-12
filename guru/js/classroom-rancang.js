@@ -8,7 +8,9 @@
 
   // Jawaban per blok
   const _ans = {
-    mapel: '',
+    mapel: '',           // label human-readable untuk AI payload
+    mapelKey: '',        // key JSON cp-data.json
+    bidangKeahlian: null, // bidang keahlian SMK, null jika bukan SMK
     jenjang: '',
     fase: '',
     jp_per_minggu: '',
@@ -255,114 +257,220 @@
     body.innerHTML = `
 <div class="rp-block">
   <div class="rp-block-title">Identitas Konteks Pembelajaran</div>
-
-  <div class="rp-q">
-    <label class="rp-q-label" for="rp-mapel">1. Mata pelajaran yang akan dirancang *</label>
-    <input type="text" id="rp-mapel" class="rp-input" placeholder="Contoh: Bahasa Inggris, Matematika, DPIB…" value="${esc(_ans.mapel)}">
-  </div>
-
-  <div class="rp-q">
-    <label class="rp-q-label">2. Jenjang sekolah *</label>
-    <div id="rp-jenjang-chips" class="rp-chip-group">
+  <div class="rp-q" id="rp-q-p1">
+    <label class="rp-q-label">1. Jenjang sekolah *</label>
+    <div class="rp-chip-group" id="rp-jenjang-chips">
       ${['SD','SMP','SMA','SMK'].map(j =>
         `<div class="rp-chip${_ans.jenjang===j?' selected':''}" data-value="${j}">${j}</div>`
       ).join('')}
     </div>
   </div>
-
-  <div class="rp-q">
-    <label class="rp-q-label">3. Fase capaian pembelajaran *</label>
-    <div id="rp-fase-chips" class="rp-chip-group"></div>
-  </div>
-
   <div id="rp-step1-error" class="error-msg" style="display:none;"></div>
-
-  <div class="rp-action-row">
-    ${btnPrimary('rp-btn-cp', 'Lihat CP &amp; lanjutkan →')}
-  </div>
 </div>`;
 
-    const FASE_MAP = {
-      SD:  ['fase_a','fase_b','fase_c'],
-      SMP: ['fase_d'],
-      SMA: ['fase_e','fase_f'],
-      SMK: ['fase_e','fase_f'],
-    };
-
-    function filterFase(jenjang) {
-      const wrap = el('rp-fase-chips');
-      if (!wrap) return;
-      const opts = jenjang ? (FASE_MAP[jenjang] || []) : [];
-      if (!opts.length) {
-        wrap.innerHTML = `<span class="rp-fase-placeholder">Pilih jenjang terlebih dahulu</span>`;
-        return;
-      }
-      const prevFase = _ans.fase && opts.includes(_ans.fase) ? _ans.fase : null;
-      const autoFase = opts.length === 1 ? opts[0] : prevFase;
-      wrap.innerHTML = opts.map(v => {
-        const f = FASE_OPTS.find(o => o.value === v);
-        const sel = (autoFase === v) ? ' selected' : '';
-        return `<div class="rp-chip${sel}" data-value="${v}">${f ? f.label : v}</div>`;
-      }).join('');
-      wrap.querySelectorAll('.rp-chip').forEach(chip => {
-        chip.addEventListener('click', () => {
-          wrap.querySelectorAll('.rp-chip').forEach(c => c.classList.remove('selected'));
-          chip.classList.add('selected');
-        });
-      });
-    }
-
-    // Chip jenjang — single select
     body.querySelectorAll('#rp-jenjang-chips .rp-chip').forEach(chip => {
       chip.addEventListener('click', () => {
         body.querySelectorAll('#rp-jenjang-chips .rp-chip').forEach(c => c.classList.remove('selected'));
         chip.classList.add('selected');
-        filterFase(chip.dataset.value);
+        _ans.jenjang = chip.dataset.value;
+        _ans.bidangKeahlian = null;
+        _ans.mapelKey = '';
+        _ans.mapel = '';
+        _ans.fase = '';
+        ['rp-q-p1b','rp-q-p2','rp-q-p3','rp-step1-btn'].forEach(id => el(id)?.remove());
+        if (_ans.jenjang === 'SMK') renderStep1P1b();
+        else renderStep1P2(_ans.jenjang, null);
       });
     });
 
-    filterFase(_ans.jenjang);
+    // Restore cascade jika state sudah ada
+    if (_ans.jenjang) {
+      if (_ans.jenjang === 'SMK') renderStep1P1b();
+      else if (_ans.mapelKey) renderStep1P2(_ans.jenjang, null, true);
+    }
+  }
 
+  async function renderStep1P1b() {
+    const block = el('rp-body')?.querySelector('.rp-block');
+    if (!block) return;
+    ['rp-q-p1b','rp-q-p2','rp-q-p3','rp-step1-btn'].forEach(id => el(id)?.remove());
+
+    const div = document.createElement('div');
+    div.id = 'rp-q-p1b';
+    div.className = 'rp-q';
+    div.innerHTML = `<label class="rp-q-label">2. Bidang keahlian *</label>${loading('Memuat bidang…')}`;
+    block.insertBefore(div, el('rp-step1-error'));
+
+    const data = await loadCpData();
+    const qDiv = el('rp-q-p1b');
+    if (!qDiv || !data) return;
+
+    const bidangs = [...new Set(
+      Object.values(data)
+        .filter(v => v.jenjang?.includes('SMK') && v.bidang && v.bidang !== 'Umum')
+        .map(v => v.bidang)
+    )].sort((a, b) => a.localeCompare(b, 'id'));
+
+    qDiv.innerHTML = `<label class="rp-q-label">2. Bidang keahlian *</label>
+<div class="rp-chip-group" id="rp-bidang-chips">
+  ${bidangs.map(b =>
+    `<div class="rp-chip${_ans.bidangKeahlian===b?' selected':''}" data-value="${esc(b)}">${esc(b)}</div>`
+  ).join('')}
+</div>`;
+
+    qDiv.querySelectorAll('.rp-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        qDiv.querySelectorAll('.rp-chip').forEach(c => c.classList.remove('selected'));
+        chip.classList.add('selected');
+        _ans.bidangKeahlian = chip.dataset.value;
+        _ans.mapelKey = '';
+        _ans.mapel = '';
+        _ans.fase = '';
+        ['rp-q-p2','rp-q-p3','rp-step1-btn'].forEach(id => el(id)?.remove());
+        renderStep1P2('SMK', _ans.bidangKeahlian);
+      });
+    });
+
+    if (_ans.bidangKeahlian) {
+      if (_ans.mapelKey) renderStep1P2('SMK', _ans.bidangKeahlian, true);
+      else renderStep1P2('SMK', _ans.bidangKeahlian);
+    }
+  }
+
+  async function renderStep1P2(jenjang, bidang, restore) {
+    const block = el('rp-body')?.querySelector('.rp-block');
+    if (!block) return;
+    ['rp-q-p2','rp-q-p3','rp-step1-btn'].forEach(id => el(id)?.remove());
+
+    const qNum = bidang ? '3' : '2';
+    const div = document.createElement('div');
+    div.id = 'rp-q-p2';
+    div.className = 'rp-q';
+    div.innerHTML = `<label class="rp-q-label">${qNum}. Mata pelajaran *</label>${loading('Memuat mapel…')}`;
+    block.insertBefore(div, el('rp-step1-error'));
+
+    const data = await loadCpData();
+    const qDiv = el('rp-q-p2');
+    if (!qDiv || !data) return;
+
+    const entries = Object.entries(data).filter(([, v]) =>
+      bidang
+        ? (v.bidang === bidang) || (v.bidang === 'Umum' && v.jenjang?.includes('SMK'))
+        : v.jenjang?.includes(jenjang)
+    );
+
+    const opts = entries.map(([key, v]) => {
+      const fk = ['fase_a','fase_b','fase_c','fase_d','fase_e','fase_f'].find(f => v[f]);
+      const rawLabel = (fk && v[fk]?.label) || key.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+      const label = rawLabel.replace(/\s*\([^)]+\)\s*$/, '').trim();
+      return { value: key, label };
+    }).sort((a, b) => a.label.localeCompare(b.label, 'id'));
+
+    qDiv.innerHTML = `<label class="rp-q-label">${qNum}. Mata pelajaran *</label>
+<div class="rp-chip-group" id="rp-mapel-chips">
+  ${opts.map(o =>
+    `<div class="rp-chip${_ans.mapelKey===o.value?' selected':''}" data-value="${esc(o.value)}" data-label="${esc(o.label)}">${esc(o.label)}</div>`
+  ).join('')}
+</div>`;
+
+    qDiv.querySelectorAll('.rp-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        qDiv.querySelectorAll('.rp-chip').forEach(c => c.classList.remove('selected'));
+        chip.classList.add('selected');
+        _ans.mapelKey = chip.dataset.value;
+        _ans.mapel = chip.dataset.label;
+        _ans.fase = '';
+        ['rp-q-p3','rp-step1-btn'].forEach(id => el(id)?.remove());
+        if (data[_ans.mapelKey]) renderStep1P3(_ans.mapelKey, data[_ans.mapelKey]);
+      });
+    });
+
+    if (restore && _ans.mapelKey && data[_ans.mapelKey]) {
+      renderStep1P3(_ans.mapelKey, data[_ans.mapelKey], true);
+    }
+  }
+
+  function renderStep1P3(mapelKey, entryData, restore) {
+    const block = el('rp-body')?.querySelector('.rp-block');
+    if (!block) return;
+    ['rp-q-p3','rp-step1-btn'].forEach(id => el(id)?.remove());
+
+    const availFases = ['fase_a','fase_b','fase_c','fase_d','fase_e','fase_f'].filter(fk => entryData[fk]);
+    const pNum = _ans.jenjang === 'SMK' ? '4' : '3';
+
+    const div = document.createElement('div');
+    div.id = 'rp-q-p3';
+    div.className = 'rp-q';
+    div.innerHTML = `<label class="rp-q-label">${pNum}. Fase capaian pembelajaran *</label>
+<div class="rp-chip-group" id="rp-fase-chips">
+  ${availFases.map(fk => {
+    const f = FASE_OPTS.find(o => o.value === fk);
+    const sel = _ans.fase === fk ? ' selected' : '';
+    return `<div class="rp-chip${sel}" data-value="${fk}">${f ? esc(f.label) : fk}</div>`;
+  }).join('')}
+</div>`;
+    block.insertBefore(div, el('rp-step1-error'));
+
+    // Auto-select jika hanya satu fase tersedia
+    if (availFases.length === 1 && !_ans.fase) {
+      _ans.fase = availFases[0];
+      div.querySelector('.rp-chip')?.classList.add('selected');
+    }
+
+    div.querySelectorAll('#rp-fase-chips .rp-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        div.querySelectorAll('#rp-fase-chips .rp-chip').forEach(c => c.classList.remove('selected'));
+        chip.classList.add('selected');
+        _ans.fase = chip.dataset.value;
+        el('rp-step1-btn')?.remove();
+        renderStep1Button();
+      });
+    });
+
+    if (_ans.fase) renderStep1Button();
+  }
+
+  function renderStep1Button() {
+    const block = el('rp-body')?.querySelector('.rp-block');
+    if (!block) return;
+    el('rp-step1-btn')?.remove();
+    const div = document.createElement('div');
+    div.id = 'rp-step1-btn';
+    div.className = 'rp-action-row';
+    div.innerHTML = btnPrimary('rp-btn-cp', 'Lihat CP &amp; lanjutkan →');
+    block.insertBefore(div, el('rp-step1-error'));
     el('rp-btn-cp').addEventListener('click', handleStep1Submit);
   }
 
   async function handleStep1Submit() {
     if (_genCp) return;
 
-    const mapel = (el('rp-mapel')?.value || '').trim();
-    const jenjang = el('rp-body')?.querySelector('#rp-jenjang-chips .rp-chip.selected')?.dataset.value || '';
-    const fase = el('rp-fase-chips')?.querySelector('.rp-chip.selected')?.dataset.value || '';
+    const mapelKey = _ans.mapelKey;
+    const jenjang  = _ans.jenjang;
+    const fase     = _ans.fase;
 
-    if (!mapel) { showError('rp-step1-error', 'Isi nama mata pelajaran.'); return; }
-    if (!jenjang) { showError('rp-step1-error', 'Pilih jenjang sekolah.'); return; }
-    if (!fase) { showError('rp-step1-error', 'Pilih fase capaian pembelajaran.'); return; }
+    if (!jenjang)  { showError('rp-step1-error', 'Pilih jenjang sekolah.'); return; }
+    if (!mapelKey) { showError('rp-step1-error', 'Pilih mata pelajaran.'); return; }
+    if (!fase)     { showError('rp-step1-error', 'Pilih fase capaian pembelajaran.'); return; }
 
     showError('rp-step1-error', '');
-    _ans.mapel = mapel;
-    _ans.jenjang = jenjang;
-    _ans.fase = fase;
-
-    // Cari CP di JSON
-    const mapelKey = normalizeMapelKey(mapel);
-    const faseKey = fase;
 
     _genCp = true;
     const btn = el('rp-btn-cp');
     if (btn) { btn.disabled = true; btn.textContent = 'Memuat CP…'; }
 
     try {
-      const cpFase = await fetchCpData(mapelKey, faseKey);
+      const cpFase = await fetchCpData(mapelKey, fase);
 
       if (cpFase) {
         _cpElemen = cpFase.elemen || [];
         _cpLabel = cpFase.label || '';
         _cpUmum = cpFase.cp_umum || '';
-        // Generate ringkasan AI
         renderCpLoading(cpFase.label);
         try {
           const result = await callAI({
             mode: 'cp_summary',
-            konteks: { mapel, jenjang, fase },
+            konteks: { mapel: _ans.mapel, jenjang, fase },
             elemen_list: _cpElemen,
           });
           _cpRingkasan = result?.ringkasan || [];
@@ -375,7 +483,7 @@
         _cpRingkasan = [];
         _cpLabel = '';
         _cpUmum = '';
-        renderCpNotice(mapel);
+        renderCpNotice(_ans.mapel);
       }
     } finally {
       _genCp = false;
@@ -1129,7 +1237,7 @@ ${sec1}${sec2}${sec3}${sec4}${sec5}
 
   function resetAll() {
     if (_cId) { try { localStorage.removeItem('rp_state_' + _cId); } catch (_) {} }
-    Object.assign(_ans, { mapel:'', jenjang:'', fase:'', jp_per_minggu:'', smk:null, dnk_dk:{}, preferensi:{}, tp_terpilih:null, konteks_kelas:{} });
+    Object.assign(_ans, { mapel:'', mapelKey:'', bidangKeahlian:null, jenjang:'', fase:'', jp_per_minggu:'', smk:null, dnk_dk:{}, preferensi:{}, tp_terpilih:null, konteks_kelas:{} });
     _cpElemen = []; _cpRingkasan = []; _cpLabel = ''; _cpUmum = ''; _atpList = []; _rencana = null;
     _genCp = false; _genAtp = false; _genRencana = false;
     _step = 1;
