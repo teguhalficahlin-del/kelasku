@@ -3755,5 +3755,1209 @@
         }
       ]
     }
+  },
+  "dasar_dasar_teknik_ketenagalistrikan": {
+    "bidang": "Energi dan Pertambangan",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_e": {
+      "label": "Dasar-dasar Teknik Ketenagalistrikan (Kelas 10 SMK)",
+      "cp_umum": "Pada akhir Fase E, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Wawasan Dunia Kerja Bidang Ketenagalistrikan",
+          "cp_normatif": "Menganalisis sistem tenaga listrik, aktivitas pekerjaan pada bidang teknik ketenagalistrikan dengan memperhatikan potensi dan kearifan lokal, perkembangan industri ketenagalistrikan yang mengalami transformasi menuju Revolusi Industri 4.0, digitalisasi, Internet of Things, dan peralatan-peralatan cerdas, SCADA dan HMI, profesi dan kewirausahaan (job-profile dan technopreneurship), serta peluang usaha di bidang ketenagalistrikan."
+        },
+        {
+          "nama": "Kecakapan Kerja Dasar (Basic Job Skills), K3, dan Budaya Kerja",
+          "cp_normatif": "Menerapkan praktik dasar yang terkait dengan proses kerja dan teknologi yang diaplikasikan dalam bidang ketenagalistrikan berprinsip pada K3 dan budaya kerja."
+        },
+        {
+          "nama": "Teori dasar listrik dan elektronika",
+          "cp_normatif": "Menganalisis besaran-besaran listrik dan komponen elektronika dalam rangkaian listrik dasar arus searah dan bolak balik, serta dasar teknik digital."
+        },
+        {
+          "nama": "Alat tangan dan alat kerja kelistrikan",
+          "cp_normatif": "Menerapkan penggunaan alat tangan dan alat kerja kelistrikan."
+        },
+        {
+          "nama": "Alat ukur dan alat uji kelistrikan",
+          "cp_normatif": "Menerapkan penggunaan alat ukur dan alat uji kelistrikan."
+        },
+        {
+          "nama": "Perangkat lunak gambar teknik listrik",
+          "cp_normatif": "Menerapkan perangkat lunak gambar kerja pada bidang ketenagalistrikan."
+        }
+      ]
+    }
+  },
+  "dasar_dasar_teknik_energi_terbarukan": {
+    "bidang": "Energi dan Pertambangan",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_e": {
+      "label": "Dasar-dasar Teknik Energi Terbarukan (Kelas 10 SMK)",
+      "cp_umum": "Pada akhir Fase E, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Wawasan Dunia Kerja di Bidang Teknik Energi Terbarukan",
+          "cp_normatif": "Menganalisis segala aktivitas produksi yang dilakukan dalam bidang energi terbarukan, berbagai isu-isu dan perkembangan teknologi dalam dunia energi terbarukan, serta profesi dan kewirausahaan yang dapat dikembangkan dalam dunia energi terbarukan."
+        },
+        {
+          "nama": "Kecakapan Kerja Dasar (basic job skills) Teknik Energi Terbarukan",
+          "cp_normatif": "Menerapkan pekerjaan dasar pada energi terbarukan melalui pengenalan dan praktik dasar yang terkait dengan seluruh proses produksi dan teknologi yang diaplikasikan dalam energi terbarukan; pengenalan teknologi yang diaplikasikan untuk pembangkit listrik tenaga air, tenaga bayu, tenaga surya, biomassa; dan menerapkan K3LH dan budaya kerja di industri dalam bidang teknologi energi terbarukan."
+        },
+        {
+          "nama": "Gambar Teknik",
+          "cp_normatif": "Menggambar teknik dasar dengan pengenalan macam-macam peralatan gambar, standarisasi dalam pembuatan gambar; dan menganalisis gambar yang diaplikasikan pada komponen-komponen dan sistem instalasi teknik energi terbarukan."
+        },
+        {
+          "nama": "Konsep Dasar dan Perhitungan Konversi Energi Hidro, Energi Surya, Energi Angin, dan Energi Biomassa",
+          "cp_normatif": "Menerapkan konservasi energi dan perhitungan dasar konversi energi hidro, energi surya, energi angin, dan energi biomassa."
+        },
+        {
+          "nama": "Alat Ukur dan Alat Uji",
+          "cp_normatif": "Menerapkan alat ukur dan alat uji sesuai dengan jenisnya yang diaplikasikan pada bidang teknik energi terbarukan."
+        }
+      ]
+    }
+  },
+  "dasar_dasar_teknik_geospasial": {
+    "bidang": "Energi dan Pertambangan",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_e": {
+      "label": "Dasar-dasar Teknik Geospasial (Kelas 10 SMK)",
+      "cp_umum": "Pada akhir fase E, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Wawasan Dunia Kerja Bidang Teknik Geospasial",
+          "cp_normatif": "Menganalisis aktivitas pekerjaan bidang teknik geospasial serta perkembangan teknologi dan peralatan yang digunakan pada bidang teknik geospasial, isu-isu global terkait dengan pelestarian lingkungan, dan jenis-jenis profesi serta peluang usaha di bidang teknik geospasial termasuk kode etik surveyor dengan melaksanakan pembelajaran berbasis proyek nyata."
+        },
+        {
+          "nama": "Kecakapan Kerja Dasar (Basic Job Skills), K3LH, dan Budaya Kerja Bidang Teknik Geospasial",
+          "cp_normatif": "Menerapkan teknik geospasial dasar, K3LH dan budaya kerja, gambar teknik yang memiliki karakteristik geografis, dan menganalisis gambar peta yang menunjukkan posisi suatu tempat berdasarkan kenampakan sebenarnya di lapangan."
+        }
+      ]
+    }
+  },
+  "dasar_dasar_teknik_geologi": {
+    "bidang": "Energi dan Pertambangan",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_e": {
+      "label": "Dasar-dasar Teknik Geologi Pertambangan (Kelas 10 SMK)",
+      "cp_umum": "Pada akhir fase E, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Wawasan dunia kerja bidang geologi pertambangan",
+          "cp_normatif": "Menganalisis aktivitas pekerjaan pada bidang pertambangan, perkembangan teknologi di bidang geologi pertambangan, revolusi industri 4.0, digitalisasi, isu-isu global, perubahan iklim, aspek-aspek ketenagakerjaan, sampai dengan umur tambang (life of mine), profesi dan kewirausahaan (job-profile dan technopreneur), serta peluang usaha di bidang geologi pertambangan."
+        },
+        {
+          "nama": "Kecakapan kerja dasar (basic job skills), K3LH, dan budaya kerja",
+          "cp_normatif": "Menerapkan teknik dasar, standar dan peraturan-peraturan yang berlaku terkait dengan geologi pertambangan, serta penerapan budaya kerja dan K3LH meliputi praktik kerja yang aman, bahaya di tempat kerja, prosedur dalam keadaan darurat, 5R, kualitas lingkungan hidup dan etika kerja."
+        },
+        {
+          "nama": "Gambar Teknik",
+          "cp_normatif": "Membuat gambar teknik dasar secara manual maupun menggunakan aplikasi perangkat lunak yang dijadikan dasar dalam desain pemodelan geologi pertambangan; menganalisis teknik dasar lingkup geologi pertambangan meliputi pengenalan peralatan gambar, standarisasi dalam pembuatan gambar; serta menganalisis gambar teknik menurut proyeksinya."
+        },
+        {
+          "nama": "Dasar-dasar Geologi",
+          "cp_normatif": "Menganalisis pengertian geologi, ruang lingkup geologi, bagian-bagian bumi, genesa batua, gaya-gaya geologi dan bentang alam hasil gaya geologi dan peralatan geologi lapangan."
+        },
+        {
+          "nama": "Teknik Dasar Penambangan",
+          "cp_normatif": "Menerapkan teknik dasar penambangan, melalui pengenalan tahapan dan metode penambangan untuk memahami dasar-dasar eksplorasi, eksploitasi, serta pengolahan bahan galian."
+        }
+      ]
+    }
+  },
+  "dasar_dasar_teknik_perminyakan": {
+    "bidang": "Energi dan Pertambangan",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_e": {
+      "label": "Dasar-dasar Teknik Perminyakan (Kelas 10 SMK)",
+      "cp_umum": "Pada akhir Fase E, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Wawasan dunia kerja bidang Teknik Perminyakan",
+          "cp_normatif": "Menganalisis aktivitas pekerjaan pada bidang teknik perminyakan (kegiatan eksplorasi, pemboran, produksi dan pengolahan minyak dan gas bumi), perkembangan teknologi proses produksi industri minyak untuk menghasilkan energi yang lebih bersih dan program pengembangan untuk menjaga ketersediaan minyak dan gas bumi serta jenis-jenis profesi dan kewirausahaan (job-profile dan technopreneurship) dan peluang usaha di bidang industri perminyakan."
+        },
+        {
+          "nama": "Kecakapan kerja dasar (basic job skills), K3, dan budaya kerja bidang Teknik Perminyakan",
+          "cp_normatif": "Menganalisis jenis-jenis eksplorasi dan tahapan pencarian sumber minyak dan gas bumi di darat maupun perairan melalui pengenalan dan praktik dasar terkait eksplorasi serta mampu menerapkan K3LH dan budaya kerja meliputi praktik-praktik kerja yang aman, bahaya-bahaya di tempat kerja, prosedur-prosedur dalam keadaan darurat, dan penerapan budaya kerja yang relevan."
+        },
+        {
+          "nama": "Teknik Pemboran Minyak dan Gas Bumi",
+          "cp_normatif": "Menganalisis proses dalam tahap pemboran meliputi mobilisasi/demobilisasi, moving, rig-up/rig-down, menganalisis peralatan putar dan peralatan penggerak, peralatan angkat, peralatan sirkulasi dan pencegah semburan liar."
+        },
+        {
+          "nama": "Teknik Produksi Minyak dan Gas Bumi.",
+          "cp_normatif": "Menerapkan metode, sistem penyelesaian sumur, proses, dan peralatan produksi serta proses separasi."
+        },
+        {
+          "nama": "Teknik Pengolahan Minyak, Gas dan Petrokimia.",
+          "cp_normatif": "Menganalisis jenis produk dan menerapkan cara pemasangan alat ukur, cara pengoperasian alat ukur, cara pengukuran tinggi cairan, cara penghitungan jumlah minyak dan penggunaan peralatan bantu lain."
+        }
+      ]
+    }
+  },
+  "dasar_dasar_kimia_analisis": {
+    "bidang": "Energi dan Pertambangan",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_e": {
+      "label": "Dasar-dasar Kimia Analisis (Kelas 10 SMK)",
+      "cp_umum": "Pada akhir Fase E, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Wawasan dunia kerja bidang kimia analisis",
+          "cp_normatif": "Menganalisis aktivitas pekerjaan pada bidang kimia analisis secara menyeluruh, perkembangan teknologi kimia analisis, dan isu-isu global seputar laboratorium kimia analisis dan industri yang melibatkan kimia analisis, serta profesi dan kewirausahaan (job-profile dan technopreneurship) di bidang kimia analisis."
+        },
+        {
+          "nama": "Kecakapan kerja dasar (basic job skills), K3, dan budaya kerja",
+          "cp_normatif": "Menerapkan konsep dan teknik dasar proses kerja di bidang kimia analisis, K3LH, dan budaya kerja industri."
+        },
+        {
+          "nama": "Pengelolaan laboratorium kimia",
+          "cp_normatif": "Menerapkan pengelolaan alat, bahan, dan fasilitas laboratorium kimia sesuai prosedur operasional standar."
+        },
+        {
+          "nama": "Larutan pereaksi dan larutan standar",
+          "cp_normatif": "Menerapkan pembuatan larutan pereaksi dan larutan standar mengikuti prosedur, pembuatan label, penyimpanan larutan dengan aman sesuai dengan tanda bahaya atau piktogram."
+        },
+        {
+          "nama": "Analisis kualitatif dan kuantitatif sederhana",
+          "cp_normatif": "Menerapkan analisis kualitatif dan kuantitatif secara titrimetri dan gravimetri sederhana mengikuti prosedur."
+        }
+      ]
+    }
+  },
+  "dasar_dasar_teknik_kimia_industri": {
+    "bidang": "Energi dan Pertambangan",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_e": {
+      "label": "Dasar-dasar Teknik Kimia Industri (Kelas 10 SMK)",
+      "cp_umum": "Pada akhir Fase E, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Wawasan Kerja Bidang Teknik Kimia Industri",
+          "cp_normatif": "Menganalisis karakteristik industri kimia, serta menguraikan perkembangan proses produksinya dari teknologi konvensional hingga teknologi modern mencakup product life cycle, aktivitas bidang kimia industri yang berdampak pada perubahan iklim, dan analisis pengelolaan sumber daya manusia yang memperhatikan potensi serta kearifan lokal yang meliputi ketenagakerjaan, ragam profesi dalam bidang kimia industri, kegiatan kewirausahaan, serta identifikasi peluang usaha di bidang kimia industri."
+        },
+        {
+          "nama": "Kecakapan Kerja Dasar (basic job skill), K3, Budaya Kerja",
+          "cp_normatif": "Menerapkan teknik dasar proses industri kimia melalui pengenalan dan praktik singkat yang terkait dengan seluruh proses produksi dan menerapkan K3LH dan budaya kerja di industri serta pengendalian pencemaran dan pengolahan limbah serta penggunaan material safety data sheet (MSDS)."
+        },
+        {
+          "nama": "Dasar Kimia",
+          "cp_normatif": "Menerapkan prinsip Kimia Dasar, Kimia Organik dasar dan Kimia Anorganik Dasar untuk menyelesaikan permasalahan di bidang kimia industri."
+        },
+        {
+          "nama": "Dasar Mikrobiologi",
+          "cp_normatif": "Menerapkan prinsip mikrobiologi, termasuk penggunaan media mikrobiologi, pelaksanaan proses sterilisasi, serta proses uji sterilisasi dalam kegiatan terkait bidang kimia industri."
+        },
+        {
+          "nama": "Teknik Dasar Pekerjaan Laboratorium",
+          "cp_normatif": "Menerapkan penggunaan peralatan dasar laboratorium dan pelaksanaan analisis dasar laboratorium."
+        }
+      ]
+    }
+  },
+  "dasar_dasar_teknik_tekstil": {
+    "bidang": "Energi dan Pertambangan",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_e": {
+      "label": "Dasar-dasar Teknik Tekstil (Kelas 10 SMK)",
+      "cp_umum": "Pada akhir Fase E, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Wawasan dunia kerja bidang industri tekstil",
+          "cp_normatif": "Menganalisis proses bisnis dan profesi bidang teknologi tekstil."
+        },
+        {
+          "nama": "Sejarah dan Perkembangan Industri Tekstil",
+          "cp_normatif": "Menganalisis sejarah dan perkembangan teknologi tekstil."
+        },
+        {
+          "nama": "Pengetahuan Teknologi Tekstil",
+          "cp_normatif": "Menerapkan dasar-dasar proses produksi dan teknologi yang diterapkan dalam industri tekstil meliputi pemintalan serat buatan, pembuatan benang stapel, pembuatan kain, penyempurnaan tekstil, serta menerapkan K3LH dan budaya kerja industri."
+        },
+        {
+          "nama": "Identifikasi Serat Tekstil",
+          "cp_normatif": "Menganalisis jenis serat dengan uji mikroskopik, uji bakar, dan uji pelarutan."
+        },
+        {
+          "nama": "Identifikasi Benang",
+          "cp_normatif": "Menguji nomor benang, antihan benang, dan kekuatan tarik benang."
+        },
+        {
+          "nama": "Identifikasi Kain",
+          "cp_normatif": "Menerapkan klasifikasi dan karakteristik serta menerapkan pengujian konstruksi kain."
+        }
+      ]
+    }
+  },
+  "teknik_instalasi_tenaga_listrik": {
+    "bidang": "Energi dan Pertambangan",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Teknik Instalasi Tenaga Listrik (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Standar dan peraturan",
+          "cp_normatif": "Menerapkan standar dan peraturan dalam pekerjaan teknik instalasi tenaga listrik yang meliputi teknis dan prosedur kerja dengan tetap patuh pada peraturan K2 dan K3LH."
+        },
+        {
+          "nama": "Sistem kendali",
+          "cp_normatif": "Menerapkan pemasangan sistem kendali berbasis mekanis, elektro mekanis, Inverter, PLC, Smart Building, dan IoT sesuai perkembangan teknologi."
+        },
+        {
+          "nama": "Instalasi penerangan listrik",
+          "cp_normatif": "Menerapkan perencanaan (berupa gambar kerja, iluminasi, kebutuhan alat, bahan, dan biaya), pemasangan dengan berbagai instrumentasi dan kendali sesuai SOP, serta komisioning/pengujian dan pelaporan."
+        },
+        {
+          "nama": "Instalasi tenaga listrik",
+          "cp_normatif": "Menerapkan pemasangan instalasi tenaga listrik dengan perangkat dari menghitung kebutuhan pemasangan instalasi tenaga listrik dengan berbagai instrumentasi dan kontrol, instalasi penyalur petir, instalasi pembumian (grounding), instalasi genset, dan instalasi tenaga surya, serta proteksinya sesuai standar."
+        },
+        {
+          "nama": "Instalasi motor listrik",
+          "cp_normatif": "Menerapkan perencanaan (berupa gambar kerja, kebutuhan alat, bahan serta biaya), pemasangan instalasi motor listrik dengan berbagai kendali dan proteksi sesuai standar teknis pekerjaan, serta dilakukan komisioning/pengujian dan pelaporan."
+        },
+        {
+          "nama": "Perbaikan peralatan listrik",
+          "cp_normatif": "Menerapkan pemeliharaan, pengecekan fungsi dan penggantian komponen pada peralatan listrik di rumah tangga maupun industri sesuai standar teknis dan proses kerja."
+        },
+        {
+          "nama": "Perawatan sistem kelistrikan",
+          "cp_normatif": "Menerapkan perencanaan dan pelaksanaan pekerjaan perawatan preventif dan korektif pada sistem kelistrikan sesuai kebutuhan industri."
+        }
+      ]
+    }
+  },
+  "teknik_pembangkit_tenaga_listrik": {
+    "bidang": "Energi dan Pertambangan",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Teknik Pembangkit Tenaga Listrik (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Instalasi listrik pembangkit",
+          "cp_normatif": "Menerapkan peraturan dan prosedur pemasangan instalasi listrik pada internal pembangkit dengan memperhatikan K2 dan K3."
+        },
+        {
+          "nama": "Perangkat pembangkit",
+          "cp_normatif": "Menganalisis prinsip dasar pembangkitan, peralatan utama dan pendukung pada pembangkit listrik energi terbarukan dan tidak terbarukan."
+        },
+        {
+          "nama": "Mesin listrik pembangkit",
+          "cp_normatif": "Menerapkan prosedur pengoperasian dan pemeliharaan mesin listrik pembangkit dan peralatan mekanis pembangkit."
+        },
+        {
+          "nama": "Instrumentasi dan kontrol pembangkit",
+          "cp_normatif": "Menerapkan prosedur pengoperasian dan pemeliharaan peralatan instrumentasi dan kontrol pada pembangkit (sensor, aktuator, dan peralatan kendali)."
+        },
+        {
+          "nama": "Proteksi mesin pembangkit listrik",
+          "cp_normatif": "Menerapkan prosedur pengoperasian dan pemeliharaan peralatan listrik dan peralatan mekanis pada sistem proteksi pembangkit."
+        },
+        {
+          "nama": "Pembangkit listrik tenaga surya.",
+          "cp_normatif": "Menganalisis sistem PLTS dan menerapkan prosedur pemasangan dan pemeliharaan PLTS."
+        },
+        {
+          "nama": "Sistem pendingin dan pelumas",
+          "cp_normatif": "Menerapkan prosedur pengoperasian dan pemeliharaan peralatan pendingin dan pelumas pada pembangkit."
+        }
+      ]
+    }
+  },
+  "teknik_jaringan_tenaga_listrik": {
+    "bidang": "Energi dan Pertambangan",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Teknik Jaringan Tenaga Listrik (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Jaringan distribusi listrik tegangan rendah",
+          "cp_normatif": "Menerapkan pemasangan, pengoperasian dan pemeliharaan jaringan distribusi listrik tegangan rendah."
+        },
+        {
+          "nama": "Jaringan distribusi listrik tegangan menengah",
+          "cp_normatif": "Menerapkan pemasangan, pengoperasian dan pemeliharaan jaringan distribusi listrik tegangan menengah."
+        },
+        {
+          "nama": "Jaringan transmisi tenaga listrik",
+          "cp_normatif": "Membuat rencana pengoperasian dan pemeliharaan Jaringan Transmisi Tenaga Listrik."
+        },
+        {
+          "nama": "Proteksi jaringan distribusi tenaga listrik",
+          "cp_normatif": "Menerapkan pemasangan, pengoperasian, dan pemeliharaan Proteksi Jaringan Distribusi Tenaga Listrik."
+        },
+        {
+          "nama": "Gardu induk",
+          "cp_normatif": "Menerapkan pengoperasian dan pemeliharaan gardu induk serta pemasangan, pengoperasian, dan pemeliharaan instalasi listrik gedung kontrol gardu induk."
+        }
+      ]
+    }
+  },
+  "teknik_pemanasan_tata_udara_dan_pendinginan": {
+    "bidang": "Energi dan Pertambangan",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Teknik Pemanasan, Tata Udara, dan Pendinginan (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Sistem tata udara",
+          "cp_normatif": "Menerapkan instalasi, pengoperasian, perawatan, dan perbaikan sistem tata udara."
+        },
+        {
+          "nama": "Sistem refrigerasi",
+          "cp_normatif": "Menerapkan instalasi, pengoperasian, perawatan dan perbaikan sistem refrigerasi."
+        },
+        {
+          "nama": "Sistem kontrol refrigerasi dan tata udara",
+          "cp_normatif": "Menerapkan perakitan, pengujian, perawatan dan perbaikan rangkaian kontrol sistem refrigerasi dan tata udara."
+        },
+        {
+          "nama": "Sistem pemanas air (Water Heater)",
+          "cp_normatif": "Menerapkan instalasi, pengoperasian, perawatan dan perbaikan sistem pemanas air (water heater)."
+        }
+      ]
+    }
+  },
+  "teknik_kelistrikan_pesawat_udara": {
+    "bidang": "Energi dan Pertambangan",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Teknik Kelistrikan Pesawat Udara (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Basic Aircraft Technical and Knowledge (BATK)",
+          "cp_normatif": "Menganalisis human factor dalam industri penerbangan, aircraft material, aircraft hardware, theory of flight, karakteristik aerodinamik terhadap kecepatan pesawat, konsep aircraft structure, konsep aircraft system, konsep basic aircraft propulsion, dan CASR Part 21, 39, 43, 45, 47, 65, 145, 147."
+        },
+        {
+          "nama": "Gambar listrik pesawat udara dan CAD",
+          "cp_normatif": "Menerapkan perencanaan, pembuatan, dan penginterpretasian simbol-simbol listrik dan elektronika pesawat udara sesuai dengan standar dan teknik menggambar rangkaian listrik pesawat udara sesuai peraturan menggunakan aplikasi CAD."
+        },
+        {
+          "nama": "Listrik dan elektronika pesawat udara",
+          "cp_normatif": "Menganalisis kelistrikan dan elektronika pesawat udara dengan cara mengoperasikan rangkaian listrik, elektronika analog, dan elektronika digital."
+        },
+        {
+          "nama": "Mesin listrik dan kontrol motor",
+          "cp_normatif": "Menerapkan pengoperasian serta pemeliharaan dasar alat mesin listrik 1 dan 3 phase, komponen-komponen aktuator, PLC, microcontroller, dan kelistrikan pesawat udara."
+        },
+        {
+          "nama": "Instrumen pesawat udara",
+          "cp_normatif": "Menerapkan pengujian serta pemeliharaan flight instrument, navigations instrument, engine instrument, dan auxiliary instrument."
+        },
+        {
+          "nama": "Perakitan sistem kelistrikan pesawat udara",
+          "cp_normatif": "Menerapkan perakitan dan pelaporan perakitan sistem kelistrikan pesawat udara."
+        }
+      ]
+    }
+  },
+  "teknik_kelistrikan_kapal": {
+    "bidang": "Energi dan Pertambangan",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Teknik Kelistrikan Kapal (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Standar dan Aturan",
+          "cp_normatif": "Menerapkan standar dan aturan/rule yang meliputi Biro Klasifikasi Indonesia (BKI), Peraturan Umum Instalasi Listrik (PUIL), dan K3LH dalam melaksanakan pekerjaan ketenagalistrikan."
+        },
+        {
+          "nama": "Sistem Ketenagalistrikan Kapal",
+          "cp_normatif": "Menerapkan perencanaan, pemasangan, pengoperasian, pengujian pada peralatan navigasi, komunikasi, instalasi penerangan dan tenaga 1 phasa dan 3 phasa dan pemasangan Main Switch Board (MSB) pada kapal."
+        },
+        {
+          "nama": "Sistem Kelistrikan Mesin Pendingin.",
+          "cp_normatif": "Menerapkan perencanaan, pemasangan, pengoperasian, pengujian, dan pemeliharaan Sistem kelistrikan mesin pendingin (Air Conditioning & Refrigeration)."
+        },
+        {
+          "nama": "Perbaikan, dan Perawatan Peralatan Kelistrikan kapal.",
+          "cp_normatif": "Menerapkan pemeliharaan, perawatan dan perbaikan pada pembangkit listrik kapal (diesel generator) 1 phase, dan peralatan kelistrikan kapal (transformator 1 dan 3 phase), motor, sistem proteksi, sistem kelistrikan mesin pendingin (Air Conditioning & Refrigeration) dan sistem kontrol."
+        },
+        {
+          "nama": "Sitem Kontrol Kelistrikan Kapal",
+          "cp_normatif": "Menerapkan perencanaan, pemasangan, pengoperasian, pengujian pada kontrol analog, kontrol digital, sensor, dan aktuator."
+        }
+      ]
+    }
+  },
+  "teknik_energi_surya_hidro_dan_angin": {
+    "bidang": "Energi dan Pertambangan",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Teknik Energi Surya Hidro dan Angin (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Teknik energi surya",
+          "cp_normatif": "Menerapkan pemasangan, pemeriksaan, pengujian, pengoperasian, pemeliharaan, perawatan, dan perbaikan terhadap Pembangkit Listrik Tenaga Surya."
+        },
+        {
+          "nama": "Teknik energi hidro",
+          "cp_normatif": "Menerapkan pemasangan, pemeriksaan, pengujian, pengoperasian, pemeliharaan, perawatan, dan perbaikan terhadap Pembangkit Listrik Tenaga Mikrohidro."
+        },
+        {
+          "nama": "Teknik energi angin",
+          "cp_normatif": "Menerapkan pemasangan, pemeriksaan, pengujian, pengoperasian, pemeliharaan, perawatan, dan perbaikan terhadap Pembangkit Listrik Tenaga Bayu skala kecil."
+        },
+        {
+          "nama": "Teknik energi hybrid",
+          "cp_normatif": "Menerapkan pemasangan, pemeriksaan, pengujian, pengoperasian, pemeliharaan, perawatan, dan perbaikan terhadap sistem interkoneksi."
+        }
+      ]
+    }
+  },
+  "teknik_energi_biomassa": {
+    "bidang": "Energi dan Pertambangan",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Teknik Energi Biomassa (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Instalasi Reaktor Biogas",
+          "cp_normatif": "Menerapkan instalasi dan pengoperasian reaktor biogas sesuai prosedur operasi dengan menerapkan prinsip/kaidah K3LH."
+        },
+        {
+          "nama": "Instalasi Bahan Bakar Nabati",
+          "cp_normatif": "Menerapkan pengoperasian dan pemeliharaan instalasi bahan bakar nabati sesuai prosedur operasi dengan menerapkan prinsip/kaidah K3LH."
+        },
+        {
+          "nama": "Instalasi Termokimia Biomassa",
+          "cp_normatif": "Menerapkan pengoperasian dan pemeliharaan instalasi termokimia biomassa sesuai prosedur operasi dengan menerapkan prinsip/kaidah K3LH."
+        },
+        {
+          "nama": "Pembangkit Listrik Tenaga Biogas (PLTBg)",
+          "cp_normatif": "Menerapkan pengoperasian dan pemeliharaan instalasi Pembangkit Listrik Tenaga Biogas (PLTBg) sesuai prosedur operasi dengan menerapkan prinsip/kaidah K3LH dan K2."
+        }
+      ]
+    }
+  },
+  "teknik_geomatika": {
+    "bidang": "Energi dan Pertambangan",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Teknik Geomatika (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Survei Terestris",
+          "cp_normatif": "Menghasilkan produk survei terestris yang meliputi pengukuran kerangka dasar vertikal dengan waterpass, kerangka dasar horizontal, detail situasi stake out menggunakan alat ukur electronic total station, dan penentuan posisi menggunakan GNSS geodetik serta menggambar hasil pengukuran dengan perangkat lunak gambar bidang Teknik Geomatika (perangkat lunak penggambaran peta)."
+        },
+        {
+          "nama": "Sistem Informasi Geografis",
+          "cp_normatif": "Menerapkan pekerjaan penginputan data, editing, dan penyajian peta digital untuk membangun sistem informasi geografis."
+        },
+        {
+          "nama": "Penginderaan Jauh",
+          "cp_normatif": "Menerapkan pekerjaan penginderaan jauh yang meliputi survei fotogrametri menggunakan unmanned aerial vehicle (UAV) atau pengolahan data citra satelit untuk menghasilkan foto udara."
+        }
+      ]
+    }
+  },
+  "informasi_geospasial": {
+    "bidang": "Energi dan Pertambangan",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Informasi Geospasial (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Survei Terestris",
+          "cp_normatif": "Menghasilkan produk survei terestris yang meliputi pengukuran kerangka dasar vertikal dengan waterpass, kerangka dasar horizontal, detail situasi, stake out menggunakan alat ukur electronic total station, dan penentuan posisi menggunakan GNSS geodetik serta menggambar hasil pengukuran dengan perangkat lunak gambar bidang Teknik Geomatika (perangkat lunak penggambaran peta)."
+        },
+        {
+          "nama": "Sistem Informasi Geografis",
+          "cp_normatif": "Menerapkan pekerjaan penginputan data, editing, dan penyajian peta digital untuk membangun sistem informasi geografis, serta membuat peta dasar dari ortofoto sesuai dengan kaidah kartografi dan Katalog Unsur Geografi Indonesia (KUGI)."
+        },
+        {
+          "nama": "Penginderaan Jauh",
+          "cp_normatif": "Menerapkan pekerjaan penginderaan jauh yang meliputi survei fotogrametri menggunakan Unmanned Aerial Vehicle (UAV) atau pengolahan data citra satelit untuk menghasilkan foto udara."
+        },
+        {
+          "nama": "Hidrografi",
+          "cp_normatif": "Menerapkan perangkat komputer, pengukuran kedalaman secara konvensional, dan pemantauan keselamatan bernavigasi, orientasi lokasi benchmark/hydro pilar serta menganalisis peta."
+        }
+      ]
+    }
+  },
+  "geologi_pertambangan": {
+    "bidang": "Energi dan Pertambangan",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Geologi Pertambangan (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Batuan dan endapan bahan galian",
+          "cp_normatif": "Menganalisis batuan dan endapan bahan galian yang meliputi analisis mineral, batuan, dan bahan galian."
+        },
+        {
+          "nama": "Pemetaan topografi",
+          "cp_normatif": "Mengembangkan peta topografi dari pengoperasian dan perawatan peralatan pengukuran, pengukuran dengan alat ukur analog dan digital, penghitungan data hasil pengukuran, serta pembuatan peta topografi dan membangun model 3D."
+        },
+        {
+          "nama": "Pemetaan geologi",
+          "cp_normatif": "Mengembangkan peta geologi 2D atau 3D yang meliputi geomorfologi, litologi, paleontologi, stratigrafi, dan struktur geologi."
+        },
+        {
+          "nama": "Teknik eksplorasi",
+          "cp_normatif": "Menerapkan pekerjaan eksplorasi bahan galian yang meliputi konsep eksplorasi, tahapan eksplorasi, metode eksplorasi, dan pemboran eksplorasi."
+        },
+        {
+          "nama": "Geologi teknik",
+          "cp_normatif": "Menerapkan pekerjaan geologi teknik dengan melaksanakan rekayasa geoteknik menggunakan prinsip mekanika tanah dan mekanika batuan, serta menganalisis kestabilan lereng."
+        },
+        {
+          "nama": "Teknik penambangan",
+          "cp_normatif": "Menerapkan pekerjaan penambangan meliputi metode penambangan, kegiatan penambangan/eksploitasi (penggalian/pemberaian menggunakan alat gali maupun peledakan, pemuatan, dan pengangkutan), dan pemindahan tanah mekanis."
+        }
+      ]
+    }
+  },
+  "teknik_produksi_minyak_dan_gas": {
+    "bidang": "Energi dan Pertambangan",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Teknik Produksi Minyak dan Gas (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Operasi sumur minyak dan gas bumi",
+          "cp_normatif": "Menerapkan operasi sumur produksi minyak dan gas bumi dengan metode sembur alam (natural flow) dan pengangkatan buatan (artificial lift)."
+        },
+        {
+          "nama": "Pemisahan fluida dari reservoir",
+          "cp_normatif": "Menerapkan proses pemisahan fluida reservoir, termasuk menjalankan operasi start-up dan shut-down, serta pengamatan terhadap parameter operasi pada unit pemisahan fluida reservoir."
+        },
+        {
+          "nama": "Operasi pengolahan minyak mentah (crude oil treatment)",
+          "cp_normatif": "Menerapkan operasi pengolahan minyak mentah (crude oil treatment) serta pengamatan terhadap parameter operasi pada unit pengolahan tersebut."
+        },
+        {
+          "nama": "Operasi pengolahan gas (gas treatment)",
+          "cp_normatif": "Menerapkan operasi pengolahan gas (gas treatment) serta pengamatan terhadap parameter operasi pada unit pengolahan gas."
+        },
+        {
+          "nama": "Operasi pengolahan air terproduksi (produced water treatment)",
+          "cp_normatif": "Menerapkan operasi pengolahan air terproduksi (produced water treatment) serta pengamatan terhadap parameter operasi pada unit pengolahan tersebut."
+        },
+        {
+          "nama": "Operasi penampungan hasil produksi minyak dan gas bumi",
+          "cp_normatif": "Menerapkan operasi penampungan hasil produksi, pengukuran pada tangki (tinggi permukaan, suhu, dan pengambilan sampel), menguji kualitas fluida, serta mengelola pengiriman minyak dan gas bumi."
+        },
+        {
+          "nama": "Operasi pengukuran laju alir (flow metering) minyak dan gas bumi",
+          "cp_normatif": "Menerapkan operasi pengukuran laju alir (flow metering) minyak dan gas bumi sesuai dengan prosedur kerja dan parameter yang ditetapkan."
+        }
+      ]
+    }
+  },
+  "teknik_pemboran_minyak_dan_gas": {
+    "bidang": "Energi dan Pertambangan",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Teknik Pemboran Minyak dan Gas (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Persiapan dalam Pemboran",
+          "cp_normatif": "Menganalisis persiapan jalan, lokasi, air, peralatan pengeboran, transportasi, dan pembuatan cellar."
+        },
+        {
+          "nama": "Mobilisasi rig up/rig down",
+          "cp_normatif": "Menerapkan mobilisasi menara pemboran, mobilisasi menara pemboran, tegak menara (Rig Up), dan rebah menara (Rig Down)."
+        },
+        {
+          "nama": "Operasi Peralatan Pemboran",
+          "cp_normatif": "Menerapkan identifikasi, pemeriksaan dan perawatan drill stem serta 5 sistem dalam pemboran."
+        },
+        {
+          "nama": "Penurunan Rangkaian pipa Selubung (Casing)",
+          "cp_normatif": "Menerapkan penurunan rangkaian pipa selubung (casing) sesuai prosedur."
+        },
+        {
+          "nama": "Problem-problem Pemboran",
+          "cp_normatif": "Menganalisis masalah dalam pemboran dan pengendalian tekanan sumur (Well Control) dengan fluida pemboran yang sesuai."
+        }
+      ]
+    }
+  },
+  "teknik_pengolahan_minyak_gas_dan_petrokimia": {
+    "bidang": "Energi dan Pertambangan",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Teknik Pengolahan Minyak, Gas, dan Petrokimia (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Operasi Crude Distilling Unit pengolahan minyak bumi",
+          "cp_normatif": "Menerapkan operasi Crude Distilling Unit."
+        },
+        {
+          "nama": "Operasi Vacuum Distilling Unit",
+          "cp_normatif": "Menerapkan operasi Vacuum Distilling Unit."
+        },
+        {
+          "nama": "Proses pengolahan gas bumi dan Penanganan bahaya gas H2S",
+          "cp_normatif": "Menerapkan proses pengolahan gas bumi, penanganan bahaya gas H2S dan perlindungan diri dari bahaya gas H2S."
+        },
+        {
+          "nama": "Proses pengolahan petrokimia",
+          "cp_normatif": "Menerapkan proses pengolahan petrokimia."
+        },
+        {
+          "nama": "Teknik sampling migas dan pengendalian mutu bahan bakar minyak.",
+          "cp_normatif": "Menerapkan Teknik sampling migas dan pengendalian mutu bahan bakar minyak sesuai metode uji standar."
+        },
+        {
+          "nama": "Blending produk migas",
+          "cp_normatif": "Menerapkan blending produk migas."
+        },
+        {
+          "nama": "Operasi boiler",
+          "cp_normatif": "Menerapkan sistem kelistrikan boiler/ketel uap, sistem instrumentasi, sistem pengolahan air umpan boiler/ketel uap, sistem penyedia bahan bakar, boiler/ketel uap dan alat-alat perlengkapannya."
+        }
+      ]
+    }
+  },
+  "kimia_analisis": {
+    "bidang": "Energi dan Pertambangan",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Kimia Analisis (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Teknik pengambilan dan penyiapan sampel",
+          "cp_normatif": "Menganalisis jenis-jenis sampel, menerapkan prinsip dan prosedur pengambilan, pengangkutan, penyiapan dan pengarsipan sampel analisis."
+        },
+        {
+          "nama": "Analisis titrimetri dan gravimetri",
+          "cp_normatif": "Menerapkan prinsip dan prosedur pada analisis titrimetri dan gravimetri."
+        },
+        {
+          "nama": "Analisis bahan organik",
+          "cp_normatif": "Menerapkan prinsip dan prosedur pada analisis kualitatif senyawa organik dan analisis proksimat."
+        },
+        {
+          "nama": "Analisis bahan anorganik",
+          "cp_normatif": "Menerapkan prinsip dan prosedur pada analisis kualitatif unsur anorganik dan analisis kuantitatif pada penentuan kualitas air."
+        },
+        {
+          "nama": "Analisis kimia instrumen",
+          "cp_normatif": "Menerapkan prinsip dan prosedur analisis fisik, analisis fisiko-kimia, analisis elektrokimia, analisis spektrofotometri, dan analisis kromatografi."
+        },
+        {
+          "nama": "Analisis mikrobiologi",
+          "cp_normatif": "Menerapkan analisis mikrobiologi secara kualitatif dan analisis mikrobiologi secara kuantitatif."
+        }
+      ]
+    }
+  },
+  "analisis_pengujian_laboratorium": {
+    "bidang": "Energi dan Pertambangan",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Analisis Pengujian Laboratorium (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Pengambilan dan penyiapan sampel",
+          "cp_normatif": "Menerapkan prosedur pengambilan sampel, pengecilan ukuran sampel, penghomogenan sampel, penyiapan sampel untuk pengujian laboratorium dan pengarsipan sampel."
+        },
+        {
+          "nama": "Analisis titrimetri dan gravimetri",
+          "cp_normatif": "Menerapkan prinsip dan prosedur analisis titrimetri dan gravimetri, pengolahan data, dan pelaporan hasil analisis."
+        },
+        {
+          "nama": "Analisis proksimat",
+          "cp_normatif": "Menerapkan prinsip dan prosedur analisis kadar air, abu, lemak, karbohidrat, protein, serat kasar, dan bahan tambahan pangan, pengolahan data, dan pelaporan hasil analisis."
+        },
+        {
+          "nama": "Analisis kimia instrumen",
+          "cp_normatif": "Menerapkan prinsip dan prosedur analisis instrumen fisik penunjang, fisiko-kimia, spektrofotometri UV-Vis, elektrokimia dan kromatografi sederhana, pengolahan data, serta pelaporan hasil analisis."
+        },
+        {
+          "nama": "Analisis mikrobiologi",
+          "cp_normatif": "Menerapkan prinsip dan prosedur pewarnaan mikroba, analisis jumlah mikroba metode Total Plate Count (TPC) dan Most Probable Number (MPN), pemeriksaan bakteri coliform, E coli dan Salmonella, perhitungan jumlah bakteri dalam sampel serta pelaporan hasil analisis mikrobiologi."
+        }
+      ]
+    }
+  },
+  "teknik_kimia_industri": {
+    "bidang": "Energi dan Pertambangan",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Teknik Kimia Industri (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Azas Teknik Kimia",
+          "cp_normatif": "Menerapkan besaran dan satuan, sistem satuan (CGS, MKS, SI, FPS, BE), konversi satuan, neraca massa, neraca energi, dan termodinamika dasar."
+        },
+        {
+          "nama": "Operasi Teknik Kimia",
+          "cp_normatif": "Menerapkan fluida statis dan dinamis, penanganan bahan padat (size reduction, screening, dan transportasi), operasi transfer massa (difusi, absorpsi, adsorpsi, penukaran ion, reverse osmosis, pencampuran bahan, ekstraksi, destilasi, evaporasi, kristalisasi, pengeringan, humidifikasi), operasi transfer panas (konduksi, konveksi, dan radiasi), dan operasi pemisahan secara mekanik (sedimentasi dan filtrasi)."
+        },
+        {
+          "nama": "Proses Industri Kimia",
+          "cp_normatif": "Menerapkan diagram alir proses, reaktor dan utilitas (steam, listrik, water treatment, waste water treatment); industri kimia dasar (NaCl, soda kaustik, soda abu, asam klorida, gas klor, gas hidrogen, asam sulfat), industri minyak nabati, mentega, margarin, sabun dan detergen, industri gula, fermentasi, dan pangan, industri pulp dan kertas, industri cat, pewarna, dan pelapis, industri farmasi, industri pupuk, industri silikat (keramik, semen dan kaca), industri karet, industri minyak bumi (petroleum dan petrokimia), dan industri besi dan baja."
+        },
+        {
+          "nama": "Kontrol Proses",
+          "cp_normatif": "Menerapkan sistem open loop dan close loop; alat instrumentasi (pengukuran level, tekanan, suhu, dan laju alir); sistem process flow diagram (PFD), piping and instrumentation diagram (P&ID), distributed control system (DCS), dan supervisory control and data acquisition (SCADA)."
+        },
+        {
+          "nama": "Pengolahan limbah",
+          "cp_normatif": "Menerapkan identifikasi jenis-jenis limbah (cair, gas, padat, B3, dan non B3), pengolahan dan pengujian limbah (fisika, kimia, dan biologi), pengendalian limbah industri, dan perawatan instalasi pengolahan air limbah."
+        }
+      ]
+    }
+  },
+  "kimia_tekstil": {
+    "bidang": "Energi dan Pertambangan",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Kimia Tekstil (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Evaluasi kimia fisika tekstil",
+          "cp_normatif": "Menerapkan identifikasi serat tekstil, kain tenun, dan zat warna."
+        },
+        {
+          "nama": "Proses persiapan kimia tekstil",
+          "cp_normatif": "Menerapkan proses pembakaran bulu, penghilangan kanji, pemasakan, pengelantangan, merserisasi, serta heat setting, dan weight reduce benang dan kain."
+        },
+        {
+          "nama": "Proses pencelupan",
+          "cp_normatif": "Menerapkan pencelupan benang dan kain tekstil, pengujian hasil proses pencelupan, dan colour matching secara manual."
+        },
+        {
+          "nama": "Proses pencapan",
+          "cp_normatif": "Menerapkan proses tracing engraving, pembuatan pengental, pembuatan pasta cap, proses pencapan dan pengujian hasil proses pencapan."
+        },
+        {
+          "nama": "Proses penyempurnaan khusus kimia fisika",
+          "cp_normatif": "Menerapkan proses penyempurnaan khusus kimia dan fisika tekstil."
+        }
+      ]
+    }
+  },
+  "teknik_pembuatan_serat_filamen": {
+    "bidang": "Energi dan Pertambangan",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Teknik Pembuatan Serat Filamen (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Polimerisasi",
+          "cp_normatif": "Menerapkan proses slurry, esterifikasi, polikondensasi, dan casting (pemotongan)."
+        },
+        {
+          "nama": "Pemintalan Serat Buatan",
+          "cp_normatif": "Menerapkan jenis dan proses pemintalan serat buatan, pemintalan leleh, pemintalan basah, serta pemintalan kering."
+        },
+        {
+          "nama": "Pengendalian Mutu Produksi",
+          "cp_normatif": "Menerapkan pengendalian kualitas produk hasil polimerisasi, pemintalan leleh, pemintalan basah, dan pemintalan kering."
+        },
+        {
+          "nama": "Pemeliharaan dan Perbaikan Mesin Pemintalan Serat Buatan",
+          "cp_normatif": "Menerapkan prosedur pemeliharaan dan perbaikan mesin polimerisasi, pemintalan leleh, pemintalan basah, serta pemintalan kering."
+        },
+        {
+          "nama": "Pengendalian Limbah Industri",
+          "cp_normatif": "Menerapkan jenis limbah (limbah padat, cair, udara), prosedur limbah industri (limbah padat, cair, udara), dan pengolahan limbah industri (limbah padat, cair, udara)."
+        }
+      ]
+    }
+  },
+  "teknik_pembuatan_benang_stapel": {
+    "bidang": "Energi dan Pertambangan",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Teknik Pembuatan Benang Stapel (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Persiapan pemintalan serat stapel",
+          "cp_normatif": "Menerapkan proses persiapan pengoperasian mesin blowing, carding, drawing, pre-combing, combing, dan roving."
+        },
+        {
+          "nama": "Pemintalan serat stapel",
+          "cp_normatif": "Menerapkan proses pengoperasian mesin ring spinning, open-end spinning, dan winding."
+        },
+        {
+          "nama": "Pengendalian mutu pemintalan",
+          "cp_normatif": "Menerapkan prosedur pengujian serat (grade, panjang, kekuatan, dan kehalusan) dan pengujian benang (nomor sliver, roving, dan benang, ketidakrataan (unevenness), antihan/twist, kekuatan dan mulur)."
+        },
+        {
+          "nama": "Pemeliharaan mesin pemintalan",
+          "cp_normatif": "Menerapkan prosedur pemeliharaan mesin blowing, carding, drawing, pre-combing, combing, roving, ring spinning, open end spinning, dan winding."
+        }
+      ]
+    }
+  },
+  "teknik_pembuatan_kain": {
+    "bidang": "Energi dan Pertambangan",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Teknik Pembuatan Kain (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Persiapan Pembuatan Kain",
+          "cp_normatif": "Menerapkan proses persiapan pembuatan kain ; pengelosan (winding), penghanian (warping), penganjian (sizing), pencucukan (reaching), pemaletan (pirn winder), dan penyetelan beam (beam steller)."
+        },
+        {
+          "nama": "Desain Anyaman",
+          "cp_normatif": "Menerapkan desain anyaman dasar dan turunannya (polos, keper, dan satin) serta penerapannya pada mesin tenun."
+        },
+        {
+          "nama": "Pertenunan",
+          "cp_normatif": "Menerapkan proses pembuatan kain tenun menggunakan mesin tenun teropong (shuttle loom) dan mesin tenun tanpa teropong (shuttleless loom)."
+        },
+        {
+          "nama": "Perajutan",
+          "cp_normatif": "Menerapkan proses pembuatan kain rajut menggunakan mesin rajut datar, rajut bundar, dan rajut lusi, serta penerapan desain pada kain rajut."
+        },
+        {
+          "nama": "Pengendalian Mutu Kain",
+          "cp_normatif": "Menganalisis jenis cacat pada kain serta menerapkan proses pemeriksaan kain (inspecting) dan pengujian mutu kain (konstruksi kain, kekuatan sobek kain, kekuatan tarik kain, dan daya serap kain)."
+        }
+      ]
+    }
+  },
+  "teknik_penyempurnaan_tekstil": {
+    "bidang": "Energi dan Pertambangan",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Teknik Penyempurnaan Tekstil (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Persiapan penyempurnaan tekstil",
+          "cp_normatif": "Menerapkan persiapan proses (preparation), pembakaran bulu (singeing), penimbangan zat, penghilangan kanji (desizing), pemasakan kain (scouring), pengelantangan (bleaching), merserisasi kain (mercerizing), pemantapan panas (heat setting), pengurangan berat kain (weight reduction), dan analisis air dan limbah."
+        },
+        {
+          "nama": "Pencelupan",
+          "cp_normatif": "Menerapkan identifikasi zat warna, proses tandingan warna (colour matching), dan menerapkan pencelupan bahan tekstil (dyeing)."
+        },
+        {
+          "nama": "Pencapan",
+          "cp_normatif": "Menerapkan pembuatan desain gambar, pembuatan kasa bermotif, pembuatan pengental dan pasta cap, pencapan kasa (screen printing), fiksasi, dan pengujian hasil pewarnaan."
+        },
+        {
+          "nama": "Penyempurnaan khusus",
+          "cp_normatif": "Menerapkan proses penyempurnaan penganjian, penyempurnaan resin (resin finish), penyempurnaan krep, proses anti mengkeret (sanforising), setting lebar (tentering), penyetrikaan kain (calendering), pelipatan dan penggulungan kain (folding and rolling), dan penyelesaian akhir (making up)."
+        }
+      ]
+    }
+  },
+  "dasar_dasar_layanan_kesehatan": {
+    "bidang": "Kesehatan dan Pekerjaan Sosial",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_e": {
+      "label": "Dasar-dasar Layanan Kesehatan (Kelas 10 SMK)",
+      "cp_umum": "Pada akhir Fase E, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Wawasan dunia kerja bidang layanan kesehatan",
+          "cp_normatif": "Menganalisis berbagai aktivitas pekerjaan di bidang layanan kesehatan, yang mencakup proses penerimaan klien, kebutuhan klien, perencanaan, pelaksanaan, hingga evaluasi pemberian layanan, serta pengelolaan sumber daya manusia di fasilitas kesehatan; menganalisis secara tepat dan menyeluruh peluang kerja, profesi, usaha, serta peluang pasar di bidang layanan kesehatan, sekaligus memahami konsep healthpreneur untuk membangun visi dan passion (renjana); dan menganalisis perkembangan teknologi termasuk penerapan kecerdasan artifisial seperti sistem pendukung keputusan klinis, telemedicine, dan alat monitoring kesehatan berbasis digital, fasilitas dan jenis layanan kesehatan serta perkembangan isu-isu kesehatan global, prinsip 3R (Reduce, Reuse, Recycle) dalam praktik pelayanan kesehatan, seperti mengelola limbah medis secara bertanggung jawab maupun situasi kontekstual, seperti penyebaran penyakit menular baru, dampak perubahan iklim terhadap kesehatan, dan ketidaksetaraan layanan kesehatan di berbagai wilayah di dunia kerja baik melalui simulasi, studi kasus, maupun praktik nyata yang mencerminkan kebutuhan dan tantangan di dunia kerja bidang kesehatan."
+        },
+        {
+          "nama": "Anatomi fisiologi dan pertumbuhan perkembangan manusia",
+          "cp_normatif": "Menganalisis anatomi dan fisiologi tubuh manusia dengan menyebutkan struktur utama organ-organ tubuh, memadukan fungsi serta gangguan yang mungkin terjadi dalam sistem pernapasan, sistem jantung, pembuluh darah dan limfatik, sistem pencernaan, sistem persarafan, sistem perkemihan, sistem reproduksi, sistem otot dan tulang, sistem indera dan sistem endokrin; menganalisis fase-fase usia tumbuh kembang manusia, mulai dari usia bayi, batita/toddler, anak-anak (sekolah dan prasekolah), remaja, dewasa, hingga lanjut usia, perubahan fisik, emosional, dan sosial yang terjadi di setiap tahapan usia; dan menganalisis berbagai permasalahan yang umum timbul pada setiap tahap kehidupan, seperti gangguan pertumbuhan pada masa anak-anak, masalah psikologis di masa remaja, hingga penyakit degeneratif di usia lanjut."
+        },
+        {
+          "nama": "Kecakapan kerja (basic job skills), teknik dasar layanan kesehatan dengan layanan prima, K3 dan budaya kerja",
+          "cp_normatif": "Menerapkan prosedur alat pelindung diri (APD) sesuai standar K3 saat melakukan pelayanan kesehatan, pemeriksaan tanda-tanda vital, seperti pengukuran tekanan darah, suhu tubuh, frekuensi nadi, dan laju pernapasan dengan teknik yang benar, akurat, yang disertai pelaporan hasil tindakan secara sistematis. Selain itu, murid juga dapat menerapkan etika profesi dan etiket komunikasi secara efektif dalam berinteraksi dengan klien maupun saat berkoordinasi dalam tim kerja, sesuai dengan nilai-nilai budaya kerja yang berlaku di lingkungan pelayanan kesehatan dan mampu menerapkannya secara disiplin dalam setiap aktivitas pelayanan dasar kepada klien."
+        }
+      ]
+    }
+  },
+  "dasar_dasar_teknik_laboratorium_medik": {
+    "bidang": "Kesehatan dan Pekerjaan Sosial",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_e": {
+      "label": "Dasar-dasar Teknik Laboratorium Medik (Kelas 10 SMK)",
+      "cp_umum": "Pada akhir Fase E, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Wawasan dunia kerja bidang layanan laboratorium medik",
+          "cp_normatif": "Menerapkan sistem layanan dan tuntutan perkembangan dunia kerja termasuk etika profesi sesuai dengan peluang kerja yang ada di bidang layanan laboratorium medik."
+        },
+        {
+          "nama": "Kecakapan kerja dasar (basic job skills), K3, dan budaya kerja",
+          "cp_normatif": "Menerapkan praktik laboratorium yang baik (good laboratory practice), K3 dan melakukan komunikasi yang efektif serta nilai-nilai kerja profesional."
+        },
+        {
+          "nama": "Peralatan laboratorium medik",
+          "cp_normatif": "Menerapkan jenis-jenis peralatan yang digunakan laboratorium medik."
+        },
+        {
+          "nama": "Bahan kerja di laboratorium medik",
+          "cp_normatif": "Menerapkan jenis-jenis media dan reagensia/larutan yang digunakan di laboratorium medik."
+        },
+        {
+          "nama": "Penanganan sampel di laboratorium medik",
+          "cp_normatif": "Menganalisis jenis-jenis spesimen medis."
+        }
+      ]
+    }
+  },
+  "dasar_dasar_teknologi_farmasi": {
+    "bidang": "Kesehatan dan Pekerjaan Sosial",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_e": {
+      "label": "Dasar-dasar Teknologi Farmasi (Kelas 10 SMK)",
+      "cp_umum": "Pada akhir Fase E, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Wawasan Dunia Kerja Bidang Teknologi Farmasi",
+          "cp_normatif": "Menerapkan aktivitas kerja di bidang farmasi, termasuk pengenalan profesi, jenis industri farmasi, serta peran teknologi dalam sistem informasi, manajemen mutu, dan pelayanan kesehatan serta menganalisis perkembangan teknologi terkini, isu global kefarmasian dan memetakan peluang karier serta potensi usaha di bidang farmasi sesuai kebutuhan dunia kerja."
+        },
+        {
+          "nama": "Kecakapan Kerja Dasar (Basic Job Skills), K3, dan Budaya Kerja",
+          "cp_normatif": "Menerapkan prinsip-prinsip keselamatan dan kesehatan kerja (K3LH) dalam praktik laboratorium farmasi, merawat dan menggunakan peralatan dasar dengan benar, serta memahami proses produksi obat; menganalisis jenis-jenis sediaan farmasi, melakukan penggolongan dan klasifikasi obat; menerapkan regulasi penting seperti CDOB dan CPOB; dan menganalisis tanaman obat (simplisia) beserta manfaat empirisnya berdasarkan budaya dan kearifan lokal."
+        }
+      ]
+    }
+  },
+  "dasar_dasar_pekerjaan_sosial": {
+    "bidang": "Kesehatan dan Pekerjaan Sosial",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_e": {
+      "label": "Dasar-dasar Pekerjaan Sosial (Kelas 10 SMK)",
+      "cp_umum": "Pada akhir Fase E, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Wawasan Dunia kerja Bidang Pekerjaan Sosial",
+          "cp_normatif": "Menganalisis aktivitas pekerjaan sosial termasuk penerimaan klien, identifikasi kebutuhan klien, perencanaan pemberian layanan, pelaksanaan pemberian layanan. evaluasi pemberian layanan, peluang usaha dan peluang kerja/profesi di bidang layanan pekerjaan sosial. murid juga memiliki kemampuan menganalisis perkembangan teknologi pada pekerjaan sosial mulai dari teknologi konvensional sampai kepada teknologi revolusi industri 4.0. serta Murid mampu mengidentifikasi perilaku filantropi dan Job Profile."
+        },
+        {
+          "nama": "Kecakapan kerja dasar (Basic Job Skills), K3 dan Budaya Kecakapan Kerja",
+          "cp_normatif": "Menerapkan praktik dasar layanan sosial melalui komunikasi verbal dan non verbal, penyusunan pedoman wawancara, pelaksanaan observasi, studi dokumentasi, dan K3."
+        }
+      ]
+    }
+  },
+  "layanan_penunjang_keperawatan_dan_caregiving": {
+    "bidang": "Kesehatan dan Pekerjaan Sosial",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Layanan Penunjang Keperawatan dan Caregiving (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Ilmu penyakit umum, kejiwaan sesuai tahapan usia",
+          "cp_normatif": "Menganalisis konsep-konsep dasar ilmu penyakit umum serta gangguan kejiwaan yang relevan dengan tahapan perkembangan usia, tanda dan gejala penyakit berdasarkan pemahaman anatomi fisiologis dan patofisiologi yang mendasarinya, perbedaan manifestasi gangguan jiwa pada tiap kelompok usia dan menerapkan keterampilan pemeriksaan fisik secara sistematis dari kepala hingga ujung kaki (head to toe examination) dengan pendekatan yang sesuai, teliti, dan memperhatikan aspek keselamatan serta kenyamanan pasien."
+        },
+        {
+          "nama": "Kebutuhan dasar manusia",
+          "cp_normatif": "Menganalisis kebutuhan dasar manusia menurut berbagai teori para ahli, kebutuhan fisik, psikologis, sosial, dan spiritual klien secara holistik, prinsip penanganan nyeri serta perawatan luka dasar secara tepat sesuai dengan prosedur keperawatan, kebutuhan dan aktivitas yang sesuai dengan kondisi usia lanjut secara empatik dan profesional, pemeriksaan tingkat kesadaran klien dengan menggunakan alat ukur yang sesuai; memfasilitasi proses berduka dan kehilangan dengan pendekatan yang suportif dan beretika; dan menerapkan prosedur perawatan jenazah dengan benar serta menghormati nilai-nilai budaya dan spiritual yang dianut oleh klien dan keluarga."
+        },
+        {
+          "nama": "Keterampilan dasar layanan penunjang keperawatan dan caregiving sesuai tahapan usia",
+          "cp_normatif": "Menerapkan keterampilan dasar tindakan keperawatan secara tepat dan sesuai dengan tahapan usia klien, prosedur desinfeksi, sterilisasi, penyimpanan alat kesehatan sesuai standar, penyiapan tempat tidur pasien dengan benar berdasarkan kebutuhan kondisi klien, pertolongan personal hygiene, mobilisasi dan ambulasi klien, pemberian makanan dan minuman secara per oral dengan memperhatikan prinsip keamanan dan kenyamanan pasien, eliminasi, perawatan vulva dan perineum dengan teknik yang higienis dan sesuai etika profesional, pertolongan latihan nafas dalam dan batuk efektif sebagai bagian dari upaya preventif dan promotif, pemasangan buli-buli panas, kirbat es, kompres hangat dan dingin sesuai indikasi medis, pertolongan pertama, dan prinsip perawatan pada individu dengan disabilitas secara holistik, dengan menunjukkan sikap empati, dan menjunjung tinggi martabat klien."
+        }
+      ]
+    }
+  },
+  "layanan_penunjang_dental_care": {
+    "bidang": "Kesehatan dan Pekerjaan Sosial",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Layanan Penunjang Dental Care (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Dasar ilmu kesehatan gigi dan mulut",
+          "cp_normatif": "Menganalisis anatomi fisiologi gigi dan mulut yang mencakup nama, lokasi dan fungsi bagian-bagian gigi dan mulut, terminologi gigi dan mulut, morfologi dan nomenklatur gigi; menganalisis penyakit gigi dan mulut, obat, bahan, peralatan kedokteran gigi; serta menerapkan sterilisasi dan K3 di pelayanan kesehatan gigi."
+        },
+        {
+          "nama": "Manajemen Komunikasi",
+          "cp_normatif": "Menerapkan Komunikasi, Informasi dan Edukasi (KIE) terkait pelayanan dental care terhadap pasien dan keluarga pasien, komunikasi dengan rekan sejawat dan tim kerja terkait pelayanan dental care terhadap pasien, serta penyuluhan kesehatan gigi dalam hal oral physiotherapy dan pencegahan penyakit gigi."
+        },
+        {
+          "nama": "Pengadministrasian layanan dan Pemeliharaan sarana pelayanan dental care",
+          "cp_normatif": "Menerapkan pendaftaran, pengelolaan dokumen, pengelolaan logistik, penyiapan layanan dental care, tindakan dental asistensi serta pemeliharaan sarana utama, dan sarana penunjang pada pelayanan dental care."
+        }
+      ]
+    }
+  },
+  "layanan_penunjang_kefarmasian_klinis_dan_komunitas": {
+    "bidang": "Kesehatan dan Pekerjaan Sosial",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Layanan Penunjang Kefarmasian Klinis dan Komunitas (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Pelayanan Farmasi",
+          "cp_normatif": "Menerapkan prosedur pelayanan resep dan teknik pembuatan sediaan obat, serta pelayanan obat bebas, bebas terbatas, dan perbekalan kesehatan."
+        },
+        {
+          "nama": "Administrasi Farmasi",
+          "cp_normatif": "Menerapkan teknik dasar pengelolaan obat untuk memenuhi kebutuhan sediaan farmasi dan perbekalan kesehatan."
+        },
+        {
+          "nama": "Farmakologi",
+          "cp_normatif": "Menerapkan pemilihan obat-obatan untuk penyakit yang bersifat simtomatis dan kausal."
+        },
+        {
+          "nama": "Farmakognosi",
+          "cp_normatif": "Menganalisis sediaan obat tradisional, serta menerapkan pembuatan sediaan jamu."
+        }
+      ]
+    }
+  },
+  "farmasi_industri": {
+    "bidang": "Kesehatan dan Pekerjaan Sosial",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Farmasi Industri (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Teknik Pembuatan Sediaan Obat",
+          "cp_normatif": "Menerapkan prosedur operasional standar (POS), menerapkan aspek CPOB (personalia, bangunan, peralatan, produksi), menerapkan formulasi dasar sediaan padat, sediaan setengah padat dan sediaan cair, serta menerapkan pembuatan dan in process control (IPC) sediaan padat, sediaan setengah padat dan sediaan cair."
+        },
+        {
+          "nama": "Pengujian dan Pengendalian Mutu Produk",
+          "cp_normatif": "Menerapkan manajemen mutu sesuai CPOB, menerapkan pengelolaan dan pengujian sampel bahan obat dan produk serta menerapkan metode uji kualitatif dan kuantitatif bahan obat dan produk."
+        },
+        {
+          "nama": "Manajemen Produksi Obat",
+          "cp_normatif": "Menganalisis bahan baku obat dan berbagai jenis produk serta menerapkan perencanaan pengadaan barang, pengelolaan barang di gudang industri farmasi, dan dokumentasi sesuai CPOB."
+        },
+        {
+          "nama": "Teknologi Pengemasan Produk",
+          "cp_normatif": "Mendesain kemasan dan menerapkan prosedur pengemasan produk."
+        }
+      ]
+    }
+  },
+  "pekerjaan_sosial": {
+    "bidang": "Kesehatan dan Pekerjaan Sosial",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Pekerjaan Sosial (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Relasi dengan PPKS dan lingkungan sosial",
+          "cp_normatif": "Menerapkan citra positif pelayanan publik melalui keterampilan dasar dalam komunikasi termasuk komunikasi diagnostik, komunikasi terapeutik pada pelayanan pekerjaan sosial, public speaking dan personal grooming, serta relasi pertolongan dalam pekerjaan sosial mulai dari anak, lansia, penyandang disabilitas, dan korban penyalahgunaan NAPZA, serta saudara, keluarga, teman, dan anggota masyarakat di tempat PPKS berada."
+        },
+        {
+          "nama": "Pengumpulan data",
+          "cp_normatif": "Menerapkan teknik pengumpulan data sesuai prosedur pengumpulan data mulai dari perencanaan, proses pengumpulan data, penyesuaian pelayanan dengan kebutuhan dasar manusia/PPKS anak, lansia, penyandang disabilitas, dan korban penyalahgunaan NAPZA tentang masalah, harapan, kebutuhan, keinginan PPKS tersebut serta menerapkan rapport (Hubungan Kepercayaan) dari PPKS anak, lansia, penyandang disabilitas, dan korban penyalahgunaan NAPZA kepada pekerja sosial yang dituangkan dalam pencatatan dan pelaporan."
+        },
+        {
+          "nama": "Asesmen masalah PPKS",
+          "cp_normatif": "Menganalisis masalah sosial untuk dapat melakukan pengolahan dan analisis informasi terkait kebutuhan-kebutuhan PPKS, penyesuaian pelayanan dengan kebutuhan PPKS, pengorganisasian asesmen, pembuatan keputusan asesmen, pencatatan hasil asesmen, pemberian balikan kepada PPKS, pelaporan pelaksanaan asesmen dengan tetap menerapkan prinsip Pekerja Sosial kepada PPKS anak, lansia, penyandang disabilitas, dan korban penyalahgunaan NAPZA."
+        },
+        {
+          "nama": "Perencanaan intervensi pelayanan",
+          "cp_normatif": "Menerapkan metode dan teknik dalam Pekerjaan Sosial, menerapkan Penyusunan Rencana Intervensi (Treatment Plan) dalam rangkaian tindakan atau prosedur, pengerahan sumber daya, pembuatan kesepakatan urutan tindakan, perancangan urutan tindakan yang mencerminkan perspektif multibudaya, pencatatan dan pelaporan untuk PPKS anak, lansia, penyandang disabilitas, dan korban penyalahgunaan NAPZA."
+        },
+        {
+          "nama": "Intervensi pelayanan",
+          "cp_normatif": "Menerapkan tahapan pertolongan (intervensi) dalam pelayanan Pekerjaan Sosial mulai dari mengembangkan setting dan lingkungan yang tepat, menerapkan program dan memantau implementasinya oleh orang lain, memantau dan memodifikasi pelaksanaan intervensi pelayanan hingga melakukan pencatatan dan pelaporan PPKS anak, lansia, penyandang disabilitas dan korban penyalahguna NAPZA, memahami personal hygiene untuk bayi dan anak balita, menerapkan penanganan BAB dan BAK bayi dan anak balita, pemeriksaan tanda-tanda vital bayi dan anak balita, memandikan anak balita, pendampingan anak balita sehat Beraktivitas Kegiatan Sehari-hari (AKS), anak balita bermain, dan berolahraga ringan di lingkungan rumah, pemberian pengalaman yang memperkaya perkembangan dan pembelajaran anak, mendorong dan menciptakan kesempatan dan kegiatan yang mendorong anak-anak mengekspresikan perasaan, serta penggunaan musik sebagai media untuk memperkaya pengalaman dan perkembangan anak-anak sesuai dengan kebutuhan dan ide sosial mereka, menerapkan pemeliharaan kesehatan lansia (mengukur suhu badan, mengukur tekanan darah, menghitung serta mendeteksi denyut nadi, menghitung dan mendeteksi pernafasan), pemeliharaan kebersihan lansia/personal hygiene (memandikan, mencuci rambut, membantu membersihkan BAB dan BAK, dan memotong kuku), mobilisasi lansia, menemani lansia, merapikan tempat tidur/kamar lansia, aksesibilitas dan alat bantu penyandang disabilitas, serta pelayanan dan pencegahan korban NAPZA. Selanjutkan murid juga mampu menerapkan Sistem Dasar dalam Pekerjaan Sosial, menerapkan Sistem Sumber dalam Pekerjaan Sosial, menerapkan Peran Pekerja Sosial, menganalisis PPKS dan Potensi Sumber Kesejahteraan Sosial (PSKS) serta menerapkan pendampingan PPKS."
+        },
+        {
+          "nama": "Evaluasi, Terminasi, dan Binaan Lanjut",
+          "cp_normatif": "Menerapkan langkah-langkah tindakan dan hasil intervensi; mengevaluasi rangkaian kegiatan, merekomendasikan tindakan sesuai evaluasi proses dan evaluasi hasil dalam pelayanan; menerapkan pelaksanaan terminasi antara Pekerja Sosial dengan pendampingan PPKS; menerapkan proses tindak lanjut serta pelaporan studi kasus pada PPKS anak, lansia, penyandang disabilitas, dan korban penyalahguna NAPZA."
+        }
+      ]
+    }
   }
 }
