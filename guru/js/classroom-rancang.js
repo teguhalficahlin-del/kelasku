@@ -411,12 +411,27 @@
     if (!block) return;
     ['rp-q-p3','rp-step1-btn'].forEach(id => el(id)?.remove());
 
-    const availFases = ['fase_a','fase_b','fase_c','fase_d','fase_e','fase_f'].filter(fk => entryData[fk]);
+    const FASE_PER_JENJANG = {
+      'SD':  ['fase_a','fase_b','fase_c'],
+      'SMP': ['fase_d'],
+      'SMA': ['fase_e','fase_f'],
+      'SMK': ['fase_e','fase_f'],
+    };
+    const jenjangFases = FASE_PER_JENJANG[_ans.jenjang] || [];
+    const availFases = jenjangFases.filter(fk => entryData[fk]);
     const pNum = _ans.jenjang === 'SMK' ? '4' : '3';
 
     const div = document.createElement('div');
     div.id = 'rp-q-p3';
     div.className = 'rp-q';
+
+    if (availFases.length === 0) {
+      div.innerHTML = `<label class="rp-q-label">${pNum}. Fase capaian pembelajaran *</label>
+<p class="rp-notice">Fase tidak tersedia untuk jenjang ini.</p>`;
+      block.insertBefore(div, el('rp-step1-error'));
+      return;
+    }
+
     div.innerHTML = `<label class="rp-q-label">${pNum}. Fase capaian pembelajaran *</label>
 <div class="rp-chip-group" id="rp-fase-chips">
   ${availFases.map(fk => {
