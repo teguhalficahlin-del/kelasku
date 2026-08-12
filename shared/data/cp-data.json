@@ -2971,5 +2971,789 @@
         }
       ]
     }
+  },
+  "dasar_dasar_pengembangan_perangkat_lunak_dan_gim": {
+    "bidang": "Teknologi Informasi dan Komunikasi",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_e": {
+      "label": "Dasar-dasar Pengembangan Perangkat Lunak dan Gim (Kelas 10 SMK)",
+      "cp_umum": "Pada akhir Fase E, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Wawasan dunia kerja bidang pengembangan perangkat lunak dan gim",
+          "cp_normatif": "Menganalisis langkah-langkah kerja dalam pengembangan perangkat lunak dan gim dengan metode yang menerapkan prinsip sesuai kebutuhan pelanggan; menganalisis perkembangan teknologi di bidang perangkat lunak, jaringan komputer, cloud computing, dan gim; menganalisis berbagai profesi serta peluang kewirausahaan di bidang tersebut; serta menyimpulkan pentingnya personal branding untuk membangun rencana karier, mentransfer minat dan semangat ke dalam upaya berkarir atau berwirausaha di industri perangkat lunak dan gim."
+        },
+        {
+          "nama": "Kecakapan kerja dasar (basic job skills), K3, dan budaya kerja",
+          "cp_normatif": "Menerapkan prinsip K3, budaya kerja, prosedur kerja, dan pencegahan kecelakaan kerja, pengelolaan penggunaan tools pengembangan perangkat lunak dan gim, pengelolaan aset, pengembangan antarmuka pengguna (User Interface), serta menganalisis algoritma pemrograman dalam proses pengembangan dengan tepat dan efisien."
+        },
+        {
+          "nama": "Teknologi jaringan komputer",
+          "cp_normatif": "Menerapkan dasar-dasar jaringan komputer; menganalisis perangkat keras komputer; membandingkan jenis topologi dan perangkat jaringan; serta menyusun dan memecahkan masalah dasar dalam pengaturan konektivitas jaringan sesuai dengan kebutuhan dan konteks penggunaannya."
+        },
+        {
+          "nama": "Pemrograman terstruktur",
+          "cp_normatif": "Menerapkan prinsip-prinsip pemrograman terstruktur dalam proyek sederhana pengembangan perangkat lunak dan gim serta menganalisis dan memecahkan masalah terkait logika program untuk menghasilkan solusi yang efektif dan efisien."
+        },
+        {
+          "nama": "Pemrograman berorientasi objek",
+          "cp_normatif": "Menerapkan konsep dasar pemrograman berorientasi objek pada proyek sederhana pengembangan perangkat lunak dan gim, serta menganalisis dan memecahkan masalah dengan memanfaatkan prinsip enkapsulasi, pewarisan, dan polimorfisme untuk menghasilkan solusi pemrograman yang tepat."
+        }
+      ]
+    }
+  },
+  "dasar_dasar_teknik_jaringan_komputer_dan_telekomunikasi": {
+    "bidang": "Teknologi Informasi dan Komunikasi",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_e": {
+      "label": "Dasar-dasar Teknik Jaringan Komputer dan Telekomunikasi (Kelas 10 SMK)",
+      "cp_umum": "Pada akhir Fase E, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Wawasan dunia kerja bidang Teknik Jaringan Komputer dan Telekomunikasi",
+          "cp_normatif": "Menganalisis jenis-jenis profesi, proses bisnis, budaya mutu, pelayanan pelanggan serta peluang usaha untuk membangun personal branding, vision dan passion dengan didukung pemahaman perkembangan teknologi pada perangkat teknik jaringan komputer dan telekomunikasi."
+        },
+        {
+          "nama": "Kecakapan Kerja Dasar (Basic Job Skills), K3LH, dan Budaya Kerja",
+          "cp_normatif": "Menerapkan dasar penggunaan dan konfigurasi peralatan/teknologi dengan berlandaskan budaya kerja dan K3LH pada bidang teknik jaringan komputer dan telekomunikasi."
+        },
+        {
+          "nama": "Media dan jaringan telekomunikasi",
+          "cp_normatif": "Menerapkan berbagai media dalam membangun jaringan pada teknik jaringan komputer dan telekomunikasi."
+        },
+        {
+          "nama": "Penggunaan alat ukur",
+          "cp_normatif": "Menerapkan penggunaan dan pemeliharaan alat ukur untuk seluruh jaringan komputer dan sistem telekomunikasi."
+        }
+      ]
+    }
+  },
+  "dasar_dasar_broadcasting_dan_perfilman": {
+    "bidang": "Teknologi Informasi dan Komunikasi",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_e": {
+      "label": "Dasar-dasar Broadcasting dan Perfilman (Kelas 10 SMK)",
+      "cp_umum": "Pada akhir Fase E, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Dunia kerja, profesi, dan bisnis di bidang Broadcasting dan Perfilman",
+          "cp_normatif": "Menganalisis dunia kerja, profesi, bidang kerja serta level pekerjaan, kecakapan kerja dasar (basic job skills), budaya kerja, K3, technopreneur, peluang usaha, Prosedur Operasional Standar (POS) serta potensi budaya dan kearifan lokal sebagai ide produksi industri radio, pertelevisian, dan perfilman."
+        },
+        {
+          "nama": "Perkembangan media, teknologi, dan industri serta regulasi di bidang Broadcasting dan Perfilman",
+          "cp_normatif": "Menganalisis perkembangan proses produksi industri broadcasting dari media analog sampai dengan media digital, jenis media digital (FTA dan OTT, podcast, live streaming, live casting, streaming tv, web series dan video on demand), jenis media digital, Undang-undang Informasi dan Transaksi Elektronik dan Kecerdasan Buatan (Artificial Intelligence), isu pemanasan global, perubahan iklim, aspek-aspek ketenagakerjaan, dan life cycle produk industri sampai dengan reuse dan recycling."
+        },
+        {
+          "nama": "Teknik dasar pengoperasian peralatan audio visual pada industri Broadcasting dan Perfilman",
+          "cp_normatif": "Menganalisis jenis dan fungsi peralatan/teknologi peralatan audio dan video, serta menerapkannya pada fotografi dasar, tata kamera dasar, tata artistik dasar, dan tata suara dasar serta dasar editing audio dan video."
+        },
+        {
+          "nama": "Teknik dasar proses produksi pada industri Broadcasting dan Perfilman serta media baru (new media) secara kreatif",
+          "cp_normatif": "dan inovatif Menerapkan simulasi tahapan produksi sesuai POS yang diaplikasikan melalui proyek atau produksi audio visual sederhana."
+        }
+      ]
+    }
+  },
+  "dasar_dasar_animasi": {
+    "bidang": "Teknologi Informasi dan Komunikasi",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_e": {
+      "label": "Dasar-dasar Animasi (Kelas 10 SMK)",
+      "cp_umum": "Pada akhir Fase E, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Wawasan Dunia Kerja di Bidang Animasi",
+          "cp_normatif": "Menganalisis proses bisnis industri animasi melalui integrasi pola pikir kreatif, pengelolaan SDM berbasis potensi lokal, dan pemanfaatan teknologi dalam ekosistem animasi. Selanjutnya, murid mampu mengevaluasi perkembangan teknologi produksi, mulai dari teknik tradisional hingga penerapan Industri 4.0, IoT, dan AI, serta dampaknya terhadap inovasi profesional. Murid merancang strategi kewirausahaan dengan memetakan profesi (animator, storyboard artist), peluang pasar, dan keterampilan adaptif yang relevan. Pembelajaran berbasis studi kasus, simulasi bisnis, dan proyek teknologi dirancang untuk mengasah kemampuan analitis, adaptasi teknis, dan kesiapan menghadapi tantangan global, sekaligus memastikan pencapaian kompetensi multidimensi yang selaras dengan kompleksitas industri animasi modern."
+        },
+        {
+          "nama": "Kecakapan kerja dasar (basic job skills), K3, dan budaya kerja",
+          "cp_normatif": "Menerapkan penggunaan perangkat kerja digital dan non-digital 2D/3D dalam ekosistem industri animasi, termasuk pemahaman alur produksi (workflow), fungsi perangkat, serta kapasitas operasional untuk menghasilkan karya sesuai standar teknis. Mereka mampu menerapkan keterampilan kolaborasi tim melalui komunikasi efektif, penghayatan istilah teknis, dan koordinasi sesuai struktur kerja (pipeline dan job desk). Murid juga menunjukkan pemahaman tentang prosedur K3 (Kesehatan dan Keselamatan Kerja) dalam lingkungan produksi, serta menerapkan budaya kerja disiplin dengan mematuhi SOP (Standard Operating Procedure) dan etika profesional. Kemampuan ini mencakup pengelolaan waktu, adaptasi terhadap dinamika proyek, dan penghargaan terhadap peran setiap unit kerja, sehingga membentuk fondasi kompetensi yang holistik untuk siap berkontribusi dalam lingkungan industri animasi yang efisien, aman, dan berintegritas."
+        },
+        {
+          "nama": "Aspek Legal pada Produksi Animasi",
+          "cp_normatif": "Menganalisis aspek legal dalam produksi animasi, termasuk hak kekayaan intelektual (HAKI) seperti hak cipta (copyright), merek dagang (trademark), dan paten yang berlaku pada karya animasi, serta kode etik industri seperti penghormatan terhadap orisinalitas karya dan larangan plagiarisme. Murid mampu mengidentifikasi prosedur perlindungan HAKI untuk karakter, desain, atau konsep animasi yang diciptakan, serta menerapkan prinsip etika profesional dalam kolaborasi tim, penggunaan aset digital, dan distribusi karya. Pemahaman ini mencakup analisis kasus pelanggaran HAKI, simulasi penyusunan perjanjian lisensi sederhana, dan penyesuaian praktik kerja dengan regulasi hukum yang berlaku. Melalui kompetensi ini, murid tidak hanya mampu menjaga integritas karya, tetapi juga siap menghadapi tantangan legal dan etis dalam ekosistem industri animasi yang dinamis, baik dalam skala lokal maupun global."
+        },
+        {
+          "nama": "Quality Control pada Produksi Animasi",
+          "cp_normatif": "Menerapkan pengawasan mutu dalam produksi animasi, meliputi pemantauan hasil kerja berdasarkan standar yang disepakati (seperti konsistensi visual, ketepatan waktu gerak, dan kesesuaian dengan brief proyek), serta memahami kriteria teknis-estetis sesuai jenis produk animasi (film, iklan, game, dll.). Selain itu, murid menguasai pengetahuan tentang perbedaan tuntutan kualitas antara jenis animasi--misalnya, presisi frame rate untuk film vs. optimasi aset untuk game--dan mampu melakukan evaluasi mandiri menggunakan tools kontrol kualitas (playblast, render test). Melalui kompetensi ini, murid siap menjamin keluaran karya yang memenuhi standar industri, baik dari aspek teknis, kreatif, maupun kesesuaian dengan tujuan fungsional produk animasi."
+        },
+        {
+          "nama": "Unsur Visual untuk Diterapkan dan Diaplikasikan ke dalam Karya Desain",
+          "cp_normatif": "Menerapkan prinsip dan unsur desain (bidang, bentuk, warna, dan komposisi) dalam menciptakan karya visual animasi yang estetis, dengan teknik yang tepat seperti pengaturan harmoni warna, penyeimbangan elemen visual, dan penyusunan hirarki gambar. Mereka memahami cara mengaitkan konsep abstrak dengan kebutuhan naratif atau fungsional produksi animasi, misalnya menggunakan bentuk geometris untuk menegaskan karakter tokoh atau komposisi dinamis untuk memperkuat emosi adegan. Melalui praktik pembuatan asset visual (latar, karakter, props), murid mampu mengintegrasikan prinsip desain ke dalam alur kerja animasi, memastikan kesesuaian dengan standar teknis dan kreatif industri. Dengan demikian, murid siap menghasilkan karya visual yang tidak hanya menarik secara estetika, tetapi juga efektif dalam menyampaikan pesan dan memenuhi tuntutan kualitas produksi profesional."
+        },
+        {
+          "nama": "Dasar Pergerakan Buatan untuk Diterapkan Berdasarkan Instruksi Kerja",
+          "cp_normatif": "Menerapkan dasar pergerakan buatan pada objek digital, baik karakter maupun non-karakter, dengan memahami prinsip gerak alami (seperti percepatan, hambatan udara) dan menyesuaikan instruksi kerja terkait waktu, durasi, serta sifat objek. Mereka terampil mengintegrasikan elemen pendukung seperti suara dan sinkronisasi visual-audio, serta mengadaptasi gerak berdasarkan umpan balik teknis atau kreatif. Melalui praktik pembuatan animasi sederhana, murid menunjukkan sikap kerja teliti dalam mematuhi standar alur produksi, sehingga siap menghasilkan gerak animasi yang realistis, dinamis, dan sesuai kebutuhan industri."
+        },
+        {
+          "nama": "Cerita Secara Visual",
+          "cp_normatif": "Menyusun alur dan mengkomposisikan adegan menjadi cerita visual yang efektif dengan menerapkan kaidah sinematografi, seperti penentuan jenis shot (close-up, wide shot), pencahayaan, ritme, dan transisi antar adegan. Mereka terampil menggunakan elemen visual seperti warna, komposisi frame, dan simbolisme untuk memperkuat emosi serta pesan cerita. Melalui praktik pembuatan storyboard atau animasi pendek, murid menunjukkan kemampuan merancang narasi yang koheren, menarik, dan sesuai prinsip penyutradaraan, sekaligus memastikan kesesuaian dengan standar industri. Dengan kompetensi ini, murid siap menciptakan karya visual yang tidak hanya estetis, tetapi juga mampu menyampaikan cerita secara jelas dan berdampak dalam produksi konten profesional."
+        }
+      ]
+    }
+  },
+  "rekayasa_perangkat_lunak": {
+    "bidang": "Teknologi Informasi dan Komunikasi",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Rekayasa Perangkat Lunak (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Basis data",
+          "cp_normatif": "Menerapkan perancangan dan pembuatan basis data serta penggunaan SQL (Structured Query Language)."
+        },
+        {
+          "nama": "Pemrograman berbasis teks, grafis, dan multimedia",
+          "cp_normatif": "Menerapkan perintah eksekusi bahasa pemrograman yang mengimplementasikan pemrograman terstruktur, pemrograman berorientasi objek lanjutan, pemodelan perangkat lunak, pemrograman antarmuka GUI (Graphical User Interface), dan pemanfaatan pustaka (library)."
+        },
+        {
+          "nama": "Pemrograman web",
+          "cp_normatif": "Menerapkan bahasa pemrograman server-side, framework, dan pendokumentasian pada pembuatan web statis dan dinamis untuk beragam kebutuhan yang kontekstual."
+        },
+        {
+          "nama": "Pemrograman perangkat bergerak",
+          "cp_normatif": "Menerapkan bahasa pemrograman bergerak, IDE (Integrated Development Environment), framework, basis data, API (Application Programming Interface), dan pendokumentasian pada aplikasi perangkat bergerak untuk beragam kebutuhan yang kontekstual."
+        }
+      ]
+    }
+  },
+  "pengembangan_gim": {
+    "bidang": "Teknologi Informasi dan Komunikasi",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Pengembangan Gim (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Pemodelan gim",
+          "cp_normatif": "Menganalisis game concept, game design document, game mechanic concept, game system concept, game technical concept, game level concept, game narrative concept, game user research concept, game design prototype, dan game design balancing."
+        },
+        {
+          "nama": "Pemrograman gim",
+          "cp_normatif": "Menerapkan pemrograman berbasis teks dan grafis yang diintegrasikan pada pemrograman gim (game engine), VI.65. mencakup gameplay, UI/UX (graphical user interface), struktur data, integrasi objek statis dan dinamis (static and dynamic assets integration), dan fungsionalitas tambahan pada game engine (tools and plugin implementation) serta menerapkan pengujian perangkat lunak meliputi debugging, optimasi kinerja gim, dan pembaharuan."
+        },
+        {
+          "nama": "Komputer grafis dan multimedia",
+          "cp_normatif": "Menerapkan key concept art, art design document, character design, environment design, property design serta menerapkan pengembangan aset visual gim sesuai minatnya meliputi 2D puppeteer (cut out animation), model 3D dengan teknik digital sculpting, tekstur permukaan 3D (texturing), struktur atau kerangka sistem mekanika objek atau benda atau karakter (rigging), akting pergerakan karakter, simulasi gerak digital benda (rigid/soft body), atau sifat bahan 3D (shading)."
+        },
+        {
+          "nama": "Audio editing",
+          "cp_normatif": "Menerapkan perencanaan kebutuhan aset audio pada pemodelan gim, perekaman suara (dubbing), serta pengembangan aset audio (efek suara dan musik latar)."
+        }
+      ]
+    }
+  },
+  "sistem_informasi_jaringan_dan_aplikasi": {
+    "bidang": "Teknologi Informasi dan Komunikasi",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Sistem Informasi, Jaringan, dan Aplikasi (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Instalasi dan Konfigurasi Jaringan Komputer",
+          "cp_normatif": "Menerapkan instalasi jaringan komputer berbasis kabel dan nirkabel sesuai kebutuhan, menginstalasi dan mengonfigurasi perangkat jaringan, menguji konektivitas dan performa jaringan menggunakan alat ukur sesuai prosedur, serta mendokumentasikan hasil instalasi dan konfigurasi."
+        },
+        {
+          "nama": "Sistem Keamanan Jaringan",
+          "cp_normatif": "Menerapkan konsep keamanan jaringan serta berbagai jenis ancaman dan serangan, mengonfigurasi firewall dan pengaturan hak akses berdasarkan prinsip least privilege, VI.66. menggunakan alat bantu untuk mengidentifikasi potensi kerentanan jaringan, serta melakukan evaluasi dan penguatan keamanan jaringan sesuai prosedur yang terarah dan bertanggung jawab."
+        },
+        {
+          "nama": "Layanan dan Infrastruktur Cloud",
+          "cp_normatif": "Menerapkan konsep layanan digital dan infrastruktur cloud, menginstalasi dan mengonfigurasi sistem operasi server, menerapkan teknologi virtualisasi, serta mengelola layanan cloud secara efisien melalui penyediaan, konfigurasi, penerapan teknik otomatisasi yang sesuai, dan pemantauan performa dan keandalan layanan sesuai kebutuhan."
+        },
+        {
+          "nama": "Sistem Informasi dan Aplikasi",
+          "cp_normatif": "Mengembangkan dan menguji sistem informasi serta aplikasi, dengan mengintegrasikan frontend dan backend, merancang antarmuka dan pengalaman pengguna (UI/UX) yang sesuai kebutuhan, mengelola data menggunakan sistem manajemen basis data, menerapkan pemrograman client-server dan penggunaan RESTful API, serta mengevaluasi fungsionalitas, performa, dan kebermanfaatan aplikasi dalam konteks pemecahan masalah nyata di dunia kerja."
+        },
+        {
+          "nama": "Internet of Things (IoT)",
+          "cp_normatif": "Menerapkan sistem berbasis Internet of Things (IoT) sesuai kebutuhan nyata, dengan mengintegrasikan sensor, aktuator, dan mikrokontroler, membaca dan mengolah data dari lingkungan, serta mengendalikan perangkat secara otomatis melalui pemrograman terstruktur. Mengevaluasi fungsionalitas sistem dan merefleksikan proses kerja untuk mengembangkan solusi yang adaptif, efisien, dan relevan."
+        }
+      ]
+    }
+  },
+  "teknik_komputer_dan_jaringan": {
+    "bidang": "Teknologi Informasi dan Komunikasi",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Teknik Komputer dan Jaringan (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Perencanaan dan pengalamatan jaringan",
+          "cp_normatif": "Menerapkan perencanaan topologi, arsitektur jaringan sesuai kebutuhan serta pengalamatan jaringan (subnetting, Classless Inter-Domain Routing (CIDR), dan Variable Length Subnet Mask (VLSM))."
+        },
+        {
+          "nama": "Teknologi jaringan kabel dan nirkabel",
+          "cp_normatif": "Menerapkan instalasi jaringan kabel (twisted pair cable dan fiber optic) dan jaringan nirkabel."
+        },
+        {
+          "nama": "Keamanan jaringan",
+          "cp_normatif": "Menerapkan sistem keamanan jaringan. VI.67. 4. Konfigurasi perangkat jaringan Menerapkan konfigurasi perangkat jaringan."
+        },
+        {
+          "nama": "Administrasi sistem jaringan",
+          "cp_normatif": "Menerapkan konfigurasi layanan server."
+        }
+      ]
+    }
+  },
+  "teknik_jaringan_akses_telekomunikasi": {
+    "bidang": "Teknologi Informasi dan Komunikasi",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Teknik Jaringan Akses Telekomunikasi (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Teknik kerja bengkel dan kelistrikan",
+          "cp_normatif": "Menerapkan penggunaan perkakas bidang telekomunikasi, pendokumentasian pemeliharaan grounding dan catu daya, serta instalasi listrik sederhana."
+        },
+        {
+          "nama": "Sistem komputer, dan Internet of Things (IoT)",
+          "cp_normatif": "Menerapkan konsep sistem komputer, komunikasi data, menerapkan pendokumentasian pemrograman dasar pada Internet of Things (IoT)."
+        },
+        {
+          "nama": "FTTx",
+          "cp_normatif": "Menerapkan prinsip propagasi gelombang cahaya, konsep implementasi konfigurasi jaringan FTTx, menerapkan instalasi, terminasi, pengukuran, troubleshooting, serta pendokumentasian perencanaan jaringan FTTx menggunakan perangkat lunak yang relevan."
+        },
+        {
+          "nama": "VSAT",
+          "cp_normatif": "Menerapkan arsitektur sistem komunikasi satelit, instalasi, troubleshooting, dan pemeliharaan perangkat VSAT serta pendokumentasian perencanaan jaringan satelit."
+        },
+        {
+          "nama": "Wireless Access",
+          "cp_normatif": "Menerapkan pengetahuan dasar kelistrikan, grounding, instalasi, troubleshooting, pendokumentasian perencanaan, dan optimasi jaringan akses radio."
+        },
+        {
+          "nama": "Customer Premise Equipment VI.68. Menerapkan konsep, implementasi etika pelayanan",
+          "cp_normatif": "pelanggan, tata kelola kabel premises, instalasi perangkat pelanggan, pendokumentasian pengukuran, dan pemeliharaan perangkat pelanggan."
+        }
+      ]
+    }
+  },
+  "teknik_transmisi_telekomunikasi": {
+    "bidang": "Teknologi Informasi dan Komunikasi",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Teknik Transmisi Telekomunikasi (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Teknik Kerja Bengkel dan Kelistrikan",
+          "cp_normatif": "Menerapkan perkakas bidang telekomunikasi, sistem grounding, catu daya, dan instalasi listrik sederhana."
+        },
+        {
+          "nama": "Sistem komputer, elektronika, dan mikrokontroler",
+          "cp_normatif": "Menerapkan pemrograman dasar, elektronika analog dan digital, mikrokontroler, serta sistem IoT dalam berbagai aplikasi."
+        },
+        {
+          "nama": "Transmisi kabel serat optic",
+          "cp_normatif": "Menerapkan konsep sistem jaringan kabel serat optik, perencanaan, instalasi jaringan, pengoprasian dan pemeliharaan serta troubleshooting jaringan kabel serat optik."
+        },
+        {
+          "nama": "Transmisi satelit",
+          "cp_normatif": "Menerapkan sistem transmisi satelit, perencanaan, instalasi, pengoperasian, dan pemeliharaan serta troubleshooting perangkat segmen bumi."
+        },
+        {
+          "nama": "Transmisi radio terestrial dan seluler",
+          "cp_normatif": "Menerapkan perencanaan, instalasi perangkat, pengoprasian, dan pemeliharaan serta troubleshooting perangkat transmisi radio terestrial dan seluler."
+        }
+      ]
+    }
+  },
+  "teknik_audio_video": {
+    "bidang": "Teknologi Informasi dan Komunikasi",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Teknik Audio Video (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Pemrograman dan aplikasi mikrokontroler",
+          "cp_normatif": "Menerapkan rangkaian digital, arsitektur mikrokontroler, dan pemrograman mikrokontroler serta membuat program aplikasi sistem pengendali berbasis mikrokontroler."
+        },
+        {
+          "nama": "Penerapan rangkaian elektronika",
+          "cp_normatif": "Menerapkan rangkaian elektronika analog, sensor dan transduser, rangkaian elektronika daya, rangkaian catu daya, penginstalan sistem pembangkit listrik tenaga surya (PLTS), dan sistem keamanan berbasis elektronik."
+        },
+        {
+          "nama": "Perencanaan dan instalasi sistem audio video",
+          "cp_normatif": "Menerapkan sistem dan perencanaan akustik ruang, psikoakustik anatomi telinga manusia, penginstalan sistem audio rumah, mobil dan pertunjukan, penginstalan sistem audio paging, penginstalan master rekaman audio, pengoperasian kamera, dan penginstalan closed circuit television (CCTV)."
+        },
+        {
+          "nama": "Penerapan sistem radio dan televisi",
+          "cp_normatif": "Menerapkan transmisi antena gelombang radio, perekayasaan sinyal analog, sistem penerima radio, sistem penyiaran radio digital, dan sistem penerima televisi."
+        },
+        {
+          "nama": "Perawatan dan perbaikan peralatan elektronika audio video",
+          "cp_normatif": "Menerapkan user manual book dan service manual book, perawatan peralatan elektronika audio video, dan perbaikan perangkat audio video; dan melakukan perbaikan dan perawatan produk perangkat genggam, perangkat elektronik rumah tangga, dan unit display."
+        }
+      ]
+    }
+  },
+  "teknik_elektronika": {
+    "bidang": "Teknologi Informasi dan Komunikasi",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Teknik Elektronika (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Penerapan rangkaian elektronika",
+          "cp_normatif": "Menerapkan penguat Op-Amp yang diaplikasikan sebagai rangkaian elektronika analog dan rangkaian elektronika digital."
+        },
+        {
+          "nama": "Sistem kendali elektronik",
+          "cp_normatif": "Menerapkan sistem pengendali analog, sistem pengendali digital, dan rangkaian isolasi elektronik."
+        },
+        {
+          "nama": "Pemrograman sistem embedded",
+          "cp_normatif": "VI.30. Menerapkan bahasa pemrograman pada sistem embedded."
+        },
+        {
+          "nama": "Antarmuka dan komunikasi data",
+          "cp_normatif": "Menerapkan antarmuka dan komunikasi data dengan memanfaatkan software Object Oriented Programming (OOP)."
+        },
+        {
+          "nama": "Sistem kendali industri",
+          "cp_normatif": "Menerapkan sistem kendali industri dengan menggunakan relay logic, PLC, dan HMI."
+        },
+        {
+          "nama": "Pemeliharaan dan perbaikan peralatan elektronika industri",
+          "cp_normatif": "Menerapkan pemeliharaan dan perbaikan peralatan elektronika."
+        }
+      ]
+    }
+  },
+  "teknik_elektronika_industri": {
+    "bidang": "Teknologi Informasi dan Komunikasi",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Teknik Elektronika Industri (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Penerapan rangkaian elektronika",
+          "cp_normatif": "Menerapkan penguat Op-Amp yang diaplikasikan sebagai rangkaian elektronika analog dan rangkaian elektronika digital."
+        },
+        {
+          "nama": "Sistem kendali elektronik",
+          "cp_normatif": "Menerapkan sistem pengendali analog, sistem pengendali digital, dan rangkaian isolasi elektronik."
+        },
+        {
+          "nama": "Pemrograman sistem embedded",
+          "cp_normatif": "VI.30. Menerapkan bahasa pemrograman pada sistem embedded."
+        },
+        {
+          "nama": "Antarmuka dan komunikasi data",
+          "cp_normatif": "Menerapkan antarmuka dan komunikasi data dengan memanfaatkan software Object Oriented Programming (OOP)."
+        },
+        {
+          "nama": "Sistem kendali industri",
+          "cp_normatif": "Menerapkan sistem kendali industri dengan menggunakan relay logic, PLC, dan HMI."
+        },
+        {
+          "nama": "Pemeliharaan dan perbaikan peralatan elektronika industri",
+          "cp_normatif": "Menerapkan pemeliharaan dan perbaikan peralatan elektronika."
+        }
+      ]
+    }
+  },
+  "teknik_otomasi_industri": {
+    "bidang": "Teknologi Informasi dan Komunikasi",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Teknik Otomasi Industri (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Sistem kontrol elektromekanik",
+          "cp_normatif": "Menerapkan gambar rangkaian; menerapkan instalasi dan pengujian rangkaian elektromekanik; dan menganalisis gangguan."
+        },
+        {
+          "nama": "Sistem kontrol elektronik",
+          "cp_normatif": "Menerapkan instalasi, pengoperasian rangkaian elektronika daya, dan rangkaian digital; menerapkan pengaturan parameter; dan menganalisis gangguan."
+        },
+        {
+          "nama": "Piranti sensor dan aktuator industri",
+          "cp_normatif": "Menerapkan instalasi, pengaturan, dan pengujian piranti sensor serta aktuator dalam proses industri."
+        },
+        {
+          "nama": "Sistem kontrol elektro pneumatik dan hidrolik",
+          "cp_normatif": "Menganalisis dan menerapkan gambar rangkaian; menerapkan instalasi; dan mengoperasikan sistem pneumatik dan hidrolik."
+        },
+        {
+          "nama": "Sistem kontrol industri",
+          "cp_normatif": "Menerapkan pemrograman, instalasi, dan pengujian sistem kontrol otomatis berbasis PLC, HMI, dan SCADA; dan menganalisis gangguan yang terjadi."
+        },
+        {
+          "nama": "Sistem robot industri",
+          "cp_normatif": "Menerapkan pengoperasian sistem robot industri (handling system)."
+        }
+      ]
+    }
+  },
+  "teknik_elektronika_komunikasi": {
+    "bidang": "Teknologi Informasi dan Komunikasi",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Teknik Elektronika Komunikasi (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Rangkaian elektronika",
+          "cp_normatif": "Menerapkan rangkaian elektronika analog, catu daya (linear dan switch mode power supply), elektronika daya, dan uninterruptible power supplies (UPS)."
+        },
+        {
+          "nama": "Sistem elektronika tertanam (embedded system)",
+          "cp_normatif": "Menerapkan rangkaian digital, rangkaian sensorik berbasis elektronik, biometric, radio frequency, bahasa pemrograman object oriented programming (OOP), dan arsitektur sistem elektronika tertanam serta membuat program pengontrol input/output analog serta pengendali perangkat elektronik baik standalone dan internet of things."
+        },
+        {
+          "nama": "Sistem transmisi gelombang elektromagnetik",
+          "cp_normatif": "Menganalisis sistem dan rekayasa gelombang elektromagnetik, perekayasaan sinyal analog, sistem transmisi dan penerima analog; dan menerapkan sistem komunikasi telepon digital, sistem serta perangkat komunikasi satelit."
+        },
+        {
+          "nama": "Perangkat dan media transmisi elektronika komunikasi",
+          "cp_normatif": "Menganalisis jenis dan parameter media transmisi, rugi-rugi dalam media transmisi, penyesuai impedansi, konektor RF, prinsip dasar dan parameter antena; dan menerapkan prosedur keselamatan kerja di ketinggian, perencanaan dan instalasi perangkat antena, dan perencanaan sistem komunikasi radio, sistem komunikasi dan jaringan fiber optik."
+        },
+        {
+          "nama": "Sistem komunikasi televisi",
+          "cp_normatif": "Menganalisis sistem transmisi televisi digital terestrial dan non terrestrial, penerima TV dan digital, Smart TV, teknologi dan resolusi video display, dan digital out of home VI.32. (DOOH)/videotron; dan menerapkan prosedur instalasi dan perbaikan penerima televisi, sistem transmisi televisi berbasis kabel dan internet protocol TV (IPTV), perangkat dan jaringan closed circuit television (CCTV)."
+        },
+        {
+          "nama": "Sistem komunikasi digital dan teknologi komunikasi bergerak (mobile)",
+          "cp_normatif": "Menganalisis konsep modulasi digital dan hybrid, sistem komunikasi data, sistem komunikasi seluler; dan menerapkan prosedur perbaikan handheld telepon selular."
+        }
+      ]
+    }
+  },
+  "teknik_instrumentasi_medik": {
+    "bidang": "Teknologi Informasi dan Komunikasi",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Teknik Instrumentasi Medik (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Penggunaan piranti transduser dan sensor",
+          "cp_normatif": "Menganalisis prinsip dasar macam-macam tipe transduser, tipe sensor elektroda, rangkaian input, serta keselamatan dan isolasi listrik pada perangkat instrumentasi medis."
+        },
+        {
+          "nama": "Rangkaian pemrosesan sinyal dalam instrumentasi medis",
+          "cp_normatif": "Menganalisis macam-macam rangkaian filter, penggunaan offset pada op-amp, karakteristik respons kestabilan dan ketidakstabilan, op-amp sebagai pembanding, integrator dan differensiator, penguat instrumentasi, sirkuit sample and hold, serta konversi analog ke digital (ADC)."
+        },
+        {
+          "nama": "Penerapan rangkaian pemrosesan sinyal biopotensial",
+          "cp_normatif": "Menerapkan rangkaian pemrosesan sinyal penguat biopotensial pada instrumentasi medis."
+        },
+        {
+          "nama": "Kalibrasi standar unit peralatan instrumentasi medis",
+          "cp_normatif": "Menerapkan penggunaan macam-macam alat kalibrator dengan menggunakan pemodelan matematika (aljabar, numerik, kalkulus, dan lain-lain)."
+        },
+        {
+          "nama": "Perawatan, pemeliharaan, uji fungsi, dan perbaikan peralatan instrumentasi medis",
+          "cp_normatif": "Menerapkan pembuatan gambar block diagram, wiring diagram, skema rangkaian, POS perawatan, pemeliharaan, VI.33. uji fungsi, dan perbaikan peralatan instrumentasi medis."
+        },
+        {
+          "nama": "Rangkaian antarmuka komunikasi elektronika medik",
+          "cp_normatif": "Menerapkan pembuatan rangkaian antarmuka prinsip sistem komunikasi elektronik menggunakan bahasa pemrograman."
+        },
+        {
+          "nama": "Pengujian dan analisis sistem instrumentasi medik tertanam (embedded medical instrumentation systems)",
+          "cp_normatif": "Menerapkan lembar kerja hasil pengujian dan analisis berdasarkan spesifikasi teknis yang mengacu pada standar nasional."
+        },
+        {
+          "nama": "Perancangan dan pengembangan desain peralatan instrumentasi medik",
+          "cp_normatif": "Menganalisis perancangan peralatan instrumentasi medis dengan teknologi sederhana (contoh: sensor suhu, sensor detak jantung, sensor tekanan, dan lain-lain)."
+        },
+        {
+          "nama": "Penggunaan teknologi baru untuk bidang kesehatan dan industri kedokteran",
+          "cp_normatif": "Menerapkan penggunaan teknologi baru dari teknologi sederhana menuju pengembangan teknologi menengah dan tinggi dalam bentuk realitas virtual (virtual reality), realitas tertambah (augmented reality), kecerdasan buatan (artificial intelligence), dan industri 4.0 untuk instrumentasi medik."
+        }
+      ]
+    }
+  },
+  "teknik_elektronika_pesawat_udara": {
+    "bidang": "Teknologi Informasi dan Komunikasi",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Teknik Elektronika Pesawat Udara (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Basic Aircraft Technical and Knowledge (BATK)",
+          "cp_normatif": "Menganalisis human factor dalam industri penerbangan, aircraft material, aircraft hardware, prinsip theory of flight, VI.34. karakteristik aerodinamika terhadap kecepatan pesawat, konsep aircraft structure, konsep aircraft system, konsep basic aircraft propulsion, dan CASR part 21, 39, 43, 45, 47, 65, 145, 147."
+        },
+        {
+          "nama": "Rangkaian elektronika dan kontroler",
+          "cp_normatif": "Menerapkan rangkaian elektronika analog, rangkaian elektronika digital, dan rangkaian input-output pada perangkat dalam sistem pengontrolan berbasis mikrokontroler."
+        },
+        {
+          "nama": "Instalasi komunikasi dan navigasi elektronika pesawat udara",
+          "cp_normatif": "Menerapkan sistem perangkat elektronika navigasi, dan komunikasi internal serta eksternal."
+        },
+        {
+          "nama": "Instalasi instrumen pesawat udara",
+          "cp_normatif": "Menganalisis atmosphere; dan menerapkan flight instrument, engine instrument, navigation instrument, dan auxiliary instrument."
+        },
+        {
+          "nama": "Instalasi kelistrikan pesawat udara",
+          "cp_normatif": "Menganalisis distribusi daya listrik, wiring electrical indicator dan electrical measurement pada sistem kelistrikan pesawat udara; menerapkan komponen kelistrikan pesawat udara; menganalisis proses pembuatan instalasi kelistrikan pesawat udara; dan menerapkan instalasi sistem interior lights dan sistem exterior lights."
+        },
+        {
+          "nama": "Aircraft Electronics CAD",
+          "cp_normatif": "Menerapkan gambar kerja dalam skema rangkaian kerja elektronika."
+        }
+      ]
+    }
+  },
+  "instrumentasi_dan_otomatisasi_proses": {
+    "bidang": "Teknologi Informasi dan Komunikasi",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Instrumentasi dan Otomatisasi Proses (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Perencanaan sistem instrumentasi",
+          "cp_normatif": "Membuat rencana gambar teknik instrumentasi (instrument drawing); dan menerapkan sistem pemipaan instrumentasi, process flow diagram (PFD) dan P&ID, dan instalasi sistem kelistrikan instrumentasi."
+        },
+        {
+          "nama": "Pengukuran besaran instrumentasi dan otomatisasi proses",
+          "cp_normatif": "Menerapkan pengukuran besaran proses."
+        },
+        {
+          "nama": "Sistem kontrol terprogram instrumentasi dan otomatisasi proses",
+          "cp_normatif": "Menerapkan rangkaian elektronika analog dan digital pada sistem instrumentasi otomatisasi proses, rangkaian kontrol digital menggunakan mikrokontroler, dan kontrol digital menggunakan PLC."
+        },
+        {
+          "nama": "Pengoperasian DCS VI.35. Menerapkan protokol pada kontrol berbasis DCS,",
+          "cp_normatif": "pemrograman FBD, instalasi wiring komponen-komponen kontrol DCS, dan kontrol PID pada DCS."
+        },
+        {
+          "nama": "Kalibrasi peralatan instrumentasi dan otomatisasi proses",
+          "cp_normatif": "Menerapkan kalibrasi alat ukur besaran proses dan kalibrasi peralatan instrumentasi."
+        },
+        {
+          "nama": "Perawatan dan perbaikan instrumentasi dan otomatisasi proses",
+          "cp_normatif": "Menerapkan prinsip kerja kompresor dan pompa, perawatan dan perbaikan peralatan instrumentasi dan otomatisasi proses, perawatan dan perbaikan kalibrator, perawatan dan perbaikan macam-macam komponen sistem instrumentasi dan otomatisasi proses, perawatan dan perbaikan sistem pemipaan instrumentasi, perawatan dan perbaikan instalasi kelistrikan instrumentasi, dan troubleshooting pada peralatan instrumen lapangan (field device)."
+        }
+      ]
+    }
+  },
+  "electrical_avionic": {
+    "bidang": "Teknologi Informasi dan Komunikasi",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Electrical Avionic (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Aircraft electronic",
+          "cp_normatif": "Menerapkan dasar elektronika, propagasi gelombang radio, dasar antena, prinsip transmitter dan receiver, serta sistem komunikasi dan navigasi pesawat udara."
+        },
+        {
+          "nama": "Digital microprocessor",
+          "cp_normatif": "Menerapkan konsep teknologi digital, sistem bilangan, perhitungan dan konversinya, rangkaian logika kombinasional dan sekuensial, encoding dan decoding, analog to digital converter, microprocessor, dan fiber optik."
+        },
+        {
+          "nama": "Aircraft electrical",
+          "cp_normatif": "Menerapkan konsep dasar kelistrikan, power supplies, generator, auxiliary power units, power conversion equipment, power distribution systems, circuit protection and controlling devices, motors and actuators, dan ground electrical power supplies."
+        },
+        {
+          "nama": "Aircraft instruments",
+          "cp_normatif": "Menerapkan sistem pengukuran tekanan (pitot static, altimeter, VSI, ASI), sistem indikasi suhu dan engine (temperature dan engine indicating systems), sistem gyroscopic dan navigasi (artificial horizon, turn coordinator, DG, kompas), sistem instrumen digital (servo altimeter, Air Data Computer, dan Electronic Flight Instrument System/EFIS)."
+        },
+        {
+          "nama": "Aircraft system",
+          "cp_normatif": "Menerapkan prinsip dasar Air Conditioning and Cabin Pressurization (ATA 21), Fire Protection (ATA 26), Flights Control (ATA 27), Fuel System (ATA 28) dan Hydraulic Power System (ATA 29), Ice and Rain Protection System VI.37. (ATA 30), Landing Gear System (ATA 32), Lighting system (ATA 33), Oxygen System (ATA 35), Pneumatic System (ATA 36), Water/Waste System (ATA 38), Ignition System (ATA 74), dan starting system (ATA 80)."
+        },
+        {
+          "nama": "Maintenance practice",
+          "cp_normatif": "Menerapkan electrical cables and connectors; installation of cable clamps; group and bundle tying; crimping and stripping; soldering; general test equipment for avionics; pre insulated terminal lug; degreasing; dan safety wiring of electrical connectors."
+        }
+      ]
+    }
+  },
+  "produksi_dan_siaran_program_radio": {
+    "bidang": "Teknologi Informasi dan Komunikasi",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Produksi dan Siaran Program Radio (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Manajemen Siaran Auditif",
+          "cp_normatif": "Menerapkan dasar manajemen siaran auditif mencakup target pendengar, format dan pola siaran, desain produksi (rencana produksi), dasar penelitian pendengar, pola acara dan rundown siaran, pengelolaan siaran berbagai program auditif dengan mempertimbangkan tren yang berkembang, kompleks dan kreatif; menerapkan administrasi siaran; dan mengevaluasi program serta bidang dan Level pekerjaan Program Staf, Traffic Staff dan Radio Content Producer Assistant."
+        },
+        {
+          "nama": "Program Siaran Jurnalistik",
+          "cp_normatif": "Menerapkan dasar jurnalistik, secondary news, peliputan berita (news gathering), wawancara, reportase, features, dan talkshow sesuai prinsip jurnalistik pada bidang dan level pekerjaan junior reporter, script writer, gatekeeper."
+        },
+        {
+          "nama": "Program Siaran Artistik",
+          "cp_normatif": "Menerapkan pengelolaan musik untuk siaran; menyusun naskah siaran; mengembangkan teknik adlibbing, memproduksi iklan; memproduksi sandiwara; dan mengoperasikan software siaran yang menghasilkan program siaran artistik yang kompleks dan kreatif pada bidang dan level pekerjaan penyiar continuity, music selector, pengisi suara pada sandiwara, voice over serta membuat copywriting dan naskah sandiwara"
+        },
+        {
+          "nama": "Editing dan Mixing Audio",
+          "cp_normatif": "Menerapkan teknik perekaman suara, produksi berbagai program dan aksesori (IDs, Que Program, Bumper In, Bumper Out, Smash dan lain-lain); mengatur berbagai suara agar menghasilkan suara yang baik dan harmonis; dan mencampur suara yang kompleks dan kreatif pada bidang dan level editor audio, operator produksi."
+        },
+        {
+          "nama": "Siaran New Media",
+          "cp_normatif": "Menerapkan fitur aplikasi siaran digital online, upload hasil siaran; menganalisis partisipan digital; dan melaksanakan siaran digital online secara mandiri dan kreatif pada bidang dan level pekerjaan content creator."
+        },
+        {
+          "nama": "Publikasi dan Ekshibisi Karya VI.125. Menerapkan kegiatan promosi dan event yang meliputi",
+          "cp_normatif": "jenis kegiatan; mengelola resiko dan persiapan pelaksanaan event; dan melaksanakan kegiatan promosi digital dan konvensional serta event secara profesional, pelaporan dan evaluasi pada bidang dan level pekerjaan promotion staff, event organizer staff/event executive."
+        }
+      ]
+    }
+  },
+  "produksi_dan_siaran_program_televisi": {
+    "bidang": "Teknologi Informasi dan Komunikasi",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Produksi dan Siaran Program Televisi (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Manajemen produksi dan siaran program televisi",
+          "cp_normatif": "Menerapkan prosedur tahapan produksi program siaran pada media audio visual yang kreatif dan menarik sesuai dengan kebutuhan dan keinginan target penonton dengan mempertimbangkan tren yang berkembang."
+        },
+        {
+          "nama": "Penulisan naskah televisi",
+          "cp_normatif": "Menerapkan prosedur dan teknis penulisan naskah siaran jurnalistik dan siaran artistik untuk penulisan naskah produksi dan siaran program televisi."
+        },
+        {
+          "nama": "Penyutradaraan televisi",
+          "cp_normatif": "Menerapkan prosedur tahapan produksi untuk departemen penyutradaraan televisi, baik menggunakan single camera system maupun multi camera system."
+        },
+        {
+          "nama": "Tata kamera dan tata cahaya televisi",
+          "cp_normatif": "Menerapkan prosedur tahapan produksi dalam departemen kamera dan tata cahaya, pengoperasian peralatan tata VI.126. cahaya dan teknik pencahayaan, dan pengoperasian kamera serta peralatan pendukung kamera (camera support)."
+        },
+        {
+          "nama": "Tata suara televisi",
+          "cp_normatif": "Menerapkan prosedur tahapan produksi dalam departemen tata suara, pengoperasian peralatan tata suara, dan pengoperasian peralatan pendukung tata suara."
+        },
+        {
+          "nama": "Tata artistik televisi",
+          "cp_normatif": "Menerapkan prosedur tahapan produksi dalam departemen tata artistik, analisis dan breakdown naskah, set dekor, property, costume/wardrobe, make up, dan setting interior serta eksterior."
+        },
+        {
+          "nama": "Editing audio dan video",
+          "cp_normatif": "Menganalisis kebutuhan teknis peralatan editing, dokumen kerja editing, dan menerapkan tahapan editing."
+        },
+        {
+          "nama": "Penyiaran online",
+          "cp_normatif": "Menganalisis konsep, membuat rencana; menerapkan produksi dan siaran audio visual secara online; membuat poster digital dan promosi digital; serta menerapkan regulasi media sosial pada tahap mengunggah karya."
+        }
+      ]
+    }
+  },
+  "produksi_film": {
+    "bidang": "Teknologi Informasi dan Komunikasi",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Produksi Film (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Manajemen produksi film",
+          "cp_normatif": "Menerapkan prosedur kerja manajemen produksi film, organisasi sumber daya produksi, penyusunan dokumen pra produksi, produksi, dan pasca produksi untuk manajemen produksi film."
+        },
+        {
+          "nama": "Penulisan naskah dan penyutradaraan film",
+          "cp_normatif": "Menganalisis rujukan naskah film yang disediakan untuk membuktikan prinsip dasar prosedur penulisan naskah (Ide pokok, tema/logline, basic story, sinopsis, treatment dan skenario), bentuk, format naskah, dan struktur penulisan naskah, serta breakdown naskah untuk penyutradaraan film."
+        },
+        {
+          "nama": "Tata kamera dan tata cahaya film VI.127. Menerapkan budaya kerja dan prosedur pengoperasian",
+          "cp_normatif": "kamera dan peralatan pendukung kamera (camera support), dan prosedur pengoperasian peralatan tata cahaya dan kelistrikan."
+        },
+        {
+          "nama": "Tata suara film",
+          "cp_normatif": "Menerapkan budaya kerja dan prosedur pengoperasian peralatan perekaman suara dan prosedur pengorganisasian data hasil perekaman suara."
+        },
+        {
+          "nama": "Tata artistik film",
+          "cp_normatif": "Menerapkan budaya kerja dan prosedur breakdown tata artistik, rancangan gambar (floor plan, gambar perspektif, set dekor, property, wardrobe, make up), setting interior dan eksterior, serta dokumen tata artistik."
+        },
+        {
+          "nama": "Editing audio dan video film",
+          "cp_normatif": "Menerapkan budaya kerja dan prosedur penerapan dokumen syuting (camera report dan sound report), manajemen file hasil syuting (klasifikasi dan mengorganisasi data file), serta prosedur editing (online dan offline editing)."
+        }
+      ]
+    }
+  },
+  "animasi": {
+    "bidang": "Teknologi Informasi dan Komunikasi",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Animasi (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Elemen Gerak (animation)",
+          "cp_normatif": "Merancang alur kerja pergerakan yang logis; menerapkan teknik penggerakan karakter/non-karakter secara estetis; memproduksi sekuensial gerak digital yang memenuhi prinsip mekanika gerak; mengelola aset gerak dan gerak mulut (rigging, motion library, lipsync); serta mengimplementasikan prinsip akting dalam produksi animasi 2D/3D sesuai brief teknis dan standar industri."
+        },
+        {
+          "nama": "Elemen Visual (asset creation)",
+          "cp_normatif": "Mengoperasikan perangkat kerja visual (software 2D/3D) untuk fungsi dasar; menerapkan prinsip artistik (bentuk, warna, komposisi) dalam pembuatan aset sederhana; menghasilkan aset visual kompleks (karakter, latar, properti) sesuai brief teknis; menyempurnakan kualitas artistik melalui teknik rendering dan texturing; serta mengintegrasikan aset final ke dalam pipeline produksi animasi 2D/3D sesuai standar industri."
+        },
+        {
+          "nama": "Elemen Editorial dan Manajerial (visual storytelling)",
+          "cp_normatif": "Merancang narasi visual melalui penerapan teknik sinematografi (pemilihan shot, sudut kamera, pencahayaan); menyusun alur cerita animasi dengan teknik VI.128. storyboarding yang efektif; memproduksi hasil editing (animatic, online editing) yang koheren secara temporal dan emosional sesuai brief teknis; serta mengelola aspek manajerial produksi meliputi penjadwalan tahapan kerja, koordinasi lintas divisi (art, sound), pengawasan kesesuaian output dengan deadline, dan pengendalian mutu akhir sesuai standar industri."
+        }
+      ]
+    }
   }
 }
