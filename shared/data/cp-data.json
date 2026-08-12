@@ -1525,6 +1525,20 @@
           "cp_normatif": "Mampu menerapkan keterampilan proses yang meliputi: Mengamati (melakukan pengamatan terhadap fenomena dan peristiwa di sekitarnya dan mencatat hasil pengamatannya dengan memperhatikan karakteristik objek yang diamati); Mempertanyakan dan Memprediksi (mengidentifikasi pertanyaan yang dapat diselidiki secara ilmiah dan membuat prediksinya); Merencanakan dan Melakukan Penyelidikan (merencanakan dan melakukan langkah-langkah operasional untuk menjawab pertanyaan; murid menggunakan alat bantu pengukuran untuk mendapatkan data yang akurat dan memahami adanya potensi kekeliruan dalam penyelidikan); Memproses, Menganalisis Data dan Informasi (mengolah data dalam bentuk tabel, grafik, dan model serta menjelaskan hasil pengamatan dan pola atau hubungan pada data; murid mengumpulkan data dari penyelidikan yang dilakukannya, serta menggunakan pemahaman sains untuk mengidentifikasi hubungan dan menarik kesimpulan berdasarkan bukti); Mengevaluasi dan Refleksi (mengidentifikasi sumber ketidakpastian dan kemungkinan penjelasan alternatif dalam rangka mengevaluasi kesimpulan, serta menjelaskan cara spesifik untuk meningkatkan kualitas data); Mengomunikasikan Hasil (mengomunikasikan hasil penyelidikan secara sistematis dan utuh yang ditunjang dengan argumen dan bahasa yang sesuai konteks penyelidikan)."
         }
       ]
+    },
+    "fase_e": {
+      "label": "IPA Fase E (Kelas 10 SMA/MA/Program Paket C)",
+      "cp_umum": "",
+      "elemen": [
+        {
+          "nama": "Pemahaman IPA",
+          "cp_normatif": "Menerapkan prinsip klasifikasi dan strategi pelestarian keanekaragaman hayati; mendeskripsikan peranan virus, bakteri, dan jamur dalam kehidupan; menganalisis interaksi antar komponen ekosistem dan pengaruhnya terhadap keseimbangan ekosistem; menggunakan sistem pengukuran dalam kerja ilmiah; menganalisis gerak dua dimensi; menganalisis pemanfaatan energi alternatif untuk mengatasi permasalahan ketersediaan energi; menganalisis partikel penyusun materi dan menerapkan konsep stoikiometri dalam berbagai aspek kuantitatif reaksi kimia; dan menerapkan konsep IPA untuk mengatasi permasalahan berkaitan dengan perubahan iklim."
+        },
+        {
+          "nama": "Keterampilan Proses",
+          "cp_normatif": "Mampu menerapkan keterampilan proses yang meliputi: Mengamati (melakukan pengamatan terhadap fenomena dan peristiwa di sekitarnya dan mencatat hasil pengamatannya dengan memperhatikan karakteristik objek yang diamati); Mempertanyakan dan Memprediksi (mengidentifikasi pertanyaan yang dapat diselidiki secara ilmiah dan membuat prediksinya); Merencanakan dan Melakukan Penyelidikan (merencanakan dan melakukan langkah-langkah operasional untuk menjawab pertanyaan; murid menggunakan alat bantu pengukuran untuk mendapatkan data yang akurat dan memahami adanya potensi kekeliruan dalam penyelidikan); Memproses, Menganalisis Data dan Informasi (mengolah data dalam bentuk tabel, grafik, dan model serta menjelaskan hasil pengamatan dan pola atau hubungan pada data; murid mengumpulkan data dari penyelidikan yang dilakukannya, serta menggunakan pemahaman sains untuk mengidentifikasi hubungan dan menarik kesimpulan berdasarkan bukti); Mengevaluasi dan Refleksi (mengidentifikasi sumber ketidakpastian dan kemungkinan penjelasan alternatif dalam rangka mengevaluasi kesimpulan, serta menjelaskan cara spesifik untuk meningkatkan kualitas data); Mengomunikasikan Hasil (mengomunikasikan hasil penyelidikan secara sistematis dan utuh yang ditunjang dengan argumen dan bahasa yang sesuai konteks penyelidikan)."
+        }
+      ]
     }
   },
   "ips": {
@@ -1544,6 +1558,20 @@
         {
           "nama": "Keterampilan Proses",
           "cp_normatif": "Menerapkan pemahaman konsep melalui pendekatan keterampilan proses dengan cara mengamati fenomena dan peristiwa secara sistematis dengan menggunakan pancaindra serta menemukan persamaan dan perbedaannya; menanya dengan panduan pendidik, mengajukan pertanyaan untuk menggali dan klarifikasi informasi, serta mencari tahu penyebab dan memprediksinya; mengumpulkan informasi secara berkolaborasi, merencanakan dan melakukan penyelidikan, mengumpulkan informasi dengan sumber primer, dan mendokumentasikannya; berkolaborasi, mengolah informasi yang relevan serta memprioritaskan beberapa gagasan tertentu; menguji dan menerapkan konsep melalui eksperimen, simulasi, studi kasus, atau situasi nyata untuk memperkuat pemahaman dan keterampilan; mengevaluasi dan merefleksi serta melakukan perbaikan untuk menarik simpulan hasil penyelidikan dengan tepat; mengomunikasikan dan menyajikan hasil penyelidikan dengan menggunakan media informasi yang tepat; dan menyusun rencana tindak lanjut dari hasil penyelidikan yang telah dihasilkan secara kolaboratif."
+        }
+      ]
+    },
+    "fase_e": {
+      "label": "IPS Fase E (Kelas 10 SMA/MA)",
+      "cp_umum": "",
+      "elemen": [
+        {
+          "nama": "Pemahaman Konsep",
+          "cp_normatif": "Menjelaskan konsep dasar geografi, fenomena geografi fisik melalui litosfer, atmosfer, dan hidrosfer sebagai ruang hidup, serta mengimplementasikan teknologi geospasial berupa peta, penginderaan jauh dan Sistem Informasi Geografis (SIG); menelaah hakikat ilmu ekonomi sebagai ilmu yang mempelajari upaya manusia dalam memenuhi kebutuhan hidupnya; membedakan produk keuangan bank dan nonbank sebagai dasar dalam menggunakan produk dan layanan, risiko keuangan dan menyusun laporan keuangan pribadi; menjelaskan fungsi sosiologi sebagai ilmu yang secara kritis, analitis, kreatif, dan solutif mengkaji masyarakat; menelaah status dan peran individu dalam kelompok sosial dan memberikan contoh berbagai ragam gejala sosial yang ada di dalam masyarakat; menganalisis keragaman manusia dan budayanya sebagai bagian dari masyarakat multikultural; dan menelaah konsep dasar ilmu sejarah dan mengimplementasikan penelitian sejarah untuk merefleksikan keterhubungan antara masa lampau, masa kini, dan masa yang akan datang melalui berbagai peristiwa atau kejadian penting dalam lingkup lokal, nasional dan global mulai dari masa kerajaan Hindu-Buddha hingga masa kerajaan Islam."
+        },
+        {
+          "nama": "Keterampilan Proses",
+          "cp_normatif": "Mengamati fenomena kehidupan manusia dalam dimensi ruang dan waktu secara sistematis serta menemukan persamaan dan perbedaannya dan potensinya; membuat pertanyaan secara mandiri untuk menggali informasi tentang fenomena kehidupan manusia dalam dimensi ruang dan waktu secara sistematis; mengumpulkan informasi dari sumber primer dan/atau sekunder, melakukan observasi, dan mendokumentasikannya; menarik simpulan berdasarkan dari informasi yang diperoleh dari sumber primer dan/atau sekunder, hasil observasi dan hasil dokumentasi; mengomunikasikan hasil analisis informasi yang diperoleh dari sumber primer dan/atau sekunder, data hasil observasi, dan hasil dokumentasi dalam bentuk media digital dan/atau non digital; dan merefleksikan hasil analisis informasi yang diperoleh dari sumber primer dan/atau sekunder, hasil observasi, dan hasil dokumentasi serta menyusun rencana tindak lanjut."
         }
       ]
     }
