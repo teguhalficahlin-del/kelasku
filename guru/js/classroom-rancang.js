@@ -713,6 +713,22 @@
 
     const smk = _ans.smk || {};
 
+    // Helper: dropdown + input Lainnya
+    function smkSel(id, opts, saved) {
+      const isLainnya = !!saved && !opts.includes(saved);
+      const optsHtml = opts.map(o =>
+        `<option value="${esc(o)}"${saved === o ? ' selected' : ''}>${esc(o)}</option>`
+      ).join('');
+      return `<select class="rp-select" id="${id}">
+  <option value="">— Pilih —</option>
+  ${optsHtml}
+  <option value="__lainnya__"${isLainnya ? ' selected' : ''}>Lainnya…</option>
+</select>
+<input type="text" id="${id}-txt" class="rp-input" placeholder="Jelaskan…"
+  style="margin-top:var(--space-xs);display:${isLainnya ? 'block' : 'none'};"
+  value="${esc(isLainnya ? saved : '')}">`;
+    }
+
     body.innerHTML = `
 <div class="rp-block">
   <div class="rp-block-title">Konteks SMK</div>
@@ -722,28 +738,33 @@
     <input type="text" id="rp-smk-jurusan" class="rp-input" placeholder="Contoh: Teknik Pemesinan, Akuntansi, DPIB…" value="${esc(smk.jurusan||'')}">
   </div>
 
-  <div class="rp-q" id="rp-q-smk2">
-    <label class="rp-q-label">SMK-2. Rumpun mata pelajaran *</label>
+  <div class="rp-q">
+    <label class="rp-q-label" for="rp-smk-rumpun">SMK-2. Rumpun mata pelajaran *</label>
+    ${smkSel('rp-smk-rumpun', ['Normatif','Adaptif','Produktif'], smk.rumpun||'')}
   </div>
 
   <div class="rp-q" id="rp-q-smk3">
     <label class="rp-q-label">SMK-3. Tujuan pembelajaran utama (bisa lebih dari satu)</label>
   </div>
 
-  <div class="rp-q" id="rp-q-smk4">
-    <label class="rp-q-label">SMK-4. Status PKL siswa *</label>
+  <div class="rp-q">
+    <label class="rp-q-label" for="rp-smk-status-pkl">SMK-4. Status PKL siswa *</label>
+    ${smkSel('rp-smk-status-pkl', ['Belum PKL','Sedang PKL','Sudah selesai PKL','Tidak ada PKL'], smk.status_pkl||'')}
   </div>
 
-  <div class="rp-q" id="rp-q-smk5">
-    <label class="rp-q-label">SMK-5. Target sertifikasi *</label>
+  <div class="rp-q">
+    <label class="rp-q-label" for="rp-smk-target-sertif">SMK-5. Target sertifikasi *</label>
+    ${smkSel('rp-smk-target-sertif', ['Tidak ada target sertifikasi','Sertifikasi kompetensi (LSP)','Uji Kompetensi Keahlian (UKK)','Sertifikat industri langsung'], smk.target_sertif||'')}
   </div>
 
-  <div class="rp-q" id="rp-q-smk6">
-    <label class="rp-q-label">SMK-6. Pola jadwal produktif *</label>
+  <div class="rp-q">
+    <label class="rp-q-label" for="rp-smk-pola-jadwal">SMK-6. Pola jadwal produktif *</label>
+    ${smkSel('rp-smk-pola-jadwal', ['Sistem blok (semua JP produktif 1 hari)','Tersebar harian','Tetap mingguan (jadwal rutin)','Campuran blok & harian','Tidak menentu'], smk.pola_jadwal||'')}
   </div>
 
-  <div class="rp-q" id="rp-q-smk7">
-    <label class="rp-q-label">SMK-7. Durasi proyek/unit per blok *</label>
+  <div class="rp-q">
+    <label class="rp-q-label" for="rp-smk-durasi-proyek">SMK-7. Durasi proyek/unit per blok *</label>
+    ${smkSel('rp-smk-durasi-proyek', ['1–2 minggu','3–4 minggu','5–8 minggu','Lebih dari 8 minggu'], smk.durasi_proyek||'')}
   </div>
 
   <div class="rp-q" id="rp-q-smk8">
@@ -755,10 +776,14 @@
     <input type="text" id="rp-smk-industri" class="rp-input" placeholder="Contoh: Tekstil, Pariwisata, Pertanian…" value="${esc(smk.industri_dominan||'')}">
   </div>
 
-  <div class="rp-q" id="rp-q-smk10">
-    <label class="rp-q-label">SMK-10. Mitra DUDI aktif *</label>
-    <div id="rp-smk10-chips" class="rp-chip-group"></div>
-    <div class="rp-cond-input" id="rp-smk-mitra-wrap">
+  <div class="rp-q">
+    <label class="rp-q-label" for="rp-smk-mitra-dudi">SMK-10. Mitra DUDI aktif *</label>
+    <select class="rp-select" id="rp-smk-mitra-dudi">
+      <option value="">— Pilih —</option>
+      <option value="Tidak ada mitra aktif"${smk.mitra_dudi==='Tidak ada mitra aktif'?' selected':''}>Tidak ada mitra aktif</option>
+      <option value="Ada mitra aktif"${smk.mitra_dudi==='Ada mitra aktif'?' selected':''}>Ada mitra aktif</option>
+    </select>
+    <div class="rp-cond-input${smk.mitra_dudi==='Ada mitra aktif'?' visible':''}" id="rp-smk-mitra-wrap">
       <input type="text" id="rp-smk-mitra" class="rp-input" placeholder="Nama mitra DUDI…" style="margin-top:var(--space-xs);" value="${esc(smk.nama_mitra||'')}">
     </div>
   </div>
@@ -770,35 +795,30 @@
   </div>
 </div>`;
 
-    // Build chips setelah HTML ada
-    attachLainnya(renderChips(['Normatif','Adaptif','Produktif'], 'rumpun', el('rp-q-smk2'), false, false), 'Contoh: Bisnis & Manajemen');
-    attachLainnya(renderChips(['PKL / Magang','Dunia Kerja Nyata','Sertifikasi Kompetensi','LKS','Konsep Dasar','Kewirausahaan','UMKM Lokal','Literasi / Numerasi'], 'tujuan', el('rp-q-smk3'), true, false), 'Contoh: keterampilan wirausaha digital');
-    attachLainnya(renderChips(['Belum PKL','Sedang PKL','Sudah selesai PKL','Tidak ada PKL'], 'status_pkl', el('rp-q-smk4'), false, false), 'Jelaskan status PKL siswa');
-    attachLainnya(renderChips(['Tidak ada target sertifikasi','Sertifikasi kompetensi (LSP)','Uji Kompetensi Keahlian (UKK)','Sertifikat industri langsung'], 'target_sertif', el('rp-q-smk5'), false, false), 'Contoh: sertifikat pelatihan industri');
-    attachLainnya(renderChips(['Sistem blok (semua JP produktif 1 hari)','Tersebar harian','Tetap mingguan (jadwal rutin)','Campuran blok & harian','Tidak menentu'], 'pola_jadwal', el('rp-q-smk6'), false, false), 'Jelaskan pola jadwal produktif');
-    attachLainnya(renderChips(['1–2 minggu','3–4 minggu','5–8 minggu','Lebih dari 8 minggu'], 'durasi_proyek', el('rp-q-smk7'), false, false), 'Contoh: 2 minggu intensif');
-    attachLainnya(renderChips(['Kunjungan industri','Prakerin / PKL','Guest teacher','Sponsorship alat','Tidak ada hubungan'], 'hubungan_dudi', el('rp-q-smk8'), true, false), 'Contoh: kerjasama startup lokal');
-
-    // SMK-10 mitra
-    const mitra10Wrap = el('rp-q-smk10');
-    const mitra10Chips = renderChips(['Tidak ada mitra aktif','Ada mitra, nama di bawah'], 'mitra_dudi', mitra10Wrap, false, false);
-    mitra10Chips.addEventListener('click', () => {
-      const val = getChipValues(mitra10Chips)[0];
-      const wrap = el('rp-smk-mitra-wrap');
-      if (wrap) wrap.classList.toggle('visible', val === 'Ada mitra, nama di bawah');
+    // Event listener Lainnya untuk dropdown SMK-2,4,5,6,7
+    ['rp-smk-rumpun','rp-smk-status-pkl','rp-smk-target-sertif','rp-smk-pola-jadwal','rp-smk-durasi-proyek'].forEach(id => {
+      const sel = el(id);
+      const txt = el(id + '-txt');
+      if (!sel || !txt) return;
+      sel.addEventListener('change', () => {
+        txt.style.display = sel.value === '__lainnya__' ? 'block' : 'none';
+        if (sel.value !== '__lainnya__') txt.value = '';
+      });
     });
 
-    // Restore chips dari _ans.smk
+    // SMK-10 conditional input
+    el('rp-smk-mitra-dudi')?.addEventListener('change', () => {
+      el('rp-smk-mitra-wrap')?.classList.toggle('visible', el('rp-smk-mitra-dudi').value === 'Ada mitra aktif');
+    });
+
+    // SMK-3 dan SMK-8 tetap chip multi-select
+    attachLainnya(renderChips(['PKL / Magang','Dunia Kerja Nyata','Sertifikasi Kompetensi','LKS','Konsep Dasar','Kewirausahaan','UMKM Lokal','Literasi / Numerasi'], 'tujuan', el('rp-q-smk3'), true, false), 'Contoh: keterampilan wirausaha digital');
+    attachLainnya(renderChips(['Kunjungan industri','Prakerin / PKL','Guest teacher','Sponsorship alat','Tidak ada hubungan'], 'hubungan_dudi', el('rp-q-smk8'), true, false), 'Contoh: kerjasama startup lokal');
+
+    // Restore chips SMK-3 dan SMK-8
     if (_ans.smk) {
-      restoreChips(body.querySelector('[data-key="rumpun"]'),        _ans.smk.rumpun);
       restoreChips(body.querySelector('[data-key="tujuan"]'),        _ans.smk.tujuan);
-      restoreChips(body.querySelector('[data-key="status_pkl"]'),    _ans.smk.status_pkl);
-      restoreChips(body.querySelector('[data-key="target_sertif"]'), _ans.smk.target_sertif);
-      restoreChips(body.querySelector('[data-key="pola_jadwal"]'),   _ans.smk.pola_jadwal);
-      restoreChips(body.querySelector('[data-key="durasi_proyek"]'), _ans.smk.durasi_proyek);
       restoreChips(body.querySelector('[data-key="hubungan_dudi"]'), _ans.smk.hubungan_dudi);
-      restoreChips(body.querySelector('[data-key="mitra_dudi"]'),    _ans.smk.mitra_dudi);
-      if (_ans.smk.mitra_dudi === 'Ada mitra, nama di bawah') el('rp-smk-mitra-wrap')?.classList.add('visible');
     }
 
     el('rp-btn-back2').addEventListener('click', () => { _step = 1; renderStep1(); });
@@ -812,19 +832,25 @@
       const g = body.querySelector(`.rp-chip-group[data-key="${key}"]`);
       return g ? getChipValues(g) : [];
     };
+    function getSelVal(id) {
+      const sel = el(id);
+      if (!sel) return '';
+      if (sel.value === '__lainnya__') return (el(id + '-txt')?.value || '').trim() || 'Lainnya';
+      return sel.value;
+    }
 
     const jurusan = (el('rp-smk-jurusan')?.value || '').trim();
     _ans.smk = {
       jurusan,
-      rumpun:          getGroup('rumpun')[0] || '',
+      rumpun:          getSelVal('rp-smk-rumpun'),
       tujuan:          getGroup('tujuan'),
-      status_pkl:      getGroup('status_pkl')[0] || '',
-      target_sertif:   getGroup('target_sertif')[0] || '',
-      pola_jadwal:     getGroup('pola_jadwal')[0] || '',
-      durasi_proyek:   getGroup('durasi_proyek')[0] || '',
+      status_pkl:      getSelVal('rp-smk-status-pkl'),
+      target_sertif:   getSelVal('rp-smk-target-sertif'),
+      pola_jadwal:     getSelVal('rp-smk-pola-jadwal'),
+      durasi_proyek:   getSelVal('rp-smk-durasi-proyek'),
       hubungan_dudi:   getGroup('hubungan_dudi'),
       industri_dominan:(el('rp-smk-industri')?.value || '').trim(),
-      mitra_dudi:      getGroup('mitra_dudi')[0] || '',
+      mitra_dudi:      (el('rp-smk-mitra-dudi')?.value || ''),
       nama_mitra:      (el('rp-smk-mitra')?.value || '').trim(),
     };
 
