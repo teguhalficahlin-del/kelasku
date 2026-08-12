@@ -3398,44 +3398,8 @@
       ]
     }
   },
-  "teknik_elektronika": {
-    "bidang": "Teknologi Informasi dan Komunikasi",
-    "jenjang": [
-      "SMK"
-    ],
-    "fase_f": {
-      "label": "Teknik Elektronika (Kelas 11-12 SMK)",
-      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
-      "elemen": [
-        {
-          "nama": "Penerapan rangkaian elektronika",
-          "cp_normatif": "Menerapkan penguat Op-Amp yang diaplikasikan sebagai rangkaian elektronika analog dan rangkaian elektronika digital."
-        },
-        {
-          "nama": "Sistem kendali elektronik",
-          "cp_normatif": "Menerapkan sistem pengendali analog, sistem pengendali digital, dan rangkaian isolasi elektronik."
-        },
-        {
-          "nama": "Pemrograman sistem embedded",
-          "cp_normatif": "VI.30. Menerapkan bahasa pemrograman pada sistem embedded."
-        },
-        {
-          "nama": "Antarmuka dan komunikasi data",
-          "cp_normatif": "Menerapkan antarmuka dan komunikasi data dengan memanfaatkan software Object Oriented Programming (OOP)."
-        },
-        {
-          "nama": "Sistem kendali industri",
-          "cp_normatif": "Menerapkan sistem kendali industri dengan menggunakan relay logic, PLC, dan HMI."
-        },
-        {
-          "nama": "Pemeliharaan dan perbaikan peralatan elektronika industri",
-          "cp_normatif": "Menerapkan pemeliharaan dan perbaikan peralatan elektronika."
-        }
-      ]
-    }
-  },
   "teknik_elektronika_industri": {
-    "bidang": "Teknologi Informasi dan Komunikasi",
+    "bidang": "Teknologi Manufaktur dan Rekayasa",
     "program_keahlian": "Teknik Elektronika",
     "jenjang": [
       "SMK"
