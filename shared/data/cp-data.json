@@ -1955,5 +1955,1021 @@
         }
       ]
     }
+  },
+  "dasar_dasar_teknik_mesin": {
+    "bidang": "Teknologi Manufaktur dan Rekayasa",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_e": {
+      "label": "Dasar-dasar Teknik Mesin (Kelas 10 SMK)",
+      "cp_umum": "Pada akhir Fase E, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Wawasan Bidang Teknik Mesin",
+          "cp_normatif": "Menjelaskan perkembangan proses produksi industri manufaktur, Internet of Thing, wawasan hijau (green skill), proses produksi dan perawatan mesin berbantuan kecerdasan buatan (AI)."
+        },
+        {
+          "nama": "Kecakapan Kerja Dasar (basic job skills), K3, dan Budaya Kerja",
+          "cp_normatif": "Mengidentifikasi bahaya-bahaya di tempat kerja serta menerapkan prosedur-prosedur dalam keadaan darurat, praktik-praktik kerja yang aman, dan budaya kerja industri."
+        },
+        {
+          "nama": "Teknik Dasar Proses Produksi pada Bidang Manufaktur Mesin",
+          "cp_normatif": "Menerapkan teknologi cutting dan non cutting terkini, alat ukur, perkakas tangan, perkakas bertenaga, pemesinan dasar, dan pengelasan dasar."
+        },
+        {
+          "nama": "Pengetahuan Bahan (Material Science)",
+          "cp_normatif": "Menganalisis jenis-jenis, sifat-sifat, dan fungsi bahan dalam proses manufaktur."
+        },
+        {
+          "nama": "Dasar Sistem Mekanik",
+          "cp_normatif": "Menganalisis jenis sambungan, tumpuan (bushing and bearing), dan transmisi mesin."
+        },
+        {
+          "nama": "Gambar Teknik",
+          "cp_normatif": "Menerapkan macam-macam peralatan gambar dan CADD, standardisasi dalam pembuatan gambar, teknik sketsa, proyeksi gambar, dan pembacaan gambar teknik."
+        }
+      ]
+    }
+  },
+  "dasar_dasar_teknik_otomotif": {
+    "bidang": "Teknologi Manufaktur dan Rekayasa",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_e": {
+      "label": "Dasar-dasar Teknik Otomotif (Kelas 10 SMK)",
+      "cp_umum": "Pada akhir Fase E, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Wawasan Dunia Otomotif",
+          "cp_normatif": "Menjelaskan wawasan dunia usaha, dunia industri, dunia kerja bidang otomotif, perkembangan teknologi pada berbagai komponen dan jenis produk otomotif serta isu global, perubahan iklim dan penggunaan kecerdasan buatan pada bidang otomotif kendaraan ringan, kendaraan angkutan, sepeda motor, alat berat dan sejenisnya."
+        },
+        {
+          "nama": "Kecakapan Kerja Dasar (Basic Job Skills), K3, dan Budaya Kerja",
+          "cp_normatif": "Menerapkan prosedur perawatan dan perbaikan otomotif, potensi bahaya di tempat kerja, prosedur keselamatan dan kesehatan lingkungan kerja, alat pelindung diri, dan prosedur dalam keadaan darurat serta budaya kerja pada bidang otomotif."
+        },
+        {
+          "nama": "Gambar Teknik Otomotif",
+          "cp_normatif": "Menerapkan gambar teknik berdasarkan standar gambar teknik yang berlaku; membaca gambar teknik; serta menentukan letak dan posisi komponen otomotif sesuai buku manual servis."
+        },
+        {
+          "nama": "Peralatan dan Perlengkapan Tempat Kerja",
+          "cp_normatif": "Menerapkan cara memilih, menggunakan, dan merawat peralatan peralatan umum (general tools), alat perlengkapan bengkel (equipment tools), peralatan servis khusus (special service tools), alat ukur (measuring tools), dan alat diagnosis (diagnostic tools)."
+        },
+        {
+          "nama": "Dasar Kelistrikan dan Elektronika Otomotif",
+          "cp_normatif": "Menerapkan prinsip dasar kelistrikan, komponen elektronika otomotif, serta perbaikan rangkaian dasar kelistrikan dan elektronika otomotif."
+        },
+        {
+          "nama": "Komponen Otomotif",
+          "cp_normatif": "Menganalisis komponen utama konversi energi otomotif, komponen tambahan mesin otomotif, dan komponen perlengkapan mesin otomotif."
+        },
+        {
+          "nama": "Dasar Sistem Hidrolik dan Pneumatik",
+          "cp_normatif": "Menerapkan prinsip dasar, fungsi dan cara kerja komponen, perawatan, dan pengujian komponen sistem hidrolik dan pneumatik."
+        }
+      ]
+    }
+  },
+  "dasar_dasar_teknik_pengelasan_dan_fabrikasi_logam": {
+    "bidang": "Teknologi Manufaktur dan Rekayasa",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_e": {
+      "label": "Dasar-dasar Teknik Pengelasan dan Fabrikasi Logam (Kelas 10 SMK)",
+      "cp_umum": "Pada akhir Fase E, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Wawasan dunia kerja bidang pengelasan dan fabrikasi logam",
+          "cp_normatif": "Menganalisis perkembangan teknologi pada bidang pengelasan dan fabrikasi logam di berbagai bidang aktivitas pekerjaan industri konstruksi dan manufaktur; serta memahami profesi dan kewirausahaan (job-profile dan technopreneurship) di bidang pengelasan dan fabrikasi logam."
+        },
+        {
+          "nama": "Kecakapan kerja dasar (Basic Job Skill), K3LH, dan Budaya kerja",
+          "cp_normatif": "Menerapkan K3LH dan budaya kerja industri pada proses pengelasan dan fabrikasi logam yang diaplikasikan dalam industri konstruksi dan manufaktur; mengunakan perkakas tangan, perkakas bertenaga, gambar teknik, pengelasan, computer aided design (CAD), dan sejenisnya."
+        },
+        {
+          "nama": "Gambar teknik",
+          "cp_normatif": "Menggambar teknik dasar lingkup pengelasan dan fabrikasi logam serta mampu mengaplikasikan dasar CAD."
+        },
+        {
+          "nama": "Penggunaan perkakas bengkel",
+          "cp_normatif": "Menerapkan penggunaan perkakas bengkel sesuai dengan POS."
+        },
+        {
+          "nama": "Pengelasan SMAW dasar",
+          "cp_normatif": "Menerapkan pengelasan pelat baja karbon posisi di bawah tangan sesuai dengan WPS dan melaksanakan pemeriksaan hasil pengelasan secara visual."
+        }
+      ]
+    }
+  },
+  "dasar_dasar_teknik_logistik": {
+    "bidang": "Teknologi Manufaktur dan Rekayasa",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_e": {
+      "label": "Dasar-dasar Teknik Logistik (Kelas 10 SMK)",
+      "cp_umum": "Pada akhir Fase E, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Wawasan Dunia Kerja Bidang Teknik Logistik",
+          "cp_normatif": "Menganalisis proses bisnis (rangkaian aktivitas dan tugas) pada bidang logistik atau teknik industri secara menyeluruh pada berbagai industri, perkembangan teknik logistik dan dunia kerja, serta profesi dan kewirausahaan (job-profile dan technopreneurship)."
+        },
+        {
+          "nama": "Kecakapan Kerja Dasar (basic job skills), K3 dan Budaya Kerja",
+          "cp_normatif": "Menerapkan K3LH dan budaya kerja; menerapkan proses pengelolaan logistik sesuai prosedur operasional standar; dan praktik teknik produksi pada industri manufaktur."
+        },
+        {
+          "nama": "Kegiatan administratif dokumen dan operasional pengadaan",
+          "cp_normatif": "Menerapkan kegiatan administrasi dokumen dan administrasi operasional pengadaan barang untuk keperluan produksi, kode etik yang berlaku di tempat kerja, peraturan penamaan file kerja, peraturan format file kerja, peraturan penyimpanan file kerja, dan peraturan pengamanan file kerja."
+        },
+        {
+          "nama": "Pelayanan pelanggan",
+          "cp_normatif": "Menganalisis pelayanan pelanggan secara prima."
+        },
+        {
+          "nama": "Pengelolaan gudang dan perbaikan lingkungan kerja",
+          "cp_normatif": "Menerapkan proses penerimaan barang, penyimpanan, proses pengeluaran barang dari gudang dan perbaikan lingkungan kerja di industri."
+        },
+        {
+          "nama": "Teknik distribusi",
+          "cp_normatif": "Menerapkan dasar-dasar teknik distribusi barang."
+        }
+      ]
+    }
+  },
+  "dasar_dasar_teknik_pesawat_udara": {
+    "bidang": "Teknologi Manufaktur dan Rekayasa",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_e": {
+      "label": "Dasar-dasar Teknik Pesawat Udara (Kelas 10 SMK)",
+      "cp_umum": "Pada akhir Fase E, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Wawasan dunia kerja bidang penerbangan",
+          "cp_normatif": "Menganalisis aktivitas pekerjaan yang berhubungan dengan profesi dan pekerjaan di dunia penerbangan meliputi aktivitas pekerjaan di dalam pesawat udara dan di bandara."
+        },
+        {
+          "nama": "Kecakapan dasar (Basic Skill), K3, dan budaya kerja",
+          "cp_normatif": "Menerapkan kecakapan dasar (Basic skill), K3, dan budaya kerja industri di tempat kerja."
+        },
+        {
+          "nama": "Teknik dasar proses perawatan pesawat udara",
+          "cp_normatif": "Menerapkan praktik dasar yang terkait dengan seluruh proses perawatan dan teknologi yang diaplikasikan dalam industri perawatan pesawat udara."
+        },
+        {
+          "nama": "Gambar teknik",
+          "cp_normatif": "Menerapkan gambar teknik pada pesawat udara."
+        },
+        {
+          "nama": "Theory of Flight",
+          "cp_normatif": "Menerapkan prinsip Bernoulli, aerodinamika pesawat udara, Flight Control Surfaces, dan gaya-gaya yang bekerja pada pesawat udara."
+        },
+        {
+          "nama": "Aircraft material",
+          "cp_normatif": "Menganalisis jenis dan spesifikasi aircraft material."
+        },
+        {
+          "nama": "Aircraft hardware dan tools equipment",
+          "cp_normatif": "Menerapkan macam dan spesifikasi aircraft hardware dan tools equipment."
+        },
+        {
+          "nama": "Aircraft structure",
+          "cp_normatif": "Menganalisis jenis-jenis pesawat udara, jenis-jenis konstruksi pesawat udara, dan bagian-bagian struktur pesawat udara."
+        },
+        {
+          "nama": "Tenaga pendorong/power plant",
+          "cp_normatif": "Menganalisis berbagai jenis tenaga pendorong (power plant) yang digunakan oleh pesawat udara (hukum Newton, hukum kekekalan energi, piston engine dan gas turbine engine)."
+        },
+        {
+          "nama": "Aircraft system",
+          "cp_normatif": "Menganalisis Basic Electrical System, Electronic System, Basic Flight Control System, Basic Pneumatic System, dan Basic Hydraulic System pada pesawat udara."
+        },
+        {
+          "nama": "CASR",
+          "cp_normatif": "Menerapkan CASR."
+        }
+      ]
+    }
+  },
+  "dasar_dasar_teknik_konstruksi_kapal": {
+    "bidang": "Teknologi Manufaktur dan Rekayasa",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_e": {
+      "label": "Dasar-dasar Teknik Konstruksi Kapal (Kelas 10 SMK)",
+      "cp_umum": "Pada akhir Fase E, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Wawasan dunia kerja bidang perkapalan",
+          "cp_normatif": "Menganalisis aktivitas pekerjaan pada bidang industri perkapalan antara lain mekanisme kerja, jenis-jenis pengedokan, jenis fasilitas dan layanan pendukung di galangan kapal, proses produksi kapal, perkembangan industri perkapalan, dan profesi dalam industri perkapalan serta menganalisis peluang pasar serta usaha di bidang perkapalan."
+        },
+        {
+          "nama": "Kecakapan kerja dasar (basic job skills), budaya kerja dan K3LH",
+          "cp_normatif": "Menerapkan teori dasar perkapalan, pekerjaan dasar teknologi perkapalan yang terdiri dari kerja bangku, pekerjaan dasar logam, pekerjaan dasar listrik, pekerjaan dan dasar non logam serta budaya kerja industri yang berwawasan lingkungan."
+        },
+        {
+          "nama": "Gambar teknik",
+          "cp_normatif": "Menerapkan pembuatan gambar konstruksi geometri meliputi garis, busur, lingkaran, dan sudut; mengevaluasi pembuatan gambar proyeksi meliputi proyeksi piktorial dan proyeksi orthogonal; dan menerapkan penggunaan aturan gambar teknik meliputi pengukuran, penerapan simbol, potongan, dan gambar bukaan."
+        },
+        {
+          "nama": "Gambar basic design dengan CAD",
+          "cp_normatif": "Menerapkan penggunaan CAD pada penggambaran basic desain."
+        }
+      ]
+    }
+  },
+  "teknik_pemesinan": {
+    "bidang": "Teknologi Manufaktur dan Rekayasa",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Teknik Pemesinan (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Gambar teknik manufaktur",
+          "cp_normatif": "Menerapkan perancangan gambar sederhana, gambar detail, dan gambar rakitan yang kompleks sesuai aturan gambar dan tanda pengerjaan menggunakan teknologi CAD."
+        },
+        {
+          "nama": "Teknik pemesinan bubut",
+          "cp_normatif": "Menerapkan pembubutan untuk jenis pekerjaan tertentu, pembubutan eksentrik, pembubutan profil, pembubutan benda dengan alat bantu, dan pembubutan benda rakitan yang kompleks."
+        },
+        {
+          "nama": "Teknik pemesinan frais",
+          "cp_normatif": "Menerapkan pengaturan mesin dan benda kerja sesuai tingkat kepresisian yang dibutuhkan, pengefraisan untuk pekerjaan tertentu, pengefraisan dengan alat bantu, pengefraisan benda sederhana, dan pengefraisan benda rakitan yang kompleks."
+        },
+        {
+          "nama": "Teknik pemesinan gerinda VI.10. Menerapkan pengasahan pahat dan alat potong,",
+          "cp_normatif": "penggerindaan datar, pengerjaan gerinda benda sederhana, pengerjaan gerinda benda kompleks, dan mengevaluasi hasil penggerindaan."
+        },
+        {
+          "nama": "Teknik pemesinan nonkonvensional",
+          "cp_normatif": "Menerapkan pengeditan program simulator dan/atau mesin NC/CNC, pengoperasian mesin NC/CNC, dan mengevaluasi pemrograman dengan software CAM."
+        }
+      ]
+    }
+  },
+  "teknik_mekanik_industri": {
+    "bidang": "Teknologi Manufaktur dan Rekayasa",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Teknik Mekanik Industri (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Elemen Mesin Mekanik Industri",
+          "cp_normatif": "Menganalisis kerusakan elemen mesin industri; getaran (vibration) dan kebisingan (noise) mesin industri; penyetimbangan (balancing) dan alignment mesin industri; perbaikan ringan sistem pelumas, serta perbaikan mekanik pompa, kompresor, dan sistem pemipaan."
+        },
+        {
+          "nama": "Elemen Sistem hidrolik dan pneumatik",
+          "cp_normatif": "Menerapkan pemeriksaan/penyetelan, pemeliharaan preventif, diagnosa kesalahan, pengujian ulang kelayakan (recommission) hasil perbaikan/penggantian komponen sistem hidrolik dan pneumatik."
+        },
+        {
+          "nama": "Elemen Sistem Kelistrikan",
+          "cp_normatif": "Menerapkan rangkaian listrik dasar dan kompleks, mendiagnosa lokasi kesalahan/kerusakan dan melakukan perbaikan pada peralatan/komponen listrik AC satu phase 220V, tiga phase 380 V/DC sampai dengan 240V."
+        },
+        {
+          "nama": "Elemen Sistem Elektronika",
+          "cp_normatif": "Menerapkan alat ukur dan alat tangan elektronika; reverse engineering, wiring, commissioning; pemeliharaan, perbaikan, dan pengujian peralatan elektronika meliputi sensor dan tranduser, kontrol loop terbuka dan tertutup, dasar pengendali, pengendali relay, pengatur kecepatan motor, dan sistem proteksi peralatan elektronika."
+        },
+        {
+          "nama": "Elemen Sistem Kontrol",
+          "cp_normatif": "Menerapkan komponen, diagram sistem, analisis kesalahan/kerusakan; dan perbaikan pada sistem kontrol (mekanik, pneumatik, hidrolik, elektrik)."
+        },
+        {
+          "nama": "Elemen Perawatan Mesin Mekanik Industri",
+          "cp_normatif": "Menerapkan overhaul sistem/peralatan mekanik, pemeriksaan kerusakan bantalan (bearing) dan bantalan luncur selama beroperasi maupun tidak beroperasi."
+        }
+      ]
+    }
+  },
+  "teknik_pengecoran_logam": {
+    "bidang": "Teknologi Manufaktur dan Rekayasa",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Teknik Pengecoran Logam (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Teknik pembuatan pola",
+          "cp_normatif": "Menerapkan penggunaan mesin perkakas, perkakas tangan, perkakas bertenaga/operasi digenggam, mesin kerja kayu; merancang desain pola; dan menerapkan pembuatan pola, perakitan pelat pola, dan sistem saluran pola."
+        },
+        {
+          "nama": "Teknik pembuatan cetakan dan inti",
+          "cp_normatif": "Menerapkan komposisi campuran dan volume pasir cetak, mixer pasir cetak, pengeluaran campuran pasir, pembuatan cetakan pasir; dan menerapkan pembuatan inti, dan mesin untuk pembuatan cetakan/inti."
+        },
+        {
+          "nama": "Teknik pengecoran manual",
+          "cp_normatif": "Menerapkan penggunaan peralatan pengecoran manual, alat bantu pengangkat, komposisi bahan baku tanur peleburan, pengoperasian tanur peleburan, dan penggunaan ladel/cawan, penuangan"
+        },
+        {
+          "nama": "Teknik pengecoran dengan mesin",
+          "cp_normatif": "Menerapkan peralatan pengecoran dengan mesin; pengoperasian mesin cetak dan mesin inti; pengoperasian dan pemantauan mesin pengecoran bertekanan; pemeriksaan dan perlakuan benda tuang; dan pemantauan tanur."
+        }
+      ]
+    }
+  },
+  "desain_gambar_mesin": {
+    "bidang": "Teknologi Manufaktur dan Rekayasa",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Desain Gambar Mesin (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Teknik Gambar Konstruksi",
+          "cp_normatif": "Menerapkan teknik menggambar bentangan secara grafis dan matematis, teknik menggambar konstruksi sambungan VI.13. tetap dan tidak tetap baik secara sederhana maupun kompleks, teknik gambar konstruksi las, gambar konstruksi mesin dengan berbagai jenis sambungan, aturan gambar konstruksi rangka baja, dan teknik pembuatan gambar benda dari logam profil sesuai aturan gambar konstruksi."
+        },
+        {
+          "nama": "Teknik Gambar Produksi",
+          "cp_normatif": "Menerapkan gambar potongan dan pemberian ukuran pada gambar, aturan tanda pengerjaan dan harga kekasaran pada gambar detail komponen mesin (Konfigurasi Permukaan), aturan toleransi linier dan toleransi sudut, suaian (fits) pada gambar detail dan rakitan komponen mesin, penyederhanaan gambar ulir, gambar detail komponen mesin dan produk rakitan sederhana, aturan gambar benda tuangan, gambar kerja roda gigi, toleransi geometris pada gambar, aturan gambar rakitan komponen mesin kompleks, persyaratan komponen dan bahan detail dan rakitan sederhana dan kompleks, dan perubahan pada gambar komponen mesin, serta produk rakitan sederhana dan kompleks."
+        },
+        {
+          "nama": "Teknik Merancang dengan CAM",
+          "cp_normatif": "Menerapkan sistem koordinat, etiket, teknik pembuatan dan pemodifikasian, teknik penyajian gambar assembly, dan teknik penggambaran bukaan menggunakan CAD 2D dan 3D serta menerapkan perintah dalam perangkat lunak CAM Lathe dan CAM Milling 2D dan 3D khususnya untuk surface dan wireframe."
+        }
+      ]
+    }
+  },
+  "teknik_pemesinan_pesawat_udara": {
+    "bidang": "Teknologi Manufaktur dan Rekayasa",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Teknik Pemesinan Pesawat Udara (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Basic Aircraft Technical Knowledge (BATK)",
+          "cp_normatif": "Menganalisis human factor dalam industri penerbangan, aircraft material, aircraft hardware, prinsip theory of flight, karakteristik aerodinamik terhadap kecepatan pesawat, konsep aircraft structure, konsep aircraft system, konsep basic aircraft propulsion, dan CASR part 21, 39, 43, 45, 47, 65, 145, 147."
+        },
+        {
+          "nama": "CAD (Computer Aided Design)",
+          "cp_normatif": "Menerapkan desain sederhana, pemodifikasian gambar, rancangan gambar detail, hasil rancangan gambar 2 dimensi dan 3 dimensi disesuaikan dengan aplikasi CAD (Computer Aided Design)."
+        },
+        {
+          "nama": "Pembubutan Komponen Pesawat Udara",
+          "cp_normatif": "Menerapkan pembubutan bagian luar, muka dan rata, poros bertingkat, lubang bertingkat, di antara dua senter, macam-macam ulir luar dan ulir dalam, kartel, tirus, alur puli, alur dalam lubang, pembubutan pada faceplate, kontur/profil secara manual, poros eksentrik serta dapat melakukan perawatan mesin."
+        },
+        {
+          "nama": "Pengefraisan Komponen Pesawat Udara",
+          "cp_normatif": "Menerapkan pengefraisan rata, balok bertingkat luar dan dalam, bidang miring, benda kerja alur ekor burung dalam dan ekor burung luar, benda alur T, segi empat pada poros, segi banyak beraturan, batang gigi (rack), Roda Gigi Lurus (spur gear), alur pasak pada lubang serta dapat melakukan perawatan mesin."
+        },
+        {
+          "nama": "Pemesinan CNC Komponen Pesawat Udara VI.14. Menerapkan program CNC dan mengoperasikan mesin CNC",
+          "cp_normatif": "(Computer Numerical Control) 2 axis dan 3 axis serta dapat melakukan perawatan pada mesin."
+        }
+      ]
+    }
+  },
+  "teknik_konstruksi_rangka_pesawat_udara": {
+    "bidang": "Teknologi Manufaktur dan Rekayasa",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Teknik Konstruksi Rangka Pesawat Udara (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Basic Aircraft Technical Knowledge (BATK) VI.15. Menganalisis human factor dalam penerbangan, bahan dan",
+          "cp_normatif": "komponen pesawat udara, teori penerbangan, sistem dan struktur pesawat, dasar-dasar mesin pesawat, serta regulasi penerbangan CASR (Civil Aviation Safety Regulation) khususnya bagian struktur pesawat udara."
+        },
+        {
+          "nama": "Gambar teknik pesawat udara dan CAD",
+          "cp_normatif": "Menerapkan pembuatan gambar teknik pesawat udara secara manual dan digital (2D & 3D) dengan aturan standar yang berlaku menggunakan aplikasi CAD."
+        },
+        {
+          "nama": "Alat bantu perakitan pesawat udara (Aircraft Tools JIG and Fixture)",
+          "cp_normatif": "Menerapkan cara mendesain dan membuat alat bantu perakitan, menentukan material, serta merawat alat agar tidak rusak."
+        },
+        {
+          "nama": "Instalasi hidrolik dan pneumatik pesawat udara (Aircraft Hydraulic and Pneumatic Installation)",
+          "cp_normatif": "Menerapkan sistem hidrolik dan pneumatik pesawat udara, serta dapat melakukan proses perawatan."
+        },
+        {
+          "nama": "Material komposit pesawat udara (Aircraft Material Composite)",
+          "cp_normatif": "Menganalisis bahan komposit pesawat udara, cara pembuatannya, penyimpanannya, serta dapat membuat dan merawat komponen sederhana dari material ini."
+        },
+        {
+          "nama": "Perakitan Struktur Pesawat (Aircraft Structure Assy)",
+          "cp_normatif": "Menerapkan perakitan struktur pesawat termasuk pengoperasian alat, riveting, perlakuan permukaan, pengecatan, dan perawatan hasil rakitan."
+        }
+      ]
+    }
+  },
+  "teknik_pemesinan_kapal": {
+    "bidang": "Teknologi Manufaktur dan Rekayasa",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Teknik Pemesinan Kapal (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Pekerjaan mesin perkakas VI.16. Menerapkan pekerjaan mesin perkakas konvensional",
+          "cp_normatif": "tingkat dasar (pembubutan, pengefraisan, dan penggerindaan benda kerja) dan nonkonvensional tingkat dasar (menyusun program dan pengoperasian mesin bubut CNC (Computer Numerical Control); menyusun program; dan pengoperasian mesin frais CNC (Computer Numerical Control)."
+        },
+        {
+          "nama": "Pembentukan pelat dan pipa kapal",
+          "cp_normatif": "Menerapkan penandaan pada pelat secara manual (manual marking), penandaan dengan frame marker (paper tape), pemotongan pelat dan pipa dengan peralatan mekanis dan pemotongan panas secara manual, penandaan pipa, serta pemasangan sistem pipa dan katup."
+        },
+        {
+          "nama": "Pemasangan penggerak kapal",
+          "cp_normatif": "Menerapkan pemasangan fondasi pesawat bantu, pesawat bantu dan motor pokok (main engine installation), pemasangan dan pengecoran chockfast pada fondasi motor pokok, serta pengencangan holding down bolt pada motor pokok."
+        },
+        {
+          "nama": "Pekerjaan mesin fluida",
+          "cp_normatif": "Menerapkan perawatan dan pengoperasian pada peralatan pneumatik dan hidrolik."
+        }
+      ]
+    }
+  },
+  "teknik_kendaraan_ringan": {
+    "bidang": "Teknologi Manufaktur dan Rekayasa",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Teknik Kendaraan Ringan (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Konversi energi kendaraan ringan",
+          "cp_normatif": "Menganalisis konsep konversi energi kendaraan, perhitungan daya motor bakar, dan motor listrik."
+        },
+        {
+          "nama": "Proses pelayanan dan manajemen bengkel kendaraan ringan",
+          "cp_normatif": "Menganalisis kerja dan tugas kerja pada bengkel kendaraan ringan."
+        },
+        {
+          "nama": "Prosedur penggunaan kendaraan ringan",
+          "cp_normatif": "Menerapkan prosedur pengecekan sebelum dan sesudah berkendara dan pengoperasian kendaraan transmisi manual, dan automatic."
+        },
+        {
+          "nama": "Perawatan berkala kendaraan ringan",
+          "cp_normatif": "Menerapkan perawatan berkala kendaraan 1.000 km, 10.000 km, 20.000 km, dan kelipatannya."
+        },
+        {
+          "nama": "Sistem engine kendaraan ringan",
+          "cp_normatif": "Menerapkan perawatan dan overhaul (pembongkaran, pemeriksaan, perbaikan dan pemasangan) pada komponen utama engine, sistem pelumasan, sistem pendinginan, sistem bahan bakar, sistem pemasukan udara, dan sistem pembuangan dan kontrol emisi sesuai prosedur."
+        },
+        {
+          "nama": "Sistem pemindah tenaga kendaraan ringan",
+          "cp_normatif": "Menerapkan perawatan dan overhaul (pembongkaran, pemeriksaan, perbaikan, dan pemasangan) pada sistem clutch, sistem transmisi, poros propeller, differential, poros penggerak roda sesuai prosedur."
+        },
+        {
+          "nama": "Sistem sasis kendaraan ringan",
+          "cp_normatif": "Menerapkan perawatan dan overhaul (pembongkaran, pemeriksaan, perbaikan dan pemasangan) pada sistem rem, sistem kemudi, sistem suspensi, roda dan ban, serta spooring dan balancing roda sesuai prosedur."
+        },
+        {
+          "nama": "Sistem elektrikal kendaraan ringan",
+          "cp_normatif": "Menerapkan perawatan dan overhaul (pembongkaran, pemeriksaan, perbaikan dan pemasangan) pada baterai, jaringan kelistrikan, sistem penerangan dan sistem lampu tanda, sistem wiper dan washer, sistem power window dan VI.17. central lock, electric mirror, sistem starter, sistem pengisian, sistem pengapian, sistem Air Conditioner, dan sistem audio-video sesuai prosedur."
+        }
+      ]
+    }
+  },
+  "teknik_sepeda_motor": {
+    "bidang": "Teknologi Manufaktur dan Rekayasa",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Teknik Sepeda Motor (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Perawatan dan perbaikan engine sepeda motor",
+          "cp_normatif": "Menerapkan perawatan dan perbaikan mekanisme katup, sistem pelumasan, sistem pendinginan, sistem gas buang, dan sistem bahan bakar pada engine sepeda motor."
+        },
+        {
+          "nama": "Perawatan dan perbaikan sasis sepeda motor",
+          "cp_normatif": "Menerapkan perawatan dan perbaikan sistem rem, sistem suspensi, sistem kemudi, dan rangka pada sasis sepeda motor."
+        },
+        {
+          "nama": "Perawatan dan perbaikan sistem pemindah tenaga sepeda motor",
+          "cp_normatif": "Menerapkan perawatan dan perbaikan sistem kopling, sistem transmisi, roda, ban, dan rantai pada sistem pemindah tenaga sepeda motor."
+        },
+        {
+          "nama": "Perawatan dan perbaikan sistem kelistrikan sepeda motor",
+          "cp_normatif": "Menerapkan perawatan dan perbaikan sistem penerangan, sistem instrumen dan sinyal, sistem starter, sistem pengapian, dan sistem pengisian pada sistem kelistrikan sepeda motor."
+        },
+        {
+          "nama": "Perawatan dan perbaikan sepeda motor listrik dan hybrid",
+          "cp_normatif": "Menerapkan perawatan dan perbaikan komponen sepeda motor listrik, sistem controller, Brushless Direct Current (BLDC), dan baterai pada sepeda motor listrik dan hybrid."
+        },
+        {
+          "nama": "Perawatan dan perbaikan engine management system sepeda motor",
+          "cp_normatif": "Menerapkan perawatan dan perbaikan sistem injeksi dan sistem pengamanan pada engine management system (EMS) sepeda motor."
+        },
+        {
+          "nama": "Pengelolaan bengkel sepeda motor VI.18. Menerapkan Keselamatan dan Kesehatan Kerja dan",
+          "cp_normatif": "Lingkungan Hidup (K3LH) dan manajemen bengkel sepeda motor."
+        }
+      ]
+    }
+  },
+  "teknik_alat_berat": {
+    "bidang": "Teknologi Manufaktur dan Rekayasa",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Teknik Alat Berat (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Product Knowledge",
+          "cp_normatif": "Menganalisis nama, jenis, dan fungsi masing-masing produk alat berat."
+        },
+        {
+          "nama": "Manual Book",
+          "cp_normatif": "Menerapkan manual book baik bentuk hardcopy atau softcopy."
+        },
+        {
+          "nama": "Engine Alat Berat",
+          "cp_normatif": "Menganalisis komponen-komponen utama engine serta beberapa sistem yang terdapat pada engine pada unit alat berat."
+        },
+        {
+          "nama": "Sistem Kelistrikan Alat Berat",
+          "cp_normatif": "Menganalisis baterai, starting system, preheating system, charging system, tipe dan struktur connector dan wire termasuk electrical control serta electric wiring diagram."
+        },
+        {
+          "nama": "Sistem Hydraulic Alat Berat",
+          "cp_normatif": "Menganalisis komponen-komponen utama sistem hidrolik yang digunakan pada alat berat termasuk komponen pendukung lainnya. VI.19. 6. Pemindah tenaga (Power Train) dan Kerangka Bawah (Undercarriage) Menganalisis sistem pemindah tenaga (power train) dan kerangka bawah (undercarriage)."
+        },
+        {
+          "nama": "Perawatan Berkala Unit Alat Berat",
+          "cp_normatif": "Menerapkan pembuatan paper works dan perawatan harian, perawatan berkala, penyelesaian gangguan sederhana, dan prosedur pengoperasian alat berat dalam lingkup perawatan berkala."
+        }
+      ]
+    }
+  },
+  "teknik_ototronik": {
+    "bidang": "Teknologi Manufaktur dan Rekayasa",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Teknik Ototronik (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Engine Management System dan manajemen motor listrik",
+          "cp_normatif": "Menerapkan pemeliharaan sistem engine dasar dan sistem-sistem pada engine management system, serta perbaikan engine management system."
+        },
+        {
+          "nama": "Chassis and Powertrain Management System",
+          "cp_normatif": "Menerapkan pemeliharaan sistem dasar sasis dan pemindah tenaga, sistem sasis dan pemindah tenaga kontrol elektronik, serta perbaikan chassis and powertrain management system."
+        },
+        {
+          "nama": "Comfort, Safety and Information Technology (CSIT) VI.20. Menerapkan pemeliharaan sistem standar kelistrikan",
+          "cp_normatif": "otomotif, sistem keamanan kontrol elektronik, sistem kenyamanan kontrol elektronik, dan sistem panel instrument cluster (dashboard), serta perbaikan fail safe atau onboard diagnostic pada CSIT sistem kendaraan."
+        },
+        {
+          "nama": "Sistem kontrol kendaraan",
+          "cp_normatif": "Menerapkan rangkaian sistem kontrol elektronik (hardware), pemrograman mikrokontroler pada sistem kontrol elektronik sederhana kendaraan (software), dan simulator rangkaian sistem kontrol utama berbasis mikrokontroler, serta perbaikan sistem kontrol kendaraan menggunakan perangkat diagnosa (scan tool)."
+        }
+      ]
+    }
+  },
+  "teknik_bodi_kendaraan_ringan": {
+    "bidang": "Teknologi Manufaktur dan Rekayasa",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Teknik Bodi Kendaraan Ringan (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Panel bodi dan rangka",
+          "cp_normatif": "Menganalisis estimasi kerusakan bodi kendaraan, pelepasan, pemasangan serta perbaikan ringan panel bodi, pintu, dan fender, perbaikan panel tertutup, pengelasan pada panel, penggantian dan pengukuran dimensi panel utama, perataan panel dengan dempul, dan pembuatan panel dari bahan baja dan fiberglass atau bahan lain."
+        },
+        {
+          "nama": "Kelistrikan bodi dan aksesoris",
+          "cp_normatif": "Menerapkan analisis gangguan pada sistem lampu otomotif, power window, central lock, dan sistem wiper, pengaturan mirror, pengaturan sunroof, kelistrikan bodi, pelepasan dan pemasangan pelindung/moulding, sticker/wrapping, spoiler, pemasangan body kit, dan penerapan hiasan door trim."
+        },
+        {
+          "nama": "Pengecatan bodi",
+          "cp_normatif": "Menerapkan persiapan panel, pemakaian body sealer, metode pendempulan, metode surfacer, masking bagian yang tidak diperbaiki, penyesuaian warna/color matching, color mixing, perbaikan kecil/touch up, perbaikan sebagian, pengecatan panel plastik, dan metode pengkilapan/polishing dan coating."
+        },
+        {
+          "nama": "Interior bodi kendaraan",
+          "cp_normatif": "Menerapkan pelepasan, pemasangan dan perawatan kaca, lapisan kaca film, plafon, trimming, karpet bodi, dashboard, sabuk pengaman, serta pemasangan dan pelepasan cover jok."
+        }
+      ]
+    }
+  },
+  "teknik_pengelasan": {
+    "bidang": "Teknologi Manufaktur dan Rekayasa",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Teknik Pengelasan (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Gambar teknik",
+          "cp_normatif": "Menerapkan gambar teknik lingkup pengelasan."
+        },
+        {
+          "nama": "Pengelasan OAW",
+          "cp_normatif": "Menerapkan pengelasan pelat ke pelat pada baja karbon posisi di bawah tangan sesuai dengan prosedur code standard yang diacu dalam WPS. VI.22. 3. Pengelasan SMAW Menerapkan pengelasan pelat ke pelat pada baja karbon posisi di bawah tangan, mendatar, dan vertikal sesuai dengan acuan WPS."
+        },
+        {
+          "nama": "Pengelasan GMAW dan FCAW",
+          "cp_normatif": "Menerapkan pengelasan pelat ke pelat pada baja karbon posisi di bawah tangan, mendatar, dan vertikal sesuai dengan acuan WPS."
+        },
+        {
+          "nama": "Pemotongan bahan logam dengan gas",
+          "cp_normatif": "Menerapkan spesifikasi mesin potong, prosedur penyetelan (setting) mesin, prosedur penyiapan gas, prosedur penyalaan, pemotongan bahan logam dengan gas sesuai dengan acuan WPS, dan pemeriksaan secara visual hasil potong bahan logam."
+        },
+        {
+          "nama": "Pengelasan GTAW",
+          "cp_normatif": "Menerapkan pengelasan pelat ke pelat pada baja karbon posisi di bawah tangan, mendatar, dan vertikal sesuai dengan acuan Welding Procedure Specification (WPS)."
+        },
+        {
+          "nama": "Mutu pengelasan",
+          "cp_normatif": "Menerapkan pemotongan mekanik, WPS, dan cacat-cacat dalam pengelasan, serta menerapkan pengujian merusak dan tidak merusak hasil pengelasan sesuai dengan prosedur code standard yang diacu dalam Welding Procedure Specification (WPS)."
+        }
+      ]
+    }
+  },
+  "teknik_pengelasan_kapal": {
+    "bidang": "Teknologi Manufaktur dan Rekayasa",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Teknik Pengelasan Kapal (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Teknik gambar pengelasan",
+          "cp_normatif": "Menerapkan gambar teknik, simbol las, dan WPS."
+        },
+        {
+          "nama": "Teknik las SMAW",
+          "cp_normatif": "Menerapkan pengelasan pelat baja karbon, pelat dan pipa baja karbon, pipa baja karbon, pelat baja paduan, dan pipa baja paduan menggunakan proses Las SMAW. VI.23. 3. Teknik las FCAW Menerapkan pengelasan pelat baja karbon, pipa baja karbon, pelat baja paduan, dan pipa baja paduan menggunakan proses las FCAW."
+        },
+        {
+          "nama": "Teknik las GMAW",
+          "cp_normatif": "Menerapkan pengelasan pelat baja karbon, pipa baja karbon, dan pelat logam non ferrous menggunakan proses las GMAW."
+        },
+        {
+          "nama": "Teknik las SAW",
+          "cp_normatif": "Menerapkan pengelasan pelat baja karbon menggunakan proses las SAW, pengelasan satu sisi dengan Flux dan Copper Backing (FCB One Side Welding)."
+        },
+        {
+          "nama": "Teknik las GTAW",
+          "cp_normatif": "Menerapkan penggunaan las GTAW untuk pengelasan pada pelat baja karbon, pipa baja karbon, pelat baja paduan atau logam non ferrous, pipa baja paduan, atau logam non ferrous."
+        },
+        {
+          "nama": "Teknik pengujian hasil las",
+          "cp_normatif": "Menerapkan uji hasil pengelasan secara visual, merusak atau DT (Destructive Test) dan tanpa merusak atau NDT (Non Destructive Test) sesuai standar kerja."
+        },
+        {
+          "nama": "Teknik las bangun kapal",
+          "cp_normatif": "Menerapkan pemotongan dan penandaan (marking) pada pelat sesuai standar kerja, dan menentukan metode assembly pada block."
+        }
+      ]
+    }
+  },
+  "teknik_konstruksi_badan_pesawat_udara": {
+    "bidang": "Teknologi Manufaktur dan Rekayasa",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Teknik Konstruksi Badan Pesawat Udara (Aircraft Sheet Metal Forming) (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Basic Aircraft Technical Knowledge (BATK)",
+          "cp_normatif": "Menganalisis human factor dalam industri penerbangan, aircraft material, aircraft hardware, theory of flight, karakteristik aerodinamik terhadap kecepatan pesawat, konsep aircraft structure, konsep aircraft system, konsep basic aircraft propulsion, dan CASR Part 21, 39, 43, 45, 47, 65, 145, 147."
+        },
+        {
+          "nama": "Aircraft drawing dan CAD",
+          "cp_normatif": "Menerapkan aturan gambar part dan gambar assembling pesawat udara yang sederhana serta kompleks, etiket gambar, bentangan gambar geometris, sistem koordinat, fungsi perintah, pemodifikasian gambar, rancangan gambar detail, hasil rancangan, dan penyimpanan hasil gambar 2 dimensi dan 3 dimensi sesuai dengan sistem CAD yang digunakan."
+        },
+        {
+          "nama": "Gambar bentangan dan geometri VI.24. Menerapkan pembuatan gambar bentangan, metode",
+          "cp_normatif": "menggambar bentangan, teknik menggambar bentangan, gambar bentangan benda geometri dengan metoda sisi sejajar, gambar bentangan benda geometri dengan metoda radial, metoda triangular dalam membuat gambar bentangan, gambar bentangan geometri untuk benda terpotong miring, dan gambar bentangan benda geometri gabungan."
+        },
+        {
+          "nama": "Pembentukan logam komponen pesawat udara",
+          "cp_normatif": "Menerapkan teknik pembentukan logam, peralatan pembentuk logam yang digunakan, komponen pesawat udara dari logam sheet metal/plate dan tube dengan proses peregangan dan pengerutan, cacat hasil pembentukan dan cara perbaikan, serta pembentukan logam sheet metal/plate dan komponen pesawat udara dengan proses hand forming dan mekanikal."
+        },
+        {
+          "nama": "Pengelasan komponen pesawat udara",
+          "cp_normatif": "Menerapkan prosedur penyetelan (setting) mesin las, prosedur penyiapan bahan las, menerapkan proses pengelasan OAW, SMAW, GTAW, GMAW, berbagai posisi pengelasan sesuai kebutuhan dengan acuan Welding Procedure Specification (WPS), dan pemeriksaan hasil pengelasan."
+        },
+        {
+          "nama": "Aircraft composite material",
+          "cp_normatif": "Menganalisis material komposit, peralatan, dan alur proses pengerjaan komposit part pesawat udara, dan menerapkan perawatan/maintenance part komposit pesawat udara, dan pemeriksaan cacat atau kerusakan pada part komposit."
+        }
+      ]
+    }
+  },
+  "teknik_fabrikasi_logam_dan_manufaktur": {
+    "bidang": "Teknologi Manufaktur dan Rekayasa",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Teknik Fabrikasi Logam dan Manufaktur (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Teknik pemesinan konvensional",
+          "cp_normatif": "Menerapkan pekerjaan mesin bubut, pekerjaan mesin frais, dan pekerjaan dengan mesin gerinda."
+        },
+        {
+          "nama": "Teknik pemesinan nonkonvensional",
+          "cp_normatif": "Menerapkan pengoperasian sistem komputer pada mesin CNC, penyetelan mesin CNC, penyetelan serta penyuntingan program pada mesin CNC, pemrograman VI.25. mesin CNC (dasar), serta pengoperasian dan pemantauan mesin CNC."
+        },
+        {
+          "nama": "Teknik fabrikasi logam",
+          "cp_normatif": "Menerapkan pemotongan secara mekanik, pemotongan panas secara manual, pembentukan, pelengkungan, pencetakan, merakit komponen fabrikasi, penyolderan, serta pengelasan menggunakan las oksi-asetilen (OAW), las busur manual (SMAW), las gas (GMAW), dan las gas tungsten (GTAW)."
+        },
+        {
+          "nama": "Gambar teknik dan perancangan",
+          "cp_normatif": "Menerapkan mekanika teknik dasar, proses perancangan gambar teknik rinci tingkat dasar, proses menggambar 2D dengan sistem CAD, dan pembuatan model 3D dengan sistem CAD dasar, serta menggambar konsep rancangan teknik dengan sistem CAD 3D."
+        }
+      ]
+    }
+  },
+  "teknik_pengendalian_produksi": {
+    "bidang": "Teknologi Manufaktur dan Rekayasa",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Teknik Pengendalian Produksi (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Perencanaan produksi",
+          "cp_normatif": "Menerapkan jenis-jenis perencanaan (jangka pendek, menengah, panjang); menyusun rencana produksi berdasarkan permintaan, forecasting; dan menentukan kebutuhan bahan baku, tenaga kerja dan mesin."
+        },
+        {
+          "nama": "Penjadwalan produksi",
+          "cp_normatif": "Menerapkan proses produksi; menentukan waktu mulai dan selesai setiap kegiatan produksi; memprediksi waktu tunggu maksimal; meningkatkan efisiensi dan menghindari bottle neck; menyusun jenis penjadwalan (job order, Ffow shop, dan batch Production); dan menyusun jadwal kerja penggunaan mesin dan tenaga kerja. VI.26. 3. Pengendalian persediaan Menganalisis persediaan (raw material, work-in process (WIP) dan finished good); mengevaluasi sistem pengendalian persediaan (FIFO, LIFO, EOQ,ROP, JIT); dan menerapkan manajemen gudang dan pencatatan."
+        },
+        {
+          "nama": "Pengendalian kualitas",
+          "cp_normatif": "Mengevaluasi peningkatan kualitas bahan baku yang digunakan sesuai standar menggunakan teknik SPC (Statistical Process Control) untuk mendeteksi dan mengatasi penyimpangan."
+        },
+        {
+          "nama": "Quality Control Circle (QCC) untuk perbaikan berkelanjutan",
+          "cp_normatif": "Menerapkan konsep dasar QCC sebagai salah satu bentuk penerapan Total Quality Management, keterampilan pemecahan masalah mutu dan Continuous Improvement dengan pendekatan � PDCA Cycle & 7QC Tools."
+        }
+      ]
+    }
+  },
+  "teknik_logistik": {
+    "bidang": "Teknologi Manufaktur dan Rekayasa",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Teknik Logistik (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut. VI.27. 1. Procurement/pengadaan Menerapkan perencanaan; melakukan negosiasi; menyusun dokumen kontrak; melakukan pemilihan penyedia; dan melaksanakan pengadaan barang/jasa.",
+      "elemen": [
+        {
+          "nama": "Aktivitas pergudangan",
+          "cp_normatif": "Menerapkan prosedur dalam penanganan barang masuk, penyimpanan barang, pengeluaran barang, peralatan, fasilitas gudang, dan mengevaluasi persediaan barang."
+        },
+        {
+          "nama": "Pengemasan barang (packing)",
+          "cp_normatif": "Menganalisis jenis barang dan menerapkan teknik pengemasan barang sesuai jenis barang."
+        },
+        {
+          "nama": "Teknik pengiriman barang",
+          "cp_normatif": "Menerapkan teknik pengiriman barang (collecting, processing, transporting dan delivery); menentukan rute; memilih moda transportasi; dan mengurus dokumen pengiriman barang."
+        },
+        {
+          "nama": "Sistem informasi logistik",
+          "cp_normatif": "Menerapkan pengoperasian sistem informasi logistik dan menerapkan aplikasi yang relevan."
+        },
+        {
+          "nama": "Perdagangan internasional",
+          "cp_normatif": "Menganalisis dasar-dasar perdagangan internasional."
+        }
+      ]
+    }
+  },
+  "teknik_mekatronika": {
+    "bidang": "Teknologi Manufaktur dan Rekayasa",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Teknik Mekatronika (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Sistem kontrol mekatronika",
+          "cp_normatif": "Menerapkan pengoperasian kendali sistem motor listrik, pemrograman PLC/Mikrokontroler berdasarkan mekanisme proses kerja peralatan/mesin, pemrograman HMI, networking antar PLC/Mikrokontroler, dan pengoperasian Distributed Control System."
+        },
+        {
+          "nama": "Sistem mekatronika berbasis Computer Aided Engineering (CAE)",
+          "cp_normatif": "Menerapkan pengoperasian software aplikasi CAD untuk pembuatan gambar desain mekanik pada sistem mekatronika dan perakitan hasil desain/rancangan menjadi sistem mekatronika."
+        },
+        {
+          "nama": "Sistem robotik",
+          "cp_normatif": "Menerapkan instalasi dan pengoperasian sistem pneumatik dan hidrolik, pengoperasian sistem robotik, dan dismantling and assembling sistem robotik."
+        },
+        {
+          "nama": "Perawatan dan perbaikan sistem mekanikal",
+          "cp_normatif": "Menerapkan jenis-jenis perawatan mesin, pembersihan dan pelumasan peralatan mekanik, pemeriksaan peralatan VI.29. pneumatik, hidrolik, pompa, dan transmisi gerak; dan menerapkan instalasi peralatan pompa dan transmisi gerak."
+        },
+        {
+          "nama": "Perawatan dan perbaikan sistem elektrikal",
+          "cp_normatif": "Menerapkan pembersihan dan pemeriksaan perangkat elektronik pada mesin dan peralatan, adjustment (penyetelan) parameter pada peralatan elektronika/listrik, penggantian komponen/elemen/modul elektronik mesin dan peralatan, dan pemeliharaan sensor."
+        }
+      ]
+    }
+  },
+  "airframe_powerplant": {
+    "bidang": "Teknologi Manufaktur dan Rekayasa",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Airframe Powerplant (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Aircraft Structure",
+          "cp_normatif": "Menerapkan daily inspection, safety belt dan pemasangannya, A/C servicing, A/C ground handling, lap patch repair of aircraft skin, splice repair of stringer, symmetrical check, replace and rig of aileron, elevator and rudder; inspect and adjust flap; replacement of control wheel assembly, adjust nose wheel locking devices, jack an aircraft and perform landing gear retraction test, assembly main landing gear and wheel, dan brake."
+        },
+        {
+          "nama": "Aircraft System",
+          "cp_normatif": "Menerapkan unjuk kerja yang dibuat oleh ATA (Air Transportation Association) Chapter yang meliputi: air conditioning and cabin pressurization (ATA 21), instruments/avionic systems, electrical power (ATA 24), fire protection (ATA 26), flight control (ATA 27), fuel systems (ATA 28), hydraulic power system (ATA 29), ice and rain protection system (ATA 30), landing gear system (ATA 32), lights system (ATA 33), oxygen system (ATA 35), pneumatic/vacuum system (ATA 36), dan water/waste system (ATA 38)."
+        },
+        {
+          "nama": "Gas Turbine Engine (GTE)",
+          "cp_normatif": "Menerapkan GTE fundamentals; konsep pada turboprop, turboshaft, turbojet, dan turbofan; kondisi bagian-bagian GTE (air inlet, compressors, combustion section, turbine section, dan exhaust); komponen-komponen pada power plant installation; engine monitoring and ground operation; kerja berbagai engine indication (engine instrument), engine storage and preservation; prinsip starting and ignition system; komponen air systems; jenis lubricants dan fuels; powerplant removal and installation; dan engine performance serta menerapkan perawatan auxiliary power units (APUs); perawatan fuel system; dan komponen lubrication systems; engine run up; install and adjust fuel control; fuel pump and fuel flow meter; pelepasan dan pemasangan heat exchanger; pelepasan dan pemasangan ignition unit, ignitor plug, starter; generator; dan daily inspection pada motor turbin dan propeller."
+        },
+        {
+          "nama": "Piston Engine",
+          "cp_normatif": "Menerapkan konsep dasar prinsip kerja piston engine; kondisi bagian-bagian piston engine; prinsip starting and ignition systems; prinsip kerja supercharging/turbocharging; jenis lubricants and fuels; berbagai engine indication (engine instrument); powerplant removal and installation; engine monitoring and ground operation; engine storage and preservation; kondisi ignition unit; kondisi ignitor plug; kondisi starter, dan engine performance; menerapkan perawatan piston engine fuel systems; perawatan Carburetors; perawatan fuel injection systems; perawatan induction; exhaust and cooling systems; perawatan lubrication systems; dan engine run up. VI.36. 5. Maintenance Practice Menerapkan aircraft wiring diagrams dan schematic diagrams; catatan gambar; zone numbers; station numbers; identifikasi lokasi pada pesawat udara; kondisi electrical cables and connectors; menerapkan workshop practices; pekerjaan riveting pada proses perawatan dan perbaikan konstruksi pesawat udara; pemeriksaan fits and clearances; pekerjaan sheet metal; pekerjaan composite and non-metallic; aircraft painting; pekerjaan welding; brazing; soldering and bonding; aircraft weight and balance; aircraft handling and storage; inspection and repair techniques; disassembly and re-assembly techniques; dan troubleshooting techniques."
+        }
+      ]
+    }
+  },
+  "desain_rancang_bangun_kapal": {
+    "bidang": "Teknologi Manufaktur dan Rekayasa",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Desain Rancang Bangun Kapal (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Dasar-dasar desain rancang bangun kapal",
+          "cp_normatif": "Menerapkan pengetahuan tentang dasar-dasar desain rancang bangun kapal, dasar perhitungan gaya, dan konstruksi sederhana."
+        },
+        {
+          "nama": "Gambar konstruksi kapal",
+          "cp_normatif": "Menerapkan teknik menggambar rencana umum, bukaan kulit, sistem konstruksi kapal, rencana profil, midship section, konstruksi haluan, konstruksi buritan, konstruksi pondasi mesin, konstruksi sekat, konstruksi bangunan atas, rumah geladak, dan pembuatan gambar produksi (production drawing) pada konstruksi badan kapal (hull construction)."
+        },
+        {
+          "nama": "Gambar permesinan dan perlengkapan kapal",
+          "cp_normatif": "Menerapkan teknik menggambar layout kamar mesin, sistem poros baling-baling, stern tube, kemudi kapal, baling-baling, sistem dalam kapal, perlengkapan kapal, dan pembuatan gambar produksi (production drawing) pada permesinan dan perlengkapan kapal."
+        },
+        {
+          "nama": "Gambar interior kapal",
+          "cp_normatif": "Menerapkan teknik menggambar layout ruangan, desain interior, sambungan konstruksi kayu, perabot, konstruksi tangga, lantai, dinding, dan atap."
+        },
+        {
+          "nama": "Penggambaran dengan CAD",
+          "cp_normatif": "Menerapkan CAD untuk membuat gambar produksi (production drawing) dan pemodelan 3D meliputi konstruksi, permesinan, perlengkapan, dan interior kapal."
+        }
+      ]
+    }
+  },
+  "konstruksi_kapal_baja": {
+    "bidang": "Teknologi Manufaktur dan Rekayasa",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Konstruksi Kapal Baja (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Konstruksi badan kapal baja (hull construction)",
+          "cp_normatif": "Menerapkan konsep dasar konstruksi kapal, konstruksi bottom kapal, konstruksi potongan tengah kapal (midship section), konstruksi sekat kapal (bulkhead), konstruksi palkah, konstruksi haluan dan buritan kapal, dan konstruksi kamar mesin."
+        },
+        {
+          "nama": "Konstruksi perlengkapan badan kapal baja (hull outfitting)",
+          "cp_normatif": "Menerapkan sistem instalasi pipa dalam kapal, peralatan tambat dan labuh, kemudi dan penggerak kapal, peralatan bongkar muat kapal, sistem penutup palkah, dan alat keselamatan kapal."
+        },
+        {
+          "nama": "",
+          "cp_normatif": "Menggambar teknik perkapalan dengan perangkat lunak CAD Menerapkan tools perangkat lunak CAD 2D dan tools perangkat lunak CAD 3D; menghasilkan gambar sketsa, gambar bukaan kapal sederhana; gambar rencana garis (lines plan), bukaan lambung kapal, gambar bukaan konstruksi kapal, dan gambar kerja (working drawing)."
+        },
+        {
+          "nama": "Teknologi pembuatan bangunan baru kapal baja",
+          "cp_normatif": "Mengevaluasi kelebihan dan kekurangan serta faktor resiko fasilitas dan sarana pembangunan kapal baru; mengevaluasi sistem pengedokan dan peluncuran kapal; menerapkan metode pembuatan kapal konvensional, seksi, blok dan modular, badan klasifikasi kapal, dan tahapan manufaktur; dan melakukan proses produksi kapal bangunan baru sesuai dengan transformasi industri 4.0."
+        },
+        {
+          "nama": "Teknologi pemeliharaan dan perbaikan kapal baja",
+          "cp_normatif": "Menerapkan prosedur reparasi dan pemeliharaan badan kapal sesuai persyaratan klasifikasi; mengidentifikasi penyebab kerusakan dan keausan pada badan kapal; dan menerapkan teknologi pemeliharaan badan kapal dan perbaikan kapal."
+        },
+        {
+          "nama": "Pembuatan dan perakitan komponen konstruksi kapal",
+          "cp_normatif": "Menerapkan K3LH, prosedur mutu pekerjaan fabrikasi dan perakitan komponen kapal, material dan peralatan kerja fabrikasi, perakitan komponen kapal sesuai prosedur, menerapkan simbol marking dan penandaan pada material, melakukan proses pemotongan pelat pada konstruksi kapal, proses bending, forming dan fairing, las titik (tack weld), melakukan proses pengelasan pelat, menerapkan perakitan benda kerja (konstruksi kapal) sederhana, dan VI.39. melaksanakan proses pembuatan serta perakitan komponen konstruksi kapal kompleks sesuai dengan prosedur."
+        }
+      ]
+    }
+  },
+  "konstruksi_kapal_non_baja": {
+    "bidang": "Teknologi Manufaktur dan Rekayasa",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Konstruksi Kapal Non Baja (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Gambar secara manual dan dengan perangkat lunak aplikasi CAD",
+          "cp_normatif": "Menggambar secara manual maupun dengan menggunakan perangkat lunak aplikasi CAD dan mencetak gambar dengan menggunakan perangkat lunak aplikasi CAD."
+        },
+        {
+          "nama": "Gambar kapal kayu, kapal fiberglass, dan kapal aluminium",
+          "cp_normatif": "Membuat gambar lines plan, gambar rencana umum, mould loft, dan gambar bukaan konstruksi kapal non baja."
+        },
+        {
+          "nama": "Konstruksi bangunan kapal kayu, kapal fiberglass, dan Kapal Aluminium",
+          "cp_normatif": "Menganalisis konstruksi tengah kapal, konstruksi haluan kapal, konstruksi buritan kapal, konstruksi bangunan atas kapal, konstruksi sekat kapal, dan konstruksi kamar mesin kapal non baja."
+        },
+        {
+          "nama": "Konstruksi perlengkapan kapal",
+          "cp_normatif": "Menganalisis peralatan tambat, berlabuh, bongkar muat, navigasi, dan keselamatan berlayar serta motor bantu."
+        },
+        {
+          "nama": "Pembuatan dan perakitan komponen kapal kayu, komponen kapal fiberglass, dan komponen kapal",
+          "cp_normatif": "aluminium Menerapkan pembuatan, perakitan dan perbaikan lambung kapal, deck kapal, sekat kapal, dan komponen kapal non baja."
+        }
+      ]
+    }
+  },
+  "interior_kapal": {
+    "bidang": "Teknologi Manufaktur dan Rekayasa",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Interior Kapal (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Konsep dasar perkapalan",
+          "cp_normatif": "Menerapkan teori bangunan kapal, teori bangunan baru, karakteristik bahan kapal, penggunaan peralatan tangan, penggunaan peralatan tangan listrik, cara pemotongan bahan logam, pengetahuan dasar pengelasan, pengetahuan dasar kelistrikan, pengetahuan dasar kayu, dan pengetahuan dasar fiberglass."
+        },
+        {
+          "nama": "Gambar teknik interior kapal",
+          "cp_normatif": "Menerapkan cara menggambar penataan ruang akomodasi kapal dan penempatan perabot di kapal; dan menganalisis konstruksi dinding kapal (lining), konstruksi plafon kapal (ceiling), konstruksi lantai semen, konstruksi sistem insulasi, desain modeling 3D perabot kapal, dan modeling ruangan interior kapal"
+        },
+        {
+          "nama": "Pengoperasian mesin kerja kayu",
+          "cp_normatif": "Menerapkan pengoperasian mesin kerja kayu jinjing (portable) untuk memotong, membelah, melubang, menyerut, menggosok, dan menembak, serta pengoperasian mesin kerja kayu tetap (stasioner) untuk memotong, membelah, melubang, menyerut, menggosok; dan melakukan perawatan mesin kerja kayu."
+        },
+        {
+          "nama": "Pembuatan perabot dan elemen bangunan kapal",
+          "cp_normatif": "Menerapkan bermacam-macam perabot dan elemen bangunan kapal, karakteristik dan klasifikasi bermacam-macam bahan perabot, cara membaca gambar kerja, cara mengestimasi bahan pembuatan perabot, cara menentukan konstruksi sambungan perabot dengan menelaah gambar kerja, dan cara melakukan pembuatan perabot sesuai prosedur, serta menganalisis cacat kayu akibat salah pengerjaan dan hasil pembuatan perabot."
+        },
+        {
+          "nama": "Pekerjaan interior kapal",
+          "cp_normatif": "Menerapkan layout bermacam-macam ruang akomodasi kapal, sistem pemasangan joist, bahan, gambar kerja pemasangan, serta konstruksi sistem insulasi; menerapkan jenis, konstruksi, gambar kerja konstruksi, dan pemasangan dinding (lining) interior kapal; menerapkan jenis, konstruksi, gambar kerja konstruksi, dan pemasangan plafon (ceiling) interior kapal; menerapkan jenis, konstruksi, gambar konstruksi; dan menerapkan pemasangan lantai kapal serta langkah-langkah pemasangan perabot kapal."
+        },
+        {
+          "nama": "Pelapisan Permukaan",
+          "cp_normatif": "Menerapkan pekerjaan pra finishing, karakteristik bahan pelapis kayu lembaran dan teknik pemasangan pelapisan kayu jenis lembaran; memahami karakteristik bahan pelapisan kayu dengan bahan cat; dan menerapkan pekerjaan pra finishing, teknik pemasangan pelapisan kayu jenis lembaran, teknik pencampuran bahan pengecatan, VI.41. prosedur pengecatan, dan fasilitas pengecatan dengan spray gun."
+        }
+      ]
+    }
   }
 }
