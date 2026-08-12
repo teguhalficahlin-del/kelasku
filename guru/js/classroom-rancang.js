@@ -260,7 +260,7 @@
 <div class="rp-block">
   <div class="rp-block-title">Identitas Konteks Pembelajaran</div>
   <div class="rp-q" id="rp-q-p1">
-    <label class="rp-q-label" for="rp-jenjang-sel">1. Jenjang sekolah *</label>
+    <label class="rp-q-label" style="color:var(--gold)" for="rp-jenjang-sel">1. Jenjang sekolah</label>
     <select class="rp-select" id="rp-jenjang-sel">
       <option value="">— Pilih jenjang —</option>
       ${['SD','SMP','SMA','SMK'].map(j =>
@@ -300,7 +300,7 @@
     const div = document.createElement('div');
     div.id = 'rp-q-p1b';
     div.className = 'rp-q';
-    div.innerHTML = `<label class="rp-q-label">2. Bidang keahlian *</label>${loading('Memuat bidang…')}`;
+    div.innerHTML = `<label class="rp-q-label" style="color:var(--gold)">2. Bidang keahlian</label>${loading('Memuat bidang…')}`;
     block.insertBefore(div, el('rp-step1-error'));
 
     const data = await loadCpData();
@@ -313,7 +313,7 @@
         .map(v => v.bidang)
     )].sort((a, b) => a.localeCompare(b, 'id'));
 
-    qDiv.innerHTML = `<label class="rp-q-label" for="rp-bidang-sel">2. Bidang keahlian *</label>
+    qDiv.innerHTML = `<label class="rp-q-label" style="color:var(--gold)" for="rp-bidang-sel">2. Bidang keahlian</label>
 <select class="rp-select" id="rp-bidang-sel">
   <option value="">— Pilih bidang keahlian —</option>
   ${bidangs.map(b =>
@@ -343,7 +343,7 @@
     const div = document.createElement('div');
     div.id = 'rp-q-p1c';
     div.className = 'rp-q';
-    div.innerHTML = `<label class="rp-q-label">3. Program keahlian *</label>${loading('Memuat program keahlian…')}`;
+    div.innerHTML = `<label class="rp-q-label" style="color:var(--gold)">3. Program keahlian</label>${loading('Memuat program keahlian…')}`;
     block.insertBefore(div, el('rp-step1-error'));
 
     const data = await loadCpData();
@@ -356,7 +356,7 @@
         .map(v => v.program_keahlian)
     )].sort((a, b) => a.localeCompare(b, 'id'));
 
-    qDiv.innerHTML = `<label class="rp-q-label" for="rp-program-sel">3. Program keahlian *</label>
+    qDiv.innerHTML = `<label class="rp-q-label" style="color:var(--gold)" for="rp-program-sel">3. Program keahlian</label>
 <select class="rp-select" id="rp-program-sel">
   <option value="">— Pilih program keahlian —</option>
   ${programs.map(p =>
@@ -405,7 +405,7 @@
     const div = document.createElement('div');
     div.id = 'rp-q-p2';
     div.className = 'rp-q';
-    div.innerHTML = `<label class="rp-q-label">${qNum}. Mata pelajaran *</label>${loading('Memuat mapel…')}`;
+    div.innerHTML = `<label class="rp-q-label" style="color:var(--gold)">${qNum}. Mata pelajaran</label>${loading('Memuat mapel…')}`;
     block.insertBefore(div, el('rp-step1-error'));
 
     const data = await loadCpData();
@@ -424,7 +424,7 @@
       return { value: key, label };
     }).sort((a, b) => a.label.localeCompare(b.label, 'id'));
 
-    qDiv.innerHTML = `<label class="rp-q-label" for="rp-mapel-sel">${qNum}. Mata pelajaran *</label>
+    qDiv.innerHTML = `<label class="rp-q-label" style="color:var(--gold)" for="rp-mapel-sel">${qNum}. Mata pelajaran</label>
 <select class="rp-select" id="rp-mapel-sel">
   <option value="">— Pilih mata pelajaran —</option>
   ${opts.map(o =>
@@ -473,7 +473,7 @@
     const div = document.createElement('div');
     div.id = 'rp-q-p2b';
     div.className = 'rp-q';
-    div.innerHTML = `<label class="rp-q-label">5. Elemen yang Anda ampu *</label>
+    div.innerHTML = `<label class="rp-q-label" style="color:var(--gold)">5. Elemen yang Anda ampu *</label>
 <div class="rp-elemen-list" id="rp-elemen-list">
   ${allElemen.map(nama => {
     const checked = (_ans.elemenTerpilih || []).includes(nama);
@@ -524,13 +524,13 @@
     div.className = 'rp-q';
 
     if (availFases.length === 0) {
-      div.innerHTML = `<label class="rp-q-label">${pNum}. Fase capaian pembelajaran *</label>
+      div.innerHTML = `<label class="rp-q-label" style="color:var(--gold)">${pNum}. Fase capaian pembelajaran</label>
 <p class="rp-notice">Fase tidak tersedia untuk jenjang ini.</p>`;
       block.insertBefore(div, el('rp-step1-error'));
       return;
     }
 
-    div.innerHTML = `<label class="rp-q-label">${pNum}. Fase capaian pembelajaran *</label>
+    div.innerHTML = `<label class="rp-q-label" style="color:var(--gold)">${pNum}. Fase capaian pembelajaran</label>
 <div class="rp-chip-group" id="rp-fase-chips">
   ${availFases.map(fk => {
     const f = FASE_OPTS.find(o => o.value === fk);
@@ -578,14 +578,8 @@
     const jenjang  = _ans.jenjang;
     const fase     = _ans.fase;
 
-    if (!jenjang)  { showError('rp-step1-error', 'Pilih jenjang sekolah.'); return; }
-    if (!mapelKey) { showError('rp-step1-error', 'Pilih mata pelajaran.'); return; }
-    if (el('rp-q-p2b') && (!_ans.elemenTerpilih || _ans.elemenTerpilih.length === 0)) {
-      showError('rp-step1-error', 'Pilih minimal satu elemen yang Anda ampu.'); return;
-    }
-    if (!fase)     { showError('rp-step1-error', 'Pilih fase capaian pembelajaran.'); return; }
-
     showError('rp-step1-error', '');
+    if (!mapelKey || !fase) { appendStep1Next(); return; }
 
     _genCp = true;
     const btn = el('rp-btn-cp');
@@ -759,47 +753,47 @@
   <div class="rp-block-title">Konteks SMK</div>
 
   <div class="rp-q">
-    <label class="rp-q-label" for="rp-smk-rumpun">SMK-2. Rumpun mata pelajaran *</label>
+    <label class="rp-q-label" style="color:var(--gold)" for="rp-smk-rumpun">SMK-2. Rumpun mata pelajaran</label>
     ${smkSel('rp-smk-rumpun', ['Normatif','Adaptif','Produktif'], smk.rumpun||'')}
   </div>
 
   <div class="rp-q">
-    <label class="rp-q-label">SMK-3. Tujuan pembelajaran utama (pilih semua yang sesuai) *</label>
+    <label class="rp-q-label" style="color:var(--gold)">SMK-3. Tujuan pembelajaran utama (pilih semua yang sesuai) *</label>
     ${smkCheckList('rp-smk-tujuan-list', tujuanOpsi, smk.tujuan, true)}
   </div>
 
   <div class="rp-q">
-    <label class="rp-q-label" for="rp-smk-status-pkl">SMK-4. Status PKL siswa *</label>
+    <label class="rp-q-label" style="color:var(--gold)" for="rp-smk-status-pkl">SMK-4. Status PKL siswa</label>
     ${smkSel('rp-smk-status-pkl', ['Belum PKL','Sedang PKL','Sudah selesai PKL','Tidak ada PKL'], smk.status_pkl||'')}
   </div>
 
   <div class="rp-q">
-    <label class="rp-q-label" for="rp-smk-target-sertif">SMK-5. Target sertifikasi *</label>
+    <label class="rp-q-label" style="color:var(--gold)" for="rp-smk-target-sertif">SMK-5. Target sertifikasi</label>
     ${smkSel('rp-smk-target-sertif', ['Tidak ada target sertifikasi','Sertifikasi kompetensi (LSP)','Uji Kompetensi Keahlian (UKK)','Sertifikat industri langsung'], smk.target_sertif||'')}
   </div>
 
   <div class="rp-q">
-    <label class="rp-q-label" for="rp-smk-pola-jadwal">SMK-6. Pola jadwal mengajar *</label>
+    <label class="rp-q-label" style="color:var(--gold)" for="rp-smk-pola-jadwal">SMK-6. Pola jadwal mengajar</label>
     ${smkSel('rp-smk-pola-jadwal', ['Sistem blok (semua JP produktif 1 hari)','Tersebar harian','Tetap mingguan (jadwal rutin)','Campuran blok & harian','Tidak menentu'], smk.pola_jadwal||'')}
   </div>
 
   <div class="rp-q">
-    <label class="rp-q-label" for="rp-smk-durasi-proyek">SMK-7. Durasi satu unit/proyek pembelajaran *</label>
+    <label class="rp-q-label" style="color:var(--gold)" for="rp-smk-durasi-proyek">SMK-7. Durasi satu unit/proyek pembelajaran</label>
     ${smkSel('rp-smk-durasi-proyek', ['1–2 minggu','3–4 minggu','5–8 minggu','Lebih dari 8 minggu'], smk.durasi_proyek||'')}
   </div>
 
   <div class="rp-q">
-    <label class="rp-q-label">SMK-8. Hubungan dengan DUDI (pilih semua yang sesuai) *</label>
+    <label class="rp-q-label" style="color:var(--gold)">SMK-8. Hubungan dengan DUDI (pilih semua yang sesuai) *</label>
     ${smkCheckList('rp-smk-dudi-list', dudiOpsi, smk.hubungan_dudi, true)}
   </div>
 
   <div class="rp-q">
-    <label class="rp-q-label" for="rp-smk-industri">SMK-9. Industri dominan di daerah</label>
+    <label class="rp-q-label" style="color:var(--gold)" for="rp-smk-industri">SMK-9. Industri dominan di daerah</label>
     <input type="text" id="rp-smk-industri" class="rp-input" placeholder="Contoh: Tekstil, Pariwisata, Pertanian…" value="${esc(smk.industri_dominan||'')}">
   </div>
 
   <div class="rp-q">
-    <label class="rp-q-label" for="rp-smk-mitra-dudi">SMK-10. Mitra DUDI aktif *</label>
+    <label class="rp-q-label" style="color:var(--gold)" for="rp-smk-mitra-dudi">SMK-10. Mitra DUDI aktif</label>
     <select class="rp-select" id="rp-smk-mitra-dudi">
       <option value="">— Pilih —</option>
       <option value="Tidak ada mitra aktif"${smk.mitra_dudi==='Tidak ada mitra aktif'?' selected':''}>Tidak ada mitra aktif</option>
