@@ -4959,5 +4959,745 @@
         }
       ]
     }
+  },
+  "dasar_dasar_agribisnis_tanaman": {
+    "bidang": "Agribisnis dan Agroteknologi",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_e": {
+      "label": "Dasar-dasar Agribisnis Tanaman",
+      "cp_umum": "Pada akhir Fase E, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Wawasan dunia kerja bidang agribisnis tanaman",
+          "cp_normatif": "Mendeskripsikan wawasan dunia kerja dalam bidang agribisnis tanaman; mendeskripsikan aktivitas manajemen produksi, peluang usaha, agripreneur, dan kebekerjaan di bidang agribisnis tanaman; mendeskripsikan pelestarian kearifan lokal terkait produk unggulan lokal; menganalisis perkembangan teknologi pada proses produksi tanaman dari konvensional sampai modern, isu-isu global terkait dengan lingkungan dan pengelolaan limbah pertanian; dan menerapkan pertanian berkelanjutan"
+        },
+        {
+          "nama": "Kecakapan kerja dasar (basic job skills), K3, dan budaya kerja",
+          "cp_normatif": "Menerapkan kecakapan kerja agribisnis tanaman meliputi kemampuan dalam menerapkan prosedur K3, mengoperasikan alat mesin pertanian; mengaplikasikan teknik pra tanam: persiapan lahan dan media, persiapan benih; mengaplikasikan teknik proses produksi tanaman (on farm): penanaman, pemeliharaan (pengairan, pemupukan, pengendalian, OPT, perlakuan khusus), dan panen; mengaplikasikan teknik setelah tanam (off farm): penanganan pasca panen, pemasaran, dan distribusi produk; menganalisis keterkaitan faktor yang berpengaruh terhadap produksi tanaman: faktor edafik (tanah dan air), faktor klimatik (iklim dan cuaca), faktor biotik (makhluk hidup), faktor genetik, dan faktor pirik (manusia/ pengelola); mengaplikasikan pembiakan generatif: morfologi bunga, polinasi, dan perkecambahan biji, pembiakan vegetatif: konvensional alami (rhizoma, geragih, tunas), buatan (stek, cangkok, okulasi, sambung), dan modern (kultur jaringan); dan menerapkan sikap kerja (soft skill) meliputi etika, jujur, disiplin, tanggung jawab, etos kerja, komunikasi efektif, kolaborasi dan adaptasi lingkungan kerja."
+        }
+      ]
+    }
+  },
+  "dasar_dasar_agribisnis_ternak": {
+    "bidang": "Agribisnis dan Agroteknologi",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_e": {
+      "label": "Dasar-dasar Agribisnis Ternak",
+      "cp_umum": "Pada akhir Fase E, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Wawasan dunia kerja bidang agribisnis ternak",
+          "cp_normatif": "Menganalisis aktivitas pekerjaan secara menyeluruh manajemen produksi bidang agribisnis ternak dengan memperhatikan potensi dan kearifan lokal, memilih peluang usaha, menerapkan profil agripreuneur."
+        },
+        {
+          "nama": "Kecakapan kerja dasar (basic job skills), K3LH, dan budaya kerja",
+          "cp_normatif": "Menganalisis perkembangan teknologi peternakan, menganalisis dampak perubahan iklim terhadap agribisnis peternakan, membuat rencana peternakan berkelanjutan, menerapkan dasar ilmu peternakan, menganalisis karakteristik dan penanganan komoditas peternakan dengan prinsip dan prosedur K3LH, menerapkan keamanan produk peternakan, menerapkan budaya kerja yang meliputi antara lain keterampilan berkomunikasi dan kerjasama tim."
+        }
+      ]
+    }
+  },
+  "dasar_dasar_agribisnis_perikanan": {
+    "bidang": "Agribisnis dan Agroteknologi",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_e": {
+      "label": "Dasar-dasar Agribisnis Perikanan",
+      "cp_umum": "Pada akhir Fase E, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Wawasan Dunia Kerja Bidang Perikanan",
+          "cp_normatif": "Menganalisis berbagai jenis produk perikanan dan nilai tambah produk perikanan; mengklasifikasikan jenis usaha dan peluang usaha bidang perikanan; mengklasifikasikan jenis pasar dan peluang pasar perikanan; mengenali berbagai profesi di sektor perikanan."
+        },
+        {
+          "nama": "Komoditas Perikanan dalam Ekosistem Perairan",
+          "cp_normatif": "Menganalisis kaitan antara dasar-dasar ekosistem perairan dengan budi daya perikanan; mengenali morfologi dan anatomi sederhana pada komoditas perikanan dan menjelaskan keterkaitannya dengan pemeliharaan ikan."
+        },
+        {
+          "nama": "Kecakapan Kerja Dasar (Basic Job Skills), K3LH, dan Budaya Kerja",
+          "cp_normatif": "Menerapkan Kecakapan Kerja Dasar (Basic Job Skills) pada berbagai tahapan proses produksi perikanan dan keterampilan non teknis (soft skills); memahami berbagai bentuk inovasi teknologi perikanan serta menjelaskan keterkaitannya dengan prinsip-prinsip budi daya yang berkelanjutan; mendiskusikan isu global akibat perkembangan teknologi perikanan; serta menerapkan Keselamatan, Kesehatan Kerja, dan Lingkungan Hidup (K3LH) yang berlaku dalam kegiatan agribisnis perikanan serta menerapkan budaya kerja di bidang perikanan."
+        }
+      ]
+    }
+  },
+  "dasar_dasar_usaha_pertanian_terpadu": {
+    "bidang": "Agribisnis dan Agroteknologi",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_e": {
+      "label": "Dasar-dasar Usaha Pertanian Terpadu",
+      "cp_umum": "Pada akhir Fase E, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Wawasan dunia kerja bidang usaha pertanian terpadu",
+          "cp_normatif": "Menganalisis aktivitas pekerjaan, perkembangan proses produksi pertanian terpadu secara konvensional sampai modern, termasuk otomatisasi dan berbasis IoT, profil agripreneur, peluang usaha dan peluang bekerja di bidang usaha pertanian terpadu."
+        },
+        {
+          "nama": "Kecakapan kerja dasar (basic job skill), K3LH, dan budaya kerja",
+          "cp_normatif": "Menerapkan kecakapan kerja dasar di bidang usaha pertanian terpadu, K3LH, budaya kerja di bidang usaha pertanian terpadu dan memadukan konsep dasar usaha pertanian terpadu tentang 4F (food, feed, fuel, dan fiber/fertilizer) ditambah 1F (finance) pada usaha pertanian terpadu."
+        }
+      ]
+    }
+  },
+  "dasar_dasar_agriteknologi_pengolahan_hasil_pertanian": {
+    "bidang": "Agribisnis dan Agroteknologi",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_e": {
+      "label": "Dasar-dasar Agriteknologi Pengolahan Hasil Pertanian",
+      "cp_umum": "Pada akhir Fase E, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Wawasan dunia kerja bidang Agriteknologi Pengolahan Pengolahan Hasil Pertanian",
+          "cp_normatif": "Menganalisis konsep, klasifikasi, dan lingkup industri pengolahan hasil pertanian (agroindustri), perencanaan, proses produksi, pemasaran dan pengelolaan sumberdaya, teknologi dan informasi serta wirausaha pengolahan hasil pertanian dan lapangan kerja, bioteknologi, nanoteknologi, otomatisasi, digitalisasi, internet of things (IoT), kecerdasan artifisial (Artificial Intelligence/AI), pemanasan global, perubahan iklim, serta ketersediaan pangan dan pertanian."
+        },
+        {
+          "nama": "Teknik dasar, penanganan, pengolahan dan pengujian mutu hasil pertanian",
+          "cp_normatif": "Menerapkan teknik proses termal meliputi pendinginan, pembekuan, pengeringan, penggorengan, pengasapan, evaporasi, ekstrusi, sterilisasi, exhausting, pasteurisasi, blansing, pengalengan dan proses radiasi, teknik konversi bahan meliputi pengecilan ukuran (size reduction), ekstraksi, distilasi, pencampuran dan emulsifikasi, proses kimia dan biokimia meliputi: pengasaman, penggaraman, netralisasi, penggulaan, koagulasi, sulfitasi, karbonatasi, hidrolisis, pemurnian (refining), netralisasi, fermentasi dan enzimatis, prinsip dan prosedur praktik penanganan pasca panen yang baik (Good Handling Practices), sortasi, grading, trimming, filleting, dressing, skinning, debonning, seeding, curing, pengemasan dan penyimpanan, penggunaan peralatan laboratorium, penggunaan pereaksi, bahan kimia dan bahan tambahan makanan (BTM/food additives), pengujian dengan instrumentasi sederhana (uji fisik dan kimia) komoditas hasil pertanian, teknik kerja aseptik, kultur mikroba dan penanganan limbah laboratorium, praktik berlaboratorium yang baik (Good laboratory practice) serta keselamatan, kesehatan kerja dan lingkungan hidup (K3LH) di laboratorium."
+        }
+      ]
+    }
+  },
+  "dasar_dasar_kehutanan": {
+    "bidang": "Agribisnis dan Agroteknologi",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_e": {
+      "label": "Dasar-dasar Kehutanan",
+      "cp_umum": "Pada akhir Fase E, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Kecakapan Kerja Dasar Bidang Kehutanan",
+          "cp_normatif": "Menganalisis isu-isu global di bidang kehutanan dan pengenalan hutan serta menerapkan dasar-dasar pembinaan hutan, pengukuran hutan sederhana, dasar-dasar penggunaan GPS di bidang kehutanan, pengukuran pohon, dasar-dasar identifikasi tumbuhan (dendrologi), perlindungan hutan, dan komunikasi efektif yang dipadukan dengan penerapan teknologi dan prinsip K3LH."
+        },
+        {
+          "nama": "Wawasan Dunia Kerja dan Wirausaha Bidang Kehutanan",
+          "cp_normatif": "Menganalisis profesi, peluang kerja, peluang usaha dan alur operasional usaha di bidang kehutanan."
+        }
+      ]
+    }
+  },
+  "agribisnis_tanaman_perkebunan": {
+    "bidang": "Agribisnis dan Agroteknologi",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Agribisnis Tanaman Perkebunan",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Penyiapan Lahan",
+          "cp_normatif": "Menerapkan penyiapan lahan tanaman perkebunan meliputi penentuan komoditas tanaman yang sesuai dengan potensi daerah, pemetaan lahan, dan pengolahan tanah untuk penanaman tanaman perkebunan."
+        },
+        {
+          "nama": "Penyiapan Bibit",
+          "cp_normatif": "Menerapkan penyiapan bibit tanaman perkebunan meliputi penyiapan lokasi, sarana, dan prasarana pembibitan, serta perbanyakan tanaman perkebunan secara vegetatif dan generatif."
+        },
+        {
+          "nama": "Penanaman Bahan Tanam",
+          "cp_normatif": "Menerapkan penanaman bahan tanam tanaman perkebunan meliputi penanaman dan penyulaman tanaman perkebunan sesuai karakteristik komoditas."
+        },
+        {
+          "nama": "Pengairan",
+          "cp_normatif": "Menerapkan pengairan meliputi berbagai sistem/teknik pengairan untuk pengembangan tanaman perkebunan."
+        },
+        {
+          "nama": "Pemupukan",
+          "cp_normatif": "Menerapkan pemupukan meliputi penggunaan berbagai jenis pupuk untuk perkembangan tanaman perkebunan"
+        },
+        {
+          "nama": "Pengendalian Organisme Pengganggu Tanaman (OPT)",
+          "cp_normatif": "Menerapkan pengendalian Organisme Pengganggu Tanaman (OPT) meliputi pengendalian hama, penyebab penyakit tanaman dan gulma dengan berbagai metode serta penanganan limbah hasil pengendalian OPT."
+        },
+        {
+          "nama": "Pemangkasan",
+          "cp_normatif": "Menerapkan pemangkasan meliputi berbagai teknik pemangkasan untuk mengoptimalkan hasil tanaman perkebunan sesuai komoditas serta penanganan limbah hasil pemangkasan."
+        },
+        {
+          "nama": "Pemanenan dan Penanganan Pascapanen",
+          "cp_normatif": "Menerapkan pemanenan dan penanganan pascapanen tanaman perkebunan sesuai komoditas serta penanganan limbah hasil pemanenan dan penanganan pasca panen."
+        },
+        {
+          "nama": "Konservasi Tanah dan Air",
+          "cp_normatif": "Menerapkan berbagai teknik konservasi tanah dan air sesuai kondisi topografi."
+        },
+        {
+          "nama": "Pemasaran",
+          "cp_normatif": "Menerapkan pemasaran hasil tanaman perkebunan dengan berbagai metode."
+        }
+      ]
+    }
+  },
+  "agribisnis_tanaman_pangan_dan_hortikultura": {
+    "bidang": "Agribisnis dan Agroteknologi",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Agribisnis Tanaman Pangan dan Hortikultura",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Persiapan pra tanam",
+          "cp_normatif": "Menerapkan penyiapan media tanam untuk tanaman yang terdapat di lahan basah, lahan kering, di pot, dan tanaman yang ditanam dengan metode lainnya, seperti hidroponik, aquaponik, dan aeroponik maupun pertanian organik, secara konvensional dan/atau dengan alat modern. Penyiapan bibit secara generatif serta menerapkan penyiapan bibit secara vegetatif melalui perbanyakan secara vegetatif dari konvensional (stek, cangkok, sambung, okulasi) dan/atau sampai modern (kultur jaringan tanaman)."
+        },
+        {
+          "nama": "Penanaman dan pemeliharaan tanaman",
+          "cp_normatif": "Menerapkan penanaman, penyulaman, berbagai teknik pengairan, pemupukan organik dan/atau anorganik, berbagai metode pengendalian gulma, hama dan/atau penyebab penyakit tanaman (secara mekanis, biologis, kimia, kultur teknis, hayati, terpadu, dan lainnya), serta menerapkan perlakuan khusus antara lain pemberian hormon tumbuh, pembumbunan, pemangkasan, pemasangan ajir, disesuaikan dengan situasi dan kebutuhan, sesuai komoditas tanaman secara konvensional dan/atau dengan alat modern."
+        },
+        {
+          "nama": "Panen dan penanganan pasca panen",
+          "cp_normatif": "Menerapkan taksasi hasil, persiapan panen, dan teknik panen serta menerapkan penanganan pasca panen, yaitu sorting, grading, packing, dan/atau labelling secara konvensional dan/atau dengan alat modern."
+        },
+        {
+          "nama": "Pengelolaan limbah pertanian",
+          "cp_normatif": "Menerapkan pembuatan pupuk hijau dan/atau kompos, pestisida nabati dengan berbagai metode, secara konvensional dan/atau dengan alat modern."
+        },
+        {
+          "nama": "Pemasaran produk hasil pertanian",
+          "cp_normatif": "Menganalisa peluang pasar, menerapkan promosi, komunikasi (negosiasi dan transaksi), teknik pemasaran konvensional dan/atau digital, administrasi dan membuat pembukuan usaha."
+        }
+      ]
+    }
+  },
+  "agribisnis_perbenihan_tanaman": {
+    "bidang": "Agribisnis dan Agroteknologi",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Agribisnis Perbenihan Tanaman",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Teknik produksi/penangkaran benih",
+          "cp_normatif": "Menerapkan penyiapan benih induk, penyiapan lahan/media tanam, pembibitan, penanaman, pengairan, pemupukan, pengendalian organisme pengganggu tanaman (OPT), perlakuan khusus tanaman, penyilangan/polinasi dan/atau tanpa penyilangan roguing/seleksi, pemanenan, penanganan pasca panen."
+        },
+        {
+          "nama": "Pengolahan dan pengujian mutu benih",
+          "cp_normatif": "Menerapkan pembersihan, perlakuan benih, pengemasan, penyimpanan, pengujian kemurnian fisik, pengujian daya berkecambah, pengujian kadar air benih, pelaporan hasil"
+        }
+      ]
+    }
+  },
+  "agribisnis_lanskap_dan_pertamanan": {
+    "bidang": "Agribisnis dan Agroteknologi",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Agribisnis Lanskap dan Pertamanan",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Material pembentuk taman",
+          "cp_normatif": "Menganalisis jenis fungsi dan karakteristik material lunak (softscape) dan material keras (hardscape) pada taman."
+        },
+        {
+          "nama": "Survei dan pengukuran lahan",
+          "cp_normatif": "Menganalisis aspek fisik, aspek nonfisik pada tapak, dan menerapkan alat konvensional dan/atau modern dalam melakukan survei dan pengukuran tapak."
+        },
+        {
+          "nama": "Ilustrasi dan desain taman",
+          "cp_normatif": "Merancang gambar site plan, gambar potongan, gambar tampak, dan gambar 3D menggunakan metode manual dan/atau digital."
+        },
+        {
+          "nama": "Pekerjaan pembuatan taman",
+          "cp_normatif": "Menerapkan pekerjaan pembentukan muka lahan, pekerjaan utilitas lanskap, pekerjaan konstruksi lanskap, pekerjaan penanaman dan membuat laporan pekerjaan pembuatan taman."
+        },
+        {
+          "nama": "Perawatan taman",
+          "cp_normatif": "Menganalisis alat dan bahan dalam melakukan pemeliharaan taman, menerapkan pekerjaan pemeliharaan tanaman (softscape), dan material keras (hardscape) menggunakan metode konvensional dan/atau alat modern serta membuat ceklis pekerjaan pemeliharaan taman."
+        },
+        {
+          "nama": "Pengelolaan limbah",
+          "cp_normatif": "Menerapkan pengelolaan limbah dengan prinsip 3R (Reuse, Reduce, dan Recycle) mencakup pembuatan pupuk hijau dan kompos menggunakan metode konvensional dan/atau alat modern."
+        },
+        {
+          "nama": "Teknologi dalam lanskap pertamanan",
+          "cp_normatif": "Menerapkan sistem irigasi pada taman, vertical garden, dan lubang biopori menggunakan metode konvensional dan/atau alat modern."
+        }
+      ]
+    }
+  },
+  "agribisnis_ternak_ruminansia": {
+    "bidang": "Agribisnis dan Agroteknologi",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Agribisnis Ternak Ruminansia",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Sarana Produksi",
+          "cp_normatif": "Menerapkan penyiapan kandang pada ternak ruminansia."
+        },
+        {
+          "nama": "Pengelolaan produksi",
+          "cp_normatif": "Menerapkan pengelolaan produksi ternak Ruminansia"
+        },
+        {
+          "nama": "Pengelolaan pakan",
+          "cp_normatif": "Menerapkan pengelolaan pakan hijauan, konsentrat dan sumber bahan pakan alternatif pada ternak ruminansia."
+        },
+        {
+          "nama": "Kesehatan ternak dasar",
+          "cp_normatif": "Menerapkan prosedur kesehatan ternak dasar pada ternak ruminansia."
+        },
+        {
+          "nama": "Pembibitan ternak",
+          "cp_normatif": "Menerapkan pembibitan ternak berdasarkan standar mutu ternak ruminansia."
+        },
+        {
+          "nama": "Panen dan pascapanen",
+          "cp_normatif": "Menerapkan pemanenan dan pengolahan pascapanen pada ternak ruminansia, yang meliputi pemanenan dan pengolahan pascapanen serta evaluasi usaha hasil panen untuk ternak ruminansia besar dan/atau kecil."
+        },
+        {
+          "nama": "Pemasaran hasil ternak",
+          "cp_normatif": "Menerapkan pemanenan dan pengolahan pascapanen pada ternak ruminansia."
+        },
+        {
+          "nama": "Pengelolaan limbah",
+          "cp_normatif": "Menerapkan pengelolaan limbah serta menciptakan nilai tambah dari limbah tersebut."
+        }
+      ]
+    }
+  },
+  "agribisnis_ternak_unggas": {
+    "bidang": "Agribisnis dan Agroteknologi",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Agribisnis Ternak Unggas",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Sarana prasarana produksi",
+          "cp_normatif": "Menerapkan peralatan dan kandang ternak unggas."
+        },
+        {
+          "nama": "Pengelolaan produksi",
+          "cp_normatif": "Menerapkan pengelolaan produksi ternak unggas."
+        },
+        {
+          "nama": "Pengelolaan pakan",
+          "cp_normatif": "Menerapkan pengelolaan pakan ternak unggas."
+        },
+        {
+          "nama": "Kesehatan Ternak",
+          "cp_normatif": "Menerapkan kesehatan ternak unggas."
+        },
+        {
+          "nama": "Panen dan pascapanen",
+          "cp_normatif": "Menerapkan pemanenan produksi ternak unggas dan penanganan pascapanen."
+        },
+        {
+          "nama": "Pemasaran hasil ternak",
+          "cp_normatif": "Menerapkan pemasaran hasil produksi ternak unggas."
+        }
+      ]
+    }
+  },
+  "kesehatan_hewan": {
+    "bidang": "Agribisnis dan Agroteknologi",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Kesehatan Hewan",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Pengantar Kesehatan Hewan",
+          "cp_normatif": "Menganalisis anatomi hewan, fisiologi hewan, agen penyebab penyakit hewan, obat hewan, vaksin hewan, dan menerapkan prinsip kesejahteraan hewan (animal welfare)."
+        },
+        {
+          "nama": "Pencegahan dan Pengendalian Penyakit Hewan",
+          "cp_normatif": "Menganalisis gejala klinis penyakit hewan serta menerapkan pemeriksaan fisik hewan, perawatan hewan, pemberian obat dan vaksin pada hewan, prinsip biosecurity (K3LH), dan pemusnahan hewan atau bangkai."
+        },
+        {
+          "nama": "Pemeriksaan dan Pengujian Laboratorium",
+          "cp_normatif": "Menerapkan alat pengujian, pembedahan bangkai, pengambilan dan pemeriksaan sampel, dan pemeliharaan biakan mikroorganisme"
+        },
+        {
+          "nama": "Penanganan Reproduksi Hewan",
+          "cp_normatif": "Menerapkan penanganan semen, teknologi reproduksi, pemeriksaan kebuntingan, penanganan kelahiran, dan gangguan reproduksi pada hewan."
+        },
+        {
+          "nama": "Penjaminan Keamanan Produk Hewan",
+          "cp_normatif": "Menganalisis ruang lingkup kesehatan masyarakat veteriner, dan zoonosis serta menerapkan pemeriksaan ante dan postmortem, penanganan produk hewan, pemeriksaan kualitas produk asal hewan, dan pemusnahan produk hewan."
+        }
+      ]
+    }
+  },
+  "agribisnis_ikan_hias": {
+    "bidang": "Agribisnis dan Agroteknologi",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Agribisnis Ikan Hias",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Pengelolaan agribisnis ikan hias",
+          "cp_normatif": "Menerapkan tata kelola produksi, menerapkan sistem pemasaran produk, menjelaskan prosedur ekspor/impor/domestik agribisnis ikan hias dan menganalisis kelayakan usaha."
+        },
+        {
+          "nama": "Pengelolaan kualitas air dan pengendalian hama penyakit",
+          "cp_normatif": "Menerapkan pengelolaan kualitas air, menerapkan pengendalian hama dan penyakit ikan."
+        },
+        {
+          "nama": "Produksi pakan alami dan pakan tambahan",
+          "cp_normatif": "Menerapkan produksi pakan alami dan pakan tambahan."
+        },
+        {
+          "nama": "Pembenihan ikan hias",
+          "cp_normatif": "Menerapkan pengelolaan induk dan menerapkan pembenihan ikan hias."
+        },
+        {
+          "nama": "Pendederan ikan hias",
+          "cp_normatif": "Menerapkan padat tebar larva dan menerapkan pendederan."
+        },
+        {
+          "nama": "Pembesaran ikan hias",
+          "cp_normatif": "Menerapkan pembesaran ikan hias."
+        },
+        {
+          "nama": "Pemanenan",
+          "cp_normatif": "Memprediksi estimasi hasil produksi, menerapkan pemanenan; serta menerapkan penanganan ikan hias, pengemasan, dan sistem transportasi."
+        },
+        {
+          "nama": "Pembuatan dekorasi akuarium/aquascape/paludarium",
+          "cp_normatif": "Menerapkan penyiapan wadah, peralatan, dan bahan dekorasi; menghasilkan dekorasi akuarium/aquascape/paludarium; dan menerapkan pemeliharaan dekorasi akuarium."
+        }
+      ]
+    }
+  },
+  "agribisnis_perikanan_payau_dan_laut": {
+    "bidang": "Agribisnis dan Agroteknologi",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Agribisnis Perikanan Payau dan Laut",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Pengelolaan agribisnis perikanan payau dan laut",
+          "cp_normatif": "Menerapkan analisis kelayakan usaha, analisis peluang usaha, perencanaan produksi, manajemen tata kelola produksi, pelaksanaan produksi, penghitungan estimasi panen, pendataan hasil produksi, peningkatan nilai jual produk perikanan, pemasaran, monitoring, dan evaluasi agribisnis perikanan payau dan laut serta menjelaskan perkembangan teknologi pada kegiatan agribisnis perikanan payau dan laut."
+        },
+        {
+          "nama": "Pengelolaan kualitas air dan pengendalian hama penyakit ikan",
+          "cp_normatif": "Menerapkan pengelolaan kualitas air dan pengendalian hama penyakit ikan serta pengobatan ikan yang sakit."
+        },
+        {
+          "nama": "Produksi pakan alami dan pakan buatan",
+          "cp_normatif": "Menerapkan produksi pakan alami baik secara terkontrol maupun secara massal; menerapkan produksi pakan buatan serta pengujian kualitas pakan, pengemasan, dan enrichment pakan."
+        },
+        {
+          "nama": "Pembenihan perikanan payau dan laut",
+          "cp_normatif": "Menerapkan pembenihan perikanan payau dan laut serta menerapkan teknologi di pembenihan sesuai dengan karakteristik satuan pendidikan kearifan lokal dan kebutuhan murid serta kebutuhan dunia kerja."
+        },
+        {
+          "nama": "Pendederan perikanan payau dan laut",
+          "cp_normatif": "Menerapkan pendederan benih ikan dan teknologi pendederan sesuai dengan karakteristik satuan pendidikan kearifan lokal dan kebutuhan murid serta kebutuhan dunia kerja."
+        },
+        {
+          "nama": "Pembesaran perikanan payau dan laut",
+          "cp_normatif": "Menerapkan pembesaran perikanan payau dan laut serta teknologi di bidang pembesaran sesuai karakteristik satuan pendidikan kearifan lokal dan kebutuhan murid serta kebutuhan dunia kerja."
+        },
+        {
+          "nama": "Pemanenan dan penangan pascapanen perikanan payau dan laut",
+          "cp_normatif": "Menerapkan pemanenan ikan dan penanganan pascapanen serta menerapkan teknologi pemanenan dan pascapanen sesuai karakteristik satuan pendidikan kearifan lokal dan kebutuhan murid serta kebutuhan dunia kerja."
+        }
+      ]
+    }
+  },
+  "agribisnis_perikanan_air_tawar": {
+    "bidang": "Agribisnis dan Agroteknologi",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Agribisnis Perikanan Air Tawar",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Pengelolaan kualitas air dan pengendalian hama penyakit",
+          "cp_normatif": "Menerapkan pengelolaan kualitas air dan pengendalian hama penyakit ikan menggunakan metode konvensional dan/atau modern."
+        },
+        {
+          "nama": "Produksi pakan alami dan pakan buatan",
+          "cp_normatif": "Menerapkan produksi pakan alami dan pakan buatan, perhitungan formulasi pakan, penyiapan bahan baku pakan, pembuatan pakan, pengemasan dan pengujian pakan buatan menggunakan metode konvensional dan/atau alat modern."
+        },
+        {
+          "nama": "Pembenihan komoditas perikanan air tawar",
+          "cp_normatif": "Menerapkan pembenihan komoditas perikanan air tawar serta menerapkan teknologi pada pembenihan ikan menggunakan metode konvensional dan/atau alat modern."
+        },
+        {
+          "nama": "Pendederan komoditas perikanan air tawar",
+          "cp_normatif": "Menerapkan pendederan komoditas perikanan air tawar serta menerapkan teknologi pada pendederan ikan menggunakan metode konvensional dan/atau alat modern."
+        },
+        {
+          "nama": "Pembesaran komoditas perikanan air tawar",
+          "cp_normatif": "Menerapkan penyiapan wadah dan mengelola media pembesaran, seleksi benih ikan, pemberian pakan, pengelolaan kualitas air, pengendalian hama dan penyakit, pemantauan laju pertumbuhan, pemanenan hasil pembesaran dan pendataan secara terukur proses produksi pada pembesaran, serta penerapan teknologi pada pembesaran ikan menggunakan metode konvensional dan/atau alat modern."
+        },
+        {
+          "nama": "Penanganan panen dan pascapanen",
+          "cp_normatif": "Menerapkan panen dan pasca panen serta menerapkan teknologi pada kegiatan panen dan pascapanen menggunakan metode konvensional dan/atau alat modern."
+        }
+      ]
+    }
+  },
+  "agribisnis_rumput_laut": {
+    "bidang": "Agribisnis dan Agroteknologi",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Agribisnis Rumput Laut",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Pengantar Agribisnis Rumput Laut",
+          "cp_normatif": "Menerapkan analisis jenis dan karakteristik rumput laut, memahami potensi, serta pengembangan dalam budidaya dan pemanfaatan rumput laut sesuai dengan karakteristik satuan pendidikan, kearifan lokal dan kebutuhan murid serta kebutuhan dunia kerja."
+        },
+        {
+          "nama": "Pembibitan Rumput Laut",
+          "cp_normatif": "Menerapkan pemanenan, dan penanganan bibit, pendistribusian bibit, serta pendataan yang terukur pada pembibitan rumput laut sesuai dengan karakteristik satuan pendidikan, kearifan lokal dan kebutuhan murid serta kebutuhan dunia kerja."
+        },
+        {
+          "nama": "Penanaman dan Pemeliharaan Rumput Laut",
+          "cp_normatif": "Menerapkan penanaman dan pemeliharaan, pengelolaan media penanaman, pengendalian hama dan penyakit, serta pendataan yang terukur pada penanaman dan pemeliharaan rumput laut sesuai dengan karakteristik satuan pendidikan, kearifan lokal dan kebutuhan murid serta kebutuhan dunia kerja."
+        },
+        {
+          "nama": "Pemanenan dan Pengelolaan Pasca Panen Rumput Laut",
+          "cp_normatif": "Menerapkan pemanenan dan penanganan rumput laut kering tawar dan/ atau kering asin, pengemasan, penyimpanan, dan penggudangan, serta pendataan yang terukur pada kegiatan pemanenan dan pengelolaan pascapanen sesuai dengan karakteristik satuan pendidikan, kearifan lokal dan kebutuhan murid serta kebutuhan dunia kerja"
+        },
+        {
+          "nama": "Pengolahan Produk Antara",
+          "cp_normatif": "Menerapkan perencanaan pengolahan produk antara, penentuan jenis produk, pengolahan rumput laut menjadi produk antara, pengemasan produk antara, dan pengadministrasian kegiatan pengolahan produk antara sesuai dengan karakteristik satuan pendidikan, kearifan lokal dan kebutuhan murid serta kebutuhan dunia kerja."
+        },
+        {
+          "nama": "Pengolahan dan Diversifikasi Produk Olahan Rumput Laut Pangan",
+          "cp_normatif": "Menerapkan pengolahan dan diversifikasi produk pangan, pengemasan produk olahan pangan, serta pengadministrasian kegiatan pengolahan dan diversifikasi produk olahan pangan sesuai dengan karakteristik satuan pendidikan, kearifan lokal dan kebutuhan murid serta kebutuhan dunia kerja."
+        },
+        {
+          "nama": "Pengolahan dan Diversifikasi Produk Pengolahan Rumput Laut Non Pangan",
+          "cp_normatif": "Menerapkan pengolahan dan diversifikasi produk olahan non pangan, pengemasan, serta pengadministrasian kegiatan pengolahan dan diversifikasi produk olahan non pangan sesuai dengan karakteristik satuan pendidikan, kearifan lokal dan kebutuhan murid serta kebutuhan dunia kerja."
+        },
+        {
+          "nama": "Penanganan Limbah pada Budidaya dan pada Pengolahan Rumput Laut",
+          "cp_normatif": "Menerapkan penanganan limbah serta melakukan pendataan yang terukur pada kegiatan penanganan limbah dalam kegiatan budi daya maupun pengolahan rumput laut sesuai dengan karakteristik satuan pendidikan, kearifan lokal dan kebutuhan murid serta kebutuhan dunia kerja."
+        },
+        {
+          "nama": "Penerapan Proses Bisnis di Bidang Rumput Laut",
+          "cp_normatif": "Menerapkan proses bisnis di bidang rumput laut, analisis kelayakan usaha, analisis peluang pasar, promosi, teknik pemasaran, serta pengadministrasian proses bisnis di bidang rumput laut sesuai dengan karakteristik satuan pendidikan, kearifan lokal dan kebutuhan murid serta kebutuhan dunia kerja."
+        }
+      ]
+    }
+  },
+  "usaha_pertanian_terpadu": {
+    "bidang": "Agribisnis dan Agroteknologi",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Usaha Pertanian Terpadu",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Produksi pangan (food/ makanan)",
+          "cp_normatif": "Menerapkan kegiatan produksi hasil dari tanaman, peternakan, dan produk hasil perikanan; menerapkan penanganan dan/atau pengolahan produk hasil panen dan pascapanen; dan menggunakan metode konvensional dan/atau alat modern."
+        },
+        {
+          "nama": "Produksi pakan (feed/pakan)",
+          "cp_normatif": "Menerapkan pemanfaatan produk samping dan produk ikutan, baik dari hasil produksi tanaman, ternak, maupun ikan menjadi pakan ternak, dan/atau pakan ikan; dan menggunakan metode konvensional dan/atau alat modern."
+        },
+        {
+          "nama": "Pembuatan energi biomassa (fuel/bahan bakar)",
+          "cp_normatif": "Menerapkan pengolahan kotoran ternak dan manusia, serta sisa limbah pertanian lainnya menjadi energi biomassa untuk kebutuhan energi rumah tangga semisal biogas; dan menggunakan metode konvensional dan/atau alat modern."
+        },
+        {
+          "nama": "Produksi pupuk dan pestisida organik (organic fertilizers and pesticides)",
+          "cp_normatif": "Menerapkan pengolahan limbah ternak menjadi pupuk padat dan/atau pupuk cair serta mengolah limbah tanaman dan sisa makanan menjadi pupuk kompos dan/atau menjadi pestisida organik; dan menggunakan metode konvensional dan/atau alat modern."
+        },
+        {
+          "nama": "Pengelolaan keuangan (finance)",
+          "cp_normatif": "Merancang dan menganalisis kelayakan usaha pertanian terpadu; merancang dan menerapkan strategi pemasaran secara konvensional dan/atau digital; dan menyusun pembukuan sederhana."
+        }
+      ]
+    }
+  },
+  "mekanisasi_pertanian": {
+    "bidang": "Agribisnis dan Agroteknologi",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Mekanisasi Pertanian",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Alat mesin budi daya pertanian",
+          "cp_normatif": "Menerapkan pengoperasian, perawatan, dan perbaikan alat mesin budidaya secara konvensional dan/atau modern."
+        },
+        {
+          "nama": "Alat mesin pasca panen hasil pertanian",
+          "cp_normatif": "Menerapkan pengoperasian, perawatan, dan perbaikan alat mesin pasca panen hasil pertanian secara konvensional dan/atau modern."
+        },
+        {
+          "nama": "Pengukuran dan pemetaan lahan pertanian",
+          "cp_normatif": "Menerapkan komunikasi efektif, penggunaan alat pengukuran dan pemetaan lahan pertanian, perawatan alat pengukuran dan pemetaan lahan pertanian secara non digital dan/atau digital; mendokumentasikan serta mengomunikasikan kegiatan pengukuran dan pemetaan lahan di lahan pertanian yang sebenarnya baik secara mandiri dan/atau kolaboratif."
+        },
+        {
+          "nama": "Irigasi dan drainase",
+          "cp_normatif": "Menganalisis hubungan air, tanah dan tanaman serta menerapkan perhitungan kebutuhan air, sistem irigasi, pompa, serta sistem drainase secara konvensional dan/atau modern."
+        },
+        {
+          "nama": "Workshop alat mesin pertanian",
+          "cp_normatif": "Menerapkan pengoperasian, perawatan, dan perbaikan alat perkakas tangan dan alat bertenaga serta menerapkan rancang bangun teknologi tepat guna."
+        },
+        {
+          "nama": "Konstruksi bangunan pertanian dan elektrikal",
+          "cp_normatif": "Menerapkan rancang bangun konstruksi bangunan pertanian, instalasi penerangan, instalasi tenaga motor dan/atau sensor elektronik dalam kegiatan pertanian."
+        }
+      ]
+    }
+  },
+  "agribisnis_pengolahan_hasil_pertanian": {
+    "bidang": "Agribisnis dan Agroteknologi",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Agribisnis Pengolahan Hasil Pertanian",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Produksi olahan hasil nabati",
+          "cp_normatif": "Menerapkan penanganan bahan baku, pengoperasian peralatan/mesin, pengendalian proses, penilaian mutu produk, pengemasan, penanganan limbah dan analisis usaha produksi olahan hasil nabati (serealia, kacang-kacangan, umbi-umbian, buah, dan sayur)."
+        },
+        {
+          "nama": "Produksi olahan hasil hewani",
+          "cp_normatif": "Menerapkan penanganan bahan baku, pengoperasian peralatan/mesin, pengendalian proses, penilaian mutu produk, pengemasan, penanganan limbah dan analisis usaha produksi olahan hasil hewani (ruminansia, unggas, dan ikan)."
+        },
+        {
+          "nama": "Produksi olahan hasil tanaman rempah, bahan penyegar dan perkebunan",
+          "cp_normatif": "Menerapkan penanganan bahan baku, pengoperasian peralatan/mesin, pengendalian proses, penilaian mutu produk, pengemasan, penanganan limbah dan analisis usaha produksi olahan hasil tanaman rempah, bahan penyegar dan perkebunan."
+        },
+        {
+          "nama": "Keamanan pangan",
+          "cp_normatif": "Menerapkan penyusunan spesifikasi produk, SSOP (Sanitation Standard Operating Procedures), GMP (Good Manufacturing Practice) dan HACCP (Hazard Analysis Critical Control Point)."
+        },
+        {
+          "nama": "Penyimpanan dan penggudangan",
+          "cp_normatif": "Menerapkan penyimpanan dan/atau penggudangan bahan baku, kemasan produk jadi dalam produksi pengolahan hasil pertanian."
+        }
+      ]
+    }
+  },
+  "agribisnis_pengolahan_hasil_perikanan": {
+    "bidang": "Agribisnis dan Agroteknologi",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Agribisnis Pengolahan Hasil Perikanan",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Produksi olahan hasil perikanan secara tradisional",
+          "cp_normatif": "Menerapkan teknik penggaraman/pengeringan/pemindangan/pengasapan/fermentasi hasil perikanan sampai dengan pengemasan dan pengembangan produk olahan hasil perikanan tradisional."
+        },
+        {
+          "nama": "Produksi olahan diversifikasi produk hasil perikanan",
+          "cp_normatif": "Menerapkan pembuatan surimi, produksi olahan diversifikasi berbahan dasar surimi/daging lumat/ikan segar, olahan rumput laut, dan mengembangkan produk diversifikasi berdasarkan potensi daerah masing-masing atau sesuai tuntutan pasar, pengoperasian peralatan/mesin, serta analisis usaha produk hasil perikanan."
+        },
+        {
+          "nama": "Produksi olahan hasil perikanan segar beku (frozen seafood) dan olahan produk perikanan dalam kaleng (canned seafood)",
+          "cp_normatif": "Menerapkan teknik pembekuan ikan/crustacea/mollusca/tuna loin, teknik pengalengan ikan dan/atau rajungan; menghasilkan olahan hasil perikanan segar beku (frozen seafood) dan olahan produk perikanan dalam kaleng (canned seafood); serta menerapkan pengendalian limbah dan pemanfaatan hasil samping (by product) pengolahan hasil perikanan."
+        },
+        {
+          "nama": "Sistem manajemen keamanan pangan dan tata cara ekspor olahan produk hasil perikanan",
+          "cp_normatif": "Menerapkan GMP (Good Manufacturing Practice), Sanitasi Hygiene/SSOP (Standard Sanitation Operating Procedure), dan HACCP (Hazard Analytical and Critical Control Point) pada industri pengolahan hasil perikanan; menyusun dokumen rencana HACCP (HACCP Plan); dan mengenali komoditas ekspor utama perikanan Indonesia serta tata cara ekspor dan karantina produk perikanan."
+        }
+      ]
+    }
+  },
+  "pengawasan_mutu_hasil_pertanian": {
+    "bidang": "Agribisnis dan Agroteknologi",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Pengawasan Mutu Hasil Pertanian",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Teknik pengambilan sampel uji, Prinsip/teknik pengujian volumetri dan gravimetri dan penyajian data hasil pengujian",
+          "cp_normatif": "Menerapkan teknik pengambilan sampel uji, penyajian data hasil pengujian(subsampling) dari sampel lapangan, penanganan dan penyimpanan contoh, pengarsipan data sampel, melakukan pengujian volumetri dan gravimetri, merekam/penyajian data hasil pengujian, serta mengomunikasikan data hasil analisis."
+        },
+        {
+          "nama": "Teknik pengujian organoleptik, pengujian fisik, fisikokimia, instrumentasi, pengujian proksimat, mineral dan vitamin, dan penyajian data hasil pengujian",
+          "cp_normatif": "Menerapkan teknik pengujian kesukaan (hedonic test)/uji penerimaan (preference test), dan uji pembedaan (difference test) terhadap produk makanan/minuman ataupun komoditas pertanian, pengujian bentuk, ukuran, visual, pengujian kadar air, kadar abu, kadar lemak, kadar protein, kadar karbohidrat, serat kasar, mineral, vitamin, menggunakan instrumen sederhana, menerapkan berbagai jenis test kit, pengujian mutu air baku produksi/limbah produksi, menangani limbah pereaksi, merekam/ menyajikan data hasil pengujian, serta mengomunikasikan hasil analisis data."
+        },
+        {
+          "nama": "Teknik pengujian mikrobiologi dan penyajian data hasil pengujian",
+          "cp_normatif": "Menerapkan teknik pengujian mikrobiologis, merekam/ menyajikan data hasil pengujian, serta mengomunikasikan hasil analisis data."
+        }
+      ]
+    }
+  },
+  "kehutanan": {
+    "bidang": "Agribisnis dan Agroteknologi",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Kehutanan",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Inventarisasi serta Pemetaan Sumber Daya Hutan",
+          "cp_normatif": "Menerapkan secara menyeluruh proses inventarisasi sumber daya hutan, mulai dari perencanaan, pelaksanaan, pengumpulan dan pengolahan data, hingga penyajian hasil dalam bentuk yang informatif, melakukan pengukuran lapangan, mengolah data spasial, serta menggunakan teknologi pemetaan dan Sistem Informasi Geografis (SIG) secara kontekstual dalam kegiatan kehutanan."
+        },
+        {
+          "nama": "Pembukaan wilayah dan pemanenan hasil hutan",
+          "cp_normatif": "Menerapkan prinsip dasar dan tujuan dari pembukaan wilayah serta pemanenan hasil hutan secara bertanggung jawab sesuai rencana kerja, dan menganalisis dampak lingkungan, mempertimbangkan efisiensi kerja, dan memilih metode yang sesuai dengan kondisi lapangan."
+        },
+        {
+          "nama": "Pengujian serta penatausahaan hasil hutan",
+          "cp_normatif": "Menganalisis tujuan dan prosedur pengujian serta penatausahaan hasil hutan, dan menerapkannya secara teliti sesuai standar teknis yang berlaku; menganalisis kualitas hasil hutan, mencatat data secara akurat; serta menyusun laporan sebagai dasar pengambilan keputusan dalam pengelolaan hasil hutan."
+        },
+        {
+          "nama": "Proses produksi dan pemeliharaan benih dan bibit tanaman hutan",
+          "cp_normatif": "Menerapkan prinsip dasar genetika, kualitas benih, serta teknik produksi dan pemeliharaan bibit tanaman hutan; menerapkan prosedur yang tepat sesuai jenis tanaman dan kondisi lingkungan; menganalisis faktor-faktor yang mempengaruhi pertumbuhan bibit; serta mengevaluasi kualitas hasil produksi sebagai bagian dari upaya rehabilitasi hutan yang berkelanjutan."
+        },
+        {
+          "nama": "Teknik dasar rehabilitasi hutan serta konservasi tanah dan air",
+          "cp_normatif": "Menganalisis tujuan, prinsip ekologi, dan tahapan dalam rehabilitasi hutan serta konservasi tanah dan air, merancang dan melaksanakan tindakan rehabilitatif secara tepat berdasarkan kondisi lahan, menganalisis penyebab degradasi; serta mengevaluasi dampak jangka panjang dari tindakan konservasi terhadap keberlanjutan ekosistem hutan."
+        },
+        {
+          "nama": "Pembinaan habitat dan populasi, serta peredaran tumbuhan dan satwa liar",
+          "cp_normatif": "Menganalisis keterkaitan antara habitat, populasi, dan keberlanjutan spesies, serta melaksanakan langkah-langkah pembinaan habitat dan populasi secara ekologis; mengidentifikasi jenis tumbuhan dan satwa liar, memantau peredaran dan perubahannya; serta menganalisis faktor-faktor yang mempengaruhi kelestarian keanekaragaman hayati di kawasan hutan."
+        },
+        {
+          "nama": "Prosedur penyelenggaraan wisata alam dan pelayanan wisata berbasis konservasi",
+          "cp_normatif": "Menganalisis atraksi dan daya dukung wisata alam, promosi wisata alam, dan pemanduan wisata alam di dalam kawasan hutan."
+        }
+      ]
+    }
   }
 }
