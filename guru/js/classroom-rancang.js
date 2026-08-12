@@ -729,22 +729,43 @@
   value="${esc(isLainnya ? saved : '')}">`;
     }
 
+    // Helper: checkbox list bergaya P2b
+    function smkCheckList(listId, opsi, saved, withLainnya) {
+      const savedArr = Array.isArray(saved) ? saved : (saved ? [saved] : []);
+      const rows = opsi.map(nama => {
+        const checked = savedArr.includes(nama) ? ' checked' : '';
+        return `<label class="rp-elemen-check${checked ? ' checked' : ''}">
+  <input type="checkbox" value="${esc(nama)}"${checked}>
+  <span>${esc(nama)}</span>
+</label>`;
+      }).join('');
+      const isLainnya = withLainnya && savedArr.some(v => !opsi.includes(v));
+      const lainnyaVal = isLainnya ? savedArr.find(v => !opsi.includes(v)) : '';
+      const lainnyaRow = withLainnya ? `<label class="rp-elemen-check${isLainnya ? ' checked' : ''}">
+  <input type="checkbox" value="__lainnya__"${isLainnya ? ' checked' : ''}>
+  <span>Lainnya</span>
+</label>
+<input type="text" id="${listId}-txt" class="rp-input" placeholder="Jelaskan…"
+  style="margin-top:var(--space-xs);display:${isLainnya ? 'block' : 'none'};"
+  value="${esc(lainnyaVal)}">` : '';
+      return `<div class="rp-elemen-list" id="${listId}">${rows}${lainnyaRow}</div>`;
+    }
+
+    const tujuanOpsi = ['PKL / Magang','Teaching Factory','Sertifikasi Kompetensi (BNSP/LSP)','LKS / Kompetisi','Penguatan Konsep Dasar','Penguatan Literasi','Penguatan Numerasi','Kontekstualisasi ke Dunia Kerja','Kewirausahaan / UMKM'];
+    const dudiOpsi   = ['Kunjungan industri','Guest teacher','Sponsorship alat','Tidak ada hubungan DUDI'];
+
     body.innerHTML = `
 <div class="rp-block">
   <div class="rp-block-title">Konteks SMK</div>
-
-  <div class="rp-q">
-    <label class="rp-q-label" for="rp-smk-jurusan">SMK-1. Jurusan siswa *</label>
-    <input type="text" id="rp-smk-jurusan" class="rp-input" placeholder="Contoh: Teknik Pemesinan, Akuntansi, DPIB…" value="${esc(smk.jurusan||'')}">
-  </div>
 
   <div class="rp-q">
     <label class="rp-q-label" for="rp-smk-rumpun">SMK-2. Rumpun mata pelajaran *</label>
     ${smkSel('rp-smk-rumpun', ['Normatif','Adaptif','Produktif'], smk.rumpun||'')}
   </div>
 
-  <div class="rp-q" id="rp-q-smk3">
-    <label class="rp-q-label">SMK-3. Tujuan pembelajaran utama (bisa lebih dari satu)</label>
+  <div class="rp-q">
+    <label class="rp-q-label">SMK-3. Tujuan pembelajaran utama (pilih semua yang sesuai) *</label>
+    ${smkCheckList('rp-smk-tujuan-list', tujuanOpsi, smk.tujuan, true)}
   </div>
 
   <div class="rp-q">
@@ -758,17 +779,18 @@
   </div>
 
   <div class="rp-q">
-    <label class="rp-q-label" for="rp-smk-pola-jadwal">SMK-6. Pola jadwal produktif *</label>
+    <label class="rp-q-label" for="rp-smk-pola-jadwal">SMK-6. Pola jadwal mengajar *</label>
     ${smkSel('rp-smk-pola-jadwal', ['Sistem blok (semua JP produktif 1 hari)','Tersebar harian','Tetap mingguan (jadwal rutin)','Campuran blok & harian','Tidak menentu'], smk.pola_jadwal||'')}
   </div>
 
   <div class="rp-q">
-    <label class="rp-q-label" for="rp-smk-durasi-proyek">SMK-7. Durasi proyek/unit per blok *</label>
+    <label class="rp-q-label" for="rp-smk-durasi-proyek">SMK-7. Durasi satu unit/proyek pembelajaran *</label>
     ${smkSel('rp-smk-durasi-proyek', ['1–2 minggu','3–4 minggu','5–8 minggu','Lebih dari 8 minggu'], smk.durasi_proyek||'')}
   </div>
 
-  <div class="rp-q" id="rp-q-smk8">
-    <label class="rp-q-label">SMK-8. Hubungan dengan DUDI (bisa lebih dari satu)</label>
+  <div class="rp-q">
+    <label class="rp-q-label">SMK-8. Hubungan dengan DUDI (pilih semua yang sesuai) *</label>
+    ${smkCheckList('rp-smk-dudi-list', dudiOpsi, smk.hubungan_dudi, true)}
   </div>
 
   <div class="rp-q">
@@ -811,15 +833,20 @@
       el('rp-smk-mitra-wrap')?.classList.toggle('visible', el('rp-smk-mitra-dudi').value === 'Ada mitra aktif');
     });
 
-    // SMK-3 dan SMK-8 tetap chip multi-select
-    attachLainnya(renderChips(['PKL / Magang','Dunia Kerja Nyata','Sertifikasi Kompetensi','LKS','Konsep Dasar','Kewirausahaan','UMKM Lokal','Literasi / Numerasi'], 'tujuan', el('rp-q-smk3'), true, false), 'Contoh: keterampilan wirausaha digital');
-    attachLainnya(renderChips(['Kunjungan industri','Prakerin / PKL','Guest teacher','Sponsorship alat','Tidak ada hubungan'], 'hubungan_dudi', el('rp-q-smk8'), true, false), 'Contoh: kerjasama startup lokal');
-
-    // Restore chips SMK-3 dan SMK-8
-    if (_ans.smk) {
-      restoreChips(body.querySelector('[data-key="tujuan"]'),        _ans.smk.tujuan);
-      restoreChips(body.querySelector('[data-key="hubungan_dudi"]'), _ans.smk.hubungan_dudi);
-    }
+    // Checkbox .checked class sync + Lainnya toggle untuk SMK-3 dan SMK-8
+    [{ listId: 'rp-smk-tujuan-list' }, { listId: 'rp-smk-dudi-list' }].forEach(({ listId }) => {
+      const listEl = el(listId);
+      if (!listEl) return;
+      listEl.addEventListener('change', e => {
+        const cb = e.target;
+        if (!cb || cb.type !== 'checkbox') return;
+        cb.closest('.rp-elemen-check')?.classList.toggle('checked', cb.checked);
+        if (cb.value === '__lainnya__') {
+          const txt = el(listId + '-txt');
+          if (txt) { txt.style.display = cb.checked ? 'block' : 'none'; if (!cb.checked) txt.value = ''; }
+        }
+      });
+    });
 
     el('rp-btn-back2').addEventListener('click', () => { _step = 1; renderStep1(); });
     el('rp-btn-smk-next').addEventListener('click', handleStep2Submit);
@@ -827,28 +854,35 @@
 
   function handleStep2Submit() {
     showError('rp-step2-error', '');
-    const body = el('rp-body');
-    const getGroup = key => {
-      const g = body.querySelector(`.rp-chip-group[data-key="${key}"]`);
-      return g ? getChipValues(g) : [];
-    };
     function getSelVal(id) {
       const sel = el(id);
       if (!sel) return '';
       if (sel.value === '__lainnya__') return (el(id + '-txt')?.value || '').trim() || 'Lainnya';
       return sel.value;
     }
+    function getCheckboxVals(listId) {
+      const listEl = el(listId);
+      if (!listEl) return [];
+      const vals = [];
+      listEl.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => {
+        if (cb.value === '__lainnya__') {
+          const txt = (el(listId + '-txt')?.value || '').trim();
+          if (txt) vals.push(txt);
+        } else {
+          vals.push(cb.value);
+        }
+      });
+      return vals;
+    }
 
-    const jurusan = (el('rp-smk-jurusan')?.value || '').trim();
     _ans.smk = {
-      jurusan,
       rumpun:          getSelVal('rp-smk-rumpun'),
-      tujuan:          getGroup('tujuan'),
+      tujuan:          getCheckboxVals('rp-smk-tujuan-list'),
       status_pkl:      getSelVal('rp-smk-status-pkl'),
       target_sertif:   getSelVal('rp-smk-target-sertif'),
       pola_jadwal:     getSelVal('rp-smk-pola-jadwal'),
       durasi_proyek:   getSelVal('rp-smk-durasi-proyek'),
-      hubungan_dudi:   getGroup('hubungan_dudi'),
+      hubungan_dudi:   getCheckboxVals('rp-smk-dudi-list'),
       industri_dominan:(el('rp-smk-industri')?.value || '').trim(),
       mitra_dudi:      (el('rp-smk-mitra-dudi')?.value || ''),
       nama_mitra:      (el('rp-smk-mitra')?.value || '').trim(),
