@@ -258,35 +258,33 @@
 <div class="rp-block">
   <div class="rp-block-title">Identitas Konteks Pembelajaran</div>
   <div class="rp-q" id="rp-q-p1">
-    <label class="rp-q-label">1. Jenjang sekolah *</label>
-    <div class="rp-chip-group" id="rp-jenjang-chips">
+    <label class="rp-q-label" for="rp-jenjang-sel">1. Jenjang sekolah *</label>
+    <select class="rp-select" id="rp-jenjang-sel">
+      <option value="">— Pilih jenjang —</option>
       ${['SD','SMP','SMA','SMK'].map(j =>
-        `<div class="rp-chip${_ans.jenjang===j?' selected':''}" data-value="${j}">${j}</div>`
+        `<option value="${j}"${_ans.jenjang===j?' selected':''}>${j}</option>`
       ).join('')}
-    </div>
+    </select>
   </div>
   <div id="rp-step1-error" class="error-msg" style="display:none;"></div>
 </div>`;
 
-    body.querySelectorAll('#rp-jenjang-chips .rp-chip').forEach(chip => {
-      chip.addEventListener('click', () => {
-        body.querySelectorAll('#rp-jenjang-chips .rp-chip').forEach(c => c.classList.remove('selected'));
-        chip.classList.add('selected');
-        _ans.jenjang = chip.dataset.value;
-        _ans.bidangKeahlian = null;
-        _ans.mapelKey = '';
-        _ans.mapel = '';
-        _ans.fase = '';
-        ['rp-q-p1b','rp-q-p2','rp-q-p3','rp-step1-btn'].forEach(id => el(id)?.remove());
-        if (_ans.jenjang === 'SMK') renderStep1P1b();
-        else renderStep1P2(_ans.jenjang, null);
-      });
+    el('rp-jenjang-sel').addEventListener('change', e => {
+      _ans.jenjang = e.target.value;
+      _ans.bidangKeahlian = null;
+      _ans.mapelKey = '';
+      _ans.mapel = '';
+      _ans.fase = '';
+      ['rp-q-p1b','rp-q-p2','rp-q-p3','rp-step1-btn'].forEach(id => el(id)?.remove());
+      if (!_ans.jenjang) return;
+      if (_ans.jenjang === 'SMK') renderStep1P1b();
+      else renderStep1P2(_ans.jenjang, null);
     });
 
     // Restore cascade jika state sudah ada
     if (_ans.jenjang) {
       if (_ans.jenjang === 'SMK') renderStep1P1b();
-      else if (_ans.mapelKey) renderStep1P2(_ans.jenjang, null, true);
+      else renderStep1P2(_ans.jenjang, null, !!_ans.mapelKey);
     }
   }
 
@@ -311,29 +309,25 @@
         .map(v => v.bidang)
     )].sort((a, b) => a.localeCompare(b, 'id'));
 
-    qDiv.innerHTML = `<label class="rp-q-label">2. Bidang keahlian *</label>
-<div class="rp-chip-group" id="rp-bidang-chips">
+    qDiv.innerHTML = `<label class="rp-q-label" for="rp-bidang-sel">2. Bidang keahlian *</label>
+<select class="rp-select" id="rp-bidang-sel">
+  <option value="">— Pilih bidang keahlian —</option>
   ${bidangs.map(b =>
-    `<div class="rp-chip${_ans.bidangKeahlian===b?' selected':''}" data-value="${esc(b)}">${esc(b)}</div>`
+    `<option value="${esc(b)}"${_ans.bidangKeahlian===b?' selected':''}>${esc(b)}</option>`
   ).join('')}
-</div>`;
+</select>`;
 
-    qDiv.querySelectorAll('.rp-chip').forEach(chip => {
-      chip.addEventListener('click', () => {
-        qDiv.querySelectorAll('.rp-chip').forEach(c => c.classList.remove('selected'));
-        chip.classList.add('selected');
-        _ans.bidangKeahlian = chip.dataset.value;
-        _ans.mapelKey = '';
-        _ans.mapel = '';
-        _ans.fase = '';
-        ['rp-q-p2','rp-q-p3','rp-step1-btn'].forEach(id => el(id)?.remove());
-        renderStep1P2('SMK', _ans.bidangKeahlian);
-      });
+    el('rp-bidang-sel').addEventListener('change', e => {
+      _ans.bidangKeahlian = e.target.value || null;
+      _ans.mapelKey = '';
+      _ans.mapel = '';
+      _ans.fase = '';
+      ['rp-q-p2','rp-q-p3','rp-step1-btn'].forEach(id => el(id)?.remove());
+      if (_ans.bidangKeahlian) renderStep1P2('SMK', _ans.bidangKeahlian);
     });
 
     if (_ans.bidangKeahlian) {
-      if (_ans.mapelKey) renderStep1P2('SMK', _ans.bidangKeahlian, true);
-      else renderStep1P2('SMK', _ans.bidangKeahlian);
+      renderStep1P2('SMK', _ans.bidangKeahlian, !!_ans.mapelKey);
     }
   }
 
@@ -382,23 +376,21 @@
       return { value: key, label };
     }).sort((a, b) => a.label.localeCompare(b.label, 'id'));
 
-    qDiv.innerHTML = `<label class="rp-q-label">${qNum}. Mata pelajaran *</label>
-<div class="rp-chip-group" id="rp-mapel-chips">
+    qDiv.innerHTML = `<label class="rp-q-label" for="rp-mapel-sel">${qNum}. Mata pelajaran *</label>
+<select class="rp-select" id="rp-mapel-sel">
+  <option value="">— Pilih mata pelajaran —</option>
   ${opts.map(o =>
-    `<div class="rp-chip${_ans.mapelKey===o.value?' selected':''}" data-value="${esc(o.value)}" data-label="${esc(o.label)}">${esc(o.label)}</div>`
+    `<option value="${esc(o.value)}"${_ans.mapelKey===o.value?' selected':''}>${esc(o.label)}</option>`
   ).join('')}
-</div>`;
+</select>`;
 
-    qDiv.querySelectorAll('.rp-chip').forEach(chip => {
-      chip.addEventListener('click', () => {
-        qDiv.querySelectorAll('.rp-chip').forEach(c => c.classList.remove('selected'));
-        chip.classList.add('selected');
-        _ans.mapelKey = chip.dataset.value;
-        _ans.mapel = chip.dataset.label;
-        _ans.fase = '';
-        ['rp-q-p3','rp-step1-btn'].forEach(id => el(id)?.remove());
-        if (data[_ans.mapelKey]) renderStep1P3(_ans.mapelKey, data[_ans.mapelKey]);
-      });
+    el('rp-mapel-sel').addEventListener('change', e => {
+      const selOpt = e.target.selectedOptions[0];
+      _ans.mapelKey = e.target.value;
+      _ans.mapel = selOpt?.textContent.trim() || '';
+      _ans.fase = '';
+      ['rp-q-p3','rp-step1-btn'].forEach(id => el(id)?.remove());
+      if (_ans.mapelKey && data[_ans.mapelKey]) renderStep1P3(_ans.mapelKey, data[_ans.mapelKey]);
     });
 
     if (restore && _ans.mapelKey && data[_ans.mapelKey]) {

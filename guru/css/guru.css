@@ -2948,6 +2948,38 @@ h2.panel-header.open .panel-collapse-arrow {
   margin-bottom: var(--space-md);
 }
 
+/* ── Step 1 dropdown select ── */
+.rp-select {
+  display: block;
+  width: 100%;
+  max-width: 28rem;
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: var(--input-r);
+  color: var(--text-primary);
+  font-size: var(--fs-ui);
+  font-family: inherit;
+  padding: var(--input-py) var(--input-px);
+  min-height: var(--btn-h-sm);
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+.rp-select:focus {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px var(--gold-muted);
+}
+.rp-select option {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+}
+.rp-select option:checked {
+  background: var(--gold-muted);
+  color: var(--gold);
+}
+
 .rp-q-label {
   font-size: var(--fs-ui);
   font-weight: var(--fw-medium);
