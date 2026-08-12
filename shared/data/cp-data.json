@@ -6055,5 +6055,313 @@
         }
       ]
     }
+  },
+  "dasar_dasar_pemasaran": {
+    "bidang": "Bisnis dan Manajemen",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_e": {
+      "label": "Dasar-dasar Pemasaran",
+      "cp_umum": "Pada akhir Fase E, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Wawasan dunia kerja bidang pemasaran di berbagai industri",
+          "cp_normatif": "Menganalisis proses bisnis dalam bidang pemasaran secara menyeluruh pada berbagai jenis industri dan usaha, perkembangan pemasaran mulai dari konvensional sampai dengan penerapan teknologi modern, industri 4.0, Internet of Things (IoT), teknologi digital dalam pemasaran, isu-isu perkembangan yang muncul dan hilang ke depan terkait dengan dunia pemasaran, seperti digital marketing, e-commerce, marketplace, media sosial, dan sejenisnya, profil pekerjaan/profesi (job profile) dalam bidang pemasaran di masa sekarang dan dimasa mendatang, seperti kasir, pramuniaga, sales executive, merchandiser, digital marketer, public relation, dan sejenisnya, serta peluang usaha di bidang pemasaran, seperti dropshipping, drop servicing, affiliate marketing, marketing agency, content creator, dan sejenisnya, serta mampu menentukan karir di bidang yang sesuai dengan bakat, minat, dan renjana (passion)."
+        },
+        {
+          "nama": "Kecakapan kerja dasar (basic job skills), K3, dan budaya kerja",
+          "cp_normatif": "Menerapkan prosedur kesehatan, keselamatan dan keamanan di tempat kerja, penanganan dan antisipasi keadaan darurat, serta mempertahankan standar penampilan pribadi, dan budaya kerja; menganalisis masalah-masalah ekonomi, model ekonomi, pelaku ekonomi, perilaku konsumen dan produsen dalam kegiatan ekonomi, menerapkan ilmu ekonomi dalam kegiatan usaha, memahami administrasi umum serta fungsi-fungsi manajemen, faktor-faktor yang mempengaruhi perilaku konsumen dalam keputusan pembelian barang dan jasa, mengidentifikasi sinyal-sinyal calon pelanggan, menentukan bahasa pemasaran yang tepat serta membuat buyer persona, agar dapat mewujudkan kepuasan pelanggan; dan menerapkan pelayanan prima saat melakukan pelayanan penjualan, konsep AIDA, serta mampu untuk bekerja di dalam tim (teamwork)."
+        }
+      ]
+    }
+  },
+  "dasar_dasar_manajemen_perkantoran_dan_layanan_bisnis": {
+    "bidang": "Bisnis dan Manajemen",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_e": {
+      "label": "Dasar-dasar Manajemen Perkantoran dan Layanan Bisnis",
+      "cp_umum": "Pada akhir Fase E, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Wawasan dunia kerja bidang manajemen perkantoran dan layanan bisnis",
+          "cp_normatif": "Menganalisis aktivitas pekerjaan pada bidang manajemen perkantoran dan layanan bisnis, fungsi manajemen, rantai pasok (supply chain), perkembangan manajemen perkantoran modern, otomatisasi perkantoran, profil pekerjaan/profesi (job-profile) di masa sekarang dan di masa mendatang, peluang usaha di bidang manajemen perkantoran dan layanan bisnis, dasar ilmu ekonomi, dasar-dasar pemasaran, dan e-commerce."
+        },
+        {
+          "nama": "Kecakapan kerja dasar (basic job skills), K3, dan budaya kerja",
+          "cp_normatif": "Menerapkan layanan pelanggan (customer service), prosedur dan instruksi kerja, K3/K3LH, budaya kerja, dasar-dasar prosedur penanganan dokumen, prosedur penyimpanan dokumen, pengelolaan peralatan kantor, penggunaan perangkat keras; mendefinisikan data dan informasi; menerapkan prosedur penggunaan homepage, dasar komunikasi, konsep layanan bisnis logistik, layanan pergudangan, layanan transportasi; dan menganalisis layanan distribusi dan pengiriman (delivery)."
+        }
+      ]
+    }
+  },
+  "dasar_dasar_akuntansi_dan_keuangan_lembaga": {
+    "bidang": "Bisnis dan Manajemen",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_e": {
+      "label": "Dasar-dasar Akuntansi dan Keuangan Lembaga",
+      "cp_umum": "Pada akhir Fase E, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Wawasan dunia kerja bidang akuntansi dan keuangan lembaga",
+          "cp_normatif": "Menganalisis jenis-jenis perusahaan dalam akuntansi, siklus akuntansi, perkembangan teknologi akuntansi, permasalahan ekonomi, penerapan ilmu ekonomi dalam kegiatan usaha, administrasi dalam akuntansi dan keuangan lembaga, serta mendeskripsikan fungsi manajemen dalam akuntansi dan keuangan lembaga."
+        },
+        {
+          "nama": "Kecakapan kerja dasar (basic job skills), K3, dan budaya kerja",
+          "cp_normatif": "Menerapkan regulasi dan standar yang mengatur etika profesi akuntansi dan keuangan lembaga, kode etik dalam praktik akuntansi dan keuangan lembaga, prinsip-prinsip etika profesi akuntansi dan keuangan lembaga, praktik-praktik kesehatan diri dan keselamatan kerja, praktik budaya kerja 5R, dasar-dasar akuntansi, dasar-dasar perbankan, produk dan jasa layanan perbankan, serta penggunaan paket program pengolah angka (spreadsheet)."
+        }
+      ]
+    }
+  },
+  "bisnis_digital": {
+    "bidang": "Bisnis dan Manajemen",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Bisnis Digital",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Marketing",
+          "cp_normatif": "Menganalisis struktur dan bentuk pasar, strategi bauran pemasaran, pengembangan produk, daur hidup produk (product life cycle/PLC), dan strategi merek (branding), serta menerapkan penetapan harga jual dan melakukan promosi produk."
+        },
+        {
+          "nama": "Perencanaan bisnis",
+          "cp_normatif": "Menerapkan analisis lingkungan bisnis, perencanaan strategi bisnis, analisis usaha, menyusun proposal usaha, dan menerapkan strategi pengembangan usaha."
+        },
+        {
+          "nama": "Komunikasi bisnis",
+          "cp_normatif": "Menerapkan prinsip komunikasi bisnis, dan etika komunikasi bisnis, serta menerapkan negosiasi bisnis dan presentasi bisnis."
+        },
+        {
+          "nama": "Digital branding",
+          "cp_normatif": "Menganalisis ruang lingkup digital branding, membuat logo secara online, menerapkan produksi konten digital serta manajemen publikasi konten."
+        },
+        {
+          "nama": "Digital onboarding",
+          "cp_normatif": "Menerapkan aktivasi penjualan di media sosial, website, marketplace, dan online retail."
+        },
+        {
+          "nama": "Digital marketing",
+          "cp_normatif": "Menganalisis ruang lingkup digital marketing, dan etika warga internet (internet citizen), serta menerapkan analisis data digital, pengelolaan usaha berbasis web, Search Engine Optimization (SEO), Search Engine Marketing (SEM), sosial media marketing, dan promosi di marketplace."
+        },
+        {
+          "nama": "Digital operation",
+          "cp_normatif": "Menganalisis ruang lingkup operasional bisnis online, menerapkan prosedur penerimaan barang, pengelolaan inventori, dan prosedur pengiriman barang, customer relationship, dan membuat laporan pembelian."
+        }
+      ]
+    }
+  },
+  "bisnis_ritel": {
+    "bidang": "Bisnis dan Manajemen",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Bisnis Ritel",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Marketing",
+          "cp_normatif": "Menganalisis konsep pasar dalam pemasaran (struktur dan bentuk pasar), serta menerapkan studi kelayakan usaha, penyusunan rencana usaha (proposal usaha atau Business Model Canvas), strategi pemasaran (Segmenting, Targeting, Positioning), dan strategi bauran pemasaran (4P atau 7P)."
+        },
+        {
+          "nama": "Customer Service",
+          "cp_normatif": "Menganalisis ruang lingkup customer service dan menerapkan POS (Prosedur Operasional Standar) customer service dalam handling customer dan handling complain baik secara offline maupun online."
+        },
+        {
+          "nama": "Komunikasi Bisnis",
+          "cp_normatif": "Menerapkan konsep komunikasi bisnis baik secara lisan maupun tertulis dalam bahasa Indonesia dan atau bahasa asing (pembuatan surat bisnis, negosiasi bisnis, presentasi bisnis)."
+        },
+        {
+          "nama": "Pengelolaan Bisnis Ritel",
+          "cp_normatif": "Menganalisis ruang lingkup bisnis ritel; menerapkan proses bisnis ritel (ordering, receiving, warehousing, displaying, selling), daily activity retail, strategi bauran ritel (Produk, Harga, Promosi, Pelayanan, Fasilitas Fisik), manajemen persediaan barang dagang (pencatatan, perhitungan, dan stock opname); serta menganalisis waralaba."
+        },
+        {
+          "nama": "Visual Merchandising",
+          "cp_normatif": "Mengembangkan rencana visual merchandising (planogram), serta menerapkan visual merchandising, dan evaluasi visual merchandising."
+        },
+        {
+          "nama": "Pengemasan dan Pengiriman Produk",
+          "cp_normatif": "Menerapkan pengemasan produk, saluran distribusi, penyusunan dokumen pengiriman produk, dan pengiriman produk."
+        },
+        {
+          "nama": "Administrasi Transaksi",
+          "cp_normatif": "Menganalisis transaksi serta menerapkan pengoperasian alat transaksi (mesin kasir, printer struk, EDC, barcode scanner, money detector, timbangan), layanan pembayaran tunai dan non tunai (QRIS, dompet digital, uang elektronik, kartu debet, kartu kredit) dan penyusunan laporan penjualan."
+        }
+      ]
+    }
+  },
+  "manajemen_perkantoran": {
+    "bidang": "Bisnis dan Manajemen",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Manajemen Perkantoran",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Pengelolaan administrasi umum",
+          "cp_normatif": "Menerapkan korespondensi Bahasa Indonesia dan Bahasa Inggris tingkat dasar, penanganan surat (mail handling), penyusunan surat, akses data dan informasi di tempat kerja, pencatatan kas kecil, penyusunan jadwal kegiatan pimpinan (daily agenda), dan penyusunan dokumen perjalanan dinas serta akomodasi dan transportasi perjalanan dinas (business travelling arrangement)."
+        },
+        {
+          "nama": "Komunikasi di tempat kerja",
+          "cp_normatif": "Menerapkan prosedur berkomunikasi melalui telepon, presentasi, serta penanganan tamu kantor (guest handling dalam bahasa Indonesia, bahasa Inggris, dan/atau bahasa asing lainnya."
+        },
+        {
+          "nama": "Pengelolaan Kearsipan",
+          "cp_normatif": "Menerapkan prosedur penyimpanan arsip, penggunaan arsip, pemeliharaan arsip, penentuan masa retensi arsip, serta penyusutan arsip secara manual maupun elektronik/digital."
+        },
+        {
+          "nama": "Teknologi Perkantoran",
+          "cp_normatif": "Mengembangkan berbagai dokumen kantor menggunakan aplikasi perkantoran (office software), serta menerapkan komputasi berbasis online (cloud computing)."
+        },
+        {
+          "nama": "Pengelolaan Rapat/Pertemuan",
+          "cp_normatif": "Menerapkan pengelolaan rapat/pertemuan secara online maupun offline; mengembangkan materi presentasi, dan membuat notulen rapat."
+        },
+        {
+          "nama": "Pelayanan kepada kolega dan pelanggan",
+          "cp_normatif": "Menganalisis kebutuhan kolega/pelanggan dan menerapkan prosedur penanganan pelanggan serta pemrosesan keluhan kolega dan pelanggan."
+        }
+      ]
+    }
+  },
+  "manajemen_logistik": {
+    "bidang": "Bisnis dan Manajemen",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Manajemen Logistik",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Dasar-dasar Manajemen Rantai Pasok (Supply Chain Management)",
+          "cp_normatif": "Menganalisis konsep dasar manajemen rantai pasok; mengurutkan alur rantai pasok, pihak yang terlibat dalam rantai pasok, dan indikator kinerja rantai pasok; serta membuat dokumen dan administrasi rantai pasok."
+        },
+        {
+          "nama": "Pengelolaan Pengadaan (Procurement)",
+          "cp_normatif": "Menganalisis konsep dasar pengadaan; menerapkan proses dan alur pengadaan, etika dan prinsip pengadaan; serta menyusun dokumen administrasi dan pelaporan pengadaan."
+        },
+        {
+          "nama": "Manajemen Pergudangan",
+          "cp_normatif": "Menganalisis alur pergerakan barang di gudang, struktur dan tugas personil gudang, peralatan dan keselamatan kerja di gudang, layout gudang, sistem penataan atau penyimpanan barang, dan menyusun pengendalian persediaan gudang, serta pencatatan administrasi dan pelaporan pergudangan."
+        },
+        {
+          "nama": "Pelayanan Pelanggan",
+          "cp_normatif": "Menerapkan prosedur penerimaan dan penanganan permintaan pelanggan, serta penanganan keluhan dan komplain pelanggan pada bidang logistik."
+        },
+        {
+          "nama": "Teknologi dan Sistem Informasi Logistik",
+          "cp_normatif": "Menerapkan pemanfaatan teknologi terkini dalam logistik (gudang, transportasi, distribusi dan lainnya), prosedur penggunaan aplikasi logistik (ERP, WMS, TMS, CRM); menganalisis peran big data, IoT, dan AI dalam logistik; serta menyusun laporan sistem informasi logistik."
+        },
+        {
+          "nama": "Manajemen Distribusi dan Transportasi",
+          "cp_normatif": "Menganalisis konsep kerja courier service (collecting­processing­transporting-delivery dan reporting), dan variabel pengiriman, serta menerapkan etika dan keselamatan kerja, pemilihan moda dan jenis transportasi, penentuan dan penjadwalan rute, penanganan muatan, pelacakan pengiriman, dan pencatatan administrasi dan pelaporan dokumen distribusi/pengiriman."
+        },
+        {
+          "nama": "Perdagangan Internasional",
+          "cp_normatif": "Menganalisis konsep dasar perdagangan internasional, pihak dan lembaga dalam perdagangan internasional, produk ekspor-impor Indonesia, incoterms, dan moda transportasi perdagangan internasional; membuat dokumen ekspor-impor; menerapkan prosedur ekspor-impor, sistem pembayaran internasional; dan menganalisis jasa pengurusan pengiriman barang (freight forwarding) dan peran freight forwarder dalam perdagangan internasional, serta kode etik dan hukum perdagangan internasional."
+        }
+      ]
+    }
+  },
+  "layanan_perbankan": {
+    "bidang": "Bisnis dan Manajemen",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Layanan Perbankan",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Pengelolaan Kas",
+          "cp_normatif": "Menerapkan pengelolaan kas sebagai bagian dari rekonsiliasi bank."
+        },
+        {
+          "nama": "Layanan Perbankan dan Keuangan Mikro",
+          "cp_normatif": "Menganalisis sistem perbankan di Indonesia serta menerapkan pemasaran produk atau layanan perbankan yang terintegrasi dengan perkembangan teknologi secara komunikatif, transaksi pada Lembaga Keuangan Non Bank, dan penyusunan laporan jasa lembaga keuangan."
+        },
+        {
+          "nama": "Akuntansi Perbankan dan Keuangan Mikro",
+          "cp_normatif": "Menganalisis perbedaan akuntansi bank dengan akuntansi keuangan; menyusun persamaan dasar akuntansi bank; mencatat transaksi produk layanan perbankan; menerapkan siklus akuntansi perbankan; menyusun laporan akuntansi perbankan, serta menyusun Laporan keuangan Entitas Tunggal untuk Skala Usaha Mikro, Kecil, dan Menengah."
+        },
+        {
+          "nama": "Komputer akuntansi",
+          "cp_normatif": "Menerapkan pengoperasian aplikasi komputer akuntansi dalam menyusun Laporan Keuangan Perbankan dan Laporan Keuangan entitas tunggal skala usaha Mikro kecil dan menengah untuk mendukung pekerjaannya."
+        },
+        {
+          "nama": "Perpajakan",
+          "cp_normatif": "Menganalisis ketentuan umum dan tata cara perpajakan, jenis-jenis pajak, secara mandiri menghitung pajak terutang, pemenuhan kewajiban wajib pajak pribadi dan badan, penyetor pajak kurang bayar, serta menyusun laporan pajak."
+        }
+      ]
+    }
+  },
+  "layanan_perbankan_syariah": {
+    "bidang": "Bisnis dan Manajemen",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Layanan Perbankan Syariah",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Pengelolaan Kas",
+          "cp_normatif": "Menerapkan pengelolaan kas sebagai bagian dari rekonsiliasi bank."
+        },
+        {
+          "nama": "Ekonomi Islam",
+          "cp_normatif": "Menganalisis prinsip dan sistem ekonomi Islam, hukum ekonomi Islam dalam bank dan industri keuangan non bank syariah, menerapkan ZISWAF, jenis-jenis akad transaksi dalam fiqih muamalah, dan menguraikan ketentuan umum dan tata cara perpajakan (KUP)."
+        },
+        {
+          "nama": "Layanan Lembaga Keuangan Syariah",
+          "cp_normatif": "Menerapkan layanan lembaga keuangan syariah terstandar dan strategi pemasaran lembaga keuangan syariah"
+        },
+        {
+          "nama": "Akuntansi Perbankan Syariah",
+          "cp_normatif": "Membedakan perbedaan sistem akuntansi perbankan syariah dengan akuntansi keuangan serta menerapkan persamaan dasar akuntansi perbankan syariah, pengelolaan dokumen transaksi bisnis syariah, dan penyusunan laporan keuangan Bank Pembiayaan Rakyat Syariah (BPRS)."
+        },
+        {
+          "nama": "Komputer Akuntansi",
+          "cp_normatif": "Menerapkan pengoperasian program komputer akuntansi dalam menyusun laporan keuangan entitas tunggal untuk skala usaha mikro, kecil dan menengah."
+        }
+      ]
+    }
+  },
+  "akuntansi": {
+    "bidang": "Bisnis dan Manajemen",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Akuntansi",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Akuntansi perusahaan jasa, dagang dan manufaktur",
+          "cp_normatif": "Menganalisis dokumen sumber dan dokumen pendukung pada perusahaan (entitas) untuk Wajib Pajak Orang Pribadi dan Badan, baik yang telah menjadi Pengusaha Kena Pajak (PKP) maupun non-PKP, serta menerapkan proses pencatatan transaksi ke dalam jurnal umum atau khusus, pencatatan transaksi ke dalam buku pembantu kartu piutang, kartu liabilitas, dan kartu persediaan barang dagang, posting jurnal umum atau khusus ke dalam buku besar, penyusunan neraca saldo, analisis transaksi penyesuaian, posting jurnal penyesuaian ke dalam buku besar, neraca lajur (worksheet), laporan laba/rugi, laporan perubahan modal (perubahan ekuitas), neraca (laporan posisi keuangan), laporan arus kas, dan catatan atas laporan keuangan, jurnal penutup, posting jurnal penutup ke dalam buku besar, serta neraca saldo setelah penutupan."
+        },
+        {
+          "nama": "Akuntansi lembaga/instansi pemerintah",
+          "cp_normatif": "Menerapkan standar akuntansi yang digunakan lembaga atau instansi pemerintah."
+        },
+        {
+          "nama": "Akuntansi keuangan",
+          "cp_normatif": "Menerapkan kartu piutang, kartu liabilitas, dan kartu persediaan, dokumen kas dan setara kas, kartu aset non lancar, penyajian laporan harga pokok produk, serta analisis berbagai jenis ekuitas entitas."
+        },
+        {
+          "nama": "Komputer akuntansi",
+          "cp_normatif": "Menerapkan aplikasi akuntansi modern yang terintegrasi dengan sistem informasi dan teknologi, termasuk dalam penerapan sistem akuntansi untuk bisnis berbasis penjualan daring (e-commerce). 5. Perpajakan Menerapkan penghitungan pajak terutang, penyetoran pajak kurang/lebih bayar, serta penyusunan laporan pajak sesuai ketentuan perundangan tentang perpajakan."
+        }
+      ]
+    }
   }
 }
