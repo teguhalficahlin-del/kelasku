@@ -7291,5 +7291,441 @@
         }
       ]
     }
+  },
+  "fisika": {
+    "bidang": "Umum",
+    "jenjang": [
+      "SMA"
+    ],
+    "fase_f": {
+      "label": "Fisika Fase F (Kelas 11–12 SMA)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Pemahaman Fisika",
+          "cp_normatif": "Menganalisis hubungan gerak dan gaya serta pemanfaatannya untuk menjelaskan fenomena alam, desain, atau rekayasa struktur; membuat karya yang menunjukkan penerapan hukum fluida dalam kehidupan sehari-hari; menganalisis konsep kalor dan termodinamika serta penerapannya untuk mengidentifikasi fenomena perubahan iklim; menganalisis gejala gelombang dan penerapannya dalam kehidupan sehari-hari; mengevaluasi rangkaian listrik; menganalisis fenomena elektromagnetik; menganalisis teori dasar fisika modern dan pengaruhnya terhadap perkembangan teknologi; serta menerapkan teori dasar digital dalam kehidupan sehari-hari."
+        },
+        {
+          "nama": "Keterampilan Proses",
+          "cp_normatif": "Menerapkan keterampilan proses yang mencakup: Mengamati fenomena ilmiah dalam kehidupan sehari-hari maupun di laboratorium dan mencatat hasil pengamatannya dengan memperhatikan detail dari objek yang diamati untuk memunculkan pertanyaan yang akan diselidiki. Mempertanyakan dan Memprediksi: Merumuskan pertanyaan ilmiah tentang hubungan antar variabel dan hipotesis yang dapat diselidiki secara ilmiah. Merencanakan dan Melakukan Penyelidikan: Merencanakan dan memilih metode yang sesuai serta mengendalikan variabel berdasarkan referensi untuk mengumpulkan data yang dapat dipercaya; memilih dan menggunakan alat dan bahan, termasuk penggunaan teknologi digital yang sesuai untuk mengumpulkan serta mencatat data secara sistematis dan akurat. Memproses, Menganalisis Data dan Informasi: Menafsirkan informasi yang diperoleh dengan jujur dan bertanggung jawab; menggunakan berbagai metode untuk menganalisa pola dan kecenderungan pada data; mendeskripsikan hubungan antar variabel serta mengidentifikasi inkonsistensi yang terjadi; menggunakan data dan rujukan untuk menarik kesimpulan yang konsisten dengan hasil penyelidikan. Mengevaluasi dan Refleksi: Mengidentifikasi sumber ketidakpastian dan kemungkinan penjelasan alternatif dalam rangka mengevaluasi kesimpulan serta menjelaskan cara spesifik untuk meningkatkan kualitas data; menganalisis validitas informasi dari sumber primer dan sekunder serta mengevaluasi pendekatan yang digunakan untuk menyelesaikan masalah dalam penyelidikan. Mengomunikasikan Hasil: Mengomunikasikan hasil penyelidikan secara sistematis dan utuh ditunjang dengan argumen ilmiah dan terbuka terhadap pendapat yang lebih relevan."
+        }
+      ]
+    }
+  },
+  "kimia": {
+    "bidang": "Umum",
+    "jenjang": [
+      "SMA"
+    ],
+    "fase_f": {
+      "label": "Kimia Fase F (Kelas 11–12 SMA)",
+      "cp_umum": "Pada akhir fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Pemahaman Kimia",
+          "cp_normatif": "Menganalisis hubungan struktur atom dengan sistem periodik unsur; membandingkan jenis ikatan kimia serta kaitannya dengan bentuk molekul dan gaya intermolekuler dalam memprediksi sifat fisik materi; mengaitkan perubahan entalpi standar dari suatu reaksi kimia dengan sumber energi yang ada di lingkungan sekitar; menganalisis faktor-faktor yang mempengaruhi laju reaksi; menganalisis kesetimbangan kimia dan penerapannya; menjelaskan daya hantar listrik dan sifat koligatif larutan; menjelaskan sel elektrokimia dalam kehidupan sehari-hari; dan menjelaskan senyawa karbon dan makromolekul."
+        },
+        {
+          "nama": "Keterampilan Proses",
+          "cp_normatif": "Menerapkan keterampilan proses yang mencakup: Mengamati fenomena ilmiah dalam kehidupan sehari-hari maupun di laboratorium dan mencatat hasil pengamatannya dengan memperhatikan detail dari objek yang diamati untuk memunculkan pertanyaan yang akan diselidiki. Mempertanyakan dan Memprediksi: Merumuskan pertanyaan ilmiah tentang hubungan antar variabel dan hipotesis yang dapat diselidiki secara ilmiah. Merencanakan dan Melakukan Penyelidikan: Merencanakan dan memilih metode yang sesuai serta mengendalikan variabel berdasarkan referensi untuk mengumpulkan data yang dapat dipercaya; memilih dan menggunakan alat dan bahan, termasuk penggunaan teknologi digital yang sesuai untuk mengumpulkan serta mencatat data secara sistematis dan akurat. Memproses, Menganalisis Data dan Informasi: Menafsirkan informasi yang diperoleh dengan jujur dan bertanggung jawab; menggunakan berbagai metode untuk menganalisa pola dan kecenderungan pada data; mendeskripsikan hubungan antar variabel serta mengidentifikasi inkonsistensi yang terjadi; menggunakan data dan rujukan untuk menarik kesimpulan yang konsisten dengan hasil penyelidikan. Mengevaluasi dan Refleksi: Mengidentifikasi sumber ketidakpastian dan kemungkinan penjelasan alternatif dalam rangka mengevaluasi kesimpulan serta menjelaskan cara spesifik untuk meningkatkan kualitas data; menganalisis validitas informasi dari sumber primer dan sekunder serta mengevaluasi pendekatan yang digunakan untuk menyelesaikan masalah dalam penyelidikan. Mengomunikasikan Hasil: Mengomunikasikan hasil penyelidikan secara sistematis dan utuh ditunjang dengan argumen ilmiah dan terbuka terhadap pendapat yang lebih relevan."
+        }
+      ]
+    }
+  },
+  "biologi": {
+    "bidang": "Umum",
+    "jenjang": [
+      "SMA"
+    ],
+    "fase_f": {
+      "label": "Biologi Fase F (Kelas 11–12 SMA)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Pemahaman Biologi",
+          "cp_normatif": "Mengaitkan hubungan antara struktur dan fungsi organel di dalam sel; menerapkan prinsip-prinsip bioproses yang terjadi di dalam sel; menganalisis keterkaitan antar sistem organ dalam tubuh untuk merespons stimulus internal dan eksternal; menerapkan prinsip pewarisan sifat; mengaitkan mekanisme evolusi dengan proses terjadi keanekaragaman dan kelangsungan hidup organisme; menerapkan prinsip pertumbuhan dan perkembangan; serta menganalisis proses bioteknologi modern."
+        },
+        {
+          "nama": "Keterampilan Proses",
+          "cp_normatif": "Menerapkan keterampilan proses yang mencakup: Mengamati fenomena ilmiah dalam kehidupan sehari-hari maupun di laboratorium dan mencatat hasil pengamatannya dengan memperhatikan detail dari objek yang diamati untuk memunculkan pertanyaan yang akan diselidiki. Mempertanyakan dan Memprediksi: Merumuskan pertanyaan ilmiah tentang hubungan antar variabel dan hipotesis yang dapat diselidiki secara ilmiah. Merencanakan dan Melakukan Penyelidikan: Merencanakan dan memilih metode yang sesuai serta mengendalikan variabel berdasarkan referensi untuk mengumpulkan data yang dapat dipercaya; memilih dan menggunakan alat dan bahan, termasuk penggunaan teknologi digital yang sesuai untuk mengumpulkan serta mencatat data secara sistematis dan akurat. Memproses, Menganalisis Data dan Informasi: Menafsirkan informasi yang diperoleh dengan jujur dan bertanggung jawab; menggunakan berbagai metode untuk menganalisa pola dan kecenderungan pada data; mendeskripsikan hubungan antar variabel serta mengidentifikasi inkonsistensi yang terjadi; menggunakan data dan rujukan untuk menarik kesimpulan yang konsisten dengan hasil penyelidikan. Mengevaluasi dan Refleksi: Mengidentifikasi sumber ketidakpastian dan kemungkinan penjelasan alternatif dalam rangka mengevaluasi kesimpulan serta menjelaskan cara spesifik untuk meningkatkan kualitas data; menganalisis validitas informasi dari sumber primer dan sekunder serta mengevaluasi pendekatan yang digunakan untuk menyelesaikan masalah dalam penyelidikan. Mengomunikasikan Hasil: Mengomunikasikan hasil penyelidikan secara sistematis dan utuh ditunjang dengan argumen ilmiah dan terbuka terhadap pendapat yang lebih relevan."
+        }
+      ]
+    }
+  },
+  "geografi": {
+    "bidang": "Umum",
+    "jenjang": [
+      "SMA"
+    ],
+    "fase_f": {
+      "label": "Geografi Fase F (Kelas 11–12 SMA)",
+      "cp_umum": "Pada akhir fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Pemahaman Konsep",
+          "cp_normatif": "Menganalisis keuntungan dari posisi strategis wilayah Indonesia dari sisi astronomis, geografis, geologis dan pemanfaatan sumber daya alam yang ada; memahami pola keanekaragaman hayati Indonesia dan dunia; memahami karakteristik geografi penduduk di wilayah Indonesia; memahami perubahan iklim, kebencanaan, dan lingkungan hidup sebagai bagian yang tak terpisahkan dari kondisi alam Indonesia; dan memahami kewilayahan dan pembangunan serta kerja sama antarnegara."
+        },
+        {
+          "nama": "Keterampilan Proses",
+          "cp_normatif": "Mengamati fenomena di Indonesia dan/atau dunia untuk memahami pola dan karakteristik, serta membuat pertanyaan ilmiah guna menggali informasi secara mendalam; mengumpulkan data melalui observasi langsung dan/atau kajian pustaka, mendokumentasikan data secara sistematis, menganalisis data dengan pendekatan ilmiah, dan menyimpulkan hasil analisis untuk menjawab pertanyaan; mengomunikasikan hasil analisis dalam berbagai media, seperti peta, grafik, tabel, infografis, dan aplikasi digital, serta merefleksi proses serta hasil yang diperoleh untuk menyempurnakan pemahaman dan merencanakan pengembangan lebih lanjut; dan membuat projek kolaboratif tentang fenomena geografi di Indonesia dan/atau dunia menggunakan teknologi geospasial."
+        }
+      ]
+    }
+  },
+  "ekonomi": {
+    "bidang": "Umum",
+    "jenjang": [
+      "SMA"
+    ],
+    "fase_f": {
+      "label": "Ekonomi Fase F (Kelas 11–12 SMA)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Pemahaman Konsep",
+          "cp_normatif": "Menjelaskan berbagai konsep dasar ekonomi; Mengidentifikasi berbagai permasalahan ekonomi dan keuangan, termasuk keterkaitan permasalahan ekonomi dengan literasi ekonomi dan keuangan digital yang terjadi di lingkungan sekitar, serta menganalisis dampak dari permasalahan ekonomi dan keuangan yang sedang terjadi berdasarkan konsep yang sudah dipelajari; memahami konsep-konsep pendapatan nasional dan pertumbuhan ekonomi serta kaitannya dengan kemiskinan, kesenjangan ekonomi, serta solusi untuk mengatasinya; memahami konsep ketenagakerjaan dan masalahnya serta solusi untuk mengatasinya; memahami konsep uang dan peredaran uang serta kaitannya dengan inflasi dan kebijakan moneter; memahami konsep akuntansi keuangan dasar dalam konteks menilai kondisi keuangan unit usaha (persamaan dasar akuntansi, siklus akuntansi dan laporan keuangan); dan memahami konsep kebijakan fiskal, fungsi anggaran negara dan daerah, dan perpajakan; konsep ekonomi internasional dan masalahnya."
+        },
+        {
+          "nama": "Keterampilan Proses",
+          "cp_normatif": "Mengamati kondisi dan masalah ekonomi di lingkungan sekitar, regional, atau nasional; mempertanyakan dan memprediksi faktor penyebab, kondisi, dan masalah ekonomi di lingkungan sekitar, regional, atau nasional; mengumpulkan informasi berkaitan dengan kondisi dan permasalahan ekonomi di lingkungan sekitar, regional, atau nasional; memvalidasi dan menganalisis informasi yang telah dikumpulkan terkait dengan faktor penyebab kondisi dan permasalahan ekonomi di lingkungan sekitar, regional, atau nasional; menarik kesimpulan terkait faktor penyebab dan memberikan solusi atas kondisi dan permasalahan ekonomi di lingkungan sekitar, regional, atau nasional; mengomunikasikan hasil pengamatan terkait penarikan kesimpulan atas kondisi dan permasalahan ekonomi serta solusi mengatasinya; merefleksikan solusi atas permasalahan ekonomi untuk kepentingan lingkungan sekitar; dan merencanakan projek lanjutan secara kolaboratif dalam rangka mengurangi permasalahan ekonomi di lingkungan sekitar."
+        }
+      ]
+    }
+  },
+  "sosiologi": {
+    "bidang": "Umum",
+    "jenjang": [
+      "SMA"
+    ],
+    "fase_f": {
+      "label": "Sosiologi Fase F (Kelas 11–12 SMA)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Pemahaman Konsep",
+          "cp_normatif": "Menguasai sejumlah kompetensi, yakni murid mampu berpikir kritis dan kreatif; melakukan kajian literasi atas fenomena Sosiologi, menganalisis, menyajikan, melaporkan dan mengomunikasikan hasil kajian; mampu menunjukkan sikap berkesadaran sebagai warga yang baik, dan menghasilkan projek inovatif atas fenomena Sosiologi dalam bentuk digital maupun nondigital. Kompetensi tersebut terbentuk setelah murid menganalisis berbagai permasalahan sosial, konflik, dan integrasi sosial yang terjadi di masyarakat; dan murid juga mampu menyusun pemecahan masalah sosial dalam perspektif pemberdayaan, menerapkan prinsip kesetaraan dalam perbedaan sosial yang digunakan untuk mewujudkan masyarakat multikultural, serta menganalisis hubungan perubahan sosial pada kelompok atau komunitas dan globalisasi."
+        },
+        {
+          "nama": "Keterampilan Proses",
+          "cp_normatif": "Mengamati, mendokumentasikan, mengumpulkan, mengolah, menyajikan, melaporkan, dan mengomunikasikan fenomena sosial di Indonesia dan/atau dunia baik dari realitas sosial maupun dari media digital sebagai respon atas perubahan yang disajikan secara logis dan sistematis dengan pendekatan pembelajaran mendalam; atas pemahaman dan refleksi yang dilakukan, murid mampu merancang projek kolaboratif yang solutif atas masalah sosial, konflik sosial dan kekerasan akibat perbedaan, integrasi sosial, perubahan sosial budaya, dan hubungannya dengan globalisasi dalam pendekatan pemberdayaan; dan hasil kerja kolaboratif dalam mengkaji objek Sosiologi murid mampu melahirkan pengalaman bermakna dan berkesadaran kolektif dalam membangun masyarakat yang harmonis."
+        }
+      ]
+    }
+  },
+  "antropologi": {
+    "bidang": "Umum",
+    "jenjang": [
+      "SMA"
+    ],
+    "fase_f": {
+      "label": "Antropologi Fase F (Kelas 11–12 SMA)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Pemahaman Konsep",
+          "cp_normatif": "Menjelaskan konsep dasar Antropologi sebagai disiplin keilmuan, termasuk sejarah perkembangan, ruang lingkup, dan prinsip-prinsip seperti native’s point of view (pendekatan emik), relativisme budaya, thick description dan holistik, serta mengintegrasikannya secara bermakna dan kontekstual dalam menganalisis fenomena budaya, dengan pemahaman bahwa unsur-unsur kebudayaan saling mempengaruhi dan berhubungan; menjelaskan metode penelitian etnografi sebagai ciri khas utama dalam Antropologi dengan akan mempelajari metode, teknik, dan prinsip etnografi dalam menggali data secara mendalam melalui keterlibatan langsung di lapangan dan membaca hasil karya etnografi secara kritis, sehingga mampu menghasilkan gambaran utuh tentang kehidupan dan budaya suatu komunitas; memahami bahwa kebudayaan merupakan objek kajian utama dalam Antropologi yang melibatkan konsep dasar dan unsur-unsur budaya, yang terus berkembang seiring dengan perubahan sosial, teknologi, dan interaksi antarbudaya; memahami bahasa dan sistem religi tidak hanya sebagai bagian unsur universal dalam kebudayaan tetapi juga sebagai bagian dari sistem simbol dan kepercayaan yang hadir dalam kehidupan manusia; menganalisis konsep dasar dan fungsi organisasi sosial, termasuk keluarga dan sistem kekerabatan sebagai bagian dari struktur sosial di masyarakat; menganalisis problematika keberagaman budaya sebagai realitas dalam kehidupan masyarakat yang multikultural dan masyarakat digital."
+        },
+        {
+          "nama": "Keterampilan Proses",
+          "cp_normatif": "Mengaplikasikan metode penelitian etnografi secara sederhana sebagai bagian dari keterampilan dasar dalam Antropologi; menerapkan prinsip relativisme budaya dalam kehidupan sehari-hari sebagai bentuk penghargaan terhadap keberagaman nilai dan norma budaya; mengaplikasikan pendekatan emik dan etik dalam praktik, serta merefleksikan pengalaman mereka dalam menggunakan metode penelitian etnografi sederhana; menganalisis dan mengevaluasi temuan mereka dengan memperhatikan bagaimana perspektif emik dan etik dapat mempengaruhi pemahaman mereka tentang dinamika sosial dan budaya; mengidentifikasi tantangan dan peluang dalam melakukan penelitian lapangan serta memperoleh wawasan yang lebih dalam tentang interaksi sosial dan kebudayaan; dan, merekomendasi atau solusi berdasarkan temuan mereka yang dapat bermanfaat untuk mempromosikan pemahaman lintas budaya dan menghargai keragaman budaya di komunitas mereka."
+        }
+      ]
+    }
+  },
+  "sejarah_tingkat_lanjut": {
+    "bidang": "Umum",
+    "jenjang": [
+      "SMA"
+    ],
+    "fase_f": {
+      "label": "Sejarah Tingkat Lanjut Fase F (Kelas 11–12 SMA)",
+      "cp_umum": "Pada akhir fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Pemahaman Konsep",
+          "cp_normatif": "Menunjukan kesadaran sejarah melalui proses berpikir sejarah, pemahaman yang empatik melalui kegiatan literasi sejarah, meneliti dan menulis sejarah, serta mengaplikasikan sejarah dunia berwawasan global dan dikaitkan dengan sejarah Indonesia yang menghasilkan projek sejarah dalam bentuk produk digital atau nondigital; merefleksikan sejarah dunia dalam kehidupan sehari-hari dan perkembangan informasi tentang kondisi dunia yang terus berubah. Kompetensi tersebut dikuasai setelah murid mempelajari berbagai peristiwa sejarah yang terjadi di dunia mulai dari asal usul manusia, peradaban-peradaban besar dunia, pemikiran-pemikiran besar dunia, revolusi-revolusi besar dunia, perang dunia I dan perang dunia II, perang dingin, dan peristiwa-peristiwa kontemporer dunia sampai abad-21."
+        },
+        {
+          "nama": "Keterampilan Proses",
+          "cp_normatif": "Menerapkan secara spesifik proses berpikir historis dikembangkan dengan kriteria signifikansi sejarah, pencarian sumber sejarah, perubahan, keberlanjutan dan keberulangan, Signifikansi sejarah, Pencarian sumber sejarah, perubahan, keberlanjutan dan keberulangan, Perkembangan dan keruntuhan, Keruangan sejarah, Empati dan keputusan moral, Pelaku sejarah. Secara umum keterampilan proses pada mata pelajaran Sejarah dilakukan dengan cara: Mengamati fenomena sejarah terkait materi pelajaran; Menanya dengan menyusun pertanyaan 5W 1H; Mengumpulkan informasi (heuristik) dari sumber primer dan sekunder; Menganalisis informasi (kritik sumber) dengan menyeleksi, memverifikasi, dan menginterpretasi data sejarah; Menarik kesimpulan; Mengomunikasikan secara lisan, tulisan, dan/atau media lain, dalam bentuk digital atau nondigital; dan Merefleksikan serta merencanakan projek lanjutan secara kolaboratif."
+        }
+      ]
+    }
+  },
+  "bahasa_inggris_tingkat_lanjut": {
+    "bidang": "Umum",
+    "jenjang": [
+      "SMA"
+    ],
+    "fase_f": {
+      "label": "Bahasa Inggris Tingkat Lanjut Fase F (Kelas 11–12 SMA)",
+      "cp_umum": "Pada akhir fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Menyimak - Berbicara (Listening - Speaking)",
+          "cp_normatif": "Memahami alur cerita atau informasi dari teks narasi, eksposisi, dan diskusi tentang isu terkini atau topik terkait mata pelajaran lain secara lisan atau multimodal; menggunakan bahasa Inggris untuk mengungkapkan pendapat dan mempertahankan argumen tentang topik yang dibahas."
+        },
+        {
+          "nama": "Membaca - Memirsa (Reading - Viewing)",
+          "cp_normatif": "Mengevaluasi dan merefleksi informasi tersurat dan tersirat dari teks narasi, eksposisi dan diskusi tentang isu terkini baik nasional maupun global, atau topik yang terkait mata pelajaran lain secara tertulis atau multimodal."
+        },
+        {
+          "nama": "Menulis - Mempresentasikan (Writing - Presenting)",
+          "cp_normatif": "Mengomunikasikan gagasan atau pengalaman secara tertulis atau multimodal dalam teks narasi, eksposisi, dan diskusi tentang berbagai topik dengan struktur teks dan unsur kebahasaan yang tepat, jelas, dan detail dengan menggunakan berbagai media presentasi (cetak atau digital); menulis cerita pendek, pendapat atau pandangan tentang suatu topik atau isu dengan mengungkapkan argumen yang didukung dengan data dan fakta, atau membahas suatu isu dengan menjelaskan manfaat dan kelemahan atau argumen yang mendukung dan menentang tentang suatu isu terkini yang kontroversial."
+        }
+      ]
+    }
+  },
+  "bahasa_indonesia_tingkat_lanjut": {
+    "bidang": "Umum",
+    "jenjang": [
+      "SMA"
+    ],
+    "fase_f": {
+      "label": "Bahasa Indonesia Tingkat Lanjut Fase F (Kelas 11–12 SMA)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Menyimak",
+          "cp_normatif": "Mengevaluasi teks nonsastra berbentuk teks aural yang digunakan dalam konteks sosial, akademis, dan dunia kerja; dan mengapresiasi teks sastra Indonesia dan teks sastra dunia berbentuk teks aural dan teks audio."
+        },
+        {
+          "nama": "Membaca dan Memirsa",
+          "cp_normatif": "Mengevaluasi berbagai teks yang digunakan dalam konteks sosial, akademis, dan/atau dunia kerja berbentuk cetak dan digital; dan mengapresiasi teks sastra Indonesia dan teks sastra dunia yang dibaca dan dipirsa."
+        },
+        {
+          "nama": "Berbicara dan Mempresentasikan",
+          "cp_normatif": "Mempresentasikan berbagai teks dalam konteks sosial, akademis, dan/atau dunia kerja dalam berbagai media; dan mempresentasikan teks sastra Indonesia dan teks sastra dunia dalam bentuk digital atau pertunjukan."
+        },
+        {
+          "nama": "Menulis",
+          "cp_normatif": "Menulis berbagai tipe teks dalam konteks sosial, akademis, dan dunia kerja; memodifikasi teks sastra Indonesia dan teks sastra dunia ke dalam bentuk multimedia lisan/cetak atau digital; dan mempublikasikan hasil karya baik di media cetak maupun digital."
+        }
+      ]
+    }
+  },
+  "matematika_tingkat_lanjut": {
+    "bidang": "Umum",
+    "jenjang": [
+      "SMA"
+    ],
+    "fase_f": {
+      "label": "Matematika Tingkat Lanjut Fase F (Kelas 11–12 SMA)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Aljabar dan Fungsi",
+          "cp_normatif": "Melakukan operasi aritmetika pada polinomial (suku banyak), menentukan faktor polinomial, dan menggunakan identitas polinomial untuk menyelesaikan masalah; melakukan operasi aljabar pada matriks dan menerapkannya dalam transformasi geometri; menyatakan fungsi trigonometri menggunakan lingkaran satuan, memodelkan fenomena periodik dengan fungsi trigonometri, dan membuktikan serta menerapkan identitas trigonometri dan aturan cosinus dan sinus; mengenal berbagai fungsi (termasuk fungsi rasional, fungsi akar, fungsi eksponensial, fungsi logaritma, fungsi nilai mutlak, fungsi tangga dan fungsi piecewise) dan menggunakannya untuk memodelkan berbagai fenomena."
+        },
+        {
+          "nama": "Geometri",
+          "cp_normatif": "Menyatakan vektor pada bidang datar, dan melakukan operasi aljabar pada vektor; melakukan pembuktian geometris menggunakan vektor; serta menyatakan sifat-sifat geometri dari persamaan lingkaran, elips dan persamaan garis singgung."
+        },
+        {
+          "nama": "Analisis Data dan Peluang",
+          "cp_normatif": "Memahami variabel acak diskrit (distribusi binomial) dan fungsi peluang (distribusi normal), dan menggunakannya dalam memodelkan data; menginterpretasi parameter distribusi data secara statistik, menghitung nilai harapan distribusi binomial dan normal, dan menggunakannya dalam penyelesaian masalah."
+        },
+        {
+          "nama": "Kalkulus",
+          "cp_normatif": "Memahami laju perubahan dan laju perubahan rata-rata, serta laju perubahan sesaat sebagai konsep kunci derivatif (turunan), baik secara geometris maupun aljabar; menentukan turunan dari fungsi polinomial, eksponensial, dan trigonometri, dan menerapkan derivatif untuk membuat sketsa kurva, menghitung gradien dan menentukan persamaan garis singgung, menentukan kecepatan sesaat dan menyelesaikan soal optimasi; memahami integral, baik sebagai proses yang merupakan kebalikan dari derivatif dan juga sebagai cara menghitung luas; serta memahami teorema dasar kalkulus sebagai penghubung antara derivatif dan integral."
+        }
+      ]
+    }
+  },
+  "prakarya_dan_kewirausahaan": {
+    "bidang": "Umum",
+    "jenjang": [
+      "SMA"
+    ],
+    "fase_f": {
+      "label": "Prakarya dan Kewirausahaan Fase F (Kelas 11–12 SMA)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut. Mata pelajaran ini tersedia dalam 4 aspek pilihan: Budi Daya, Kerajinan, Pengolahan, dan Rekayasa.",
+      "elemen": [
+        {
+          "nama": "Observasi dan Eksplorasi",
+          "cp_normatif": "Menganalisis peluang usaha produk berdasarkan potensi internal dan eksternal, termasuk bahan, alat, teknik, dan prosedur pembuatan, serta aspek ekonomis dan keberlanjutan sumber daya alam dan lingkungan (budi daya); atau menganalisis potensi internal dan eksternal secara sistematis dan kontekstual (kerajinan/rekayasa); atau mengamati bahan, alat, dan teknik pengolahan, pengemasan dan penyajian untuk menciptakan peluang dalam membuat produk yang kreatif dan inovatif (pengolahan)."
+        },
+        {
+          "nama": "Desain/Perencanaan",
+          "cp_normatif": "Menyusun rencana usaha dalam bentuk proposal sederhana berdasarkan kajian ilmiah, pemanfaatan teknologi, ekosistem dan analisis kebutuhan pasar sesuai potensi lingkungan/kearifan lokal (budi daya); atau menyusun perencanaan produk dan strategi pemasarannya dalam bentuk proposal usaha (kerajinan); atau merancang pengembangan produk dalam bentuk proposal usaha (pengolahan); atau menyusun, membuat dan mengembangkan rencana produk menjadi rencana usaha (business plan) berupa respons terhadap kondisi (rekayasa)."
+        },
+        {
+          "nama": "Produksi",
+          "cp_normatif": "Menyusun strategi produksi dan standar produk, melaksanakan kegiatan produksi, mengendalikan mutu produk, melaksanakan pengemasan dan pemasaran produk serta memberikan layanan terhadap pelanggan (budi daya); atau membuat produk dan pengemasannya serta melakukan pemasaran produk sesuai proposal usaha (kerajinan/pengolahan); atau menciptakan produk berdasarkan perencanaan yang kreatif atau inovatif sesuai dengan kelayakan fungsi, spesifikasi produk, daya tahan, serta aspek ekonomis (rekayasa)."
+        },
+        {
+          "nama": "Refleksi dan Evaluasi",
+          "cp_normatif": "Mengevaluasi, merefleksikan proses dan produk, kepuasan pelanggan, serta melakukan perbaikan secara berkelanjutan (budi daya); atau mengevaluasi produk serta merefleksikan proses perencanaan, produksi, dan pemasaran dalam kegiatan wirausaha (kerajinan); atau mengevaluasi kualitas produk, proses produksi, dan perbaikan berkelanjutan berbasis data (pengolahan/rekayasa)."
+        }
+      ]
+    }
+  },
+  "bahasa_arab": {
+    "bidang": "Umum",
+    "jenjang": [
+      "SMA"
+    ],
+    "fase_f": {
+      "label": "Bahasa Arab Fase F (Kelas 11–12 SMA)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Menyimak (al-Istima')",
+          "cp_normatif": "Menganalisis informasi dalam teks lisan sederhana berbahasa Arab tentang kehidupan sehari-hari (al-hayat al-yaumiyyah) dan lingkungan sekitar (al-bi’ah)."
+        },
+        {
+          "nama": "Berbicara (al-Kalam)",
+          "cp_normatif": "Mengomunikasikan informasi dalam teks lisan sederhana berbahasa Arab dengan baik, santun, dan sesuai dengan pemahaman lintas budaya (tafahum tsaqafi) tentang kehidupan sehari-hari (al-hayat al-yaumiyyah) dan lingkungan sekitar (al-bi’ah)."
+        },
+        {
+          "nama": "Membaca (al-Qira'ah)",
+          "cp_normatif": "Menganalisis informasi dalam teks tulis sederhana berbahasa Arab digital dan nondigital tentang kehidupan sehari-hari (al-hayat al-yaumiyyah) dan lingkungan sekitar (al-bi’ah)."
+        },
+        {
+          "nama": "Menulis (al-Kitabah)",
+          "cp_normatif": "Mengomunikasikan informasi dalam teks tulis sederhana berbahasa Arab tentang kehidupan sehari-hari (al-hayat al-yaumiyyah) dan lingkungan sekitar (al-bi’ah)."
+        }
+      ]
+    }
+  },
+  "bahasa_jepang": {
+    "bidang": "Umum",
+    "jenjang": [
+      "SMA"
+    ],
+    "fase_f": {
+      "label": "Bahasa Jepang Fase F (Kelas 11–12 SMA)",
+      "cp_umum": "Pada akhir fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Menyimak",
+          "cp_normatif": "Menyimpulkan teks tentang gagasan dan informasi lisan atau multimodal dalam bahasa Jepang sederhana."
+        },
+        {
+          "nama": "Berbicara",
+          "cp_normatif": "Mengomunikasikan gagasan, dan informasi secara lisan dalam bahasa Jepang sederhana."
+        },
+        {
+          "nama": "Membaca",
+          "cp_normatif": "Menyimpulkan teks tentang gagasan dan informasi kemudian menghubungkannya dengan teks yang lain dalam bahasa Jepang sederhana."
+        },
+        {
+          "nama": "Menulis",
+          "cp_normatif": "Menyusun teks tulis atau multimodal tentang gagasan dan informasi sederhana secara tertulis dalam bahasa Jepang."
+        }
+      ]
+    }
+  },
+  "bahasa_jerman": {
+    "bidang": "Umum",
+    "jenjang": [
+      "SMA"
+    ],
+    "fase_f": {
+      "label": "Bahasa Jerman Fase F (Kelas 11–12 SMA)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Menyimak (Hören)",
+          "cp_normatif": "Menafsirkan informasi umum, selektif, dan terperinci dari teks lisan sederhana tentang kehidupan sehari-hari dan lingkungan sekitar dengan mengintegrasikan pemahaman lintas budaya."
+        },
+        {
+          "nama": "Berbicara (Sprechen)",
+          "cp_normatif": "Memproduksi teks lisan sederhana tentang kehidupan sehari-hari dan lingkungan sekitar dengan mengintegrasikan pemahaman lintas budaya."
+        },
+        {
+          "nama": "Membaca (Lesen)",
+          "cp_normatif": "Menafsirkan informasi umum, selektif, dan terperinci dari berbagai jenis teks tulis sederhana tentang kehidupan sehari-hari dan lingkungan sekitar dengan mengintegrasikan pemahaman lintas budaya."
+        },
+        {
+          "nama": "Menulis (Schreiben)",
+          "cp_normatif": "Memproduksi teks tulis sederhana tentang kehidupan sehari-hari dan lingkungan sekitar dengan mengintegrasikan pemahaman lintas budaya."
+        }
+      ]
+    }
+  },
+  "bahasa_korea": {
+    "bidang": "Umum",
+    "jenjang": [
+      "SMA"
+    ],
+    "fase_f": {
+      "label": "Bahasa Korea Fase F (Kelas 11–12 SMA)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Menyimak",
+          "cp_normatif": "Memahami informasi umum, selektif, dan terperinci dari teks lisan atau multimodal sederhana tentang kehidupan sehari-hari, lingkungan sekitar, dan lintas budaya."
+        },
+        {
+          "nama": "Berbicara",
+          "cp_normatif": "Memproduksi teks lisan sederhana tentang kehidupan sehari-hari, lingkungan sekitar, dan lintas budaya."
+        },
+        {
+          "nama": "Membaca",
+          "cp_normatif": "Memahami informasi umum, selektif, dan terperinci dari berbagai jenis teks tulis atau multimodal sederhana tentang kehidupan sehari-hari, lingkungan sekitar, dan lintas budaya."
+        },
+        {
+          "nama": "Menulis",
+          "cp_normatif": "Menyusun teks tulis atau multimodal sederhana tentang kehidupan sehari-hari, lingkungan sekitar, dan lintas budaya."
+        }
+      ]
+    }
+  },
+  "bahasa_mandarin": {
+    "bidang": "Umum",
+    "jenjang": [
+      "SMA"
+    ],
+    "fase_f": {
+      "label": "Bahasa Mandarin Fase F (Kelas 11–12 SMA)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Menyimak",
+          "cp_normatif": "Mengidentifikasi gagasan dan informasi dalam Bahasa Mandarin lisan sederhana sesuai dengan standar HSK 1."
+        },
+        {
+          "nama": "Berbicara",
+          "cp_normatif": "Mengemukakan gagasan dan informasi dalam Bahasa Mandarin lisan sederhana sesuai dengan standar HSK 1."
+        },
+        {
+          "nama": "Membaca",
+          "cp_normatif": "Mengidentifikasi gagasan dan informasi dalam teks tulis Bahasa Mandarin sederhana (Hanyu Pinyin dan Hanzi) sesuai dengan standar HSK 1."
+        },
+        {
+          "nama": "Menulis",
+          "cp_normatif": "Menulis gagasan dan informasi dalam Bahasa Mandarin tulis sederhana dengan Hanzi dasar sesuai dengan kaidah penulisan yang benar sesuai lingkup standar HSK 1."
+        }
+      ]
+    }
+  },
+  "bahasa_prancis": {
+    "bidang": "Umum",
+    "jenjang": [
+      "SMA"
+    ],
+    "fase_f": {
+      "label": "Bahasa Prancis Fase F (Kelas 11–12 SMA)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Menyimak (Compréhension orale)",
+          "cp_normatif": "Memahami informasi umum dan terperinci dari teks lisan pendek tentang perkenalan diri dan memperkenalkan orang lain serta menceritakan aktivitas sehari-hari dan lingkungan sekitar."
+        },
+        {
+          "nama": "Berbicara (Production orale)",
+          "cp_normatif": "Menerapkan cara memperkenalkan diri dan orang lain serta menceritakan aktivitas sehari-hari dan lingkungan sekitar secara sederhana dengan menggunakan ungkapan-ungkapan komunikatif sehari-hari."
+        },
+        {
+          "nama": "Membaca (Compréhension écrite)",
+          "cp_normatif": "Memahami informasi umum dan terperinci dari berbagai jenis teks tulis pendek tentang perkenalan diri dan memperkenalkan orang lain serta menceritakan aktivitas sehari-hari dan lingkungan sekitar."
+        },
+        {
+          "nama": "Menulis (Production écrite)",
+          "cp_normatif": "Membuat teks tulis pendek untuk memperkenalkan diri dan orang lain serta menceritakan aktivitas sehari-hari dan lingkungan."
+        }
+      ]
+    }
   }
 }
