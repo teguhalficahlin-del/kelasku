@@ -355,14 +355,13 @@
 
     const entries = Object.entries(data).filter(([, v]) =>
       bidang
-        ? (v.bidang === bidang) || (v.bidang === 'Umum' && v.jenjang?.includes('SMK'))
+        ? (v.bidang === bidang) || (v.bidang === 'Umum' && v.jenjang?.includes('SMK') && (v.fase_e || v.fase_f))
         : v.jenjang?.includes(jenjang)
     );
 
-    const opts = entries.map(([key, v]) => {
-      const fk = ['fase_a','fase_b','fase_c','fase_d','fase_e','fase_f'].find(f => v[f]);
-      const rawLabel = (fk && v[fk]?.label) || key.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-      const label = rawLabel.replace(/\s*\([^)]+\)\s*$/, '').trim();
+    const opts = entries.map(([key]) => {
+      const label = key.replace(/_smk$/, '').replace(/_/g, ' ')
+        .replace(/\b\w/g, c => c.toUpperCase());
       return { value: key, label };
     }).sort((a, b) => a.label.localeCompare(b.label, 'id'));
 
