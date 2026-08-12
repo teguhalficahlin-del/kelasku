@@ -39,9 +39,6 @@
   let _genAtp    = false;
   let _genRencana = false;
 
-  // URL Edge Function
-  const EF_URL = 'https://teccdzetrdjowqemnuuc.supabase.co/functions/v1/generate-rancang';
-
   // Fase options
   const FASE_OPTS = [
     { value: 'fase_a', label: 'Fase A — Kelas 1–2 SD' },
@@ -245,50 +242,6 @@
         lainnyaInput.style.display = 'block';
       }
     }
-  }
-
-  // ─── CP fetch ───────────────────────────────────────────────────────────────
-
-  async function fetchCpData(mapelKey, faseKey) {
-    try {
-      const res = await fetch('../../shared/data/cp-data.json');
-      if (!res.ok) throw new Error('fetch failed');
-      const data = await res.json();
-      const mapelData = data[mapelKey];
-      if (!mapelData || !mapelData[faseKey]) return null;
-      return mapelData[faseKey];
-    } catch {
-      return null;
-    }
-  }
-
-  function normalizeMapelKey(mapel) {
-    return mapel.toLowerCase()
-      .replace(/\s+/g, '_')
-      .replace(/[^a-z0-9_]/g, '')
-      .replace(/bahasa_inggris|english/, 'bahasa_inggris')
-      .replace(/bahasa_indonesia|b\.ind/, 'bahasa_indonesia')
-      .replace(/matematika|math/, 'matematika')
-      .replace(/ipa|ilmu_pengetahuan_alam/, 'ipa')
-      .replace(/informatika/, 'informatika');
-  }
-
-  // ─── AI call ────────────────────────────────────────────────────────────────
-
-  async function callAI(payload) {
-    const { data: { session } } = await window.supabaseClient.auth.getSession();
-    const token = session?.access_token ?? '';
-    const res = await fetch(EF_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify(payload),
-    });
-    const json = await res.json();
-    if (!res.ok || json.error) throw new Error(json.error || 'AI error');
-    return json.result;
   }
 
   // ─── Step 1 — Identitas Konteks ─────────────────────────────────────────────
