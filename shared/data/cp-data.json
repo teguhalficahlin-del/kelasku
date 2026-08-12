@@ -1547,5 +1547,413 @@
         }
       ]
     }
+  },
+  "dasar_dasar_teknik_perawatan_gedung": {
+    "bidang": "Teknologi Konstruksi dan Properti",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_e": {
+      "label": "Dasar-dasar Teknik Perawatan Gedung (Kelas 10 SMK)",
+      "cp_umum": "Pada akhir Fase E, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Wawasan Dunia Kerja Bidang Perawatan Gedung",
+          "cp_normatif": "Menganalisis rangkaian aktivitas atau tugas pada pekerjaan perencanaan, pelaksanaan, dan perawatan gedung; serta menganalisis prosedur kepuasan pelanggan, job profile dan entrepreneurship dalam bidang perawatan gedung."
+        },
+        {
+          "nama": "Kecakapan Kerja Dasar (Basic Job Skills), K3LH, dan Budaya Kerja Bidang Perawatan Gedung",
+          "cp_normatif": "Menerapkan praktik dasar secara keseluruhan pada bidang perawatan gedung, termasuk penggunaan peralatan dan teknologi yang digunakan di dunia kerja; serta mampu menerapkan K3LH dan budaya kerja bidang perawatan gedung."
+        },
+        {
+          "nama": "Statika Bangunan",
+          "cp_normatif": "Menerapkan tentang elemen-elemen struktur bangunan, keseimbangan gaya pada struktur bangunan, gaya batang pada konstruksi rangka sederhana sebagai dasar perhitungan pekerjaan konstruksi pada struktur bangunan."
+        },
+        {
+          "nama": "Dasar Konstruksi Bangunan",
+          "cp_normatif": "Menganalisis spesifikasi, karakteristik dan konsep dasar bahan bangunan dengan berbasis green material dan berbagai jenis pekerjaan yang mendasari pelaksanaan pekerjaan perawatan gedung dengan mengangkat isu-isu global terkait green building dan sustainable building yang dijadikan dasar dalam pelaksanaan pekerjaan perawatan gedung."
+        },
+        {
+          "nama": "Gambar Teknik",
+          "cp_normatif": "Menerapkan kemampuan menggambar teknik dasar; penggunaan alat gambar teknik; dan pemahaman dalam menerapkan standar gambar teknik, dasar gambar proyeksi orthogonal (2D) dan proyeksi piktorial (3D) baik secara manual maupun menggunakan aplikasi perangkat lunak."
+        }
+      ]
+    }
+  },
+  "dasar_dasar_konstruksi_dan_perawatan_bangunan_sipil": {
+    "bidang": "Teknologi Konstruksi dan Properti",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_e": {
+      "label": "Dasar-dasar Konstruksi dan Perawatan Bangunan Sipil (Kelas 10 SMK)",
+      "cp_umum": "Pada akhir Fase E, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Wawasan Dunia Kerja pada Bidang Jasa Konstruksi dan Perawatan Bangunan Sipil",
+          "cp_normatif": "Memahami rangkaian aktivitas atau tugas serta perkembangan dunia kerja jasa konstruksi (konsultan perencana, kontraktor pelaksana, konsultan pengawas) dan perawatan bangunan sipil."
+        },
+        {
+          "nama": "Statika Bangunan",
+          "cp_normatif": "Menganalisis statika bangunan sebagai dasar perhitungan pekerjaan konstruksi pada struktur bangunan sipil."
+        },
+        {
+          "nama": "Dasar Konstruksi Bangunan",
+          "cp_normatif": "Menganalisis spesifikasi dan karakteristik bahan bangunan, serta jenis pekerjaan konstruksi dan perawatan bangunan sipil sesuai dengan kaidah K3LH."
+        },
+        {
+          "nama": "Ukur Tanah",
+          "cp_normatif": "Menerapkan pengoperasian peralatan pengukuran, prosedur teknik perawatan sesuai dengan kaidah K3LH melalui penyusunan data sesuai kondisi di lapangan."
+        },
+        {
+          "nama": "Gambar Teknik",
+          "cp_normatif": "Membuat gambar proyeksi orthogonal (2D) dan proyeksi piktorial (3D) dengan kaidah K3LH."
+        }
+      ]
+    }
+  },
+  "dasar_dasar_teknik_konstruksi_dan_perumahan": {
+    "bidang": "Teknologi Konstruksi dan Properti",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_e": {
+      "label": "Dasar-dasar Teknik Konstruksi dan Perumahan (Kelas 10 SMK)",
+      "cp_umum": "Pada akhir Fase E, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Wawasan Dunia Kerja Bidang Konstruksi dan Perumahan",
+          "cp_normatif": "Menganalisis berbagai jenis peluang kerja pada bidang konstruksi dan perumahan, berbagai jenis pekerjaan di bidang konstruksi dan perumahan, perkembangan teknologi dalam bidang konstruksi dan perumahan, dan isu-isu global terkait green building dan sustainable building."
+        },
+        {
+          "nama": "Kecakapan Dasar Kerja (Basic Job Skill), K3LH, dan Budaya Kerja",
+          "cp_normatif": "Menerapkan teknik dasar, peralatan dan teknologi di bidang konstruksi dan perumahan; mengidentifikasi spesifikasi dan karakteristik bahan bangunan, jenis pekerjaan konstruksi perumahan; dan menerapkan K3LH dan budaya kerja di bidang konstruksi dan perumahan."
+        },
+        {
+          "nama": "Perhitungan Statika Bangunan",
+          "cp_normatif": "Menghitung keseimbangan struktur gaya pada konstruksi sederhana sebagai dasar perhitungan pekerjaan konstruksi bangunan."
+        },
+        {
+          "nama": "Ukur Tanah",
+          "cp_normatif": "Menerapkan pengoperasian dan perawatan alat ukur sederhana maupun profesional (manual/digital) dan menghitung data hasil pengukuran."
+        },
+        {
+          "nama": "Gambar Teknik",
+          "cp_normatif": "Menggambar teknik dasar, baik secara manual maupun menggunakan aplikasi perangkat lunak."
+        }
+      ]
+    }
+  },
+  "dasar_dasar_desain_pemodelan_dan_informasi_bangunan": {
+    "bidang": "Teknologi Konstruksi dan Properti",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_e": {
+      "label": "Dasar-dasar Desain Pemodelan dan Informasi Bangunan (Kelas 10 SMK)",
+      "cp_umum": "Pada akhir Fase E, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Wawasan Dunia Kerja Bidang Desain Pemodelan dan Informasi Bangunan",
+          "cp_normatif": "Menganalisis rangkaian aktivitas pekerjaan pada bidang pemodelan dan informasi bangunan serta perkembangan teknologi dan isu-isu global terkait green building dan sustainable building yang dijadikan dasar dalam penggambaran konstruksi bangunan."
+        },
+        {
+          "nama": "Kecakapan Kerja Dasar (Basic Job Skills), K3LH, dan Budaya Kerja",
+          "cp_normatif": "Menerapkan teknik dasar pekerjaan desain pemodelan dan informasi bangunan melalui pengenalan dan praktik dasar yang terkait dengan pekerjaan desain pemodelan dan informasi bangunan, standar dan peraturan-peraturan yang berlaku terkait dengan bangunan, serta penerapan budaya mutu dan K3LH."
+        },
+        {
+          "nama": "Gambar Teknik dan Building Information Modelling (BIM)",
+          "cp_normatif": "Membuat gambar teknik dasar secara manual maupun menggunakan aplikasi perangkat lunak yang dijadikan dasar dalam desain pemodelan dan informasi bangunan serta menerapkan teknologi BIM."
+        },
+        {
+          "nama": "Perhitungan Statika Bangunan",
+          "cp_normatif": "Menghitung keseimbangan struktur gaya pada konstruksi sederhana sebagai dasar perhitungan pekerjaan konstruksi bangunan."
+        },
+        {
+          "nama": "Dasar Konstruksi Bangunan",
+          "cp_normatif": "Mengidentifikasi berbagai jenis pekerjaan konstruksi yang mendasari gambar konstruksi gedung, dengan mengangkat isu-isu global terkait green building dan sustainable building yang dijadikan dasar dalam penggambaran konstruksi."
+        }
+      ]
+    }
+  },
+  "dasar_dasar_teknik_furnitur": {
+    "bidang": "Teknologi Konstruksi dan Properti",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_e": {
+      "label": "Dasar-dasar Teknik Furnitur (Kelas 10 SMK)",
+      "cp_umum": "Pada akhir Fase E, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Wawasan Dunia Kerja Bidang Furnitur",
+          "cp_normatif": "Menganalisis profesi dan kewirausahaan (job-profile dan technopreneurship) serta peluang usaha pada bidang furnitur dan aktivitas pekerjaan industri furnitur."
+        },
+        {
+          "nama": "Kecakapan Kerja Dasar (Basic Job Skills), K3LH, dan Budaya Kerja",
+          "cp_normatif": "Menerapkan kegiatan praktik yang terkait dengan seluruh proses produksi dan teknologi yang diaplikasikan dalam industri furnitur; pengenalan dan praktik dasar kayu, mesin kayu, Computer Aided Design (CAD); simulasi Computer Aided Manufacturing (CAM)-CNC, dan penerapan K3LH serta budaya kerja."
+        },
+        {
+          "nama": "Gambar Teknik",
+          "cp_normatif": "Menggambar teknik manual dan/atau menggunakan aplikasi perangkat lunak serta gambar dasar teknik furnitur."
+        },
+        {
+          "nama": "Pemilihan Kayu untuk Produksi Furnitur",
+          "cp_normatif": "Mengidentifikasi kayu untuk produksi furnitur secara mandiri."
+        },
+        {
+          "nama": "Pembuatan Sambungan dengan Peralatan Tangan dan Mesin",
+          "cp_normatif": "Membuat macam-macam sambungan pada konstruksi furnitur dengan peralatan tangan dan mesin."
+        },
+        {
+          "nama": "Perawatan Peralatan Tangan dan Mesin",
+          "cp_normatif": "Menerapkan perawatan, penajaman, penyetelan, dan penyimpanan peralatan tangan dan mesin sesuai standar."
+        }
+      ]
+    }
+  },
+  "teknik_perawatan_gedung": {
+    "bidang": "Teknologi Konstruksi dan Properti",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Teknik Perawatan Gedung (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Pelaksanaan dan pengawasan pekerjaan perawatan gedung",
+          "cp_normatif": "Menerapkan penilaian tingkat kerusakan bangunan, pembuatan gambar rencana kerja, pelaksanaan dan pengawasan pekerjaan perawatan gedung, perawatan dan perbaikan konstruksi gedung yang tergolong rehabilitasi, renovasi dan restorasi, serta penyusunan laporan kemajuan pekerjaan perawatan gedung."
+        },
+        {
+          "nama": "Sistem utilitas bangunan gedung",
+          "cp_normatif": "Menerapkan pekerjaan sistem instalasi pipa air bersih, air panas, dan air kotor/buangan, pemasangan alat saniter, serta pekerjaan elektrikal instalasi listrik pada bangunan gedung sesuai teknik dan prinsip pemasangan."
+        },
+        {
+          "nama": "Perawatan dan perbaikan pekerjaan utilitas bangunan gedung",
+          "cp_normatif": "Menerapkan prosedur perawatan dan perbaikan instalasi jaringan air bersih, air panas, air kotor/buangan, dan alat saniter serta elektrikal instalasi listrik pada bangunan gedung."
+        },
+        {
+          "nama": "Estimasi biaya pekerjaan perawatan gedung dan utilitas bangunan gedung",
+          "cp_normatif": "Menyusun Rencana Anggaran Biaya (RAB), jadwal (time schedule dan network planning), kurva S, serta membuat laporan harian dan mingguan pada pekerjaan perawatan dan utilitas bangunan gedung."
+        }
+      ]
+    }
+  },
+  "konstruksi_jalan_irigasi_dan_jembatan": {
+    "bidang": "Teknologi Konstruksi dan Properti",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Konstruksi Jalan, Irigasi, dan Jembatan (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Pengukuran dan Survei Pemetaan (PSP)",
+          "cp_normatif": "Menerapkan pekerjaan pengukuran dan survei pemetaan mulai dari persiapan, pengukuran situasi, perhitungan data dan penyajian gambar serta penyusunan laporan pada pekerjaan jalan/irigasi/jembatan."
+        },
+        {
+          "nama": "Mekanika Teknik Konstruksi Jalan, Irigasi dan Jembatan (MT KJIJ)",
+          "cp_normatif": "Mengevaluasi keandalan struktur dari faktor pembebanan dan dimensi konstruksi sesuai karakteristik materialnya."
+        },
+        {
+          "nama": "Pelaksanaan, Pengawasan dan Pemeliharaan Konstruksi Jalan (P3K Jalan)",
+          "cp_normatif": "Menerapkan dan menyusun laporan pelaksanaan, pengawasan, dan pemeliharaan pada pekerjaan jalan."
+        },
+        {
+          "nama": "Pelaksanaan, Pengawasan dan Pemeliharaan Konstruksi Irigasi (P3K Irigasi)",
+          "cp_normatif": "Menerapkan dan menyusun laporan pelaksanaan, pengawasan, dan pemeliharaan pada pekerjaan irigasi."
+        },
+        {
+          "nama": "Pelaksanaan, Pengawasan dan Pemeliharaan Konstruksi Jembatan (P3K Jembatan)",
+          "cp_normatif": "Menerapkan dan menyusun laporan pelaksanaan, pengawasan, dan pemeliharaan pada pekerjaan jembatan."
+        },
+        {
+          "nama": "Estimasi Biaya Pekerjaan Konstruksi Jalan, Irigasi dan Jembatan (EBP KJIJ)",
+          "cp_normatif": "Menghitung volume dan menyusun, HSP, BoQ, NWP, TS dengan kurva S, serta pelaporan anggaran biaya pada pekerjaan konstruksi jalan/irigasi/jembatan."
+        }
+      ]
+    }
+  },
+  "konstruksi_jalan_dan_jembatan": {
+    "bidang": "Teknologi Konstruksi dan Properti",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Konstruksi Jalan dan Jembatan (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Pengukuran dan Survei Jalan dan Jembatan",
+          "cp_normatif": "Menganalisis hasil pengukuran sebagai dasar dalam perencanaan konstruksi jalan dan jembatan."
+        },
+        {
+          "nama": "Gambar konstruksi jalan dan jembatan",
+          "cp_normatif": "Menerapkan teknik menggambar konstruksi jalan dan jembatan dengan menggunakan perangkat lunak gambar 2D yang relevan dengan dunia kerja."
+        },
+        {
+          "nama": "Perencanaan dan pelaksanaan konstruksi jalan",
+          "cp_normatif": "Menerapkan perencanaan, perhitungan struktur jalan sederhana, dan prosedur pelaksanaan konstruksi jalan."
+        },
+        {
+          "nama": "Perencanaan dan pelaksanaan konstruksi jembatan",
+          "cp_normatif": "Menerapkan perencanaan, perhitungan jembatan sederhana, dan prosedur pelaksanaan konstruksi jembatan."
+        },
+        {
+          "nama": "Estimasi biaya konstruksi jalan dan jembatan",
+          "cp_normatif": "Menerapkan perhitungan Rencana Anggaran Biaya (RAB) dan rekapitulasi serta penyusunan Time Schedule pekerjaan konstruksi jalan dan jembatan sederhana."
+        },
+        {
+          "nama": "Presentasi desain konstruksi jalan dan jembatan",
+          "cp_normatif": "Menyajikan desain 3D konstruksi jalan dan jembatan sederhana dalam bentuk video animasi yang informatif, dengan menggunakan perangkat lunak yang relevan dengan dunia kerja."
+        }
+      ]
+    }
+  },
+  "teknik_konstruksi_dan_perumahan": {
+    "bidang": "Teknologi Konstruksi dan Properti",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Teknik Konstruksi dan Perumahan (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Perencanaan konstruksi dan perumahan",
+          "cp_normatif": "Menerapkan perencanaan konstruksi dan perumahan."
+        },
+        {
+          "nama": "Pelaksanaan pekerjaan konstruksi perumahan",
+          "cp_normatif": "Menerapkan dan mengatur pelaksanaan pekerjaan konstruksi dan perumahan sesuai prosedur K3LH dan budaya kerja industri."
+        },
+        {
+          "nama": "Pengawasan pekerjaan konstruksi perumahan",
+          "cp_normatif": "Menerapkan pekerjaan pengawasan terhadap semua pekerjaan konstruksi perumahan."
+        },
+        {
+          "nama": "Estimasi biaya konstruksi dan perumahan",
+          "cp_normatif": "Menerapkan dan menganalisis estimasi biaya pekerjaan konstruksi dan perumahan serta menjelaskan administrasi pekerjaan konstruksi."
+        }
+      ]
+    }
+  },
+  "konstruksi_gedung_dan_sanitasi": {
+    "bidang": "Teknologi Konstruksi dan Properti",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Konstruksi Gedung dan Sanitasi (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Konstruksi bangunan gedung",
+          "cp_normatif": "Menerapkan perencanaan, pelaksanaan, dan pengawasan konstruksi bangunan gedung."
+        },
+        {
+          "nama": "Sistem utilitas bangunan gedung",
+          "cp_normatif": "Menerapkan perencanaan, pelaksanaan, dan pengawasan pada pekerjaan sistem utilitas bangunan gedung."
+        },
+        {
+          "nama": "Perawatan gedung",
+          "cp_normatif": "Menerapkan perawatan dan perbaikan pada lingkup konstruksi bangunan gedung."
+        },
+        {
+          "nama": "Estimasi biaya pekerjaan",
+          "cp_normatif": "Menyusun perhitungan rencana anggaran biaya (RAB) pekerjaan beserta laporannya."
+        }
+      ]
+    }
+  },
+  "desain_pemodelan_dan_informasi_bangunan": {
+    "bidang": "Teknologi Konstruksi dan Properti",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Desain Pemodelan dan Informasi Bangunan (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Desain Pemodelan Bangunan",
+          "cp_normatif": "Membuat gambar 2D dan 3D struktur, arsitektur, interior dan eksterior gedung, serta pembuatan visualisasi animasi desain yang informatif (perencanaan, teknik pemodelan, gambar rumah sederhana dan bertingkat) dengan menggunakan teknologi BIM."
+        },
+        {
+          "nama": "Desain Pemodelan Jalan dan Jembatan",
+          "cp_normatif": "Membuat gambar 2D dan 3D konstruksi jalan dan jembatan, serta pembuatan visualisasi animasi desain yang informatif dengan menggunakan teknologi BIM."
+        },
+        {
+          "nama": "Gambar Konstruksi Utilitas Gedung dan Sistem Plumbing",
+          "cp_normatif": "Membuat gambar 2D dan 3D konstruksi utilitas gedung (instalasi air bersih, air kotor, saniter, instalasi listrik, dan instalasi sistem kebakaran) dengan menggunakan teknologi BIM."
+        },
+        {
+          "nama": "Rencana Biaya dan Penjadwalan Konstruksi Bangunan",
+          "cp_normatif": "Menghitung dan menyusun estimasi biaya (real cost estimate) dalam perencanaan bangunan dengan teknologi BIM."
+        }
+      ]
+    }
+  },
+  "desain_interior_dan_teknik_furnitur": {
+    "bidang": "Teknologi Konstruksi dan Properti",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Desain Interior dan Teknik Furnitur (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Desain Interior",
+          "cp_normatif": "Membuat rancangan konsep desain interior hunian pribadi dan interior ruang publik/fasilitas publik dengan memperhatikan kearifan lokal dan budaya setempat secara manual atau dengan bantuan perangkat lunak."
+        },
+        {
+          "nama": "Gambar Teknik Furnitur dan Interior",
+          "cp_normatif": "Membuat gambar teknik furnitur secara manual dan perangkat lunak yang dapat diaplikasikan di mesin CNC, serta membuat gambar teknik interior secara manual dan menggunakan perangkat lunak."
+        },
+        {
+          "nama": "Teknik Pembuatan Furnitur",
+          "cp_normatif": "Membuat furnitur dengan perkakas tangan (handtools), peralatan tangan listrik (portable), mesin listrik (mesin statis) dan mesin CNC."
+        },
+        {
+          "nama": "Teknik Finishing Furnitur",
+          "cp_normatif": "Menerapkan finishing teknik oles, semprot, dan laminasi."
+        },
+        {
+          "nama": "Estimasi Biaya",
+          "cp_normatif": "Membuat daftar komponen, perhitungan biaya pekerjaan furnitur, interior hunian pribadi, dan interior ruang publik/fasilitas publik."
+        }
+      ]
+    }
+  },
+  "desain_dan_teknik_furnitur": {
+    "bidang": "Teknologi Konstruksi dan Properti",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Desain dan Teknik Furnitur (Kelas 11-12 SMK)",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Gambar Furnitur",
+          "cp_normatif": "Membuat desain furnitur dan gambar kerjanya dengan cara manual dan/atau komputer."
+        },
+        {
+          "nama": "Estimasi biaya furnitur",
+          "cp_normatif": "Menerapkan estimasi biaya furnitur yang meliputi daftar komponen, menghitung biaya langsung (bahan, upah, alat), dan biaya tidak langsung (biaya umum dan keuntungan)."
+        },
+        {
+          "nama": "Teknik pembuatan furnitur",
+          "cp_normatif": "Menerapkan proses membuat bahan, membuat komponen, serta merakit komponen furnitur."
+        },
+        {
+          "nama": "Teknik finishing furnitur",
+          "cp_normatif": "Menerapkan finishing furnitur dengan teknik oles, teknik semprot, dan bahan pelapis."
+        }
+      ]
+    }
   }
 }
