@@ -651,7 +651,16 @@
     "fase_f": {
       "label": "Sejarah Fase F (Kelas 11-12 SMK)",
       "cp_umum": "Pada akhir fase F, murid memiliki kemampuan sebagai berikut\n\n2.1. Pemahaman Konsep\nMemahami kehidupan bangsa Indonesia pada masa pendudukan Jepang, proklamasi kemerdekaan Indonesia, upaya mempertahankan kemerdekaan, masa pemerintahan Sukarno, masa pemerintahan Suharto, dan masa reformasi dengan menggunakan konsep-konsep dasar ilmu sejarah. Murid memiliki kesadaran sejarah sebagai wujud literasi dan empati terhadap perjalanan bangsa. Selain itu, murid juga memiliki kemampuan mengaitkan nilai-nilai sejarah yang relevan dengan kompetensi kejuruan dalam menghadapi tantangan dan peluang di dunia kerja serta dunia industri yang terus berkembang.\n\n2.2. Keterampilan Proses\nMengaplikasikan literasi sejarah, membangun kesadaran sejarah, dan merumuskan penelitian sejarah secara sederhana melalui proses mengamati fenomena sejarah, menanya, mengumpulkan informasi, menganalisis informasi, mengomunikasikan, dan mengaitkannya dengan muatan vokasional sesuai dengan kompetensi kejuruannya. Secara spesifik keterampilan proses belajar sejarah mencakup keterampilan berpikir diakronis (kronologis), berpikir sinkronis, analisis dan interpretasi sejarah, penulisan sejarah secara sederhana, analisis isu kesejarahan serta menemukan kebermaknaan peristiwa sejarah pendudukan Jepang, proklamasi kemerdekaan Indonesia, mempertahankan kemerdekaan Indonesia, orde lama, orde baru, dan reformasi.",
-      "elemen": []
+      "elemen": [
+        {
+          "nama": "Pemahaman Konsep",
+          "cp_normatif": "Memahami kehidupan bangsa Indonesia pada masa pendudukan Jepang, proklamasi kemerdekaan Indonesia, upaya mempertahankan kemerdekaan, masa pemerintahan Sukarno, masa pemerintahan Suharto, dan masa reformasi dengan menggunakan konsep-konsep dasar ilmu sejarah. Murid memiliki kesadaran sejarah sebagai wujud literasi dan empati terhadap perjalanan bangsa. Selain itu, murid juga memiliki kemampuan mengaitkan nilai-nilai sejarah yang relevan dengan kompetensi kejuruan dalam menghadapi tantangan dan peluang di dunia kerja serta dunia industri yang terus berkembang"
+        },
+        {
+          "nama": "Keterampilan Proses",
+          "cp_normatif": "Mengaplikasikan literasi sejarah, membangun kesadaran sejarah, dan merumuskan penelitian sejarah secara sederhana melalui proses mengamati fenomena sejarah, menanya, mengumpulkan informasi, menganalisis informasi, mengomunikasikan, dan mengaitkannya dengan muatan vokasional sesuai dengan kompetensi kejuruannya. Secara spesifik keterampilan proses belajar sejarah mencakup keterampilan berpikir diakronis (kronologis), berpikir sinkronis, analisis dan interpretasi sejarah, penulisan sejarah secara sederhana, analisis isu kesejarahan serta menemukan kebermaknaan peristiwa sejarah pendudukan Jepang, proklamasi kemerdekaan Indonesia, mempertahankan kemerdekaan Indonesia, orde lama, orde baru, dan reformasi."
+        }
+      ]
     }
   },
   "informatika": {
@@ -703,6 +712,28 @@
         {
           "nama": "Literasi Digital",
           "cp_normatif": "Memahami cara kerja dan penggunaan mesin pencari di internet; mengetahui kualitas informasi dan kredibilitas sumber informasi digital; mengenal ekosistem media pers digital; membedakan fakta, opini, dan hoaks; memahami pemanfaatan perangkat teknologi pengolah dokumen, lembar kerja, dan presentasi; mampu mendeskripsikan komponen, fungsi, dan cara kerja komputer; memahami konsep dan penerapan konektivitas jaringan lokal dan internet baik kabel maupun nirkabel; mengetahui jenis ruang publik virtual; memahami pemanfaatan perangkat teknologi digital untuk produksi dan diseminasi konten; memahami pentingnya menjaga rekam jejak digital, mengamalkan toleransi dan empati di dunia digital, memahami dampak perundungan digital, membuat kata sandi yang aman; memahami pengamanan perangkat dari berbagai jenis malware, memilah informasi yang bersifat privat dan publik, melindungi data pribadi dan identitas digital serta memiliki kesadaran penuh (mindfulness) dalam dunia digital."
+        }
+      ]
+    },
+    "fase_f": {
+      "label": "Informatika Fase F (Kelas 11-12 SMA/MA/Paket C)",
+      "cp_umum": "",
+      "elemen": [
+        {
+          "nama": "Berpikir Komputasional (BK)",
+          "cp_normatif": "Memahami alur proses pengembangan program atau produk teknologi digital; menganalisis persoalan yang bisa menghasilkan lebih dari satu solusi dengan pemahamannya terhadap beberapa strategi algoritmik untuk menghasilkan beberapa alternatif solusi dari satu persoalan dengan memberikan justifikasi efisiensi, kelebihan, dan keterbatasan dari setiap alternatif solusi; mampu memilih dan menerapkan solusi terbaik, paling efisien, dan optimal dengan merancang struktur data yang lebih kompleks dan abstrak; serta mengenali berbagai model jaringan komputer serta mampu melakukan pengiriman data antar perangkat dalam jaringan komputer dan troubleshooting permasalahan jaringan komputer."
+        },
+        {
+          "nama": "Literasi Digital",
+          "cp_normatif": "Memahami penggunaan mesin pencari untuk melakukan riset; mengevaluasi kebenaran konten menggunakan verifikasi teks, gambar, dan video; menggunakan cara membaca lateral untuk mengevaluasi informasi digital yang kompleks; merancang kebutuhan sistem komputer sesuai kebutuhan pengguna; memahami konsep dan penerapan serta konfigurasi keamanan lanjut untuk konektivitas jaringan data lokal dan internet baik kabel maupun nirkabel; mengkreasi konten digital dengan peralatan dan metode yang bervariasi; memahami hukum dan perundang-undangan terkait isu digital di Indonesia; memahami pemanfaatan teknologi digital dalam demokrasi; menerapkan pengelolaan kata sandi dengan manajer kata sandi dan autentikasi dua langkah dengan beragam moda; serta memahami pemanfaatan platform loka pasar, perbankan digital, dompet digital beserta aspek keamanannya."
+        },
+        {
+          "nama": "Analisis Data (AD)",
+          "cp_normatif": "Memanfaatkan sumber data yang terbuka, terpercaya, dan legal untuk mengolah data untuk pengambilan keputusan dan prediksi secara efektif, efisien, dan optimal tanpa atau dengan komputer."
+        },
+        {
+          "nama": "Algoritma dan Pemrograman (AP)",
+          "cp_normatif": "Memahami konsep strategi algoritmik; mengembangkan program komputer terstruktur dalam notasi algoritma atau notasi lain berdasarkan strategi algoritmik yang tepat; mengembangkan, melakukan pemeliharaan, dan penyempurnaan algoritma standar ke dalam kode sumber program dengan memperhatikan kualitasnya; merancang dan mengimplementasikan sebuah program yang menggunakan struktur data kompleks dan tepat menggunakan library atau perangkat yang tersedia."
         }
       ]
     }
@@ -871,6 +902,32 @@
           "cp_normatif": "Menunjukkan minat, empati, dan kepedulian terhadap isu-isu di lingkungan sekitar melalui kegiatan bermusik."
         }
       ]
+    },
+    "fase_f": {
+      "label": "Seni Musik Fase F (Kelas XI dan XII SMA/MA/Program Paket C)",
+      "cp_umum": "",
+      "elemen": [
+        {
+          "nama": "Mengalami (Experiencing)",
+          "cp_normatif": "Menyimak dan mengeksplorasi unsur-unsur musik (nada, irama, melodi, harmoni, timbre, tempo, dan dinamika) menggunakan alat musik dengan teknologi yang sesuai dengan kondisi setempat; murid mampu mengevaluasi karya-karya musik secara musikal dan bertanggung jawab."
+        },
+        {
+          "nama": "Merefleksikan (Reflecting)",
+          "cp_normatif": "Menerapkan hasil evaluasi praktik bermain musik baik sendiri maupun kelompok."
+        },
+        {
+          "nama": "Berpikir dan Bekerja Artistik (Thinking and Working Artistically)",
+          "cp_normatif": "Menjalani dan mendokumentasikan kebiasaan bermusik secara mandiri atau berkolaborasi dengan baik dan cermat; murid mampu menunjukkan penguasaan unsur-unsur musik, pemahaman dan keterampilan bermusik, serta keberagaman konteks dalam praktik musik; murid mampu menyajikan ansambel musik remaja menggunakan karya musik mancanegara dengan teknologi yang sesuai kondisi setempat."
+        },
+        {
+          "nama": "Menciptakan (Creating)",
+          "cp_normatif": "Menciptakan, menyajikan dan mendokumentasikan karya kolaborasi dengan menerapkan manajemen pementasan."
+        },
+        {
+          "nama": "Berdampak (Impacting)",
+          "cp_normatif": "Menghayati kegiatan bermusik yang kolaboratif dan kompleks, memperluas pengalaman, meningkatkan keterampilan bermain musik, serta penerapannya dalam kehidupan sehari-hari."
+        }
+      ]
     }
   },
   "seni_rupa": {
@@ -999,6 +1056,32 @@
         {
           "nama": "Berdampak (Impacting)",
           "cp_normatif": "Menghasilkan karya seni rupa untuk merespon pengalaman sehari-hari dan mengekspresikan perasaan atau minat."
+        }
+      ]
+    },
+    "fase_f": {
+      "label": "Seni Rupa Fase F (Kelas XI dan XII SMA/MA/Program Paket C)",
+      "cp_umum": "",
+      "elemen": [
+        {
+          "nama": "Mengalami (Experiencing)",
+          "cp_normatif": "Mengeksplorasi penggunaan unsur rupa dan prinsip desain dalam benda-benda di sekitar/karya seni rupa."
+        },
+        {
+          "nama": "Merefleksikan (Reflecting)",
+          "cp_normatif": "Merefleksikan penggunaan unsur rupa, prinsip desain, dan fungsi dalam karya diri sendiri dan teman sekelas menggunakan kosa kata seni rupa yang sesuai."
+        },
+        {
+          "nama": "Berpikir dan Bekerja Artistik (Thinking and Working Artistically)",
+          "cp_normatif": "Menganalisis potensi alat dan bahan yang ada di lingkungan sekitar dan keterhubungan seni rupa dengan kelompok atau bidang keilmuan lain dalam berkarya."
+        },
+        {
+          "nama": "Menciptakan (Making/Creating)",
+          "cp_normatif": "Membuat karya seni rupa berdasarkan pengalaman dan/atau hasil pengamatan terhadap lingkungan sekitar, dengan mempertimbangkan fungsi, menggunakan gaya atau teknik yang dikuasai."
+        },
+        {
+          "nama": "Berdampak (Impacting)",
+          "cp_normatif": "Menghasilkan karya seni rupa untuk mengajak orang lain, merespon pengalaman sehari-hari, mengekspresikan perasaan, minat, dan/atau isu sosial dalam masyarakat."
         }
       ]
     }
@@ -1131,6 +1214,32 @@
           "cp_normatif": "Membuat pertunjukan teater yang relevan dengan kehidupan murid."
         }
       ]
+    },
+    "fase_f": {
+      "label": "Seni Teater Fase F (Kelas XI dan XII SMA/MA/Program Paket C)",
+      "cp_umum": "",
+      "elemen": [
+        {
+          "nama": "Mengalami (Experiencing)",
+          "cp_normatif": "Menerapkan teknik keaktoran melalui bahasa tubuh, mimik wajah dan vokal untuk menunjukkan kepekaan terhadap persoalan sosial, dan eksplorasi komunikasi nonverbal; melakukan pengamatan mengenai ragam teknik/genre teater, ide penokohan dan peristiwa yang berasal dari karya profesional sebagai inspirasi dalam memproduksi dan menampilkan pertunjukan secara berkolaborasi dengan memanfaatkan platform digital."
+        },
+        {
+          "nama": "Merefleksikan (Reflection)",
+          "cp_normatif": "Mengapresiasi dan memberikan umpan balik mengenai pesan, kualitas akting, tata artistik, teknologi, dan elaborasi genre, pada suatu karya, dengan menggunakan kosakata seni teater yang tepat dan argumentasi berdasarkan teori yang dipelajari."
+        },
+        {
+          "nama": "Berpikir dan Bekerja Artistik (Thinking and Working Artistically)",
+          "cp_normatif": "Merancang tata artistik berdasarkan peran dan cerita untuk produksi."
+        },
+        {
+          "nama": "Menciptakan (Creating)",
+          "cp_normatif": "Menciptakan peran baru, naskah orisinal, dan menyusun kembali cerita/alur pertunjukan yang memperlihatkan kejelasan alur dan dinamika cerita/emosi di panggung maupun secara digital."
+        },
+        {
+          "nama": "Berdampak (Impacting)",
+          "cp_normatif": "Menghasilkan naskah atau pertunjukan berdasarkan minat, pengetahuan, peristiwa aktual, pengalaman, empati, kreativitas, dan respons terhadap ragam topik yang dipilihnya, sehingga memberi dampak positif bagi dirinya dan lingkungan sekitarnya."
+        }
+      ]
     }
   },
   "seni_tari": {
@@ -1251,6 +1360,32 @@
         {
           "nama": "Berdampak (Impacting)",
           "cp_normatif": "Menghargai dan mengajak orang lain untuk mencintai dan bangga terhadap tari tradisi melalui proses kreatif yang dilakukan."
+        }
+      ]
+    },
+    "fase_f": {
+      "label": "Seni Tari Fase F (Kelas XI dan XII SMA/MA/Program Paket C)",
+      "cp_umum": "",
+      "elemen": [
+        {
+          "nama": "Mengalami (Experiencing)",
+          "cp_normatif": "Mengelaborasi tari tradisi/tari kreasi berdasarkan makna, simbol, nilai estetis dari sudut pandang aspek seni sesuai dengan pengalaman dan wawasan."
+        },
+        {
+          "nama": "Merefleksikan (Reflecting)",
+          "cp_normatif": "Mengevaluasi hasil penciptaan karya tari dengan mengapresiasi nilai estetis tari tradisi/tari kreasi berdasarkan makna dan simbol."
+        },
+        {
+          "nama": "Berpikir dan Bekerja Artistik (Thinking and Working Artistically)",
+          "cp_normatif": "Mengembangkan penciptaan tari tradisi/kreasi secara individu ataupun kelompok dengan manajemen pertunjukan."
+        },
+        {
+          "nama": "Menciptakan (Creating)",
+          "cp_normatif": "Mengkomposisi tari yang terinspirasi dari hasil membandingkan berbagai pertunjukan tari tradisi/tari kreasi berdasarkan makna, simbol, nilai estetis."
+        },
+        {
+          "nama": "Berdampak (Impacting)",
+          "cp_normatif": "Memiliki karakter diri sehingga dapat mempengaruhi orang lain untuk memberikan apresiasi pertunjukan tari."
         }
       ]
     }
