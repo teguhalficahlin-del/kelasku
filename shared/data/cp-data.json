@@ -6631,5 +6631,637 @@
         }
       ]
     }
+  },
+  "dasar_dasar_seni_rupa": {
+    "bidang": "Seni dan Ekonomi Kreatif",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_e": {
+      "label": "Dasar-dasar Seni Rupa",
+      "cp_umum": "Pada akhir Fase E, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Wawasan dunia Kerja Bidang Seni Rupa",
+          "cp_normatif": "Menganalisis perkembangan industri kreatif seni rupa dalam konteks global dan lokal, serta isu-isu kebijakan, dan hak kekayaan intelektual yang mempengaruhi praktik seni rupa, proses bisnis dan strategi pemasaran yang inovatif sesuai tren dan karakter masyarakat, profil kewirausahaan kreatif di bidang seni rupa melalui pemanfaatan teknologi konvensional dan digital, serta menunjukkan integritas, budaya kolaboratif, dan apresiasi terhadap potensi lokal dalam setiap tahapan pengembangan produk seni rupa."
+        },
+        {
+          "nama": "Kecakapan kerja dasar (basic job skills), K3, dan budaya kerja bidang seni rupa",
+          "cp_normatif": "Menganalisis ide dan gagasan, alat, bahan; menerapkan teknik-teknik dasar pada pembuatan/produksi karya seni; mempresentasikan secara lisan dan tertulis, serta penerapan K3, dan budaya kerja bidang seni rupa."
+        },
+        {
+          "nama": "Desain dasar dua dimensi",
+          "cp_normatif": "Menerapkan unsur-unsur rupa (titik, garis, bidang, ruang, bentuk, warna, gelap terang, dan tekstur) dan prinsip-prinsip seni rupa meliputi pengorganisasian, menyatukan, memusatkan, dan mengarahkan dalam pengembangan karya desain dasar dua dimensional melalui inspirasi eksplorasi budaya lokal dan atau global secara kreatif - inovatif."
+        },
+        {
+          "nama": "Desain dasar tiga dimensi",
+          "cp_normatif": "Mengembangkan desain dasar tiga dimensi, yaitu konfigurasi linier, transformasi volumetrik, dan konfigurasi ruang; serta menuangkan ide gagasan dan menerapkannya dalam pengembangan karya secara estetis, kreatif, inovatif, dan imajinatif sesuai dengan prinsip-prinsip seni rupa melalui inspirasi eksplorasi budaya lokal dan/atau global."
+        },
+        {
+          "nama": "Menggambar",
+          "cp_normatif": "Menerapkan gambar teknik yaitu proyeksi, perspektif, gambar bentuk, gambar alam benda dan mampu menerapkannya dalam pembuatan gambar yang baik/komunikatif, presisi, estetis dan fungsional."
+        },
+        {
+          "nama": "Sketsa",
+          "cp_normatif": "Menerapkan karya sketsa dalam bentuk pengembangan gambar rancangan, denah, bagan, sketsa awal karya seni rupa dan semacamnya secara estetis, kreatif, inovatif, dan imajinatif."
+        }
+      ]
+    }
+  },
+  "dasar_dasar_desain_komunikasi_visual": {
+    "bidang": "Seni dan Ekonomi Kreatif",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_e": {
+      "label": "Dasar-dasar Desain Komunikasi Visual",
+      "cp_umum": "Pada akhir Fase E, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Wawasan dunia kerja bidang desain komunikasi visual dan grafika",
+          "cp_normatif": "Menganalisis peran pekerjaan/profesi bidang DKV dan grafika dalam ekonomi kreatif Indonesia, perkembangan teknologi DKV dan grafika serta Life Cycle produk industri, reuse, recycling, pengenalan unsur desain, prinsip desain, prinsip komunikasi dan design thinking."
+        },
+        {
+          "nama": "Kecakapan kerja dasar (basic job skill), K3LH, dan budaya kerja",
+          "cp_normatif": "Menerapkan aspek ketenagakerjaan, Kesehatan Keselamatan Kerja dan Lingkungan Hidup (K3LH), budaya kerja mandiri, pola pikir kreatif dan berpikir kritis, teknik dasar, dan pengoperasian mesin cetak."
+        },
+        {
+          "nama": "Tipografi, Sketsa dan Ilustrasi",
+          "cp_normatif": "Menerapkan anatomi, unsur dan komposisi tipografi, sketsa, dan ilustrasi dalam DKV dan grafika."
+        },
+        {
+          "nama": "Fotografi",
+          "cp_normatif": "Menerapkan dasar fotografi, peralatan fotografi, prinsip exposure, komposisi fotografi, fotografi dalam ruangan maupun luar ruangan, editing fotografi dan penggunaan fotografi dalam DKV dan grafika."
+        },
+        {
+          "nama": "Komputer grafis",
+          "cp_normatif": "Menerapkan pengoperasian komputer grafis serta perangkat lunak berbasis vektor dan bitmap; dan membedakan gambar vektor dan bitmap, serta format RGB dan CMYK."
+        }
+      ]
+    }
+  },
+  "dasar_dasar_desain_dan_produksi_kriya": {
+    "bidang": "Seni dan Ekonomi Kreatif",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_e": {
+      "label": "Dasar-dasar Desain dan Produksi Kriya",
+      "cp_umum": "Pada akhir Fase E, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Wawasan Dunia Kerja Bidang Desain dan Produksi Karya",
+          "cp_normatif": "Menganalisis pengelolaan aktivitas pekerjaan di industri kreatif bidang desain dan produksi kriya, wawasan seni kriya kuno dan masa kini, perkembangan proses produksi industri desain dan produksi kriya yang masih konvensional sampai dengan penggunaan alat/mesin dengan teknologi modern, penggunaan aplikasi gambar digital, aplikasi marketplace berbasis online, teknologi digital dalam dunia industri, isu pemanasan global, perubahan iklim, dan Product Life Cycle."
+        },
+        {
+          "nama": "Kecakapan Kerja Dasar (Basic Job Skills), K3, dan Budaya Kerja",
+          "cp_normatif": "Menerapkan proses produksi dan teknologi yang diaplikasikan dalam industri, K3LH, teknik komunikasi antar bagian, konsep desain produk kriya. profil technopreneur yang memahami industri kriya, profesi dalam bidang kriya, peluang usaha, dan proses produksi kriya dari hulu sampai hilir."
+        },
+        {
+          "nama": "Wawasan Seni, Desain, dan Kriya",
+          "cp_normatif": "Menganalisis konsep dasar seni, desain, dan kriya sesuai perkembangan dunia kerja di bidang industri desain dan produksi kriya."
+        },
+        {
+          "nama": "Gambar Desain dan Produksi Kriya",
+          "cp_normatif": "Menganalisis materi gambar manual dan gambar digital."
+        },
+        {
+          "nama": "Dasar-dasar Desain dan Produksi Kriya",
+          "cp_normatif": "Menerapkan design brief (ringkasan desain), riset pasar, pengembangan ide, perencanaan produksi, dan proses produksi (prototype)."
+        },
+        {
+          "nama": "Portofolio Desain dan Produksi Kriya",
+          "cp_normatif": "Menerapkan pengarsipan/arsiparis terkait pembuatan desain dan produksi kriya, serta teknik presentasi."
+        }
+      ]
+    }
+  },
+  "dasar_dasar_seni_pertunjukan": {
+    "bidang": "Seni dan Ekonomi Kreatif",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_e": {
+      "label": "Dasar-dasar Seni Pertunjukan",
+      "cp_umum": "Pada akhir Fase E, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Wawasan Budaya Kerja Bidang Seni Pertunjukan",
+          "cp_normatif": "Menganalisis lingkup pekerjaan, profesi, peluang usaha, ekonomi kreatif, proses bisnis di industri atau bidang kerja seni pertunjukan, dan perkembangan teknologi maupun isu global yang berpengaruh terhadap bidang seni pertunjukan."
+        },
+        {
+          "nama": "Perkembangan Teknologi di Industri dan Dunia Kerja serta Isu-isu Global dalam Seni Pertunjukan",
+          "cp_normatif": "Menganalisis perkembangan teknologi dan isu-isu global dalam seni pertunjukan yang terdapat di lingkungan masyarakat sekitar; dan menerapkan teknologi digital dan aplikasi pendukung dalam proses berkarya seni."
+        },
+        {
+          "nama": "Konsep Seni Pertunjukan",
+          "cp_normatif": "Menerapkan konsep dasar seni pertunjukan sebagai landasan dalam mengembangkan karya di bidang seni pertunjukan."
+        },
+        {
+          "nama": "Dasar-dasar Produksi Seni Pertunjukan",
+          "cp_normatif": "Menerapkan dasar-dasar produksi seni pertunjukan sesuai dengan bidang keahlian yang dipilih, mulai dari perencanaan, pelaksanaan, hingga evaluasi karya."
+        },
+        {
+          "nama": "Kecakapan Kerja Dasar (Basic Job Skills), K3, dan Budaya Kerja",
+          "cp_normatif": "Menerapkan prinsip keselamatan dan kesehatan kerja (K3) serta budaya kerja dalam kegiatan perawatan peralatan dan perlengkapan seni pertunjukan, serta menerapkan teknik dasar berkesenian secara komprehensif sesuai dengan bidang yang dipilih."
+        }
+      ]
+    }
+  },
+  "dasar_dasar_busana": {
+    "bidang": "Seni dan Ekonomi Kreatif",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_e": {
+      "label": "Dasar-dasar Busana",
+      "cp_umum": "Pada akhir Fase E, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Wawasan dunia kerja bidang industri busana (fesyen)",
+          "cp_normatif": "Menganalisis ekosistem industri mode dan perkembangan terkini dalam dunia fashion; menganalisis peluang pasar serta profesi kewirausahaan di bidang busana (fesyen), aspek ketenagakerjaan, perkembangan proses produksi pada industri busana (fesyen) mulai dari konvensional hingga penggunaan alat/mesin dengan teknologi modern; menerapkan proses produksi busana baik secara massal maupun custom made; menerapkan perawatan peralatan; menerapkan Product Life Cycle; menganalisis berbagai model bisnis di industri fashion; menerapkan teknologi digital untuk mendukung inovasi; menerapkan isu keberlanjutan sustainable fashion yang meliputi aspek lingkungan, aspek sosial dan aspek ekonomi; dan memberikan solusi atas dampak pemanasan global di sektor fesyen."
+        },
+        {
+          "nama": "Kecakapan kerja dasar (basic job skills, K3 dan budaya kerja)",
+          "cp_normatif": "Menerapkan etika kerja dan keselamatan kerja (K3) serta budaya kerja 5R yang mencakup kepribadian dan sikap dalam bekerja dibidang busana; menerapkan dasar-dasar ilustrasi anatomi tubuh, pengetahuan warna, unsur dan prinsip desain, style dan look (six basic style) serta mampu mengeksplorasi gaya dan selera sesuai dengan perkembangan mode dan tren, sumber ide, kolase dan desain busana sesuai tema; menerapkan aplikasi gambar penunjang desain busana dan menggambar digital; menerapkan proses konstruksi busana secara menyeluruh, mulai dari pengukuran tubuh, pembuatan pola dasar dan pengembangannya, mampu menerapkan prosedur pemotongan bahan, dasar menjahit, pengoperasian dan perbaikan mesin jahit dan mesin penyelesaian, teknik menjahit sesuai dengan jenis-jenis bahan; menerapkan standar kualitas dan hasil akhir finishing produk; menerapkan aspek pengembangan produk berbasis potensi dan kearifan lokal; mengembangkan identitas merek (DNA brand); menganalisis segmentasi pasar; serta menerapkan strategi branding dan marketing yang relevan dengan industri fashion."
+        }
+      ]
+    }
+  },
+  "seni_lukis": {
+    "bidang": "Seni dan Ekonomi Kreatif",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Seni Lukis",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Seni lukis media kering",
+          "cp_normatif": "Menganalisis gagasan; membuat sketsa; menyiapkan sarana kerja, bahan dan alat, serta membuat karya lukisan dengan media/bahan kering; serta mendokumentasikan, menyajikan, mempresentasikan, memasarkan, dan merawat karya dengan baik dan berkelanjutan."
+        },
+        {
+          "nama": "Seni lukis cat air",
+          "cp_normatif": "Menganalisis gagasan; membuat sketsa; menyiapkan sarana kerja, bahan, dan alat; membuat karya lukisan dengan cat air; serta mendokumentasikan, menyajikan, mempresentasikan, memasarkan, dan merawat karya dengan baik dan berkelanjutan."
+        },
+        {
+          "nama": "Seni lukis cat akrilik",
+          "cp_normatif": "Menganalisis gagasan, membuat sketsa; menyiapkan sarana kerja, bahan, dan alat; membuat karya lukisan dengan cat akrilik; serta mendokumentasikan, menyajikan, mempresentasikan, memasarkan, dan merawat karya dengan baik dan berkelanjutan."
+        },
+        {
+          "nama": "Seni lukis cat minyak",
+          "cp_normatif": "Menganalisis gagasan; membuat sketsa; menyiapkan sarana kerja, bahan, dan alat; membuat karya lukisan dengan cat minyak; serta mendokumentasikan, menyajikan, mempresentasikan, memasarkan, dan merawat karya dengan baik dan berkelanjutan."
+        },
+        {
+          "nama": "Seni lukis mixed media",
+          "cp_normatif": "Menganalisis gagasan; membuat sketsa; menyiapkan sarana kerja, bahan, dan alat; membuat karya lukisan mixed media menggunakan teknik manual maupun digital; serta mendokumentasikan, menyajikan, mempresentasikan, memasarkan, dan merawat karya dengan baik dan berkelanjutan."
+        },
+        {
+          "nama": "Seni lukis digital",
+          "cp_normatif": "Menganalisis gagasan; membuat karya lukis digital; serta mendokumentasikan, menyajikan, mempresentasikan, memasarkan, dan merawat karya dengan baik dan berkelanjutan."
+        }
+      ]
+    }
+  },
+  "seni_patung": {
+    "bidang": "Seni dan Ekonomi Kreatif",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Seni Patung",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Patung Modelling",
+          "cp_normatif": "Menerapkan desain tiga dimensi; menyusun konsep; dan mengaplikasikan keteknikan disertai kreativitas dan inovasi dalam menciptakan karya patung modelling."
+        },
+        {
+          "nama": "Patung Plastering",
+          "cp_normatif": "Menerapkan desain tiga dimensi; menyusun konsep; dan mengaplikasikan keteknikan disertai kreativitas dan inovasi dalam menciptakan karya patung plastering."
+        },
+        {
+          "nama": "Patung Pahat (carving)",
+          "cp_normatif": "Menerapkan desain tiga dimensi; menyusun konsep; dan mengaplikasikan keteknikan disertai kreativitas dan inovasi dalam menciptakan karya patung pahat (carving)."
+        },
+        {
+          "nama": "Patung Rakit (assembling)",
+          "cp_normatif": "Menerapkan desain tiga dimensi; menyusun konsep; dan mengaplikasikan keteknikan disertai kreativitas dan inovasi dalam menciptakan karya patung rakit (assembling)."
+        },
+        {
+          "nama": "Patung Digital",
+          "cp_normatif": "Menerapkan desain tiga dimensi; menyusun konsep; dan mengaplikasikan keteknikan disertai kreativitas dan inovasi dalam menciptakan karya patung digital."
+        },
+        {
+          "nama": "Reproduksi 3D",
+          "cp_normatif": "Menerapkan desain tiga dimensi; menyusun konsep; dan mengaplikasikan keteknikan disertai kreativitas dan inovasi dalam reproduksi 3D."
+        }
+      ]
+    }
+  },
+  "desain_komunikasi_visual": {
+    "bidang": "Seni dan Ekonomi Kreatif",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Desain Komunikasi Visual",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Perangkat lunak desain",
+          "cp_normatif": "Menerapkan pengoperasian perangkat lunak yang dibutuhkan dalam lingkup desain komunikasi visual sesuai Prosedur Operasional Standar (POS) dan peminatan dalam lingkup desain komunikasi visual."
+        },
+        {
+          "nama": "Design brief",
+          "cp_normatif": "Menerapkan perintah melalui panduan tertulis (brief) untuk merancang visual secara tepat. Mulai dari pemahaman terhadap permasalahan, diskusi pencarian ide (brainstorming) pengembangan alternatif, penentuan metode yang digunakan, seperti metode design thinking ataupun metode lainnya yang diberikan oleh pemberi tugas sesuai Prosedur Operasional Standar (POS), serta berkolaborasi dan berkomunikasi dengan tim maupun pihak terkait."
+        },
+        {
+          "nama": "Proses produksi desain",
+          "cp_normatif": "Menerapkan dan mengelola proses produksi desain mulai dari praproduksi, produksi, dan pascaproduksi dalam lingkup desain komunikasi visual sesuai Prosedur Operasional Standar (POS), berkolaborasi dan komunikasi dengan tim maupun pihak terkait sesuai peminatan dalam lingkup desain komunikasi visual."
+        },
+        {
+          "nama": "Karya desain",
+          "cp_normatif": "Menciptakan karya desain, berkolaborasi, dan komunikasi dengan tim maupun pihak terkait sesuai Prosedur Operasional Standar (POS), berkolaborasi dan komunikasi dengan tim maupun pihak terkait sesuai peminatan dalam lingkup desain komunikasi visual."
+        }
+      ]
+    }
+  },
+  "teknik_grafika": {
+    "bidang": "Seni dan Ekonomi Kreatif",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Teknik Grafika",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Desain Siap Cetak Berbagai Jenis Produk Cetakan",
+          "cp_normatif": "Menerapkan komunikasi yang efektif; mengumpulkan data dan informasi penting; dan menganalisis kebutuhan komunikasi visual dari klien berdasarkan tujuan, sasaran, audiens, dan media cetak yang akan digunakan untuk diterapkan dalam pembuatan rancangan desain siap cetak (membuat layout yang efektif, mengatur warna dan tipografi dengan tepat, file siap cetak, mockup, dan mempresentasikan desain) untuk berbagai produk cetakan dan kemasan (packaging) dengan software desain yang sesuai dengan teknik cetak yang digunakan dalam perancangan desain produk cetakan."
+        },
+        {
+          "nama": "Perhitungan Biaya Produksi Produk Cetakan",
+          "cp_normatif": "Menganalisis kebutuhan bahan cetakan, komponen biaya bahan baku, biaya cetak dan purna cetak, keuntungan/laba untuk menentukan komponen biaya produksi (harga bahan kertas, cetak, dan jasa cetak); mengintegrasikan seluruh komponen biaya produksi secara logis dan menyeluruh untuk memahami hubungan antara jumlah cetakan, ukuran, teknik cetak, bahan, dan purna cetak dalam menentukan biaya akhir produksi secara akurat; menganalisis berbagai alternatif biaya; dan memberikan solusi strategis yang efisien dan ekonomis dalam mengembangkan strategi perhitungan biaya sesuai jenis produk cetak, teknik cetak yang digunakan, dan jumlah produk yang akan dicetak."
+        },
+        {
+          "nama": "Proses Pekerjaan Berbagai Teknik Cetak",
+          "cp_normatif": "Menganalisis alat, bahan, dan proses pada berbagai teknik cetak (offset, sablon, cetak tinggi, digital printing); mengaitkan berbagai teknik cetak dengan karakteristik produknya; menerapkan teknik yang tepat berdasarkan kebutuhan cetak, jenis media, skala produksi, efisiensi; mengaplikasikan prosesnya dengan benar sesuai standar industri; membandingkan teknik cetak berdasarkan situasi produksi; melakukan penyesuaian proses; memecahkan masalah dalam proses cetak; dan mengembangkan solusi untuk meningkatkan kualitas atau efisiensi produksi."
+        },
+        {
+          "nama": "Proses Pekerjaan Purna Cetak",
+          "cp_normatif": "Menganalisis alat, bahan, dan proses purna cetak seperti pelipatan, pemotongan, penjilidan, atau finishing; menerapkan pengetahuan berbagai teknik purna cetak dalam konteks produksi nyata; menyesuaikan urutan kerja berdasarkan jenis produk, bahan cetak, dan tujuan akhir desain; menghubungkan proses purna cetak dengan aspek kualitas, efisiensi waktu, dan biaya produksi; mengevaluasi kelebihan dan kekurangan proses; mengembangkan inovasi atau solusi teknis untuk menyempurnakan hasil akhir serta alur kerja purna cetak yang efisien dan kreatif untuk produk cetakan dan kemasan sesuai dengan kebutuhan industri; dan memadukan beberapa teknik finishing untuk hasil yang optimal dan bernilai tambah tinggi."
+        }
+      ]
+    }
+  },
+  "kriya_kreatif_batik_dan_tekstil": {
+    "bidang": "Seni dan Ekonomi Kreatif",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Kriya Kreatif Batik dan Tekstil",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Batik",
+          "cp_normatif": "Menerapkan teori batik berupa batik tradisional maupun batik modern/batik pengembangan/inovasi; menerapkan keterampilan dan sikap dalam berkreasi pada pembuatan produk batik tulis, batik cap dan batik kombinasi sesuai prosedur persyaratan Keselamatan dan Kesehatan Kerja (K3) serta budaya kerja dengan memperhatikan persyaratan jaminan kualitas produk batik; membuat gambar desain sesuai dengan pola produk yang akan dibuat meliputi produk batik untuk kebutuhan rumah tangga maupun untuk produk fashion; memilih alat dan bahan yang tepat untuk membuat karya batik; melaksanakan proses membatik sesuai urutan prosedur membatik yang tepat; melaksanakan proses pewarnaan batik dengan menggunakan pewarna alam maupun pewarna buatan dengan teknik celup, colet maupun teknik pewarnaan batik lainnya; melaksanakan proses penyelesaian akhir produk batik; dan mengelola limbah batik."
+        },
+        {
+          "nama": "Jahit",
+          "cp_normatif": "Menerapkan teori jahit dengan teknik jahit perca, jahit tindas dan jahit aplikasi serta teknik sulam/bordir, baik manual, masinal maupun digital; menerapkan keterampilan dan sikap dalam berkreasi pada pembuatan produk dengan teknik jahit untuk pembuatan produk kebutuhan rumah tangga maupun untuk produk fashion sesuai prosedur persyaratan Keselamatan dan Kesehatan Kerja (K3) serta budaya kerja dengan memperhatikan persyaratan jaminan kualitas produk jahit; menerapkan gambar desain sesuai dengan pola produk yang akan dibuat; memilih alat dan bahan yang tepat untuk karya jahit; melaksanakan proses menjahit produk kebutuhan rumah tangga maupun untuk produk fashion sesuai urutan prosedur menjahit; mengoperasikan berbagai jenis mesin jahit; melaksanakan proses penyelesaian akhir produk jahit; dan mengelola limbah produk jahit."
+        },
+        {
+          "nama": "Kriya Tekstil untuk Desain Permukaan",
+          "cp_normatif": "Menerapkan teori Kriya Tekstil untuk desain permukaan (surface design), seperti sablon, ikat celup/jumputan/ sasirangan, ecoprint, dan lukis; menerapkan keterampilan dan sikap dalam pembuatan produk kriya tekstil untuk desain permukaan dengan menggunakan peralatan dan bahan yang sesuai dengan memperhatikan prosedur Keselamatan dan Kesehatan Kerja (K3) serta budaya kerja; melaksanakan proses penyelesaian akhir; dan mengelola limbah produk kriya tekstil untuk desain permukaan."
+        },
+        {
+          "nama": "Kriya Tekstil untuk Desain Struktur",
+          "cp_normatif": "Menerapkan teori Kriya Tekstil untuk desain struktur (structural design) seperti tenun ATBM, tenun tapestry, anyam, makrame, renda, dan rajut; menerapkan keterampilan dan sikap dalam pembuatan produk kriya tekstil untuk desain struktur dengan menggunakan peralatan dan bahan yang sesuai, memperhatikan prosedur Keselamatan dan Kesehatan Kerja (K3) serta budaya kerja; melaksanakan proses penyelesaian akhir; dan mengelola limbah produk kriya tekstil untuk desain permukaan."
+        }
+      ]
+    }
+  },
+  "kriya_kreatif_kulit_dan_imitasi": {
+    "bidang": "Seni dan Ekonomi Kreatif",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Kriya Kreatif Kulit dan Imitasi",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Produk Alas Kaki",
+          "cp_normatif": "Menerapkan langkah pembuatan produk kulit alas kaki mulai dari menyiapkan bahan dan alat, membuat desain, mengukur kaki atau menggunakan acuan (last), membuat pola alas kaki, memotong bahan, menyeset komponen kulit (upper), menjahit komponen (upper), membuat sol, membentuk (lasting), merakit (assembling), hingga menyelesaikan tahap akhir (finishing)."
+        },
+        {
+          "nama": "Produk Non-Alas Kaki dan Non-Busana",
+          "cp_normatif": "Menerapkan langkah pembuatan produk non-alas kaki dan non-busana mulai dari menyiapkan bahan dan alat, membuat desain, membuat pola, memotong bahan, menyeset, menjahit atau merakit, memasang aksesori, dan menyelesaikan tahap akhir (finishing)."
+        },
+        {
+          "nama": "Produk busana",
+          "cp_normatif": "Menerapkan langkah pembuatan produk busana, mulai menyiapkan bahan dan alat, membuat desain mengukur badan atau busana, membuat pola, memotong komponen busana, menjahit atau merakit komponen bagian busana, memasang aksesori, dan menyelesaikan tahap akhir (finishing)."
+        },
+        {
+          "nama": "Produk tatah sungging kulit perkamen",
+          "cp_normatif": "Menerapkan pembuatan produk tatah sungging kulit perkamen mulai dari menyiapkan bahan dan alat, membuat desain, memotong bahan, menatah, menyungging, dan menyelesaikan tahap akhir (finishing)."
+        }
+      ]
+    }
+  },
+  "kriya_keramik": {
+    "bidang": "Seni dan Ekonomi Kreatif",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Kriya Keramik",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Penyiapan Clay-Body dan Pembentukan Teknik Langsung",
+          "cp_normatif": "Menerapkan persiapan clay body dari lempung alam secara manual/masinal basah, homogenisasi (pengulian) clay body; menerapkan penyiapan clay body untuk pembentukan cetak tuang; dan menerapkan pembentukan dengan teknik pijit (pinch), teknik pilin (coil) dan teknik lempeng (slab)."
+        },
+        {
+          "nama": "Pembentukan dengan Teknik Putar dan Dekorasi Keramik",
+          "cp_normatif": "Menerapkan pembentukan dengan teknik putar centering, teknik putar pilin; menerapkan dekorasi clay body plastis, faceting, combing, impressing dan relief; menciptakan dekorasi clay body leather hard teknik ukir (carving); menciptakan dekorasi clay body leather hard teknik terawang (piercing); dan menciptakan dekorasi clay body leather hard teknik gosok (burnishing)."
+        },
+        {
+          "nama": "Pembentukan dengan Teknik Cetak dan Pembakaran Keramik",
+          "cp_normatif": "Menerapkan pembentukan dengan teknik cetak tekan dan teknik cetak tuang, penyusunan benda keramik di tungku dan pembongkaran benda keramik dari tungku, serta pengoperasian tungku pembakaran."
+        }
+      ]
+    }
+  },
+  "kriya_kreatif_logam_dan_perhiasan": {
+    "bidang": "Seni dan Ekonomi Kreatif",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Kriya Kreatif Logam dan Perhiasan",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Pembuatan Perhiasan",
+          "cp_normatif": "Menerapkan K3LH dan 5R, pengelolaan bahan logam pelat, pemotongan bahan logam kawat diameter 1 mm sampai dengan 3mm, penekukan bahan logam kawat diameter 1 mm sampai dengan 3 mm, pencanaian dengan teknik menggilas di antara dua landasan baja yang berputar (rolling mill) untuk mengejar bentuk yang diinginkan, pencanaian dengan teknik menarik logam dari suatu plat baja yang berlubang, pembuatan perhiasan tanpa permata, perhiasan dengan batu mulia potongan polos (potongan batu cembung), perhiasan dengan batu permata potongan bersegi (potongan batu segi), pematrian dengan teknik patri keras, pengecoran perhiasan, pemolesan dengan mesin poles yang merupakan bagian dari proses finishing produk kriya logam; dan pelapisan untuk pelindung permukaan logam (coating)."
+        },
+        {
+          "nama": "Dekorasi dan Ketok Pembentukan",
+          "cp_normatif": "Menerapkan K3LH dan 5R, pengolahan bahan logam pelat dan teknik etsa, proses mengukir pada logam pelat, pemolesan dengan mesin poles yang merupakan bagian dari proses finishing produk kriya logam, dan pelapisan untuk pelindung permukaan logam (coating)."
+        },
+        {
+          "nama": "Pengecoran Logam",
+          "cp_normatif": "Menerapkan K3LH dan 5R, pengecoran dengan teknik cetak, pemolesan dengan mesin poles yang merupakan bagian dari proses finishing produk kriya logam, pewarnaan dalam proses penghiasan produk kriya logam; dan pelapisan untuk pelindung permukaan logam (coating)."
+        },
+        {
+          "nama": "Pengelasan dan Pembubutan",
+          "cp_normatif": "Menerapkan K3LH dan 5R, teknik pengelasan dengan las oxy acetylene pada logam ferro yang merupakan bagian dari proses perakitan komponen-komponen produk kriya logam, teknik pengelasan dengan las listrik (busur) pada logam ferro yang merupakan bagian dari proses perakitan komponen-komponen produk kriya logam, teknik pembubutan mulai dari proses membubut rata, membubut bertingkat, dan membubut bentuk konis, pewarnaan dalam proses penghiasan produk kriya logam, dan pewarnaan dengan teknik semprot (spray gun) dalam proses penghiasan produk kriya logam."
+        }
+      ]
+    }
+  },
+  "kriya_kreatif_kayu_dan_rotan": {
+    "bidang": "Seni dan Ekonomi Kreatif",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Kriya Kreatif Kayu dan Rotan",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Kerja Ukir",
+          "cp_normatif": "Membuat gambar pola (manual dan digital) dengan acuan gambar kerja; memilih jenis kayu yang tepat untuk diukir; mengukir kayu; menyetel barang ukir; dan menghaluskan pekerjaan ukir."
+        },
+        {
+          "nama": "Kerja Bangku dan Mesin",
+          "cp_normatif": "Membuat gambar pola dengan acuan gambar kerja; menggunakan peralatan tangan perkayuan untuk bahan kayu balok; menghaluskan sambungan benda kerja kayu; menggunakan peralatan semi masinal (listrik) untuk pekerjaan kayu balok, kayu papan, dan multipleks; membuat sistem sambungan antarkomponen pada kayu balok, kayu papan arah melebar, memanjang, dan sudut; menghaluskan sambungan dan benda kerja kriya; memilih jenis kayu untuk dibubut; mempersiapkan alat dan pekerjaan membubut kayu; menghaluskan pekerjaan bubut; memilih kayu untuk pekerjaan teknik sekrol; membaca gambar kerja untuk pekerjaan sekrol; mempersiapkan alat dan pekerjaan sekrol; membuat pola dasar untuk pekerjaan sekrol berdasarkan gambar kerja; dan membaca gambar untuk pekerjaan mesin tetap."
+        },
+        {
+          "nama": "Kerja Finishing",
+          "cp_normatif": "Memilih bahan finishing dan menerapkan finishing sesuai dengan Prosedur Operasional Standar (POS) pekerjaan finishing (manual dan teknik semprot)."
+        }
+      ]
+    }
+  },
+  "seni_musik_smk": {
+    "bidang": "Seni dan Ekonomi Kreatif",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Seni Musik",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Penguasaan Instrumen Pokok",
+          "cp_normatif": "Memainkan salah satu instrumen pokok yang dikuasai atau dipilih dengan posisi tubuh yang sesuai, pernapasan yang benar, penjarian atau fingering, menurut gaya musik serta improvisasi; dan menerapkan teori musik, partitur, serta ilmu bentuk analisis musik dan penerapannya pada instrumen pokok."
+        },
+        {
+          "nama": "Aransemen",
+          "cp_normatif": "Menerapkan penyusunan musik bertekstur polifonik dan homofonik dengan menggunakan teknik-teknik harmoni dan pemaduan alur-alur melodi dalam konteks umum, akademis dan profesi dengan berbagai pendekatan estetika."
+        },
+        {
+          "nama": "Ansambel",
+          "cp_normatif": "Memainkan instrumen musik dan vokal secara bersama, menerapkan teknik instrumen spesialisasi pada genre musik; memainkan hasil analisis etude instrumen spesialisasi pada genre musik; serta memainkan repertoar instrumen spesi."
+        },
+        {
+          "nama": "Musik Teknologi",
+          "cp_normatif": "Menerapkan ilmu pengetahuan dan teknologi dengan memperhatikan nilai estetis, kaidah, tata cara, etika ilmiah, teknologi perangkat keras dan lunak, seperti perangkat lunak penulisan notasi, musik digital, pengetahuan sound (Sound Engineer) dan pengetahuan perekaman (Recording)."
+        },
+        {
+          "nama": "Solfegio",
+          "cp_normatif": "Menerapkan latihan kepekaan melodi dalam berbagai tangga nada atau scale, ritme dalam berbagai tanda sukat, dan harmoni baik konvensional maupun modern."
+        },
+        {
+          "nama": "Produk kreativitas Musik",
+          "cp_normatif": "Menerapkan pengemasan produksi jasa di bidang musik, dari mulai proses penciptaan karya secara prosedural dan konseptual, merekam, hingga memasarkan."
+        }
+      ]
+    }
+  },
+  "seni_tari_smk": {
+    "bidang": "Seni dan Ekonomi Kreatif",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Seni Tari",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Gerak Dasar Tari",
+          "cp_normatif": "Menganalisis anatomi tubuh yang melibatkan gerak di semua bagian dari anggota tubuh manusia serta menerapkan teknik-teknik gerak tari dan kepekaan irama."
+        },
+        {
+          "nama": "Tari Tradisi",
+          "cp_normatif": "Menganalisis gerak tari, fungsi tari, teknik gerak, dan karakteristik tari serta menampilkan repertoar tari tradisi didukung unsur-unsur tata rias busana, properti, iringan dan tata teknik pentas, serta memiliki kepekaan dalam menggunakan materi tari tradisi untuk menata tari garapan baru."
+        },
+        {
+          "nama": "Tari Kreasi",
+          "cp_normatif": "Menyajikan ragam tari, dan kreativitas tari dengan menguasai beberapa ragam tari kreasi sebagai bahan untuk mengembangkan kreativitasnya dalam menata dan menyajikan tari garapan baru."
+        }
+      ]
+    }
+  },
+  "seni_karawitan": {
+    "bidang": "Seni dan Ekonomi Kreatif",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Seni Karawitan",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Praktik karawitan bersama",
+          "cp_normatif": "Menerapkan pola permainan instrumen dan penyajian gending/lagu dalam praktik karawitan bersama, baik berfungsi sebagai sajian karawitan konser (karawitan mandiri) maupun sajian karawitan iringan (karawitan nonmandiri)."
+        },
+        {
+          "nama": "Praktik instrumen pokok",
+          "cp_normatif": "Menerapkan pola permainan instrumen pokok dalam sajian repertoar gending/lagu."
+        },
+        {
+          "nama": "Vokal karawitan",
+          "cp_normatif": "Menerapkan teknik vokal dan menyajikan vokal karawitan."
+        },
+        {
+          "nama": "Kreativitas karawitan",
+          "cp_normatif": "Menerapkan karya kreativitas dalam bentuk \"kemasan seni\" berbasis perkembangan teknologi."
+        }
+      ]
+    }
+  },
+  "seni_pedalangan": {
+    "bidang": "Seni dan Ekonomi Kreatif",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Seni Pedalangan",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Teknik Gerak Wayang (sabet)",
+          "cp_normatif": "Menerapkan teknik gerak wayang atau sabet (cepengan, tanceban, solah, bedholan, entas-entasan) sesuai dengan tuntutan dunia kerja."
+        },
+        {
+          "nama": "Vokal Pedalangan",
+          "cp_normatif": "Menerapkan vokal (titi laras), catur (narasi dan dialog wayang), suluk dan tembang dalam pakeliran sesuai dengan tuntutan dunia kerja.. 3. Iringan Pedalangan Menerapkan vokal (titi laras), catur (narasi dan dialog wayang), suluk dan tembang dalam pagelaran sesuai dengan tuntutan dunia kerja."
+        },
+        {
+          "nama": "Lakon Pedalangan",
+          "cp_normatif": "Menganalisis lakon pedalangan, dan menerapkan penyusunan naskah lakon sesuai dengan tuntutan dunia kerja."
+        },
+        {
+          "nama": "Praktik Mendalang",
+          "cp_normatif": "Menerapkan praktik mendalang, baik pakeliran fragmen, pakeliran ringkas, maupun pakeliran semalam sesuai dengan tuntutan dunia kerja."
+        }
+      ]
+    }
+  },
+  "seni_teater_smk": {
+    "bidang": "Seni dan Ekonomi Kreatif",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Seni Teater",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Profesi Pemeranan",
+          "cp_normatif": "Menganalisis profesi pemeranan, industri pemeranan dan industri budaya, serta menerapkan etika profesi pemeranan."
+        },
+        {
+          "nama": "Olah Tubuh",
+          "cp_normatif": "Menerapkan olah tubuh sesuai karakter peran secara estetis."
+        },
+        {
+          "nama": "Olah Suara",
+          "cp_normatif": "Menerapkan kemampuan intonasi, diksi,dan artikulasi sesuai karakter peran secara estetis."
+        },
+        {
+          "nama": "Teknik Penghayatan Peran",
+          "cp_normatif": "Menerapkan kemampuan menghayati pesan, makna, dan tujuan sesuai karakter peran."
+        },
+        {
+          "nama": "Bermain Peran",
+          "cp_normatif": "Menerapkan peran karakter tokoh sesuai naskah atau skenario teater tradisional, teater modern, dan film."
+        }
+      ]
+    }
+  },
+  "tata_artistik_teater": {
+    "bidang": "Seni dan Ekonomi Kreatif",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Tata Artistik Teater",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Proses Bisnis di Dunia Kerja Bidang Penataan Artistik Pertunjukan",
+          "cp_normatif": "Menganalisis pekerjaan atau profesi dalam bidang penataan artistik seni pertunjukan."
+        },
+        {
+          "nama": "Konsep Penataan Artistik",
+          "cp_normatif": "Menganalisis konsep tata artistik berdasarkan hasil pengamatan terhadap seni pertunjukan dan/atau teks dramatik."
+        },
+        {
+          "nama": "Alat dan Bahan Penataan Artistik",
+          "cp_normatif": "Menganalisis alat dan bahan penataan artistik secara individu atau kelompok."
+        },
+        {
+          "nama": "Desain Penataan Artistik",
+          "cp_normatif": "Mengembangkan perencanaan artistik pertunjukan melalui desain penataan artistik secara individu atau kelompok"
+        },
+        {
+          "nama": "Teknik Penataan Artistik",
+          "cp_normatif": "Menerapkan teknik penataan artistik secara individu atau kelompok"
+        },
+        {
+          "nama": "Presentasi Penataan Artistik Pertunjukan",
+          "cp_normatif": "Menerapkan penataan artistik pertunjukan dengan memperhatikan budaya kerja secara mandiri dan/atau bergotong royong."
+        }
+      ]
+    }
+  },
+  "desain_dan_produksi_busana": {
+    "bidang": "Seni dan Ekonomi Kreatif",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_f": {
+      "label": "Desain dan Produksi Busana",
+      "cp_umum": "Pada akhir Fase F, murid memiliki kemampuan sebagai berikut.",
+      "elemen": [
+        {
+          "nama": "Gaya dan Pengembangan Desain",
+          "cp_normatif": "Menerapkan desain dalam satu konsep gaya (style), trend, sustainable fashion, dan tema desain busana sesuai dengan figure dan gesture disertai detail rancangan tampak depan dan belakang untuk kebutuhan produksi (technical drawing) secara manual maupun digital."
+        },
+        {
+          "nama": "Eksperimen Tekstil dan Desain Hiasan",
+          "cp_normatif": "Menerapkan desain dan olah tekstil yang disesuaikan dengan kebutuhan industri dan kebudayaan daerah (batik/tenun/motif printing/mengolah bahan) serta menerapkan desain hiasan (renda/sulaman/kancing hias/bordir)."
+        },
+        {
+          "nama": "Persiapan Pembuatan Busana",
+          "cp_normatif": "Menerapkan lembar kerja sesuai dengan spesifikasi desain, menerapkan langkah kerja produksi, pengukuran, pembuatan pola, pemotongan bahan, perhitungan biaya, dan penentuan harga produk."
+        },
+        {
+          "nama": "Menjahit Produk Busana",
+          "cp_normatif": "Menerapkan teknik menjahit sesuai dengan produk busana dan langkah kerja; menerapkan trimming dan pressing, mengawasi mutu produk busana; menerapkan packaging busana; serta menerapkan penyelesaian akhir (finishing) busana."
+        },
+        {
+          "nama": "Penyusunan Koleksi Busana",
+          "cp_normatif": "Menerapkan perencanaan proyek pembuatan koleksi busana dan mempresentasikan koleksi busana secara"
+        }
+      ]
+    }
   }
 }
