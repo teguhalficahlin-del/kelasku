@@ -1,5 +1,12 @@
 {
   "bahasa_inggris": {
+    "bidang": "Umum",
+    "jenjang": [
+      "SD",
+      "SMP",
+      "SMA",
+      "SMK"
+    ],
     "fase_e": {
       "label": "Bahasa Inggris Fase E (Kelas 10 SMA/SMK)",
       "cp_umum": "Di akhir Fase E, peserta didik mampu menggunakan teks lisan, tulisan, dan visual untuk berkomunikasi sesuai dengan situasi, tujuan pembelajaran, dan pembacanya. Peserta didik telah mempelajari narasi, deskripsi, prosedur, eksposisi, recount, report, dan teks otentik. Peserta didik mampu menggunakan Bahasa Inggris menyampaikan pendapat, berdiskusi topik keseharian, membaca teks untuk mendapatkan informasi, dan membuat teks tulisan dan visual yang beragam.",
@@ -92,6 +99,13 @@
     }
   },
   "bahasa_indonesia": {
+    "bidang": "Umum",
+    "jenjang": [
+      "SD",
+      "SMP",
+      "SMA",
+      "SMK"
+    ],
     "fase_a": {
       "label": "Bahasa Indonesia Fase A (Kelas 1–2 SD)",
       "elemen": [
@@ -225,6 +239,13 @@
     }
   },
   "matematika": {
+    "bidang": "Umum",
+    "jenjang": [
+      "SD",
+      "SMP",
+      "SMA",
+      "SMK"
+    ],
     "fase_a": {
       "label": "Matematika Fase A (Kelas 1–2 SD)",
       "elemen": [
@@ -372,6 +393,13 @@
     }
   },
   "pendidikan_pancasila": {
+    "bidang": "Umum",
+    "jenjang": [
+      "SD",
+      "SMP",
+      "SMA",
+      "SMK"
+    ],
     "fase_a": {
       "label": "Pendidikan Pancasila Fase A (Kelas 1–2 SD)",
       "elemen": [
@@ -503,6 +531,13 @@
     }
   },
   "pjok": {
+    "bidang": "Umum",
+    "jenjang": [
+      "SD",
+      "SMP",
+      "SMA",
+      "SMK"
+    ],
     "fase_a": {
       "label": "PJOK Fase A (Kelas 1–2 SD)",
       "elemen": [
@@ -634,6 +669,11 @@
     }
   },
   "sejarah": {
+    "bidang": "Umum",
+    "jenjang": [
+      "SMA",
+      "SMK"
+    ],
     "fase_e": {
       "label": "Sejarah Fase E (Kelas 10 SMK)",
       "cp_umum": "Pada akhir fase E, murid memiliki kemampuan sebagai berikut\n\n1.1. Pemahaman Konsep\nMemahami konsep dasar ilmu sejarah serta menginterpretasi berbagai peristiwa sejarah Indonesia yang berkaitan dengan masa Kerajaan Hindu-Buddha, Kerajaan Islam, Penjajahan Bangsa Barat, hingga Perjuangan Pergerakan Kebangsaan Indonesia. Murid mengaplikasikan keterampilan berpikir sejarah dalam mengkritisi peristiwa masa lalu yang relevan dengan bidang kejuruannya.\n\n1.2. Keterampilan Proses\nMemahami konsep dasar ilmu sejarah dan mampu berpikir sejarah melalui proses mengamati fenomena sejarah, menanya, mengumpulkan informasi, menganalisis informasi, mengomunikasikan dan mengaitkannya dengan muatan vokasional yang sesuai dengan kompetensi kejuruan yang diampunya. Secara spesifik keterampilan proses belajar sejarah mencakup keterampilan berpikir diakronis (kronologis), berpikir sinkronis, analisis dan interpretasi sejarah, penulisan sejarah secara sederhana, analisis isu kesejarahan serta, menemukan kebermaknaan peristiwa sejarah pada masa kerajaan Hindu-Buddha, kerajaan Islam, penjajahan bangsa Barat, perlawanan rakyat daerah terhadap penjajah, pergerakan kebangsaan Indonesia.",
@@ -664,6 +704,12 @@
     }
   },
   "informatika": {
+    "bidang": "Umum",
+    "jenjang": [
+      "SMP",
+      "SMA",
+      "SMK"
+    ],
     "fase_e": {
       "label": "Informatika Fase E (Kelas 10 SMA/SMK)",
       "elemen": [
@@ -739,6 +785,10 @@
     }
   },
   "projek_ipas": {
+    "bidang": "Umum",
+    "jenjang": [
+      "SMK"
+    ],
     "fase_e": {
       "label": "Projek IPAS Fase E (Kelas 10 SMK)",
       "cp_umum": "Pada akhir Fase E, murid memiliki kemampuan sebagai berikut.\n\n1. Menjelaskan Fenomena secara Ilmiah\nMenjelaskan pengetahuan ilmiah; membuat prediksi sederhana disertai dengan pembuktian fenomena-fenomena yang terjadi di lingkungan sekitarnya dilihat dari berbagai aspek seperti makhluk hidup dan lingkungannya, zat dan perubahannya, energi dan perubahannya, keruangan dan konektivitas antarruang dan antarwaktu, interaksi, komunikasi, sosialisasi, institusi sosial dan dinamika sosial, serta perilaku ekonomi dan kesejahteraan dan mengaitkan fenomena-fenomena tersebut dengan keterampilan teknis pada bidang keahliannya.\n\n2. Menyusun Penyelidikan Ilmiah\nMenyusun percobaan dengan menerapkan prosedur penyelidikan ilmiah dan memeriksa kekurangan atau kesalahan pada rancangan percobaan ilmiah tersebut.\n\n3. Merefleksikan Data dan Bukti-bukti secara Ilmiah\nMembuktikan dengan prinsip dasar melalui data dan bukti dari berbagai sumber seperti tabel hasil, grafik, atau sumber data lain untuk membangun sebuah argumen dan dapat mempertahankan argumen tersebut dengan penjelasan ilmiah, mengomunikasikan proses dan hasil, dan melakukan refleksi diri terhadap tahapan kegiatan yang dilakukan.",
@@ -759,6 +809,10 @@
     }
   },
   "projek_kreatif_kewirausahaan": {
+    "bidang": "Umum",
+    "jenjang": [
+      "SMK"
+    ],
     "fase_f": {
       "label": "Projek Kreatif dan Kewirausahaan Fase F (Kelas 11-12 SMK)",
       "cp_umum": "Pada akhir fase F, peserta didik mampu mengaktualisasikan kompetensi yang dipelajarinya untuk memperkuat kompetensinya dengan menghasilkan produk (barang dan/atau layanan jasa) yang sesuai, inovatif, memiliki nilai ekonomis dan sesuai dengan kebutuhan pelanggan serta membangun usaha (berwirausaha) yang berkelanjutan dengan memanfaatkan peluang yang tersedia, baik usaha yang terkait dengan keahliannya maupun usaha-usaha lainnya yang lebih sesuai dengan perkembangan pasar dengan dilandasi pemahaman tentang penyelesaian perselisihan hubungan industrial.",
@@ -775,6 +829,13 @@
     }
   },
   "seni_musik": {
+    "bidang": "Umum",
+    "jenjang": [
+      "SD",
+      "SMP",
+      "SMA",
+      "SMK"
+    ],
     "fase_a": {
       "label": "Seni Musik Fase A (Kelas 1–2 SD)",
       "elemen": [
@@ -931,6 +992,13 @@
     }
   },
   "seni_rupa": {
+    "bidang": "Umum",
+    "jenjang": [
+      "SD",
+      "SMP",
+      "SMA",
+      "SMK"
+    ],
     "fase_a": {
       "label": "Seni Rupa Fase A (Kelas 1–2 SD)",
       "elemen": [
@@ -1087,6 +1155,13 @@
     }
   },
   "seni_teater": {
+    "bidang": "Umum",
+    "jenjang": [
+      "SD",
+      "SMP",
+      "SMA",
+      "SMK"
+    ],
     "fase_a": {
       "label": "Seni Teater Fase A (Kelas 1–2 SD)",
       "elemen": [
@@ -1243,6 +1318,13 @@
     }
   },
   "seni_tari": {
+    "bidang": "Umum",
+    "jenjang": [
+      "SD",
+      "SMP",
+      "SMA",
+      "SMK"
+    ],
     "fase_a": {
       "label": "Seni Tari Fase A (Kelas 1–2 SD)",
       "elemen": [
@@ -1391,6 +1473,10 @@
     }
   },
   "ipas": {
+    "bidang": "Umum",
+    "jenjang": [
+      "SD"
+    ],
     "fase_b": {
       "label": "IPAS Fase B (Kelas 3–4 SD)",
       "cp_umum": "",
@@ -1421,6 +1507,11 @@
     }
   },
   "ipa": {
+    "bidang": "Umum",
+    "jenjang": [
+      "SMP",
+      "SMA"
+    ],
     "fase_d": {
       "label": "IPA Fase D (Kelas 7–9 SMP/MTs)",
       "cp_umum": "",
@@ -1437,6 +1528,11 @@
     }
   },
   "ips": {
+    "bidang": "Umum",
+    "jenjang": [
+      "SMP",
+      "SMA"
+    ],
     "fase_d": {
       "label": "IPS Fase D (Kelas 7–9 SMP/MTs)",
       "cp_umum": "",
