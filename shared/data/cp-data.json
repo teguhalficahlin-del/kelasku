@@ -71,6 +71,24 @@
           "cp_normatif": "Mengomunikasikan ide dan pengalamannya melalui berbagai jenis teks tulis sederhana atau teks multimodal tentang topik sehari-hari sesuai konteks."
         }
       ]
+    },
+    "fase_d": {
+      "label": "Bahasa Inggris Fase D (Kelas 7–9 SMP/MTs)",
+      "cp_umum": "",
+      "elemen": [
+        {
+          "nama": "Menyimak - Berbicara (Listening - Speaking)",
+          "cp_normatif": "Memahami alur informasi secara keseluruhan, gagasan utama dan informasi rinci dari teks lisan tentang topik sehari-hari atau yang sesuai dengan minat; menggunakan bahasa Inggris untuk mengungkapkan gagasan dan pengalaman dalam berbagai jenis teks secara lisan tentang topik yang dibahas dengan menggunakan kalimat sederhana dan majemuk baik formal maupun informal sesuai konteks."
+        },
+        {
+          "nama": "Membaca - Memirsa (Reading - Viewing)",
+          "cp_normatif": "Memahami alur informasi, informasi tersurat dan tersirat dari berbagai jenis teks tertulis atau teks multimodal tentang topik sehari-hari atau yang sesuai dengan minat dan meresponnya sesuai konteks."
+        },
+        {
+          "nama": "Menulis - Mempresentasikan (Writing - Presenting)",
+          "cp_normatif": "Mengomunikasikan gagasan dan pengalaman mereka dalam berbagai jenis teks secara tertulis atau teks multimodal tentang topik sehari-hari atau yang sesuai dengan minat dengan mulai menggunakan kalimat sederhana dan majemuk dengan struktur teks dan unsur kebahasaan yang tepat; mengungkapkan pendapat dan mempertahankan argumen tentang suatu isu terkait topik sehari-hari atau yang sesuai dengan minat."
+        }
+      ]
     }
   },
   "bahasa_indonesia": {
@@ -180,6 +198,28 @@
         {
           "nama": "Menulis",
           "cp_normatif": "Menulis berbagai tipe teks sederhana berdasarkan gagasan, hasil pengamatan, pengalaman, dan/atau imajinasi dengan rangkaian kalimat kompleks secara kreatif, menarik, dan/atau indah; dan menggunakan kaidah kebahasaan dan kosakata baru yang memiliki makna denotatif dan konotatif."
+        }
+      ]
+    },
+    "fase_d": {
+      "label": "Bahasa Indonesia Fase D (Kelas 7–9 SMP/MTs)",
+      "cp_umum": "",
+      "elemen": [
+        {
+          "nama": "Menyimak",
+          "cp_normatif": "Menganalisis gagasan, pandangan, arahan, dan/atau pesan dari teks nonsastra berbentuk teks aural (teks yang dibacakan dan/atau didengarkan); dan menganalisis unsur intrinsik teks sastra berbentuk teks aural."
+        },
+        {
+          "nama": "Membaca dan Memirsa",
+          "cp_normatif": "Menganalisis informasi berupa gagasan, pandangan, arahan, dan/atau pesan dari berbagai tipe teks berwujud teks visual dan/atau audiovisual untuk menemukan makna yang tersurat dan tersirat; menginterpretasi informasi untuk mengungkapkan kepedulian dan/atau pendapat pro/kontra dari berbagai tipe teks berwujud teks visual dan/atau audiovisual; dan mengevaluasi kualitas dan/atau kredibilitas dari berbagai tipe teks berwujud teks visual dan/atau audiovisual menggunakan sumber informasi lain."
+        },
+        {
+          "nama": "Berbicara dan Mempresentasikan",
+          "cp_normatif": "Mempresentasikan gagasan, pandangan, arahan, dan/atau pesan untuk tujuan pengajuan usul dan pemberian solusi dalam bentuk monolog, dialog logis, dan/atau berbagai tipe teks secara kritis dan kreatif; dan menyajikan ungkapan kepedulian dari berbagai tipe teks dan/atau teks multimodal."
+        },
+        {
+          "nama": "Menulis",
+          "cp_normatif": "Menulis gagasan, pandangan, arahan, pesan, pengalaman, dan/atau imajinasi dalam berbagai tipe teks secara logis, kritis, kreatif, menarik, dan/atau indah; menulis ungkapan kepedulian dan/atau pendapat pro/kontra dalam berbagai tipe teks berbentuk teks multimodal; dan menggunakan kosakata baru yang memiliki makna denotatif, konotatif, dan kiasan untuk menulis."
         }
       ]
     }
@@ -303,6 +343,32 @@
           "cp_normatif": "Mengurutkan, membandingkan, menyajikan, dan menganalisis data banyak benda dan data hasil pengukuran dalam bentuk gambar, piktogram, diagram batang, dan tabel frekuensi untuk mendapatkan informasi; menentukan kejadian dengan kemungkinan yang lebih besar atau lebih kecil dalam suatu percobaan acak."
         }
       ]
+    },
+    "fase_d": {
+      "label": "Matematika Fase D (Kelas 7–9 SMP/MTs)",
+      "cp_umum": "",
+      "elemen": [
+        {
+          "nama": "Bilangan",
+          "cp_normatif": "Membaca, menulis, dan membandingkan bilangan bulat, bilangan rasional, bilangan desimal, bilangan berpangkat bulat dan akar, bilangan dalam notasi ilmiah; menerapkan operasi aritmatika pada bilangan real, dan memberikan estimasi/perkiraan dalam menyelesaikan masalah (termasuk berkaitan dengan literasi finansial). Murid dapat menggunakan rasio (skala, proporsi, dan laju perubahan) dalam penyelesaian masalah."
+        },
+        {
+          "nama": "Aljabar",
+          "cp_normatif": "Mengenali, memprediksi dan menggeneralisasi pola dalam bentuk susunan benda dan bilangan; Menyatakan suatu situasi ke dalam bentuk aljabar; menggunakan sifat-sifat operasi (komutatif, asosiatif, dan distributif) untuk menghasilkan bentuk aljabar yang ekuivalen. Murid dapat memahami relasi dan fungsi (domain, kodomain, range) serta menyajikannya dalam bentuk diagram panah, tabel, himpunan pasangan berurutan, dan grafik; membedakan beberapa fungsi non linear dari fungsi linear secara grafik; menyelesaikan persamaan dan pertidaksamaan linear satu variabel; menyajikan, menganalisis, dan menyelesaikan masalah dengan menggunakan relasi, fungsi dan persamaan linear; serta menyelesaikan sistem persaman linear dua variabel melalui beberapa cara untuk penyelesaian masalah."
+        },
+        {
+          "nama": "Pengukuran",
+          "cp_normatif": "Menentukan keliling, luas, panjang busur, sudut dan luas juring lingkaran, serta menyelesaikan masalah yang terkait; menjelaskan cara untuk menentukan luas permukaan dan volume bangun ruang (prisma, tabung, bola, limas dan kerucut) dan menyelesaikan masalah yang terkait; dan menjelaskan pengaruh perubahan secara proporsional dari bangun datar dan bangun ruang terhadap ukuran panjang, besar sudut, luas, dan/atau volume."
+        },
+        {
+          "nama": "Geometri",
+          "cp_normatif": "Membuat jaring-jaring bangun ruang (prisma, tabung, limas dan kerucut) dan membuat bangun ruang dari jaring-jaringnya. Murid dapat menggunakan hubungan antar-sudut yang terbentuk oleh dua garis yang berpotongan, dan oleh dua garis sejajar yang dipotong sebuah garis transversal untuk menyelesaikan masalah (termasuk menentukan jumlah besar sudut dalam sebuah segitiga, menentukan besar sudut yang belum diketahui pada sebuah segitiga); menjelaskan sifat-sifat kekongruenan dan kesebangunan pada segitiga dan segiempat, dan menggunakannya untuk menyelesaikan masalah; menunjukkan kebenaran teorema Pythagoras dan menggunakannya dalam menyelesaikan masalah (termasuk pengenalan bilangan irasional dan jarak antara dua titik pada bidang koordinat Kartesius). Murid dapat melakukan transformasi tunggal (refleksi, translasi, rotasi, dan dilatasi) titik, garis, dan bangun datar pada bidang koordinat Kartesius dan menggunakannya untuk menyelesaikan masalah."
+        },
+        {
+          "nama": "Analisis Data dan Peluang",
+          "cp_normatif": "Merumuskan pertanyaan, mengumpulkan, menyajikan, dan menganalisis data untuk menjawab pertanyaan dari situasi atau masalah; menggunakan diagram batang dan diagram lingkaran untuk menyajikan dan menginterpretasi data; mengambil sampel yang mewakili suatu populasi untuk mendapatkan data yang terkait dengan diri dan lingkungan mereka; menentukan dan menafsirkan rerata (mean), median, modus, dan jangkauan (range) dari data tersebut untuk menyelesaikan masalah (termasuk membandingkan suatu data terhadap kelompoknya, membandingkan dua kelompok data, memprediksi, membuat keputusan); menyelidiki kemungkinan adanya perubahan pengukuran pusat tersebut akibat perubahan data. Murid dapat menjelaskan dan menggunakan pengertian peluang dan frekuensi relatif untuk menentukan frekuensi harapan satu kejadian pada suatu percobaan sederhana (semua hasil percobaan dapat muncul secara merata)."
+        }
+      ]
     }
   },
   "pendidikan_pancasila": {
@@ -410,6 +476,28 @@
         {
           "nama": "Negara Kesatuan Republik Indonesia",
           "cp_normatif": "Mengenal wilayahnya dalam konteks kabupaten/kota, dan provinsi sebagai bagian dari wilayah Negara Kesatuan Republik Indonesia; menunjukkan perilaku gotong royong untuk menjaga persatuan di lingkungan sekolah dan sekitar sebagai wujud bela negara."
+        }
+      ]
+    },
+    "fase_d": {
+      "label": "Pendidikan Pancasila Fase D (Kelas 7–9 SMP/MTs)",
+      "cp_umum": "",
+      "elemen": [
+        {
+          "nama": "Pancasila",
+          "cp_normatif": "Memahami sejarah kelahiran Pancasila; memahami kedudukan Pancasila sebagai dasar negara, pandangan hidup bangsa, dan ideologi negara serta penerapannya dalam kehidupan sehari-hari; memahami makna keterkaitan Pancasila dengan Undang-Undang Dasar Negara Republik Indonesia Tahun 1945, Bhinneka Tunggal Ika, dan Negara Kesatuan Republik Indonesia."
+        },
+        {
+          "nama": "Undang-Undang Dasar Negara Republik Indonesia Tahun 1945",
+          "cp_normatif": "Menerapkan norma dan aturan; memahami tata urutan peraturan perundang-undangan yang berlaku di Indonesia; menggunakan hak dan menerapkan kewajiban sebagai warga negara; memahami sejarah, fungsi, dan kedudukan Undang-Undang Dasar Negara Republik Indonesia Tahun 1945; mempraktikkan kemerdekaan berpendapat sebagai warga negara dalam era keterbukaan informasi."
+        },
+        {
+          "nama": "Bhinneka Tunggal Ika",
+          "cp_normatif": "Mengidentifikasi keberagaman suku bangsa, agama dan kepercayaan, ras, dan antargolongan dalam bingkai Bhinneka Tunggal Ika dan menerima keberagaman dalam kehidupan bermasyarakat; memahami pentingnya pelestarian tradisi, kearifan lokal, dan budaya daerah sebagai identitas nasional; menumbuhkan sikap tanggung jawab dan berperan aktif melestarikan praktik tradisi, kearifan lokal, dan budaya daerah dalam masyarakat global."
+        },
+        {
+          "nama": "Negara Kesatuan Republik Indonesia",
+          "cp_normatif": "Memahami Proklamasi Kemerdekaan Republik Indonesia; memahami wilayah Negara Kesatuan Republik Indonesia dalam konteks wawasan nusantara; berpartisipasi aktif untuk menjaga keutuhan wilayah Negara Kesatuan Republik Indonesia."
         }
       ]
     }
@@ -521,6 +609,28 @@
           "cp_normatif": "Mengidentifikasi dan menghubungkan antara gaya hidup, risiko kesehatan, dan aktivitas pencegahannya sesuai rekomendasi otoritas kesehatan; menjelaskan pola makan sehat untuk menunjang aktivitas jasmani berdasarkan informasi kandungan gizi pada makanan; dan mempraktikkan penanganan cedera sedang sesuai pemahaman tentang prinsip pertolongan pertama."
         }
       ]
+    },
+    "fase_d": {
+      "label": "PJOK Fase D (Kelas 7–9 SMP/MTs)",
+      "cp_umum": "",
+      "elemen": [
+        {
+          "nama": "Terampil Bergerak",
+          "cp_normatif": "Menerapkan keterampilan gerak serta mentransfernya ke dalam berbagai situasi gerak; memperagakan strategi gerak yang dapat dimanfaatkan untuk meningkatkan capaian keterampilan gerak."
+        },
+        {
+          "nama": "Belajar Melalui Gerak",
+          "cp_normatif": "Membuktikan strategi gerak yang paling efektif dalam situasi gerak yang berbeda; menginvestigasi modifikasi peraturan yang mendukung fair play dan partisipasi inklusif; menerapkan kepemimpinan, kolaborasi, dan pengambilan keputusan kelompok ketika berpartisipasi di dalam berbagai aktivitas jasmani."
+        },
+        {
+          "nama": "Bergaya Hidup Aktif",
+          "cp_normatif": "Berpartisipasi dalam aktivitas jasmani dan menjelaskan reaksi tubuh terhadap berbagai tingkat intensitas yang berbeda; menjelaskan strategi peningkatan aktivitas jasmani dan pencegahan perilaku sedenter."
+        },
+        {
+          "nama": "Memilih Hidup yang Menyehatkan",
+          "cp_normatif": "Menganalisis risiko kesehatan akibat gaya hidup dan merancang tindakan pencegahan melalui aktivitas jasmani berdasarkan rekomendasi otoritas kesehatan; merancang pola makan sehat berdasarkan analisis kandungan gizi sesuai kebutuhan aktivitas jasmani; serta mempraktikkan prosedur untuk menangani cedera yang berisiko terhadap kesehatan dan keselamatan berdasarkan prinsip pertolongan pertama."
+        }
+      ]
     }
   },
   "sejarah": {
@@ -579,6 +689,20 @@
         {
           "nama": "Proyek Lintas Bidang (PLB)",
           "cp_normatif": "Bergotong royong dalam tim inklusif untuk mengerjakan proyek bertema Informatika yang membutuhkan penyelesaian masalah komputasional secara kreatif, dengan mengidentifikasi persoalan, merancang, mengimplementasi, menguji, dan menyempurnakan program komputer berbasis algoritma."
+        }
+      ]
+    },
+    "fase_d": {
+      "label": "Informatika Fase D (Kelas 7–9 SMP/MTs)",
+      "cp_umum": "",
+      "elemen": [
+        {
+          "nama": "Berpikir Komputasional",
+          "cp_normatif": "Menerapkan berpikir komputasional untuk problem dalam kehidupan sehari-hari maupun dalam menghadapi masalah komputasi; memahami konsep himpunan data terstruktur dalam kehidupan sehari-hari; memahami konsep lembar kerja pengolah data; menerapkan berpikir komputasional dalam menyelesaikan persoalan yang mengandung himpunan data berstruktur sederhana dengan volume kecil; serta menuliskan sekumpulan instruksi dengan menggunakan sekumpulan kosakata terbatas atau simbol dalam format pseudocode."
+        },
+        {
+          "nama": "Literasi Digital",
+          "cp_normatif": "Memahami cara kerja dan penggunaan mesin pencari di internet; mengetahui kualitas informasi dan kredibilitas sumber informasi digital; mengenal ekosistem media pers digital; membedakan fakta, opini, dan hoaks; memahami pemanfaatan perangkat teknologi pengolah dokumen, lembar kerja, dan presentasi; mampu mendeskripsikan komponen, fungsi, dan cara kerja komputer; memahami konsep dan penerapan konektivitas jaringan lokal dan internet baik kabel maupun nirkabel; mengetahui jenis ruang publik virtual; memahami pemanfaatan perangkat teknologi digital untuk produksi dan diseminasi konten; memahami pentingnya menjaga rekam jejak digital, mengamalkan toleransi dan empati di dunia digital, memahami dampak perundungan digital, membuat kata sandi yang aman; memahami pengamanan perangkat dari berbagai jenis malware, memilah informasi yang bersifat privat dan publik, melindungi data pribadi dan identitas digital serta memiliki kesadaran penuh (mindfulness) dalam dunia digital."
         }
       ]
     }
@@ -721,6 +845,32 @@
           "cp_normatif": "Menunjukkan minat dan rasa ingin tahu dalam kegiatan bermusik."
         }
       ]
+    },
+    "fase_d": {
+      "label": "Seni Musik Fase D (Kelas 7–9 SMP/MTs)",
+      "cp_umum": "",
+      "elemen": [
+        {
+          "nama": "Mengalami (Experiencing)",
+          "cp_normatif": "Mengenali dan menerapkan unsur-unsur musik berupa nada, irama, dan melodi, dengan alat musik berbasis teknologi yang sesuai dengan kondisi setempat serta mengidentifikasi karakteristik musik dari berbagai genre dan era."
+        },
+        {
+          "nama": "Merefleksikan (Reflecting)",
+          "cp_normatif": "Melakukan umpan balik kemampuan bermain musik, karya musik diri sendiri atau orang lain sesuai dengan genre menggunakan istilah musik yang tepat."
+        },
+        {
+          "nama": "Berpikir dan Bekerja Artistik (Thinking and Working Artistically)",
+          "cp_normatif": "Menerapkan seluruh proses berpraktik musik untuk perbaikan dan perkembangan keterampilan bermusik; menyajikan musik sederhana dari daerah setempat dan Nusantara; dan menyajikan karya-karya musik modern Indonesia dengan interpretasi dan ekspresi yang tepat, baik secara individu maupun berkelompok."
+        },
+        {
+          "nama": "Menciptakan (Creating)",
+          "cp_normatif": "Mengenali dan menghasilkan lagu sederhana dengan mengembangkan irama dan melodi menggunakan berbagai alat musik."
+        },
+        {
+          "nama": "Berdampak (Impacting)",
+          "cp_normatif": "Menunjukkan minat, empati, dan kepedulian terhadap isu-isu di lingkungan sekitar melalui kegiatan bermusik."
+        }
+      ]
     }
   },
   "seni_rupa": {
@@ -823,6 +973,32 @@
         {
           "nama": "Berdampak (Impacting)",
           "cp_normatif": "Menghasilkan karya seni rupa yang mewakili minatnya."
+        }
+      ]
+    },
+    "fase_d": {
+      "label": "Seni Rupa Fase D (Kelas 7–9 SMP/MTs)",
+      "cp_umum": "",
+      "elemen": [
+        {
+          "nama": "Mengalami (Experiencing)",
+          "cp_normatif": "Menganalisis unsur rupa dan prinsip desain dalam benda-benda di sekitar/karya seni rupa."
+        },
+        {
+          "nama": "Merefleksikan (Reflecting)",
+          "cp_normatif": "Merefleksikan dan mengapresiasi karya diri sendiri dan teman sekelas; membandingkan unsur rupa, prinsip desain, dan fungsi karya seni rupa menggunakan kosa kata seni rupa yang sesuai."
+        },
+        {
+          "nama": "Berpikir dan Bekerja Artistik (Thinking and Working Artistically)",
+          "cp_normatif": "Mengaplikasikan variasi teknik penggunaan alat dan bahan yang dimiliki untuk berkarya; mengeksplorasi alternatif/potensi alat dan bahan yang ada di lingkungan sekitar."
+        },
+        {
+          "nama": "Menciptakan (Making/Creating)",
+          "cp_normatif": "Membuat karya seni rupa berdasarkan pengalaman dan/atau hasil pengamatan terhadap lingkungan sekitar, dengan mempertimbangkan fungsi, menggunakan gaya atau teknik yang telah dipelajari."
+        },
+        {
+          "nama": "Berdampak (Impacting)",
+          "cp_normatif": "Menghasilkan karya seni rupa untuk merespon pengalaman sehari-hari dan mengekspresikan perasaan atau minat."
         }
       ]
     }
@@ -929,6 +1105,32 @@
           "cp_normatif": "Memerankan lakon secara individu maupun berkelompok berdasarkan minat, pengamatan, dan pengalaman."
         }
       ]
+    },
+    "fase_d": {
+      "label": "Seni Teater Fase D (Kelas 7–9 SMP/MTs)",
+      "cp_umum": "",
+      "elemen": [
+        {
+          "nama": "Mengalami (Experiencing)",
+          "cp_normatif": "Mengeksplorasi olah tubuh, mimik wajah, dan vokal sebagai dasar keaktoran murid; mengidentifikasi karakter melalui analisis karakteristik, dan sosiologis; membuat dan memainkan beragam karakter dengan imajinasi dan kreativitasnya dan mengenal bentuk-bentuk teater."
+        },
+        {
+          "nama": "Merefleksikan (Reflection)",
+          "cp_normatif": "Menjelaskan pengalaman bermain peran dan dampaknya terhadap diri sendiri serta memberikan apresiasi dan umpan balik sesuai dengan pengalaman pribadi."
+        },
+        {
+          "nama": "Berpikir dan Bekerja Artistik (Thinking and Working Artistically)",
+          "cp_normatif": "Mengeksplorasi dan merancang tata artistik panggung dengan mempertimbangkan elemen-elemen rupa yang sederhana dari bahan yang ada di lingkungan sekitar serta memanfaatkan teknologi digital."
+        },
+        {
+          "nama": "Menciptakan (Creating)",
+          "cp_normatif": "Mengidentifikasi karakter dalam sebuah cerita dan menyusun alur cerita sederhana yang jelas dan mudah dipahami; memainkan lakon dengan satu gaya yang sederhana dan mudah dipelajari dan memainkan peran dalam sebuah pertunjukan sederhana di kelas atau satuan pendidikan."
+        },
+        {
+          "nama": "Berdampak (Impacting)",
+          "cp_normatif": "Membuat pertunjukan teater yang relevan dengan kehidupan murid."
+        }
+      ]
     }
   },
   "seni_tari": {
@@ -1025,6 +1227,32 @@
           "cp_normatif": "Menanggapi kejadian-kejadian di lingkungan sekitar melalui tari yang disajikan kepada penonton atau masyarakat sekitar."
         }
       ]
+    },
+    "fase_d": {
+      "label": "Seni Tari Fase D (Kelas 7–9 SMP/MTs)",
+      "cp_umum": "",
+      "elemen": [
+        {
+          "nama": "Mengalami (Experiencing)",
+          "cp_normatif": "Mengamati latar belakang, jenis, fungsi, dan nilai tari dalam konteks budaya."
+        },
+        {
+          "nama": "Merefleksikan (Reflecting)",
+          "cp_normatif": "Mengelompokkan jenis, fungsi, dan nilai tari berdasarkan latar belakang budaya serta mengukur hasil pencapaian karya tari."
+        },
+        {
+          "nama": "Berpikir dan Bekerja Artistik (Thinking and Working Artistically)",
+          "cp_normatif": "Merancang konsep tari kreasi yang merefleksikan jenis, fungsi, dan nilai dari tari tradisi dengan mempertimbangkan unsur utama dan pendukung tari."
+        },
+        {
+          "nama": "Menciptakan (Creating)",
+          "cp_normatif": "Membuat gerak tari kreasi berdasarkan jenis dan fungsi dari tari tradisi dengan menerapkan desain lantai dan level."
+        },
+        {
+          "nama": "Berdampak (Impacting)",
+          "cp_normatif": "Menghargai dan mengajak orang lain untuk mencintai dan bangga terhadap tari tradisi melalui proses kreatif yang dilakukan."
+        }
+      ]
     }
   },
   "ipas": {
@@ -1053,6 +1281,38 @@
         {
           "nama": "Keterampilan Proses",
           "cp_normatif": "Mampu menerapkan keterampilan proses yang meliputi: Mengamati: Murid mengamati fenomena dan peristiwa secara sederhana, mencatat hasil pengamatannya, serta mencari persamaan dan perbedaannya. Mempertanyakan dan Memprediksi: Dengan panduan pendidik, murid mengidentifikasi pertanyaan yang dapat diselidiki secara ilmiah dan membuat prediksinya. Merencanakan dan Melakukan Penyelidikan: Secara mandiri, murid merencanakan dan melakukan langkah-langkah operasional untuk menjawab pertanyaan yang diajukan. Murid melakukan observasi menggunakan alat bantu pengukuran sederhana. Memproses serta Menganalisis Data dan Informasi: Murid mengolah data dalam bentuk tabel dan grafik, serta menjelaskan hasil pengamatan dan pola atau hubungan pada data. Murid membandingkan data dengan prediksi dan memberikan alasan berdasarkan bukti. Mengevaluasi dan Refleksi: Melakukan refleksi dan memberikan saran perbaikan terhadap penyelidikan yang sudah dilakukan. Mengomunikasikan Hasil: Murid mengomunikasikan hasil penyelidikan secara utuh yang ditunjang dengan argumen dalam berbagai media."
+        }
+      ]
+    }
+  },
+  "ipa": {
+    "fase_d": {
+      "label": "IPA Fase D (Kelas 7–9 SMP/MTs)",
+      "cp_umum": "",
+      "elemen": [
+        {
+          "nama": "Pemahaman IPA",
+          "cp_normatif": "Menelaah hasil identifikasi makhluk hidup sesuai dengan karakteristiknya; menganalisis klasifikasi, sifat, dan perubahan materi; menganalisis sistem organisasi kehidupan, fungsi, serta kelainan atau gangguan yang muncul pada sistem organ; menganalisis interaksi antar makhluk hidup dan lingkungannya dalam merancang upaya-upaya untuk mencegah dan mengatasi perubahan iklim; menganalisis pewarisan sifat; membuat bioteknologi konvensional di lingkungan sekitarnya; menerapkan pengukuran terhadap aspek fisis dalam kehidupan sehari-hari; menganalisis ragam gerak, gaya, dan tekanan; menganalisis hubungan usaha dan energi; menganalisis pengaruh kalor dan perpindahannya terhadap perubahan suhu; menganalisis gelombang dan pemanfaatannya dalam kehidupan sehari-hari; menganalisis gejala kemagnetan dan kelistrikan untuk menyelesaikan tantangan yang dihadapi dalam kehidupan sehari-hari termasuk pemanfaatan sumber energi listrik ramah lingkungan; menganalisis posisi relatif bumi-bulan-matahari dalam sistem tata surya untuk menjelaskan fenomena alam dan perubahan iklim; serta mengevaluasi keputusan yang tepat untuk menghindari zat aditif dan adiktif yang membahayakan dirinya dan lingkungan."
+        },
+        {
+          "nama": "Keterampilan Proses",
+          "cp_normatif": "Mampu menerapkan keterampilan proses yang meliputi: Mengamati (melakukan pengamatan terhadap fenomena dan peristiwa di sekitarnya dan mencatat hasil pengamatannya dengan memperhatikan karakteristik objek yang diamati); Mempertanyakan dan Memprediksi (mengidentifikasi pertanyaan yang dapat diselidiki secara ilmiah dan membuat prediksinya); Merencanakan dan Melakukan Penyelidikan (merencanakan dan melakukan langkah-langkah operasional untuk menjawab pertanyaan; murid menggunakan alat bantu pengukuran untuk mendapatkan data yang akurat dan memahami adanya potensi kekeliruan dalam penyelidikan); Memproses, Menganalisis Data dan Informasi (mengolah data dalam bentuk tabel, grafik, dan model serta menjelaskan hasil pengamatan dan pola atau hubungan pada data; murid mengumpulkan data dari penyelidikan yang dilakukannya, serta menggunakan pemahaman sains untuk mengidentifikasi hubungan dan menarik kesimpulan berdasarkan bukti); Mengevaluasi dan Refleksi (mengidentifikasi sumber ketidakpastian dan kemungkinan penjelasan alternatif dalam rangka mengevaluasi kesimpulan, serta menjelaskan cara spesifik untuk meningkatkan kualitas data); Mengomunikasikan Hasil (mengomunikasikan hasil penyelidikan secara sistematis dan utuh yang ditunjang dengan argumen dan bahasa yang sesuai konteks penyelidikan)."
+        }
+      ]
+    }
+  },
+  "ips": {
+    "fase_d": {
+      "label": "IPS Fase D (Kelas 7–9 SMP/MTs)",
+      "cp_umum": "",
+      "elemen": [
+        {
+          "nama": "Pemahaman Konsep",
+          "cp_normatif": "Menjelaskan keberagaman kondisi geografis Indonesia, konektivitas antarruang terhadap upaya pemanfaatan dan pelestarian potensi sumber daya alam, faktor aktivitas manusia terhadap perubahan iklim dan potensi bencana alam; memprediksi dampak perubahan iklim terhadap kehidupan ekonomi, sosial, budaya masyarakat serta merefleksikan pola adaptasi terhadap perubahan iklim dan upaya mitigasi bencana untuk menunjang sustainable development goals (SDGs) dalam konteks lokal, regional, dan global; mengidentifikasi upaya masyarakat dalam memenuhi kebutuhannya melalui kegiatan ekonomi, harga, pasar, lembaga keuangan, perdagangan internasional; menelaah peran masyarakat dan negara dalam mendorong pertumbuhan ekonomi di era digital, serta potensi Indonesia menjadi negara maju; mengelaborasi proses interaksi sosial, lembaga sosial, dinamika sosial dan perubahan sistem sosial budaya dalam masyarakat yang majemuk untuk mewujudkan integrasi bangsa dengan prinsip kebhinekaan; menjelaskan konsep dasar ilmu sejarah yaitu manusia, ruang, waktu, kronologi, perubahan; menganalisis keterhubungan antara masa lampau, masa kini, dan masa yang akan datang ketika mempelajari sejarah lokal dan toponimi wilayah serta berbagai peristiwa atau kejadian penting dalam lingkup lokal, nasional dan global terkait asal-usul nenek moyang bangsa Indonesia dan jalur rempah nusantara."
+        },
+        {
+          "nama": "Keterampilan Proses",
+          "cp_normatif": "Menerapkan pemahaman konsep melalui pendekatan keterampilan proses dengan cara mengamati fenomena dan peristiwa secara sistematis dengan menggunakan pancaindra serta menemukan persamaan dan perbedaannya; menanya dengan panduan pendidik, mengajukan pertanyaan untuk menggali dan klarifikasi informasi, serta mencari tahu penyebab dan memprediksinya; mengumpulkan informasi secara berkolaborasi, merencanakan dan melakukan penyelidikan, mengumpulkan informasi dengan sumber primer, dan mendokumentasikannya; berkolaborasi, mengolah informasi yang relevan serta memprioritaskan beberapa gagasan tertentu; menguji dan menerapkan konsep melalui eksperimen, simulasi, studi kasus, atau situasi nyata untuk memperkuat pemahaman dan keterampilan; mengevaluasi dan merefleksi serta melakukan perbaikan untuk menarik simpulan hasil penyelidikan dengan tepat; mengomunikasikan dan menyajikan hasil penyelidikan dengan menggunakan media informasi yang tepat; dan menyusun rencana tindak lanjut dari hasil penyelidikan yang telah dihasilkan secara kolaboratif."
         }
       ]
     }
