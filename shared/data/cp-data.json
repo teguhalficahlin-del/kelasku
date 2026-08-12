@@ -53,6 +53,24 @@
           "cp_normatif": "Mengomunikasikan gagasan tentang topik sehari-hari dalam teks tulis pendek atau teks multimodal sesuai konteks."
         }
       ]
+    },
+    "fase_c": {
+      "label": "Bahasa Inggris Fase C (Kelas 5–6 SD)",
+      "cp_umum": "",
+      "elemen": [
+        {
+          "nama": "Menyimak - Berbicara (Listening - Writing)",
+          "cp_normatif": "Memahami alur informasi teks secara keseluruhan dan merespon teks lisan atau teks multimodal sederhana tentang topik sehari-hari secara lisan dengan kalimat pendek dan sederhana sesuai konteks."
+        },
+        {
+          "nama": "Membaca - Memirsa (Reading - Viewing)",
+          "cp_normatif": "Memahami alur informasi secara keseluruhan, gagasan utama dan informasi rinci dari beragam teks pendek atau teks multimodal tentang topik sehari-hari dan meresponnya sesuai konteks."
+        },
+        {
+          "nama": "Menulis - Mempresentasikan (Writing - Presenting)",
+          "cp_normatif": "Mengomunikasikan ide dan pengalamannya melalui berbagai jenis teks tulis sederhana atau teks multimodal tentang topik sehari-hari sesuai konteks."
+        }
+      ]
     }
   },
   "bahasa_indonesia": {
@@ -140,6 +158,28 @@
         {
           "nama": "Menulis",
           "cp_normatif": "Menulis berbagai tipe teks sederhana dengan rangkaian kalimat yang beragam; dan menggunakan kaidah kebahasaan dan kosakata baru yang memiliki makna denotatif untuk menulis teks sesuai dengan konteks."
+        }
+      ]
+    },
+    "fase_c": {
+      "label": "Bahasa Indonesia Fase C (Kelas 5–6 SD)",
+      "cp_umum": "",
+      "elemen": [
+        {
+          "nama": "Menyimak",
+          "cp_normatif": "Menganalisis informasi dari teks nonsastra berbentuk teks aural (teks yang dibacakan dan/atau didengarkan; dan menganalisis isi teks sastra berbentuk teks aural."
+        },
+        {
+          "nama": "Membaca dan Memirsa",
+          "cp_normatif": "Membaca kata-kata dengan berbagai pola kombinasi huruf dengan fasih dari bacaan dan/atau tayangan yang dipirsa; dan menganalisis informasi serta nilai-nilai dalam teks sastra dan nonsastra berwujud teks visual dan/atau audiovisual."
+        },
+        {
+          "nama": "Berbicara dan Mempresentasikan",
+          "cp_normatif": "Mempresentasikan gagasan dari berbagai tipe teks dengan efektif dan santun; dan menyampaikan perasaan berdasarkan fakta, imajinasi (dari diri sendiri dan orang lain) secara indah dan menarik dalam bentuk teks sastra dengan penggunaan kosakata secara kreatif."
+        },
+        {
+          "nama": "Menulis",
+          "cp_normatif": "Menulis berbagai tipe teks sederhana berdasarkan gagasan, hasil pengamatan, pengalaman, dan/atau imajinasi dengan rangkaian kalimat kompleks secara kreatif, menarik, dan/atau indah; dan menggunakan kaidah kebahasaan dan kosakata baru yang memiliki makna denotatif dan konotatif."
         }
       ]
     }
@@ -237,6 +277,32 @@
           "cp_normatif": "Mengurutkan, membandingkan, menyajikan, menganalisis dan menginterpretasi data dalam bentuk tabel, diagram gambar, piktogram, dan diagram batang (skala satu satuan)."
         }
       ]
+    },
+    "fase_c": {
+      "label": "Matematika Fase C (Kelas 5–6 SD)",
+      "cp_umum": "",
+      "elemen": [
+        {
+          "nama": "Bilangan",
+          "cp_normatif": "Menunjukkan pemahaman dan intuisi bilangan (number sense) pada bilangan cacah sampai 1.000.000; membaca, menulis, menentukan nilai tempat, membandingkan, mengurutkan, melakukan komposisi dan dekomposisi bilangan; menyelesaikan masalah yang berkaitan dengan uang; melakukan operasi penjumlahan, pengurangan, perkalian, dan pembagian bilangan cacah sampai 100.000; serta menyelesaikan masalah yang berkaitan dengan KPK dan FPB. Murid dapat membandingkan dan mengurutkan berbagai pecahan termasuk pecahan campuran, melakukan operasi penjumlahan dan pengurangan pecahan, serta melakukan operasi perkalian dan pembagian pecahan dengan bilangan asli; mengubah pecahan menjadi berbagai bentuk pecahan lain, serta membandingkan dan mengurutkan bilangan desimal (satu angka di belakang koma)."
+        },
+        {
+          "nama": "Aljabar",
+          "cp_normatif": "Menemukan nilai yang belum diketahui dalam kalimat matematika yang melibatkan penjumlahan, pengurangan, perkalian, dan pembagian pada bilangan cacah sampai 1000 dengan menggunakan sifat-sifat bilangan dan operasinya. Murid dapat mengidentifikasi, meniru, dan mengembangkan pola bilangan membesar dan mengecil yang melibatkan perkalian dan pembagian; bernalar secara proporsional untuk menyelesaikan masalah sehari-hari dengan rasio satuan; menggunakan operasi perkalian dan pembagian dalam menyelesaikan masalah sehari-hari yang terkait dengan proporsi."
+        },
+        {
+          "nama": "Pengukuran",
+          "cp_normatif": "Menentukan keliling dan luas berbagai bentuk bangun datar (segitiga, segiempat, dan segi banyak) serta gabungannya; menghitung durasi waktu dan mengukur besar sudut pada bangun datar atau yang dibentuk dari dua garis berpotongan."
+        },
+        {
+          "nama": "Geometri",
+          "cp_normatif": "Mengkonstruksi dan mengurai bangun ruang (kubus, balok, dan gabungannya) dan mengenali visualisasi spasial (bagian depan, atas, dan samping); membandingkan karakteristik antar bangun datar dan antar bangun ruang; serta menentukan lokasi pada peta yang menggunakan sistem berpetak."
+        },
+        {
+          "nama": "Analisis Data dan Peluang",
+          "cp_normatif": "Mengurutkan, membandingkan, menyajikan, dan menganalisis data banyak benda dan data hasil pengukuran dalam bentuk gambar, piktogram, diagram batang, dan tabel frekuensi untuk mendapatkan informasi; menentukan kejadian dengan kemungkinan yang lebih besar atau lebih kecil dalam suatu percobaan acak."
+        }
+      ]
     }
   },
   "pendidikan_pancasila": {
@@ -324,6 +390,28 @@
           "cp_normatif": "Mengidentifikasi lingkungan tempat tinggal (RT, RW, desa atau kelurahan, dan kecamatan) sebagai bagian dari wilayah Negara Kesatuan Republik Indonesia; menunjukkan perilaku bekerja sama dalam berbagai bentuk keberagaman suku bangsa, sosial, dan budaya di Indonesia yang terikat persatuan dan kesatuan di lingkungan sekitar."
         }
       ]
+    },
+    "fase_c": {
+      "label": "Pendidikan Pancasila Fase C (Kelas 5–6 SD)",
+      "cp_umum": "",
+      "elemen": [
+        {
+          "nama": "Pancasila",
+          "cp_normatif": "Memahami kronologi sejarah kelahiran Pancasila; meneladani sikap para perumus Pancasila dan menerapkan di lingkungan masyarakat; menghubungkan sila-sila dalam Pancasila sebagai suatu kesatuan yang utuh; menguraikan makna nilai-nilai Pancasila sebagai dasar negara, dan pandangan hidup bangsa."
+        },
+        {
+          "nama": "Undang-Undang Dasar Negara Republik Indonesia Tahun 1945",
+          "cp_normatif": "Mengimplementasikan bentuk-bentuk norma, hak, dan kewajiban dalam kedudukannya sebagai warga negara; mengenal Pembukaan Undang-Undang Dasar Negara Republik Indonesia tahun 1945; mempraktikkan musyawarah untuk membuat kesepakatan dan aturan bersama, serta menerapkannya dalam lingkungan keluarga dan sekolah."
+        },
+        {
+          "nama": "Bhinneka Tunggal Ika",
+          "cp_normatif": "Menyajikan hasil identifikasi sikap menghormati, menjaga, dan melestarikan keberagaman budaya sesuai semboyan dalam bingkai Bhinneka Tunggal Ika di lingkungan sekitar."
+        },
+        {
+          "nama": "Negara Kesatuan Republik Indonesia",
+          "cp_normatif": "Mengenal wilayahnya dalam konteks kabupaten/kota, dan provinsi sebagai bagian dari wilayah Negara Kesatuan Republik Indonesia; menunjukkan perilaku gotong royong untuk menjaga persatuan di lingkungan sekolah dan sekitar sebagai wujud bela negara."
+        }
+      ]
     }
   },
   "pjok": {
@@ -409,6 +497,28 @@
         {
           "nama": "Memilih Hidup yang Menyehatkan",
           "cp_normatif": "Mengenali risiko kesehatan akibat gaya hidup dan berbagai aktivitas jasmani untuk pencegahannya; mengidentifikasi pola makan sehat dan bergizi seimbang sesuai rekomendasi kesehatan untuk menunjang aktivitas sehari-hari; dan mempraktikkan penanganan cedera ringan sesuai pemahaman tentang prinsip pertolongan pertama."
+        }
+      ]
+    },
+    "fase_c": {
+      "label": "PJOK Fase C (Kelas 5–6 SD)",
+      "cp_umum": "",
+      "elemen": [
+        {
+          "nama": "Terampil Bergerak",
+          "cp_normatif": "Menyesuaikan keterampilan gerak melintasi berbagai situasi gerak; mentransfer strategi gerak yang sudah dikuasai ke dalam berbagai situasi gerak yang berbeda; dan menginvestigasi berbagai konsep gerak yang dapat diterapkan untuk meningkatkan capaian keterampilan gerak"
+        },
+        {
+          "nama": "Belajar Melalui Gerak",
+          "cp_normatif": "Menguji efektivitas penerapan strategi gerak dalam berbagai situasi gerak; merancang peraturan alternatif dan modifikasi permainan untuk mendukung fair play dan partisipasi inklusif; dan menjalankan berbagai peran untuk mencapai keberhasilan kelompok atau tim di dalam berbagai aktivitas jasmani."
+        },
+        {
+          "nama": "Bergaya Hidup Aktif",
+          "cp_normatif": "Berpartisipasi dalam aktivitas jasmani dan menjelaskan pengaruh aktivitas jasmani yang teratur terhadap kesehatan; mengidentifikasi rekomendasi aktivitas jasmani serta pencegahan perilaku sedenter."
+        },
+        {
+          "nama": "Memilih Hidup yang Menyehatkan",
+          "cp_normatif": "Mengidentifikasi dan menghubungkan antara gaya hidup, risiko kesehatan, dan aktivitas pencegahannya sesuai rekomendasi otoritas kesehatan; menjelaskan pola makan sehat untuk menunjang aktivitas jasmani berdasarkan informasi kandungan gizi pada makanan; dan mempraktikkan penanganan cedera sedang sesuai pemahaman tentang prinsip pertolongan pertama."
         }
       ]
     }
@@ -585,6 +695,32 @@
           "cp_normatif": "Menunjukkan minat dalam kegiatan bermusik."
         }
       ]
+    },
+    "fase_c": {
+      "label": "Seni Musik Fase C (Kelas 5–6 SD)",
+      "cp_umum": "",
+      "elemen": [
+        {
+          "nama": "Mengalami (Experiencing)",
+          "cp_normatif": "Mengenali dan menerapkan unsur-unsur musik (nada, irama dan melodi) menggunakan alat musik ritmis dan melodis serta menunjukkan tingkat kepekaan akan unsur-unsur musik dengan menggunakan alat musik ritmis dan melodis."
+        },
+        {
+          "nama": "Merefleksikan (Reflecting)",
+          "cp_normatif": "Melakukan umpan balik mengenai karya dan kemampuan bermusik diri sendiri atau orang lain menggunakan istilah musik yang tepat."
+        },
+        {
+          "nama": "Berpikir dan Bekerja Artistik (Thinking and Working Artistically)",
+          "cp_normatif": "Mengeksplorasi variasi pola irama, tempo dan melodi dengan alat musik ritmis dan melodis menggunakan notasi musik dan teknik dasar yang telah dipelajari; menemukan alternatif untuk menghasilkan bunyi musik sederhana melalui eksplorasi material yang tersedia di lingkungan sekitar dan menerapkan cara memainkan dan merawat alat musik dengan teknik yang tepat sesuai dengan spesifikasi bahan alat musik."
+        },
+        {
+          "nama": "Menciptakan (Creating)",
+          "cp_normatif": "Membuat dan mengembangkan pola irama menggunakan anggota tubuh atau alat musik ritmis yang tersedia berdasarkan nilai kearifan lokal daerahnya."
+        },
+        {
+          "nama": "Berdampak (Impacting)",
+          "cp_normatif": "Menunjukkan minat dan rasa ingin tahu dalam kegiatan bermusik."
+        }
+      ]
     }
   },
   "seni_rupa": {
@@ -661,6 +797,32 @@
         {
           "nama": "Berdampak (Impacting)",
           "cp_normatif": "Menghasilkan karya seni rupa yang berdampak pada perasaan atau mewakili harapannya."
+        }
+      ]
+    },
+    "fase_c": {
+      "label": "Seni Rupa Fase C (Kelas 5–6 SD)",
+      "cp_umum": "",
+      "elemen": [
+        {
+          "nama": "Mengalami (Experiencing)",
+          "cp_normatif": "Menjelaskan unsur rupa dan prinsip desain dalam benda-benda di sekitar/karya seni rupa."
+        },
+        {
+          "nama": "Merefleksikan (Reflecting)",
+          "cp_normatif": "Merefleksikan dan mengapresiasi karya diri sendiri dan teman sekelas menggunakan kosa kata seni rupa yang sesuai."
+        },
+        {
+          "nama": "Berpikir dan Bekerja Artistik (Thinking and Working Artistically)",
+          "cp_normatif": "Mengenali dan menguji coba variasi teknik penggunaan alat dan/atau bahan."
+        },
+        {
+          "nama": "Menciptakan (Making/Creating)",
+          "cp_normatif": "Membuat karya seni rupa berdasarkan pengalaman dan/atau hasil pengamatan terhadap lingkungan sekitar melalui pengembangan imajinasi."
+        },
+        {
+          "nama": "Berdampak (Impacting)",
+          "cp_normatif": "Menghasilkan karya seni rupa yang mewakili minatnya."
         }
       ]
     }
@@ -741,6 +903,32 @@
           "cp_normatif": "Mengenal bentuk lakon dalam bermain teater."
         }
       ]
+    },
+    "fase_c": {
+      "label": "Seni Teater Fase C (Kelas 5–6 SD)",
+      "cp_umum": "",
+      "elemen": [
+        {
+          "nama": "Mengalami (Experiencing)",
+          "cp_normatif": "Melakukan permainan peran berkelompok, seperti improvisasi untuk melatih aksi dan reaksi dalam mengelaborasi cerita atau tokoh dan melakukan pengenalan karakter melalui pengamatan kebiasaan tokoh yang diperankan."
+        },
+        {
+          "nama": "Merefleksikan (Reflection)",
+          "cp_normatif": "Menceritakan pendapatnya tentang sebuah cerita sederhana (penokohan, perwatakan)."
+        },
+        {
+          "nama": "Berpikir dan Bekerja Artistik (Thinking and Working Artistically)",
+          "cp_normatif": "Mengidentifikasi properti sederhana berdasarkan cerita yang akan dimainkan."
+        },
+        {
+          "nama": "Menciptakan (Creating)",
+          "cp_normatif": "Mengenal dan memainkan ragam peran dari cerita sederhana berdasarkan hasil pengamatan."
+        },
+        {
+          "nama": "Berdampak (Impacting)",
+          "cp_normatif": "Memerankan lakon secara individu maupun berkelompok berdasarkan minat, pengamatan, dan pengalaman."
+        }
+      ]
     }
   },
   "seni_tari": {
@@ -811,6 +999,32 @@
           "cp_normatif": "Menerima proses pembelajaran sehingga tumbuh rasa ingin tahu dan dapat menunjukkan usaha yang berdampak pada kemampuan diri dalam menyelesaikan aktivitas pembelajaran tari."
         }
       ]
+    },
+    "fase_c": {
+      "label": "Seni Tari Fase C (Kelas 5–6 SD)",
+      "cp_umum": "",
+      "elemen": [
+        {
+          "nama": "Mengalami (Experiencing)",
+          "cp_normatif": "Mengamati berbagai bentuk tari tradisi yang dapat digunakan untuk mengekspresikan diri melalui unsur pendukung tari."
+        },
+        {
+          "nama": "Merefleksikan (Reflecting)",
+          "cp_normatif": "Mengidentifikasi unsur pendukung tari dalam tari tradisi serta menghargai hasil pencapaian diri dengan mempertimbangkan pendapat orang lain."
+        },
+        {
+          "nama": "Berpikir dan Bekerja Artistik (Thinking and Working Artistically)",
+          "cp_normatif": "Meragakan hasil rangkaian gerak tari menggunakan unsur pendukung tari dengan menunjukan kerja sama dan berperan aktif dalam kelompok."
+        },
+        {
+          "nama": "Menciptakan (Creating)",
+          "cp_normatif": "Merangkai gerak tari yang berpijak pada tradisi/kreasi dengan menerapkan desain kelompok."
+        },
+        {
+          "nama": "Berdampak (Impacting)",
+          "cp_normatif": "Menanggapi kejadian-kejadian di lingkungan sekitar melalui tari yang disajikan kepada penonton atau masyarakat sekitar."
+        }
+      ]
     }
   },
   "ipas": {
@@ -825,6 +1039,20 @@
         {
           "nama": "Keterampilan Proses",
           "cp_normatif": "Mampu menerapkan keterampilan proses yang meliputi: Mengamati: Murid mengamati fenomena dan peristiwa secara sederhana dan dapat mencatat hasil pengamatannya. Mempertanyakan dan Memprediksi: Secara mandiri, murid mengajukan pertanyaan tentang hal-hal yang ingin diketahui saat melakukan pengamatan dan membuat prediksi berdasarkan pengetahuan yang dimiliki sebelumnya. Merencanakan dan Melakukan Penyelidikan: Dengan panduan pendidik, murid membuat rencana dan melakukan langkah-langkah operasional untuk menjawab pertanyaan yang diajukan. Murid melakukan observasi menggunakan alat bantu pengukuran sederhana. Memproses, Menganalisis Data dan Informasi: Dengan panduan pendidik, murid mengorganisasikan data dalam bentuk turus dan diagram gambar untuk menyajikan dan mengidentifikasi pola. Murid membandingkan antara hasil pengamatan dengan prediksi dan memberikan penjelasan. Mengevaluasi dan Refleksi: Murid melakukan refleksi terhadap penyelidikan yang sudah dilakukan. Mengomunikasikan Hasil: Murid mengomunikasikan hasil penyelidikan secara lisan dan tertulis dalam berbagai media."
+        }
+      ]
+    },
+    "fase_c": {
+      "label": "IPAS Fase C (Kelas 5–6 SD)",
+      "cp_umum": "",
+      "elemen": [
+        {
+          "nama": "Pemahaman IPAS",
+          "cp_normatif": "Merefleksikan sistem organ tubuh manusia yang dikaitkan dengan cara menjaga kesehatan tubuhnya; menganalisis hubungan antar komponen biotik dan abiotik, serta pengaruhnya terhadap ekosistem; menjelaskan fenomena gelombang bunyi dan cahaya dalam kehidupan sehari-hari; menghasilkan upaya penghematan energi, serta pemanfaatan sumber energi alternatif dari sumber daya yang ada di sekitarnya sebagai upaya mitigasi perubahan iklim; menjelaskan sistem tata surya, serta kaitannya dengan rotasi dan revolusi bumi; menjelaskan letak dan kondisi geografis negara Indonesia dengan menggunakan peta konvensional/digital; meninjau sejarah perjuangan para pahlawan di lingkungan sekitar tempat tinggalnya; menemukan keragaman budaya nasional dalam konteks kebhinekaan berdasarkan pemahaman terhadap nilai-nilai kearifan lokal yang berlaku di wilayah tempat tinggal; serta menerapkan kegiatan ekonomi masyarakat di lingkungan sekitar."
+        },
+        {
+          "nama": "Keterampilan Proses",
+          "cp_normatif": "Mampu menerapkan keterampilan proses yang meliputi: Mengamati: Murid mengamati fenomena dan peristiwa secara sederhana, mencatat hasil pengamatannya, serta mencari persamaan dan perbedaannya. Mempertanyakan dan Memprediksi: Dengan panduan pendidik, murid mengidentifikasi pertanyaan yang dapat diselidiki secara ilmiah dan membuat prediksinya. Merencanakan dan Melakukan Penyelidikan: Secara mandiri, murid merencanakan dan melakukan langkah-langkah operasional untuk menjawab pertanyaan yang diajukan. Murid melakukan observasi menggunakan alat bantu pengukuran sederhana. Memproses serta Menganalisis Data dan Informasi: Murid mengolah data dalam bentuk tabel dan grafik, serta menjelaskan hasil pengamatan dan pola atau hubungan pada data. Murid membandingkan data dengan prediksi dan memberikan alasan berdasarkan bukti. Mengevaluasi dan Refleksi: Melakukan refleksi dan memberikan saran perbaikan terhadap penyelidikan yang sudah dilakukan. Mengomunikasikan Hasil: Murid mengomunikasikan hasil penyelidikan secara utuh yang ditunjang dengan argumen dalam berbagai media."
         }
       ]
     }
