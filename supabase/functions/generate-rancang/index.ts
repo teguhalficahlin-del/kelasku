@@ -114,8 +114,9 @@ Skema output JSON:
 }
 
 function buildRencanaPrompt(payload: Record<string, unknown>) {
-  const { konteks, smk, dnk_dk, preferensi, tp_terpilih, konteks_kelas } = payload as Record<string, Record<string, unknown>>;
+  const { konteks, smk, niat_guru, preferensi, tp_terpilih, konteks_kelas } = payload as Record<string, Record<string, unknown>>;
 
+  const pendekatan_kktp = String((tp_terpilih as Record<string,unknown>)?.pendekatan_kktp || 'rubrik');
   const isGenreBased = String(preferensi?.pendekatan || '').includes('Genre-Based');
   const pendekatanInstruksi = isGenreBased
     ? `KERANGKA AKTIVITAS — GENRE-BASED PEDAGOGY (Kemendikdasmen 2025):
@@ -142,6 +143,27 @@ Pembelajaran harus bersifat:
 - Bermakna: terhubung dengan konteks nyata siswa (jurusan, daerah, kehidupan)
 - Menggembirakan: suasana positif, menantang, memotivasi — bukan sekadar tugas`;
 
+  const kktpInstruksi = pendekatan_kktp === 'deskripsi_kriteria'
+    ? `KKTP — PENDEKATAN DESKRIPSI KRITERIA:
+Buat 4–6 pernyataan konkret yang bisa diobservasi guru. Setiap kriteria hanya punya dua kemungkinan: Tercapai atau Belum Tercapai.
+Gunakan kata kerja operasional yang jelas (menyebutkan, menjelaskan, menunjukkan, membuat, dll).
+Format output kktp: array objek { "kriteria": "...", "tercapai": "Deskripsi bukti tercapai", "belum_tercapai": "Deskripsi kondisi belum tercapai" }`
+    : pendekatan_kktp === 'rubrik'
+    ? `KKTP — PENDEKATAN RUBRIK:
+Buat 3–4 aspek penilaian. Setiap aspek punya 4 level: Baru Berkembang, Layak, Cakap, Mahir.
+Deskripsikan performa siswa di setiap level secara konkret dan dapat diamati.
+Format output kktp: array objek { "aspek": "...", "baru_berkembang": "...", "layak": "...", "cakap": "...", "mahir": "..." }`
+    : pendekatan_kktp === 'interval_nilai'
+    ? `KKTP — PENDEKATAN INTERVAL NILAI:
+Buat 4–5 kriteria penilaian dengan skala 1–5 per kriteria.
+Tentukan batas ketercapaian (contoh: total skor ≥ 61 dari 100 = tercapai).
+Sertakan deskripsi singkat untuk setiap skala.
+Format output kktp: { "kriteria": [{ "nama": "...", "bobot": 20, "deskripsi_skala": { "1": "...", "3": "...", "5": "..." } }], "batas_tercapai": 61 }`
+    : `KKTP — PENDEKATAN PERSENTASE:
+Buat 6–10 indikator konkret yang bisa dicentang (ya/tidak).
+Tentukan persentase minimal ketercapaian (disarankan 75%).
+Format output kktp: { "indikator": ["...", "...", "..."], "persentase_minimal": 75 }`;
+
   return `Tujuan Pembelajaran yang dirancang:
 - Judul: ${tp_terpilih?.judul}
 - Deskripsi: ${tp_terpilih?.deskripsi}
@@ -152,7 +174,7 @@ Konteks:
 - Mata pelajaran: ${konteks?.mapel}
 - Jenjang: ${konteks?.jenjang} — Fase: ${konteks?.fase}
 ${smk ? `- Jurusan SMK: ${smk.jurusan}, Rumpun: ${smk.rumpun}` : ''}
-${dnk_dk ? `- Profil kelas: emosi ${dnk_dk.kondisi_emosi}, motivasi ${dnk_dk.motivasi}, gaya belajar ${dnk_dk.gaya_belajar}` : ''}
+${niat_guru ? `- Visi guru: suasana "${niat_guru.suasana_belajar}", titik mulai "${niat_guru.titik_mulai}", perkembangan diinginkan "${niat_guru.perkembangan_diinginkan}", pengalaman dominan "${niat_guru.pengalaman_dominan}"` : ''}
 
 Preferensi Guru:
 - Pendekatan: ${preferensi?.pendekatan}
@@ -169,12 +191,15 @@ Kondisi Kelas:
 - Akses internet: ${konteks_kelas?.akses_internet}
 - Materi cetak: ${Array.isArray(konteks_kelas?.materi_cetak) ? konteks_kelas.materi_cetak.join(', ') : konteks_kelas?.materi_cetak}
 - Aktivitas dihindari: ${Array.isArray(konteks_kelas?.aktivitas_dihindari) ? konteks_kelas.aktivitas_dihindari.join(', ') : '-'}
+- Batasan kondisi keras (JANGAN dilanggar): ${Array.isArray(konteks_kelas?.batasan_kondisi) && (konteks_kelas.batasan_kondisi as string[]).length ? (konteks_kelas.batasan_kondisi as string[]).join(', ') : 'Tidak ada'}
 - Kendala kelas: ${Array.isArray(konteks_kelas?.kendala) ? konteks_kelas.kendala.join(', ') : '-'}
 ${konteks_kelas?.daerah ? `- Daerah: ${konteks_kelas.daerah}` : ''}
 
 Hasilkan rencana pembelajaran dalam 5 komponen. Sesuaikan dengan kondisi nyata kelas — jangan rekomendasikan alat/metode yang tidak tersedia.
 
 ${pendekatanInstruksi}
+
+${kktpInstruksi}
 
 Dimensi Profil Lulusan yang dipilih guru WAJIB terlihat dalam aktivitas — sebutkan secara eksplisit di kolom "catatan_guru" pertemuan mana dimensi apa yang dikembangkan, contoh: "Pertemuan ini mengembangkan dimensi Kolaborasi dan Komunikasi melalui diskusi kelompok."
 
@@ -194,11 +219,14 @@ Skema output JSON:
   "asesmen": {
     "jenis": "Jenis asesmen",
     "instrumen": "Deskripsi instrumen/soal",
-    "kktp": [
-      { "level": "Baru Berkembang", "deskripsi": "..." },
-      { "level": "Berkembang Sesuai Harapan", "deskripsi": "..." },
-      { "level": "Sangat Berkembang", "deskripsi": "..." }
-    ]
+    "kktp": ${pendekatan_kktp === 'deskripsi_kriteria'
+    ? `[{ "kriteria": "...", "tercapai": "...", "belum_tercapai": "..." }]`
+    : pendekatan_kktp === 'rubrik'
+    ? `[{ "aspek": "...", "baru_berkembang": "...", "layak": "...", "cakap": "...", "mahir": "..." }]`
+    : pendekatan_kktp === 'interval_nilai'
+    ? `{ "kriteria": [{ "nama": "...", "bobot": 20, "deskripsi_skala": { "1": "...", "3": "...", "5": "..." } }], "batas_tercapai": 61 }`
+    : `{ "indikator": ["...", "..."], "persentase_minimal": 75 }`
+  }
   },
   "lks": {
     "judul": "Judul LKS",
@@ -286,7 +314,7 @@ Deno.serve(async (req) => {
     return json({ error: 'Request body tidak valid' }, 400);
   }
 
-  const { mode, konteks, smk, dnk_dk, preferensi, tp_terpilih, konteks_kelas, elemen_list } = body;
+  const { mode, konteks, smk, niat_guru, preferensi, tp_terpilih, konteks_kelas, elemen_list } = body;
 
   if (!mode || !['cp_summary', 'atp', 'rencana'].includes(mode as string)) {
     return json({ error: 'mode harus: cp_summary | atp | rencana' }, 400);
@@ -314,7 +342,7 @@ Deno.serve(async (req) => {
     if (!konteks || !tp_terpilih || !konteks_kelas) {
       return json({ error: 'rencana membutuhkan konteks, tp_terpilih, dan konteks_kelas' }, 400);
     }
-    prompt = buildRencanaPrompt({ konteks, smk, dnk_dk, preferensi, tp_terpilih, konteks_kelas });
+    prompt = buildRencanaPrompt({ konteks, smk, niat_guru, preferensi, tp_terpilih, konteks_kelas });
     maxTokens = 6000;
   }
 
