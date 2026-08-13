@@ -460,10 +460,7 @@
     </div>
   </div>
   <p class="rp-readonly-hint">
-    Data diambil dari sesi sebelumnya.
-    <button type="button" class="rp-link-btn" id="rp-reset-konteks">
-      Ubah konteks
-    </button>
+    Data diambil dari identitas kelas.
   </p>
 </div>
 <div class="rp-nav-row">
@@ -472,18 +469,6 @@
   </button>
 </div>`;
 
-    // Tombol "Ubah konteks" — reset settings, kembali ke form normal
-    el('rp-reset-konteks')?.addEventListener('click', () => {
-      _settings = null;
-      _ans.jenjang = '';
-      _ans.mapelKey = '';
-      _ans.mapel = '';
-      _ans.fase = '';
-      _ans.bidangKeahlian = null;
-      _ans.programKeahlian = null;
-      _ans.elemenTerpilih = [];
-      renderStep1();
-    });
 
     // Tombol lanjut
     el('rp-step1-ro-next')?.addEventListener('click', () => {
