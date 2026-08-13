@@ -1144,7 +1144,7 @@
   function showKktpModal(tp, onConfirm) {
     const overlay = document.createElement('div');
     overlay.id = 'rp-kktp-modal-overlay';
-    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:9999;padding:var(--space-md);';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;z-index:9999;padding:var(--space-md);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);isolation:isolate;pointer-events:all;';
 
     const box = document.createElement('div');
     box.style.cssText = 'background:var(--surface-2);border-radius:var(--radius-lg);padding:var(--space-lg);max-width:480px;width:100%;max-height:80vh;overflow-y:auto;';
