@@ -1168,7 +1168,7 @@
     <input type="text" class="rp-atp-edit-input" value="${esc(tp.judul)}">
   </div>
   <div class="rp-atp-card-action">
-    <button class="btn-secondary rp-btn-rancang-tp">Rancang RPM →</button>
+    <button type="button" class="rp-btn-rancang-tp" style="min-height:var(--btn-h);background:transparent;color:var(--gold);border:1.5px solid var(--gold-border);font-size:var(--fs-ui);padding:0 var(--btn-px);border-radius:var(--btn-r);cursor:pointer;transition:background 150ms;">Rancang RPM →</button>
   </div>
 </div>`).join('');
 
