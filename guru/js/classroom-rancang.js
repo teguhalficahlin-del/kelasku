@@ -95,7 +95,7 @@
       case 4: return _atpList.length > 0;
       case 5: return !!_ans.tp_terpilih;
       case 6: return !!_rencana;
-      case 7: return true;
+      case 7: return _dokumen.length > 0;
       default: return false;
     }
   }
@@ -463,6 +463,19 @@
     Data diambil dari identitas kelas.
   </p>
 </div>
+${(() => {
+  const sudahAdaCp = _dokumen.some(d => d.jenis === 'CP');
+  if (sudahAdaCp) return `
+<div class="rp-nav-row" style="justify-content:space-between;">
+  <button type="button" class="rp-btn-simpan" id="rp-btn-simpan-cp-nav"
+    style="background:var(--success,#2d6a4f);cursor:default;" disabled>
+    ✓ Tersimpan
+  </button>
+  <button type="button" class="rp-btn-next" id="rp-btn-lihat-dok-cp">
+    📄 Lihat dokumen →
+  </button>
+</div>`;
+  return `
 <div class="rp-nav-row" style="justify-content:space-between;">
   <button type="button" class="rp-btn-simpan" id="rp-btn-simpan-cp-nav">
     💾 Simpan CP
@@ -471,12 +484,18 @@
     ${jenjang === 'SMK' ? 'Lanjut ke konteks SMK →' : 'Lanjut ke preferensi →'}
   </button>
 </div>`;
+})()}`;
 
 
-    // Tombol lanjut
+    // Tombol lanjut (hanya ada jika CP belum tersimpan)
     el('rp-step1-ro-next')?.addEventListener('click', () => {
       if (_ans.jenjang === 'SMK') renderStep2();
       else renderStep3A();
+    });
+
+    // Tombol lihat dokumen (hanya ada jika CP sudah tersimpan)
+    el('rp-btn-lihat-dok-cp')?.addEventListener('click', () => {
+      navigateToStep(7);
     });
 
     // Tampilkan CP + auto-generate ringkasan
@@ -553,6 +572,22 @@ ${elemenHtml}`;
           };
           const doc = await SipApi.simpanRancangDokumen(_cId, 'CP', judul, konten, null);
           _dokumen = [doc, ..._dokumen.filter(d => d.jenis !== 'CP')];
+          // Update nav-row: ganti tombol simpan → tersimpan + lihat dokumen
+          const navRow = el('rp-btn-simpan-cp-nav')?.closest('.rp-nav-row');
+          if (navRow) {
+            navRow.innerHTML = `
+<button type="button" class="rp-btn-simpan"
+  style="background:var(--success,#2d6a4f);cursor:default;" disabled>
+  ✓ Tersimpan
+</button>
+<button type="button" class="rp-btn-next" id="rp-btn-lihat-dok-cp-2">
+  📄 Lihat dokumen →
+</button>`;
+            el('rp-btn-lihat-dok-cp-2')?.addEventListener('click', () => {
+              navigateToStep(7);
+            });
+            return; // nav-row sudah diganti, skip update btnNav lama
+          }
           if (btnNav) {
             btnNav.disabled = false;
             btnNav.textContent = '✓ Tersimpan';
