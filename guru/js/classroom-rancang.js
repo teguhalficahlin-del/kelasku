@@ -15,10 +15,9 @@
     jenjang: '',
     fase: '',
     elemenTerpilih: [],  // elemen CP yang diampu guru (produktif SMK)
-    jp_per_minggu: '',
     smk: null,       // null jika bukan SMK
-    dnk_dk: {},
-    preferensi: {},
+    niat_guru: {},   // diisi oleh handleStep3ASubmit
+    preferensi: {},  // diisi oleh handleStep3BSubmit
     tp_terpilih: null,
     konteks_kelas: {},
   };
@@ -101,11 +100,11 @@
       case 1: _step = 1; renderStep1(); break;
       case 2:
         if (_ans.jenjang === 'SMK') { _step = 2; renderStep2(); }
-        else { _step = 3; renderStep3DNK(); }
+        else { _step = 3; renderStep3A(); }
         break;
       case 3:
         if (!_ans.mapel) return;
-        _step = 3; renderStep3DNK();
+        _step = 3; renderStep3A();
         break;
       case 4:
         if (!_atpList.length) return;
@@ -691,7 +690,7 @@
       existingBtn.innerHTML = _ans.jenjang === 'SMK' ? 'Lanjut ke konteks SMK →' : 'Lanjut ke preferensi →';
       existingBtn.onclick = () => {
         if (_ans.jenjang === 'SMK') { _step = 2; renderStep2(); }
-        else { _ans.smk = null; _step = 3; renderStep3DNK(); }
+        else { _ans.smk = null; _step = 3; renderStep3A(); }
         saveRpState();
       };
     }
@@ -884,221 +883,250 @@
 
     _step = 3;
     saveRpState();
-    renderStep3DNK();
+    renderStep3A();
   }
 
-  // ─── Step 3 — DNK/DK + Preferensi ──────────────────────────────────────────
+  // ─── Step 3 — Niat Guru + Preferensi ───────────────────────────────────────
 
-  function renderStep3DNK() {
+  function renderStep3A() {
     _step = 3;
     renderStepBar();
     const body = el('rp-body');
     if (!body) return;
 
+    const ng = _ans.niat_guru || {};
+
+    function makeDropdown(id, opsi, saved) {
+      const isLainnya = !!saved && !opsi.includes(saved);
+      const rows = opsi.map(o =>
+        `<option value="${esc(o)}"${saved === o ? ' selected' : ''}>${esc(o)}</option>`
+      ).join('');
+      return `<select class="rp-select" id="${id}">
+  <option value="">— Pilih —</option>
+  ${rows}
+  <option value="__lainnya__"${isLainnya ? ' selected' : ''}>Lainnya</option>
+</select>
+<input type="text" id="${id}-txt" class="rp-select" placeholder="Jelaskan…"
+  style="margin-top:var(--space-xs);display:${isLainnya ? 'block' : 'none'};"
+  value="${esc(isLainnya ? saved : '')}">`;
+    }
+
     body.innerHTML = `
 <div class="rp-block">
-  <div class="rp-block-title">Profil Kelas (Diagnostik Awal)</div>
-  <p style="font-size:var(--fs-caption);color:var(--text-secondary);margin-bottom:var(--space-md);">Jawab sesuai kondisi nyata kelas Anda. Data ini membantu AI merancang pembelajaran yang realistis.</p>
+  <div class="rp-block-title">Niat Guru</div>
 
-  <div class="rp-section-label">Non-Kognitif (DNK)</div>
-
-  <div class="rp-q" id="rp-q-dnk1">
-    <label class="rp-q-label">DNK-1. Kondisi emosi/psikologis dominan siswa *</label>
-  </div>
-  <div class="rp-q" id="rp-q-dnk2">
-    <label class="rp-q-label">DNK-2. Motivasi belajar dominan *</label>
-  </div>
-  <div class="rp-q" id="rp-q-dnk3">
-    <label class="rp-q-label">DNK-3. Gaya belajar dominan *</label>
+  <div class="rp-q" id="rp-q-a1">
+    <label class="rp-q-label" style="color:var(--gold)" for="rp-a1">A-1. Suasana belajar seperti apa yang ingin Anda ciptakan?</label>
+    ${makeDropdown('rp-a1', ['Aktif dan eksploratif','Terstruktur dan terarah','Kolaboratif dan sosial','Mandiri dan reflektif','Campuran sesuai kebutuhan'], ng.suasana_belajar||'')}
   </div>
 
-  <div class="rp-section-label">Kognitif (DK)</div>
+  <div class="rp-q" id="rp-q-a2" style="display:none;">
+    <label class="rp-q-label" style="color:var(--gold)" for="rp-a2">A-2. Dari mana Anda ingin memulai perjalanan belajar siswa?</label>
+    ${makeDropdown('rp-a2', ['Dari pengalaman/konteks nyata siswa','Dari konsep dasar dulu baru praktik','Dari masalah yang perlu dipecahkan','Dari produk yang ingin dihasilkan'], ng.titik_mulai||'')}
+  </div>
 
-  <div class="rp-q" id="rp-q-dk1">
-    <label class="rp-q-label">DK-1. Pengetahuan awal siswa tentang mapel ini secara umum *</label>
+  <div class="rp-q" id="rp-q-a3" style="display:none;">
+    <label class="rp-q-label" style="color:var(--gold)" for="rp-a3">A-3. Perkembangan kemampuan apa yang paling ingin Anda lihat pada siswa?</label>
+    ${makeDropdown('rp-a3', ['Keberanian mencoba dan bereksperimen','Kemampuan menghubungkan teori dengan praktik','Kemandirian dan inisiatif belajar','Kemampuan berpikir sistematis','Kerja sama dan komunikasi dalam tim'], ng.perkembangan_diinginkan||'')}
   </div>
-  <div class="rp-q" id="rp-q-dk2">
-    <label class="rp-q-label">DK-2. Hambatan kognitif yang sering muncul *</label>
-  </div>
-  <div class="rp-q" id="rp-q-dk3">
-    <label class="rp-q-label">DK-3. Kesiapan belajar mandiri *</label>
+
+  <div class="rp-q" id="rp-q-a4" style="display:none;">
+    <label class="rp-q-label" style="color:var(--gold)" for="rp-a4">A-4. Pengalaman belajar apa yang ingin mendominasi kelas Anda?</label>
+    ${makeDropdown('rp-a4', ['Diskusi dan tanya jawab','Praktik dan eksperimen langsung','Proyek nyata yang bisa dilihat hasilnya','Penjelasan bertahap dari guru','Eksplorasi mandiri dengan panduan'], ng.pengalaman_dominan||'')}
   </div>
 
   <div id="rp-step3a-error" class="error-msg" style="display:none;"></div>
-  <div class="rp-action-row">
+  <div class="rp-action-row" id="rp-a-action" style="display:none;">
     ${btnSecondary('rp-btn-back3','← Kembali')}
-    ${btnPrimary('rp-btn-dnk-next','Lanjut ke preferensi →')}
+    ${btnPrimary('rp-btn-a-next','Lanjut ke preferensi →')}
   </div>
 </div>`;
 
-    attachLainnya(renderChips(['Semangat & positif','Biasa saja / netral','Mudah bosan','Cemas / tertekan','Banyak konflik sosial'], 'kondisi_emosi', el('rp-q-dnk1'), false, false), 'Jelaskan kondisi emosi siswa');
-    attachLainnya(renderChips(['Ingin nilai bagus','Ingin bisa praktik nyata','Dorongan dari orang tua','Belum jelas motivasinya','Motivasi sangat rendah'], 'motivasi', el('rp-q-dnk2'), false, false), 'Jelaskan motivasi dominan siswa');
-    attachLainnya(renderChips(['Visual (gambar, diagram)','Auditori (diskusi, penjelasan)','Kinestetik (praktik, gerak)','Campuran'], 'gaya_belajar', el('rp-q-dnk3'), false, false), 'Jelaskan gaya belajar siswa');
-    attachLainnya(renderChips(['Hampir tidak ada — baru pertama belajar mapel ini','Ada sedikit, tapi tidak terstruktur','Cukup memadai untuk lanjut ke materi baru','Sudah kuat — siswa punya fondasi yang baik'], 'pengetahuan_awal', el('rp-q-dk1'), false, false), 'Jelaskan pengetahuan awal siswa');
-    attachLainnya(renderChips(['Sulit abstraksi','Sulit membaca instruksi panjang','Mudah lupa','Tidak percaya diri mencoba','Tidak ada hambatan berarti'], 'hambatan_kognitif', el('rp-q-dk2'), false, false), 'Jelaskan hambatan yang sering muncul');
-    attachLainnya(renderChips(['Perlu banyak panduan guru','Bisa mandiri dengan panduan tulis','Bisa mandiri sepenuhnya','Bervariasi antarindividu'], 'kesiapan_mandiri', el('rp-q-dk3'), false, false), 'Jelaskan kesiapan mandiri siswa');
+    function getSelVal(id) {
+      const sel = el(id);
+      if (!sel) return '';
+      if (sel.value === '__lainnya__') return (el(id + '-txt')?.value || '').trim() || 'Lainnya';
+      return sel.value;
+    }
 
-    // Restore chips dari _ans.dnk_dk
-    const dnk = _ans.dnk_dk || {};
-    restoreChips(body.querySelector('[data-key="kondisi_emosi"]'),    dnk.kondisi_emosi);
-    restoreChips(body.querySelector('[data-key="motivasi"]'),         dnk.motivasi);
-    restoreChips(body.querySelector('[data-key="gaya_belajar"]'),     dnk.gaya_belajar);
-    restoreChips(body.querySelector('[data-key="pengetahuan_awal"]'), dnk.pengetahuan_awal);
-    restoreChips(body.querySelector('[data-key="hambatan_kognitif"]'),dnk.hambatan_kognitif);
-    restoreChips(body.querySelector('[data-key="kesiapan_mandiri"]'), dnk.kesiapan_mandiri);
+    function wireDropdown(id, onFilled) {
+      const sel = el(id);
+      const txt = el(id + '-txt');
+      if (!sel) return;
+      sel.addEventListener('change', () => {
+        if (txt) {
+          txt.style.display = sel.value === '__lainnya__' ? 'block' : 'none';
+          if (sel.value !== '__lainnya__') txt.value = '';
+        }
+        onFilled(getSelVal(id));
+      });
+      if (txt) {
+        txt.addEventListener('input', () => {
+          if (sel.value === '__lainnya__' && txt.value.trim()) onFilled(txt.value.trim());
+        });
+      }
+    }
 
-    el('rp-btn-back3').addEventListener('click', () => {
+    function showQ(id) { el(id)?.style.removeProperty('display'); }
+
+    wireDropdown('rp-a1', val => {
+      if (val) showQ('rp-q-a2');
+    });
+    wireDropdown('rp-a2', val => {
+      if (val) showQ('rp-q-a3');
+    });
+    wireDropdown('rp-a3', val => {
+      if (val) showQ('rp-q-a4');
+    });
+    wireDropdown('rp-a4', val => {
+      if (val) el('rp-a-action')?.style.removeProperty('display');
+    });
+
+    // Restore state — reveal cascade jika sudah ada nilai
+    if (ng.suasana_belajar) showQ('rp-q-a2');
+    if (ng.titik_mulai) showQ('rp-q-a3');
+    if (ng.perkembangan_diinginkan) showQ('rp-q-a4');
+    if (ng.pengalaman_dominan) el('rp-a-action')?.style.removeProperty('display');
+
+    el('rp-btn-back3')?.addEventListener('click', () => {
       if (_ans.jenjang === 'SMK') { _step = 2; renderStep2(); }
       else { _step = 1; renderStep1(); }
     });
-    el('rp-btn-dnk-next').addEventListener('click', handleStep3DNKSubmit);
+    el('rp-btn-a-next')?.addEventListener('click', handleStep3ASubmit);
   }
 
-  function handleStep3DNKSubmit() {
-    showError('rp-step3a-error','');
-    const body = el('rp-body');
-    const getGroup = key => {
-      const g = body.querySelector(`.rp-chip-group[data-key="${key}"]`);
-      return g ? getChipValues(g) : [];
-    };
-    _ans.dnk_dk = {
-      kondisi_emosi:    getGroup('kondisi_emosi')[0] || '',
-      motivasi:         getGroup('motivasi')[0] || '',
-      gaya_belajar:     getGroup('gaya_belajar')[0] || '',
-      pengetahuan_awal: getGroup('pengetahuan_awal')[0] || '',
-      hambatan_kognitif:getGroup('hambatan_kognitif')[0] || '',
-      kesiapan_mandiri: getGroup('kesiapan_mandiri')[0] || '',
+  function handleStep3ASubmit() {
+    function getSelVal(id) {
+      const sel = el(id);
+      if (!sel) return '';
+      if (sel.value === '__lainnya__') return (el(id + '-txt')?.value || '').trim() || 'Lainnya';
+      return sel.value;
+    }
+    _ans.niat_guru = {
+      suasana_belajar:          getSelVal('rp-a1'),
+      titik_mulai:              getSelVal('rp-a2'),
+      perkembangan_diinginkan:  getSelVal('rp-a3'),
+      pengalaman_dominan:       getSelVal('rp-a4'),
     };
     saveRpState();
-    renderStep3Pref();
+    renderStep3B();
   }
 
-  function renderStep3Pref() {
+  function renderStep3B() {
     const body = el('rp-body');
     if (!body) return;
 
-    // Elemen CP untuk opsi prioritas
-    const elemenOpts = _cpElemen.length > 0
-      ? _cpElemen.map(e => e.nama)
-      : ['(CP belum tersedia — isi sesuai elemen mapel Anda)'];
+    const pref = _ans.preferensi || {};
+
+    function makeDropdown(id, opsi, saved) {
+      const isLainnya = !!saved && !opsi.includes(saved);
+      const rows = opsi.map(o =>
+        `<option value="${esc(o)}"${saved === o ? ' selected' : ''}>${esc(o)}</option>`
+      ).join('');
+      return `<select class="rp-select" id="${id}">
+  <option value="">— Pilih —</option>
+  ${rows}
+  <option value="__lainnya__"${isLainnya ? ' selected' : ''}>Lainnya</option>
+</select>
+<input type="text" id="${id}-txt" class="rp-select" placeholder="Jelaskan…"
+  style="margin-top:var(--space-xs);display:${isLainnya ? 'block' : 'none'};"
+  value="${esc(isLainnya ? saved : '')}">`;
+    }
+
+    const dimensiOpsi = ['Semua dimensi terintegrasi','Keimanan & Ketakwaan','Kewargaan','Penalaran Kritis','Kreativitas','Kolaborasi','Kemandirian','Kesehatan','Komunikasi'];
+    const savedDimensi = Array.isArray(pref.dimensi_profil) ? pref.dimensi_profil : [];
 
     body.innerHTML = `
 <div class="rp-block">
-  <div class="rp-block-title">Preferensi Pembelajaran</div>
+  <div class="rp-block-title">Preferensi Pendekatan</div>
 
   <div class="rp-q">
-    <label class="rp-q-label" for="rp-jp">P-1. Berapa JP (jam pelajaran) mapel ini per minggu?</label>
-    <input type="number" id="rp-jp" class="rp-input" placeholder="Contoh: 2" min="1" max="10"
-      value="" style="max-width:120px;">
+    <label class="rp-q-label" style="color:var(--gold)" for="rp-b1-jp">B-1. Berapa JP mapel ini per minggu?</label>
+    <input type="number" id="rp-b1-jp" class="rp-select" min="1" placeholder="Contoh: 2"
+      style="max-width:120px;" value="${esc(String(pref.jp_per_minggu||''))}">
   </div>
 
-  <div class="rp-q" id="rp-q-p2">
-    <label class="rp-q-label">P-2. Karakter kelas ini (bisa lebih dari satu) *</label>
+  <div class="rp-q">
+    <label class="rp-q-label" style="color:var(--gold)" for="rp-b2">B-2. Pendekatan mengajar yang paling cocok</label>
+    ${makeDropdown('rp-b2', ['Langsung / Direct Instruction','Linear','Inquiry / Penemuan','Discovery / Penemuan Mandiri','PBL (Problem-Based)','PjBL (Project-Based)','Tematik','Spiral','Genre-Based (BKoF→MoT→JCoT→ICoT)','Task-Based (TBLT)','CLIL (Bahasa + Konten Mapel Lain)','Campuran'], pref.pendekatan||'')}
   </div>
-  <div class="rp-q" id="rp-q-p3">
-    <label class="rp-q-label">P-3. Tingkat kemandirian siswa *</label>
+
+  <div class="rp-q">
+    <label class="rp-q-label" style="color:var(--gold)" for="rp-b3">B-3. Cara mengajar yang paling sering Anda gunakan</label>
+    ${makeDropdown('rp-b3', ['Fasilitator — siswa lebih aktif','Presenter — guru lebih banyak menjelaskan','Coach — banyak feedback individual'], pref.gaya_mengajar||'')}
   </div>
-  <div class="rp-q" id="rp-q-p4">
-    <label class="rp-q-label">P-4. Prioritas elemen CP semester ini *</label>
+
+  <div class="rp-q">
+    <label class="rp-q-label" style="color:var(--gold)" for="rp-b4">B-4. Bagaimana Anda ingin menilai pencapaian siswa</label>
+    ${makeDropdown('rp-b4', ['Tes tertulis','Presentasi / unjuk kerja','Portofolio','Observasi lapangan','Produk / karya','Jurnal refleksi'], pref.penilaian_utama||'')}
   </div>
-  <div class="rp-q" id="rp-q-p5">
-    <label class="rp-q-label">P-5. Pendekatan pembelajaran yang Anda rasa paling cocok *</label>
-    <div id="rp-p5-chips" class="rp-chip-group"></div>
-    <div class="rp-cond-input" id="rp-p5-cond">
-      <div class="rp-section-label" style="margin-top:var(--space-sm);">Pilih kombinasi pendekatan</div>
-      <div id="rp-p5-kombi-chips" class="rp-chip-group"></div>
+
+  <div class="rp-q">
+    <label class="rp-q-label" style="color:var(--gold)">B-5. Dimensi Profil Lulusan yang ingin difokuskan *</label>
+    <div class="rp-elemen-list" id="rp-b5-list">
+      ${dimensiOpsi.map(nama => {
+        const checked = savedDimensi.includes(nama);
+        return `<label class="rp-elemen-check${checked ? ' checked' : ''}">
+  <input type="checkbox" value="${esc(nama)}"${checked ? ' checked' : ''}>
+  <span>${esc(nama)}</span>
+</label>`;
+      }).join('')}
     </div>
-  </div>
-  <div class="rp-q" id="rp-q-p6">
-    <label class="rp-q-label">P-6. Gaya mengajar Anda *</label>
-  </div>
-  <div class="rp-q" id="rp-q-p7">
-    <label class="rp-q-label">P-7. Cara penilaian akhir yang ingin Anda gunakan *</label>
-  </div>
-
-  <div class="rp-q" id="rp-q-p8">
-    <label class="rp-q-label">Dimensi Profil Lulusan yang ingin difokuskan semester ini</label>
-    <div style="font-size:var(--fs-caption);color:var(--text-muted);margin-bottom:var(--space-xs);">Berdasarkan Permendikdasmen No. 10 Tahun 2025</div>
+    <div style="font-size:var(--fs-caption);color:var(--text-muted);margin-top:var(--space-xs);">*Berdasarkan Permendikdasmen No. 10 Tahun 2025</div>
   </div>
 
   <div id="rp-step3b-error" class="error-msg" style="display:none;"></div>
   <div class="rp-action-row">
-    ${btnSecondary('rp-btn-back3b','← Kembali ke profil kelas')}
-    ${btnPrimary('rp-btn-gen-atp','Generate draft ATP')}
+    ${btnSecondary('rp-btn-back3b','← Kembali')}
+    ${btnPrimary('rp-btn-gen-atp','Hasilkan ATP →')}
   </div>
 </div>`;
 
-    attachLainnya(renderChips(['Aktif bertanya','Pasif mendengarkan','Suka kerja kelompok','Suka kerja mandiri','Mudah terdistraksi','Kompetitif'], 'karakter', el('rp-q-p2'), true, false), 'Contoh: mudah terprovokasi, suka kompetisi');
-    attachLainnya(renderChips(['Perlu panduan langkah demi langkah','Bisa mengikuti panduan tertulis','Bisa eksplorasi mandiri'], 'kemandirian', el('rp-q-p3'), false, false), 'Jelaskan tingkat kemandirian siswa');
-    renderChips(elemenOpts, 'prioritas_elemen', el('rp-q-p4'), true, false);
-
-    // P5 pendekatan — single, dengan conditional multi
-    const p5Wrap = el('rp-q-p5');
-    const p5Chips = renderChips(['Langsung / Direct Instruction','Linear','Inquiry / Penemuan','Discovery / Penemuan Mandiri','PBL (Problem-Based)','PjBL (Project-Based)','Tematik','Spiral','Genre-Based (BKoF→MoT→JCoT→ICoT)','Task-Based (TBLT)','CLIL (Bahasa + Konten Mapel Lain)','Campuran'], 'pendekatan', p5Wrap, false, false);
-    p5Chips.id = 'rp-p5-chips';
-    p5Chips.addEventListener('click', () => {
-      const val = getChipValues(p5Chips)[0];
-      const cond = el('rp-p5-cond');
-      if (cond) cond.classList.toggle('visible', val === 'Campuran');
+    // Wire Lainnya untuk B-2, B-3, B-4
+    ['rp-b2','rp-b3','rp-b4'].forEach(id => {
+      const sel = el(id);
+      const txt = el(id + '-txt');
+      if (!sel || !txt) return;
+      sel.addEventListener('change', () => {
+        txt.style.display = sel.value === '__lainnya__' ? 'block' : 'none';
+        if (sel.value !== '__lainnya__') txt.value = '';
+      });
     });
-    renderChips(['Langsung','Inquiry','PBL','PjBL'], 'pendekatan_kombi', el('rp-p5-kombi-chips')?.parentElement || p5Wrap, true, false);
 
-    attachLainnya(renderChips(['Fasilitator — siswa lebih aktif','Presenter — guru lebih banyak menjelaskan','Coach — banyak feedback individual'], 'gaya_mengajar', el('rp-q-p6'), false, false), 'Jelaskan gaya mengajar Anda');
-    attachLainnya(renderChips(['Tes tertulis','Presentasi / unjuk kerja','Portofolio','Observasi lapangan','Produk / karya','Jurnal refleksi'], 'penilaian_utama', el('rp-q-p7'), false, false), 'Contoh: penilaian diri (self-assessment)');
-    renderChips(['Semua dimensi terintegrasi','Keimanan & Ketakwaan','Kewargaan','Penalaran Kritis','Kreativitas','Kolaborasi','Kemandirian','Kesehatan','Komunikasi'], 'dimensi_profil', el('rp-q-p8'), true, false);
+    // Checkbox .checked class sync untuk B-5
+    el('rp-b5-list')?.addEventListener('change', e => {
+      const cb = e.target;
+      if (!cb || cb.type !== 'checkbox') return;
+      cb.closest('.rp-elemen-check')?.classList.toggle('checked', cb.checked);
+    });
 
-    // Restore JP
-    const jpEl = el('rp-jp');
-    if (jpEl) jpEl.value = _ans.jp_per_minggu || '';
-
-    // Restore chips dari _ans.preferensi
-    const pref = _ans.preferensi || {};
-    restoreChips(body.querySelector('[data-key="karakter"]'),        pref.karakter);
-    restoreChips(body.querySelector('[data-key="kemandirian"]'),     pref.kemandirian);
-    restoreChips(body.querySelector('[data-key="prioritas_elemen"]'),pref.prioritas_elemen);
-    const pend = pref.pendekatan || '';
-    if (pend.startsWith('Campuran')) {
-      restoreChips(body.querySelector('[data-key="pendekatan"]'), 'Campuran');
-      el('rp-p5-cond')?.classList.add('visible');
-      const kombiVals = pend.replace(/^Campuran:\s*/, '').split(' + ').map(s => s.trim()).filter(Boolean);
-      restoreChips(body.querySelector('[data-key="pendekatan_kombi"]'), kombiVals);
-    } else {
-      restoreChips(body.querySelector('[data-key="pendekatan"]'), pend);
-    }
-    restoreChips(body.querySelector('[data-key="gaya_mengajar"]'),   pref.gaya_mengajar);
-    restoreChips(body.querySelector('[data-key="penilaian_utama"]'), pref.penilaian_utama);
-    restoreChips(body.querySelector('[data-key="dimensi_profil"]'),  pref.dimensi_profil);
-
-    el('rp-btn-back3b').addEventListener('click', renderStep3DNK);
-    el('rp-btn-gen-atp').addEventListener('click', handleStep3PrefSubmit);
+    el('rp-btn-back3b')?.addEventListener('click', renderStep3A);
+    el('rp-btn-gen-atp')?.addEventListener('click', handleStep3BSubmit);
   }
 
-  async function handleStep3PrefSubmit() {
+  async function handleStep3BSubmit() {
     if (_genAtp) return;
     showError('rp-step3b-error','');
-    const body = el('rp-body');
-    const getGroup = key => {
-      const g = body.querySelector(`.rp-chip-group[data-key="${key}"]`);
-      return g ? getChipValues(g) : [];
-    };
 
-    const jp = parseInt(el('rp-jp')?.value || '0');
-    _ans.jp_per_minggu = jp || null;
+    function getSelVal(id) {
+      const sel = el(id);
+      if (!sel) return '';
+      if (sel.value === '__lainnya__') return (el(id + '-txt')?.value || '').trim() || 'Lainnya';
+      return sel.value;
+    }
 
-    const pendekatan = getGroup('pendekatan')[0] || '';
+    const jp = parseInt(el('rp-b1-jp')?.value || '0');
+    const dimensiList = [...(el('rp-b5-list')?.querySelectorAll('input[type="checkbox"]:checked') || [])]
+      .map(cb => cb.value);
+
     _ans.preferensi = {
-      karakter:         getGroup('karakter'),
-      kemandirian:      getGroup('kemandirian')[0] || '',
-      prioritas_elemen: getGroup('prioritas_elemen'),
-      pendekatan:       pendekatan === 'Campuran'
-                          ? 'Campuran: ' + getGroup('pendekatan_kombi').join(' + ')
-                          : pendekatan,
-      gaya_mengajar:    getGroup('gaya_mengajar')[0] || '',
-      penilaian_utama:  getGroup('penilaian_utama')[0] || '',
-      dimensi_profil:   getGroup('dimensi_profil'),
+      jp_per_minggu:   jp || null,
+      pendekatan:      getSelVal('rp-b2'),
+      gaya_mengajar:   getSelVal('rp-b3'),
+      penilaian_utama: getSelVal('rp-b4'),
+      dimensi_profil:  dimensiList,
     };
 
-    // Generate ATP
     _genAtp = true;
     const btn = el('rp-btn-gen-atp');
     if (btn) { btn.disabled = true; btn.textContent = 'Generating…'; }
@@ -1107,9 +1135,9 @@
     try {
       const result = await callAI({
         mode: 'atp',
-        konteks: { mapel: _ans.mapel, jenjang: _ans.jenjang, fase: _ans.fase, jp_per_minggu: _ans.jp_per_minggu },
+        konteks: { mapel: _ans.mapel, jenjang: _ans.jenjang, fase: _ans.fase, jp_per_minggu: _ans.preferensi.jp_per_minggu },
         smk: _ans.smk,
-        dnk_dk: _ans.dnk_dk,
+        niat_guru: _ans.niat_guru,
         preferensi: _ans.preferensi,
       });
       _atpList = result?.tp_list || [];
@@ -1121,7 +1149,7 @@
       _step = 3;
       renderStepBar();
       showError('rp-atp-error', 'Gagal generate ATP: ' + (err.message || 'Coba lagi.'));
-      if (btn) { btn.disabled = false; btn.textContent = 'Generate draft ATP'; }
+      if (btn) { btn.disabled = false; btn.textContent = 'Hasilkan ATP →'; }
     } finally {
       _genAtp = false;
     }
@@ -1178,7 +1206,7 @@
       });
     });
 
-    el('rp-btn-back4').addEventListener('click', () => { _step = 3; renderStep3Pref(); });
+    el('rp-btn-back4').addEventListener('click', () => { _step = 3; renderStep3B(); });
     el('rp-btn-rancang').addEventListener('click', handleStep4Submit);
   }
 
@@ -1314,9 +1342,9 @@
     try {
       const result = await callAI({
         mode: 'rencana',
-        konteks: { mapel: _ans.mapel, jenjang: _ans.jenjang, fase: _ans.fase, jp_per_minggu: _ans.jp_per_minggu },
+        konteks: { mapel: _ans.mapel, jenjang: _ans.jenjang, fase: _ans.fase, jp_per_minggu: _ans.preferensi?.jp_per_minggu },
         smk: _ans.smk,
-        dnk_dk: _ans.dnk_dk,
+        niat_guru: _ans.niat_guru,
         preferensi: _ans.preferensi,
         tp_terpilih: _ans.tp_terpilih,
         konteks_kelas: _ans.konteks_kelas,
@@ -1436,7 +1464,7 @@ ${sec1}${sec2}${sec3}${sec4}${sec5}
 
   function resetAll() {
     if (_cId) { try { localStorage.removeItem('rp_state_' + _cId); } catch (_) {} }
-    Object.assign(_ans, { mapel:'', mapelKey:'', bidangKeahlian:null, jenjang:'', fase:'', jp_per_minggu:'', smk:null, dnk_dk:{}, preferensi:{}, tp_terpilih:null, konteks_kelas:{} });
+    Object.assign(_ans, { mapel:'', mapelKey:'', bidangKeahlian:null, programKeahlian:null, jenjang:'', fase:'', elemenTerpilih:[], smk:null, niat_guru:{}, preferensi:{}, tp_terpilih:null, konteks_kelas:{} });
     _cpElemen = []; _cpRingkasan = []; _cpLabel = ''; _cpUmum = ''; _atpList = []; _rencana = null;
     _genCp = false; _genAtp = false; _genRencana = false;
     _step = 1;
@@ -1480,7 +1508,7 @@ ${sec1}${sec2}${sec3}${sec4}${sec5}
 
     switch (step) {
       case 2: renderStep2(); break;
-      case 3: renderStep3DNK(); break;
+      case 3: renderStep3A(); break;
       case 4: if (_atpList.length) { renderStep4(_atpList); } else { renderStep1(); } break;
       case 5: renderStep5(); break;
       default: renderStep1(); break;
