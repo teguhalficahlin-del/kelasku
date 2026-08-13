@@ -463,7 +463,10 @@
     Data diambil dari identitas kelas.
   </p>
 </div>
-<div class="rp-nav-row">
+<div class="rp-nav-row" style="justify-content:space-between;">
+  <button type="button" class="rp-btn-simpan" id="rp-btn-simpan-cp-nav">
+    💾 Simpan CP
+  </button>
   <button type="button" class="rp-btn-next" id="rp-step1-ro-next">
     ${jenjang === 'SMK' ? 'Lanjut ke konteks SMK →' : 'Lanjut ke preferensi →'}
   </button>
@@ -476,11 +479,10 @@
       else renderStep3A();
     });
 
-    // Tampilkan CP + tombol simpan jika data tersedia
+    // Tampilkan CP + auto-generate ringkasan
     if (_cpElemen.length || _cpUmum) {
       renderCpReadOnly();
     } else if (_ans.mapelKey && _settings?.fase) {
-      // Fetch CP jika belum ada di state
       fetchCpData(_ans.mapelKey, _settings.fase).then(cpFase => {
         if (!cpFase) return;
         _cpElemen  = cpFase.elemen  || [];
@@ -489,15 +491,42 @@
       });
     }
 
-    function renderCpReadOnly() {
+    async function renderCpReadOnly() {
       const body = el('rp-body');
       if (!body) return;
+      if (el('rp-cp-block')) return;
 
-      const elemenHtml = _cpElemen.map(e => `
-<div class="rp-cp-elemen">
+      // Auto-generate _cpRingkasan jika kosong
+      if (!_cpRingkasan.length && _cpElemen.length) {
+        try {
+          const result = await callAI({
+            mode: 'cp_summary',
+            konteks: { mapel: _ans.mapel, jenjang: _ans.jenjang, fase: _settings?.fase },
+            elemen_list: _cpElemen,
+            ...(_ans.elemenTerpilih?.length ? { elemen_terpilih: _ans.elemenTerpilih } : {}),
+          });
+          _cpRingkasan = result?.ringkasan || [];
+        } catch {
+          _cpRingkasan = _cpElemen.map(e => ({ elemen: e.nama, konkret: null }));
+        }
+      }
+
+      // Render elemen CP dengan "Dalam praktik"
+      const elemenHtml = _cpElemen.map(e => {
+        const r = _cpRingkasan.find(x => x.elemen === e.nama);
+        const konkret = r?.konkret || null;
+        return `<div class="rp-cp-elemen">
   <div class="rp-cp-elemen-nama">${esc(e.nama)}</div>
-  <div class="rp-cp-normatif">${esc(e.cp_normatif)}</div>
-</div>`).join('');
+  <div class="rp-cp-elemen-layer">
+    <span class="rp-cp-layer-label rp-cp-layer-label--normatif">CP Normatif</span>
+    <div class="rp-cp-normatif">${esc(e.cp_normatif)}</div>
+  </div>
+  ${konkret ? `<div class="rp-cp-elemen-layer">
+    <span class="rp-cp-layer-label rp-cp-layer-label--praktik">Dalam praktik</span>
+    <div class="rp-cp-elemen-konkret">${esc(konkret)}</div>
+  </div>` : ''}
+</div>`;
+      }).join('');
 
       const cpBlock = document.createElement('div');
       cpBlock.className = 'rp-block';
@@ -505,39 +534,41 @@
       cpBlock.innerHTML = `
 <div class="rp-block-title">Capaian Pembelajaran</div>
 ${_cpUmum ? `<p class="rp-cp-umum">${esc(_cpUmum)}</p>` : ''}
-${elemenHtml}
-<div class="rp-save-row" style="margin-top:var(--space-md);">
-  <button type="button" class="rp-btn-simpan" id="rp-btn-simpan-cp">
-    💾 Simpan CP
-  </button>
-  <span class="rp-identitas-status" id="rp-cp-status"></span>
-</div>`;
+${elemenHtml}`;
 
       body.appendChild(cpBlock);
 
-      el('rp-btn-simpan-cp')?.addEventListener('click', async () => {
-        const btn    = el('rp-btn-simpan-cp');
-        const status = el('rp-cp-status');
-        btn.disabled = true;
-        btn.textContent = 'Menyimpan…';
+      // Wire tombol Simpan CP di nav-row
+      const simpanHandler = async () => {
+        const btnNav = el('rp-btn-simpan-cp-nav');
+        if (btnNav) { btnNav.disabled = true; btnNav.textContent = 'Menyimpan…'; }
         try {
-          const judul  = `CP — ${_ans.mapel} ${_settings?.fase?.replace(/_/g,' ').toUpperCase() || ''}`.trim();
-          const konten = { elemen: _cpElemen, cp_umum: _cpUmum, mapel: _ans.mapel, fase: _settings?.fase };
+          const judul  = `CP — ${_ans.mapel} ${(_settings?.fase || '').replace(/_/g,' ').toUpperCase()}`.trim();
+          const konten = {
+            elemen:    _cpElemen,
+            ringkasan: _cpRingkasan,
+            cp_umum:   _cpUmum,
+            mapel:     _ans.mapel,
+            fase:      _settings?.fase,
+          };
           const doc = await SipApi.simpanRancangDokumen(_cId, 'CP', judul, konten, null);
           _dokumen = [doc, ..._dokumen.filter(d => d.jenis !== 'CP')];
-          btn.disabled = false;
-          btn.textContent = '💾 Simpan CP';
-          if (status) {
-            status.textContent = '✓ Tersimpan';
-            setTimeout(() => { status.textContent = ''; }, 2500);
+          if (btnNav) {
+            btnNav.disabled = false;
+            btnNav.textContent = '✓ Tersimpan';
+            btnNav.style.background = 'var(--success, #2d6a4f)';
+            setTimeout(() => {
+              btnNav.textContent = '💾 Simpan CP';
+              btnNav.style.background = '';
+            }, 2500);
           }
         } catch (e) {
           console.error('[rancang] simpan CP gagal:', e);
-          btn.disabled = false;
-          btn.textContent = '💾 Simpan CP';
-          if (status) status.textContent = '✗ Gagal';
+          if (btnNav) { btnNav.disabled = false; btnNav.textContent = '💾 Simpan CP'; }
         }
-      });
+      };
+
+      el('rp-btn-simpan-cp-nav')?.addEventListener('click', simpanHandler);
     }
   }
 
