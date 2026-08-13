@@ -511,7 +511,7 @@
         }
       }
 
-      // Render elemen CP dengan "Dalam praktik"
+      // Render elemen CP dengan "Gambaran Pencapaian"
       const elemenHtml = _cpElemen.map(e => {
         const r = _cpRingkasan.find(x => x.elemen === e.nama);
         const konkret = r?.konkret || null;
@@ -522,7 +522,7 @@
     <div class="rp-cp-normatif">${esc(e.cp_normatif)}</div>
   </div>
   ${konkret ? `<div class="rp-cp-elemen-layer">
-    <span class="rp-cp-layer-label rp-cp-layer-label--praktik">Dalam praktik</span>
+    <span class="rp-cp-layer-label rp-cp-layer-label--praktik">Gambaran Pencapaian</span>
     <div class="rp-cp-elemen-konkret">${esc(konkret)}</div>
   </div>` : ''}
 </div>`;
@@ -917,7 +917,7 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
     <div class="rp-cp-normatif">${esc(e.cp_normatif)}</div>
   </div>
   ${konkret ? `<div class="rp-cp-elemen-layer">
-    <span class="rp-cp-layer-label rp-cp-layer-label--praktik">Dalam praktik</span>
+    <span class="rp-cp-layer-label rp-cp-layer-label--praktik">Gambaran Pencapaian</span>
     <div class="rp-cp-elemen-konkret">${esc(konkret)}</div>
   </div>` : ''}
 </div>`;

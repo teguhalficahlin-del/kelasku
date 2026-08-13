@@ -35,7 +35,7 @@ Berikut adalah teks CP normatif untuk setiap elemen:
 ${lines}
 
 Untuk SETIAP elemen di atas, tulis ringkasan konkret dengan format:
-"Bayangkan siswa Anda: [deskripsi kemampuan konkret yang akan dimiliki siswa, bukan parafrase CP]"
+"Bayangkan siswa Anda mampu [deskripsi kemampuan konkret yang akan dimiliki siswa, bukan parafrase CP]"
 
 ATURAN WAJIB:
 1. Cakup SEMUA aspek yang disebutkan dalam teks CP normatif — jangan ada yang dibuang atau digabung menjadi satu frasa umum.
@@ -46,8 +46,8 @@ ATURAN WAJIB:
 Skema output JSON:
 {
   "ringkasan": [
-    { "elemen": "Nama Elemen 1", "konkret": "Bayangkan siswa Anda: ..." },
-    { "elemen": "Nama Elemen 2", "konkret": "Bayangkan siswa Anda: ..." }
+    { "elemen": "Nama Elemen 1", "konkret": "Bayangkan siswa Anda mampu ..." },
+    { "elemen": "Nama Elemen 2", "konkret": "Bayangkan siswa Anda mampu ..." }
   ]
 }`;
 }
