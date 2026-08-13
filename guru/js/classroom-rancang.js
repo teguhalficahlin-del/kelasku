@@ -1144,94 +1144,71 @@
   function showKktpModal(tp, onConfirm) {
     const overlay = document.createElement('div');
     overlay.id = 'rp-kktp-modal-overlay';
-    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.95);display:flex;align-items:center;justify-content:center;z-index:9999;padding:var(--space-md);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);isolation:isolate;pointer-events:all;';
-
-    const box = document.createElement('div');
-    box.style.cssText = 'background:var(--surface-2);border-radius:var(--radius-lg);padding:var(--space-lg);max-width:480px;width:100%;max-height:80vh;overflow-y:auto;';
+    overlay.className = 'rp-kktp-overlay';
 
     const judul = esc(tp.judul || '');
     const elemen = esc(tp.elemen_cp || 'elemen CP');
 
-    box.innerHTML = `
-<div style="font-size:var(--fs-h3);font-weight:var(--fw-bold);color:var(--text-primary);margin-bottom:var(--space-xs);">Pilih Pendekatan KKTP</div>
-<div style="font-size:var(--fs-caption);color:var(--text-secondary);margin-bottom:var(--space-md);">TP: ${judul}</div>
+    const opsi = [
+      {
+        value: 'deskripsi_kriteria',
+        title: 'Deskripsi Kriteria',
+        desc: 'Daftar pernyataan konkret yang dicentang guru — Tercapai atau Belum Tercapai.',
+        example: `✓ Siswa dapat menjelaskan ${elemen} secara lisan<br>
+✓ Siswa dapat mengidentifikasi komponen utama dalam ${judul}<br>
+✗ Siswa belum mampu menghubungkan konsep dengan konteks nyata`,
+      },
+      {
+        value: 'rubrik',
+        title: 'Rubrik',
+        desc: 'Tabel 4 level pencapaian per aspek — dari Baru Berkembang hingga Mahir.',
+        example: `Aspek: ${elemen}<br>Baru Berkembang → Layak → Cakap → Mahir`,
+      },
+      {
+        value: 'interval_nilai',
+        title: 'Interval Nilai',
+        desc: 'Skala 1–5 per kriteria dengan batas ketercapaian (misal ≥ 61 dari 100).',
+        example: `Kriteria: Ketepatan ${judul} (skala 1–5)<br>Tercapai jika total skor ≥ 61 dari 100`,
+      },
+      {
+        value: 'persentase',
+        title: 'Persentase',
+        desc: 'Daftar indikator — siswa tercapai jika ≥ 75% indikator terpenuhi.',
+        example: `8 indikator untuk ${judul}<br>Tercapai jika ≥ 6 dari 8 indikator terpenuhi (75%)`,
+      },
+    ];
 
-<div class="rp-kktp-option" data-value="deskripsi_kriteria" style="border:1.5px solid var(--border);border-radius:var(--radius-md);padding:var(--space-sm) var(--space-md);margin-bottom:var(--space-sm);cursor:pointer;transition:border-color 150ms,background 150ms;">
-  <div style="display:flex;align-items:center;gap:var(--space-sm);margin-bottom:var(--space-xs);">
-    <input type="radio" name="rp-kktp" value="deskripsi_kriteria" style="display:none;">
-    <span style="font-weight:var(--fw-bold);color:var(--text-primary);">Deskripsi Kriteria</span>
+    overlay.innerHTML = `
+<div class="rp-kktp-modal">
+  <div class="rp-kktp-modal-header">
+    <div class="rp-kktp-modal-title">Pilih Pendekatan KKTP</div>
+    <div class="rp-kktp-modal-tp">TP: ${judul}</div>
   </div>
-  <div style="font-size:var(--fs-caption);color:var(--text-secondary);">Daftar pernyataan konkret yang dicentang guru — Tercapai atau Belum Tercapai.</div>
-  <div style="font-size:var(--fs-caption);color:var(--text-muted);margin-top:var(--space-xs);padding:var(--space-xs) var(--space-sm);background:var(--surface-1);border-radius:var(--radius-sm);">
-    Contoh:<br>
-    ✓ Siswa dapat menjelaskan ${elemen} secara lisan<br>
-    ✓ Siswa dapat mengidentifikasi komponen utama dalam ${judul}<br>
-    ✗ Siswa belum mampu menghubungkan konsep dengan konteks nyata
+  <div class="rp-kktp-grid">
+    ${opsi.map(o => `
+    <div class="rp-kktp-option" data-value="${o.value}">
+      <div class="rp-kktp-option-title">${o.title}</div>
+      <div class="rp-kktp-option-desc">${o.desc}</div>
+      <div class="rp-kktp-option-example">${o.example}</div>
+    </div>`).join('')}
   </div>
-</div>
-
-<div class="rp-kktp-option" data-value="rubrik" style="border:1.5px solid var(--border);border-radius:var(--radius-md);padding:var(--space-sm) var(--space-md);margin-bottom:var(--space-sm);cursor:pointer;transition:border-color 150ms,background 150ms;">
-  <div style="display:flex;align-items:center;gap:var(--space-sm);margin-bottom:var(--space-xs);">
-    <input type="radio" name="rp-kktp" value="rubrik" style="display:none;">
-    <span style="font-weight:var(--fw-bold);color:var(--text-primary);">Rubrik</span>
+  <div class="rp-kktp-modal-footer">
+    ${btnSecondary('rp-kktp-batal','Batal')}
+    ${btnPrimary('rp-kktp-lanjut','Lanjut →')}
   </div>
-  <div style="font-size:var(--fs-caption);color:var(--text-secondary);">Tabel 4 level pencapaian per aspek — dari Baru Berkembang hingga Mahir.</div>
-  <div style="font-size:var(--fs-caption);color:var(--text-muted);margin-top:var(--space-xs);padding:var(--space-xs) var(--space-sm);background:var(--surface-1);border-radius:var(--radius-sm);">
-    Contoh:<br>
-    Aspek: ${elemen}<br>
-    Baru Berkembang → Layak → Cakap → Mahir
-  </div>
-</div>
-
-<div class="rp-kktp-option" data-value="interval_nilai" style="border:1.5px solid var(--border);border-radius:var(--radius-md);padding:var(--space-sm) var(--space-md);margin-bottom:var(--space-sm);cursor:pointer;transition:border-color 150ms,background 150ms;">
-  <div style="display:flex;align-items:center;gap:var(--space-sm);margin-bottom:var(--space-xs);">
-    <input type="radio" name="rp-kktp" value="interval_nilai" style="display:none;">
-    <span style="font-weight:var(--fw-bold);color:var(--text-primary);">Interval Nilai</span>
-  </div>
-  <div style="font-size:var(--fs-caption);color:var(--text-secondary);">Skala 1–5 per kriteria dengan batas ketercapaian (misal ≥ 61 dari 100).</div>
-  <div style="font-size:var(--fs-caption);color:var(--text-muted);margin-top:var(--space-xs);padding:var(--space-xs) var(--space-sm);background:var(--surface-1);border-radius:var(--radius-sm);">
-    Contoh:<br>
-    Kriteria: Ketepatan ${judul} (skala 1–5)<br>
-    Tercapai jika total skor ≥ 61 dari 100
-  </div>
-</div>
-
-<div class="rp-kktp-option" data-value="persentase" style="border:1.5px solid var(--border);border-radius:var(--radius-md);padding:var(--space-sm) var(--space-md);margin-bottom:var(--space-sm);cursor:pointer;transition:border-color 150ms,background 150ms;">
-  <div style="display:flex;align-items:center;gap:var(--space-sm);margin-bottom:var(--space-xs);">
-    <input type="radio" name="rp-kktp" value="persentase" style="display:none;">
-    <span style="font-weight:var(--fw-bold);color:var(--text-primary);">Persentase</span>
-  </div>
-  <div style="font-size:var(--fs-caption);color:var(--text-secondary);">Daftar indikator — siswa tercapai jika ≥ 75% indikator terpenuhi.</div>
-  <div style="font-size:var(--fs-caption);color:var(--text-muted);margin-top:var(--space-xs);padding:var(--space-xs) var(--space-sm);background:var(--surface-1);border-radius:var(--radius-sm);">
-    Contoh:<br>
-    8 indikator untuk ${judul}<br>
-    Tercapai jika ≥ 6 dari 8 indikator terpenuhi (75%)
-  </div>
-</div>
-
-<div style="display:flex;gap:var(--space-sm);margin-top:var(--space-md);">
-  ${btnSecondary('rp-kktp-batal','Batal')}
-  ${btnPrimary('rp-kktp-lanjut','Lanjut →')}
 </div>`;
 
-    overlay.appendChild(box);
     document.body.appendChild(overlay);
 
     const btnLanjut = document.getElementById('rp-kktp-lanjut');
     if (btnLanjut) btnLanjut.disabled = true;
 
-    box.querySelectorAll('.rp-kktp-option').forEach(opt => {
+    overlay.querySelectorAll('.rp-kktp-option').forEach(opt => {
       opt.addEventListener('click', () => {
-        box.querySelectorAll('.rp-kktp-option').forEach(o => {
-          o.style.borderColor = 'var(--border)';
-          o.style.background = '';
+        overlay.querySelectorAll('.rp-kktp-option').forEach(o => {
           o.classList.remove('rp-kktp-selected');
         });
-        opt.style.borderColor = 'var(--gold)';
-        opt.style.background = 'var(--surface-3)';
         opt.classList.add('rp-kktp-selected');
-        const radio = opt.querySelector('input[type="radio"]');
-        if (radio) radio.checked = true;
         if (btnLanjut) btnLanjut.disabled = false;
       });
     });
@@ -1241,7 +1218,7 @@
     });
 
     btnLanjut?.addEventListener('click', () => {
-      const selected = box.querySelector('.rp-kktp-option.rp-kktp-selected');
+      const selected = overlay.querySelector('.rp-kktp-option.rp-kktp-selected');
       if (!selected) return;
       const nilai = selected.dataset.value;
       overlay.remove();

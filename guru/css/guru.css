@@ -2951,6 +2951,107 @@ h2.panel-header.open .panel-collapse-arrow {
   letter-spacing: normal;
 }
 
+.rp-kktp-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: var(--space-md);
+}
+
+.rp-kktp-modal {
+  background: var(--surface-2);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  width: 100%;
+  max-width: 720px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+
+.rp-kktp-modal-header {
+  margin-bottom: var(--space-md);
+}
+
+.rp-kktp-modal-title {
+  font-size: var(--fs-h3);
+  font-weight: var(--fw-bold);
+  color: var(--text-primary);
+  margin-bottom: var(--space-xs);
+}
+
+.rp-kktp-modal-tp {
+  font-size: var(--fs-caption);
+  color: var(--text-secondary);
+}
+
+.rp-kktp-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+@media (min-width: 600px) {
+  .rp-kktp-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.rp-kktp-option {
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--space-sm) var(--space-md);
+  cursor: pointer;
+  transition: border-color 150ms, background 150ms;
+}
+
+.rp-kktp-option:hover {
+  border-color: var(--gold-border);
+  background: var(--surface-3);
+}
+
+.rp-kktp-option.rp-kktp-selected {
+  border-color: var(--gold);
+  background: var(--surface-3);
+}
+
+.rp-kktp-option-title {
+  font-size: var(--fs-ui);
+  font-weight: var(--fw-bold);
+  color: var(--text-primary);
+  margin-bottom: var(--space-xs);
+}
+
+.rp-kktp-option-desc {
+  font-size: var(--fs-caption);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-xs);
+  line-height: var(--lh-normal);
+}
+
+.rp-kktp-option-example {
+  font-size: var(--fs-caption);
+  color: var(--text-muted);
+  background: var(--surface-1);
+  border-radius: var(--radius-sm);
+  padding: var(--space-xs) var(--space-sm);
+  line-height: var(--lh-loose);
+}
+
+.rp-kktp-modal-footer {
+  display: flex;
+  gap: var(--space-sm);
+  justify-content: flex-end;
+  margin-top: var(--space-md);
+  padding-top: var(--space-sm);
+  border-top: 1px solid var(--border);
+}
+
 /* ── Question group ── */
 .rp-q {
   margin-bottom: var(--space-md);
