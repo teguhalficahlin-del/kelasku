@@ -1225,9 +1225,11 @@
         box.querySelectorAll('.rp-kktp-option').forEach(o => {
           o.style.borderColor = 'var(--border)';
           o.style.background = '';
+          o.classList.remove('rp-kktp-selected');
         });
         opt.style.borderColor = 'var(--gold)';
         opt.style.background = 'var(--surface-3)';
+        opt.classList.add('rp-kktp-selected');
         const radio = opt.querySelector('input[type="radio"]');
         if (radio) radio.checked = true;
         if (btnLanjut) btnLanjut.disabled = false;
@@ -1239,7 +1241,7 @@
     });
 
     btnLanjut?.addEventListener('click', () => {
-      const selected = box.querySelector('.rp-kktp-option[style*="var(--gold)"]');
+      const selected = box.querySelector('.rp-kktp-option.rp-kktp-selected');
       if (!selected) return;
       const nilai = selected.dataset.value;
       overlay.remove();
