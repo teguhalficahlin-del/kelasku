@@ -1731,6 +1731,222 @@ h2.panel-header.open .panel-collapse-arrow {
   cursor: not-allowed;
 }
 
+/* ── Step 1 Read-only ───────────────────────────────── */
+.rp-readonly-card {
+  background: var(--surface-2, #1e1e2e);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.rp-readonly-row {
+  display: flex;
+  gap: var(--space-sm);
+  align-items: baseline;
+  font-size: var(--fs-ui);
+}
+
+.rp-readonly-label {
+  min-width: 130px;
+  flex-shrink: 0;
+  color: var(--text-muted);
+  font-size: var(--fs-caption);
+}
+
+.rp-readonly-val {
+  color: var(--text-primary);
+  font-weight: var(--fw-semibold);
+}
+
+.rp-readonly-hint {
+  margin-top: var(--space-sm);
+  font-size: var(--fs-caption);
+  color: var(--text-muted);
+}
+
+.rp-link-btn {
+  background: none;
+  border: none;
+  color: var(--gold);
+  font-size: var(--fs-caption);
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.rp-nav-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--space-md);
+}
+
+.rp-btn-next {
+  min-height: var(--btn-h);
+  background: var(--gold);
+  color: #000;
+  border: none;
+  border-radius: var(--btn-r);
+  font-size: var(--fs-ui);
+  font-weight: var(--fw-semibold);
+  padding: 0 var(--btn-px);
+  cursor: pointer;
+  transition: opacity 150ms;
+}
+.rp-btn-next:hover { opacity: 0.85; }
+
+/* ── Step 6 Save row ────────────────────────────────── */
+.rp-save-row {
+  display: flex;
+  gap: var(--space-sm);
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: var(--space-sm);
+}
+
+.rp-btn-simpan {
+  min-height: var(--btn-h);
+  background: var(--gold);
+  color: #000;
+  border: none;
+  border-radius: var(--btn-r);
+  font-size: var(--fs-ui);
+  font-weight: var(--fw-semibold);
+  padding: 0 var(--btn-px);
+  cursor: pointer;
+  transition: opacity 150ms, background 300ms;
+}
+.rp-btn-simpan:hover { opacity: 0.85; }
+.rp-btn-simpan:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.rp-btn-dokumen {
+  min-height: var(--btn-h);
+  background: transparent;
+  color: var(--gold);
+  border: 1.5px solid var(--gold-border);
+  border-radius: var(--btn-r);
+  font-size: var(--fs-ui);
+  padding: 0 var(--btn-px);
+  cursor: pointer;
+  transition: background 150ms;
+}
+.rp-btn-dokumen:hover { background: var(--gold-10, rgba(212,175,55,.1)); }
+
+/* ── Step 7 Identitas ───────────────────────────────── */
+.rp-identitas-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-sm);
+  margin-top: var(--space-sm);
+}
+
+@media (min-width: 480px) {
+  .rp-identitas-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.rp-identitas-status {
+  font-size: var(--fs-caption);
+  color: var(--gold);
+}
+
+/* ── Step 7 Dokumen list ────────────────────────────── */
+.rp-dok-seksi {
+  margin-bottom: var(--space-md);
+}
+
+.rp-dok-seksi-title {
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-semibold);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: var(--space-xs);
+  padding-bottom: var(--space-xs);
+  border-bottom: 1px solid var(--border);
+}
+
+.rp-dok-kosong {
+  font-size: var(--fs-caption);
+  color: var(--text-muted);
+  padding: var(--space-sm) 0;
+}
+
+.rp-dok-kartu {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding: var(--space-sm) 0;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+.rp-dok-kartu:last-child { border-bottom: none; }
+
+.rp-dok-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.rp-dok-judul {
+  font-size: var(--fs-ui);
+  color: var(--text-primary);
+  font-weight: var(--fw-medium);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rp-dok-meta {
+  font-size: var(--fs-caption);
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.rp-dok-actions {
+  display: flex;
+  gap: var(--space-xs);
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.rp-btn-download {
+  min-height: 36px;
+  background: transparent;
+  color: var(--gold);
+  border: 1.5px solid var(--gold-border);
+  border-radius: var(--btn-r);
+  font-size: var(--fs-caption);
+  padding: 0 var(--space-sm);
+  cursor: pointer;
+  transition: background 150ms;
+  white-space: nowrap;
+}
+.rp-btn-download:hover { background: var(--gold-10, rgba(212,175,55,.1)); }
+.rp-btn-download:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.rp-btn-hapus-dok {
+  min-height: 36px;
+  min-width: 36px;
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--btn-r);
+  font-size: var(--fs-ui);
+  cursor: pointer;
+  transition: color 150ms, border-color 150ms;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.rp-btn-hapus-dok:hover {
+  color: var(--error, #e74c3c);
+  border-color: var(--error, #e74c3c);
+}
+
 @media (max-width: 360px) {
   .rp-kktp-row {
     flex-direction: column;

@@ -88,5 +88,74 @@
     signOut() {
       return client.auth.signOut();
     },
+
+    // ── Rancang Settings ───────────────────────────────────────
+    async getRancangSettings(classroomId) {
+      const { data, error } = await client
+        .from('rancang_settings')
+        .select('*')
+        .eq('classroom_id', classroomId)
+        .maybeSingle();
+      if (error) return null;
+      return data;
+    },
+
+    async upsertRancangSettings(classroomId, payload) {
+      const { data, error } = await client
+        .from('rancang_settings')
+        .upsert(
+          { classroom_id: classroomId, ...payload },
+          { onConflict: 'classroom_id' }
+        )
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+
+    // ── Rancang Dokumen ────────────────────────────────────────
+    async getRancangDokumen(classroomId) {
+      const { data, error } = await client
+        .from('rancang_dokumen')
+        .select('id, jenis, judul, tp_id, created_at')
+        .eq('classroom_id', classroomId)
+        .order('created_at', { ascending: false });
+      if (error) return [];
+      return data ?? [];
+    },
+
+    async simpanRancangDokumen(classroomId, jenis, judul, konten, tpId) {
+      const { data, error } = await client
+        .from('rancang_dokumen')
+        .insert({
+          classroom_id: classroomId,
+          jenis,
+          judul,
+          konten,
+          tp_id: tpId ?? null,
+        })
+        .select('id, jenis, judul, tp_id, created_at')
+        .single();
+      if (error) throw error;
+      return data;
+    },
+
+    async hapusRancangDokumen(docId) {
+      const { error } = await client
+        .from('rancang_dokumen')
+        .delete()
+        .eq('id', docId);
+      if (error) throw error;
+    },
+
+    async getRancangDokumenKonten(docId) {
+      const { data, error } = await client
+        .from('rancang_dokumen')
+        .select('konten')
+        .eq('id', docId)
+        .single();
+      if (error) return null;
+      return data?.konten ?? null;
+    },
   };
 }());
