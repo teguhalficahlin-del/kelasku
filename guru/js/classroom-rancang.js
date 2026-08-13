@@ -1231,15 +1231,9 @@
   <div class="rp-block-title">Konteks Realistis Kelas</div>
   <p style="font-size:var(--fs-caption);color:var(--text-secondary);margin-bottom:var(--space-md);">Informasi ini membantu AI menyesuaikan rencana dengan kondisi nyata kelas Anda.</p>
 
+  <div class="rp-block-subtitle">Kondisi Fisik</div>
   <div class="rp-q" id="rp-q-k1">
     <label class="rp-q-label">K-1. Jumlah siswa di kelas *</label>
-  </div>
-  <div class="rp-q" id="rp-q-k2">
-    <label class="rp-q-label">K-2. Siswa berkebutuhan khusus (ABK) *</label>
-    <div id="rp-k2-chips" class="rp-chip-group"></div>
-    <div class="rp-cond-input" id="rp-k2-cond">
-      <textarea id="rp-k2-abk-desc" class="rp-textarea" placeholder="Deskripsikan kebutuhan khusus yang ada…" style="margin-top:var(--space-xs);">${esc(kk.abk_desc||'')}</textarea>
-    </div>
   </div>
   <div class="rp-q" id="rp-q-k3">
     <label class="rp-q-label">K-3. Fasilitas yang tersedia (bisa lebih dari satu) *</label>
@@ -1250,14 +1244,29 @@
   <div class="rp-q" id="rp-q-k5">
     <label class="rp-q-label">K-5. Akses internet di kelas *</label>
   </div>
-  <div class="rp-q" id="rp-q-k6">
-    <label class="rp-q-label">K-6. Materi cetak yang tersedia (bisa lebih dari satu)</label>
-  </div>
-  <div class="rp-q" id="rp-q-k7">
-    <label class="rp-q-label">K-7. Aktivitas yang ingin dihindari (bisa lebih dari satu)</label>
+
+  <div class="rp-block-subtitle">Kondisi Siswa</div>
+  <div class="rp-q" id="rp-q-k2">
+    <label class="rp-q-label">K-2. Apakah ada siswa yang membutuhkan perhatian khusus di kelas Anda? *</label>
+    <div class="rp-cond-input" id="rp-k2-cond">
+      <textarea id="rp-k2-abk-desc" class="rp-textarea" placeholder="Ceritakan singkat — misalnya: ada siswa yang sulit fokus, kesulitan membaca, atau kondisi lain yang perlu dipertimbangkan" style="margin-top:var(--space-xs);">${esc(kk.abk_desc||'')}</textarea>
+    </div>
   </div>
   <div class="rp-q" id="rp-q-k8">
     <label class="rp-q-label">K-8. Kendala kelas yang sering muncul (bisa lebih dari satu)</label>
+  </div>
+
+  <div class="rp-block-subtitle">Batasan untuk AI</div>
+  <div class="rp-q" id="rp-q-k7a">
+    <label class="rp-q-label">K-7a. Apa yang tidak bisa dilakukan di kelas Anda karena kondisi atau kebijakan? (bisa lebih dari satu)</label>
+  </div>
+  <div class="rp-q" id="rp-q-k7b">
+    <label class="rp-q-label">K-7b. Aktivitas apa yang ingin Anda hindari? (bisa lebih dari satu)</label>
+  </div>
+
+  <div class="rp-block-subtitle">Konteks Tambahan</div>
+  <div class="rp-q" id="rp-q-k6">
+    <label class="rp-q-label">K-6. Materi cetak yang tersedia (bisa lebih dari satu)</label>
   </div>
   <div class="rp-q">
     <label class="rp-q-label" for="rp-k9-daerah">K-9. Daerah mengajar <span class="opsional">(opsional)</span></label>
@@ -1271,33 +1280,39 @@
   </div>
 </div>`;
 
-    attachLainnya(renderChips(['< 20 siswa','20–30 siswa','31–36 siswa','> 36 siswa'], 'jumlah_siswa', el('rp-q-k1'), false, false), 'Masukkan jumlah siswa');
+    // Blok 1 — Kondisi Fisik
+    attachLainnya(renderChips(['< 20 siswa','20–30 siswa','31–40 siswa','> 40 siswa'], 'jumlah_siswa', el('rp-q-k1'), false, false), 'Masukkan jumlah siswa');
+    attachLainnya(renderChips(['Proyektor/LCD','Laptop','Speaker','Lab komputer','Koneksi WiFi','Printer','Lembar kerja cetak','Tidak ada fasilitas khusus'], 'fasilitas', el('rp-q-k3'), true, false), 'Contoh: papan tulis digital, TV layar besar');
+    attachLainnya(renderChips(['HP dilarang','HP boleh untuk belajar','HP bebas','Tidak ada kebijakan jelas','Sebagian besar tidak punya HP'], 'situasi_hp', el('rp-q-k4'), false, false), 'Jelaskan situasi HP di kelas');
+    attachLainnya(renderChips(['Tidak ada internet','Kadang ada, tidak stabil','Ada WiFi sekolah (stabil)'], 'akses_internet', el('rp-q-k5'), false, false), 'Jelaskan kondisi internet di kelas');
 
-    const k2Chips = renderChips(['Tidak ada ABK','Ada ABK'], 'abk', el('rp-q-k2'), false, false);
-    k2Chips.id = 'rp-k2-chips';
+    // Blok 2 — Kondisi Siswa
+    const k2Chips = renderChips(['Tidak ada','Ada'], 'abk', el('rp-q-k2'), false, false);
     k2Chips.addEventListener('click', () => {
       const val = getChipValues(k2Chips)[0];
       const cond = el('rp-k2-cond');
-      if (cond) cond.classList.toggle('visible', val === 'Ada ABK');
+      if (cond) cond.classList.toggle('visible', val === 'Ada');
     });
+    attachLainnya(renderChips(['Siswa sering ngobrol','Perhatian mudah teralih','Perbedaan kemampuan sangat lebar','Banyak siswa datang terlambat','Ketidakhadiran tinggi','Konflik antar siswa','Motivasi sangat rendah','Ruang kelas sempit/panas'], 'kendala', el('rp-q-k8'), true, false), 'Contoh: siswa sering tidak membawa buku');
 
-    attachLainnya(renderChips(['Proyektor / LCD','Lab komputer','Koneksi WiFi','Printer','Lembar kerja cetak','Tidak ada fasilitas khusus'], 'fasilitas', el('rp-q-k3'), true, false), 'Contoh: papan tulis digital, TV layar besar');
-    attachLainnya(renderChips(['HP dilarang','HP boleh untuk belajar','HP bebas','Tidak ada kebijakan jelas','Sebagian besar tidak punya HP'], 'situasi_hp', el('rp-q-k4'), false, false), 'Jelaskan situasi HP di kelas');
-    attachLainnya(renderChips(['Tidak ada internet','Kadang ada, tidak stabil','Ada WiFi sekolah (stabil)'], 'akses_internet', el('rp-q-k5'), false, false), 'Jelaskan kondisi internet di kelas');
+    // Blok 3 — Batasan untuk AI
+    attachLainnya(renderChips(['Ruang kelas tidak memungkinkan siswa bergerak bebas','Siswa tidak bisa keluar kelas','Tidak bisa cetak atau bagikan lembar kerja','Tidak bisa dibagi kelompok (ruang terlalu sempit atau jumlah terlalu banyak)'], 'batasan_kondisi', el('rp-q-k7a'), true, false), 'Jelaskan batasan kondisi lainnya');
+    attachLainnya(renderChips(['Ceramah satu arah > 10 menit','Hafalan/drill tanpa konteks','Tugas yang butuh bahan dibeli siswa','Kompetisi antar siswa','Aktivitas yang mempermalukan siswa di depan kelas'], 'aktivitas_dihindari', el('rp-q-k7b'), true, false), 'Jelaskan aktivitas yang ingin dihindari');
+
+    // Blok 4 — Konteks Tambahan
     attachLainnya(renderChips(['Buku teks pemerintah (BSE)','LKS dari sekolah','Modul buatan guru','Bahan dari DUDI','Tidak ada bahan cetak'], 'materi_cetak', el('rp-q-k6'), true, false), 'Contoh: modul khusus dari DUDI');
-    attachLainnya(renderChips(['Ceramah panjang tanpa aktivitas','Hafalan teks','Kerja kelompok besar (> 5 orang)','Presentasi individual di depan kelas','Menulis panjang tangan','Aktivitas outdoor','Tugas membeli bahan'], 'aktivitas_dihindari', el('rp-q-k7'), true, false), 'Contoh: permainan kompetitif, aktivitas fisik intens');
-    attachLainnya(renderChips(['Siswa sering ngobrol','Perhatian mudah teralih','Perbedaan kemampuan sangat lebar','Banyak siswa datang terlambat','Ketidakhadiran tinggi','Konflik antar siswa','Motivasi sangat rendah','Ruang kelas sempit / panas'], 'kendala', el('rp-q-k8'), true, false), 'Contoh: siswa sering tidak membawa buku');
 
     // Restore chips dari _ans.konteks_kelas
     restoreChips(body.querySelector('[data-key="jumlah_siswa"]'),        kk.jumlah_siswa);
-    restoreChips(body.querySelector('[data-key="abk"]'),                 kk.abk);
-    if (kk.abk === 'Ada ABK') el('rp-k2-cond')?.classList.add('visible');
     restoreChips(body.querySelector('[data-key="fasilitas"]'),           kk.fasilitas);
     restoreChips(body.querySelector('[data-key="situasi_hp"]'),          kk.situasi_hp);
     restoreChips(body.querySelector('[data-key="akses_internet"]'),      kk.akses_internet);
-    restoreChips(body.querySelector('[data-key="materi_cetak"]'),        kk.materi_cetak);
-    restoreChips(body.querySelector('[data-key="aktivitas_dihindari"]'), kk.aktivitas_dihindari);
+    restoreChips(body.querySelector('[data-key="abk"]'),                 kk.abk);
+    if (kk.abk === 'Ada') el('rp-k2-cond')?.classList.add('visible');
     restoreChips(body.querySelector('[data-key="kendala"]'),             kk.kendala);
+    restoreChips(body.querySelector('[data-key="batasan_kondisi"]'),     kk.batasan_kondisi);
+    restoreChips(body.querySelector('[data-key="aktivitas_dihindari"]'), kk.aktivitas_dihindari);
+    restoreChips(body.querySelector('[data-key="materi_cetak"]'),        kk.materi_cetak);
 
     el('rp-btn-back5').addEventListener('click', () => { _step = 4; renderStep4(_atpList); });
     el('rp-btn-gen-rencana').addEventListener('click', handleStep5Submit);
@@ -1320,6 +1335,7 @@
       situasi_hp:          getGroup('situasi_hp')[0] || '',
       akses_internet:      getGroup('akses_internet')[0] || '',
       materi_cetak:        getGroup('materi_cetak'),
+      batasan_kondisi:     getGroup('batasan_kondisi'),
       aktivitas_dihindari: getGroup('aktivitas_dihindari'),
       kendala:             getGroup('kendala'),
       daerah:              (el('rp-k9-daerah')?.value || '').trim(),
