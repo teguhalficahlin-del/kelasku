@@ -1411,7 +1411,7 @@
   </div>
   <div class="rp-q">
     <label class="rp-q-label" for="rp-k9-daerah">K-9. Daerah mengajar <span class="opsional">(opsional)</span></label>
-    <input type="text" id="rp-k9-daerah" class="rp-input" placeholder="Contoh: Kabupaten Lebak, Banten" value="${esc(kk.daerah||'')}">
+    <input type="text" id="rp-k9-daerah" class="rp-input" placeholder="Contoh: Ujungbatu, Riau, Indonesia" value="${esc(kk.daerah||'')}">
   </div>
 
   <div id="rp-step5-error" class="error-msg" style="display:none;"></div>
