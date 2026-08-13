@@ -1110,6 +1110,7 @@
       penilaian_utama: getSelVal('rp-b4'),
       dimensi_profil:  dimensiList,
     };
+    saveRpState();
 
     _genAtp = true;
     const btn = el('rp-btn-gen-atp');
@@ -1639,6 +1640,7 @@
   function renderStep6(data) {
     _rencana = data;
     _step = 6;
+    saveRpState();
     renderStepBar();
     const body = el('rp-body');
     if (!body) return;
@@ -1744,6 +1746,7 @@ ${sec1}${sec2}${sec3}${sec4}${sec5}
         step: _step, ans: _ans, atpList: _atpList,
         cpElemen: _cpElemen, cpRingkasan: _cpRingkasan,
         cpLabel: _cpLabel, cpUmum: _cpUmum,
+        rencana: _rencana,
       }));
     } catch (_) {}
   }
@@ -1759,7 +1762,7 @@ ${sec1}${sec2}${sec3}${sec4}${sec5}
       try { localStorage.removeItem('rp_state_' + _cId); } catch (_) {}
       return false;
     }
-    const { step, ans, atpList, cpElemen, cpRingkasan, cpLabel, cpUmum } = saved || {};
+    const { step, ans, atpList, cpElemen, cpRingkasan, cpLabel, cpUmum, rencana } = saved || {};
     if (!step || !ans) return false;
 
     Object.assign(_ans, ans);
@@ -1768,6 +1771,7 @@ ${sec1}${sec2}${sec3}${sec4}${sec5}
     _cpRingkasan = Array.isArray(cpRingkasan) ? cpRingkasan : [];
     _cpLabel = cpLabel || '';
     _cpUmum = cpUmum || '';
+    _rencana = rencana || null;
     _step = step;
 
     switch (step) {
@@ -1775,6 +1779,7 @@ ${sec1}${sec2}${sec3}${sec4}${sec5}
       case 3: renderStep3A(); break;
       case 4: if (_atpList.length) { renderStep4(_atpList); } else { renderStep1(); } break;
       case 5: renderStep5(); break;
+      case 6: if (_rencana) { renderStep6(_rencana); } else if (_atpList.length) { renderStep4(_atpList); } else { renderStep1(); } break;
       default: renderStep1(); break;
     }
 
