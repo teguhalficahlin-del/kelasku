@@ -221,8 +221,7 @@ Skema output JSON:
     ? `[{ "aspek": "...", "baru_berkembang": "...", "layak": "...", "cakap": "...", "mahir": "..." }]`
     : pendekatan_kktp === 'interval_nilai'
     ? `{ "kriteria": [{ "nama": "...", "bobot": 20, "deskripsi_skala": { "1": "...", "3": "...", "5": "..." } }], "batas_tercapai": 61 }`
-    : `{ "indikator": ["...", "..."], "persentase_minimal": 75 }`
-  }
+    : `{ "indikator": ["...", "..."], "persentase_minimal": 75 }`}
   },
   "lks": {
     "judul": "Judul LKS",
