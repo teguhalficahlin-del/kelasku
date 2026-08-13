@@ -1225,6 +1225,46 @@
     const body = el('rp-body');
     if (!body) return;
     const kk = _ans.konteks_kelas || {};
+    const savedFasilitas  = Array.isArray(kk.fasilitas)           ? kk.fasilitas           : [];
+    const savedKendala    = Array.isArray(kk.kendala)             ? kk.kendala             : [];
+    const savedBatasan    = Array.isArray(kk.batasan_kondisi)     ? kk.batasan_kondisi     : [];
+    const savedDihindari  = Array.isArray(kk.aktivitas_dihindari) ? kk.aktivitas_dihindari : [];
+    const savedMateri     = Array.isArray(kk.materi_cetak)        ? kk.materi_cetak        : [];
+
+    function makeDropdown(id, opsi, saved) {
+      const isLainnya = !!saved && !opsi.includes(saved);
+      const rows = opsi.map(o =>
+        `<option value="${esc(o)}"${saved === o ? ' selected' : ''}>${esc(o)}</option>`
+      ).join('');
+      return `<select class="rp-select" id="${id}">
+  <option value="">— Pilih —</option>
+  ${rows}
+  <option value="__lainnya__"${isLainnya ? ' selected' : ''}>Lainnya</option>
+</select>
+<input type="text" id="${id}-txt" class="rp-select" placeholder="Jelaskan…"
+  style="margin-top:var(--space-xs);display:${isLainnya ? 'block' : 'none'};"
+  value="${esc(isLainnya ? saved : '')}">`;
+    }
+
+    function makeCheckList(prefix, opsiArray, savedArr, placeholder) {
+      const items = opsiArray.map(nama => {
+        const checked = savedArr.includes(nama);
+        return `<label class="rp-elemen-check${checked ? ' checked' : ''}">
+  <input type="checkbox" value="${esc(nama)}"${checked ? ' checked' : ''}>
+  <span>${esc(nama)}</span>
+</label>`;
+      }).join('');
+      return `<div class="rp-elemen-list" id="${prefix}-list">
+  ${items}
+  <label class="rp-elemen-check" id="${prefix}-lainnya-wrap" style="display:none;">
+    <input type="checkbox" id="${prefix}-lainnya-cb" value="__lainnya__">
+    <span>Lainnya</span>
+  </label>
+</div>
+<input type="text" id="${prefix}-lainnya-txt" class="rp-select"
+  placeholder="${placeholder}"
+  style="margin-top:var(--space-xs);display:none;">`;
+    }
 
     body.innerHTML = `
 <div class="rp-block">
@@ -1232,41 +1272,50 @@
   <p style="font-size:var(--fs-caption);color:var(--text-secondary);margin-bottom:var(--space-md);">Informasi ini membantu AI menyesuaikan rencana dengan kondisi nyata kelas Anda.</p>
 
   <div class="rp-block-subtitle">Kondisi Fisik</div>
-  <div class="rp-q" id="rp-q-k1">
+  <div class="rp-q">
     <label class="rp-q-label">K-1. Jumlah siswa di kelas *</label>
+    ${makeDropdown('rp-k1', ['< 20 siswa','20–30 siswa','31–40 siswa','> 40 siswa'], kk.jumlah_siswa||'')}
   </div>
-  <div class="rp-q" id="rp-q-k3">
+  <div class="rp-q">
     <label class="rp-q-label">K-3. Fasilitas yang tersedia (bisa lebih dari satu) *</label>
+    ${makeCheckList('rp-k3', ['Proyektor/LCD','Laptop','Speaker','Lab komputer','Koneksi WiFi','Printer','Lembar kerja cetak','Tidak ada fasilitas khusus'], savedFasilitas, 'Contoh: papan tulis digital, TV layar besar')}
   </div>
-  <div class="rp-q" id="rp-q-k4">
+  <div class="rp-q">
     <label class="rp-q-label">K-4. Situasi HP &amp; kebijakan sekolah *</label>
+    ${makeDropdown('rp-k4', ['HP dilarang','HP boleh untuk belajar','HP bebas','Tidak ada kebijakan jelas','Sebagian besar tidak punya HP'], kk.situasi_hp||'')}
   </div>
-  <div class="rp-q" id="rp-q-k5">
+  <div class="rp-q">
     <label class="rp-q-label">K-5. Akses internet di kelas *</label>
+    ${makeDropdown('rp-k5', ['Tidak ada internet','Kadang ada, tidak stabil','Ada WiFi sekolah (stabil)'], kk.akses_internet||'')}
   </div>
 
   <div class="rp-block-subtitle">Kondisi Siswa</div>
-  <div class="rp-q" id="rp-q-k2">
+  <div class="rp-q">
     <label class="rp-q-label">K-2. Apakah ada siswa yang membutuhkan perhatian khusus di kelas Anda? *</label>
+    ${makeDropdown('rp-k2', ['Tidak ada','Ada'], kk.abk||'')}
     <div class="rp-cond-input" id="rp-k2-cond">
       <textarea id="rp-k2-abk-desc" class="rp-textarea" placeholder="Ceritakan singkat — misalnya: ada siswa yang sulit fokus, kesulitan membaca, atau kondisi lain yang perlu dipertimbangkan" style="margin-top:var(--space-xs);">${esc(kk.abk_desc||'')}</textarea>
     </div>
   </div>
-  <div class="rp-q" id="rp-q-k8">
+  <div class="rp-q">
     <label class="rp-q-label">K-8. Kendala kelas yang sering muncul (bisa lebih dari satu)</label>
+    ${makeCheckList('rp-k8', ['Siswa sering ngobrol','Perhatian mudah teralih','Perbedaan kemampuan sangat lebar','Banyak siswa datang terlambat','Ketidakhadiran tinggi','Konflik antar siswa','Motivasi sangat rendah','Ruang kelas sempit/panas'], savedKendala, 'Contoh: siswa sering tidak membawa buku')}
   </div>
 
   <div class="rp-block-subtitle">Batasan untuk AI</div>
-  <div class="rp-q" id="rp-q-k7a">
+  <div class="rp-q">
     <label class="rp-q-label">K-7a. Apa yang tidak bisa dilakukan di kelas Anda karena kondisi atau kebijakan? (bisa lebih dari satu)</label>
+    ${makeCheckList('rp-k7a', ['Ruang kelas tidak memungkinkan siswa bergerak bebas','Siswa tidak bisa keluar kelas','Tidak bisa cetak atau bagikan lembar kerja','Tidak bisa dibagi kelompok (ruang terlalu sempit atau jumlah terlalu banyak)'], savedBatasan, 'Jelaskan batasan kondisi lainnya')}
   </div>
-  <div class="rp-q" id="rp-q-k7b">
+  <div class="rp-q">
     <label class="rp-q-label">K-7b. Aktivitas apa yang ingin Anda hindari? (bisa lebih dari satu)</label>
+    ${makeCheckList('rp-k7b', ['Ceramah satu arah > 10 menit','Hafalan/drill tanpa konteks','Tugas yang butuh bahan dibeli siswa','Kompetisi antar siswa','Aktivitas yang mempermalukan siswa di depan kelas'], savedDihindari, 'Jelaskan aktivitas yang ingin dihindari')}
   </div>
 
   <div class="rp-block-subtitle">Konteks Tambahan</div>
-  <div class="rp-q" id="rp-q-k6">
+  <div class="rp-q">
     <label class="rp-q-label">K-6. Materi cetak yang tersedia (bisa lebih dari satu)</label>
+    ${makeCheckList('rp-k6', ['Buku teks pemerintah (BSE)','LKS dari sekolah','Modul buatan guru','Bahan dari DUDI','Tidak ada bahan cetak'], savedMateri, 'Contoh: modul khusus dari DUDI')}
   </div>
   <div class="rp-q">
     <label class="rp-q-label" for="rp-k9-daerah">K-9. Daerah mengajar <span class="opsional">(opsional)</span></label>
@@ -1280,39 +1329,41 @@
   </div>
 </div>`;
 
-    // Blok 1 — Kondisi Fisik
-    attachLainnya(renderChips(['< 20 siswa','20–30 siswa','31–40 siswa','> 40 siswa'], 'jumlah_siswa', el('rp-q-k1'), false, false), 'Masukkan jumlah siswa');
-    attachLainnya(renderChips(['Proyektor/LCD','Laptop','Speaker','Lab komputer','Koneksi WiFi','Printer','Lembar kerja cetak','Tidak ada fasilitas khusus'], 'fasilitas', el('rp-q-k3'), true, false), 'Contoh: papan tulis digital, TV layar besar');
-    attachLainnya(renderChips(['HP dilarang','HP boleh untuk belajar','HP bebas','Tidak ada kebijakan jelas','Sebagian besar tidak punya HP'], 'situasi_hp', el('rp-q-k4'), false, false), 'Jelaskan situasi HP di kelas');
-    attachLainnya(renderChips(['Tidak ada internet','Kadang ada, tidak stabil','Ada WiFi sekolah (stabil)'], 'akses_internet', el('rp-q-k5'), false, false), 'Jelaskan kondisi internet di kelas');
-
-    // Blok 2 — Kondisi Siswa
-    const k2Chips = renderChips(['Tidak ada','Ada'], 'abk', el('rp-q-k2'), false, false);
-    k2Chips.addEventListener('click', () => {
-      const val = getChipValues(k2Chips)[0];
-      const cond = el('rp-k2-cond');
-      if (cond) cond.classList.toggle('visible', val === 'Ada');
+    // Wire Lainnya untuk dropdown single (K-1, K-4, K-5)
+    ['rp-k1','rp-k4','rp-k5'].forEach(id => {
+      const sel = el(id); const txt = el(id + '-txt');
+      if (!sel || !txt) return;
+      sel.addEventListener('change', () => {
+        txt.style.display = sel.value === '__lainnya__' ? 'block' : 'none';
+        if (sel.value !== '__lainnya__') txt.value = '';
+      });
     });
-    attachLainnya(renderChips(['Siswa sering ngobrol','Perhatian mudah teralih','Perbedaan kemampuan sangat lebar','Banyak siswa datang terlambat','Ketidakhadiran tinggi','Konflik antar siswa','Motivasi sangat rendah','Ruang kelas sempit/panas'], 'kendala', el('rp-q-k8'), true, false), 'Contoh: siswa sering tidak membawa buku');
 
-    // Blok 3 — Batasan untuk AI
-    attachLainnya(renderChips(['Ruang kelas tidak memungkinkan siswa bergerak bebas','Siswa tidak bisa keluar kelas','Tidak bisa cetak atau bagikan lembar kerja','Tidak bisa dibagi kelompok (ruang terlalu sempit atau jumlah terlalu banyak)'], 'batasan_kondisi', el('rp-q-k7a'), true, false), 'Jelaskan batasan kondisi lainnya');
-    attachLainnya(renderChips(['Ceramah satu arah > 10 menit','Hafalan/drill tanpa konteks','Tugas yang butuh bahan dibeli siswa','Kompetisi antar siswa','Aktivitas yang mempermalukan siswa di depan kelas'], 'aktivitas_dihindari', el('rp-q-k7b'), true, false), 'Jelaskan aktivitas yang ingin dihindari');
-
-    // Blok 4 — Konteks Tambahan
-    attachLainnya(renderChips(['Buku teks pemerintah (BSE)','LKS dari sekolah','Modul buatan guru','Bahan dari DUDI','Tidak ada bahan cetak'], 'materi_cetak', el('rp-q-k6'), true, false), 'Contoh: modul khusus dari DUDI');
-
-    // Restore chips dari _ans.konteks_kelas
-    restoreChips(body.querySelector('[data-key="jumlah_siswa"]'),        kk.jumlah_siswa);
-    restoreChips(body.querySelector('[data-key="fasilitas"]'),           kk.fasilitas);
-    restoreChips(body.querySelector('[data-key="situasi_hp"]'),          kk.situasi_hp);
-    restoreChips(body.querySelector('[data-key="akses_internet"]'),      kk.akses_internet);
-    restoreChips(body.querySelector('[data-key="abk"]'),                 kk.abk);
+    // Wire K-2 dropdown → textarea kondisional
+    el('rp-k2')?.addEventListener('change', () => {
+      const cond = el('rp-k2-cond');
+      if (cond) cond.classList.toggle('visible', el('rp-k2')?.value === 'Ada');
+    });
     if (kk.abk === 'Ada') el('rp-k2-cond')?.classList.add('visible');
-    restoreChips(body.querySelector('[data-key="kendala"]'),             kk.kendala);
-    restoreChips(body.querySelector('[data-key="batasan_kondisi"]'),     kk.batasan_kondisi);
-    restoreChips(body.querySelector('[data-key="aktivitas_dihindari"]'), kk.aktivitas_dihindari);
-    restoreChips(body.querySelector('[data-key="materi_cetak"]'),        kk.materi_cetak);
+
+    // Wire checkbox Lainnya untuk semua multi (K-3, K-8, K-7a, K-7b, K-6)
+    ['rp-k3','rp-k8','rp-k7a','rp-k7b','rp-k6'].forEach(prefix => {
+      const list        = el(prefix + '-list');
+      const lainnyaCb   = el(prefix + '-lainnya-cb');
+      const lainnyaTxt  = el(prefix + '-lainnya-txt');
+      const lainnyaWrap = el(prefix + '-lainnya-wrap');
+      if (!list) return;
+      if (lainnyaWrap) lainnyaWrap.style.display = 'flex';
+      list.addEventListener('change', e => {
+        const cb = e.target;
+        if (!cb || cb.type !== 'checkbox') return;
+        cb.closest('.rp-elemen-check')?.classList.toggle('checked', cb.checked);
+        if (cb === lainnyaCb && lainnyaTxt) {
+          lainnyaTxt.style.display = cb.checked ? 'block' : 'none';
+          if (!cb.checked) lainnyaTxt.value = '';
+        }
+      });
+    });
 
     el('rp-btn-back5').addEventListener('click', () => { _step = 4; renderStep4(_atpList); });
     el('rp-btn-gen-rencana').addEventListener('click', handleStep5Submit);
@@ -1321,23 +1372,31 @@
   async function handleStep5Submit() {
     if (_genRencana) return;
     showError('rp-step5-error','');
-    const body = el('rp-body');
-    const getGroup = key => {
-      const g = body.querySelector(`.rp-chip-group[data-key="${key}"]`);
-      return g ? getChipValues(g) : [];
-    };
+    function getSelVal(id) {
+      const sel = el(id);
+      if (!sel) return '';
+      if (sel.value === '__lainnya__') return (el(id + '-txt')?.value || '').trim() || 'Lainnya';
+      return sel.value;
+    }
+    function getCheckList(prefix) {
+      return [...(el(prefix + '-list')?.querySelectorAll('input[type="checkbox"]:checked') || [])]
+        .map(cb => cb.value === '__lainnya__'
+          ? (el(prefix + '-lainnya-txt')?.value || '').trim() || 'Lainnya'
+          : cb.value)
+        .filter(Boolean);
+    }
 
     _ans.konteks_kelas = {
-      jumlah_siswa:        getGroup('jumlah_siswa')[0] || '',
-      abk:                 getGroup('abk')[0] || '',
+      jumlah_siswa:        getSelVal('rp-k1'),
+      fasilitas:           getCheckList('rp-k3'),
+      situasi_hp:          getSelVal('rp-k4'),
+      akses_internet:      getSelVal('rp-k5'),
+      abk:                 getSelVal('rp-k2'),
       abk_desc:            (el('rp-k2-abk-desc')?.value || '').trim(),
-      fasilitas:           getGroup('fasilitas'),
-      situasi_hp:          getGroup('situasi_hp')[0] || '',
-      akses_internet:      getGroup('akses_internet')[0] || '',
-      materi_cetak:        getGroup('materi_cetak'),
-      batasan_kondisi:     getGroup('batasan_kondisi'),
-      aktivitas_dihindari: getGroup('aktivitas_dihindari'),
-      kendala:             getGroup('kendala'),
+      kendala:             getCheckList('rp-k8'),
+      batasan_kondisi:     getCheckList('rp-k7a'),
+      aktivitas_dihindari: getCheckList('rp-k7b'),
+      materi_cetak:        getCheckList('rp-k6'),
       daerah:              (el('rp-k9-daerah')?.value || '').trim(),
     };
     saveRpState();
