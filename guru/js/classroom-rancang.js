@@ -2144,15 +2144,15 @@ ${sec1}${sec2}${sec3}${sec4}${sec5}
       _dokumen  = [];
     }
 
-    // Auto-fill dari identitas kelas jika _ans masih kosong
-    // (hanya jika settings belum ada atau belum punya mapel)
+    const restored = await restoreRpState();
+
+    // Auto-fill dari identitas kelas — SETELAH restore,
+    // hanya isi field yang masih kosong setelah restore localStorage
     if (!_ans.mapel && window._classroomSubject) {
       const guessedKey = normalizeMapelKey(window._classroomSubject);
       if (guessedKey) {
         _ans.mapelKey = guessedKey;
         _ans.mapel    = window._classroomSubject;
-        // Tebak jenjang dari nama kelas jika bisa
-        // window._classroomName misal "Kelas 7.1"
         const nm = (window._classroomName || '').toLowerCase();
         if (!_ans.jenjang) {
           if (nm.includes('smk'))      _ans.jenjang = 'SMK';
@@ -2163,8 +2163,9 @@ ${sec1}${sec2}${sec3}${sec4}${sec5}
       }
     }
 
-    const restored = await restoreRpState();
-    if (!restored) renderStep1();
+    // Jika restore ke step 1 dan auto-fill mengisi sesuatu,
+    // render ulang Step 1 agar cascade terpanggil
+    if (!restored || _step === 1) renderStep1();
     _loaded = true;
   }
 
