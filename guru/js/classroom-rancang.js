@@ -1543,6 +1543,112 @@
 
   // ─── Step 6 — Output ────────────────────────────────────────────────────────
 
+  function renderKktp(kktp, pendekatan) {
+    if (!kktp) return '<div style="color:var(--text-muted);font-size:var(--fs-caption);">KKTP tidak tersedia.</div>';
+
+    if (pendekatan === 'deskripsi_kriteria') {
+      if (!Array.isArray(kktp)) return '';
+      return kktp.map(k => `
+<div class="rp-kktp-row">
+  <div class="rp-kktp-level">${esc(k.kriteria||'-')}</div>
+  <div class="rp-kktp-desc">
+    <div style="color:var(--success,#4caf50);margin-bottom:2px;">
+      ✓ ${esc(k.tercapai||'')}
+    </div>
+    <div style="color:var(--text-muted);">
+      ✗ ${esc(k.belum_tercapai||'')}
+    </div>
+  </div>
+</div>`).join('');
+    }
+
+    if (pendekatan === 'rubrik') {
+      if (!Array.isArray(kktp)) return '';
+      return kktp.map(k => `
+<div style="margin-bottom:var(--space-sm);padding:var(--space-sm);
+  background:var(--surface-1);border-radius:var(--radius-md);">
+  <div style="font-weight:var(--fw-semibold);color:var(--text-primary);
+    margin-bottom:var(--space-xs);font-size:var(--fs-caption);">
+    ${esc(k.aspek||'-')}
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);
+    gap:var(--space-xs);font-size:var(--fs-caption);overflow:hidden;">
+    <div>
+      <div style="color:var(--text-muted);margin-bottom:2px;">Baru Berkembang</div>
+      <div style="color:var(--text-secondary);">${esc(k.baru_berkembang||'-')}</div>
+    </div>
+    <div>
+      <div style="color:var(--text-muted);margin-bottom:2px;">Layak</div>
+      <div style="color:var(--text-secondary);">${esc(k.layak||'-')}</div>
+    </div>
+    <div>
+      <div style="color:var(--text-muted);margin-bottom:2px;">Cakap</div>
+      <div style="color:var(--text-secondary);">${esc(k.cakap||'-')}</div>
+    </div>
+    <div>
+      <div style="color:var(--gold);margin-bottom:2px;">Mahir</div>
+      <div style="color:var(--text-secondary);">${esc(k.mahir||'-')}</div>
+    </div>
+  </div>
+</div>`).join('');
+    }
+
+    if (pendekatan === 'interval_nilai') {
+      if (!kktp.kriteria) return '';
+      const batas = kktp.batas_tercapai ?? 61;
+      const kriteriaRows = (kktp.kriteria || []).map(k => `
+<div class="rp-kktp-row">
+  <div class="rp-kktp-level">${esc(k.nama||'-')}
+    <div style="font-weight:normal;color:var(--text-muted);">
+      Bobot: ${esc(String(k.bobot||'-'))}
+    </div>
+  </div>
+  <div class="rp-kktp-desc">
+    ${Object.entries(k.deskripsi_skala||{}).map(([skala, desk]) =>
+      `<div><span style="color:var(--gold);">Skala ${esc(skala)}:</span>
+       ${esc(String(desk))}</div>`
+    ).join('')}
+  </div>
+</div>`).join('');
+      return `${kriteriaRows}
+<div style="margin-top:var(--space-sm);padding:var(--space-xs) var(--space-sm);
+  background:var(--surface-1);border-radius:var(--radius-sm);
+  font-size:var(--fs-caption);color:var(--text-primary);">
+  Batas ketercapaian: <strong>≥ ${batas} dari 100</strong>
+</div>`;
+    }
+
+    if (pendekatan === 'persentase') {
+      if (!kktp.indikator) return '';
+      const pct = kktp.persentase_minimal ?? 75;
+      const total = kktp.indikator.length;
+      const minimal = Math.ceil(total * pct / 100);
+      const indikatorRows = (kktp.indikator || []).map((ind, i) => `
+<div style="display:flex;align-items:flex-start;gap:var(--space-xs);
+  padding:var(--space-xs) 0;border-bottom:1px solid var(--border);
+  font-size:var(--fs-caption);color:var(--text-secondary);">
+  <span style="color:var(--gold);min-width:20px;">${i+1}.</span>
+  <span>${esc(String(ind))}</span>
+</div>`).join('');
+      return `${indikatorRows}
+<div style="margin-top:var(--space-sm);padding:var(--space-xs) var(--space-sm);
+  background:var(--surface-1);border-radius:var(--radius-sm);
+  font-size:var(--fs-caption);color:var(--text-primary);">
+  Tercapai jika ≥ <strong>${minimal} dari ${total} indikator</strong>
+  terpenuhi (${pct}%)
+</div>`;
+    }
+
+    if (Array.isArray(kktp)) {
+      return kktp.map(k => `
+<div class="rp-kktp-row">
+  <div class="rp-kktp-level">${esc(k.level||k.aspek||k.kriteria||'-')}</div>
+  <div class="rp-kktp-desc">${esc(k.deskripsi||k.mahir||k.tercapai||'-')}</div>
+</div>`).join('');
+    }
+    return '<div style="color:var(--text-muted);font-size:var(--fs-caption);">Format KKTP tidak dikenal.</div>';
+  }
+
   function renderStep6Loading() {
     _step = 6;
     renderStepBar();
@@ -1577,16 +1683,15 @@
 
     // ── 3. Asesmen & KKTP
     const asesmen = data?.asesmen;
-    const kktpRows = (asesmen?.kktp || []).map(k =>
-      `<div class="rp-kktp-row"><div class="rp-kktp-level">${esc(k.level)}</div><div class="rp-kktp-desc">${esc(k.deskripsi)}</div></div>`
-    ).join('');
+    const pendekatan_kktp = _ans.tp_terpilih?.pendekatan_kktp || 'rubrik';
+    const kktpHtml = renderKktp(asesmen?.kktp, pendekatan_kktp);
     const sec3 = buildOutputSection('rp-out-3', '3. Asesmen & KKTP', `
 <div style="margin-bottom:var(--space-sm);">
   <span style="font-size:var(--fs-caption);color:var(--text-muted);">Jenis:</span>
   <span style="font-size:var(--fs-ui);color:var(--text-primary);font-weight:var(--fw-medium);"> ${esc(asesmen?.jenis||'-')}</span>
 </div>
 <div style="margin-bottom:var(--space-md);font-size:var(--fs-caption);color:var(--text-secondary);line-height:var(--lh-loose);">${esc(asesmen?.instrumen||'-')}</div>
-${kktpRows}`);
+${kktpHtml}`);
 
     // ── 4. LKS
     const lks = data?.lks;
