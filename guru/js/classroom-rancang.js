@@ -913,30 +913,30 @@
 
     body.innerHTML = `
 <div class="rp-block">
-  <div class="rp-block-title">Niat Guru</div>
+  <div class="rp-block-title">Visi Pembelajaran</div>
 
   <div class="rp-q" id="rp-q-a1">
     <label class="rp-q-label" style="color:var(--gold)" for="rp-a1">A-1. Suasana belajar seperti apa yang ingin Anda ciptakan?</label>
     ${makeDropdown('rp-a1', ['Aktif dan eksploratif','Terstruktur dan terarah','Kolaboratif dan sosial','Mandiri dan reflektif','Campuran sesuai kebutuhan'], ng.suasana_belajar||'')}
   </div>
 
-  <div class="rp-q" id="rp-q-a2" style="display:none;">
+  <div class="rp-q" id="rp-q-a2">
     <label class="rp-q-label" style="color:var(--gold)" for="rp-a2">A-2. Dari mana Anda ingin memulai perjalanan belajar siswa?</label>
     ${makeDropdown('rp-a2', ['Dari pengalaman/konteks nyata siswa','Dari konsep dasar dulu baru praktik','Dari masalah yang perlu dipecahkan','Dari produk yang ingin dihasilkan'], ng.titik_mulai||'')}
   </div>
 
-  <div class="rp-q" id="rp-q-a3" style="display:none;">
+  <div class="rp-q" id="rp-q-a3">
     <label class="rp-q-label" style="color:var(--gold)" for="rp-a3">A-3. Perkembangan kemampuan apa yang paling ingin Anda lihat pada siswa?</label>
     ${makeDropdown('rp-a3', ['Keberanian mencoba dan bereksperimen','Kemampuan menghubungkan teori dengan praktik','Kemandirian dan inisiatif belajar','Kemampuan berpikir sistematis','Kerja sama dan komunikasi dalam tim'], ng.perkembangan_diinginkan||'')}
   </div>
 
-  <div class="rp-q" id="rp-q-a4" style="display:none;">
+  <div class="rp-q" id="rp-q-a4">
     <label class="rp-q-label" style="color:var(--gold)" for="rp-a4">A-4. Pengalaman belajar apa yang ingin mendominasi kelas Anda?</label>
     ${makeDropdown('rp-a4', ['Diskusi dan tanya jawab','Praktik dan eksperimen langsung','Proyek nyata yang bisa dilihat hasilnya','Penjelasan bertahap dari guru','Eksplorasi mandiri dengan panduan'], ng.pengalaman_dominan||'')}
   </div>
 
   <div id="rp-step3a-error" class="error-msg" style="display:none;"></div>
-  <div class="rp-action-row" id="rp-a-action" style="display:none;">
+  <div class="rp-action-row" id="rp-a-action">
     ${btnSecondary('rp-btn-back3','← Kembali')}
     ${btnPrimary('rp-btn-a-next','Lanjut ke preferensi →')}
   </div>
@@ -967,26 +967,10 @@
       }
     }
 
-    function showQ(id) { el(id)?.style.removeProperty('display'); }
-
-    wireDropdown('rp-a1', val => {
-      if (val) showQ('rp-q-a2');
-    });
-    wireDropdown('rp-a2', val => {
-      if (val) showQ('rp-q-a3');
-    });
-    wireDropdown('rp-a3', val => {
-      if (val) showQ('rp-q-a4');
-    });
-    wireDropdown('rp-a4', val => {
-      if (val) el('rp-a-action')?.style.removeProperty('display');
-    });
-
-    // Restore state — reveal cascade jika sudah ada nilai
-    if (ng.suasana_belajar) showQ('rp-q-a2');
-    if (ng.titik_mulai) showQ('rp-q-a3');
-    if (ng.perkembangan_diinginkan) showQ('rp-q-a4');
-    if (ng.pengalaman_dominan) el('rp-a-action')?.style.removeProperty('display');
+    wireDropdown('rp-a1', () => {});
+    wireDropdown('rp-a2', () => {});
+    wireDropdown('rp-a3', () => {});
+    wireDropdown('rp-a4', () => {});
 
     el('rp-btn-back3')?.addEventListener('click', () => {
       if (_ans.jenjang === 'SMK') { _step = 2; renderStep2(); }
