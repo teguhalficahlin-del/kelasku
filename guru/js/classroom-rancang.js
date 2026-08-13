@@ -1167,6 +1167,9 @@
     <label class="rp-q-label" style="font-size:var(--fs-caption);margin-bottom:var(--space-xs);">Edit judul TP (opsional):</label>
     <input type="text" class="rp-atp-edit-input" value="${esc(tp.judul)}">
   </div>
+  <div class="rp-atp-card-action">
+    <button class="btn-primary rp-btn-rancang-tp">Rancang RPM →</button>
+  </div>
 </div>`).join('');
 
     body.innerHTML = `
@@ -1177,21 +1180,26 @@
   <div id="rp-atp-error" class="error-msg" style="display:none;"></div>
   <div class="rp-action-row">
     ${btnSecondary('rp-btn-back4','← Kembali ke preferensi')}
-    ${btnPrimary('rp-btn-rancang','Rancang TP terpilih →')}
   </div>
 </div>`;
 
-    // Klik card — single select
-    body.querySelectorAll('.rp-atp-card').forEach(card => {
-      card.addEventListener('click', e => {
-        if (e.target.closest('.rp-atp-edit-input')) return;
-        body.querySelectorAll('.rp-atp-card').forEach(c => c.classList.remove('selected'));
-        card.classList.add('selected');
+    body.querySelectorAll('.rp-btn-rancang-tp').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        const card = btn.closest('.rp-atp-card');
+        const idx = parseInt(card.dataset.idx);
+        const tp = { ..._atpList[idx] };
+        const editedJudul = card.querySelector('.rp-atp-edit-input')?.value.trim();
+        if (editedJudul) tp.judul = editedJudul;
+        _ans.tp_terpilih = tp;
+        showError('rp-atp-error', '');
+        _step = 5;
+        saveRpState();
+        renderStep5();
       });
     });
 
     el('rp-btn-back4').addEventListener('click', () => { _step = 3; renderStep3B(); });
-    el('rp-btn-rancang').addEventListener('click', handleStep4Submit);
   }
 
   function handleStep4Submit() {
