@@ -53,7 +53,7 @@ Skema output JSON:
 }
 
 function buildAtpPrompt(payload: Record<string, unknown>) {
-  const { konteks, smk, dnk_dk, preferensi } = payload as Record<string, Record<string, unknown>>;
+  const { konteks, smk, niat_guru, preferensi } = payload as Record<string, Record<string, unknown>>;
 
   const smkSection = smk ? `
 Konteks SMK:
@@ -65,14 +65,12 @@ Konteks SMK:
 - Hubungan DUDI: ${Array.isArray(smk.hubungan_dudi) ? smk.hubungan_dudi.join(', ') : '-'}
 - Industri dominan: ${smk.industri_dominan}` : '';
 
-  const dnkSection = dnk_dk ? `
-Profil kelas (DNK/DK):
-- Kondisi emosi dominan: ${dnk_dk.kondisi_emosi}
-- Motivasi belajar: ${dnk_dk.motivasi}
-- Gaya belajar dominan: ${dnk_dk.gaya_belajar}
-- Pengetahuan awal: ${dnk_dk.pengetahuan_awal}
-- Hambatan kognitif: ${dnk_dk.hambatan_kognitif}
-- Kesiapan mandiri: ${dnk_dk.kesiapan_mandiri}` : '';
+  const niatGuruSection = niat_guru ? `
+Visi Guru:
+- Suasana belajar yang ingin diciptakan: ${niat_guru.suasana_belajar}
+- Titik mulai perjalanan belajar siswa: ${niat_guru.titik_mulai}
+- Perkembangan yang ingin dilihat: ${niat_guru.perkembangan_diinginkan}
+- Pengalaman belajar yang ingin mendominasi: ${niat_guru.pengalaman_dominan}` : '';
 
   return `Konteks Pembelajaran:
 - Mata pelajaran: ${konteks.mapel}
@@ -80,15 +78,13 @@ Profil kelas (DNK/DK):
 - Fase: ${konteks.fase}
 - JP per minggu: ${konteks.jp_per_minggu}
 ${smkSection}
-${dnkSection}
+${niatGuruSection}
 
 Preferensi Guru:
-- Karakter kelas: ${Array.isArray(preferensi?.karakter) ? preferensi.karakter.join(', ') : preferensi?.karakter}
-- Kemandirian siswa: ${preferensi?.kemandirian}
-- Elemen CP diprioritaskan: ${Array.isArray(preferensi?.prioritas_elemen) ? preferensi.prioritas_elemen.join(', ') : preferensi?.prioritas_elemen}
 - Pendekatan pembelajaran: ${preferensi?.pendekatan}
 - Gaya mengajar: ${preferensi?.gaya_mengajar}
 - Cara penilaian akhir: ${preferensi?.penilaian_utama}
+- Dimensi Profil Lulusan: ${Array.isArray(preferensi?.dimensi_profil) && (preferensi.dimensi_profil as string[]).length ? (preferensi.dimensi_profil as string[]).includes('Semua dimensi terintegrasi') ? 'Semua dimensi' : (preferensi.dimensi_profil as string[]).join(', ') : 'Tidak ditentukan'}
 
 Tugas: Susun 6–12 Tujuan Pembelajaran (TP) yang membentuk alur koheren untuk satu tahun penuh (dua semester). Setiap TP harus:
 1. Ditulis dengan kata kerja operasional yang bisa diobservasi
@@ -336,7 +332,7 @@ Deno.serve(async (req) => {
     if (!konteks || !preferensi) {
       return json({ error: 'atp membutuhkan konteks dan preferensi' }, 400);
     }
-    prompt = buildAtpPrompt({ konteks, smk, dnk_dk, preferensi });
+    prompt = buildAtpPrompt({ konteks, smk, niat_guru, preferensi });
     maxTokens = 4000;
   } else {
     if (!konteks || !tp_terpilih || !konteks_kelas) {
