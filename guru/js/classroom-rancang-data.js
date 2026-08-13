@@ -9,7 +9,10 @@ let _cpDataCache = null;
 async function loadCpData() {
   if (_cpDataCache) return _cpDataCache;
   try {
-    const base = location.pathname.split('/').slice(0, 2).join('/');
+    const isGhPages = location.hostname.includes('github.io');
+    const base = isGhPages
+      ? location.pathname.split('/').slice(0, 2).join('/')
+      : '';
     const res = await fetch(`${base}/shared/data/cp-data.json`);
     if (!res.ok) throw new Error('fetch failed');
     _cpDataCache = await res.json();
