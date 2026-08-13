@@ -28,12 +28,53 @@ async function fetchCpData(mapelKey, faseKey) {
 }
 
 function normalizeMapelKey(mapel) {
-  return mapel.toLowerCase()
-    .replace(/[-\s]+/g, '_')
-    .replace(/[^a-z0-9_]/g, '')
-    .replace(/bahasa_inggris|english/, 'bahasa_inggris')
-    .replace(/bahasa_indonesia|b\.ind/, 'bahasa_indonesia')
-    .replace(/matematika|math/, 'matematika')
-    .replace(/ipa|ilmu_pengetahuan_alam/, 'ipa')
-    .replace(/informatika/, 'informatika');
+  if (!mapel) return '';
+  const raw = mapel.toLowerCase().replace(/[-\s]+/g, '_').replace(/[^a-z0-9_]/g, '');
+
+  // Exact atau partial match — urutan penting (lebih spesifik dulu)
+  const mapping = [
+    [/pendidikan_agama_islam|pai|agama_islam/, 'pendidikan_agama_islam'],
+    [/pendidikan_agama_kristen|agama_kristen/, 'pendidikan_agama_kristen'],
+    [/pendidikan_agama_katolik|agama_katolik/, 'pendidikan_agama_katolik'],
+    [/pendidikan_agama_hindu|agama_hindu/, 'pendidikan_agama_hindu'],
+    [/pendidikan_agama_buddha|agama_buddha/, 'pendidikan_agama_buddha'],
+    [/pendidikan_agama_khonghucu|agama_khonghucu/, 'pendidikan_agama_khonghucu'],
+    [/pendidikan_pancasila|ppkn|pkn/, 'pendidikan_pancasila'],
+    [/bahasa_indonesia|b_ind/, 'bahasa_indonesia'],
+    [/bahasa_inggris|english|b_ing/, 'bahasa_inggris'],
+    [/bahasa_arab/, 'bahasa_arab'],
+    [/bahasa_jepang/, 'bahasa_jepang'],
+    [/bahasa_jerman/, 'bahasa_jerman'],
+    [/bahasa_korea/, 'bahasa_korea'],
+    [/bahasa_mandarin|bahasa_cina/, 'bahasa_mandarin'],
+    [/bahasa_prancis/, 'bahasa_prancis'],
+    [/matematika|math/, 'matematika'],
+    [/ilmu_pengetahuan_alam_dan_sosial|ipas/, 'ipas'],
+    [/ilmu_pengetahuan_alam|ipa$/, 'ipa'],
+    [/ilmu_pengetahuan_sosial|ips$/, 'ips'],
+    [/projek_ipas/, 'projek_ipas'],
+    [/informatika/, 'informatika'],
+    [/sejarah_indonesia|sejarah/, 'sejarah'],
+    [/geografi/, 'geografi'],
+    [/ekonomi/, 'ekonomi'],
+    [/sosiologi/, 'sosiologi'],
+    [/antropologi/, 'antropologi'],
+    [/fisika/, 'fisika'],
+    [/kimia/, 'kimia'],
+    [/biologi/, 'biologi'],
+    [/pjok|pendidikan_jasmani/, 'pjok'],
+    [/seni_musik|musik/, 'seni_musik'],
+    [/seni_rupa|rupa/, 'seni_rupa'],
+    [/seni_teater|teater/, 'seni_teater'],
+    [/seni_tari|tari/, 'seni_tari'],
+    [/prakarya_dan_kewirausahaan|prakarya/, 'prakarya_dan_kewirausahaan'],
+    [/projek_kreatif_kewirausahaan/, 'projek_kreatif_kewirausahaan'],
+  ];
+
+  for (const [pattern, key] of mapping) {
+    if (pattern.test(raw)) return key;
+  }
+
+  // Fallback: gunakan raw key langsung (untuk mapel SMK spesifik)
+  return raw;
 }
