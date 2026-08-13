@@ -3,6 +3,8 @@
 
   // ─── State ──────────────────────────────────────────────────────────────────
 
+  const SipApi = window.api;  // alias ke API global
+
   let _cId = null;
   let _loaded = false;
   let _settings = null;   // data dari rancang_settings (pre-fill + identitas)
