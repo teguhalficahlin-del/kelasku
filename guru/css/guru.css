@@ -2943,6 +2943,14 @@ h2.panel-header.open .panel-collapse-arrow {
   margin-bottom: var(--space-md);
 }
 
+.rp-block-subtitle {
+  font-size: var(--fs-ui);
+  font-weight: var(--fw-semibold);
+  color: var(--gold);
+  margin: var(--space-md) 0 var(--space-xs);
+  letter-spacing: normal;
+}
+
 /* ── Question group ── */
 .rp-q {
   margin-bottom: var(--space-md);
@@ -3046,6 +3054,8 @@ h2.panel-header.open .panel-collapse-arrow {
   color: var(--text-primary);
   margin-bottom: var(--space-sm);
   display: block;
+  text-transform: none;
+  letter-spacing: normal;
 }
 
 .rp-q-hint {
