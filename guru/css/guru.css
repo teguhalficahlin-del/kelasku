@@ -3077,6 +3077,100 @@ h2.panel-header.open .panel-collapse-arrow {
   border-color: var(--gold);
   box-shadow: 0 0 0 3px var(--gold-muted);
 }
+
+.rp-custom-select {
+  position: relative;
+  width: 100%;
+  max-width: 28rem;
+  user-select: none;
+}
+
+.rp-custom-select-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: var(--input-r);
+  color: var(--text-primary);
+  font-size: var(--fs-ui);
+  font-family: inherit;
+  padding: var(--input-py) var(--input-px);
+  min-height: var(--btn-h-sm);
+  cursor: pointer;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.rp-custom-select-trigger:focus {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px var(--gold-muted);
+}
+
+.rp-custom-select.open .rp-custom-select-trigger {
+  border-color: var(--gold);
+}
+
+.rp-custom-select-arrow {
+  font-size: 10px;
+  color: var(--text-muted);
+  transition: transform var(--transition);
+  flex-shrink: 0;
+}
+
+.rp-custom-select.open .rp-custom-select-arrow {
+  transform: rotate(180deg);
+}
+
+.rp-custom-select-panel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  background: var(--bg-elevated);
+  border: 1px solid var(--gold);
+  border-radius: var(--input-r);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+  z-index: 1000;
+  max-height: 240px;
+  overflow-y: auto;
+  display: none;
+}
+
+.rp-custom-select.open .rp-custom-select-panel {
+  display: block;
+}
+
+.rp-custom-select-panel.panel-up {
+  bottom: calc(100% + 4px);
+  top: auto;
+}
+
+.rp-custom-select-panel.panel-down {
+  top: calc(100% + 4px);
+  bottom: auto;
+}
+
+.rp-custom-select-option {
+  padding: var(--input-py) var(--input-px);
+  font-size: var(--fs-ui);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background var(--transition);
+}
+
+.rp-custom-select-option:hover {
+  background: var(--gold-muted);
+}
+
+.rp-custom-select-option.selected {
+  color: var(--gold);
+  font-weight: var(--fw-semibold);
+}
+
+.rp-custom-select-option.placeholder {
+  color: var(--text-muted);
+}
 .rp-select option {
   background: var(--bg-elevated);
   color: var(--text-primary);

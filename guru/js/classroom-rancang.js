@@ -247,6 +247,115 @@
     }
   }
 
+  // ─── Custom dropdown helpers ─────────────────────────────────────────────────
+
+  function makeCustomDropdown(id, opsi, saved) {
+    const isLainnya = !!saved && !opsi.includes(saved);
+    const currentVal = isLainnya ? '__lainnya__' : (saved || '');
+    const currentLabel = isLainnya ? 'Lainnya'
+      : saved ? esc(saved) : '— Pilih —';
+
+    const optionHtml = [
+      `<div class="rp-custom-select-option placeholder" data-value="">— Pilih —</div>`,
+      ...opsi.map(o =>
+        `<div class="rp-custom-select-option${saved === o ? ' selected' : ''}" data-value="${esc(o)}">${esc(o)}</div>`
+      ),
+      `<div class="rp-custom-select-option${isLainnya ? ' selected' : ''}" data-value="__lainnya__">Lainnya</div>`,
+    ].join('');
+
+    return `<div class="rp-custom-select" id="${id}" data-value="${esc(currentVal)}" tabindex="0">
+  <div class="rp-custom-select-trigger">
+    <span class="rp-custom-select-label">${currentLabel}</span>
+    <span class="rp-custom-select-arrow">▼</span>
+  </div>
+  <div class="rp-custom-select-panel">
+    ${optionHtml}
+  </div>
+</div>
+<input type="text" id="${id}-txt" class="rp-select" placeholder="Jelaskan…"
+  style="margin-top:var(--space-xs);display:${isLainnya ? 'block' : 'none'};"
+  value="${esc(isLainnya ? saved : '')}">`;
+  }
+
+  function wireCustomDropdown(id, onLainnyaToggle) {
+    const wrap = el(id);
+    if (!wrap) return;
+    const trigger = wrap.querySelector('.rp-custom-select-trigger');
+    const panel = wrap.querySelector('.rp-custom-select-panel');
+    const labelEl = wrap.querySelector('.rp-custom-select-label');
+    const txt = el(id + '-txt');
+
+    function openPanel() {
+      const rect = wrap.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const spaceAbove = rect.top;
+      panel.classList.remove('panel-up', 'panel-down');
+      if (spaceBelow < 260 && spaceAbove > spaceBelow) {
+        panel.classList.add('panel-up');
+      } else {
+        panel.classList.add('panel-down');
+      }
+      wrap.classList.add('open');
+    }
+
+    function closePanel() {
+      wrap.classList.remove('open');
+    }
+
+    trigger?.addEventListener('click', e => {
+      e.stopPropagation();
+      if (wrap.classList.contains('open')) closePanel();
+      else openPanel();
+    });
+
+    wrap.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        if (wrap.classList.contains('open')) closePanel();
+        else openPanel();
+      }
+      if (e.key === 'Escape') closePanel();
+    });
+
+    panel?.querySelectorAll('.rp-custom-select-option').forEach(opt => {
+      opt.addEventListener('click', e => {
+        e.stopPropagation();
+        const val = opt.dataset.value;
+        panel.querySelectorAll('.rp-custom-select-option').forEach(o =>
+          o.classList.remove('selected')
+        );
+        opt.classList.add('selected');
+        if (labelEl) {
+          labelEl.textContent = val === '' ? '— Pilih —'
+            : val === '__lainnya__' ? 'Lainnya'
+            : opt.textContent;
+        }
+        wrap.dataset.value = val;
+        if (txt) {
+          txt.style.display = val === '__lainnya__' ? 'block' : 'none';
+          if (val !== '__lainnya__') txt.value = '';
+        }
+        closePanel();
+        if (onLainnyaToggle) onLainnyaToggle(val);
+      });
+    });
+
+    document.addEventListener('click', function handler(e) {
+      if (!document.contains(wrap)) return;
+      if (!wrap.contains(e.target)) closePanel();
+    });
+
+    window.addEventListener('scroll', closePanel, { passive: true });
+  }
+
+  function getCustomSelVal(id) {
+    const wrap = el(id);
+    if (!wrap) return '';
+    const val = wrap.dataset?.value ?? wrap.value ?? '';
+    if (val === '__lainnya__') return (el(id + '-txt')?.value || '').trim() || 'Lainnya';
+    return val;
+  }
+
   // ─── Step 1 — Identitas Konteks ─────────────────────────────────────────────
 
   function renderStep1() {
@@ -896,43 +1005,28 @@
 
     const ng = _ans.niat_guru || {};
 
-    function makeDropdown(id, opsi, saved) {
-      const isLainnya = !!saved && !opsi.includes(saved);
-      const rows = opsi.map(o =>
-        `<option value="${esc(o)}"${saved === o ? ' selected' : ''}>${esc(o)}</option>`
-      ).join('');
-      return `<select class="rp-select" id="${id}">
-  <option value="">— Pilih —</option>
-  ${rows}
-  <option value="__lainnya__"${isLainnya ? ' selected' : ''}>Lainnya</option>
-</select>
-<input type="text" id="${id}-txt" class="rp-select" placeholder="Jelaskan…"
-  style="margin-top:var(--space-xs);display:${isLainnya ? 'block' : 'none'};"
-  value="${esc(isLainnya ? saved : '')}">`;
-    }
-
     body.innerHTML = `
 <div class="rp-block">
   <div class="rp-block-title">Visi Pembelajaran</div>
 
   <div class="rp-q" id="rp-q-a1">
     <label class="rp-q-label" style="color:var(--gold)" for="rp-a1">A-1. Suasana belajar seperti apa yang ingin Anda ciptakan?</label>
-    ${makeDropdown('rp-a1', ['Aktif dan eksploratif','Terstruktur dan terarah','Kolaboratif dan sosial','Mandiri dan reflektif','Campuran sesuai kebutuhan'], ng.suasana_belajar||'')}
+    ${makeCustomDropdown('rp-a1', ['Aktif dan eksploratif','Terstruktur dan terarah','Kolaboratif dan sosial','Mandiri dan reflektif','Campuran sesuai kebutuhan'], ng.suasana_belajar||'')}
   </div>
 
   <div class="rp-q" id="rp-q-a2">
     <label class="rp-q-label" style="color:var(--gold)" for="rp-a2">A-2. Dari mana Anda ingin memulai perjalanan belajar siswa?</label>
-    ${makeDropdown('rp-a2', ['Dari pengalaman/konteks nyata siswa','Dari konsep dasar dulu baru praktik','Dari masalah yang perlu dipecahkan','Dari produk yang ingin dihasilkan'], ng.titik_mulai||'')}
+    ${makeCustomDropdown('rp-a2', ['Dari pengalaman/konteks nyata siswa','Dari konsep dasar dulu baru praktik','Dari masalah yang perlu dipecahkan','Dari produk yang ingin dihasilkan'], ng.titik_mulai||'')}
   </div>
 
   <div class="rp-q" id="rp-q-a3">
     <label class="rp-q-label" style="color:var(--gold)" for="rp-a3">A-3. Perkembangan kemampuan apa yang paling ingin Anda lihat pada siswa?</label>
-    ${makeDropdown('rp-a3', ['Keberanian mencoba dan bereksperimen','Kemampuan menghubungkan teori dengan praktik','Kemandirian dan inisiatif belajar','Kemampuan berpikir sistematis','Kerja sama dan komunikasi dalam tim'], ng.perkembangan_diinginkan||'')}
+    ${makeCustomDropdown('rp-a3', ['Keberanian mencoba dan bereksperimen','Kemampuan menghubungkan teori dengan praktik','Kemandirian dan inisiatif belajar','Kemampuan berpikir sistematis','Kerja sama dan komunikasi dalam tim'], ng.perkembangan_diinginkan||'')}
   </div>
 
   <div class="rp-q" id="rp-q-a4">
     <label class="rp-q-label" style="color:var(--gold)" for="rp-a4">A-4. Pengalaman belajar apa yang ingin mendominasi kelas Anda?</label>
-    ${makeDropdown('rp-a4', ['Diskusi dan tanya jawab','Praktik dan eksperimen langsung','Proyek nyata yang bisa dilihat hasilnya','Penjelasan bertahap dari guru','Eksplorasi mandiri dengan panduan'], ng.pengalaman_dominan||'')}
+    ${makeCustomDropdown('rp-a4', ['Diskusi dan tanya jawab','Praktik dan eksperimen langsung','Proyek nyata yang bisa dilihat hasilnya','Penjelasan bertahap dari guru','Eksplorasi mandiri dengan panduan'], ng.pengalaman_dominan||'')}
   </div>
 
   <div id="rp-step3a-error" class="error-msg" style="display:none;"></div>
@@ -942,35 +1036,7 @@
   </div>
 </div>`;
 
-    function getSelVal(id) {
-      const sel = el(id);
-      if (!sel) return '';
-      if (sel.value === '__lainnya__') return (el(id + '-txt')?.value || '').trim() || 'Lainnya';
-      return sel.value;
-    }
-
-    function wireDropdown(id, onFilled) {
-      const sel = el(id);
-      const txt = el(id + '-txt');
-      if (!sel) return;
-      sel.addEventListener('change', () => {
-        if (txt) {
-          txt.style.display = sel.value === '__lainnya__' ? 'block' : 'none';
-          if (sel.value !== '__lainnya__') txt.value = '';
-        }
-        onFilled(getSelVal(id));
-      });
-      if (txt) {
-        txt.addEventListener('input', () => {
-          if (sel.value === '__lainnya__' && txt.value.trim()) onFilled(txt.value.trim());
-        });
-      }
-    }
-
-    wireDropdown('rp-a1', () => {});
-    wireDropdown('rp-a2', () => {});
-    wireDropdown('rp-a3', () => {});
-    wireDropdown('rp-a4', () => {});
+    ['rp-a1','rp-a2','rp-a3','rp-a4'].forEach(id => wireCustomDropdown(id));
 
     el('rp-btn-back3')?.addEventListener('click', () => {
       if (_ans.jenjang === 'SMK') { _step = 2; renderStep2(); }
@@ -980,17 +1046,11 @@
   }
 
   function handleStep3ASubmit() {
-    function getSelVal(id) {
-      const sel = el(id);
-      if (!sel) return '';
-      if (sel.value === '__lainnya__') return (el(id + '-txt')?.value || '').trim() || 'Lainnya';
-      return sel.value;
-    }
     _ans.niat_guru = {
-      suasana_belajar:          getSelVal('rp-a1'),
-      titik_mulai:              getSelVal('rp-a2'),
-      perkembangan_diinginkan:  getSelVal('rp-a3'),
-      pengalaman_dominan:       getSelVal('rp-a4'),
+      suasana_belajar:          getCustomSelVal('rp-a1'),
+      titik_mulai:              getCustomSelVal('rp-a2'),
+      perkembangan_diinginkan:  getCustomSelVal('rp-a3'),
+      pengalaman_dominan:       getCustomSelVal('rp-a4'),
     };
     saveRpState();
     renderStep3B();
@@ -1001,21 +1061,6 @@
     if (!body) return;
 
     const pref = _ans.preferensi || {};
-
-    function makeDropdown(id, opsi, saved) {
-      const isLainnya = !!saved && !opsi.includes(saved);
-      const rows = opsi.map(o =>
-        `<option value="${esc(o)}"${saved === o ? ' selected' : ''}>${esc(o)}</option>`
-      ).join('');
-      return `<select class="rp-select" id="${id}">
-  <option value="">— Pilih —</option>
-  ${rows}
-  <option value="__lainnya__"${isLainnya ? ' selected' : ''}>Lainnya</option>
-</select>
-<input type="text" id="${id}-txt" class="rp-select" placeholder="Jelaskan…"
-  style="margin-top:var(--space-xs);display:${isLainnya ? 'block' : 'none'};"
-  value="${esc(isLainnya ? saved : '')}">`;
-    }
 
     const dimensiOpsi = ['Semua dimensi terintegrasi','Keimanan & Ketakwaan','Kewargaan','Penalaran Kritis','Kreativitas','Kolaborasi','Kemandirian','Kesehatan','Komunikasi'];
     const savedDimensi = Array.isArray(pref.dimensi_profil) ? pref.dimensi_profil : [];
@@ -1032,17 +1077,17 @@
 
   <div class="rp-q">
     <label class="rp-q-label" style="color:var(--gold)" for="rp-b2">B-2. Pendekatan mengajar yang paling cocok</label>
-    ${makeDropdown('rp-b2', ['Langsung / Direct Instruction','Linear','Inquiry / Penemuan','Discovery / Penemuan Mandiri','PBL (Problem-Based)','PjBL (Project-Based)','Tematik','Spiral','Genre-Based (BKoF→MoT→JCoT→ICoT)','Task-Based (TBLT)','CLIL (Bahasa + Konten Mapel Lain)','Campuran'], pref.pendekatan||'')}
+    ${makeCustomDropdown('rp-b2', ['Langsung / Direct Instruction','Linear','Inquiry / Penemuan','Discovery / Penemuan Mandiri','PBL (Problem-Based)','PjBL (Project-Based)','Tematik','Spiral','Genre-Based (BKoF→MoT→JCoT→ICoT)','Task-Based (TBLT)','CLIL (Bahasa + Konten Mapel Lain)','Campuran'], pref.pendekatan||'')}
   </div>
 
   <div class="rp-q">
     <label class="rp-q-label" style="color:var(--gold)" for="rp-b3">B-3. Cara mengajar yang paling sering Anda gunakan</label>
-    ${makeDropdown('rp-b3', ['Fasilitator — siswa lebih aktif','Presenter — guru lebih banyak menjelaskan','Coach — banyak feedback individual'], pref.gaya_mengajar||'')}
+    ${makeCustomDropdown('rp-b3', ['Fasilitator — siswa lebih aktif','Presenter — guru lebih banyak menjelaskan','Coach — banyak feedback individual'], pref.gaya_mengajar||'')}
   </div>
 
   <div class="rp-q">
     <label class="rp-q-label" style="color:var(--gold)" for="rp-b4">B-4. Bagaimana Anda ingin menilai pencapaian siswa</label>
-    ${makeDropdown('rp-b4', ['Tes tertulis','Presentasi / unjuk kerja','Portofolio','Observasi lapangan','Produk / karya','Jurnal refleksi'], pref.penilaian_utama||'')}
+    ${makeCustomDropdown('rp-b4', ['Tes tertulis','Presentasi / unjuk kerja','Portofolio','Observasi lapangan','Produk / karya','Jurnal refleksi'], pref.penilaian_utama||'')}
   </div>
 
   <div class="rp-q">
@@ -1066,16 +1111,7 @@
   </div>
 </div>`;
 
-    // Wire Lainnya untuk B-2, B-3, B-4
-    ['rp-b2','rp-b3','rp-b4'].forEach(id => {
-      const sel = el(id);
-      const txt = el(id + '-txt');
-      if (!sel || !txt) return;
-      sel.addEventListener('change', () => {
-        txt.style.display = sel.value === '__lainnya__' ? 'block' : 'none';
-        if (sel.value !== '__lainnya__') txt.value = '';
-      });
-    });
+    ['rp-b2','rp-b3','rp-b4'].forEach(id => wireCustomDropdown(id));
 
     // Checkbox .checked class sync untuk B-5
     el('rp-b5-list')?.addEventListener('change', e => {
@@ -1092,22 +1128,15 @@
     if (_genAtp) return;
     showError('rp-step3b-error','');
 
-    function getSelVal(id) {
-      const sel = el(id);
-      if (!sel) return '';
-      if (sel.value === '__lainnya__') return (el(id + '-txt')?.value || '').trim() || 'Lainnya';
-      return sel.value;
-    }
-
     const jp = parseInt(el('rp-b1-jp')?.value || '0');
     const dimensiList = [...(el('rp-b5-list')?.querySelectorAll('input[type="checkbox"]:checked') || [])]
       .map(cb => cb.value);
 
     _ans.preferensi = {
       jp_per_minggu:   jp || null,
-      pendekatan:      getSelVal('rp-b2'),
-      gaya_mengajar:   getSelVal('rp-b3'),
-      penilaian_utama: getSelVal('rp-b4'),
+      pendekatan:      getCustomSelVal('rp-b2'),
+      gaya_mengajar:   getCustomSelVal('rp-b3'),
+      penilaian_utama: getCustomSelVal('rp-b4'),
       dimensi_profil:  dimensiList,
     };
     saveRpState();
@@ -1324,21 +1353,6 @@
     const savedDihindari  = Array.isArray(kk.aktivitas_dihindari) ? kk.aktivitas_dihindari : [];
     const savedMateri     = Array.isArray(kk.materi_cetak)        ? kk.materi_cetak        : [];
 
-    function makeDropdown(id, opsi, saved) {
-      const isLainnya = !!saved && !opsi.includes(saved);
-      const rows = opsi.map(o =>
-        `<option value="${esc(o)}"${saved === o ? ' selected' : ''}>${esc(o)}</option>`
-      ).join('');
-      return `<select class="rp-select" id="${id}">
-  <option value="">— Pilih —</option>
-  ${rows}
-  <option value="__lainnya__"${isLainnya ? ' selected' : ''}>Lainnya</option>
-</select>
-<input type="text" id="${id}-txt" class="rp-select" placeholder="Jelaskan…"
-  style="margin-top:var(--space-xs);display:${isLainnya ? 'block' : 'none'};"
-  value="${esc(isLainnya ? saved : '')}">`;
-    }
-
     function makeCheckList(prefix, opsiArray, savedArr, placeholder) {
       const items = opsiArray.map(nama => {
         const checked = savedArr.includes(nama);
@@ -1367,7 +1381,7 @@
   <div class="rp-block-subtitle">Kondisi Fisik</div>
   <div class="rp-q">
     <label class="rp-q-label" style="color:var(--gold)">K-1. Jumlah siswa di kelas *</label>
-    ${makeDropdown('rp-k1', ['< 20 siswa','20–30 siswa','31–40 siswa','> 40 siswa'], kk.jumlah_siswa||'')}
+    ${makeCustomDropdown('rp-k1', ['< 20 siswa','20–30 siswa','31–40 siswa','> 40 siswa'], kk.jumlah_siswa||'')}
   </div>
   <div class="rp-q">
     <label class="rp-q-label" style="color:var(--gold)">K-3. Fasilitas yang tersedia (bisa lebih dari satu) *</label>
@@ -1375,17 +1389,17 @@
   </div>
   <div class="rp-q">
     <label class="rp-q-label" style="color:var(--gold)">K-4. Situasi HP &amp; kebijakan sekolah *</label>
-    ${makeDropdown('rp-k4', ['HP dilarang','HP boleh untuk belajar','HP bebas','Tidak ada kebijakan jelas','Sebagian besar tidak punya HP'], kk.situasi_hp||'')}
+    ${makeCustomDropdown('rp-k4', ['HP dilarang','HP boleh untuk belajar','HP bebas','Tidak ada kebijakan jelas','Sebagian besar tidak punya HP'], kk.situasi_hp||'')}
   </div>
   <div class="rp-q">
     <label class="rp-q-label" style="color:var(--gold)">K-5. Akses internet di kelas *</label>
-    ${makeDropdown('rp-k5', ['Tidak ada internet','Kadang ada, tidak stabil','Ada WiFi sekolah (stabil)'], kk.akses_internet||'')}
+    ${makeCustomDropdown('rp-k5', ['Tidak ada internet','Kadang ada, tidak stabil','Ada WiFi sekolah (stabil)'], kk.akses_internet||'')}
   </div>
 
   <div class="rp-block-subtitle">Kondisi Siswa</div>
   <div class="rp-q">
     <label class="rp-q-label" style="color:var(--gold)">K-2. Apakah ada siswa yang membutuhkan perhatian khusus di kelas Anda? *</label>
-    ${makeDropdown('rp-k2', ['Tidak ada','Ada'], kk.abk||'')}
+    ${makeCustomDropdown('rp-k2', ['Tidak ada','Ada'], kk.abk||'')}
     <div class="rp-cond-input" id="rp-k2-cond">
       <textarea id="rp-k2-abk-desc" class="rp-textarea" placeholder="Ceritakan singkat — misalnya: ada siswa yang sulit fokus, kesulitan membaca, atau kondisi lain yang perlu dipertimbangkan" style="margin-top:var(--space-xs);">${esc(kk.abk_desc||'')}</textarea>
     </div>
@@ -1422,20 +1436,11 @@
   </div>
 </div>`;
 
-    // Wire Lainnya untuk dropdown single (K-1, K-4, K-5)
-    ['rp-k1','rp-k4','rp-k5'].forEach(id => {
-      const sel = el(id); const txt = el(id + '-txt');
-      if (!sel || !txt) return;
-      sel.addEventListener('change', () => {
-        txt.style.display = sel.value === '__lainnya__' ? 'block' : 'none';
-        if (sel.value !== '__lainnya__') txt.value = '';
-      });
-    });
+    ['rp-k1','rp-k4','rp-k5'].forEach(id => wireCustomDropdown(id));
 
-    // Wire K-2 dropdown → textarea kondisional
-    el('rp-k2')?.addEventListener('change', () => {
+    wireCustomDropdown('rp-k2', val => {
       const cond = el('rp-k2-cond');
-      if (cond) cond.classList.toggle('visible', el('rp-k2')?.value === 'Ada');
+      if (cond) cond.classList.toggle('visible', val === 'Ada');
     });
     if (kk.abk === 'Ada') el('rp-k2-cond')?.classList.add('visible');
 
@@ -1465,12 +1470,6 @@
   async function handleStep5Submit() {
     if (_genRencana) return;
     showError('rp-step5-error','');
-    function getSelVal(id) {
-      const sel = el(id);
-      if (!sel) return '';
-      if (sel.value === '__lainnya__') return (el(id + '-txt')?.value || '').trim() || 'Lainnya';
-      return sel.value;
-    }
     function getCheckList(prefix) {
       return [...(el(prefix + '-list')?.querySelectorAll('input[type="checkbox"]:checked') || [])]
         .map(cb => cb.value === '__lainnya__'
@@ -1480,11 +1479,11 @@
     }
 
     _ans.konteks_kelas = {
-      jumlah_siswa:        getSelVal('rp-k1'),
+      jumlah_siswa:        getCustomSelVal('rp-k1'),
       fasilitas:           getCheckList('rp-k3'),
-      situasi_hp:          getSelVal('rp-k4'),
-      akses_internet:      getSelVal('rp-k5'),
-      abk:                 getSelVal('rp-k2'),
+      situasi_hp:          getCustomSelVal('rp-k4'),
+      akses_internet:      getCustomSelVal('rp-k5'),
+      abk:                 getCustomSelVal('rp-k2'),
       abk_desc:            (el('rp-k2-abk-desc')?.value || '').trim(),
       kendala:             getCheckList('rp-k8'),
       batasan_kondisi:     getCheckList('rp-k7a'),
