@@ -2996,12 +2996,6 @@ h2.panel-header.open .panel-collapse-arrow {
   margin-bottom: var(--space-md);
 }
 
-@media (min-width: 600px) {
-  .rp-kktp-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-
 .rp-kktp-option {
   background: var(--bg-elevated);
   border: 1.5px solid var(--border);
