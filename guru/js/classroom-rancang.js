@@ -250,15 +250,20 @@
   // ─── Custom dropdown helpers ─────────────────────────────────────────────────
 
   function makeCustomDropdown(id, opsi, saved) {
-    const isLainnya = !!saved && !opsi.includes(saved);
+    // Support array of string atau array of {value, label}
+    const normalizedOpsi = opsi.map(o =>
+      typeof o === 'string' ? { value: o, label: o } : o
+    );
+    const isLainnya = !!saved && !normalizedOpsi.some(o => o.value === saved);
     const currentVal = isLainnya ? '__lainnya__' : (saved || '');
+    const savedLabel = normalizedOpsi.find(o => o.value === saved)?.label || saved || '';
     const currentLabel = isLainnya ? 'Lainnya'
-      : saved ? esc(saved) : '— Pilih —';
+      : saved ? esc(savedLabel) : '— Pilih —';
 
     const optionHtml = [
       `<div class="rp-custom-select-option placeholder" data-value="">— Pilih —</div>`,
-      ...opsi.map(o =>
-        `<div class="rp-custom-select-option${saved === o ? ' selected' : ''}" data-value="${esc(o)}">${esc(o)}</div>`
+      ...normalizedOpsi.map(o =>
+        `<div class="rp-custom-select-option${saved === o.value ? ' selected' : ''}" data-value="${esc(o.value)}">${esc(o.label)}</div>`
       ),
       `<div class="rp-custom-select-option${isLainnya ? ' selected' : ''}" data-value="__lainnya__">Lainnya</div>`,
     ].join('');
@@ -368,19 +373,14 @@
 <div class="rp-block">
   <div class="rp-block-title">Identitas Konteks Pembelajaran</div>
   <div class="rp-q" id="rp-q-p1">
-    <label class="rp-q-label" style="color:var(--gold)" for="rp-jenjang-sel">1. Jenjang sekolah</label>
-    <select class="rp-select" id="rp-jenjang-sel">
-      <option value="">— Pilih jenjang —</option>
-      ${['SD','SMP','SMA','SMK'].map(j =>
-        `<option value="${j}"${_ans.jenjang===j?' selected':''}>${j}</option>`
-      ).join('')}
-    </select>
+    <label class="rp-q-label" style="color:var(--gold)">1. Jenjang sekolah</label>
+    ${makeCustomDropdown('rp-jenjang-sel', ['SD','SMP','SMA','SMK'], _ans.jenjang || '')}
   </div>
   <div id="rp-step1-error" class="error-msg" style="display:none;"></div>
 </div>`;
 
-    el('rp-jenjang-sel').addEventListener('change', e => {
-      _ans.jenjang = e.target.value;
+    wireCustomDropdown('rp-jenjang-sel', val => {
+      _ans.jenjang = (val && val !== '__lainnya__') ? val : getCustomSelVal('rp-jenjang-sel');
       _ans.bidangKeahlian = null;
       _ans.programKeahlian = null;
       _ans.mapelKey = '';
@@ -421,21 +421,14 @@
         .map(v => v.bidang)
     )].sort((a, b) => a.localeCompare(b, 'id'));
 
-    qDiv.innerHTML = `<label class="rp-q-label" style="color:var(--gold)" for="rp-bidang-sel">2. Bidang keahlian</label>
-<select class="rp-select" id="rp-bidang-sel">
-  <option value="">— Pilih bidang keahlian —</option>
-  ${bidangs.map(b =>
-    `<option value="${esc(b)}"${_ans.bidangKeahlian===b?' selected':''}>${esc(b)}</option>`
-  ).join('')}
-</select>`;
+    qDiv.innerHTML = `<label class="rp-q-label" style="color:var(--gold)">2. Bidang keahlian</label>
+${makeCustomDropdown('rp-bidang-sel', bidangs, _ans.bidangKeahlian || '')}`;
 
-    el('rp-bidang-sel').addEventListener('change', e => {
-      _ans.bidangKeahlian = e.target.value || null;
+    wireCustomDropdown('rp-bidang-sel', val => {
+      _ans.bidangKeahlian = (val && val !== '__lainnya__') ? val
+        : getCustomSelVal('rp-bidang-sel') || null;
       _ans.programKeahlian = null;
-      _ans.mapelKey = '';
-      _ans.mapel = '';
-      _ans.fase = '';
-      _ans.elemenTerpilih = [];
+      _ans.mapelKey = ''; _ans.mapel = ''; _ans.fase = ''; _ans.elemenTerpilih = [];
       ['rp-q-p1c','rp-q-p2','rp-q-p2b','rp-q-p3','rp-step1-btn'].forEach(id => el(id)?.remove());
       if (_ans.bidangKeahlian) renderStep1P1c();
     });
@@ -464,20 +457,13 @@
         .map(v => v.program_keahlian)
     )].sort((a, b) => a.localeCompare(b, 'id'));
 
-    qDiv.innerHTML = `<label class="rp-q-label" style="color:var(--gold)" for="rp-program-sel">3. Program keahlian</label>
-<select class="rp-select" id="rp-program-sel">
-  <option value="">— Pilih program keahlian —</option>
-  ${programs.map(p =>
-    `<option value="${esc(p)}"${_ans.programKeahlian===p?' selected':''}>${esc(p)}</option>`
-  ).join('')}
-</select>`;
+    qDiv.innerHTML = `<label class="rp-q-label" style="color:var(--gold)">3. Program keahlian</label>
+${makeCustomDropdown('rp-program-sel', programs, _ans.programKeahlian || '')}`;
 
-    el('rp-program-sel').addEventListener('change', e => {
-      _ans.programKeahlian = e.target.value || null;
-      _ans.mapelKey = '';
-      _ans.mapel = '';
-      _ans.fase = '';
-      _ans.elemenTerpilih = [];
+    wireCustomDropdown('rp-program-sel', val => {
+      _ans.programKeahlian = (val && val !== '__lainnya__') ? val
+        : getCustomSelVal('rp-program-sel') || null;
+      _ans.mapelKey = ''; _ans.mapel = ''; _ans.fase = ''; _ans.elemenTerpilih = [];
       ['rp-q-p2','rp-q-p2b','rp-q-p3','rp-step1-btn'].forEach(id => el(id)?.remove());
       if (_ans.programKeahlian) renderStep1P2('SMK', _ans.bidangKeahlian);
     });
@@ -532,20 +518,14 @@
       return { value: key, label };
     }).sort((a, b) => a.label.localeCompare(b.label, 'id'));
 
-    qDiv.innerHTML = `<label class="rp-q-label" style="color:var(--gold)" for="rp-mapel-sel">${qNum}. Mata pelajaran</label>
-<select class="rp-select" id="rp-mapel-sel">
-  <option value="">— Pilih mata pelajaran —</option>
-  ${opts.map(o =>
-    `<option value="${esc(o.value)}"${_ans.mapelKey===o.value?' selected':''}>${esc(o.label)}</option>`
-  ).join('')}
-</select>`;
+    qDiv.innerHTML = `<label class="rp-q-label" style="color:var(--gold)">${qNum}. Mata pelajaran</label>
+${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
 
-    el('rp-mapel-sel').addEventListener('change', e => {
-      const selOpt = e.target.selectedOptions[0];
-      _ans.mapelKey = e.target.value;
-      _ans.mapel = selOpt?.textContent.trim() || '';
-      _ans.fase = '';
-      _ans.elemenTerpilih = [];
+    wireCustomDropdown('rp-mapel-sel', val => {
+      _ans.mapelKey = (val && val !== '__lainnya__') ? val : getCustomSelVal('rp-mapel-sel');
+      const selOpt = el('rp-mapel-sel')?.querySelector(`.rp-custom-select-option[data-value="${CSS.escape(_ans.mapelKey)}"]`);
+      _ans.mapel = selOpt?.textContent.trim() || _ans.mapelKey;
+      _ans.fase = ''; _ans.elemenTerpilih = [];
       ['rp-q-p2b','rp-q-p3','rp-step1-btn'].forEach(id => el(id)?.remove());
       if (_ans.mapelKey && data[_ans.mapelKey]) {
         const entry = data[_ans.mapelKey];
@@ -815,22 +795,6 @@
 
     const smk = _ans.smk || {};
 
-    // Helper: dropdown + input Lainnya
-    function smkSel(id, opts, saved) {
-      const isLainnya = !!saved && !opts.includes(saved);
-      const optsHtml = opts.map(o =>
-        `<option value="${esc(o)}"${saved === o ? ' selected' : ''}>${esc(o)}</option>`
-      ).join('');
-      return `<select class="rp-select" id="${id}">
-  <option value="">— Pilih —</option>
-  ${optsHtml}
-  <option value="__lainnya__"${isLainnya ? ' selected' : ''}>Lainnya…</option>
-</select>
-<input type="text" id="${id}-txt" class="rp-input" placeholder="Jelaskan…"
-  style="margin-top:var(--space-xs);display:${isLainnya ? 'block' : 'none'};"
-  value="${esc(isLainnya ? saved : '')}">`;
-    }
-
     // Helper: checkbox list bergaya P2b
     function smkCheckList(listId, opsi, saved, withLainnya) {
       const savedArr = Array.isArray(saved) ? saved : (saved ? [saved] : []);
@@ -861,8 +825,8 @@
   <div class="rp-block-title">Konteks SMK</div>
 
   <div class="rp-q">
-    <label class="rp-q-label" style="color:var(--gold)" for="rp-smk-rumpun">SMK-2. Rumpun mata pelajaran</label>
-    ${smkSel('rp-smk-rumpun', ['Normatif','Adaptif','Produktif'], smk.rumpun||'')}
+    <label class="rp-q-label" style="color:var(--gold)">SMK-2. Rumpun mata pelajaran</label>
+    ${makeCustomDropdown('rp-smk-rumpun', ['Normatif','Adaptif','Produktif'], smk.rumpun || '')}
   </div>
 
   <div class="rp-q">
@@ -871,23 +835,23 @@
   </div>
 
   <div class="rp-q">
-    <label class="rp-q-label" style="color:var(--gold)" for="rp-smk-status-pkl">SMK-4. Status PKL siswa</label>
-    ${smkSel('rp-smk-status-pkl', ['Belum PKL','Sedang PKL','Sudah selesai PKL','Tidak ada PKL'], smk.status_pkl||'')}
+    <label class="rp-q-label" style="color:var(--gold)">SMK-4. Status PKL siswa</label>
+    ${makeCustomDropdown('rp-smk-status-pkl', ['Belum PKL','Sedang PKL','Sudah selesai PKL','Tidak ada PKL'], smk.status_pkl || '')}
   </div>
 
   <div class="rp-q">
-    <label class="rp-q-label" style="color:var(--gold)" for="rp-smk-target-sertif">SMK-5. Target sertifikasi</label>
-    ${smkSel('rp-smk-target-sertif', ['Tidak ada target sertifikasi','Sertifikasi kompetensi (LSP)','Uji Kompetensi Keahlian (UKK)','Sertifikat industri langsung'], smk.target_sertif||'')}
+    <label class="rp-q-label" style="color:var(--gold)">SMK-5. Target sertifikasi</label>
+    ${makeCustomDropdown('rp-smk-target-sertif', ['Tidak ada target sertifikasi','Sertifikasi kompetensi (LSP)','Uji Kompetensi Keahlian (UKK)','Sertifikat industri langsung'], smk.target_sertif || '')}
   </div>
 
   <div class="rp-q">
-    <label class="rp-q-label" style="color:var(--gold)" for="rp-smk-pola-jadwal">SMK-6. Pola jadwal mengajar</label>
-    ${smkSel('rp-smk-pola-jadwal', ['Sistem blok (semua JP produktif 1 hari)','Tersebar harian','Tetap mingguan (jadwal rutin)','Campuran blok & harian','Tidak menentu'], smk.pola_jadwal||'')}
+    <label class="rp-q-label" style="color:var(--gold)">SMK-6. Pola jadwal mengajar</label>
+    ${makeCustomDropdown('rp-smk-pola-jadwal', ['Sistem blok (semua JP produktif 1 hari)','Tersebar harian','Tetap mingguan (jadwal rutin)','Campuran blok & harian','Tidak menentu'], smk.pola_jadwal || '')}
   </div>
 
   <div class="rp-q">
-    <label class="rp-q-label" style="color:var(--gold)" for="rp-smk-durasi-proyek">SMK-7. Durasi satu unit/proyek pembelajaran</label>
-    ${smkSel('rp-smk-durasi-proyek', ['1–2 minggu','3–4 minggu','5–8 minggu','Lebih dari 8 minggu'], smk.durasi_proyek||'')}
+    <label class="rp-q-label" style="color:var(--gold)">SMK-7. Durasi satu unit/proyek pembelajaran</label>
+    ${makeCustomDropdown('rp-smk-durasi-proyek', ['1–2 minggu','3–4 minggu','5–8 minggu','Lebih dari 8 minggu'], smk.durasi_proyek || '')}
   </div>
 
   <div class="rp-q">
@@ -901,12 +865,8 @@
   </div>
 
   <div class="rp-q">
-    <label class="rp-q-label" style="color:var(--gold)" for="rp-smk-mitra-dudi">SMK-10. Mitra DUDI aktif</label>
-    <select class="rp-select" id="rp-smk-mitra-dudi">
-      <option value="">— Pilih —</option>
-      <option value="Tidak ada mitra aktif"${smk.mitra_dudi==='Tidak ada mitra aktif'?' selected':''}>Tidak ada mitra aktif</option>
-      <option value="Ada mitra aktif"${smk.mitra_dudi==='Ada mitra aktif'?' selected':''}>Ada mitra aktif</option>
-    </select>
+    <label class="rp-q-label" style="color:var(--gold)">SMK-10. Mitra DUDI aktif</label>
+    ${makeCustomDropdown('rp-smk-mitra-dudi', ['Tidak ada mitra aktif','Ada mitra aktif'], smk.mitra_dudi || '')}
     <div class="rp-cond-input${smk.mitra_dudi==='Ada mitra aktif'?' visible':''}" id="rp-smk-mitra-wrap">
       <input type="text" id="rp-smk-mitra" class="rp-input" placeholder="Nama mitra DUDI…" style="margin-top:var(--space-xs);" value="${esc(smk.nama_mitra||'')}">
     </div>
@@ -919,20 +879,16 @@
   </div>
 </div>`;
 
-    // Event listener Lainnya untuk dropdown SMK-2,4,5,6,7
-    ['rp-smk-rumpun','rp-smk-status-pkl','rp-smk-target-sertif','rp-smk-pola-jadwal','rp-smk-durasi-proyek'].forEach(id => {
-      const sel = el(id);
-      const txt = el(id + '-txt');
-      if (!sel || !txt) return;
-      sel.addEventListener('change', () => {
-        txt.style.display = sel.value === '__lainnya__' ? 'block' : 'none';
-        if (sel.value !== '__lainnya__') txt.value = '';
-      });
+    // Wire custom dropdowns SMK-2,4,5,6,7
+    ['rp-smk-rumpun','rp-smk-status-pkl','rp-smk-target-sertif',
+     'rp-smk-pola-jadwal','rp-smk-durasi-proyek'].forEach(id => {
+      wireCustomDropdown(id);
     });
 
-    // SMK-10 conditional input
-    el('rp-smk-mitra-dudi')?.addEventListener('change', () => {
-      el('rp-smk-mitra-wrap')?.classList.toggle('visible', el('rp-smk-mitra-dudi').value === 'Ada mitra aktif');
+    // SMK-10 conditional input — wire dengan callback
+    wireCustomDropdown('rp-smk-mitra-dudi', val => {
+      const aktif = (val && val !== '__lainnya__') ? val : getCustomSelVal('rp-smk-mitra-dudi');
+      el('rp-smk-mitra-wrap')?.classList.toggle('visible', aktif === 'Ada mitra aktif');
     });
 
     // Checkbox .checked class sync + Lainnya toggle untuk SMK-3 dan SMK-8
@@ -956,12 +912,6 @@
 
   function handleStep2Submit() {
     showError('rp-step2-error', '');
-    function getSelVal(id) {
-      const sel = el(id);
-      if (!sel) return '';
-      if (sel.value === '__lainnya__') return (el(id + '-txt')?.value || '').trim() || 'Lainnya';
-      return sel.value;
-    }
     function getCheckboxVals(listId) {
       const listEl = el(listId);
       if (!listEl) return [];
@@ -978,15 +928,15 @@
     }
 
     _ans.smk = {
-      rumpun:          getSelVal('rp-smk-rumpun'),
+      rumpun:          getCustomSelVal('rp-smk-rumpun'),
       tujuan:          getCheckboxVals('rp-smk-tujuan-list'),
-      status_pkl:      getSelVal('rp-smk-status-pkl'),
-      target_sertif:   getSelVal('rp-smk-target-sertif'),
-      pola_jadwal:     getSelVal('rp-smk-pola-jadwal'),
-      durasi_proyek:   getSelVal('rp-smk-durasi-proyek'),
+      status_pkl:      getCustomSelVal('rp-smk-status-pkl'),
+      target_sertif:   getCustomSelVal('rp-smk-target-sertif'),
+      pola_jadwal:     getCustomSelVal('rp-smk-pola-jadwal'),
+      durasi_proyek:   getCustomSelVal('rp-smk-durasi-proyek'),
       hubungan_dudi:   getCheckboxVals('rp-smk-dudi-list'),
       industri_dominan:(el('rp-smk-industri')?.value || '').trim(),
-      mitra_dudi:      (el('rp-smk-mitra-dudi')?.value || ''),
+      mitra_dudi:      getCustomSelVal('rp-smk-mitra-dudi'),
       nama_mitra:      (el('rp-smk-mitra')?.value || '').trim(),
     };
 

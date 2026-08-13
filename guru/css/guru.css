@@ -1731,6 +1731,16 @@ h2.panel-header.open .panel-collapse-arrow {
   cursor: not-allowed;
 }
 
+@media (max-width: 360px) {
+  .rp-kktp-row {
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+  .rp-kktp-level {
+    min-width: unset;
+  }
+}
+
 /* Modal responsif â€” di layar lebar berubah jadi centered card */
 @media (min-width: 540px) {
   #assessment-modal.share-overlay {
@@ -3551,7 +3561,7 @@ h2.panel-header.open .panel-collapse-arrow {
 .rp-kktp-row:last-child { border-bottom: none; }
 
 .rp-kktp-level {
-  min-width: 130px;
+  min-width: 80px;
   font-weight: var(--fw-semibold);
   color: var(--text-primary);
   flex-shrink: 0;
