@@ -3111,6 +3111,7 @@ h2.panel-header.open .panel-collapse-arrow {
   user-select: none;
   text-transform: none;
   letter-spacing: normal;
+  font-weight: var(--fw-normal);
 }
 
 .rp-elemen-check:hover {

@@ -1365,52 +1365,52 @@
 
   <div class="rp-block-subtitle">Kondisi Fisik</div>
   <div class="rp-q">
-    <label class="rp-q-label">K-1. Jumlah siswa di kelas *</label>
+    <label class="rp-q-label" style="color:var(--gold)">K-1. Jumlah siswa di kelas *</label>
     ${makeDropdown('rp-k1', ['< 20 siswa','20–30 siswa','31–40 siswa','> 40 siswa'], kk.jumlah_siswa||'')}
   </div>
   <div class="rp-q">
-    <label class="rp-q-label">K-3. Fasilitas yang tersedia (bisa lebih dari satu) *</label>
+    <label class="rp-q-label" style="color:var(--gold)">K-3. Fasilitas yang tersedia (bisa lebih dari satu) *</label>
     ${makeCheckList('rp-k3', ['Proyektor/LCD','Laptop','Speaker','Lab komputer','Koneksi WiFi','Printer','Lembar kerja cetak','Tidak ada fasilitas khusus'], savedFasilitas, 'Contoh: papan tulis digital, TV layar besar')}
   </div>
   <div class="rp-q">
-    <label class="rp-q-label">K-4. Situasi HP &amp; kebijakan sekolah *</label>
+    <label class="rp-q-label" style="color:var(--gold)">K-4. Situasi HP &amp; kebijakan sekolah *</label>
     ${makeDropdown('rp-k4', ['HP dilarang','HP boleh untuk belajar','HP bebas','Tidak ada kebijakan jelas','Sebagian besar tidak punya HP'], kk.situasi_hp||'')}
   </div>
   <div class="rp-q">
-    <label class="rp-q-label">K-5. Akses internet di kelas *</label>
+    <label class="rp-q-label" style="color:var(--gold)">K-5. Akses internet di kelas *</label>
     ${makeDropdown('rp-k5', ['Tidak ada internet','Kadang ada, tidak stabil','Ada WiFi sekolah (stabil)'], kk.akses_internet||'')}
   </div>
 
   <div class="rp-block-subtitle">Kondisi Siswa</div>
   <div class="rp-q">
-    <label class="rp-q-label">K-2. Apakah ada siswa yang membutuhkan perhatian khusus di kelas Anda? *</label>
+    <label class="rp-q-label" style="color:var(--gold)">K-2. Apakah ada siswa yang membutuhkan perhatian khusus di kelas Anda? *</label>
     ${makeDropdown('rp-k2', ['Tidak ada','Ada'], kk.abk||'')}
     <div class="rp-cond-input" id="rp-k2-cond">
       <textarea id="rp-k2-abk-desc" class="rp-textarea" placeholder="Ceritakan singkat — misalnya: ada siswa yang sulit fokus, kesulitan membaca, atau kondisi lain yang perlu dipertimbangkan" style="margin-top:var(--space-xs);">${esc(kk.abk_desc||'')}</textarea>
     </div>
   </div>
   <div class="rp-q">
-    <label class="rp-q-label">K-8. Kendala kelas yang sering muncul (bisa lebih dari satu)</label>
+    <label class="rp-q-label" style="color:var(--gold)">K-8. Kendala kelas yang sering muncul (bisa lebih dari satu)</label>
     ${makeCheckList('rp-k8', ['Siswa sering ngobrol','Perhatian mudah teralih','Perbedaan kemampuan sangat lebar','Banyak siswa datang terlambat','Ketidakhadiran tinggi','Konflik antar siswa','Motivasi sangat rendah','Ruang kelas sempit/panas'], savedKendala, 'Contoh: siswa sering tidak membawa buku')}
   </div>
 
   <div class="rp-block-subtitle">Batasan untuk AI</div>
   <div class="rp-q">
-    <label class="rp-q-label">K-7a. Apa yang tidak bisa dilakukan di kelas Anda karena kondisi atau kebijakan? (bisa lebih dari satu)</label>
+    <label class="rp-q-label" style="color:var(--gold)">K-7a. Apa yang tidak bisa dilakukan di kelas Anda karena kondisi atau kebijakan? (bisa lebih dari satu)</label>
     ${makeCheckList('rp-k7a', ['Ruang kelas tidak memungkinkan siswa bergerak bebas','Siswa tidak bisa keluar kelas','Tidak bisa cetak atau bagikan lembar kerja','Tidak bisa dibagi kelompok (ruang terlalu sempit atau jumlah terlalu banyak)'], savedBatasan, 'Jelaskan batasan kondisi lainnya')}
   </div>
   <div class="rp-q">
-    <label class="rp-q-label">K-7b. Aktivitas apa yang ingin Anda hindari? (bisa lebih dari satu)</label>
+    <label class="rp-q-label" style="color:var(--gold)">K-7b. Aktivitas apa yang ingin Anda hindari? (bisa lebih dari satu)</label>
     ${makeCheckList('rp-k7b', ['Ceramah satu arah > 10 menit','Hafalan/drill tanpa konteks','Tugas yang butuh bahan dibeli siswa','Kompetisi antar siswa','Aktivitas yang mempermalukan siswa di depan kelas'], savedDihindari, 'Jelaskan aktivitas yang ingin dihindari')}
   </div>
 
   <div class="rp-block-subtitle">Konteks Tambahan</div>
   <div class="rp-q">
-    <label class="rp-q-label">K-6. Materi cetak yang tersedia (bisa lebih dari satu)</label>
+    <label class="rp-q-label" style="color:var(--gold)">K-6. Materi cetak yang tersedia (bisa lebih dari satu)</label>
     ${makeCheckList('rp-k6', ['Buku teks pemerintah (BSE)','LKS dari sekolah','Modul buatan guru','Bahan dari DUDI','Tidak ada bahan cetak'], savedMateri, 'Contoh: modul khusus dari DUDI')}
   </div>
   <div class="rp-q">
-    <label class="rp-q-label" for="rp-k9-daerah">K-9. Daerah mengajar <span class="opsional">(opsional)</span></label>
+    <label class="rp-q-label" style="color:var(--gold)" for="rp-k9-daerah">K-9. Daerah mengajar <span class="opsional">(opsional)</span></label>
     <input type="text" id="rp-k9-daerah" class="rp-input" placeholder="Contoh: Ujungbatu, Riau, Indonesia" value="${esc(kk.daerah||'')}">
   </div>
 
