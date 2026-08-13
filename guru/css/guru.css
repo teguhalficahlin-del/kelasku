@@ -3003,6 +3003,8 @@ h2.panel-header.open .panel-collapse-arrow {
   color: var(--text-primary);
   font-size: var(--fs-ui);
   user-select: none;
+  text-transform: none;
+  letter-spacing: normal;
 }
 
 .rp-elemen-check:hover {
