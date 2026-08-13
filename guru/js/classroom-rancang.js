@@ -422,7 +422,11 @@
 
     const jenjang  = _settings.jenjang  || '—';
     const mapel    = _settings.mapel    || '—';
-    const fase     = _settings.fase     || '—';
+    const faseRaw  = _settings.fase || '';
+    const faseLabel = faseRaw
+      ? faseRaw.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+      : '—';
+    const fase = faseLabel;
     const bidang   = _settings.bidang_keahlian  || null;
     const program  = _settings.program_keahlian || null;
 
