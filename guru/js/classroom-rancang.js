@@ -475,6 +475,70 @@
       if (_ans.jenjang === 'SMK') renderStep2();
       else renderStep3A();
     });
+
+    // Tampilkan CP + tombol simpan jika data tersedia
+    if (_cpElemen.length || _cpUmum) {
+      renderCpReadOnly();
+    } else if (_ans.mapelKey && _settings?.fase) {
+      // Fetch CP jika belum ada di state
+      fetchCpData(_ans.mapelKey, _settings.fase).then(cpFase => {
+        if (!cpFase) return;
+        _cpElemen  = cpFase.elemen  || [];
+        _cpUmum    = cpFase.cp_umum || '';
+        renderCpReadOnly();
+      });
+    }
+
+    function renderCpReadOnly() {
+      const body = el('rp-body');
+      if (!body) return;
+
+      const elemenHtml = _cpElemen.map(e => `
+<div class="rp-cp-elemen">
+  <div class="rp-cp-elemen-nama">${esc(e.nama)}</div>
+  <div class="rp-cp-normatif">${esc(e.cp_normatif)}</div>
+</div>`).join('');
+
+      const cpBlock = document.createElement('div');
+      cpBlock.className = 'rp-block';
+      cpBlock.id = 'rp-cp-block';
+      cpBlock.innerHTML = `
+<div class="rp-block-title">Capaian Pembelajaran</div>
+${_cpUmum ? `<p class="rp-cp-umum">${esc(_cpUmum)}</p>` : ''}
+${elemenHtml}
+<div class="rp-save-row" style="margin-top:var(--space-md);">
+  <button type="button" class="rp-btn-simpan" id="rp-btn-simpan-cp">
+    💾 Simpan CP
+  </button>
+  <span class="rp-identitas-status" id="rp-cp-status"></span>
+</div>`;
+
+      body.appendChild(cpBlock);
+
+      el('rp-btn-simpan-cp')?.addEventListener('click', async () => {
+        const btn    = el('rp-btn-simpan-cp');
+        const status = el('rp-cp-status');
+        btn.disabled = true;
+        btn.textContent = 'Menyimpan…';
+        try {
+          const judul  = `CP — ${_ans.mapel} ${_settings?.fase?.replace(/_/g,' ').toUpperCase() || ''}`.trim();
+          const konten = { elemen: _cpElemen, cp_umum: _cpUmum, mapel: _ans.mapel, fase: _settings?.fase };
+          const doc = await SipApi.simpanRancangDokumen(_cId, 'CP', judul, konten, null);
+          _dokumen = [doc, ..._dokumen.filter(d => d.jenis !== 'CP')];
+          btn.disabled = false;
+          btn.textContent = '💾 Simpan CP';
+          if (status) {
+            status.textContent = '✓ Tersimpan';
+            setTimeout(() => { status.textContent = ''; }, 2500);
+          }
+        } catch (e) {
+          console.error('[rancang] simpan CP gagal:', e);
+          btn.disabled = false;
+          btn.textContent = '💾 Simpan CP';
+          if (status) status.textContent = '✗ Gagal';
+        }
+      });
+    }
   }
 
   async function renderStep1P1b() {
@@ -1350,9 +1414,15 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
   <p style="font-size:var(--fs-caption);color:var(--text-secondary);margin-bottom:var(--space-md);">Pilih satu TP yang ingin dirancang detail. Edit judul jika perlu setelah memilih.</p>
   <div class="rp-atp-list">${cards}</div>
   <div id="rp-atp-error" class="error-msg" style="display:none;"></div>
-  <div class="rp-action-row">
-    ${btnSecondary('rp-btn-back4','← Kembali ke preferensi')}
-  </div>
+<div class="rp-save-row" style="margin-top:var(--space-md);">
+  <button type="button" class="rp-btn-simpan" id="rp-btn-simpan-atp">
+    💾 Simpan ATP
+  </button>
+  <span class="rp-identitas-status" id="rp-atp-simpan-status"></span>
+</div>
+<div class="rp-nav-row" style="justify-content:space-between;margin-top:var(--space-md);">
+  ${btnSecondary('rp-btn-back4','← Kembali')}
+</div>
 </div>`;
 
     body.querySelectorAll('.rp-btn-rancang-tp').forEach(btn => {
@@ -1375,6 +1445,32 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
     });
 
     el('rp-btn-back4').addEventListener('click', () => { _step = 3; renderStep3B(); });
+
+    // Simpan ATP
+    el('rp-btn-simpan-atp')?.addEventListener('click', async () => {
+      const btn    = el('rp-btn-simpan-atp');
+      const status = el('rp-atp-simpan-status');
+      if (!_atpList.length) return;
+      btn.disabled = true;
+      btn.textContent = 'Menyimpan…';
+      try {
+        const judul  = `ATP — ${_ans.mapel} ${(_ans.fase || '').replace(/_/g,' ').toUpperCase()}`.trim();
+        const konten = { atp: _atpList, mapel: _ans.mapel, fase: _ans.fase, jenjang: _ans.jenjang };
+        const doc = await SipApi.simpanRancangDokumen(_cId, 'TP', judul, konten, null);
+        _dokumen = [doc, ..._dokumen.filter(d => d.jenis !== 'TP')];
+        btn.disabled = false;
+        btn.textContent = '💾 Simpan ATP';
+        if (status) {
+          status.textContent = '✓ Tersimpan';
+          setTimeout(() => { status.textContent = ''; }, 2500);
+        }
+      } catch (e) {
+        console.error('[rancang] simpan ATP gagal:', e);
+        btn.disabled = false;
+        btn.textContent = '💾 Simpan ATP';
+        if (status) status.textContent = '✗ Gagal';
+      }
+    });
   }
 
   function handleStep4Submit() {
@@ -1923,12 +2019,22 @@ ${sec1}${sec2}${sec3}${sec4}${sec5}
 </div>`;
     }
 
+    // Navigasi ke step relevan saat dokumen belum ada
+    function stepNav(jenis) {
+      if (jenis === 'CP')  return `<button type="button" class="rp-link-btn" data-goto="1">→ Lihat CP di Step 1</button>`;
+      if (jenis === 'TP')  return `<button type="button" class="rp-link-btn" data-goto="4">→ Generate ATP di Step 4</button>`;
+      if (jenis === 'RPM') return `<button type="button" class="rp-link-btn" data-goto="4">→ Rancang RPM di Step 4</button>`;
+      return '';
+    }
+
     function seksiDokumen(jenis, label) {
       const list = grouped[jenis];
       if (!list.length) return `
 <div class="rp-dok-seksi">
   <div class="rp-dok-seksi-title">${label}</div>
-  <div class="rp-dok-kosong">Belum ada dokumen ${label} yang disimpan.</div>
+  <div class="rp-dok-kosong">
+    Belum tersimpan. ${stepNav(jenis)}
+  </div>
 </div>`;
       return `
 <div class="rp-dok-seksi">
@@ -1937,15 +2043,31 @@ ${sec1}${sec2}${sec3}${sec4}${sec5}
 </div>`;
     }
 
+    // RPM dikelompokkan per TP
+    const rpmList = grouped['RPM'];
+
     const dokumenHtml = `
 <div class="rp-block">
   <div class="rp-block-title">Dokumen Tersimpan</div>
-  ${seksiDokumen('RPM','Rencana Pembelajaran')}
-  ${seksiDokumen('TP','Alur Tujuan Pembelajaran')}
   ${seksiDokumen('CP','Capaian Pembelajaran')}
+  ${seksiDokumen('TP','Alur Tujuan Pembelajaran')}
+  <div class="rp-dok-seksi">
+    <div class="rp-dok-seksi-title">Rencana Pembelajaran (per TP)</div>
+    ${rpmList.length
+      ? rpmList.map(dokumenKartu).join('')
+      : `<div class="rp-dok-kosong">Belum tersimpan. ${stepNav('RPM')}</div>`}
+  </div>
 </div>`;
 
     body.innerHTML = identitasHtml + dokumenHtml;
+
+    // ── Navigasi dari placeholder ──────────────────────────────
+    body.querySelectorAll('[data-goto]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const n = parseInt(btn.dataset.goto);
+        if (n) navigateToStep(n);
+      });
+    });
 
     // ── Simpan identitas ───────────────────────────────────────
     el('rp-btn-simpan-identitas')?.addEventListener('click', async () => {
