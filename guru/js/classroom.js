@@ -1023,14 +1023,18 @@
 
     const { data: classroom, error: clError } = await client
       .from('classrooms')
-      .select('id, name, subject, classroom_code, description')
+      .select('id, name, subject, classroom_code, description, jenjang, bidang_keahlian, program_keahlian, mapel_key, elemen_terpilih')
       .eq('id', classroomId)
       .eq('teacher_id', profile.id)
       .single();
     if (clError || !classroom) { window.location.href = 'dashboard.html'; return; }
     currentClassroom = classroom;
-    window._classroomName  = classroom.name;
-    window._classroomSubject = classroom.subject || '';
+    window._classroomName     = classroom.name;
+    window._classroomSubject  = classroom.subject || '';
+    window._classroomMapelKey = classroom.mapel_key || '';
+    window._classroomJenjang  = classroom.jenjang || '';
+    window._classroomBidang   = classroom.bidang_keahlian || '';
+    window._classroomProgram  = classroom.program_keahlian || '';
 
     document.getElementById('cl-name').textContent    = classroom.name;
     document.getElementById('cl-code').textContent    = classroom.classroom_code;

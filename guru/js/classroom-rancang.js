@@ -581,7 +581,6 @@ ${elemenHtml}`;
           _dokumen = [doc, ..._dokumen.filter(d => d.jenis !== 'CP')];
           // Simpan settings ke DB agar hasSettings = true saat refresh
           try {
-            console.log('[rancang][save-row] _ans saat Simpan CP:', { jenjang: _ans.jenjang, mapelKey: _ans.mapelKey, mapel: _ans.mapel, fase: _ans.fase });
             await SipApi.upsertRancangSettings(_cId, {
               jenjang:          _ans.jenjang,
               mapel_key:        _ans.mapelKey,
@@ -591,7 +590,6 @@ ${elemenHtml}`;
               program_keahlian: _ans.programKeahlian ?? null,
               elemen_terpilih:  _ans.elemenTerpilih  ?? [],
             });
-            console.log('[rancang][save-row] settings upserted OK');
           } catch (upsertErr) { console.error('[rancang][save-row] upsert settings gagal:', upsertErr); }
           _settings = {
             ...(_settings || {}),
@@ -910,6 +908,38 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
     const btn = el('rp-btn-cp');
     if (btn) { btn.disabled = true; btn.textContent = 'Memuat CP…'; }
 
+    // Simpan settings ke DB sebelum AI generate — tersimpan meski AI gagal
+    try {
+      await SipApi.upsertRancangSettings(_cId, {
+        jenjang:          _ans.jenjang,
+        mapel_key:        _ans.mapelKey,
+        mapel:            _ans.mapel,
+        fase:             _ans.fase,
+        bidang_keahlian:  _ans.bidangKeahlian  ?? null,
+        program_keahlian: _ans.programKeahlian ?? null,
+        elemen_terpilih:  _ans.elemenTerpilih  ?? [],
+      });
+      _settings = {
+        ...(_settings || {}),
+        jenjang:          _ans.jenjang,
+        mapel_key:        _ans.mapelKey,
+        mapel:            _ans.mapel,
+        fase:             _ans.fase,
+        bidang_keahlian:  _ans.bidangKeahlian  ?? null,
+        program_keahlian: _ans.programKeahlian ?? null,
+        elemen_terpilih:  _ans.elemenTerpilih  ?? [],
+      };
+      try {
+        await SipApi.updateClassroomRancang(_cId, {
+          jenjang:          _ans.jenjang,
+          mapel_key:        _ans.mapelKey,
+          bidang_keahlian:  _ans.bidangKeahlian  ?? null,
+          program_keahlian: _ans.programKeahlian ?? null,
+          elemen_terpilih:  _ans.elemenTerpilih?.length ? _ans.elemenTerpilih : null,
+        });
+      } catch (clErr) { console.error('[rancang] updateClassroomRancang gagal:', clErr); }
+    } catch (settingsErr) { console.error('[rancang] upsertRancangSettings gagal:', settingsErr); }
+
     try {
       const cpFase = await fetchCpData(mapelKey, fase);
 
@@ -1011,7 +1041,9 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
   // container: elemen parent untuk appendChild / insertBefore
   // beforeEl:  jika diisi, save-row disisipkan sebelum elemen ini
   function attachSimpanCpRow(container, beforeEl) {
-    if (!container || el('rp-btn-simpan-cp') || !_cpElemen.length) return;
+    if (!container || !_cpElemen.length) return;
+    // Hapus save-row lama agar tidak duplikat jika mapel diganti dalam sesi yang sama
+    el('rp-btn-simpan-cp')?.closest('.rp-save-row')?.remove();
     const alreadySaved = _dokumen.some(d => d.jenis === 'CP');
     const saveRow = document.createElement('div');
     saveRow.className = 'rp-save-row';
@@ -1043,7 +1075,6 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
         _dokumen = [doc, ..._dokumen.filter(d => d.jenis !== 'CP')];
         // Simpan settings ke DB agar hasSettings = true saat refresh
         try {
-          console.log('[rancang][nav-row] _ans saat Simpan CP:', { jenjang: _ans.jenjang, mapelKey: _ans.mapelKey, mapel: _ans.mapel, fase: _ans.fase });
           await SipApi.upsertRancangSettings(_cId, {
             jenjang:          _ans.jenjang,
             mapel_key:        _ans.mapelKey,
@@ -1053,7 +1084,6 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
             program_keahlian: _ans.programKeahlian ?? null,
             elemen_terpilih:  _ans.elemenTerpilih  ?? [],
           });
-          console.log('[rancang][nav-row] settings upserted OK');
         } catch (upsertErr) { console.error('[rancang][nav-row] upsert settings gagal:', upsertErr); }
         _settings = {
           ...(_settings || {}),
@@ -1584,6 +1614,8 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
   </div>
 </div>`).join('');
 
+    const atpSudahSimpan = _dokumen.some(d => d.jenis === 'TP');
+
     body.innerHTML = `
 <div class="rp-block">
   <div class="rp-block-title">Draft Alur Tujuan Pembelajaran</div>
@@ -1591,8 +1623,9 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
   <div class="rp-atp-list">${cards}</div>
   <div id="rp-atp-error" class="error-msg" style="display:none;"></div>
 <div class="rp-save-row" style="margin-top:var(--space-md);">
-  <button type="button" class="rp-btn-simpan" id="rp-btn-simpan-atp">
-    💾 Simpan ATP
+  <button type="button" class="rp-btn-simpan" id="rp-btn-simpan-atp"
+    ${atpSudahSimpan ? 'disabled style="background:var(--success,#2d6a4f);cursor:default;"' : ''}>
+    ${atpSudahSimpan ? '✓ Tersimpan' : '💾 Simpan ATP'}
   </button>
   <span class="rp-identitas-status" id="rp-atp-simpan-status"></span>
 </div>
@@ -1626,7 +1659,7 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
     el('rp-btn-simpan-atp')?.addEventListener('click', async () => {
       const btn    = el('rp-btn-simpan-atp');
       const status = el('rp-atp-simpan-status');
-      if (!_atpList.length) return;
+      if (!_atpList.length || btn?.disabled) return;
       btn.disabled = true;
       btn.textContent = 'Menyimpan…';
       try {
@@ -1634,12 +1667,11 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
         const konten = { atp: _atpList, mapel: _ans.mapel, fase: _ans.fase, jenjang: _ans.jenjang };
         const doc = await SipApi.simpanRancangDokumen(_cId, 'TP', judul, konten, null);
         _dokumen = [doc, ..._dokumen.filter(d => d.jenis !== 'TP')];
-        btn.disabled = false;
-        btn.textContent = '💾 Simpan ATP';
-        if (status) {
-          status.textContent = '✓ Tersimpan';
-          setTimeout(() => { status.textContent = ''; }, 2500);
-        }
+        btn.textContent = '✓ Tersimpan';
+        btn.style.background = 'var(--success,#2d6a4f)';
+        btn.style.cursor = 'default';
+        btn.disabled = true;
+        if (status) status.textContent = '';
       } catch (e) {
         console.error('[rancang] simpan ATP gagal:', e);
         btn.disabled = false;
@@ -1970,6 +2002,7 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
     if (!body) return;
 
     const tp = _ans.tp_terpilih;
+    const rpmSudahSimpan = _dokumen.some(d => d.jenis === 'RPM' && d.tp_id === (tp?.id || tp?.judul));
 
     // ── 1. Tujuan praktis
     const sec1 = buildOutputSection('rp-out-1', '1. Tujuan Pembelajaran', `
@@ -2026,8 +2059,9 @@ ${sec1}${sec2}${sec3}${sec4}${sec5}
   ${btnSecondary('rp-btn-reset','⟳ Mulai dari awal')}
 </div>
 <div class="rp-save-row">
-  <button type="button" class="rp-btn-simpan" id="rp-btn-simpan-rpm">
-    💾 Simpan RPM ini
+  <button type="button" class="rp-btn-simpan" id="rp-btn-simpan-rpm"
+    ${rpmSudahSimpan ? 'disabled style="background:var(--success,#2d6a4f);cursor:default;"' : ''}>
+    ${rpmSudahSimpan ? '✓ Tersimpan' : '💾 Simpan RPM ini'}
   </button>
   <button type="button" class="rp-btn-dokumen" id="rp-btn-lihat-dokumen">
     📄 Lihat semua dokumen →
@@ -2051,7 +2085,7 @@ ${sec1}${sec2}${sec3}${sec4}${sec5}
     el('rp-btn-simpan-rpm')?.addEventListener('click', async () => {
       const btn = el('rp-btn-simpan-rpm');
       const tp  = _ans.tp_terpilih;
-      if (!tp || !_rencana) return;
+      if (!tp || !_rencana || btn?.disabled) return;
       btn.disabled = true;
       btn.textContent = 'Menyimpan…';
       try {
@@ -2069,12 +2103,9 @@ ${sec1}${sec2}${sec3}${sec4}${sec5}
         );
         _dokumen = [doc, ..._dokumen.filter(d => d.tp_id !== (tp.id || tp.judul))];
         btn.textContent = '✓ Tersimpan';
-        btn.style.background = 'var(--success, #2d6a4f)';
-        setTimeout(() => {
-          btn.disabled = false;
-          btn.textContent = '💾 Simpan RPM ini';
-          btn.style.background = '';
-        }, 2500);
+        btn.style.background = 'var(--success,#2d6a4f)';
+        btn.style.cursor = 'default';
+        btn.disabled = true;
       } catch (e) {
         console.error('[rancang] simpan RPM gagal:', e);
         btn.disabled = false;
@@ -2435,17 +2466,27 @@ ${sec1}${sec2}${sec3}${sec4}${sec5}
 
     // Auto-fill dari identitas kelas — SETELAH restore,
     // hanya isi field yang masih kosong setelah restore localStorage
-    if (!_ans.mapel && window._classroomSubject) {
-      const guessedKey = normalizeMapelKey(window._classroomSubject);
-      if (guessedKey) {
-        _ans.mapelKey = guessedKey;
-        _ans.mapel    = window._classroomSubject;
-        const nm = (window._classroomName || '').toLowerCase();
-        if (!_ans.jenjang) {
-          if (nm.includes('smk'))      _ans.jenjang = 'SMK';
-          else if (nm.includes('sma')) _ans.jenjang = 'SMA';
-          else if (nm.includes('smp') || /kelas [789]/.test(nm)) _ans.jenjang = 'SMP';
-          else if (nm.includes('sd')  || /kelas [123456]/.test(nm)) _ans.jenjang = 'SD';
+    if (!_ans.mapel) {
+      if (window._classroomMapelKey) {
+        // Classroom sudah pernah isi rancang: gunakan identitas tersimpan di kolom classrooms
+        _ans.mapelKey = window._classroomMapelKey;
+        _ans.mapel    = window._classroomSubject || window._classroomMapelKey;
+        if (!_ans.jenjang         && window._classroomJenjang)  _ans.jenjang         = window._classroomJenjang;
+        if (!_ans.bidangKeahlian  && window._classroomBidang)   _ans.bidangKeahlian  = window._classroomBidang;
+        if (!_ans.programKeahlian && window._classroomProgram)  _ans.programKeahlian = window._classroomProgram;
+      } else if (window._classroomSubject) {
+        // Classroom lama: fallback normalizeMapelKey dari subject
+        const guessedKey = normalizeMapelKey(window._classroomSubject);
+        if (guessedKey) {
+          _ans.mapelKey = guessedKey;
+          _ans.mapel    = window._classroomSubject;
+          const nm = (window._classroomName || '').toLowerCase();
+          if (!_ans.jenjang) {
+            if (nm.includes('smk'))      _ans.jenjang = 'SMK';
+            else if (nm.includes('sma')) _ans.jenjang = 'SMA';
+            else if (nm.includes('smp') || /kelas [789]/.test(nm)) _ans.jenjang = 'SMP';
+            else if (nm.includes('sd')  || /kelas [123456]/.test(nm)) _ans.jenjang = 'SD';
+          }
         }
       }
     }

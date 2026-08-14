@@ -100,6 +100,15 @@
       return data;
     },
 
+    async updateClassroomRancang(id, payload) {
+      return client
+        .from('classrooms')
+        .update(payload)
+        .eq('id', id)
+        .select('id, jenjang, mapel_key, bidang_keahlian, program_keahlian, elemen_terpilih')
+        .single();
+    },
+
     async upsertRancangSettings(classroomId, payload) {
       const { data, error } = await client
         .from('rancang_settings')
