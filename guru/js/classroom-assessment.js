@@ -1821,6 +1821,23 @@ ${tpSection}
       const cId = new URLSearchParams(window.location.search).get('id');
       if (cId) try { localStorage.setItem('sip_tab_' + cId, 'penilaian'); } catch (_) {}
 
+      // Trial gate — fitur hanya untuk AKTIF
+      let _ts = null;
+      try { _ts = JSON.parse(sessionStorage.getItem('guru_trial_status') || 'null'); } catch (_) {}
+      if (!_ts) {
+        try {
+          const { data } = await window.supabaseClient.rpc('fn_guru_trial_status');
+          if (data) { _ts = data; sessionStorage.setItem('guru_trial_status', JSON.stringify(_ts)); }
+        } catch (_) {}
+      }
+      if (_ts && _ts.status !== 'AKTIF') {
+        panelPenilaian.innerHTML =
+          '<div style="padding:1.5rem;color:var(--text-secondary);font-size:var(--fs-body);">' +
+          'Fitur ini hanya tersedia untuk akun Guru. Hubungi admin untuk aktivasi.' +
+          '</div>';
+        return;
+      }
+
       if (!_loaded) {
         const { data: { session } } = await window.supabaseClient.auth.getSession();
         if (!session) return;

@@ -71,7 +71,7 @@
       return bar;
     }
 
-    var isExpired = trialStatus && trialStatus.status === 'expired';
+    var isExpired = trialStatus && trialStatus.status === 'EXPIRED';
     var cardsHtml = '';
     pageRows.forEach(function (r, i) {
       var globalIdx  = startIdx + i;
@@ -511,7 +511,7 @@
     btnGen.textContent   = 'Generate Terpilih (' + countChecked + ')';
     btnHapus.textContent = 'Hapus Terpilih (' + countChecked + ')';
 
-    var isExpired = trialStatus && trialStatus.status === 'expired';
+    var isExpired = trialStatus && trialStatus.status === 'EXPIRED';
     btnGen.disabled   = countChecked === 0 || isExpired;
     btnHapus.disabled = countChecked === 0 || isExpired;
   }
@@ -767,7 +767,7 @@
   }
 
   function applyTrialGate() {
-    if (!trialStatus || trialStatus.status !== 'expired') return;
+    if (!trialStatus || trialStatus.status !== 'EXPIRED') return;
     const hint = 'Aktifkan akun untuk menggunakan fitur ini';
 
     const btnGenTerpilih = document.getElementById('btn-gen-terpilih');

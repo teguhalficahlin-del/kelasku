@@ -287,6 +287,14 @@ window.initCustomSelect = function (nativeEl, onChange) {
       // Buka card pertama secara default
       const firstCard = list.querySelector('.classroom-card');
       if (firstCard) openCard(firstCard);
+
+      // Batasi 1 classroom untuk status TRIAL
+      const _ts = JSON.parse(sessionStorage.getItem('guru_trial_status') || 'null');
+      if (_ts && _ts.status === 'TRIAL' && classrooms.length >= 1) {
+        const btnBuat = document.getElementById('btn-buat-classroom');
+        btnBuat.disabled = true;
+        btnBuat.title    = 'Upgrade ke Guru untuk membuat lebih dari 1 kelas';
+      }
     }
 
     // -- Modal multi-step --
