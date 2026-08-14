@@ -30,8 +30,8 @@
   const STATUS_GRUP  = { PAHAM: 'A', BELUM_PAHAM: 'B', PERLU_PERHATIAN: 'C' };
   const STATUS_LBL   = { PAHAM: 'Paham', BELUM_PAHAM: 'Belum Paham', PERLU_PERHATIAN: 'Perlu Perhatian' };
   const JENIS_LBL    = { DIAGNOSTIK: 'Diagnostik', FORMATIF: 'Formatif', SUMATIF: 'Sumatif' };
-  const TIPE_LBL     = { CP: 'CP', TP: 'TP', KKTP: 'KKTP', NILAI: 'Nilai', LAINNYA: 'Lainnya' };
-  const TIPE_COLOR   = { CP: '#4a7c59', TP: 'var(--gold)', KKTP: '#7c4a7c', NILAI: '#4a607c', LAINNYA: '#555' };
+  const TIPE_LBL     = { CP: 'CP', TP: 'TP', KKTP: 'KKTP' };
+  const TIPE_COLOR   = { CP: '#4a7c59', TP: 'var(--gold)', KKTP: '#7c4a7c' };
 
   // ─── Micro-helpers ──────────────────────────────────────────────────────────
   function esc(s) {
@@ -296,7 +296,7 @@
 <div style="display:flex;align-items:center;gap:.5rem;padding:.375rem .75rem;
     margin-left:1.25rem;border-left:2px solid var(--border-subtle,rgba(255,255,255,.12))">
   <span style="flex:1;font-size:var(--fs-caption);color:var(--text-secondary)">
-    ${esc(k.judul)}${k.batas_bawah != null ? ` — ${k.batas_bawah}–${k.batas_atas}` : ''}
+    ${esc(k.judul)}${k.batas_bawah != null ? ` (≥${k.batas_bawah})` : ''}
   </span>
   <button type="button" data-action="edit-tp" data-id="${k.id}"
     style="background:transparent;border:none;cursor:pointer;font-size:1rem;padding:.2rem .35rem;border-radius:.25rem;line-height:1;opacity:.7" title="Edit">✏️</button>
@@ -337,7 +337,7 @@
 
     let selTipe = item?.tipe ?? 'TP';
 
-    const tipeChips = ['CP', 'TP', 'KKTP', 'NILAI', 'LAINNYA']
+    const tipeChips = ['CP', 'TP', 'KKTP']
       .map(t => chipHtml(t, TIPE_LBL[t], selTipe === t)).join('');
 
     const parentOpts = tpOpts.map(t =>
@@ -371,17 +371,10 @@
       style="${inputCss('resize:vertical')}"
       placeholder="Teks capaian pembelajaran…">${esc(item?.konten ?? '')}</textarea>
   </div>
-  <div id="tp-range-row" style="${selTipe === 'KKTP' ? 'display:flex;gap:.75rem' : 'display:none'}">
-    <div style="flex:1">
-      ${fieldLbl('Batas Bawah')}
-      <input id="tp-bawah" type="number" min="0" max="100" step="0.5"
-        value="${item?.batas_bawah ?? ''}" style="${inputCss()}">
-    </div>
-    <div style="flex:1">
-      ${fieldLbl('Batas Atas')}
-      <input id="tp-atas" type="number" min="0" max="100" step="0.5"
-        value="${item?.batas_atas ?? ''}" style="${inputCss()}">
-    </div>
+  <div id="tp-range-row" style="${selTipe === 'KKTP' ? '' : 'display:none'}">
+    ${fieldLbl('Batas KKTP (nilai minimum ketercapaian)')}
+    <input id="tp-batas-kktp" type="number" min="0" max="100" step="0.5"
+      value="${item?.batas_bawah ?? ''}" style="${inputCss()}">
   </div>
   <div style="display:flex;gap:.75rem">
     <div style="flex:1">
@@ -413,9 +406,7 @@
       selTipe = val;
       el('tp-parent-row').style.display = val === 'KKTP' ? '' : 'none';
       el('tp-konten-row').style.display = val === 'KKTP' ? 'none' : '';
-      const rangeRow = el('tp-range-row');
-      rangeRow.style.display = val === 'KKTP' ? 'flex' : 'none';
-      if (val === 'KKTP') rangeRow.style.gap = '.75rem';
+      el('tp-range-row').style.display = val === 'KKTP' ? '' : 'none';
     });
 
     el('btn-tp-save').addEventListener('click', async () => {
@@ -430,10 +421,9 @@
         judul,
         konten:       selTipe !== 'KKTP' ? (el('tp-konten').value.trim() || null) : null,
         parent_id:    selTipe === 'KKTP' ? (el('tp-parent-sel').value || null) : null,
-        batas_bawah:  selTipe === 'KKTP' && el('tp-bawah').value !== ''
-                        ? parseFloat(el('tp-bawah').value) : null,
-        batas_atas:   selTipe === 'KKTP' && el('tp-atas').value !== ''
-                        ? parseFloat(el('tp-atas').value) : null,
+        batas_bawah:  selTipe === 'KKTP' && el('tp-batas-kktp').value !== ''
+                        ? parseFloat(el('tp-batas-kktp').value) : null,
+        batas_atas:   null,
         academic_year: el('tp-year').value.trim() || DEFAULT_YEAR,
         semester:     parseInt(el('tp-sem').value) || 1,
       };
