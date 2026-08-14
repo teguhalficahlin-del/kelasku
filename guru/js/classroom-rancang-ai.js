@@ -195,8 +195,75 @@ async function generateDocxRancang(konten, jenis, judul, identitas) {
 
       ...ttdSection(),
     ];
+  } else if (jenis === 'CP') {
+    const cpUmum   = konten.cp_umum   || '';
+    const elemen   = konten.elemen    || [];
+    const ringkasan= konten.ringkasan || [];
+    const mapelLabel = konten.mapel   || '';
+    const faseLabel  = (konten.fase   || '').replace(/_/g, ' ').toUpperCase();
+
+    children = [
+      p('CAPAIAN PEMBELAJARAN', { bold: true, size: 28, align: AlignmentType.CENTER, after: 60 }),
+      p(`${mapelLabel}${faseLabel ? ' — ' + faseLabel : ''}`,
+        { align: AlignmentType.CENTER, after: 60, color: '555555' }),
+      p(`Tahun Ajaran ${tahunAj} | Semester ${semester}`,
+        { align: AlignmentType.CENTER, after: 240, color: '555555' }),
+      hr(),
+
+      ...(cpUmum ? [p('Deskripsi Umum', { bold: true, after: 60 }), p(cpUmum, { after: 200 })] : []),
+
+      p('Elemen Capaian Pembelajaran', { bold: true, after: 80 }),
+      ...elemen.flatMap(e => {
+        const r = ringkasan.find(x => x.elemen === e.nama);
+        const konkret = r?.konkret;
+        return [
+          p(e.nama, { bold: true, after: 40 }),
+          p(e.cp_normatif || '-', { after: konkret ? 60 : 160, color: '333333' }),
+          ...(konkret ? [p('Gambaran Pencapaian: ' + konkret, { after: 160, color: '555555' })] : []),
+        ];
+      }),
+
+      p('', { after: 240 }),
+      ...ttdSection(),
+    ];
+  } else if (jenis === 'TP') {
+    const atpList   = konten.atp     || [];
+    const mapelLabel = konten.mapel  || '';
+    const faseLabel  = (konten.fase  || '').replace(/_/g, ' ').toUpperCase();
+    const jenjangLabel = konten.jenjang || '';
+
+    children = [
+      p('ALUR TUJUAN PEMBELAJARAN (ATP)', { bold: true, size: 28, align: AlignmentType.CENTER, after: 60 }),
+      p(`${mapelLabel}${jenjangLabel ? ' — ' + jenjangLabel : ''}${faseLabel ? ' — ' + faseLabel : ''}`,
+        { align: AlignmentType.CENTER, after: 60, color: '555555' }),
+      p(`Tahun Ajaran ${tahunAj} | Semester ${semester}`,
+        { align: AlignmentType.CENTER, after: 240, color: '555555' }),
+      hr(),
+
+      new Table({
+        width: { size: 100, type: WidthType.PERCENTAGE },
+        rows: [
+          new TableRow({ children: [
+            cell('No', { bold: true, shading: 'F0F0F0', width: 6 }),
+            cell('Judul TP', { bold: true, shading: 'F0F0F0', width: 30 }),
+            cell('Deskripsi', { bold: true, shading: 'F0F0F0', width: 40 }),
+            cell('Elemen CP', { bold: true, shading: 'F0F0F0', width: 14 }),
+            cell('Est. JP', { bold: true, shading: 'F0F0F0', width: 10 }),
+          ]}),
+          ...atpList.map((tp, i) => new TableRow({ children: [
+            cell(String(tp.urutan || i + 1)),
+            cell(tp.judul || '-'),
+            cell(tp.deskripsi || '-'),
+            cell(tp.elemen_cp || '-'),
+            cell(tp.estimasi_jp ? `${tp.estimasi_jp} JP` : '-'),
+          ]})),
+        ],
+      }),
+
+      p('', { after: 240 }),
+      ...ttdSection(),
+    ];
   } else {
-    // CP / TP — struktur sederhana
     children = [
       p(judul, { bold: true, size: 28, align: AlignmentType.CENTER, after: 240 }),
       hr(),

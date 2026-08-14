@@ -123,6 +123,10 @@
         if (!_rencana) { if (_ans.tp_terpilih) { _step = 5; renderStep5(); } return; }
         _step = 6; renderStep6(_rencana);
         break;
+      case 7:
+        if (!_dokumen.length) return;
+        _step = 7; renderStep7();
+        break;
     }
   }
 
