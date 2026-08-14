@@ -1,1857 +1,995 @@
 (function () {
   'use strict';
+
   const client = window.supabaseClient;
-
-  let classroomId = null;
-  let teacherId   = null;
-  let _roster      = [];
-  let _items       = [];
-  let _grades      = [];
-  let _assessments = [];
-  let _pelTab      = 'DIAGNOSTIK';
-  let _loaded      = false;
-  let _year       = '';
-  let _semester   = 1;
-  let _sdAC            = null;
-  let _origCriteriaIds = [];
-
-  const YEAR_RE = /^\d{4}\/\d{4}$/;
-
-  // ─── Helpers ────────────────────────────────────────────────────────────────
-
-  function esc(s) {
-    return String(s ?? '')
-      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-  }
-
-  // ─── API — assessment_items ─────────────────────────────────────────────────
-
-  async function loadItems() {
-    const { data, error } = await client
-      .from('assessment_items')
-      .select('id, judul, tipe, konten, urutan, parent_id, batas_bawah, batas_atas, is_visible_siswa, is_visible_ortu, is_active')
-      .eq('classroom_id', classroomId)
-      .eq('academic_year', _year)
-      .eq('semester', _semester)
-      .order('urutan').order('judul');
-    _items = error ? [] : (data || []);
-  }
-
-  async function saveItem(payload) {
-    const { data, error } = await client
-      .from('assessment_items')
-      .insert({ ...payload, classroom_id: classroomId, teacher_id: teacherId,
-                academic_year: _year, semester: _semester })
-      .select('id')
-      .single();
-    if (error) throw error;
-    return data;
-  }
-
-  async function updateItem(id, payload) {
-    const { error } = await client.from('assessment_items').update(payload).eq('id', id);
-    if (error) throw error;
-  }
-
-  async function deleteItem(id) {
-    const { error } = await client.from('assessment_items').delete().eq('id', id);
-    if (error) throw error;
-  }
-
-  // ─── API — student_grades ───────────────────────────────────────────────────
-
-  async function loadGrades() {
-    const { data, error } = await client
-      .from('student_grades')
-      .select('id, student_id, judul, nilai_angka, deskripsi, is_published, assessment_id, tindak_lanjut')
-      .eq('classroom_id', classroomId)
-      .eq('academic_year', _year)
-      .eq('semester', _semester)
-      .order('judul').order('student_id');
-    _grades = error ? [] : (data || []);
-  }
-
-  async function saveGrade(payload) {
-    const { data, error } = await client
-      .from('student_grades')
-      .insert({ ...payload, classroom_id: classroomId, teacher_id: teacherId,
-                academic_year: _year, semester: _semester })
-      .select('id')
-      .single();
-    if (error) throw error;
-    return data;
-  }
-
-  async function updateGrade(id, payload) {
-    const { error } = await client.from('student_grades').update(payload).eq('id', id);
-    if (error) throw error;
-  }
-
-  async function deleteGrade(id) {
-    const { error } = await client.from('student_grades').delete().eq('id', id);
-    if (error) throw error;
-  }
-
-  // ─── API — roster ───────────────────────────────────────────────────────────
-
-  async function loadRoster() {
-    const { data } = await client
-      .from('classroom_roster')
-      .select('profile_id, full_name, nis')
-      .eq('classroom_id', classroomId)
-      .not('profile_id', 'is', null)
-      .order('full_name');
-    _roster = (data || []).map(r => ({ id: r.profile_id, full_name: r.full_name, nis: r.nis }));
-  }
-
-  async function loadAll() {
-    await Promise.all([loadItems(), loadGrades(), loadAssessments(), loadRoster()]);
-  }
-
-  // ─── Render ─────────────────────────────────────────────────────────────────
-
-  function renderAll() {
-    renderPerencanaan();
-    renderPelaksanaan();
-  }
-
-  function renderPerencanaan() {
-    const body = document.getElementById('pai-perencanaan-body');
-    if (!body) return;
-
-    const cp    = _items.find(i => i.tipe === 'CP' && !i.parent_id) || null;
-    const tps   = _items
-      .filter(i => i.tipe === 'TP' && !i.parent_id)
-      .sort((a, b) => (a.urutan ?? 999) - (b.urutan ?? 999));
-    const kktps = _items.filter(i => i.tipe === 'KKTP' && i.parent_id);
-
-    body.innerHTML =
-      `<div class="penilaian-filter-row" id="penilaian-filter-row">
-  <input id="pai-year" type="text" placeholder="2025/2026"
-    value="${esc(_year)}" maxlength="9" style="max-width:140px;">
-  <div class="custom-select" id="pai-semester-wrap">
-    <div class="custom-select-trigger" id="pai-semester-trigger"
-         role="button" aria-haspopup="listbox" tabindex="0">
-      <span id="pai-semester-label">Semester ${_semester}</span>
-      <span class="custom-select-arrow">▾</span>
-    </div>
-    <ul class="custom-select-list" id="pai-semester-list"
-        role="listbox" style="display:none">
-      <li class="custom-select-option${_semester === 1 ? ' selected' : ''}" data-value="1" role="option">Semester 1</li>
-      <li class="custom-select-option${_semester === 2 ? ' selected' : ''}" data-value="2" role="option">Semester 2</li>
-    </ul>
-  </div>
-  <button id="btn-export-penilaian" class="btn-sm" style="flex-shrink:0;margin-left:auto;">Export Excel</button>
-</div>
-<small style="font-size:var(--fs-caption);color:var(--text-muted);font-style:italic;margin-top:0.35rem;display:block;">Lakukan export sebelum semester berakhir untuk menyimpan data secara lokal.</small>
-<div id="pai-filter-error"
-  style="color:var(--danger);font-size:var(--fs-caption);min-height:1.2rem;margin-top:var(--space-xs);"></div>
-${renderCpSubsection(cp)}
-${renderTpSubsection(tps, kktps)}`;
-    initSemesterDropdown();
-    document.getElementById('btn-export-penilaian')?.addEventListener('click', e => {
-      e.stopPropagation();
-      if (!_assessments || _assessments.length === 0) {
-        alert('Belum ada data pelaksanaan penilaian untuk tahun ajaran dan semester ini. Isi nilai di section Pelaksanaan terlebih dahulu.');
-        return;
-      }
-      exportPenilaian();
-    });
-  }
-
-  function renderCpSubsection(cp) {
-    let bodyHtml;
-    if (!cp) {
-      bodyHtml = `
-<p class="pai-placeholder" style="padding:var(--space-md) 0;text-align:left;">Belum ada Capaian Pembelajaran.</p>
-<button class="btn-sm" data-action="cp-add">+ Tambah Capaian Pembelajaran</button>`;
-    } else {
-      bodyHtml = `
-<div class="pai-cp-preview">
-  <p class="pai-cp-text pai-cp-clamped" id="pai-cp-text">${esc(cp.konten || '—')}</p>
-  ${cp.konten && cp.konten.length > 100 ? `<button class="pai-cp-toggle" id="pai-cp-toggle">Selengkapnya</button>` : ''}
-</div>
-<div class="pai-item-actions">
-  <button class="btn-sm" data-action="cp-edit" data-id="${esc(cp.id)}">Edit</button>
-  <button class="btn-sm btn-sm-danger" data-action="cp-del" data-id="${esc(cp.id)}">Hapus</button>
-</div>`;
-    }
-    return `
-<div class="pai-subsec">
-  <div class="pai-subsec-header">
-    <span class="pai-subsec-title">Capaian Pembelajaran</span>
-    <span class="pai-chevron">▼</span>
-  </div>
-  <div class="pai-subsec-body" id="pai-cp-subsec-body" style="display:none">${bodyHtml}</div>
-</div>`;
-  }
-
-  function renderTpSubsection(tps, kktps) {
-    const count   = tps.length;
-    const tpItems = tps.map(tp => {
-      const tpKktps = kktps
-        .filter(k => k.parent_id === tp.id)
-        .sort((a, b) => (a.urutan ?? 999) - (b.urutan ?? 999));
-      return renderTpItem(tp, tpKktps);
-    }).join('');
-
-    return `
-<div class="pai-subsec">
-  <div class="pai-subsec-header">
-    <span class="pai-subsec-title">Tujuan Pembelajaran${count > 0 ? ' (' + count + ')' : ''}</span>
-    <span class="pai-chevron">▼</span>
-  </div>
-  <div class="pai-subsec-body" style="display:none">
-    ${count === 0
-      ? '<p class="pai-placeholder" style="padding:var(--space-md) 0;text-align:left;">Belum ada Tujuan Pembelajaran.</p>'
-      : tpItems}
-    <button class="btn-sm" data-action="tp-add"
-      style="margin-top:var(--space-sm);">+ Tambah Tujuan Pembelajaran</button>
-  </div>
-</div>`;
-  }
-
-  function renderTpItem(tp, kktpList) {
-    const kktpRows = kktpList.map(k => {
-      const rangeParts = [];
-      if (k.batas_bawah != null) rangeParts.push(k.batas_bawah);
-      if (k.batas_atas  != null) rangeParts.push(k.batas_atas);
-      const range = rangeParts.length === 2
-        ? `<span class="pai-kktp-range">${rangeParts[0]}–${rangeParts[1]}</span>`
-        : '';
-      return `
-<div class="pai-kktp-row">
-  <span class="pai-kktp-bullet">•</span>
-  <span style="flex:1;min-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(k.judul)}</span>
-  ${range}
-  <div class="pai-kktp-actions">
-    <button class="btn-sm" data-action="kktp-edit" data-id="${esc(k.id)}">Edit</button>
-    <button class="btn-sm btn-sm-danger" data-action="kktp-del" data-id="${esc(k.id)}">Hapus</button>
-  </div>
-</div>`;
-    }).join('');
-
-    return `
-<div class="pai-tp-row">
-  <div class="pai-tp-left">
-    <div class="pai-tp-headline">
-      <button class="pai-tp-toggle" data-action="tp-toggle"
-        data-tp-id="${esc(tp.id)}" data-count="${kktpList.length}"
-        title="Lihat/tutup KKTP">▶</button>
-      <span class="pai-tp-title">${esc(tp.judul)}</span>
-      <span class="pai-tp-count">${kktpList.length} KKTP</span>
-    </div>
-    <div id="pai-tp-body-${esc(tp.id)}" style="display:none">
-    ${tp.konten ? `
-      <p class="pai-cp-text pai-cp-clamped" id="pai-tp-text-${esc(tp.id)}">${esc(tp.konten)}</p>
-      ${tp.konten.length > 100 ? `<button class="pai-cp-toggle" id="pai-tp-toggle-${esc(tp.id)}">Selengkapnya</button>` : ''}
-    ` : ''}
-      <div class="pai-kktp-list" id="pai-kktp-list-${esc(tp.id)}">
-        ${kktpRows || '<p style="font-size:var(--fs-caption);color:var(--text-muted);margin:var(--space-xs) 0;">Belum ada KKTP.</p>'}
-        <button class="btn-sm" data-action="kktp-add" data-tp-id="${esc(tp.id)}"
-          style="font-size:var(--fs-caption);min-height:var(--btn-h-xs);padding:0 var(--btn-px-sm);margin-top:var(--space-xs);">+ Tambah KKTP</button>
-      </div>
-    </div>
-  </div>
-  <div class="pai-item-actions" style="flex-shrink:0;align-self:flex-start;">
-    <button class="btn-sm" data-action="tp-edit" data-id="${esc(tp.id)}">Edit</button>
-    <button class="btn-sm btn-sm-danger" data-action="tp-del" data-id="${esc(tp.id)}">Hapus</button>
-  </div>
-</div>`;
-  }
-
-  // ─── API — assessments ──────────────────────────────────────────────────────
-
-  async function loadAssessments() {
-    const { data, error } = await client
-      .from('assessments')
-      .select('id, judul, teknik, tanggal, jenis, tp_id, tindak_lanjut, catatan_tl, format_penilaian, is_published')
-      .eq('classroom_id', classroomId)
-      .eq('academic_year', _year)
-      .eq('semester', _semester)
-      .order('tanggal', { ascending: false }).order('judul');
-    _assessments = error ? [] : (data || []);
-  }
-
-  async function saveAssessment(payload) {
-    const { data, error } = await client
-      .from('assessments')
-      .insert({ ...payload, classroom_id: classroomId, teacher_id: teacherId,
-                academic_year: _year, semester: _semester })
-      .select('id').single();
-    if (error) throw error;
-    return data;
-  }
-
-  async function updateAssessment(id, payload) {
-    const { error } = await client.from('assessments').update(payload).eq('id', id);
-    if (error) throw error;
-  }
-
-  async function deleteAssessmentById(id) {
-    const { error } = await client.from('assessments').delete().eq('id', id);
-    if (error) throw error;
-  }
-
-  async function publishAssessment(id) {
-    const { error: e1 } = await client.from('assessments')
-      .update({ is_published: true }).eq('id', id);
-    if (e1) throw e1;
-    const { error: e2 } = await client.from('student_grades')
-      .update({ is_published: true }).eq('assessment_id', id).eq('classroom_id', classroomId);
-    if (e2) throw e2;
-  }
-
-  async function unpublishAssessment(id) {
-    const { error: e1 } = await client.from('assessments')
-      .update({ is_published: false }).eq('id', id);
-    if (e1) throw e1;
-    const { error: e2 } = await client.from('student_grades')
-      .update({ is_published: false }).eq('assessment_id', id).eq('classroom_id', classroomId);
-    if (e2) throw e2;
-  }
-
-  async function loadAssessmentGrades(assessmentId) {
-    const { data, error } = await client
-      .from('student_grades')
-      .select('id, student_id, nilai_angka, deskripsi, tindak_lanjut')
-      .eq('assessment_id', assessmentId);
-    return error ? [] : (data || []);
-  }
-
-  async function upsertAssessmentGrade(assessmentId, studentId, judulAsmt, payload) {
-    const isPublished = _assessments.find(a => a.id === assessmentId)?.is_published ?? false;
-    const { error } = await client.from('student_grades').upsert({
-      classroom_id: classroomId, teacher_id: teacherId,
-      academic_year: _year,      semester: _semester,
-      student_id: studentId,     assessment_id: assessmentId,
-      judul: judulAsmt,          is_published: isPublished,
-      ...payload
-    }, { onConflict: 'classroom_id,student_id,assessment_id' });
-    if (error) throw error;
-  }
-
-  async function upsertTindakLanjut(assessmentId, studentId, tindakLanjut) {
-    const { error } = await client.from('student_grades')
-      .update({ tindak_lanjut: tindakLanjut || null })
-      .eq('assessment_id', assessmentId)
-      .eq('student_id', studentId)
-      .eq('classroom_id', classroomId);
-    if (error) throw error;
-  }
-
-  async function loadKktpResults(assessmentId) {
-    const { data, error } = await client
-      .from('assessment_kktp_results')
-      .select('id, student_id, kktp_id, tercapai')
-      .eq('assessment_id', assessmentId);
-    return error ? [] : (data || []);
-  }
-
-  async function upsertKktpResult(assessmentId, studentId, kktpId, tercapai) {
-    const { error } = await client.from('assessment_kktp_results').upsert({
-      assessment_id: assessmentId, student_id: studentId,
-      kktp_id: kktpId,            classroom_id: classroomId,
-      teacher_id: teacherId,      tercapai
-    }, { onConflict: 'assessment_id,student_id,kktp_id' });
-    if (error) throw error;
-  }
-
-  // ─── API — assessment_rubric_criteria ───────────────────────────────────────
-
-  async function loadRubrikCriteria(assessmentId) {
-    const { data, error } = await client
-      .from('assessment_rubric_criteria')
-      .select('id, urutan, judul, bobot, deskripsi_baru_berkembang, deskripsi_layak, deskripsi_cakap, deskripsi_mahir')
-      .eq('assessment_id', assessmentId)
-      .order('urutan');
-    return error ? [] : (data || []);
-  }
-
-  async function saveRubrikCriteria(payload) {
-    const { data, error } = await client
-      .from('assessment_rubric_criteria')
-      .insert({ ...payload, classroom_id: classroomId, teacher_id: teacherId })
-      .select('id').single();
-    if (error) throw error;
-    return data;
-  }
-
-  async function updateRubrikCriteria(id, payload) {
-    const { error } = await client.from('assessment_rubric_criteria').update(payload).eq('id', id);
-    if (error) throw error;
-  }
-
-  async function deleteRubrikCriteria(id) {
-    const { error } = await client.from('assessment_rubric_criteria').delete().eq('id', id);
-    if (error) throw error;
-  }
-
-  // ─── API — assessment_rubric_results ────────────────────────────────────────
-
-  async function loadRubrikResults(assessmentId) {
-    const { data, error } = await client
-      .from('assessment_rubric_results')
-      .select('id, student_id, criteria_id, level')
-      .eq('assessment_id', assessmentId);
-    return error ? [] : (data || []);
-  }
-
-  async function upsertRubrikResult(assessmentId, criteriaId, studentId, level) {
-    const { error } = await client.from('assessment_rubric_results').upsert({
-      assessment_id: assessmentId, criteria_id: criteriaId,
-      student_id: studentId,       classroom_id: classroomId,
-      teacher_id: teacherId,       level
-    }, { onConflict: 'assessment_id,criteria_id,student_id' });
-    if (error) throw error;
-  }
-
-  // ─── Render — Pelaksanaan ────────────────────────────────────────────────────
-
-  function renderPelaksanaan() {
-    const body = document.getElementById('pai-pelaksanaan-body');
-    if (!body) return;
-
-    const diagn = _assessments.filter(a => a.jenis === 'DIAGNOSTIK_NK' || a.jenis === 'DIAGNOSTIK_K');
-    const form  = _assessments.filter(a => a.jenis === 'FORMATIF');
-    const sum   = _assessments.filter(a => a.jenis === 'SUMATIF');
-
-    const counterParts = [];
-    if (diagn.length) counterParts.push(`${diagn.length} Diagnostik`);
-    if (form.length)  counterParts.push(`${form.length} Formatif`);
-    if (sum.length)   counterParts.push(`${sum.length} Sumatif`);
-    const counter = counterParts.length
-      ? `<p style="font-size:var(--fs-caption);color:var(--text-secondary);margin:0 0 var(--space-sm) 0;">${counterParts.join(' · ')}</p>`
-      : '';
-
-    const tabStyle = (t) => t === _pelTab
-      ? `background:var(--gold);color:var(--text-on-gold);border:none;border-radius:var(--btn-r);padding:var(--space-xs) var(--space-sm);font-size:var(--fs-caption);font-weight:var(--fw-medium);cursor:pointer;min-height:var(--btn-h-xs);`
-      : `background:var(--bg-elevated);color:var(--text-secondary);border:1px solid var(--border);border-radius:var(--btn-r);padding:var(--space-xs) var(--space-sm);font-size:var(--fs-caption);font-weight:var(--fw-medium);cursor:pointer;min-height:var(--btn-h-xs);`;
-
-    const tabs = ['DIAGNOSTIK', 'FORMATIF', 'SUMATIF'].map(t =>
-      `<button style="${tabStyle(t)}" data-action="pel-tab" data-tab="${t}">${t.charAt(0) + t.slice(1).toLowerCase()}</button>`
-    ).join('');
-
-    body.innerHTML = `${counter}
-<div style="display:flex;gap:var(--space-xs);margin-bottom:var(--space-md);flex-wrap:wrap;">${tabs}</div>
-<div id="pel-tab-content"></div>`;
-
-    renderPelTabContent();
-  }
-
-  function renderPelTabContent() {
-    const content = document.getElementById('pel-tab-content');
-    if (!content) return;
-
-    let asmts;
-    if (_pelTab === 'DIAGNOSTIK') {
-      asmts = _assessments.filter(a => a.jenis === 'DIAGNOSTIK_NK' || a.jenis === 'DIAGNOSTIK_K');
-    } else if (_pelTab === 'FORMATIF') {
-      asmts = _assessments.filter(a => a.jenis === 'FORMATIF');
-    } else {
-      asmts = _assessments.filter(a => a.jenis === 'SUMATIF');
-    }
-
-    const label = _pelTab === 'DIAGNOSTIK' ? 'Diagnostik' : _pelTab === 'FORMATIF' ? 'Formatif' : 'Sumatif';
-    const cards = asmts.map(a => renderAsmtCard(a)).join('');
-
-    content.innerHTML = `${cards || `<p class="pai-placeholder" style="padding:var(--space-md) 0;text-align:left;">Belum ada entri ${label}.</p>`}
-<button class="btn-sm" data-action="pel-add" style="margin-top:var(--space-sm);">+ Tambah Penilaian</button>`;
-  }
-
-  function renderAsmtCard(a) {
-    const gradeCount = _grades.filter(g => g.assessment_id === a.id).length;
-    const total      = _roster.length;
-    const isComplete = total > 0 && gradeCount >= total;
-    const statusColor = isComplete
-      ? 'var(--success)'
-      : (total > 0 ? 'var(--warning)' : 'var(--text-muted)');
-    const statusLabel = total > 0 ? `${gradeCount}/${total} dinilai` : '—';
-
-    const tp       = a.tp_id ? _items.find(i => i.id === a.tp_id) : null;
-    const jenisMap = { DIAGNOSTIK_NK: 'D-NK', DIAGNOSTIK_K: 'D-K', FORMATIF: 'F', SUMATIF: 'S' };
-    const jenisLabel = jenisMap[a.jenis] || a.jenis;
-
-    const tanggalFmt = a.tanggal ? (() => { const [y,m,d] = a.tanggal.split('-'); return `${d}/${m}/${y.slice(2)}`; })() : '';
-    const metaParts = [
-      a.teknik  ? esc(a.teknik)   : '',
-      tp        ? esc(tp.judul)   : '',
-      tanggalFmt,
-    ].filter(Boolean);
-    const tlCount = _grades.filter(g => g.assessment_id === a.id && g.tindak_lanjut).length;
-    const tlRow = tlCount > 0
-      ? `<div style="font-size:var(--fs-caption);padding:var(--space-xs) 0 0 0;border-top:1px solid var(--border);color:var(--text-secondary);margin-top:var(--space-xs);">TL: ${tlCount === total && total > 0 ? '✓ ' : ''}${tlCount}/${total} siswa</div>`
-      : '';
-
-    const metaContent = metaParts.length
-      ? `<span style="font-size:var(--fs-badge);color:var(--text-muted);">${metaParts.join(' · ')}</span>`
-      : '';
-
-    return `
-<div class="pai-tp-row" style="flex-direction:column;gap:var(--space-xs);margin-bottom:var(--space-sm);">
-  <div style="display:grid;grid-template-columns:1fr auto;column-gap:var(--space-sm);row-gap:2px;align-items:start;">
-    <div style="display:flex;align-items:center;gap:var(--space-xs);flex-wrap:wrap;min-width:0;">
-      <span style="font-size:var(--fs-badge);font-weight:var(--fw-medium);background:var(--gold-muted);color:var(--gold);border-radius:99px;padding:2px 8px;flex-shrink:0;">${jenisLabel}</span>
-      ${a.format_penilaian === 'RUBRIK' ? `<span style="font-size:var(--fs-badge);font-weight:var(--fw-medium);background:var(--warning-bg);color:var(--warning);border-radius:99px;padding:2px 8px;flex-shrink:0;">Rubrik</span>` : ''}
-      <span style="font-weight:var(--fw-semibold);font-size:var(--fs-body);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(a.judul)}</span>
-    </div>
-    <div style="text-align:right;white-space:nowrap;">
-      <span style="font-size:var(--fs-badge);color:${statusColor};font-weight:var(--fw-medium);">${statusLabel}</span>
-    </div>
-    <div style="min-width:0;">${metaContent}</div>
-    <div style="text-align:right;white-space:nowrap;">
-      ${a.is_published
-        ? `<span style="font-size:var(--fs-badge);color:var(--success);font-weight:var(--fw-medium);">● Dipublikasi</span>`
-        : `<span style="font-size:var(--fs-badge);color:var(--text-muted);font-weight:var(--fw-medium);">○ Belum dipublikasi</span>`
-      }
-    </div>
-  </div>
-  <div class="pai-item-actions" style="flex-wrap:wrap;width:100%;">
-    <button class="btn-sm" data-action="pel-nilai" data-id="${esc(a.id)}" style="flex:1;">Isi Nilai</button>
-    <button class="btn-sm" data-action="pel-edit" data-id="${esc(a.id)}" style="flex:1;">Edit</button>
-    <button class="btn-sm btn-sm-danger" data-action="pel-del" data-id="${esc(a.id)}" style="flex:1;">Hapus</button>
-    ${a.is_published
-      ? `<button class="btn-sm btn-sm-danger" data-action="pel-unpublish" data-id="${esc(a.id)}" style="flex:1;">✓ Batalkan Publikasi</button>`
-      : `<button class="btn-sm" data-action="pel-publish" data-id="${esc(a.id)}" style="flex:1;color:var(--success);border-color:var(--success-bg);">Publikasikan</button>`
-    }
-  </div>
-  ${tlRow}
-</div>`;
-  }
-
-  // ─── Teknik per jenis penilaian (Panduan PPA Kemendikdasmen 2025) ─────────────
-
-  const TEKNIK_MAP = {
-    DIAGNOSTIK_NK: ['Observasi', 'Wawancara', 'Kuesioner'],
-    DIAGNOSTIK_K:  ['Tes Lisan', 'Tes Tertulis', 'Pertanyaan Terbuka'],
-    FORMATIF:      ['Observasi', 'Jurnal Reflektif', 'Penilaian Diri',
-                    'Penilaian Antarteman', 'Penugasan', 'Diskusi', 'Presentasi',
-                    'Exit Ticket', 'Peta Konsep'],
-    SUMATIF:       ['Tes Tertulis', 'Tes Lisan', 'Penugasan', 'Projek',
-                    'Portofolio', 'Praktik/Unjuk Kerja'],
+  const SipApi = window.api;
+
+  // ─── State ──────────────────────────────────────────────────────────────────
+  let _cId    = null;
+  let _tId    = null;
+  let _loaded = false;
+
+  let _tpList  = [];  // rows from tp_kktp
+  let _asmts   = [];  // rows from assessments
+  let _roster  = [];  // [{id, nama}] active students in classroom
+  let _sGroups = {};  // { studentId: grup }
+
+  // ─── Constants ──────────────────────────────────────────────────────────────
+  const CY           = new Date().getFullYear();
+  const DEFAULT_YEAR = `${CY - 1}/${CY}`;
+
+  const INSTRUMEN_MAP = {
+    OBSERVASI:   ['Lembar Observasi', 'Catatan Anekdot', 'Checklist'],
+    TES:         ['Pilihan Ganda', 'Uraian', 'Campuran'],
+    PENUGASAN:   ['Rubrik', 'Checklist'],
+    PROYEK:      ['Rubrik', 'Checklist'],
+    PORTOFOLIO:  ['Rubrik', 'Checklist'],
+    UNJUK_KERJA: ['Rubrik', 'Checklist'],
   };
 
-  // ─── Modal Pelaksanaan — Step 1 (header entri) ───────────────────────────────
+  const STATUS_GRUP  = { PAHAM: 'A', BELUM_PAHAM: 'B', PERLU_PERHATIAN: 'C' };
+  const STATUS_LBL   = { PAHAM: 'Paham', BELUM_PAHAM: 'Belum Paham', PERLU_PERHATIAN: 'Perlu Perhatian' };
+  const JENIS_LBL    = { DIAGNOSTIK: 'Diagnostik', FORMATIF: 'Formatif', SUMATIF: 'Sumatif' };
+  const TIPE_LBL     = { CP: 'CP', TP: 'TP', KKTP: 'KKTP', NILAI: 'Nilai', LAINNYA: 'Lainnya' };
+  const TIPE_COLOR   = { CP: '#4a7c59', TP: 'var(--gold)', KKTP: '#7c4a7c', NILAI: '#4a607c', LAINNYA: '#555' };
 
-  async function openAsmtHeaderModal(asmt) {
-    const tps = _items
-      .filter(i => i.tipe === 'TP' && !i.parent_id)
-      .sort((a, b) => (a.urutan ?? 999) - (b.urutan ?? 999));
+  // ─── Micro-helpers ──────────────────────────────────────────────────────────
+  function esc(s) {
+    return String(s ?? '')
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function el(id) { return document.getElementById(id); }
 
-    const jenisOpts = [
-      { val: 'DIAGNOSTIK_NK', label: 'Diagnostik Non-Kognitif' },
-      { val: 'DIAGNOSTIK_K',  label: 'Diagnostik Kognitif' },
-      { val: 'FORMATIF',      label: 'Formatif' },
-      { val: 'SUMATIF',       label: 'Sumatif' },
-    ];
-    const currJenis = asmt?.jenis || 'FORMATIF';
-
-    const jenisSelect = jenisOpts.map(o =>
-      `<option value="${o.val}"${currJenis === o.val ? ' selected' : ''}>${o.label}</option>`
-    ).join('');
-
-    const tpOpts = tps.map(t =>
-      `<option value="${esc(t.id)}"${asmt?.tp_id === t.id ? ' selected' : ''}>${esc(t.judul)}</option>`
-    ).join('');
-
-    const tpSection = tps.length
-      ? `<label id="pai-modal-tp-label">Tujuan Pembelajaran</label>
-         <select id="pai-modal-tp">
-           <option value="">— Tidak ada / opsional —</option>
-           ${tpOpts}
-         </select>
-         <div id="pai-kktp-preview" style="margin-top:var(--space-xs);font-size:var(--fs-caption);color:var(--text-muted);"></div>`
-      : `<p style="font-size:var(--fs-caption);color:var(--text-muted);margin:var(--space-xs) 0;">Belum ada TP di semester ini.</p>`;
-
-    openModal({
-      title: asmt ? 'Edit Entri Penilaian' : 'Tambah Entri Penilaian',
-      bodyHtml: `
-<label>Judul <span style="color:var(--danger);">*</span></label>
-<input type="text" id="pai-modal-judul" value="${esc(asmt?.judul || '')}" maxlength="200"
-  placeholder="Contoh: Ulangan Harian 1">
-<label>Jenis Penilaian <span style="color:var(--danger);">*</span></label>
-<select id="pai-modal-jenis">${jenisSelect}</select>
-<label>Teknik <span style="font-weight:var(--fw-regular);color:var(--text-muted);">(opsional)</span></label>
-<select id="pai-modal-teknik-select"></select>
-<input type="text" id="pai-modal-teknik-custom" maxlength="200"
-  placeholder="Tuliskan teknik lainnya…"
-  style="display:none;margin-top:var(--space-xs);">
-<label>Tanggal <span style="font-weight:var(--fw-regular);color:var(--text-muted);">(opsional)</span></label>
-<input type="date" id="pai-modal-tanggal" value="${esc(asmt?.tanggal || '')}">
-${tpSection}
-<div id="pai-format-wrap" style="display:none;">
-  <label>Format Penilaian</label>
-  <select id="pai-modal-format">
-    <option value="">— Pilih format —</option>
-    <option value="SKOR"${asmt?.format_penilaian === 'SKOR' ? ' selected' : ''}>Skor (0–100)</option>
-    <option value="RUBRIK"${asmt?.format_penilaian === 'RUBRIK' ? ' selected' : ''}>Rubrik</option>
-  </select>
-</div>
-<div id="pai-criteria-wrap" style="display:none;">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-top:var(--space-sm);margin-bottom:var(--space-xs);">
-    <span style="font-size:var(--fs-caption);font-weight:var(--fw-medium);color:var(--text-secondary);">Kriteria Rubrik</span>
-    <span id="pai-sisa-bobot" style="font-size:var(--fs-caption);color:var(--text-muted);">Total: 0 / 100</span>
-  </div>
-  <div id="pai-criteria-list"></div>
-  <button type="button" id="pai-add-kriteria" class="btn-sm" style="margin-top:var(--space-xs);">+ Tambah Kriteria</button>
-</div>`,
-      onSave: async (overlay, close) => {
-        const judul   = overlay.querySelector('#pai-modal-judul').value.trim();
-        const jenis   = overlay.querySelector('#pai-modal-jenis').value;
-        const _teknikSel    = overlay.querySelector('#pai-modal-teknik-select');
-        const _teknikCustom = overlay.querySelector('#pai-modal-teknik-custom');
-        const teknik        = _teknikSel.value === 'LAINNYA'
-          ? (_teknikCustom.value.trim() || null)
-          : (_teknikSel.value || null);
-        const tanggal = overlay.querySelector('#pai-modal-tanggal').value || null;
-        const tp_id   = overlay.querySelector('#pai-modal-tp')?.value || null;
-        if (!judul) throw new Error('Judul tidak boleh kosong.');
-        if ((jenis === 'FORMATIF' || jenis === 'SUMATIF') && !tp_id && tps.length > 0) {
-          throw new Error('Pilih Tujuan Pembelajaran untuk penilaian ' +
-            (jenis === 'FORMATIF' ? 'Formatif' : 'Sumatif') + '.');
-        }
-
-        const format = overlay.querySelector('#pai-modal-format')?.value || '';
-        if (jenis === 'SUMATIF' && !format) {
-          throw new Error('Pilih format penilaian untuk Sumatif.');
-        }
-
-        // Validasi kriteria rubrik
-        let criteriaRows = [];
-        if (jenis === 'SUMATIF' && format === 'RUBRIK') {
-          criteriaRows = [...overlay.querySelectorAll('.pai-kriteria-row')];
-          if (!criteriaRows.length) throw new Error('Tambahkan minimal 1 kriteria rubrik.');
-          let totalBobot = 0;
-          for (const row of criteriaRows) {
-            const kJudul = row.querySelector('.pai-kr-judul').value.trim();
-            const kBobot = parseFloat(row.querySelector('.pai-kr-bobot').value);
-            if (!kJudul) throw new Error('Setiap kriteria harus memiliki judul.');
-            if (isNaN(kBobot) || kBobot <= 0) throw new Error('Bobot setiap kriteria harus lebih dari 0.');
-            totalBobot += kBobot;
-          }
-          if (Math.abs(totalBobot - 100) > 0.01)
-            throw new Error(`Total bobot harus 100 (saat ini: ${Math.round(totalBobot * 100) / 100}).`);
-        }
-
-        const payload = { judul, jenis, teknik, tanggal, tp_id: tp_id || null, format_penilaian: (jenis === 'SUMATIF' && format) ? format : 'SKOR' };
-        let asmtId;
-        if (asmt) {
-          await updateAssessment(asmt.id, payload);
-          asmtId = asmt.id;
-        } else {
-          const res = await saveAssessment(payload);
-          asmtId = res.id;
-        }
-
-        // Hapus kriteria lama jika ganti dari SUMATIF RUBRIK ke jenis/format lain
-        if (asmt && _origCriteriaIds.length > 0 && !(jenis === 'SUMATIF' && format === 'RUBRIK')) {
-          for (const oldId of _origCriteriaIds) await deleteRubrikCriteria(oldId);
-          _origCriteriaIds = [];
-        }
-
-        // Simpan kriteria rubrik
-        if (jenis === 'SUMATIF' && format === 'RUBRIK') {
-          const currentDbIds = new Set(criteriaRows
-            .filter(r => r.dataset.dbid).map(r => r.dataset.dbid));
-          if (asmt) {
-            for (const oldId of _origCriteriaIds) {
-              if (!currentDbIds.has(oldId)) await deleteRubrikCriteria(oldId);
-            }
-          }
-          for (let i = 0; i < criteriaRows.length; i++) {
-            const row = criteriaRows[i];
-            const kp = {
-              assessment_id: asmtId, urutan: i + 1,
-              judul: row.querySelector('.pai-kr-judul').value.trim(),
-              bobot: parseFloat(row.querySelector('.pai-kr-bobot').value),
-              deskripsi_baru_berkembang: row.querySelector('.pai-kr-bb').value.trim() || null,
-              deskripsi_layak:  row.querySelector('.pai-kr-layak').value.trim() || null,
-              deskripsi_cakap:  row.querySelector('.pai-kr-cakap').value.trim() || null,
-              deskripsi_mahir:  row.querySelector('.pai-kr-mahir').value.trim() || null,
-            };
-            if (row.dataset.dbid) {
-              const { assessment_id, ...upd } = kp;
-              await updateRubrikCriteria(row.dataset.dbid, upd);
-            } else {
-              await saveRubrikCriteria(kp);
-            }
-          }
-        }
-
-        await loadAssessments();
-        renderPelaksanaan();
-        close();
-        if (!asmt) {
-          const newAsmt = _assessments.find(a => a.id === asmtId);
-          if (newAsmt) openAsmtNilaiModal(newAsmt);
-        }
-      }
-    });
-
-    const overlay  = document.getElementById('assessment-modal');
-    if (!overlay) return;
-    const jenisEl       = overlay.querySelector('#pai-modal-jenis');
-    const teknikSelEl   = overlay.querySelector('#pai-modal-teknik-select');
-    const teknikCustomEl = overlay.querySelector('#pai-modal-teknik-custom');
-    const formatWrap    = overlay.querySelector('#pai-format-wrap');
-    const formatEl      = overlay.querySelector('#pai-modal-format');
-    const criteriaWrap  = overlay.querySelector('#pai-criteria-wrap');
-
-    function updateTeknikOpts(jenis, currentTeknik) {
-      const opts   = TEKNIK_MAP[jenis] || [];
-      const inList = currentTeknik && opts.includes(currentTeknik);
-      teknikSelEl.innerHTML =
-        '<option value="">— Pilih teknik —</option>' +
-        opts.map(t => `<option value="${esc(t)}"${currentTeknik === t ? ' selected' : ''}>${esc(t)}</option>`).join('') +
-        `<option value="LAINNYA"${(!inList && currentTeknik) ? ' selected' : ''}>Lainnya…</option>`;
-      const showCustom = teknikSelEl.value === 'LAINNYA';
-      teknikCustomEl.style.display = showCustom ? '' : 'none';
-      if (showCustom && currentTeknik && !inList) teknikCustomEl.value = currentTeknik;
-    }
-
-    function updateCriteriaVisibility() {
-      criteriaWrap.style.display =
-        (jenisEl.value === 'SUMATIF' && formatEl.value === 'RUBRIK') ? '' : 'none';
-    }
-
-    function updateFormatVisibility() {
-      const isSumatif = jenisEl.value === 'SUMATIF';
-      formatWrap.style.display = isSumatif ? '' : 'none';
-      updateCriteriaVisibility();
-    }
-
-    function updateSisaBobot() {
-      const total = [...overlay.querySelectorAll('.pai-kr-bobot')]
-        .reduce((s, el) => s + (parseFloat(el.value) || 0), 0);
-      const el = overlay.querySelector('#pai-sisa-bobot');
-      if (!el) return;
-      el.textContent = `Total: ${Math.round(total * 100) / 100} / 100`;
-      el.style.color = Math.abs(total - 100) < 0.01 ? 'var(--success)' : 'var(--text-muted)';
-    }
-
-    function appendCriteriaRow(criterion) {
-      const list = overlay.querySelector('#pai-criteria-list');
-      const div  = document.createElement('div');
-      div.className = 'pai-kriteria-row';
-      if (criterion?.id) div.dataset.dbid = criterion.id;
-      div.style.cssText = 'background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--r-md);padding:var(--space-sm);margin-bottom:var(--space-xs);';
-      div.innerHTML = `
-<div style="display:flex;gap:var(--space-xs);align-items:flex-start;">
-  <input type="text" class="pai-kr-judul" placeholder="Nama kriteria…" style="flex:1;" value="${esc(criterion?.judul || '')}">
-  <input type="number" class="pai-kr-bobot" placeholder="Bobot %" min="0.5" max="100" step="0.5" value="${esc(String(criterion?.bobot ?? ''))}" style="width:5.5rem;flex-shrink:0;">
-  <button type="button" class="btn-sm btn-sm-danger pai-kr-del" style="flex-shrink:0;min-height:var(--btn-h-xs);">✕</button>
-</div>
-<details style="margin-top:var(--space-xs);">
-  <summary style="font-size:var(--fs-caption);color:var(--text-muted);cursor:pointer;">Deskripsi per level (opsional)</summary>
-  <div style="display:grid;gap:var(--space-xs);margin-top:var(--space-xs);">
-    <textarea class="pai-kr-bb" rows="1" placeholder="Baru Berkembang…">${esc(criterion?.deskripsi_baru_berkembang || '')}</textarea>
-    <textarea class="pai-kr-layak" rows="1" placeholder="Layak…">${esc(criterion?.deskripsi_layak || '')}</textarea>
-    <textarea class="pai-kr-cakap" rows="1" placeholder="Cakap…">${esc(criterion?.deskripsi_cakap || '')}</textarea>
-    <textarea class="pai-kr-mahir" rows="1" placeholder="Mahir…">${esc(criterion?.deskripsi_mahir || '')}</textarea>
-  </div>
-</details>`;
-      div.querySelector('.pai-kr-del').addEventListener('click', () => { div.remove(); updateSisaBobot(); });
-      div.querySelector('.pai-kr-bobot').addEventListener('input', updateSisaBobot);
-      list.appendChild(div);
-      updateSisaBobot();
-    }
-
-    // Load kriteria existing jika edit mode RUBRIK
-    if (asmt?.format_penilaian === 'RUBRIK') {
-      try {
-        const existing = await loadRubrikCriteria(asmt.id);
-        _origCriteriaIds = existing.map(k => k.id);
-        existing.forEach(k => appendCriteriaRow(k));
-      } catch (e) { _origCriteriaIds = []; }
-    } else {
-      _origCriteriaIds = [];
-    }
-
-    updateTeknikOpts(jenisEl.value, asmt?.teknik || null);
-    updateFormatVisibility();
-
-    jenisEl.addEventListener('change', () => {
-      updateTeknikOpts(jenisEl.value, null);
-      updateFormatVisibility();
-    });
-    teknikSelEl.addEventListener('change', () => {
-      const isLainnya = teknikSelEl.value === 'LAINNYA';
-      teknikCustomEl.style.display = isLainnya ? '' : 'none';
-      if (!isLainnya) teknikCustomEl.value = '';
-    });
-    formatEl.addEventListener('change', updateCriteriaVisibility);
-    overlay.querySelector('#pai-add-kriteria')?.addEventListener('click', () => appendCriteriaRow(null));
-
-    if (!tps.length) return;
-    const tpLabel  = overlay.querySelector('#pai-modal-tp-label');
-    const tpSelect = overlay.querySelector('#pai-modal-tp');
-    const kktpPrev = overlay.querySelector('#pai-kktp-preview');
-
-    function updateKktpPreview(tpId) {
-      if (jenisEl.value !== 'SUMATIF' || !tpId) { kktpPrev.innerHTML = ''; return; }
-      const kktps = _items.filter(i => i.tipe === 'KKTP' && i.parent_id === tpId);
-      if (!kktps.length) { kktpPrev.innerHTML = 'Belum ada KKTP untuk TP ini.'; return; }
-      kktpPrev.innerHTML = 'KKTP: ' + kktps.map(k => esc(k.judul)).join(' · ');
-    }
-
-    function updateTpVisibility() {
-      const jenis = jenisEl.value;
-      const hide  = jenis === 'DIAGNOSTIK_NK';
-      tpLabel.style.display  = hide ? 'none' : '';
-      tpSelect.style.display = hide ? 'none' : '';
-      if (hide) { tpSelect.value = ''; kktpPrev.innerHTML = ''; return; }
-      updateKktpPreview(tpSelect.value);
-    }
-
-    jenisEl.addEventListener('change', updateTpVisibility);
-    tpSelect.addEventListener('change', () => updateKktpPreview(tpSelect.value));
-    updateTpVisibility();
+  function toast(msg, ok = true) {
+    const t = document.createElement('div');
+    t.style.cssText = `position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);
+      background:${ok ? 'var(--success,#2d6a4f)' : '#c0392b'};color:#fff;
+      padding:.5rem 1.25rem;border-radius:.5rem;font-size:var(--fs-ui);
+      z-index:9999;box-shadow:0 2px 8px rgba(0,0,0,.3);pointer-events:none`;
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 2800);
   }
 
-  // ─── Modal Pelaksanaan — Step 2 (input nilai per siswa) ─────────────────────
+  function fieldLbl(text) {
+    return `<div style="font-size:var(--fs-caption);color:var(--text-secondary);
+      margin-bottom:.3rem">${text}</div>`;
+  }
 
-  async function openAsmtNilaiModal(asmt) {
-    const grades      = await loadAssessmentGrades(asmt.id);
-    const kktpResults = (asmt.jenis === 'SUMATIF' && asmt.format_penilaian === 'RUBRIK') ? await loadKktpResults(asmt.id) : [];
-    const sumFormat   = (asmt.jenis === 'SUMATIF') ? (asmt.format_penilaian || 'SKOR') : null;
-    const rubrikCriteria = (sumFormat === 'RUBRIK') ? await loadRubrikCriteria(asmt.id) : [];
-    const rubrikResults  = (sumFormat === 'RUBRIK') ? await loadRubrikResults(asmt.id) : [];
-    const rubrikResultsMap = new Map(rubrikResults.map(r => [r.student_id + '|' + r.criteria_id, r.level]));
+  function inputCss(extra) {
+    return `width:100%;box-sizing:border-box;
+      background:var(--bg-input,rgba(255,255,255,.06));
+      border:1px solid var(--border-subtle,rgba(255,255,255,.18));
+      color:var(--text-primary);padding:.5rem .625rem;
+      border-radius:.375rem;font-size:var(--fs-ui);${extra ?? ''}`;
+  }
 
-    const DK_OPTS = [
-      ['Paham Utuh',    'Paham Utuh'],
-      ['Paham Sebagian','Paham Sebagian'],
-      ['Tidak Paham',   'Tidak Paham'],
-    ];
+  // ─── Chip helpers ────────────────────────────────────────────────────────────
+  function chipHtml(val, label, selected) {
+    const selStyle = selected
+      ? 'background:var(--gold);color:var(--text-on-gold,#000);border-color:var(--gold)'
+      : 'color:var(--text-secondary);border-color:var(--border-subtle,rgba(255,255,255,.18))';
+    return `<span class="pai-chip${selected ? ' pai-chip--sel' : ''}" data-val="${esc(val)}"
+      style="display:inline-flex;align-items:center;padding:.3rem .75rem;border-radius:1rem;
+      border:1.5px solid;cursor:pointer;font-size:var(--fs-caption);user-select:none;${selStyle}">
+      ${esc(label)}</span>`;
+  }
 
-    function getDnkPlaceholder(teknik) {
-      const t = (teknik || '').toLowerCase();
-      if (t.includes('observasi'))  return 'Contoh: Siswa terlihat antusias dan aktif berinteraksi dengan teman, gaya belajar cenderung visual…';
-      if (t.includes('wawancara'))  return 'Contoh: Siswa menyampaikan bahwa merasa nyaman belajar dalam kelompok kecil, lebih mudah memahami materi dengan gambar…';
-      if (t.includes('kuesioner'))  return 'Contoh: Berdasarkan kuesioner, siswa menunjukkan minat tinggi pada praktik langsung dan cenderung belajar mandiri…';
-      return 'Contoh: Catatan kondisi sosial-emosional dan kesiapan belajar siswa…';
-    }
-
-    function getFormPlaceholder(teknik) {
-      const t = (teknik || '').toLowerCase();
-      if (t.includes('observasi'))         return 'Contoh: Siswa mampu menjelaskan konsep dengan kalimat sendiri, aktif dalam diskusi kelompok…';
-      if (t.includes('jurnal'))            return 'Contoh: Hari ini saya belajar tentang… Yang belum saya pahami adalah…';
-      if (t.includes('penilaian diri'))    return 'Contoh: Saya merasa sudah memahami materi namun masih kesulitan pada bagian…';
-      if (t.includes('antarteman'))        return 'Contoh: Teman saya menunjukkan kemampuan yang baik dalam… dan perlu meningkatkan…';
-      if (t.includes('penugasan'))         return 'Contoh: Siswa menyelesaikan tugas dengan…';
-      return 'Contoh: Catatan perkembangan belajar siswa…';
-    }
-
-    const kktps = asmt.tp_id
-      ? _items.filter(i => i.tipe === 'KKTP' && i.parent_id === asmt.tp_id)
-              .sort((a, b) => (a.urutan ?? 999) - (b.urutan ?? 999))
-      : [];
-
-    const isDiagNk = asmt.jenis === 'DIAGNOSTIK_NK';
-    const isDiagK  = asmt.jenis === 'DIAGNOSTIK_K';
-    const isDiag   = isDiagNk || isDiagK;
-    const isForm   = asmt.jenis === 'FORMATIF';
-    const isSum    = asmt.jenis === 'SUMATIF';
-
-    const gradeMap  = new Map(grades.map(g => [g.student_id, g]));
-    const kktpMap   = new Map();
-    kktpResults.forEach(r => { kktpMap.set(r.student_id + '|' + r.kktp_id, r.tercapai); });
-
-    let headerRow = '';
-    if (isForm && _roster.length > 1) {
-      headerRow = `<div style="margin-bottom:var(--space-sm);">
-  <button type="button" id="pel-copy-all" class="btn-sm"
-    style="font-size:var(--fs-caption);">Salin ke semua yang kosong</button>
-  <span style="font-size:var(--fs-caption);color:var(--text-muted);margin-left:var(--space-xs);">salin baris pertama ke siswa lain yang belum diisi</span>
-</div>`;
-    }
-
-    const rows = !_roster.length
-      ? '<p class="pai-placeholder">Belum ada siswa di classroom ini.</p>'
-      : _roster.map(s => {
-          const existing = gradeMap.get(s.id);
-
-          if (isDiagNk) {
-            const currVal = existing?.deskripsi || '';
-            return `
-<div style="padding:var(--space-sm) 0;border-bottom:1px solid var(--border);">
-  <div style="font-size:var(--fs-ui);color:var(--text-primary);margin-bottom:var(--space-xs);">${esc(s.full_name)}</div>
-  <textarea class="pel-diag-nk-textarea" data-student-id="${esc(s.id)}" rows="2"
-    placeholder="${esc(getDnkPlaceholder(asmt.teknik))}">${esc(currVal)}</textarea>
-</div>`;
-          }
-
-          if (isDiagK) {
-            const currVal = existing?.deskripsi || '';
-            const opts = DK_OPTS.map(([v, l]) =>
-              `<option value="${v}"${currVal === v ? ' selected' : ''}>${l}</option>`
-            ).join('');
-            return `
-<div style="display:flex;align-items:center;gap:var(--space-sm);padding:var(--space-sm) 0;border-bottom:1px solid var(--border);">
-  <span style="flex:1;min-width:0;font-size:var(--fs-ui);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(s.full_name)}</span>
-  <select class="pel-diag-k-select" data-student-id="${esc(s.id)}" style="flex-shrink:0;max-width:10rem;">
-    <option value="">— Pilih —</option>${opts}
-  </select>
-</div>`;
-          }
-
-          if (isForm) {
-            const currVal = existing?.deskripsi || '';
-            return `
-<div style="padding:var(--space-sm) 0;border-bottom:1px solid var(--border);">
-  <div style="font-size:var(--fs-ui);color:var(--text-primary);margin-bottom:var(--space-xs);">${esc(s.full_name)}</div>
-  <textarea class="pel-form-textarea" data-student-id="${esc(s.id)}" rows="2"
-    placeholder="${esc(getFormPlaceholder(asmt.teknik))}">${esc(currVal)}</textarea>
-</div>`;
-          }
-
-          if (isSum) {
-            const kktpRows = kktps.map(k => {
-              const tercapai = kktpMap.get(s.id + '|' + k.id) || false;
-              return `<label style="display:flex;align-items:center;gap:var(--space-xs);font-size:var(--fs-caption);padding:2px 0;cursor:pointer;">
-  <input type="checkbox" class="pel-kktp-cb"
-    data-student-id="${esc(s.id)}" data-kktp-id="${esc(k.id)}"${tercapai ? ' checked' : ''}>
-  <span>${esc(k.judul)}</span>
-</label>`;
-            }).join('');
-
-            if (sumFormat === 'RUBRIK') {
-              const LEVEL_LABELS = ['Baru Berkembang', 'Layak', 'Cakap', 'Mahir'];
-              const criteriaHtml = rubrikCriteria.map(k => {
-                const currLevel = rubrikResultsMap.get(s.id + '|' + k.id) || 0;
-                const descs = [k.deskripsi_baru_berkembang, k.deskripsi_layak, k.deskripsi_cakap, k.deskripsi_mahir];
-                const radios = [1,2,3,4].map(lv => {
-                  const desc = descs[lv - 1];
-                  return `<label style="display:flex;align-items:flex-start;gap:var(--space-xs);font-size:var(--fs-caption);padding:2px 0;cursor:pointer;"><input type="radio" class="pel-rubrik-radio" name="rubrik-${esc(s.id)}-${esc(k.id)}" data-student-id="${esc(s.id)}" data-criteria-id="${esc(k.id)}" data-bobot="${esc(String(k.bobot))}" value="${lv}"${currLevel === lv ? ' checked' : ''}><span style="flex:1;">${esc(LEVEL_LABELS[lv - 1])}${desc ? `<span style="display:block;font-size:var(--fs-badge);color:var(--text-muted);margin-top:2px;">${esc(desc)}</span>` : ''}</span></label>`;
-                }).join('');
-                return `<div style="padding:var(--space-xs) 0;border-bottom:1px solid var(--border);"><div style="font-size:var(--fs-caption);font-weight:var(--fw-medium);color:var(--text-secondary);margin-bottom:var(--space-xs);">${esc(k.judul)} <span style="color:var(--text-muted);">(bobot ${k.bobot}%)</span></div><div>${radios}</div></div>`;
-              }).join('');
-              return `
-<div class="pel-rubrik-student" data-student-id="${esc(s.id)}" style="padding:var(--space-sm) 0;border-bottom:1px solid var(--border);">
-  <div style="display:flex;align-items:center;gap:var(--space-sm);margin-bottom:var(--space-xs);">
-    <span style="flex:1;min-width:0;font-size:var(--fs-ui);font-weight:var(--fw-medium);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(s.full_name)}</span>
-    <span class="pel-rubrik-skor-val" data-student-id="${esc(s.id)}" style="font-size:var(--fs-caption);color:var(--text-muted);"></span>
-    <span class="pel-sum-pred" data-student-id="${esc(s.id)}" style="flex-shrink:0;font-size:var(--fs-caption);min-width:7rem;text-align:right;"></span>
-  </div>
-  <div>${criteriaHtml || '<p style="font-size:var(--fs-caption);color:var(--text-muted);">Belum ada kriteria rubrik.</p>'}</div>
-  ${kktpRows ? `<div style="margin-top:var(--space-xs);padding-left:var(--space-md);">${kktpRows}</div>` : ''}
-</div>`;
-            }
-
-            // SKOR path
-            const currNilai = existing?.nilai_angka != null ? existing.nilai_angka : '';
-            return `
-<div style="padding:var(--space-sm) 0;border-bottom:1px solid var(--border);">
-  <div style="display:flex;align-items:center;gap:var(--space-sm);">
-    <span style="flex:1;min-width:0;font-size:var(--fs-ui);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(s.full_name)}</span>
-    <input type="number" class="pel-sum-nilai" data-student-id="${esc(s.id)}"
-      min="0" max="100" step="0.5" value="${esc(String(currNilai))}"
-      style="flex-shrink:0;max-width:80px;" placeholder="0–100">
-    <span class="pel-sum-pred" style="flex-shrink:0;font-size:var(--fs-caption);min-width:7rem;"></span>
-  </div>
-</div>`;
-          }
-
-          return '';
-        }).join('');
-
-    const needsTl = isDiagK || isForm || isSum;
-    openModal({
-      title:     `Isi Nilai — ${esc(asmt.judul)}`,
-      bodyHtml:  headerRow + `<div style="max-height:55vh;overflow-y:auto;">${rows}</div>`,
-      saveLabel: needsTl ? 'Selesai & Tindak Lanjut' : 'Selesai',
-      onSave: async (overlay, close) => {
-        if (isDiagNk) {
-          const areas = overlay.querySelectorAll('.pel-diag-nk-textarea');
-          await Promise.all([...areas].map(ta => {
-            const val = ta.value.trim();
-            if (!val) {
-              if (!gradeMap.has(ta.dataset.studentId)) return Promise.resolve();
-              return client.from('student_grades').delete()
-                .eq('classroom_id', classroomId).eq('assessment_id', asmt.id)
-                .eq('student_id', ta.dataset.studentId)
-                .then(({ error }) => { if (error) throw error; });
-            }
-            return upsertAssessmentGrade(asmt.id, ta.dataset.studentId, asmt.judul,
-              { deskripsi: val, nilai_angka: null });
-          }));
-        } else if (isDiagK) {
-          const selects = overlay.querySelectorAll('.pel-diag-k-select');
-          await Promise.all([...selects].map(sel => {
-            if (!sel.value) {
-              if (!gradeMap.has(sel.dataset.studentId)) return Promise.resolve();
-              return client.from('student_grades').delete()
-                .eq('classroom_id', classroomId).eq('assessment_id', asmt.id)
-                .eq('student_id', sel.dataset.studentId)
-                .then(({ error }) => { if (error) throw error; });
-            }
-            return upsertAssessmentGrade(asmt.id, sel.dataset.studentId, asmt.judul,
-              { deskripsi: sel.value, nilai_angka: null });
-          }));
-        } else if (isForm) {
-          const areas = overlay.querySelectorAll('.pel-form-textarea');
-          await Promise.all([...areas].map(ta => {
-            const val = ta.value.trim();
-            if (!val) {
-              if (!gradeMap.has(ta.dataset.studentId)) return Promise.resolve();
-              return client.from('student_grades').delete()
-                .eq('classroom_id', classroomId).eq('assessment_id', asmt.id)
-                .eq('student_id', ta.dataset.studentId)
-                .then(({ error }) => { if (error) throw error; });
-            }
-            return upsertAssessmentGrade(asmt.id, ta.dataset.studentId, asmt.judul,
-              { deskripsi: val, nilai_angka: null });
-          }));
-        } else if (isSum) {
-          if (sumFormat === 'RUBRIK') {
-            if (rubrikCriteria.length === 0)
-              throw new Error('Tidak ada kriteria rubrik. Edit entri untuk menambahkan kriteria.');
-            const checkedRadios = [...overlay.querySelectorAll('.pel-rubrik-radio:checked')];
-            const cbs = overlay.querySelectorAll('.pel-kktp-cb');
-            await Promise.all(checkedRadios.map(r =>
-              upsertRubrikResult(asmt.id, r.dataset.criteriaId, r.dataset.studentId, parseInt(r.value))
-            ));
-            const studentScores = new Map();
-            checkedRadios.forEach(r => {
-              const sid = r.dataset.studentId;
-              studentScores.set(sid, (studentScores.get(sid) || 0) + (parseInt(r.value) / 4) * parseFloat(r.dataset.bobot));
-            });
-            await Promise.all([...studentScores.entries()].map(([sid, total]) =>
-              upsertAssessmentGrade(asmt.id, sid, asmt.judul,
-                { nilai_angka: Math.round(total * 100) / 100, deskripsi: null })
-            ));
-            const filledStudents = new Set(studentScores.keys());
-            const toDelete = [...gradeMap.keys()].filter(sid => !filledStudents.has(sid));
-            await Promise.all(toDelete.map(sid =>
-              client.from('student_grades').delete()
-                .eq('classroom_id', classroomId).eq('assessment_id', asmt.id)
-                .eq('student_id', sid)
-                .then(({ error }) => { if (error) throw error; })
-            ));
-            await Promise.all([...cbs].map(cb =>
-              upsertKktpResult(asmt.id, cb.dataset.studentId, cb.dataset.kktpId, cb.checked)
-            ));
-          } else {
-            const inputs = [...overlay.querySelectorAll('.pel-sum-nilai')];
-            const invalidInputs = inputs.filter(inp => {
-              const v = parseFloat(inp.value.trim());
-              return inp.value.trim() !== '' && (isNaN(v) || v < 0 || v > 100);
-            });
-            if (invalidInputs.length > 0)
-              throw new Error('Nilai harus berupa angka antara 0–100.');
-            await Promise.all(inputs.map(inp => {
-              const val = inp.value.trim();
-              if (val === '') {
-                if (!gradeMap.has(inp.dataset.studentId)) return Promise.resolve();
-                return client.from('student_grades').delete()
-                  .eq('classroom_id', classroomId).eq('assessment_id', asmt.id)
-                  .eq('student_id', inp.dataset.studentId)
-                  .then(({ error }) => { if (error) throw error; });
-              }
-              const nilai = parseFloat(val);
-              return upsertAssessmentGrade(asmt.id, inp.dataset.studentId, asmt.judul,
-                { nilai_angka: nilai, deskripsi: null });
-            }));
-          }
-        }
-        await loadAll();
-        renderPelaksanaan();
-        close();
-        if (needsTl) {
-          const updatedAsmt = _assessments.find(a => a.id === asmt.id);
-          if (updatedAsmt) await openAsmtTlModal(updatedAsmt);
-        }
-      }
-    });
-
-    if (isForm && _roster.length > 1) {
-      const overlay = document.getElementById('assessment-modal');
-      overlay?.querySelector('#pel-copy-all')?.addEventListener('click', () => {
-        const areas = overlay.querySelectorAll('.pel-form-textarea');
-        const src   = areas[0]?.value;
-        if (!src) return;
-        areas.forEach((a, i) => { if (i > 0 && !a.value) a.value = src; });
-      });
-    }
-
-    if (isSum) {
-      const overlay = document.getElementById('assessment-modal');
-      if (sumFormat === 'RUBRIK') {
-        function updateRubrikStudentSkor(studentId) {
-          let total = 0, allFilled = rubrikCriteria.length > 0;
-          rubrikCriteria.forEach(k => {
-            const r = overlay?.querySelector(`input[name="rubrik-${studentId}-${k.id}"]:checked`);
-            if (r) total += (parseInt(r.value) / 4) * k.bobot;
-            else allFilled = false;
-          });
-          total = Math.round(total * 100) / 100;
-          const skorEl = overlay?.querySelector(`.pel-rubrik-skor-val[data-student-id="${studentId}"]`);
-          const predEl = overlay?.querySelector(`.pel-sum-pred[data-student-id="${studentId}"]`);
-          if (skorEl) skorEl.textContent = allFilled ? String(total) : `${total} (belum lengkap)`;
-          if (predEl) {
-            if (!allFilled || !rubrikCriteria.length) { predEl.textContent = ''; predEl.style.color = ''; return; }
-            let label, color;
-            if (total >= 81)      { label = 'Sangat Baik';     color = 'var(--success)'; }
-            else if (total >= 61) { label = 'Baik';            color = 'var(--success)'; }
-            else if (total >= 41) { label = 'Cukup';           color = 'var(--warning)'; }
-            else                  { label = 'Perlu Bimbingan'; color = 'var(--danger)'; }
-            predEl.textContent = label;
-            predEl.style.color = color;
-          }
-        }
-        overlay?.querySelectorAll('.pel-rubrik-radio').forEach(r => {
-          updateRubrikStudentSkor(r.dataset.studentId);
-          r.addEventListener('change', () => updateRubrikStudentSkor(r.dataset.studentId));
+  function wireChips(containerEl, multi, onChange) {
+    containerEl.addEventListener('click', e => {
+      const chip = e.target.closest('.pai-chip');
+      if (!chip || !containerEl.contains(chip)) return;
+      if (!multi) {
+        containerEl.querySelectorAll('.pai-chip').forEach(c => {
+          c.classList.remove('pai-chip--sel');
+          c.style.background = '';
+          c.style.color = 'var(--text-secondary)';
+          c.style.borderColor = 'var(--border-subtle,rgba(255,255,255,.18))';
         });
+        chip.classList.add('pai-chip--sel');
+        chip.style.background = 'var(--gold)';
+        chip.style.color = 'var(--text-on-gold,#000)';
+        chip.style.borderColor = 'var(--gold)';
       } else {
-        function updateSumPred(inp) {
-          const span = inp.parentElement.querySelector('.pel-sum-pred');
-          if (!span) return;
-          const v = parseFloat(inp.value);
-          if (inp.value.trim() === '' || isNaN(v)) { span.textContent = ''; span.style.color = ''; return; }
-          let label, color;
-          if (v >= 81)      { label = 'Sangat Baik';     color = 'var(--success)'; }
-          else if (v >= 61) { label = 'Baik';            color = 'var(--success)'; }
-          else if (v >= 41) { label = 'Cukup';           color = 'var(--warning)'; }
-          else              { label = 'Perlu Bimbingan'; color = 'var(--danger)'; }
-          span.textContent = label;
-          span.style.color = color;
-        }
-        overlay?.querySelectorAll('.pel-sum-nilai').forEach(inp => {
-          updateSumPred(inp);
-          inp.addEventListener('input', () => updateSumPred(inp));
-        });
+        const s = chip.classList.toggle('pai-chip--sel');
+        chip.style.background = s ? 'var(--gold)' : '';
+        chip.style.color = s ? 'var(--text-on-gold,#000)' : 'var(--text-secondary)';
+        chip.style.borderColor = s ? 'var(--gold)' : 'var(--border-subtle,rgba(255,255,255,.18))';
       }
-    }
-  }
-
-  // ─── Modal Pelaksanaan — Step 3 (tindak lanjut) ──────────────────────────────
-
-  async function openAsmtTlModal(asmt) {
-    const grades = await loadAssessmentGrades(asmt.id);
-    const tlMap  = new Map(grades.map(g => [g.student_id, g.tindak_lanjut || '']));
-
-    const TL_OPTS = [
-      { val: 'PENGAYAAN',    label: 'Pengayaan' },
-      { val: 'PENGUATAN',    label: 'Penguatan' },
-      { val: 'PENDAMPINGAN', label: 'Pendampingan' },
-    ];
-
-    const rows = _roster.map(s => {
-      const currTl   = tlMap.get(s.id) || '';
-      const grade    = grades.find(g => g.student_id === s.id);
-      const hasGrade = !!grade;
-      const nilaiLabel = grade?.nilai_angka != null
-        ? `<span style="font-size:var(--fs-badge);color:var(--text-muted);margin-left:var(--space-xs);">${esc(String(grade.nilai_angka))}</span>`
-        : grade?.deskripsi
-          ? `<span style="font-size:var(--fs-badge);color:var(--success);margin-left:var(--space-xs);">✓ ada catatan</span>`
-          : '';
-      const noGradeNote = !hasGrade
-        ? `<span style="font-size:var(--fs-badge);color:var(--text-muted);margin-left:var(--space-xs);">(belum ada nilai)</span>`
-        : '';
-      const opts = TL_OPTS.map(o =>
-        `<option value="${o.val}"${currTl === o.val ? ' selected' : ''}>${o.label}</option>`
-      ).join('');
-      return `
-<div style="display:flex;align-items:center;gap:var(--space-sm);padding:var(--space-xs) 0;border-bottom:1px solid var(--border);">
-  <span style="flex:1;min-width:0;font-size:var(--fs-ui);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(s.full_name)}${nilaiLabel}${noGradeNote}</span>
-  <select class="pel-tl-select" data-student-id="${esc(s.id)}" style="flex-shrink:0;max-width:11rem;"${!hasGrade ? ' disabled' : ''}>
-    <option value="">— Pilih —</option>
-    ${opts}
-  </select>
-</div>`;
-    }).join('');
-
-    openModal({
-      title:     `Tindak Lanjut — ${esc(asmt.judul)}`,
-      bodyHtml:  rows.length
-        ? `<div style="max-height:55vh;overflow-y:auto;">${rows}</div>`
-        : '<p style="color:var(--text-muted);">Belum ada siswa di kelas ini.</p>',
-      saveLabel: 'Simpan Tindak Lanjut',
-      onSave: async (overlay, close) => {
-        const selects = [...overlay.querySelectorAll('.pel-tl-select:not([disabled])')];
-        await Promise.all(selects.map(sel =>
-          upsertTindakLanjut(asmt.id, sel.dataset.studentId, sel.value || null)
-        ));
-        await loadAll();
-        renderPelaksanaan();
-        close();
-      }
+      if (onChange) onChange(chip.dataset.val);
     });
   }
 
-  // ─── Inline delete confirm (pelaksanaan) ─────────────────────────────────────
-
-  function confirmAsmtDelete(origBtn, id, label) {
-    const card = origBtn.closest('.pai-tp-row');
-    origBtn.style.display = 'none';
-
-    const bar = document.createElement('div');
-    bar.style.cssText = 'display:flex;align-items:center;gap:var(--space-xs);flex-wrap:wrap;padding:var(--space-xs) 0 0 0;border-top:1px solid var(--border);margin-top:var(--space-xs);';
-    bar.innerHTML = `<span style="flex:1;min-width:0;font-size:var(--fs-caption);color:var(--text-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Hapus "${esc(label)}"?</span>`;
-
-    const yesBtn = document.createElement('button');
-    yesBtn.className   = 'btn-sm btn-sm-danger';
-    yesBtn.style.cssText = 'font-size:var(--fs-caption);min-height:var(--btn-h-xs);padding:0 var(--btn-px-sm);flex-shrink:0;';
-    yesBtn.textContent = 'Ya';
-
-    const noBtn = document.createElement('button');
-    noBtn.className    = 'btn-sm';
-    noBtn.style.cssText = 'font-size:var(--fs-caption);min-height:var(--btn-h-xs);padding:0 var(--btn-px-sm);flex-shrink:0;';
-    noBtn.textContent  = 'Tidak';
-
-    bar.appendChild(yesBtn);
-    bar.appendChild(noBtn);
-    card.appendChild(bar);
-
-    yesBtn.addEventListener('click', async () => {
-      yesBtn.disabled = true;
-      try {
-        await deleteAssessmentById(id);
-        await loadAll();
-        renderPelaksanaan();
-      } catch (err) {
-        bar.remove();
-        origBtn.style.display = '';
-        alert('Gagal hapus: ' + (err.message || 'Error tidak diketahui.'));
-      }
-    });
-    noBtn.addEventListener('click', () => { bar.remove(); origBtn.style.display = ''; });
+  function chipVal(containerEl) {
+    return containerEl?.querySelector('.pai-chip--sel')?.dataset.val ?? null;
   }
 
-  // ─── Event delegation — Pelaksanaan ─────────────────────────────────────────
-
-  function initPelDelegation() {
-    const body = document.getElementById('pai-pelaksanaan-body');
-    if (!body) return;
-
-    body.addEventListener('click', e => {
-      const btn = e.target.closest('[data-action]');
-      if (!btn) return;
-      const action = btn.dataset.action;
-
-      switch (action) {
-        case 'pel-tab':
-          if (btn.dataset.tab && btn.dataset.tab !== _pelTab) {
-            _pelTab = btn.dataset.tab;
-            try { localStorage.setItem('sip_pel_tab_' + classroomId, _pelTab); } catch (_) {}
-            renderPelaksanaan();
-          }
-          break;
-        case 'pel-add':
-          openAsmtHeaderModal(null);
-          break;
-        case 'pel-edit': {
-          const asmt = _assessments.find(a => a.id === btn.dataset.id);
-          if (asmt) openAsmtHeaderModal(asmt);
-          break;
-        }
-        case 'pel-nilai': {
-          const asmt = _assessments.find(a => a.id === btn.dataset.id);
-          if (asmt) openAsmtNilaiModal(asmt);
-          break;
-        }
-        case 'pel-del': {
-          const asmt = _assessments.find(a => a.id === btn.dataset.id);
-          if (asmt) confirmAsmtDelete(btn, asmt.id, asmt.judul);
-          break;
-        }
-        case 'pel-publish': {
-          btn.disabled = true;
-          publishAssessment(btn.dataset.id)
-            .then(() => loadAssessments())
-            .then(() => renderPelaksanaan())
-            .catch(err => { btn.disabled = false; alert('Gagal publikasi: ' + err.message); });
-          break;
-        }
-        case 'pel-unpublish': {
-          btn.disabled = true;
-          unpublishAssessment(btn.dataset.id)
-            .then(() => loadAssessments())
-            .then(() => renderPelaksanaan())
-            .catch(err => { btn.disabled = false; alert('Gagal batalkan publikasi: ' + err.message); });
-          break;
-        }
-      }
-    });
+  // ─── Data loading ────────────────────────────────────────────────────────────
+  async function loadAll() {
+    const [tp, asmts, grps, roster] = await Promise.all([
+      SipApi.getTpKktp(_cId, _tId).catch(() => []),
+      SipApi.getAssessments(_cId).catch(() => []),
+      SipApi.getStudentGroups(_cId).catch(() => []),
+      loadRoster(),
+    ]);
+    _tpList  = tp ?? [];
+    _asmts   = asmts ?? [];
+    _sGroups = Object.fromEntries((grps ?? []).map(g => [g.student_id, g.grup]));
+    _roster  = roster;
   }
 
-  // ─── Modal helper ───────────────────────────────────────────────────────────
-
-  function openModal({ title, bodyHtml, onSave, saveLabel = 'Simpan' }) {
-    document.getElementById('assessment-modal')?.remove();
-
-    const overlay = document.createElement('div');
-    overlay.id        = 'assessment-modal';
-    overlay.className = 'share-overlay';
-    overlay.innerHTML = `
-<div class="modal-box" style="position:fixed;inset:0;width:100%;height:100%;display:flex;flex-direction:column;border-radius:0;padding:0;background:var(--bg-surface);border:none;z-index:1000;">
-  <h3 style="padding:var(--card-p) var(--card-p) 0;">${esc(title)}</h3>
-  <div class="modal-body" style="flex:1;overflow-y:auto;padding:var(--card-p);">${bodyHtml}</div>
-  <div id="pai-modal-err"
-    style="color:var(--danger);font-size:var(--fs-caption);min-height:1.2rem;margin:.375rem 0;padding:0 var(--card-p);"></div>
-  <div class="modal-actions" style="padding:var(--space-sm) var(--card-p) var(--card-p);">
-    <button type="button" class="modal-cancel">Batal</button>
-    <button type="button" class="modal-save">Simpan</button>
-  </div>
-</div>`;
-
-    function close() {
-      overlay.remove();
-      document.removeEventListener('keydown', onEsc);
-    }
-    function onEsc(e) { if (e.key === 'Escape') close(); }
-
-    overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
-    overlay.querySelector('.modal-cancel').addEventListener('click', close);
-    document.addEventListener('keydown', onEsc);
-
-    const saveBtn = overlay.querySelector('.modal-save');
-    saveBtn.textContent = saveLabel;
-    saveBtn.addEventListener('click', async () => {
-      const errEl = overlay.querySelector('#pai-modal-err');
-      errEl.textContent = '';
-      saveBtn.disabled    = true;
-      saveBtn.textContent = 'Menyimpan…';
-      try {
-        await onSave(overlay, close);
-      } catch (err) {
-        errEl.textContent   = 'Gagal: ' + (err.message || 'Error tidak diketahui.');
-        saveBtn.disabled    = false;
-        saveBtn.textContent = saveLabel;
-      }
-    });
-
-    const _ms = document.createElement('style');
-    _ms.textContent = `
-#assessment-modal .modal-body label{display:block;font-size:var(--fs-caption);font-weight:var(--fw-medium);color:var(--text-primary);margin-top:var(--space-sm);margin-bottom:var(--space-xs);}
-#assessment-modal .modal-body input:not([type=checkbox]):not(.pel-sum-nilai),
-#assessment-modal .modal-body select:not(.pel-diag-select),
-#assessment-modal .modal-body textarea:not(.pel-form-textarea){width:100%;box-sizing:border-box;display:block;background:var(--input-bg);border:1px solid var(--input-border);border-radius:var(--input-r);color:var(--text-primary);font-size:var(--fs-ui);padding:var(--input-py) var(--input-px);font-family:inherit;}
-#assessment-modal .modal-body input::placeholder,
-#assessment-modal .modal-body textarea::placeholder{color:var(--text-muted);opacity:1;}
-#assessment-modal .modal-body input[type=date]{color-scheme:dark;}
-#assessment-modal .modal-body input[type=date][value=""]::-webkit-datetime-edit-month-field,
-#assessment-modal .modal-body input[type=date][value=""]::-webkit-datetime-edit-day-field,
-#assessment-modal .modal-body input[type=date][value=""]::-webkit-datetime-edit-year-field,
-#assessment-modal .modal-body input[type=date][value=""]::-webkit-datetime-edit-text{color:var(--text-muted);}
-#assessment-modal .modal-body select option{background:var(--bg-elevated);color:var(--text-primary);}`;
-    overlay.querySelector('.modal-box').appendChild(_ms);
-
-    document.body.appendChild(overlay);
-    overlay.querySelector('textarea, input')?.focus();
-  }
-
-  // ─── Modal CP ───────────────────────────────────────────────────────────────
-
-  function openCpModal(cp) {
-    openModal({
-      title: cp ? 'Edit Capaian Pembelajaran' : 'Tambah Capaian Pembelajaran',
-      bodyHtml: `
-<label>Konten <span style="color:var(--danger);">*</span></label>
-<textarea id="pai-modal-konten" rows="4" maxlength="2000"
-  placeholder="Deskripsi capaian pembelajaran…">${esc(cp?.konten || '')}</textarea>`,
-      onSave: async (overlay, close) => {
-        const konten = overlay.querySelector('#pai-modal-konten').value.trim();
-        if (!konten) throw new Error('Konten CP tidak boleh kosong.');
-        if (cp) {
-          await updateItem(cp.id, { konten });
-        } else {
-          await saveItem({ judul: 'CP', tipe: 'CP', konten, urutan: 1, parent_id: null });
-        }
-        await loadAll();
-        renderPerencanaan();
-        close();
-      }
-    });
-  }
-
-  // ─── Modal TP ───────────────────────────────────────────────────────────────
-
-  function openTpModal(tp) {
-    const nextUrutan = tp
-      ? (tp.urutan ?? 1)
-      : (_items.filter(i => i.tipe === 'TP' && !i.parent_id)
-               .reduce((m, i) => Math.max(m, i.urutan ?? 0), 0) + 1);
-
-    openModal({
-      title: tp ? 'Edit Tujuan Pembelajaran' : 'Tambah Tujuan Pembelajaran',
-      bodyHtml: `
-<label>Judul <span style="color:var(--danger);">*</span></label>
-<input type="text" id="pai-modal-judul"
-  value="${esc(tp?.judul || '')}" maxlength="200"
-  placeholder="Judul tujuan pembelajaran…">
-<label>Konten / Deskripsi
-  <span style="font-weight:var(--fw-regular);color:var(--text-muted);">(opsional)</span>
-</label>
-<textarea id="pai-modal-konten" rows="3" maxlength="2000"
-  placeholder="Deskripsi tambahan…">${esc(tp?.konten || '')}</textarea>`,
-      onSave: async (overlay, close) => {
-        const judul = overlay.querySelector('#pai-modal-judul').value.trim();
-        if (!judul) throw new Error('Judul TP tidak boleh kosong.');
-        const konten    = overlay.querySelector('#pai-modal-konten').value.trim() || null;
-        if (tp) {
-          await updateItem(tp.id, { judul, konten });
-        } else {
-          await saveItem({ judul, tipe: 'TP', konten, urutan: nextUrutan, parent_id: null });
-        }
-        await loadAll();
-        renderPerencanaan();
-        close();
-      }
-    });
-  }
-
-  // ─── Modal KKTP ─────────────────────────────────────────────────────────────
-
-  function openKktpModal(kktp, parentTpId) {
-    const tpItem     = _items.find(i => i.id === parentTpId);
-    const nextUrutan = kktp
-      ? (kktp.urutan ?? 1)
-      : (_items.filter(i => i.tipe === 'KKTP' && i.parent_id === parentTpId)
-               .reduce((m, i) => Math.max(m, i.urutan ?? 0), 0) + 1);
-
-    openModal({
-      title: kktp
-        ? 'Edit KKTP'
-        : ('Tambah KKTP' + (tpItem ? ' — ' + tpItem.judul : '')),
-      bodyHtml: `
-<label>Predikat / Deskripsi <span style="color:var(--danger);">*</span></label>
-<input type="text" id="pai-modal-judul"
-  value="${esc(kktp?.judul || '')}" maxlength="200"
-  placeholder="Contoh: Sangat Baik">
-<label>Batas Bawah
-  <span style="font-weight:var(--fw-regular);color:var(--text-muted);">(0–100, opsional)</span>
-</label>
-<input type="number" id="pai-modal-bawah"
-  value="${kktp?.batas_bawah != null ? esc(String(kktp.batas_bawah)) : ''}"
-  min="0" max="100" step="0.01" placeholder="0">
-<label>Batas Atas
-  <span style="font-weight:var(--fw-regular);color:var(--text-muted);">(0–100, opsional)</span>
-</label>
-<input type="number" id="pai-modal-atas"
-  value="${kktp?.batas_atas != null ? esc(String(kktp.batas_atas)) : ''}"
-  min="0" max="100" step="0.01" placeholder="100">`,
-      onSave: async (overlay, close) => {
-        const judul    = overlay.querySelector('#pai-modal-judul').value.trim();
-        if (!judul) throw new Error('Predikat/deskripsi tidak boleh kosong.');
-        const bawahRaw    = overlay.querySelector('#pai-modal-bawah').value.trim();
-        const atasRaw     = overlay.querySelector('#pai-modal-atas').value.trim();
-        const batas_bawah = bawahRaw !== '' ? parseFloat(bawahRaw) : null;
-        const batas_atas  = atasRaw  !== '' ? parseFloat(atasRaw)  : null;
-        if (batas_bawah != null && batas_atas != null && batas_atas <= batas_bawah) {
-          throw new Error('Batas atas harus lebih besar dari batas bawah.');
-        }
-        if (kktp) {
-          await updateItem(kktp.id, { judul, batas_bawah, batas_atas });
-        } else {
-          await saveItem({ judul, tipe: 'KKTP', konten: null, urutan: nextUrutan,
-                           parent_id: parentTpId, batas_bawah, batas_atas });
-        }
-        await loadAll();
-        renderPerencanaan();
-        close();
-      }
-    });
-  }
-
-  // ─── Inline delete confirm ───────────────────────────────────────────────────
-
-  function confirmItemDelete(origBtn, id, label) {
-    const clone = origBtn.cloneNode(true);
-
-    const wrap = document.createElement('span');
-    wrap.style.cssText = 'display:inline-flex;align-items:center;gap:var(--space-xs);flex-wrap:wrap;';
-    const _asmtRefs = _assessments.filter(a => a.tp_id === id);
-    const _warnHtml = _asmtRefs.length
-      ? `<span style="font-size:var(--fs-caption);color:var(--warning);display:block;margin-bottom:var(--space-xs);">TP ini digunakan oleh ${_asmtRefs.length} entri penilaian. Setelah dihapus, referensi TP pada entri tersebut akan hilang.</span>`
-      : '';
-    wrap.innerHTML = `${_warnHtml}<span style="font-size:var(--fs-caption);color:var(--text-secondary);white-space:nowrap;">Hapus ${esc(label)}?</span>`;
-
-    const yesBtn = document.createElement('button');
-    yesBtn.className  = 'btn-sm btn-sm-danger';
-    yesBtn.style.cssText = 'font-size:var(--fs-caption);min-height:var(--btn-h-xs);padding:0 var(--btn-px-sm);';
-    yesBtn.textContent = 'Ya';
-
-    const noBtn = document.createElement('button');
-    noBtn.className   = 'btn-sm';
-    noBtn.style.cssText = 'font-size:var(--fs-caption);min-height:var(--btn-h-xs);padding:0 var(--btn-px-sm);';
-    noBtn.textContent = 'Tidak';
-
-    wrap.appendChild(yesBtn);
-    wrap.appendChild(noBtn);
-    origBtn.replaceWith(wrap);
-
-    yesBtn.addEventListener('click', async () => {
-      yesBtn.disabled = true;
-      try {
-        await deleteItem(id);
-        await loadAll();
-        renderPerencanaan();
-      } catch (err) {
-        wrap.replaceWith(clone);
-        alert('Gagal hapus: ' + (err.message || 'Error tidak diketahui.'));
-      }
-    });
-    noBtn.addEventListener('click', () => { wrap.replaceWith(clone); });
-  }
-
-  // ─── Event delegation ───────────────────────────────────────────────────────
-
-  function initDelegation() {
-    const body = document.getElementById('pai-perencanaan-body');
-    if (!body) return;
-
-    body.addEventListener('click', e => {
-      // Toggle Selengkapnya / Sembunyikan
-      if (e.target.classList.contains('pai-cp-toggle')) {
-        const tog = e.target;
-        const txtId = tog.id === 'pai-cp-toggle'
-          ? 'pai-cp-text'
-          : 'pai-tp-text-' + tog.id.replace('pai-tp-toggle-', '');
-        const txt = document.getElementById(txtId);
-        if (!txt) return;
-        const clamped = txt.classList.toggle('pai-cp-clamped');
-        tog.textContent = clamped ? 'Selengkapnya' : 'Sembunyikan';
-        return;
-      }
-
-      // Subsec header collapse — but not if a button inside was clicked
-      const subsecHdr = e.target.closest('.pai-subsec-header');
-      if (subsecHdr && !e.target.closest('[data-action]')) {
-        const subsecBody = subsecHdr.nextElementSibling;
-        const chevron    = subsecHdr.querySelector('.pai-chevron');
-        if (subsecBody) {
-          const isOpen = subsecBody.style.display !== 'none';
-          subsecBody.style.display = isOpen ? 'none' : '';
-          if (chevron) chevron.style.transform = isOpen ? '' : 'rotate(180deg)';
-        }
-        return;
-      }
-
-      const btn = e.target.closest('[data-action]');
-      if (!btn) return;
-      const action = btn.dataset.action;
-
-      switch (action) {
-        case 'cp-add':
-          openCpModal(null);
-          break;
-        case 'cp-edit': {
-          const cp = _items.find(i => i.id === btn.dataset.id) || null;
-          openCpModal(cp);
-          break;
-        }
-        case 'cp-del':
-          confirmItemDelete(btn, btn.dataset.id, 'CP');
-          break;
-        case 'tp-add':
-          openTpModal(null);
-          break;
-        case 'tp-edit': {
-          const tp = _items.find(i => i.id === btn.dataset.id) || null;
-          openTpModal(tp);
-          break;
-        }
-        case 'tp-del':
-          confirmItemDelete(btn, btn.dataset.id, 'TP ini beserta KKTP-nya');
-          break;
-        case 'kktp-add':
-          openKktpModal(null, btn.dataset.tpId);
-          break;
-        case 'kktp-edit': {
-          const kktp = _items.find(i => i.id === btn.dataset.id);
-          if (kktp) openKktpModal(kktp, kktp.parent_id);
-          break;
-        }
-        case 'kktp-del':
-          confirmItemDelete(btn, btn.dataset.id, 'KKTP ini');
-          break;
-        case 'tp-toggle': {
-          const tpId = btn.dataset.tpId;
-          const body = document.getElementById('pai-tp-body-' + tpId);
-          if (!body) break;
-          const isOpen = body.style.display === 'block';
-          body.style.display = isOpen ? 'none' : 'block';
-          btn.textContent    = isOpen ? '▶' : '▼';
-          break;
-        }
-      }
-    });
-  }
-
-  // ─── Export Penilaian (4 sheet) ─────────────────────────────────────────────
-
-  function exportPenilaian() {
-    function slugify(s) {
-      return String(s || '').toLowerCase()
-        .replace(/\s+/g, '-')
-        .replace(/[^a-z0-9-]/g, '')
-        .replace(/-+/g, '-')
-        .replace(/^-|-$/g, '');
-    }
-    function fmtDate(s) {
-      if (!s) return '';
-      const [y, m, d] = s.split('-');
-      return `${d}/${m}/${y}`;
-    }
-
-    const slug     = slugify(window._classroomName || '');
-    const yearSlug = (_year || '').replace('/', '-');
-    const today    = new Date().toISOString().slice(0, 10);
-    const parts    = ['penilaian'];
-    if (slug) parts.push(slug);
-    parts.push(yearSlug, `sem${_semester}`, today);
-    const filename = parts.join('-') + '.xlsx';
-
-    const JENIS_MAP = { DIAGNOSTIK_NK: 'D-NK', DIAGNOSTIK_K: 'D-K', FORMATIF: 'Formatif', SUMATIF: 'Sumatif' };
-    const TL_MAP    = { PENGAYAAN: 'Pengayaan', PENGUATAN: 'Penguatan', PENDAMPINGAN: 'Pendampingan' };
-    const HEADER    = ['Nama Siswa', 'NIS', 'Judul Penilaian', 'Jenis', 'Tanggal', 'Nilai/Deskripsi', 'Tindak Lanjut', 'Status Publikasi'];
-
-    function buildRows(asmts) {
-      const result = [];
-      for (const a of asmts) {
-        for (const s of _roster) {
-          const g = _grades.find(gr => gr.assessment_id === a.id && gr.student_id === s.id);
-          result.push([
-            s.full_name,
-            s.nis || '',
-            a.judul || '',
-            JENIS_MAP[a.jenis] || a.jenis || '',
-            fmtDate(a.tanggal),
-            g ? (g.nilai_angka != null ? String(g.nilai_angka) : (g.deskripsi || '')) : '',
-            g ? (TL_MAP[g.tindak_lanjut] || '—') : '—',
-            a.is_published ? 'Dipublikasi' : 'Belum Dipublikasi',
-          ]);
-        }
-      }
-      return result;
-    }
-
-    const diagAsmts = _assessments.filter(a => a.jenis === 'DIAGNOSTIK_NK' || a.jenis === 'DIAGNOSTIK_K');
-    const formAsmts = _assessments.filter(a => a.jenis === 'FORMATIF');
-    const sumAsmts  = _assessments.filter(a => a.jenis === 'SUMATIF');
-
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([HEADER, ...buildRows(_assessments)]), 'Semua Nilai');
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([HEADER, ...buildRows(diagAsmts)]),    'Diagnostik');
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([HEADER, ...buildRows(formAsmts)]),    'Formatif');
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([HEADER, ...buildRows(sumAsmts)]),     'Sumatif');
-    XLSX.writeFile(wb, filename);
-  }
-
-  // ─── Collapse ───────────────────────────────────────────────────────────────
-
-  function initCollapse() {
-    [
-      { headerId: 'pai-perencanaan-header', bodyId: 'pai-perencanaan-body' },
-      { headerId: 'pai-pelaksanaan-header', bodyId: 'pai-pelaksanaan-body' }
-    ].forEach(({ headerId, bodyId }) => {
-      const header  = document.getElementById(headerId);
-      const body    = document.getElementById(bodyId);
-      if (!header || !body) return;
-      const chevron = header.querySelector('.pai-section-chevron');
-      header.addEventListener('click', () => {
-        const isOpen = body.style.display !== 'none';
-        body.style.display = isOpen ? 'none' : '';
-        if (chevron) chevron.style.transform = isOpen ? '' : 'rotate(180deg)';
-      });
-    });
-
-    // Perencanaan default terbuka
-    const perBody = document.getElementById('pai-perencanaan-body');
-    const perChev = document.querySelector('#pai-perencanaan-header .pai-section-chevron');
-    if (perBody) perBody.style.display = '';
-    if (perChev) perChev.style.transform = 'rotate(180deg)';
-  }
-
-  // ─── Filter ─────────────────────────────────────────────────────────────────
-
-  function initSemesterDropdown() {
-    if (_sdAC) { _sdAC.abort(); }
-    _sdAC = new AbortController();
-
-    const trigger = document.getElementById('pai-semester-trigger');
-    const list    = document.getElementById('pai-semester-list');
-    const label   = document.getElementById('pai-semester-label');
-    if (!trigger || !list || !label) return;
-
-    function openList() {
-      list.style.display = '';
-      trigger.classList.add('open');
-      trigger.setAttribute('aria-expanded', 'true');
-    }
-    function closeList() {
-      list.style.display = 'none';
-      trigger.classList.remove('open');
-      trigger.setAttribute('aria-expanded', 'false');
-    }
-    function isOpen() { return list.style.display !== 'none'; }
-
-    trigger.addEventListener('click', e => {
-      e.stopPropagation();
-      isOpen() ? closeList() : openList();
-    });
-
-    trigger.addEventListener('keydown', e => {
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); isOpen() ? closeList() : openList(); }
-      if (e.key === 'Escape') closeList();
-      if (e.key === 'ArrowDown') { e.preventDefault(); openList(); list.querySelector('.custom-select-option')?.focus(); }
-    });
-
-    list.querySelectorAll('.custom-select-option').forEach((opt, idx, opts) => {
-      opt.setAttribute('tabindex', '-1');
-      opt.addEventListener('keydown', e => {
-        if (e.key === 'ArrowDown') { e.preventDefault(); opts[idx + 1]?.focus(); }
-        if (e.key === 'ArrowUp')   { e.preventDefault(); idx === 0 ? trigger.focus() : opts[idx - 1]?.focus(); }
-        if (e.key === 'Escape')    { closeList(); trigger.focus(); }
-        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); opt.click(); }
-      });
-      opt.addEventListener('click', async () => {
-        const val = parseInt(opt.dataset.value, 10);
-        _semester = val;
-        label.textContent = opt.textContent;
-        list.querySelectorAll('.custom-select-option').forEach(o => o.classList.remove('selected'));
-        opt.classList.add('selected');
-        closeList();
-        trigger.focus();
-        await loadAll();
-        renderAll();
-      });
-    });
-
-    document.addEventListener('click', e => {
-      if (!document.getElementById('pai-semester-wrap')?.contains(e.target)) closeList();
-    }, { signal: _sdAC.signal });
-  }
-
-  function initFilter() {
-    const now = new Date();
-    const y   = now.getFullYear();
-    _year     = now.getMonth() >= 6 ? `${y}/${y + 1}` : `${y - 1}/${y}`;
-    _semester = now.getMonth() >= 6 ? 1 : 2;
-
-    renderPerencanaan();
-
-    const body = document.getElementById('pai-perencanaan-body');
-    if (!body) return;
-
-    async function applyFilter() {
-      const yearInp = document.getElementById('pai-year');
-      const errEl   = document.getElementById('pai-filter-error');
-      const yv = yearInp ? yearInp.value.trim() : '';
-      if (!YEAR_RE.test(yv)) {
-        if (errEl) errEl.textContent = 'Format tidak valid. Contoh: 2025/2026';
-        return;
-      }
-      if (errEl) errEl.textContent = '';
-      _year = yv;
-      await loadAll();
-      renderAll();
-    }
-
-    body.addEventListener('change', async e => {
-      if (e.target.id === 'pai-year') await applyFilter();
-    });
-    body.addEventListener('blur', async e => {
-      if (e.target.id === 'pai-year') await applyFilter();
-    }, true);
+  async function loadRoster() {
+    const { data: members } = await client
+      .from('classroom_members').select('profile_id')
+      .eq('classroom_id', _cId).eq('member_role', 'SISWA');
+    if (!members?.length) return [];
+    const { data: profiles } = await client
+      .from('profiles').select('id, full_name')
+      .in('id', members.map(m => m.profile_id))
+      .order('full_name');
+    return (profiles ?? []).map(p => ({ id: p.id, nama: p.full_name }));
   }
 
   // ─── Init ───────────────────────────────────────────────────────────────────
-
   async function initAssessmentTab(cId, tId) {
-    classroomId = cId;
-    teacherId   = tId;
-    try { _pelTab = localStorage.getItem('sip_pel_tab_' + cId) || 'DIAGNOSTIK'; } catch (_) { _pelTab = 'DIAGNOSTIK'; }
-
-    const panel = document.getElementById('panel-penilaian');
-    if (panel) {
-      panel.innerHTML = `
-<div class="pai-section">
-  <div class="pai-section-header" id="pai-perencanaan-header">
-    <span class="pai-section-title">Perencanaan</span>
-    <span class="pai-section-chevron">▼</span>
-  </div>
-  <div class="pai-section-body" id="pai-perencanaan-body" style="display:none"></div>
-</div>
-<div class="pai-section">
-  <div class="pai-section-header" id="pai-pelaksanaan-header">
-    <span class="pai-section-title">Pelaksanaan Penilaian</span>
-    <span class="pai-section-chevron">▼</span>
-  </div>
-  <div class="pai-section-body" id="pai-pelaksanaan-body" style="display:none"></div>
-</div>`;
-    }
-
-    initCollapse();
-    initFilter();
-    initDelegation();
-    initPelDelegation();
+    _cId = cId;
+    _tId = tId;
+    const panel = el('panel-penilaian');
+    if (!panel) return;
+    panel.innerHTML = '<div style="padding:1.5rem;color:var(--text-secondary)">Memuat data penilaian…</div>';
     await loadAll();
-    renderPerencanaan();
-    renderPelaksanaan();
     _loaded = true;
+    renderMain();
   }
 
-  // ─── DOMContentLoaded ───────────────────────────────────────────────────────
+  // ─── Main render ─────────────────────────────────────────────────────────────
+  function renderMain() {
+    const panel = el('panel-penilaian');
+    if (!panel) return;
 
-  window.addEventListener('DOMContentLoaded', async function () {
-    const tabSiswa      = document.getElementById('tab-siswa');
-    const tabJadwal     = document.getElementById('tab-jadwal');
-    const tabCatatan    = document.getElementById('tab-catatan');
-    const tabPenilaian  = document.getElementById('tab-penilaian');
-    const panelSiswa    = document.getElementById('panel-siswa');
-    const panelJadwal   = document.getElementById('panel-jadwal');
-    const panelCatatan  = document.getElementById('panel-catatan');
-    const panelPenilaian = document.getElementById('panel-penilaian');
+    panel.innerHTML = `
+<div class="panel">
+  <h2 class="panel-header" data-panel="pan-tp-body"
+    style="font-size:var(--fs-h3);color:var(--gold)">
+    TP &amp; KKTP <span class="panel-collapse-arrow">▼</span>
+  </h2>
+  <div class="panel-body-collapse" id="pan-tp-body">
+    <div id="pai-tp-list"></div>
+    <button type="button" data-action="add-tp" class="btn-secondary"
+      style="margin-top:.75rem">+ Tambah TP/KKTP</button>
+  </div>
+</div>
 
-    if (!tabPenilaian || !panelPenilaian) return;
+<div class="panel">
+  <h2 class="panel-header" data-panel="pan-asmt-body"
+    style="font-size:var(--fs-h3);color:var(--gold)">
+    Daftar Penilaian <span class="panel-collapse-arrow">▼</span>
+  </h2>
+  <div class="panel-body-collapse" id="pan-asmt-body">
+    <div id="pai-asmt-list"></div>
+    <button type="button" data-action="add-asmt" class="btn-secondary"
+      style="margin-top:.75rem">+ Tambah Penilaian</button>
+  </div>
+</div>
 
-    const allTabs   = [tabSiswa, tabJadwal, tabCatatan, tabPenilaian].filter(Boolean);
-    const allPanels = [panelSiswa, panelJadwal, panelCatatan, panelPenilaian].filter(Boolean);
+<div class="panel">
+  <h2 class="panel-header" data-panel="pan-recap-body" data-action="open-recap"
+    style="font-size:var(--fs-h3);color:var(--gold)">
+    Rekap Semester <span class="panel-collapse-arrow">▶</span>
+  </h2>
+  <div class="panel-body-collapse" id="pan-recap-body" style="display:none">
+    <div id="pai-recap-wrap"></div>
+  </div>
+</div>
 
-    tabPenilaian.addEventListener('click', async () => {
-      window.currentTab = 'penilaian';
-      allTabs.forEach(t => t.classList.remove('active'));
-      tabPenilaian.classList.add('active');
-      allPanels.forEach(p => { p.style.display = 'none'; });
-      panelPenilaian.style.display = '';
+<div id="pai-modal" style="display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,.6);z-index:1000;overflow-y:auto;
+  padding:1rem .75rem;-webkit-overflow-scrolling:touch">
+  <div id="pai-modal-box"
+    style="background:var(--bg-card,#1e1e1e);border-radius:.75rem;
+    max-width:34rem;margin:2rem auto;padding:1.5rem;
+    position:relative;box-shadow:0 8px 32px rgba(0,0,0,.5)">
+  </div>
+</div>`;
 
-      const cId = new URLSearchParams(window.location.search).get('id');
-      if (cId) try { localStorage.setItem('sip_tab_' + cId, 'penilaian'); } catch (_) {}
+    initCollapsePanel();
+    panel.addEventListener('click', handleClick);
+    renderTpList();
+    renderAsmtList();
+  }
 
-      // Trial gate — fitur hanya untuk AKTIF
-      let _ts = null;
-      try { _ts = JSON.parse(sessionStorage.getItem('guru_trial_status') || 'null'); } catch (_) {}
-      if (!_ts) {
-        try {
-          const { data } = await window.supabaseClient.rpc('fn_guru_trial_status');
-          if (data) { _ts = data; sessionStorage.setItem('guru_trial_status', JSON.stringify(_ts)); }
-        } catch (_) {}
-      }
-      if (_ts && _ts.status !== 'AKTIF') {
-        panelPenilaian.innerHTML =
-          '<div style="padding:1.5rem;color:var(--text-secondary);font-size:var(--fs-body);">' +
-          'Fitur ini hanya tersedia untuk akun Guru. Hubungi admin untuk aktivasi.' +
-          '</div>';
+  // ─── Collapse ────────────────────────────────────────────────────────────────
+  function initCollapsePanel() {
+    el('panel-penilaian')?.querySelectorAll('.panel-header[data-panel]').forEach(h => {
+      h.style.cursor = 'pointer';
+      h.addEventListener('click', e => {
+        if (e.target.closest('button') && !e.target.closest('[data-action="open-recap"]')) return;
+        const body  = el(h.dataset.panel);
+        if (!body) return;
+        const open  = body.style.display !== 'none';
+        body.style.display = open ? 'none' : '';
+        const arrow = h.querySelector('.panel-collapse-arrow');
+        if (arrow) arrow.textContent = open ? '▶' : '▼';
+      });
+    });
+  }
+
+  // ─── Event delegation ────────────────────────────────────────────────────────
+  function handleClick(e) {
+    const btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    switch (btn.dataset.action) {
+      case 'add-tp':       openTpModal(null);            break;
+      case 'edit-tp':      openTpModal(btn.dataset.id);  break;
+      case 'del-tp':       confirmDeleteTp(btn.dataset.id); break;
+      case 'add-asmt':     openAsmtModal(null);           break;
+      case 'edit-asmt':    openAsmtModal(btn.dataset.id); break;
+      case 'del-asmt':     confirmDeleteAsmt(btn.dataset.id); break;
+      case 'open-asmt':    openAsmtDetail(btn.dataset.id); break;
+      case 'close-modal':  closeModal();                 break;
+      case 'filter-grup':  onFilterGrup(btn);            break;
+      case 'save-results': saveResults(btn);             break;
+      case 'open-recap':   renderRecap();                break;
+    }
+  }
+
+  // ─── Modal helpers ───────────────────────────────────────────────────────────
+  function openModal() {
+    const m = el('pai-modal');
+    if (!m) return;
+    m.style.display = '';
+    m.scrollTop = 0;
+    m.onclick = ev => { if (ev.target === m) closeModal(); };
+  }
+  function closeModal() {
+    const m = el('pai-modal');
+    if (m) m.style.display = 'none';
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════════
+  // SECTION 1 — TP & KKTP
+  // ══════════════════════════════════════════════════════════════════════════════
+
+  function renderTpList() {
+    const c = el('pai-tp-list');
+    if (!c) return;
+    const roots = _tpList.filter(t => !t.parent_id);
+    if (!roots.length) {
+      c.innerHTML = `<p style="color:var(--text-secondary);font-size:var(--fs-caption)">
+        Belum ada TP/KKTP. Klik "+ Tambah TP/KKTP" untuk mulai.</p>`;
+      return;
+    }
+    c.innerHTML = roots.map(tp => tpRowHtml(tp)).join('');
+  }
+
+  function tpRowHtml(tp) {
+    const kids  = _tpList.filter(t => t.parent_id === tp.id);
+    const color = TIPE_COLOR[tp.tipe] ?? '#555';
+    const txtColor = color === 'var(--gold)' ? 'var(--text-on-gold,#000)' : '#fff';
+    const kHtml = kids.map(k => `
+<div style="display:flex;align-items:center;gap:.5rem;padding:.375rem .75rem;
+    margin-left:1.25rem;border-left:2px solid var(--border-subtle,rgba(255,255,255,.12))">
+  <span style="flex:1;font-size:var(--fs-caption);color:var(--text-secondary)">
+    ${esc(k.judul)}${k.batas_bawah != null ? ` — ${k.batas_bawah}–${k.batas_atas}` : ''}
+  </span>
+  <button type="button" data-action="edit-tp" data-id="${k.id}"
+    class="btn-icon" title="Edit">✏️</button>
+  <button type="button" data-action="del-tp"  data-id="${k.id}"
+    class="btn-icon" title="Hapus">🗑</button>
+</div>`).join('');
+
+    return `
+<div style="border:1px solid var(--border-subtle,rgba(255,255,255,.12));
+    border-radius:.5rem;margin-bottom:.5rem;overflow:hidden">
+  <div style="display:flex;align-items:center;gap:.5rem;padding:.625rem .75rem;
+      background:var(--bg-elevated,rgba(255,255,255,.04))">
+    <span style="flex-shrink:0;font-size:.6875rem;font-weight:700;
+        padding:.2rem .45rem;border-radius:.25rem;
+        background:${color};color:${txtColor}">
+      ${TIPE_LBL[tp.tipe] ?? tp.tipe}
+    </span>
+    <span style="flex:1;font-size:var(--fs-ui);font-weight:var(--fw-medium,500)">
+      ${esc(tp.judul)}
+    </span>
+    <button type="button" data-action="edit-tp" data-id="${tp.id}"
+      class="btn-icon" title="Edit">✏️</button>
+    <button type="button" data-action="del-tp"  data-id="${tp.id}"
+      class="btn-icon" title="Hapus">🗑</button>
+  </div>
+  ${tp.konten ? `<div style="padding:.375rem .75rem;font-size:var(--fs-caption);
+      color:var(--text-secondary);
+      border-top:1px solid var(--border-subtle,rgba(255,255,255,.08))">
+      ${esc(tp.konten)}</div>` : ''}
+  ${kHtml}
+</div>`;
+  }
+
+  function openTpModal(editId) {
+    const item   = editId ? _tpList.find(t => t.id === editId) : null;
+    const isEdit = !!item;
+    const tpOpts = _tpList.filter(t => t.tipe === 'TP');
+
+    let selTipe = item?.tipe ?? 'TP';
+
+    const tipeChips = ['CP', 'TP', 'KKTP', 'NILAI', 'LAINNYA']
+      .map(t => chipHtml(t, TIPE_LBL[t], selTipe === t)).join('');
+
+    const parentOpts = tpOpts.map(t =>
+      `<option value="${t.id}"${item?.parent_id === t.id ? ' selected' : ''}>${esc(t.judul)}</option>`
+    ).join('');
+
+    el('pai-modal-box').innerHTML = `
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+  <h3 style="margin:0;color:var(--gold)">${isEdit ? 'Edit' : 'Tambah'} TP/KKTP</h3>
+  <button data-action="close-modal" class="btn-icon" style="font-size:1.25rem">×</button>
+</div>
+<div id="tp-form" style="display:flex;flex-direction:column;gap:.875rem">
+  <div>
+    ${fieldLbl('Tipe')}
+    <div id="tp-tipe-chips" style="display:flex;flex-wrap:wrap;gap:.5rem">${tipeChips}</div>
+  </div>
+  <div id="tp-parent-row" style="${selTipe === 'KKTP' ? '' : 'display:none'}">
+    ${fieldLbl('TP induk')}
+    <select id="tp-parent-sel" style="${inputCss()}">
+      <option value="">— Pilih TP —</option>${parentOpts}
+    </select>
+  </div>
+  <div>
+    ${fieldLbl('Judul')}
+    <input id="tp-judul" type="text" value="${esc(item?.judul ?? '')}"
+      placeholder="Judul TP/KKTP…" style="${inputCss()}">
+  </div>
+  <div id="tp-konten-row" style="${selTipe === 'KKTP' ? 'display:none' : ''}">
+    ${fieldLbl('Deskripsi / Teks CP (opsional)')}
+    <textarea id="tp-konten" rows="3"
+      style="${inputCss('resize:vertical')}"
+      placeholder="Teks capaian pembelajaran…">${esc(item?.konten ?? '')}</textarea>
+  </div>
+  <div id="tp-range-row" style="${selTipe === 'KKTP' ? 'display:flex;gap:.75rem' : 'display:none'}">
+    <div style="flex:1">
+      ${fieldLbl('Batas Bawah')}
+      <input id="tp-bawah" type="number" min="0" max="100" step="0.5"
+        value="${item?.batas_bawah ?? ''}" style="${inputCss()}">
+    </div>
+    <div style="flex:1">
+      ${fieldLbl('Batas Atas')}
+      <input id="tp-atas" type="number" min="0" max="100" step="0.5"
+        value="${item?.batas_atas ?? ''}" style="${inputCss()}">
+    </div>
+  </div>
+  <div style="display:flex;gap:.75rem">
+    <div style="flex:1">
+      ${fieldLbl('Tahun Ajaran')}
+      <input id="tp-year" type="text" maxlength="9"
+        value="${esc(item?.academic_year ?? DEFAULT_YEAR)}"
+        placeholder="2025/2026" style="${inputCss()}">
+    </div>
+    <div>
+      ${fieldLbl('Semester')}
+      <select id="tp-sem" style="${inputCss()}">
+        <option value="1"${(item?.semester ?? 1) === 1 ? ' selected' : ''}>1</option>
+        <option value="2"${item?.semester === 2 ? ' selected' : ''}>2</option>
+      </select>
+    </div>
+  </div>
+  <div style="display:flex;gap:.75rem;justify-content:flex-end;margin-top:.25rem">
+    <button data-action="close-modal" class="btn-secondary">Batal</button>
+    <button id="btn-tp-save"
+      style="padding:.5rem 1.25rem;background:var(--gold);
+      color:var(--text-on-gold,#000);border:none;border-radius:.375rem;
+      font-weight:600;cursor:pointer">${isEdit ? 'Simpan' : 'Tambah'}</button>
+  </div>
+  <div id="tp-err" style="color:#e74c3c;font-size:var(--fs-caption);display:none"></div>
+</div>`;
+
+    const chipsEl = el('pai-modal-box').querySelector('#tp-tipe-chips');
+    wireChips(chipsEl, false, val => {
+      selTipe = val;
+      el('tp-parent-row').style.display = val === 'KKTP' ? '' : 'none';
+      el('tp-konten-row').style.display = val === 'KKTP' ? 'none' : '';
+      const rangeRow = el('tp-range-row');
+      rangeRow.style.display = val === 'KKTP' ? 'flex' : 'none';
+      if (val === 'KKTP') rangeRow.style.gap = '.75rem';
+    });
+
+    el('btn-tp-save').addEventListener('click', async () => {
+      const judul = el('tp-judul').value.trim();
+      if (!judul) {
+        el('tp-err').textContent = 'Judul wajib diisi';
+        el('tp-err').style.display = '';
         return;
       }
-
-      if (!_loaded) {
-        const { data: { session } } = await window.supabaseClient.auth.getSession();
-        if (!session) return;
-        const _cId = new URLSearchParams(window.location.search).get('id');
-        if (!_cId) return;
-        const { data: prof } = await window.supabaseClient
-          .from('profiles').select('id').eq('user_id', session.user.id).single();
-        if (!prof) return;
-        await initAssessmentTab(_cId, prof.id);
+      const payload = {
+        tipe:         selTipe,
+        judul,
+        konten:       selTipe !== 'KKTP' ? (el('tp-konten').value.trim() || null) : null,
+        parent_id:    selTipe === 'KKTP' ? (el('tp-parent-sel').value || null) : null,
+        batas_bawah:  selTipe === 'KKTP' && el('tp-bawah').value !== ''
+                        ? parseFloat(el('tp-bawah').value) : null,
+        batas_atas:   selTipe === 'KKTP' && el('tp-atas').value !== ''
+                        ? parseFloat(el('tp-atas').value) : null,
+        academic_year: el('tp-year').value.trim() || DEFAULT_YEAR,
+        semester:     parseInt(el('tp-sem').value) || 1,
+      };
+      el('btn-tp-save').disabled = true;
+      try {
+        if (isEdit) {
+          await SipApi.updateTpKktp(editId, payload);
+          _tpList = _tpList.map(t => t.id === editId ? { ...t, ...payload } : t);
+        } else {
+          const n   = _tpList.filter(t => !t.parent_id).length;
+          const row = await SipApi.createTpKktp(_cId, _tId, { ...payload, urutan: n + 1 });
+          _tpList.push(row);
+        }
+        closeModal();
+        renderTpList();
+        toast(`TP/KKTP berhasil ${isEdit ? 'diperbarui' : 'ditambahkan'}`);
+      } catch (err) {
+        el('tp-err').textContent = err.message || 'Gagal menyimpan';
+        el('tp-err').style.display = '';
+        el('btn-tp-save').disabled = false;
       }
     });
 
-    [tabSiswa, tabJadwal, tabCatatan].forEach(t => {
-      if (!t) return;
+    openModal();
+  }
+
+  async function confirmDeleteTp(id) {
+    const item = _tpList.find(t => t.id === id);
+    if (!item) return;
+    if (!confirm(`Hapus "${item.judul}"? Semua KKTP di bawahnya akan ikut terhapus.`)) return;
+    try {
+      await SipApi.deleteTpKktp(id);
+      _tpList = _tpList.filter(t => t.id !== id && t.parent_id !== id);
+      renderTpList();
+      toast('TP/KKTP dihapus');
+    } catch (err) {
+      toast('Gagal menghapus: ' + (err.message || ''), false);
+    }
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════════
+  // SECTION 2 — Daftar Penilaian
+  // ══════════════════════════════════════════════════════════════════════════════
+
+  function renderAsmtList() {
+    const c = el('pai-asmt-list');
+    if (!c) return;
+    if (!_asmts.length) {
+      c.innerHTML = `<p style="color:var(--text-secondary);font-size:var(--fs-caption)">
+        Belum ada penilaian. Klik "+ Tambah Penilaian" untuk mulai.</p>`;
+      return;
+    }
+    const grouped = { DIAGNOSTIK: [], FORMATIF: [], SUMATIF: [] };
+    _asmts.forEach(a => { if (grouped[a.jenis]) grouped[a.jenis].push(a); });
+
+    c.innerHTML = ['DIAGNOSTIK', 'FORMATIF', 'SUMATIF'].map(jenis => {
+      const list = grouped[jenis];
+      if (!list.length) return '';
+      return `
+<div style="margin-bottom:.875rem">
+  <div style="font-size:var(--fs-caption);font-weight:700;color:var(--gold);
+      text-transform:uppercase;letter-spacing:.07em;margin-bottom:.4rem">
+    ${JENIS_LBL[jenis]}
+  </div>
+  ${list.map(a => asmtRowHtml(a)).join('')}
+</div>`;
+    }).join('');
+  }
+
+  function asmtRowHtml(a) {
+    const tp      = _tpList.find(t => t.id === a.tp_kktp_id);
+    const teknik  = a.teknik ? a.teknik.replace(/_/g, ' ') : '';
+    const title   = [teknik || JENIS_LBL[a.jenis], a.instrumen].filter(Boolean).join(' — ');
+    return `
+<div style="border:1px solid var(--border-subtle,rgba(255,255,255,.12));
+    border-radius:.5rem;margin-bottom:.375rem">
+  <div style="display:flex;align-items:center;gap:.5rem;padding:.5rem .75rem">
+    <div style="flex:1;min-width:0">
+      <div style="font-size:var(--fs-ui);font-weight:var(--fw-medium,500);
+          white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(title)}</div>
+      ${tp ? `<div style="font-size:var(--fs-caption);color:var(--text-secondary)">
+        ${esc(tp.judul)}</div>` : ''}
+    </div>
+    <button type="button" data-action="open-asmt" data-id="${a.id}"
+      style="flex-shrink:0;padding:.35rem .75rem;background:transparent;
+      border:1.5px solid var(--gold);color:var(--gold);border-radius:.375rem;
+      font-size:var(--fs-caption);cursor:pointer;white-space:nowrap">
+      Isi Nilai →
+    </button>
+    <button type="button" data-action="edit-asmt" data-id="${a.id}"
+      class="btn-icon" title="Edit">✏️</button>
+    <button type="button" data-action="del-asmt"  data-id="${a.id}"
+      class="btn-icon" title="Hapus">🗑</button>
+  </div>
+</div>`;
+  }
+
+  function openAsmtModal(editId) {
+    const item   = editId ? _asmts.find(a => a.id === editId) : null;
+    const isEdit = !!item;
+    const tpOpts = _tpList.filter(t => !t.parent_id);
+
+    let selJenis  = item?.jenis ?? 'FORMATIF';
+    let selTeknik = item?.teknik ?? '';
+
+    const jenisChips = ['DIAGNOSTIK', 'FORMATIF', 'SUMATIF']
+      .map(j => chipHtml(j, JENIS_LBL[j], selJenis === j)).join('');
+
+    const tpOptHtml = [
+      `<option value="">— Opsional —</option>`,
+      ...tpOpts.map(t =>
+        `<option value="${t.id}"${item?.tp_kktp_id === t.id ? ' selected' : ''}>${esc(t.judul)}</option>`)
+    ].join('');
+
+    const teknikOptHtml = ['', 'OBSERVASI', 'TES', 'PENUGASAN', 'PROYEK', 'PORTOFOLIO', 'UNJUK_KERJA']
+      .map(t => `<option value="${t}"${selTeknik === t ? ' selected' : ''}>
+        ${t ? t.replace(/_/g, ' ') : '— Teknik (opsional) —'}</option>`)
+      .join('');
+
+    const instrOpts = selTeknik ? (INSTRUMEN_MAP[selTeknik] || [])
+      .map(i => `<option value="${i}"${item?.instrumen === i ? ' selected' : ''}>${i}</option>`)
+      .join('') : '';
+
+    el('pai-modal-box').innerHTML = `
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+  <h3 style="margin:0;color:var(--gold)">${isEdit ? 'Edit' : 'Tambah'} Penilaian</h3>
+  <button data-action="close-modal" class="btn-icon" style="font-size:1.25rem">×</button>
+</div>
+<div style="display:flex;flex-direction:column;gap:.875rem">
+  <div>
+    ${fieldLbl('TP yang dinilai')}
+    <select id="asmt-tp-sel" style="${inputCss()}">${tpOptHtml}</select>
+  </div>
+  <div>
+    ${fieldLbl('Jenis penilaian')}
+    <div id="asmt-jenis-chips" style="display:flex;flex-wrap:wrap;gap:.5rem">${jenisChips}</div>
+  </div>
+  <div>
+    ${fieldLbl('Teknik')}
+    <select id="asmt-teknik-sel" style="${inputCss()}">${teknikOptHtml}</select>
+  </div>
+  <div id="asmt-instr-row" style="${instrOpts ? '' : 'display:none'}">
+    ${fieldLbl('Instrumen')}
+    <select id="asmt-instr-sel" style="${inputCss()}">
+      <option value="">— Pilih —</option>${instrOpts}
+    </select>
+  </div>
+  <div>
+    ${fieldLbl('Refleksi guru (opsional)')}
+    <textarea id="asmt-refleksi" rows="2"
+      style="${inputCss('resize:vertical')}"
+      placeholder="Catatan refleksi…">${esc(item?.refleksi_guru ?? '')}</textarea>
+  </div>
+  <div style="display:flex;gap:.75rem;justify-content:flex-end;margin-top:.25rem">
+    <button data-action="close-modal" class="btn-secondary">Batal</button>
+    <button id="btn-asmt-save"
+      style="padding:.5rem 1.25rem;background:var(--gold);
+      color:var(--text-on-gold,#000);border:none;border-radius:.375rem;
+      font-weight:600;cursor:pointer">${isEdit ? 'Simpan' : 'Buat Penilaian'}</button>
+  </div>
+  <div id="asmt-err" style="color:#e74c3c;font-size:var(--fs-caption);display:none"></div>
+</div>`;
+
+    const jenisEl = el('pai-modal-box').querySelector('#asmt-jenis-chips');
+    wireChips(jenisEl, false, val => { selJenis = val; });
+
+    el('asmt-teknik-sel').addEventListener('change', function () {
+      selTeknik = this.value;
+      const opts    = selTeknik ? (INSTRUMEN_MAP[selTeknik] || []) : [];
+      const instrRow = el('asmt-instr-row');
+      const instrSel = el('asmt-instr-sel');
+      if (opts.length) {
+        instrSel.innerHTML = `<option value="">— Pilih —</option>` +
+          opts.map(i => `<option value="${i}">${i}</option>`).join('');
+        instrRow.style.display = '';
+      } else {
+        instrRow.style.display = 'none';
+      }
+    });
+
+    el('btn-asmt-save').addEventListener('click', async () => {
+      const payload = {
+        tp_kktp_id:    el('asmt-tp-sel').value || null,
+        jenis:         selJenis,
+        teknik:        el('asmt-teknik-sel').value || null,
+        instrumen:     el('asmt-instr-sel')?.value || null,
+        refleksi_guru: el('asmt-refleksi').value.trim() || null,
+      };
+      el('btn-asmt-save').disabled = true;
+      try {
+        if (isEdit) {
+          await SipApi.updateAssessment(editId, payload);
+          _asmts = _asmts.map(a => a.id === editId ? { ...a, ...payload } : a);
+        } else {
+          const row = await SipApi.createAssessment(_cId, _tId, payload);
+          _asmts.push(row);
+        }
+        closeModal();
+        renderAsmtList();
+        toast(`Penilaian berhasil ${isEdit ? 'diperbarui' : 'dibuat'}`);
+      } catch (err) {
+        el('asmt-err').textContent = err.message || 'Gagal menyimpan';
+        el('asmt-err').style.display = '';
+        el('btn-asmt-save').disabled = false;
+      }
+    });
+
+    openModal();
+  }
+
+  async function confirmDeleteAsmt(id) {
+    const item = _asmts.find(a => a.id === id);
+    if (!item || !confirm('Hapus penilaian ini? Semua hasil siswa akan ikut terhapus.')) return;
+    try {
+      await SipApi.deleteAssessment(id);
+      _asmts = _asmts.filter(a => a.id !== id);
+      renderAsmtList();
+      toast('Penilaian dihapus');
+    } catch (err) {
+      toast('Gagal menghapus: ' + (err.message || ''), false);
+    }
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════════
+  // SECTION 3 — Grade entry modal (Isi Nilai)
+  // ══════════════════════════════════════════════════════════════════════════════
+
+  async function openAsmtDetail(asmtId) {
+    const asmt = _asmts.find(a => a.id === asmtId);
+    if (!asmt) return;
+
+    el('pai-modal-box').innerHTML =
+      '<div style="padding:1rem;text-align:center;color:var(--text-secondary)">Memuat hasil siswa…</div>';
+    openModal();
+
+    const tp        = _tpList.find(t => t.id === asmt.tp_kktp_id);
+    const kktpItems = tp ? _tpList.filter(t => t.parent_id === tp.id && t.tipe === 'KKTP') : [];
+    const results   = await SipApi.getAssessmentResults(asmtId).catch(() => []);
+    const resMap    = Object.fromEntries(results.map(r => [r.student_id, r]));
+
+    const teknik   = asmt.teknik ? asmt.teknik.replace(/_/g, ' ') : '';
+    const titleStr = [teknik || JENIS_LBL[asmt.jenis], asmt.instrumen].filter(Boolean).join(' — ');
+
+    const hasGroups = Object.keys(_sGroups).length > 0;
+    const filterHtml = hasGroups ? `
+<div id="pai-filter-bar" style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.75rem">
+  ${['all', 'A', 'B', 'C'].map((g, i) => `
+  <button type="button" data-action="filter-grup" data-filter="${g}"
+    style="padding:.25rem .7rem;border-radius:1rem;font-size:var(--fs-caption);cursor:pointer;
+    border:1.5px solid ${i === 0 ? 'var(--gold)' : 'var(--border-subtle)'};
+    ${i === 0 ? 'background:var(--gold);color:var(--text-on-gold,#000)' : 'color:var(--text-secondary)'}">
+    ${g === 'all' ? 'Semua' : `Grup ${g}`}
+  </button>`).join('')}
+</div>` : '';
+
+    el('pai-modal-box').innerHTML = `
+<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.75rem">
+  <div>
+    <div style="font-size:var(--fs-h3);font-weight:var(--fw-medium,500);color:var(--gold)">
+      ${esc(titleStr)}</div>
+    ${tp ? `<div style="font-size:var(--fs-caption);color:var(--text-secondary)">
+      ${esc(tp.judul)}</div>` : ''}
+  </div>
+  <button data-action="close-modal" class="btn-icon"
+    style="font-size:1.25rem;flex-shrink:0">×</button>
+</div>
+${filterHtml}
+${!_roster.length
+  ? `<p style="color:var(--text-secondary);font-size:var(--fs-caption)">
+      Belum ada siswa aktif di kelas ini.</p>`
+  : `<div id="pai-srows"
+      data-asmt-id="${asmtId}"
+      data-jenis="${asmt.jenis}"
+      data-kktp="${kktpItems.length ? encodeURIComponent(JSON.stringify(kktpItems)) : ''}">
+    </div>
+    <div style="text-align:right;margin-top:1rem">
+      <button type="button" data-action="save-results" data-asmt-id="${asmtId}"
+        style="padding:.5rem 1.5rem;background:var(--gold);
+        color:var(--text-on-gold,#000);border:none;border-radius:.375rem;
+        font-weight:600;cursor:pointer">💾 Simpan Semua</button>
+      <div id="pai-save-status"
+        style="font-size:var(--fs-caption);margin-top:.375rem;min-height:1.25rem"></div>
+    </div>`
+}`;
+
+    el('pai-modal-box')._resMap = resMap;
+    buildStudentRows('all', asmt.jenis, kktpItems, resMap);
+  }
+
+  function buildStudentRows(filterGrup, jenis, kktpItems, resMap) {
+    const c = el('pai-srows');
+    if (!c) return;
+    const students = filterGrup !== 'all'
+      ? _roster.filter(s => (_sGroups[s.id] ?? resMap[s.id]?.grup_diferensiasi ?? '') === filterGrup)
+      : _roster;
+    c.innerHTML = students.map(s => studentRowHtml(s, resMap[s.id] ?? {}, jenis, kktpItems)).join('');
+  }
+
+  function studentRowHtml(student, res, jenis, kktpItems) {
+    const grup = _sGroups[student.id] ?? res.grup_diferensiasi ?? '';
+    const grupBadge = grup
+      ? `<span style="font-size:.65rem;padding:.15rem .45rem;border-radius:.25rem;
+          background:var(--gold);color:var(--text-on-gold,#000);font-weight:700">
+          Grup ${grup}</span>`
+      : '';
+
+    let inputs = '';
+    if (jenis === 'DIAGNOSTIK') {
+      const stChips = ['PAHAM', 'BELUM_PAHAM', 'PERLU_PERHATIAN']
+        .map(s => chipHtml(s, STATUS_LBL[s], res.status === s)).join('');
+      inputs = `
+<div class="stu-status-chips" style="display:flex;flex-wrap:wrap;gap:.35rem;margin-bottom:.4rem">
+  ${stChips}
+</div>
+<input type="text" class="stu-catatan" placeholder="Catatan… (opsional)"
+  value="${esc(res.catatan ?? '')}"
+  style="${inputCss('font-size:var(--fs-caption);margin-top:.25rem')}">
+<div style="font-size:var(--fs-caption);color:var(--text-secondary);margin-top:.25rem">
+  ${grup ? `Grup: <strong>${grup}</strong>` : 'Grup ditetapkan otomatis dari status'}
+</div>`;
+    } else if (jenis === 'FORMATIF') {
+      const stChips = ['PAHAM', 'BELUM_PAHAM', 'PERLU_PERHATIAN']
+        .map(s => chipHtml(s, STATUS_LBL[s], res.status === s)).join('');
+      inputs = `
+<div class="stu-status-chips" style="display:flex;flex-wrap:wrap;gap:.35rem;margin-bottom:.4rem">
+  ${stChips}
+</div>
+<input type="text" class="stu-umpan-balik" placeholder="Umpan balik… (opsional)"
+  value="${esc(res.umpan_balik ?? '')}"
+  style="${inputCss('font-size:var(--fs-caption);margin-top:.25rem')}">`;
+    } else {
+      const kktp     = kktpItems.find(k => k.batas_bawah != null);
+      const kktpStr  = kktp && res.nilai != null
+        ? (res.nilai >= kktp.batas_bawah ? '✓ Tercapai' : '✗ Belum')
+        : '—';
+      const tlOpts = ['', 'PENGAYAAN', 'PENGUATAN', 'PENDAMPINGAN'].map(t =>
+        `<option value="${t}"${res.tindak_lanjut === t ? ' selected' : ''}>
+          ${t ? (t.charAt(0) + t.slice(1).toLowerCase()) : '— Tindak Lanjut —'}
+        </option>`
+      ).join('');
+      inputs = `
+<div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.4rem">
+  <input type="number" class="stu-nilai" min="0" max="100" step="0.5"
+    value="${res.nilai ?? ''}" placeholder="Nilai 0–100"
+    style="${inputCss('width:7rem;font-size:var(--fs-caption)')}">
+  ${kktp ? `<span class="stu-kktp-stat"
+      style="font-size:var(--fs-caption);color:var(--text-secondary)">
+      KKTP ${kktpStr} (≥${kktp.batas_bawah})
+    </span>` : ''}
+</div>
+<select class="stu-tl" style="${inputCss('font-size:var(--fs-caption)')}">
+  ${tlOpts}
+</select>`;
+    }
+
+    return `
+<div class="pai-srow" data-sid="${student.id}"
+  style="border:1px solid var(--border-subtle,rgba(255,255,255,.12));
+  border-radius:.4rem;padding:.625rem .75rem;margin-bottom:.375rem">
+  <div style="display:flex;justify-content:space-between;
+      align-items:center;margin-bottom:.375rem">
+    <span style="font-size:var(--fs-ui);font-weight:var(--fw-medium,500)">
+      ${esc(student.nama)}</span>
+    ${grupBadge}
+  </div>
+  ${inputs}
+</div>`;
+  }
+
+  function onFilterGrup(btn) {
+    el('pai-filter-bar')?.querySelectorAll('[data-action="filter-grup"]').forEach(b => {
+      const s = b === btn;
+      b.style.background  = s ? 'var(--gold)' : '';
+      b.style.color       = s ? 'var(--text-on-gold,#000)' : 'var(--text-secondary)';
+      b.style.borderColor = s ? 'var(--gold)' : 'var(--border-subtle)';
+    });
+    const rowsEl = el('pai-srows');
+    if (!rowsEl) return;
+    const jenis     = rowsEl.dataset.jenis;
+    const kktpItems = rowsEl.dataset.kktp
+      ? JSON.parse(decodeURIComponent(rowsEl.dataset.kktp)) : [];
+    const resMap = el('pai-modal-box')._resMap ?? {};
+    buildStudentRows(btn.dataset.filter, jenis, kktpItems, resMap);
+  }
+
+  async function saveResults(btn) {
+    const rowsEl = el('pai-srows');
+    const statEl = el('pai-save-status');
+    if (!rowsEl) return;
+
+    const asmtId    = btn.dataset.asmtId;
+    const jenis     = rowsEl.dataset.jenis;
+    const kktpItems = rowsEl.dataset.kktp
+      ? JSON.parse(decodeURIComponent(rowsEl.dataset.kktp)) : [];
+
+    btn.disabled    = true;
+    btn.textContent = '⏳ Menyimpan…';
+
+    const rows   = el('pai-modal-box').querySelectorAll('.pai-srow');
+    let   saved  = 0;
+    const failed = [];
+
+    for (const row of rows) {
+      const sid     = row.dataset.sid;
+      const payload = {};
+
+      if (jenis === 'DIAGNOSTIK') {
+        const chips = row.querySelector('.stu-status-chips');
+        const st    = chips ? chipVal(chips) : null;
+        payload.status  = st;
+        payload.catatan = row.querySelector('.stu-catatan')?.value.trim() || null;
+        if (st) {
+          const g = STATUS_GRUP[st];
+          payload.grup_diferensiasi = g;
+          try {
+            await SipApi.upsertStudentGroup(_cId, sid, g);
+            _sGroups[sid] = g;
+          } catch {}
+        }
+      } else if (jenis === 'FORMATIF') {
+        const chips = row.querySelector('.stu-status-chips');
+        payload.status      = chips ? chipVal(chips) : null;
+        payload.umpan_balik = row.querySelector('.stu-umpan-balik')?.value.trim() || null;
+      } else {
+        const raw = row.querySelector('.stu-nilai')?.value;
+        const val = raw !== '' ? parseFloat(raw) : null;
+        payload.nilai         = isNaN(val) ? null : val;
+        payload.tindak_lanjut = row.querySelector('.stu-tl')?.value || null;
+        const kktp = kktpItems.find(k => k.batas_bawah != null);
+        if (kktp && val != null && !isNaN(val)) {
+          payload.kktp_tercapai = val >= kktp.batas_bawah;
+        }
+      }
+
+      try {
+        await SipApi.upsertAssessmentResult(_cId, _tId, asmtId, sid, payload);
+        const box = el('pai-modal-box');
+        if (box._resMap) {
+          box._resMap[sid] = { ...(box._resMap[sid] ?? {}), ...payload };
+        }
+        saved++;
+      } catch {
+        const s = _roster.find(r => r.id === sid);
+        if (s) failed.push(s.nama);
+      }
+    }
+
+    btn.disabled    = false;
+    btn.textContent = '💾 Simpan Semua';
+
+    if (statEl) {
+      statEl.textContent = failed.length
+        ? `Disimpan ${saved}, gagal: ${failed.slice(0, 3).join(', ')}${failed.length > 3 ? '…' : ''}`
+        : `✓ ${saved} siswa disimpan`;
+      statEl.style.color = failed.length ? '#e74c3c' : 'var(--success,#2d6a4f)';
+    }
+    if (!failed.length) toast(`${saved} hasil siswa disimpan`);
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════════
+  // SECTION 4 — Rekap Semester
+  // ══════════════════════════════════════════════════════════════════════════════
+
+  async function renderRecap() {
+    const c = el('pai-recap-wrap');
+    if (!c) return;
+
+    c.innerHTML = '<div style="color:var(--text-secondary);padding:.5rem 0">Memuat rekap…</div>';
+
+    const sumatifs = _asmts.filter(a => a.jenis === 'SUMATIF');
+    if (!sumatifs.length) {
+      c.innerHTML = `<p style="color:var(--text-secondary);font-size:var(--fs-caption)">
+        Belum ada penilaian Sumatif. Rekap dihitung otomatis dari rata-rata nilai sumatif.</p>`;
+      return;
+    }
+
+    const allResults = await Promise.all(
+      sumatifs.map(a => SipApi.getAssessmentResults(a.id).catch(() => []))
+    );
+
+    // tpId -> studentId -> [nilai]
+    const tpMap = {};
+    sumatifs.forEach((a, i) => {
+      const tpId = a.tp_kktp_id ?? '__no_tp__';
+      if (!tpMap[tpId]) tpMap[tpId] = {};
+      (allResults[i] ?? []).forEach(r => {
+        if (r.nilai == null) return;
+        if (!tpMap[tpId][r.student_id]) tpMap[tpId][r.student_id] = [];
+        tpMap[tpId][r.student_id].push(r.nilai);
+      });
+    });
+
+    const tpIds = Object.keys(tpMap);
+    if (!tpIds.length || !_roster.length) {
+      c.innerHTML = `<p style="color:var(--text-secondary);font-size:var(--fs-caption)">
+        Belum ada data nilai sumatif.</p>`;
+      return;
+    }
+
+    const thStyle = `padding:.5rem .625rem;border-bottom:2px solid var(--gold);
+      font-size:var(--fs-caption);white-space:nowrap;text-align:left`;
+    const tpHeaders = tpIds.map(tid => {
+      const tp = _tpList.find(t => t.id === tid);
+      return `<th style="${thStyle}">${tp ? esc(tp.judul) : 'Tanpa TP'}</th>`;
+    }).join('');
+
+    const tdBorder = 'border-bottom:1px solid var(--border-subtle,rgba(255,255,255,.08))';
+    const rows = _roster.map(s => {
+      const cells = tpIds.map(tid => {
+        const vals = tpMap[tid][s.id] ?? [];
+        const avg  = vals.length
+          ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
+        const tp   = _tpList.find(t => t.id === tid);
+        const kktp = tp
+          ? _tpList.find(t => t.parent_id === tp.id && t.tipe === 'KKTP' && t.batas_bawah != null)
+          : null;
+        const tercapai = kktp && avg != null ? avg >= kktp.batas_bawah : null;
+        const badge    = tercapai === true ? ' ✓' : tercapai === false ? ' ✗' : '';
+        const color    = tercapai === true  ? 'var(--success,#2d6a4f)'
+                       : tercapai === false ? '#c0392b' : 'var(--text-secondary)';
+        return `<td style="padding:.5rem .625rem;text-align:center;${tdBorder};
+            font-size:var(--fs-ui);color:${color}">
+            ${avg != null ? avg.toFixed(1) + badge : '—'}
+          </td>`;
+      }).join('');
+      return `<tr>
+        <td style="padding:.5rem .625rem;${tdBorder};font-size:var(--fs-ui)">
+          ${esc(s.nama)}</td>
+        ${cells}
+      </tr>`;
+    }).join('');
+
+    c.innerHTML = `
+<div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
+  <table style="width:100%;border-collapse:collapse;
+    min-width:${160 + tpIds.length * 110}px">
+    <thead>
+      <tr>
+        <th style="${thStyle}">Nama Siswa</th>
+        ${tpHeaders}
+      </tr>
+    </thead>
+    <tbody>${rows}</tbody>
+  </table>
+</div>
+<p style="font-size:var(--fs-caption);color:var(--text-secondary);margin-top:.5rem">
+  Nilai = rata-rata semua Sumatif per TP.
+  ✓/✗ = status KKTP (jika ada batas KKTP).</p>`;
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════════
+  // DOMContentLoaded — tab wiring (self-contained, no window export)
+  // ══════════════════════════════════════════════════════════════════════════════
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const tabPenilaian   = document.getElementById('tab-penilaian');
+    const panelPenilaian = document.getElementById('panel-penilaian');
+    if (!tabPenilaian || !panelPenilaian) return;
+
+    const otherTabs = ['tab-siswa', 'tab-jadwal', 'tab-catatan', 'tab-rancang']
+      .map(id => document.getElementById(id)).filter(Boolean);
+
+    tabPenilaian.addEventListener('click', async () => {
+      otherTabs.forEach(t => t.classList.remove('active'));
+      tabPenilaian.classList.add('active');
+      document.querySelectorAll('[id^="panel-"]').forEach(p => { p.style.display = 'none'; });
+      panelPenilaian.style.display = '';
+
+      if (!_loaded) {
+        const { data: { session } } = await client.auth.getSession();
+        if (!session) return;
+        const cId = new URLSearchParams(window.location.search).get('id');
+        if (!cId) return;
+        const { data: prof } = await client
+          .from('profiles').select('id').eq('user_id', session.user.id).single();
+        if (!prof) return;
+        await initAssessmentTab(cId, prof.id);
+      }
+    });
+
+    otherTabs.forEach(t => {
       t.addEventListener('click', () => {
         tabPenilaian.classList.remove('active');
         panelPenilaian.style.display = 'none';
@@ -1860,8 +998,8 @@ ${tpSection}
 
     const cId = new URLSearchParams(window.location.search).get('id');
     if (cId) {
-      const savedTab = localStorage.getItem('sip_tab_' + cId);
-      if (savedTab === 'penilaian') tabPenilaian.click();
+      const saved = localStorage.getItem('sip_tab_' + cId);
+      if (saved === 'penilaian') tabPenilaian.click();
     }
   });
 
