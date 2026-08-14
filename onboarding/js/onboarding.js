@@ -1,13 +1,15 @@
 (function () {
   const client = window.supabaseClient;
 
-  const errorMsg  = document.getElementById('error-msg');
-  const step1     = document.getElementById('step-1');
-  const step2     = document.getElementById('step-2');
-  const step3     = document.getElementById('step-3');
+  const errorMsg    = document.getElementById('error-msg');
+  const step1       = document.getElementById('step-1');
+  const stepPeran   = document.getElementById('step-peran');
+  const step2       = document.getElementById('step-2');
+  const step3       = document.getElementById('step-3');
   const codeDisplay = document.getElementById('classroom-code-display');
 
-  let savedUserId = null;
+  let savedUserId   = null;
+  let savedRoleGuru = null;
 
   function showError(msg) {
     errorMsg.textContent = msg;
@@ -66,6 +68,40 @@
     }
 
     step1.style.display = 'none';
+    stepPeran.style.display = 'block';
+  });
+
+  // -----------------------------------------------------------------------
+  // Step Peran — Pilih peran guru
+  // -----------------------------------------------------------------------
+  stepPeran.querySelectorAll('.peran-card').forEach(function (card) {
+    card.addEventListener('click', function () {
+      stepPeran.querySelectorAll('.peran-card').forEach(function (c) { c.classList.remove('selected'); });
+      card.classList.add('selected');
+      savedRoleGuru = card.dataset.peran;
+      document.getElementById('btn-peran').disabled = false;
+    });
+  });
+
+  document.getElementById('btn-peran').addEventListener('click', async function () {
+    const btn = document.getElementById('btn-peran');
+    btn.disabled = true;
+    btn.textContent = 'Menyimpan…';
+
+    if (savedRoleGuru && savedUserId) {
+      try {
+        await client
+          .from('profiles')
+          .update({ role_guru: savedRoleGuru })
+          .eq('user_id', savedUserId);
+      } catch (_) {
+        // Gagal update role_guru — tetap lanjut, null dianggap MAPEL
+      }
+    }
+
+    btn.disabled = false;
+    btn.textContent = 'Lanjut →';
+    stepPeran.style.display = 'none';
     step2.style.display = 'block';
   });
 
