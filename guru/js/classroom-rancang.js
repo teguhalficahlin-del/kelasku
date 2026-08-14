@@ -560,21 +560,33 @@ ${elemenHtml}`;
 
       body.appendChild(cpBlock);
 
-      // Wire tombol Simpan CP di nav-row
+      // Tambah save-row di bawah CP block (konsisten dengan flow non-read-only)
+      attachSimpanCpRow(body);
+
+      // Wire tombol Simpan CP di nav-row (rp-btn-simpan-cp-nav)
       const simpanHandler = async () => {
         const btnNav = el('rp-btn-simpan-cp-nav');
         if (btnNav) { btnNav.disabled = true; btnNav.textContent = 'Menyimpan…'; }
         try {
-          const judul  = `CP — ${_ans.mapel} ${(_settings?.fase || '').replace(/_/g,' ').toUpperCase()}`.trim();
+          const fase  = _ans.fase || _settings?.fase || '';
+          const judul  = `CP — ${_ans.mapel} ${fase.replace(/_/g,' ').toUpperCase()}`.trim();
           const konten = {
             elemen:    _cpElemen,
             ringkasan: _cpRingkasan,
             cp_umum:   _cpUmum,
             mapel:     _ans.mapel,
-            fase:      _settings?.fase,
+            fase,
           };
           const doc = await SipApi.simpanRancangDokumen(_cId, 'CP', judul, konten, null);
           _dokumen = [doc, ..._dokumen.filter(d => d.jenis !== 'CP')];
+          // Sync save-row button jika ada
+          const saveBtn = el('rp-btn-simpan-cp');
+          if (saveBtn) {
+            saveBtn.textContent = '✓ Tersimpan';
+            saveBtn.style.background = 'var(--success,#2d6a4f)';
+            saveBtn.style.cursor = 'default';
+            saveBtn.disabled = true;
+          }
           // Update nav-row: ganti tombol simpan → tersimpan + lihat dokumen
           const navRow = el('rp-btn-simpan-cp-nav')?.closest('.rp-nav-row');
           if (navRow) {
@@ -589,16 +601,12 @@ ${elemenHtml}`;
             el('rp-btn-lihat-dok-cp-2')?.addEventListener('click', () => {
               navigateToStep(7);
             });
-            return; // nav-row sudah diganti, skip update btnNav lama
+            return;
           }
           if (btnNav) {
-            btnNav.disabled = false;
             btnNav.textContent = '✓ Tersimpan';
-            btnNav.style.background = 'var(--success, #2d6a4f)';
-            setTimeout(() => {
-              btnNav.textContent = '💾 Simpan CP';
-              btnNav.style.background = '';
-            }, 2500);
+            btnNav.style.background = 'var(--success,#2d6a4f)';
+            btnNav.disabled = true;
           }
         } catch (e) {
           console.error('[rancang] simpan CP gagal:', e);
@@ -979,6 +987,63 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
     appendStep1Next();
   }
 
+  // ── Helper: tambah save-row Simpan CP di bawah konten ───────────────────
+  // Dipanggil dari appendStep1Next() (flow fresh) dan renderCpReadOnly() (flow restore).
+  // container: elemen parent untuk appendChild / insertBefore
+  // beforeEl:  jika diisi, save-row disisipkan sebelum elemen ini
+  function attachSimpanCpRow(container, beforeEl) {
+    if (!container || el('rp-btn-simpan-cp') || !_cpElemen.length) return;
+    const alreadySaved = _dokumen.some(d => d.jenis === 'CP');
+    const saveRow = document.createElement('div');
+    saveRow.className = 'rp-save-row';
+    saveRow.innerHTML = `<button type="button" class="rp-btn-simpan" id="rp-btn-simpan-cp"
+      ${alreadySaved ? 'disabled style="background:var(--success,#2d6a4f);cursor:default;"' : ''}>
+      ${alreadySaved ? '✓ Tersimpan' : '💾 Simpan CP'}
+    </button>
+    <span class="rp-identitas-status" id="rp-cp-simpan-status"></span>`;
+    if (beforeEl) container.insertBefore(saveRow, beforeEl);
+    else container.appendChild(saveRow);
+
+    if (alreadySaved) return;
+
+    el('rp-btn-simpan-cp')?.addEventListener('click', async () => {
+      const btn    = el('rp-btn-simpan-cp');
+      const status = el('rp-cp-simpan-status');
+      if (btn) { btn.disabled = true; btn.textContent = 'Menyimpan…'; }
+      try {
+        const fase  = _ans.fase || _settings?.fase || '';
+        const judul = `CP — ${_ans.mapel} ${fase.replace(/_/g,' ').toUpperCase()}`.trim();
+        const konten = {
+          elemen:    _cpElemen,
+          ringkasan: _cpRingkasan,
+          cp_umum:   _cpUmum,
+          mapel:     _ans.mapel,
+          fase,
+        };
+        const doc = await SipApi.simpanRancangDokumen(_cId, 'CP', judul, konten, null);
+        _dokumen = [doc, ..._dokumen.filter(d => d.jenis !== 'CP')];
+        if (btn) {
+          btn.textContent = '✓ Tersimpan';
+          btn.style.background = 'var(--success,#2d6a4f)';
+          btn.style.cursor = 'default';
+          btn.disabled = true;
+        }
+        // Sync nav-row button jika ada (flow read-only)
+        const navBtn = el('rp-btn-simpan-cp-nav');
+        if (navBtn) {
+          navBtn.textContent = '✓ Tersimpan';
+          navBtn.style.background = 'var(--success,#2d6a4f)';
+          navBtn.style.cursor = 'default';
+          navBtn.disabled = true;
+        }
+      } catch (e) {
+        console.error('[rancang] simpan CP gagal:', e);
+        if (btn) { btn.disabled = false; btn.textContent = '💾 Simpan CP'; }
+        if (status) status.textContent = '✗ Gagal';
+      }
+    });
+  }
+
   function appendStep1Next() {
     const wrap = el('rp-body')?.querySelector('.rp-block');
     if (!wrap) return;
@@ -988,50 +1053,8 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
       existingBtn.disabled = false;
       existingBtn.innerHTML = _ans.jenjang === 'SMK' ? 'Lanjut ke konteks SMK →' : 'Lanjut ke preferensi →';
 
-      // Tambah baris Simpan CP jika ada elemen CP dan belum pernah di-render
-      if (_cpElemen.length && !el('rp-btn-simpan-cp')) {
-        const alreadySaved = _dokumen.some(d => d.jenis === 'CP');
-        const saveRow = document.createElement('div');
-        saveRow.className = 'rp-save-row';
-        saveRow.innerHTML = `<button type="button" class="rp-btn-simpan" id="rp-btn-simpan-cp"
-          ${alreadySaved ? 'disabled style="background:var(--success,#2d6a4f);"' : ''}>
-          ${alreadySaved ? '✓ Tersimpan' : '💾 Simpan CP'}
-        </button>
-        <span class="rp-identitas-status" id="rp-cp-simpan-status"></span>`;
-        const actionRow = el('rp-step1-btn');
-        if (actionRow) wrap.insertBefore(saveRow, actionRow);
-        else wrap.appendChild(saveRow);
-
-        if (!alreadySaved) {
-          el('rp-btn-simpan-cp')?.addEventListener('click', async () => {
-            const btn    = el('rp-btn-simpan-cp');
-            const status = el('rp-cp-simpan-status');
-            if (btn) { btn.disabled = true; btn.textContent = 'Menyimpan…'; }
-            try {
-              const fase   = _ans.fase || _settings?.fase || '';
-              const judul  = `CP — ${_ans.mapel} ${fase.replace(/_/g,' ').toUpperCase()}`.trim();
-              const konten = {
-                elemen:    _cpElemen,
-                ringkasan: _cpRingkasan,
-                cp_umum:   _cpUmum,
-                mapel:     _ans.mapel,
-                fase,
-              };
-              const doc = await SipApi.simpanRancangDokumen(_cId, 'CP', judul, konten, null);
-              _dokumen = [doc, ..._dokumen.filter(d => d.jenis !== 'CP')];
-              if (btn) {
-                btn.textContent = '✓ Tersimpan';
-                btn.style.background = 'var(--success,#2d6a4f)';
-                btn.disabled = true;
-              }
-            } catch (e) {
-              console.error('[rancang] simpan CP gagal:', e);
-              if (btn) { btn.disabled = false; btn.textContent = '💾 Simpan CP'; }
-              if (status) status.textContent = '✗ Gagal';
-            }
-          });
-        }
-      }
+      // Tambah save-row Simpan CP sebelum tombol Lanjut
+      attachSimpanCpRow(wrap, el('rp-step1-btn') || null);
 
       existingBtn.onclick = async () => {
         // Simpan settings ke DB agar pre-fill aktif di sesi berikutnya
