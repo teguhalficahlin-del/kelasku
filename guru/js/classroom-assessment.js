@@ -156,25 +156,33 @@
   </h2>
   <div class="panel-body-collapse" id="pan-tp-body">
     <div id="pai-tp-list"></div>
-    <button type="button" data-action="add-tp" class="btn-secondary"
-      style="margin-top:.75rem">+ Tambah TP/KKTP</button>
+    <button type="button" data-action="add-tp"
+      style="margin-top:.75rem;min-height:var(--btn-h);background:var(--gold);
+      color:var(--text-on-gold);font-weight:var(--fw-medium);font-size:var(--fs-ui);
+      padding:0 var(--btn-px);border-radius:var(--btn-r);border:none;cursor:pointer">
+      + Tambah TP/KKTP
+    </button>
   </div>
 </div>
 
 <div class="panel">
   <h2 class="panel-header" data-panel="pan-asmt-body"
     style="font-size:var(--fs-h3);color:var(--gold)">
-    Daftar Penilaian <span class="panel-collapse-arrow">▼</span>
+    Daftar Penilaian <span class="panel-collapse-arrow">▶</span>
   </h2>
-  <div class="panel-body-collapse" id="pan-asmt-body">
+  <div class="panel-body-collapse" id="pan-asmt-body" style="display:none">
     <div id="pai-asmt-list"></div>
-    <button type="button" data-action="add-asmt" class="btn-secondary"
-      style="margin-top:.75rem">+ Tambah Penilaian</button>
+    <button type="button" data-action="add-asmt"
+      style="margin-top:.75rem;min-height:var(--btn-h);background:var(--gold);
+      color:var(--text-on-gold);font-weight:var(--fw-medium);font-size:var(--fs-ui);
+      padding:0 var(--btn-px);border-radius:var(--btn-r);border:none;cursor:pointer">
+      + Tambah Penilaian
+    </button>
   </div>
 </div>
 
 <div class="panel">
-  <h2 class="panel-header" data-panel="pan-recap-body" data-action="open-recap"
+  <h2 class="panel-header" data-panel="pan-recap-body"
     style="font-size:var(--fs-h3);color:var(--gold)">
     Rekap Semester <span class="panel-collapse-arrow">▶</span>
   </h2>
@@ -199,18 +207,36 @@
     renderAsmtList();
   }
 
-  // ─── Collapse ────────────────────────────────────────────────────────────────
+  // ─── Collapse — single expand, auto-load recap on open ──────────────────────
   function initCollapsePanel() {
-    el('panel-penilaian')?.querySelectorAll('.panel-header[data-panel]').forEach(h => {
+    const headers = Array.from(
+      el('panel-penilaian')?.querySelectorAll('.panel-header[data-panel]') ?? []
+    );
+    headers.forEach(h => {
       h.style.cursor = 'pointer';
       h.addEventListener('click', e => {
-        if (e.target.closest('button') && !e.target.closest('[data-action="open-recap"]')) return;
-        const body  = el(h.dataset.panel);
+        if (e.target.closest('button')) return;
+        const body = el(h.dataset.panel);
         if (!body) return;
-        const open  = body.style.display !== 'none';
-        body.style.display = open ? 'none' : '';
-        const arrow = h.querySelector('.panel-collapse-arrow');
-        if (arrow) arrow.textContent = open ? '▶' : '▼';
+        const open = body.style.display !== 'none';
+        if (!open) {
+          // Close all other sections
+          headers.forEach(oh => {
+            if (oh === h) return;
+            const ob = el(oh.dataset.panel);
+            if (ob) ob.style.display = 'none';
+            const oa = oh.querySelector('.panel-collapse-arrow');
+            if (oa) oa.textContent = '▶';
+          });
+          body.style.display = '';
+          const arrow = h.querySelector('.panel-collapse-arrow');
+          if (arrow) arrow.textContent = '▼';
+          if (h.dataset.panel === 'pan-recap-body') renderRecap();
+        } else {
+          body.style.display = 'none';
+          const arrow = h.querySelector('.panel-collapse-arrow');
+          if (arrow) arrow.textContent = '▶';
+        }
       });
     });
   }
@@ -230,7 +256,6 @@
       case 'close-modal':  closeModal();                 break;
       case 'filter-grup':  onFilterGrup(btn);            break;
       case 'save-results': saveResults(btn);             break;
-      case 'open-recap':   renderRecap();                break;
     }
   }
 
@@ -274,9 +299,9 @@
     ${esc(k.judul)}${k.batas_bawah != null ? ` — ${k.batas_bawah}–${k.batas_atas}` : ''}
   </span>
   <button type="button" data-action="edit-tp" data-id="${k.id}"
-    class="btn-icon" title="Edit">✏️</button>
+    style="background:transparent;border:none;cursor:pointer;font-size:1rem;padding:.2rem .35rem;border-radius:.25rem;line-height:1;opacity:.7" title="Edit">✏️</button>
   <button type="button" data-action="del-tp"  data-id="${k.id}"
-    class="btn-icon" title="Hapus">🗑</button>
+    style="background:transparent;border:none;cursor:pointer;font-size:1rem;padding:.2rem .35rem;border-radius:.25rem;line-height:1;opacity:.7" title="Hapus">🗑</button>
 </div>`).join('');
 
     return `
@@ -293,9 +318,9 @@
       ${esc(tp.judul)}
     </span>
     <button type="button" data-action="edit-tp" data-id="${tp.id}"
-      class="btn-icon" title="Edit">✏️</button>
+      style="background:transparent;border:none;cursor:pointer;font-size:1rem;padding:.2rem .35rem;border-radius:.25rem;line-height:1;opacity:.7" title="Edit">✏️</button>
     <button type="button" data-action="del-tp"  data-id="${tp.id}"
-      class="btn-icon" title="Hapus">🗑</button>
+      style="background:transparent;border:none;cursor:pointer;font-size:1rem;padding:.2rem .35rem;border-radius:.25rem;line-height:1;opacity:.7" title="Hapus">🗑</button>
   </div>
   ${tp.konten ? `<div style="padding:.375rem .75rem;font-size:var(--fs-caption);
       color:var(--text-secondary);
@@ -322,7 +347,7 @@
     el('pai-modal-box').innerHTML = `
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
   <h3 style="margin:0;color:var(--gold)">${isEdit ? 'Edit' : 'Tambah'} TP/KKTP</h3>
-  <button data-action="close-modal" class="btn-icon" style="font-size:1.25rem">×</button>
+  <button data-action="close-modal" style="background:transparent;border:none;cursor:pointer;font-size:1.25rem;padding:.2rem .35rem;border-radius:.25rem;line-height:1;opacity:.7">×</button>
 </div>
 <div id="tp-form" style="display:flex;flex-direction:column;gap:.875rem">
   <div>
@@ -374,7 +399,7 @@
     </div>
   </div>
   <div style="display:flex;gap:.75rem;justify-content:flex-end;margin-top:.25rem">
-    <button data-action="close-modal" class="btn-secondary">Batal</button>
+    <button data-action="close-modal" style="min-height:var(--btn-h);background:transparent;color:var(--gold);border:1.5px solid var(--gold-border);font-size:var(--fs-ui);padding:0 var(--btn-px);border-radius:var(--btn-r);cursor:pointer">Batal</button>
     <button id="btn-tp-save"
       style="padding:.5rem 1.25rem;background:var(--gold);
       color:var(--text-on-gold,#000);border:none;border-radius:.375rem;
@@ -499,9 +524,9 @@
       Isi Nilai →
     </button>
     <button type="button" data-action="edit-asmt" data-id="${a.id}"
-      class="btn-icon" title="Edit">✏️</button>
+      style="background:transparent;border:none;cursor:pointer;font-size:1rem;padding:.2rem .35rem;border-radius:.25rem;line-height:1;opacity:.7" title="Edit">✏️</button>
     <button type="button" data-action="del-asmt"  data-id="${a.id}"
-      class="btn-icon" title="Hapus">🗑</button>
+      style="background:transparent;border:none;cursor:pointer;font-size:1rem;padding:.2rem .35rem;border-radius:.25rem;line-height:1;opacity:.7" title="Hapus">🗑</button>
   </div>
 </div>`;
   }
@@ -535,7 +560,7 @@
     el('pai-modal-box').innerHTML = `
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
   <h3 style="margin:0;color:var(--gold)">${isEdit ? 'Edit' : 'Tambah'} Penilaian</h3>
-  <button data-action="close-modal" class="btn-icon" style="font-size:1.25rem">×</button>
+  <button data-action="close-modal" style="background:transparent;border:none;cursor:pointer;font-size:1.25rem;padding:.2rem .35rem;border-radius:.25rem;line-height:1;opacity:.7">×</button>
 </div>
 <div style="display:flex;flex-direction:column;gap:.875rem">
   <div>
@@ -563,7 +588,7 @@
       placeholder="Catatan refleksi…">${esc(item?.refleksi_guru ?? '')}</textarea>
   </div>
   <div style="display:flex;gap:.75rem;justify-content:flex-end;margin-top:.25rem">
-    <button data-action="close-modal" class="btn-secondary">Batal</button>
+    <button data-action="close-modal" style="min-height:var(--btn-h);background:transparent;color:var(--gold);border:1.5px solid var(--gold-border);font-size:var(--fs-ui);padding:0 var(--btn-px);border-radius:var(--btn-r);cursor:pointer">Batal</button>
     <button id="btn-asmt-save"
       style="padding:.5rem 1.25rem;background:var(--gold);
       color:var(--text-on-gold,#000);border:none;border-radius:.375rem;
@@ -672,8 +697,7 @@
     ${tp ? `<div style="font-size:var(--fs-caption);color:var(--text-secondary)">
       ${esc(tp.judul)}</div>` : ''}
   </div>
-  <button data-action="close-modal" class="btn-icon"
-    style="font-size:1.25rem;flex-shrink:0">×</button>
+  <button data-action="close-modal" style="background:transparent;border:none;cursor:pointer;font-size:1.25rem;padding:.2rem .35rem;border-radius:.25rem;line-height:1;opacity:.7;flex-shrink:0">×</button>
 </div>
 ${filterHtml}
 ${!_roster.length
