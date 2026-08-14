@@ -120,15 +120,11 @@
   }
 
   async function loadRoster() {
-    const { data: members } = await client
-      .from('classroom_members').select('profile_id')
-      .eq('classroom_id', _cId).eq('member_role', 'SISWA');
-    if (!members?.length) return [];
-    const { data: profiles } = await client
-      .from('profiles').select('id, full_name')
-      .in('id', members.map(m => m.profile_id))
+    const { data } = await client
+      .from('classroom_roster').select('id, full_name')
+      .eq('classroom_id', _cId)
       .order('full_name');
-    return (profiles ?? []).map(p => ({ id: p.id, nama: p.full_name }));
+    return (data ?? []).map(r => ({ id: r.id, nama: r.full_name }));
   }
 
   // ─── Init ───────────────────────────────────────────────────────────────────
