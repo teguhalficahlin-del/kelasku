@@ -166,5 +166,140 @@
       if (error) return null;
       return data?.konten ?? null;
     },
+
+    // ── tp_kktp (CP / TP / KKTP per classroom) ────────────────────────────
+    async getTpKktp(classroomId, teacherId) {
+      const { data, error } = await client
+        .from('tp_kktp')
+        .select('*')
+        .eq('classroom_id', classroomId)
+        .eq('teacher_id', teacherId)
+        .order('urutan', { ascending: true });
+      if (error) throw error;
+      return data ?? [];
+    },
+
+    async createTpKktp(classroomId, teacherId, payload) {
+      const { data, error } = await client
+        .from('tp_kktp')
+        .insert({ classroom_id: classroomId, teacher_id: teacherId, ...payload })
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+
+    async updateTpKktp(id, payload) {
+      const { error } = await client.from('tp_kktp').update(payload).eq('id', id);
+      if (error) throw error;
+    },
+
+    async deleteTpKktp(id) {
+      const { error } = await client.from('tp_kktp').delete().eq('id', id);
+      if (error) throw error;
+    },
+
+    // ── assessments ────────────────────────────────────────────────────────
+    async getAssessments(classroomId) {
+      const { data, error } = await client
+        .from('assessments')
+        .select('*')
+        .eq('classroom_id', classroomId)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+
+    async createAssessment(classroomId, teacherId, payload) {
+      const { data, error } = await client
+        .from('assessments')
+        .insert({ classroom_id: classroomId, teacher_id: teacherId, ...payload })
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+
+    async updateAssessment(id, payload) {
+      const { error } = await client.from('assessments').update(payload).eq('id', id);
+      if (error) throw error;
+    },
+
+    async deleteAssessment(id) {
+      const { error } = await client.from('assessments').delete().eq('id', id);
+      if (error) throw error;
+    },
+
+    // ── assessment_results ─────────────────────────────────────────────────
+    async getAssessmentResults(assessmentId) {
+      const { data, error } = await client
+        .from('assessment_results')
+        .select('*')
+        .eq('assessment_id', assessmentId);
+      if (error) throw error;
+      return data ?? [];
+    },
+
+    async upsertAssessmentResult(classroomId, teacherId, assessmentId, studentId, payload) {
+      const { error } = await client
+        .from('assessment_results')
+        .upsert(
+          {
+            classroom_id: classroomId, teacher_id: teacherId,
+            assessment_id: assessmentId, student_id: studentId,
+            ...payload,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: 'assessment_id,student_id' }
+        );
+      if (error) throw error;
+    },
+
+    // ── student_groups ─────────────────────────────────────────────────────
+    async getStudentGroups(classroomId) {
+      const { data, error } = await client
+        .from('student_groups')
+        .select('student_id, grup, updated_at')
+        .eq('classroom_id', classroomId);
+      if (error) throw error;
+      return data ?? [];
+    },
+
+    async upsertStudentGroup(classroomId, studentId, grup) {
+      const { error } = await client
+        .from('student_groups')
+        .upsert(
+          { classroom_id: classroomId, student_id: studentId, grup,
+            updated_at: new Date().toISOString() },
+          { onConflict: 'classroom_id,student_id' }
+        );
+      if (error) throw error;
+    },
+
+    // ── grade_recap ────────────────────────────────────────────────────────
+    async getGradeRecap(classroomId, semester, tahunAjaran) {
+      const { data, error } = await client
+        .from('grade_recap')
+        .select('*')
+        .eq('classroom_id', classroomId)
+        .eq('semester', semester)
+        .eq('tahun_ajaran', tahunAjaran);
+      if (error) throw error;
+      return data ?? [];
+    },
+
+    async upsertGradeRecap(classroomId, studentId, tpKktpId, semester, tahunAjaran, payload) {
+      const { error } = await client
+        .from('grade_recap')
+        .upsert(
+          {
+            classroom_id: classroomId, student_id: studentId,
+            tp_kktp_id: tpKktpId, semester, tahun_ajaran: tahunAjaran,
+            ...payload,
+          },
+          { onConflict: 'classroom_id,student_id,tp_kktp_id,semester,tahun_ajaran' }
+        );
+      if (error) throw error;
+    },
   };
 }());
