@@ -1,4 +1,4 @@
-(function () {
+﻿(function () {
   const client = window.supabaseClient;
 
   const errorMsg    = document.getElementById('error-msg');
@@ -22,7 +22,7 @@
   }
 
   // -----------------------------------------------------------------------
-  // Step 1 — Daftar akun
+  // Step 1 - Daftar akun
   // -----------------------------------------------------------------------
   document.getElementById('form-daftar').addEventListener('submit', async function (e) {
     e.preventDefault();
@@ -61,7 +61,7 @@
 
     if (profileError) {
       showError('Akun dibuat, tetapi gagal menyimpan profil: ' + profileError.message +
-        '. Kemungkinan email belum diverifikasi — cek inbox Anda, lalu muat ulang halaman.');
+        '. Kemungkinan email belum diverifikasi - cek inbox Anda, lalu muat ulang halaman.');
       btn.disabled = false;
       btn.textContent = 'Daftar';
       return;
@@ -72,7 +72,7 @@
   });
 
   // -----------------------------------------------------------------------
-  // Step Peran — Pilih peran guru
+  // Step Peran - Pilih peran guru
   // -----------------------------------------------------------------------
   stepPeran.querySelectorAll('.peran-card').forEach(function (card) {
     card.addEventListener('click', function () {
@@ -86,7 +86,7 @@
   document.getElementById('btn-peran').addEventListener('click', async function () {
     const btn = document.getElementById('btn-peran');
     btn.disabled = true;
-    btn.textContent = 'Menyimpan…';
+    btn.textContent = 'Menyimpan...';
 
     if (savedRoleGuru && savedUserId) {
       try {
@@ -95,18 +95,32 @@
           .update({ role_guru: savedRoleGuru })
           .eq('user_id', savedUserId);
       } catch (_) {
-        // Gagal update role_guru — tetap lanjut, null dianggap MAPEL
+        // Gagal update role_guru - tetap lanjut, null dianggap MAPEL
       }
     }
 
     btn.disabled = false;
     btn.textContent = 'Lanjut →';
     stepPeran.style.display = 'none';
+
+    // Tampilkan/sembunyikan field Mata Pelajaran berdasarkan peran
+    var subjectWrap = document.getElementById('subject-wrap');
+    var subjectInput = document.getElementById('subject');
+    if (savedRoleGuru === 'WALI_KELAS_SD') {
+      subjectWrap.style.display = 'none';
+      subjectInput.removeAttribute('required');
+      subjectInput.value = 'Semua Mata Pelajaran';
+    } else {
+      subjectWrap.style.display = '';
+      subjectInput.setAttribute('required', '');
+      subjectInput.value = '';
+    }
+
     step2.style.display = 'block';
   });
 
   // -----------------------------------------------------------------------
-  // Step 2 — Buat classroom
+  // Step 2 - Buat classroom
   // -----------------------------------------------------------------------
   document.getElementById('form-classroom').addEventListener('submit', async function (e) {
     e.preventDefault();
@@ -135,7 +149,7 @@
       return;
     }
 
-    // INSERT classroom — classroom_code di-generate otomatis oleh DB
+    // INSERT classroom - classroom_code di-generate otomatis oleh DB
     const { data: classroomData, error: classroomError } = await client
       .from('classrooms')
       .insert({ teacher_id: profile.id, name: class_name, subject, description })
