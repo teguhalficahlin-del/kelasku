@@ -175,6 +175,7 @@ window.initCustomSelect = function (nativeEl, onChange) {
   // =========================================================================
   if (document.getElementById('classroom-list')) {
     let currentTeacherId = null;
+    let currentRoleGuru  = null;
 
     // -- Render --
 
@@ -320,6 +321,21 @@ window.initCustomSelect = function (nativeEl, onChange) {
       }
 
       showStep(1);
+
+      // Sembunyikan field Mata Pelajaran untuk Wali Kelas SD
+      const subjectLabel = document.querySelector('label[for="inp-subject"]');
+      const subjectInput = document.getElementById('inp-subject');
+      if (currentRoleGuru === 'WALI_KELAS_SD') {
+        subjectLabel.style.display = 'none';
+        subjectInput.style.display = 'none';
+        if (!classroom) subjectInput.value = 'Semua Mata Pelajaran';
+        subjectInput.removeAttribute('required');
+      } else {
+        subjectLabel.style.display = '';
+        subjectInput.style.display = '';
+        subjectInput.setAttribute('required', '');
+      }
+
       document.getElementById('modal-classroom').style.display = 'flex';
     }
 
@@ -330,6 +346,10 @@ window.initCustomSelect = function (nativeEl, onChange) {
       document.getElementById('step2-error').style.display = 'none';
       document.getElementById('form-classroom').reset();
       document.getElementById('schedule-rows').innerHTML = '';
+      const _sl = document.querySelector('label[for="inp-subject"]');
+      const _si = document.getElementById('inp-subject');
+      if (_sl) _sl.style.display = '';
+      if (_si) { _si.style.display = ''; _si.setAttribute('required', ''); }
       document.querySelector('#modal-step1 h3').textContent = 'Buat Kelas Baru';
       document.getElementById('btn-lanjut').textContent = 'Lanjut →';
       showStep(1);
@@ -624,6 +644,7 @@ window.initCustomSelect = function (nativeEl, onChange) {
       if (profileError || !profile) { window.location.href = 'index.html'; return; }
 
       currentTeacherId = profile.id;
+      currentRoleGuru  = profile.role_guru ?? null;
       document.getElementById('guru-name').textContent = profile.full_name;
 
       if (!profile.role_guru) {
