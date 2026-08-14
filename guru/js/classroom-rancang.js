@@ -581,6 +581,7 @@ ${elemenHtml}`;
           _dokumen = [doc, ..._dokumen.filter(d => d.jenis !== 'CP')];
           // Simpan settings ke DB agar hasSettings = true saat refresh
           try {
+            console.log('[rancang][save-row] _ans saat Simpan CP:', { jenjang: _ans.jenjang, mapelKey: _ans.mapelKey, mapel: _ans.mapel, fase: _ans.fase });
             await SipApi.upsertRancangSettings(_cId, {
               jenjang:          _ans.jenjang,
               mapel_key:        _ans.mapelKey,
@@ -590,7 +591,8 @@ ${elemenHtml}`;
               program_keahlian: _ans.programKeahlian ?? null,
               elemen_terpilih:  _ans.elemenTerpilih  ?? [],
             });
-          } catch (_) {}
+            console.log('[rancang][save-row] settings upserted OK');
+          } catch (upsertErr) { console.error('[rancang][save-row] upsert settings gagal:', upsertErr); }
           _settings = {
             ...(_settings || {}),
             jenjang: _ans.jenjang, mapel_key: _ans.mapelKey,
@@ -1041,6 +1043,7 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
         _dokumen = [doc, ..._dokumen.filter(d => d.jenis !== 'CP')];
         // Simpan settings ke DB agar hasSettings = true saat refresh
         try {
+          console.log('[rancang][nav-row] _ans saat Simpan CP:', { jenjang: _ans.jenjang, mapelKey: _ans.mapelKey, mapel: _ans.mapel, fase: _ans.fase });
           await SipApi.upsertRancangSettings(_cId, {
             jenjang:          _ans.jenjang,
             mapel_key:        _ans.mapelKey,
@@ -1050,7 +1053,8 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
             program_keahlian: _ans.programKeahlian ?? null,
             elemen_terpilih:  _ans.elemenTerpilih  ?? [],
           });
-        } catch (_) {}
+          console.log('[rancang][nav-row] settings upserted OK');
+        } catch (upsertErr) { console.error('[rancang][nav-row] upsert settings gagal:', upsertErr); }
         _settings = {
           ...(_settings || {}),
           jenjang: _ans.jenjang, mapel_key: _ans.mapelKey,
