@@ -174,8 +174,9 @@ window.initCustomSelect = function (nativeEl, onChange) {
   // Halaman Dashboard (dashboard.html)
   // =========================================================================
   if (document.getElementById('classroom-list')) {
-    let currentTeacherId = null;
-    let currentRoleGuru  = null;
+    let currentTeacherId  = null;
+    let currentRoleGuru   = null;
+    let cachedClassrooms  = [];
 
     // -- Render --
 
@@ -267,6 +268,8 @@ window.initCustomSelect = function (nativeEl, onChange) {
 
       const { data: classrooms, error } = await api.getClassrooms(teacherId);
       if (error) { list.innerHTML = '<p class="empty-state">Gagal memuat kelas: ' + escHtml(error.message) + '</p>'; return; }
+
+      cachedClassrooms = classrooms || [];
 
       if (!classrooms || classrooms.length === 0) {
         list.innerHTML =
@@ -471,7 +474,30 @@ window.initCustomSelect = function (nativeEl, onChange) {
         }
         resetModal();
       } else {
-        // ── Mode Create (tidak berubah) ──
+        // ── Validasi batasan classroom per role ──
+        if (cachedClassrooms.length >= 1) {
+          if (currentRoleGuru === 'WALI_KELAS_SD') {
+            modalError.textContent = 'Wali Kelas SD hanya dapat memiliki 1 kelas. Hubungi admin jika perlu bantuan.';
+            modalError.style.display = 'block';
+            btn.disabled = false;
+            btn.textContent = 'Lanjut →';
+            return;
+          }
+          // MAPEL (atau null — default aman): cek konsistensi mapel
+          const existingSubject = cachedClassrooms[0]?.subject ?? '';
+          if (subject.toLowerCase().trim() !== existingSubject.toLowerCase().trim()) {
+            modalError.textContent =
+              'Anda sudah mengajar ' + (existingSubject || 'mata pelajaran lain') + '. ' +
+              'Akun Guru hanya mendukung 1 mata pelajaran. ' +
+              'Buat kelas baru dengan mapel yang sama atau hubungi admin.';
+            modalError.style.display = 'block';
+            btn.disabled = false;
+            btn.textContent = 'Lanjut →';
+            return;
+          }
+        }
+
+        // ── Mode Create ──
         const { data: classroom, error } = await api.createClassroom(currentTeacherId, name, subject, description);
         if (error || !classroom) {
           modalError.textContent = 'Gagal membuat kelas: ' + (error?.message ?? 'respons tidak dikenali');
@@ -481,6 +507,7 @@ window.initCustomSelect = function (nativeEl, onChange) {
           return;
         }
         createdClassroom = classroom;
+        cachedClassrooms = [...cachedClassrooms, classroom];
         btn.disabled = false;
         btn.textContent = 'Lanjut →';
         modalError.style.display = 'none';
