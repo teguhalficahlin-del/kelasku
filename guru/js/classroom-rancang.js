@@ -579,6 +579,23 @@ ${elemenHtml}`;
           };
           const doc = await SipApi.simpanRancangDokumen(_cId, 'CP', judul, konten, null);
           _dokumen = [doc, ..._dokumen.filter(d => d.jenis !== 'CP')];
+          // Simpan settings ke DB agar hasSettings = true saat refresh
+          try {
+            await SipApi.upsertRancangSettings(_cId, {
+              jenjang:          _ans.jenjang,
+              mapel_key:        _ans.mapelKey,
+              mapel:            _ans.mapel,
+              fase:             _ans.fase,
+              bidang_keahlian:  _ans.bidangKeahlian  ?? null,
+              program_keahlian: _ans.programKeahlian ?? null,
+              elemen_terpilih:  _ans.elemenTerpilih  ?? [],
+            });
+          } catch (_) {}
+          _settings = {
+            ...(_settings || {}),
+            jenjang: _ans.jenjang, mapel_key: _ans.mapelKey,
+            mapel: _ans.mapel, fase: _ans.fase,
+          };
           // Sync save-row button jika ada
           const saveBtn = el('rp-btn-simpan-cp');
           if (saveBtn) {
@@ -1022,6 +1039,23 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
         };
         const doc = await SipApi.simpanRancangDokumen(_cId, 'CP', judul, konten, null);
         _dokumen = [doc, ..._dokumen.filter(d => d.jenis !== 'CP')];
+        // Simpan settings ke DB agar hasSettings = true saat refresh
+        try {
+          await SipApi.upsertRancangSettings(_cId, {
+            jenjang:          _ans.jenjang,
+            mapel_key:        _ans.mapelKey,
+            mapel:            _ans.mapel,
+            fase:             _ans.fase,
+            bidang_keahlian:  _ans.bidangKeahlian  ?? null,
+            program_keahlian: _ans.programKeahlian ?? null,
+            elemen_terpilih:  _ans.elemenTerpilih  ?? [],
+          });
+        } catch (_) {}
+        _settings = {
+          ...(_settings || {}),
+          jenjang: _ans.jenjang, mapel_key: _ans.mapelKey,
+          mapel: _ans.mapel, fase: _ans.fase,
+        };
         if (btn) {
           btn.textContent = '✓ Tersimpan';
           btn.style.background = 'var(--success,#2d6a4f)';
