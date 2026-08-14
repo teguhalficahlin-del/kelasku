@@ -360,13 +360,13 @@
       <option value="">— Pilih TP —</option>${parentOpts}
     </select>
   </div>
-  <div>
+  <div id="tp-judul-row" style="${selTipe === 'CP' ? 'display:none' : ''}">
     ${fieldLbl('Judul')}
     <input id="tp-judul" type="text" value="${esc(item?.judul ?? '')}"
       placeholder="Judul TP/KKTP…" style="${inputCss()}">
   </div>
   <div id="tp-konten-row" style="${selTipe === 'KKTP' ? 'display:none' : ''}">
-    ${fieldLbl('Deskripsi / Teks CP (opsional)')}
+    ${fieldLbl(selTipe === 'CP' ? 'Deskripsi / Teks CP' : 'Deskripsi (opsional)')}
     <textarea id="tp-konten" rows="3"
       style="${inputCss('resize:vertical')}"
       placeholder="Teks capaian pembelajaran…">${esc(item?.konten ?? '')}</textarea>
@@ -383,7 +383,7 @@
         value="${esc(item?.academic_year ?? DEFAULT_YEAR)}"
         placeholder="2025/2026" style="${inputCss()}">
     </div>
-    <div>
+    <div id="tp-sem-wrap" style="${selTipe === 'CP' ? 'display:none' : ''}">
       ${fieldLbl('Semester')}
       <select id="tp-sem" style="${inputCss()}">
         <option value="1"${(item?.semester ?? 1) === 1 ? ' selected' : ''}>1</option>
@@ -405,13 +405,18 @@
     wireChips(chipsEl, false, val => {
       selTipe = val;
       el('tp-parent-row').style.display = val === 'KKTP' ? '' : 'none';
+      el('tp-judul-row').style.display  = val === 'CP'   ? 'none' : '';
       el('tp-konten-row').style.display = val === 'KKTP' ? 'none' : '';
-      el('tp-range-row').style.display = val === 'KKTP' ? '' : 'none';
+      el('tp-range-row').style.display  = val === 'KKTP' ? '' : 'none';
+      el('tp-sem-wrap').style.display   = val === 'CP'   ? 'none' : '';
+      // update konten label text on the fly
+      const lbl = el('pai-modal-box').querySelector('#tp-konten-row > div');
+      if (lbl) lbl.textContent = val === 'CP' ? 'Deskripsi / Teks CP' : 'Deskripsi (opsional)';
     });
 
     el('btn-tp-save').addEventListener('click', async () => {
-      const judul = el('tp-judul').value.trim();
-      if (!judul) {
+      const judul = selTipe === 'CP' ? '' : el('tp-judul').value.trim();
+      if (selTipe !== 'CP' && !judul) {
         el('tp-err').textContent = 'Judul wajib diisi';
         el('tp-err').style.display = '';
         return;
@@ -425,7 +430,7 @@
                         ? parseFloat(el('tp-batas-kktp').value) : null,
         batas_atas:   null,
         academic_year: el('tp-year').value.trim() || DEFAULT_YEAR,
-        semester:     parseInt(el('tp-sem').value) || 1,
+        semester:     selTipe === 'CP' ? null : (parseInt(el('tp-sem').value) || 1),
       };
       el('btn-tp-save').disabled = true;
       try {
