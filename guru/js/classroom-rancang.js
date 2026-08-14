@@ -95,7 +95,7 @@
       case 4: return _atpList.length > 0;
       case 5: return !!_ans.tp_terpilih;
       case 6: return !!_rencana;
-      case 7: return _dokumen.length > 0;
+      case 7: return true;
       default: return false;
     }
   }
@@ -124,7 +124,6 @@
         _step = 6; renderStep6(_rencana);
         break;
       case 7:
-        if (!_dokumen.length) return;
         _step = 7; renderStep7();
         break;
     }
@@ -988,6 +987,52 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
     if (existingBtn) {
       existingBtn.disabled = false;
       existingBtn.innerHTML = _ans.jenjang === 'SMK' ? 'Lanjut ke konteks SMK →' : 'Lanjut ke preferensi →';
+
+      // Tambah baris Simpan CP jika ada elemen CP dan belum pernah di-render
+      if (_cpElemen.length && !el('rp-btn-simpan-cp')) {
+        const alreadySaved = _dokumen.some(d => d.jenis === 'CP');
+        const saveRow = document.createElement('div');
+        saveRow.className = 'rp-save-row';
+        saveRow.innerHTML = `<button type="button" class="rp-btn-simpan" id="rp-btn-simpan-cp"
+          ${alreadySaved ? 'disabled style="background:var(--success,#2d6a4f);"' : ''}>
+          ${alreadySaved ? '✓ Tersimpan' : '💾 Simpan CP'}
+        </button>
+        <span class="rp-identitas-status" id="rp-cp-simpan-status"></span>`;
+        const actionRow = el('rp-step1-btn');
+        if (actionRow) wrap.insertBefore(saveRow, actionRow);
+        else wrap.appendChild(saveRow);
+
+        if (!alreadySaved) {
+          el('rp-btn-simpan-cp')?.addEventListener('click', async () => {
+            const btn    = el('rp-btn-simpan-cp');
+            const status = el('rp-cp-simpan-status');
+            if (btn) { btn.disabled = true; btn.textContent = 'Menyimpan…'; }
+            try {
+              const fase   = _ans.fase || _settings?.fase || '';
+              const judul  = `CP — ${_ans.mapel} ${fase.replace(/_/g,' ').toUpperCase()}`.trim();
+              const konten = {
+                elemen:    _cpElemen,
+                ringkasan: _cpRingkasan,
+                cp_umum:   _cpUmum,
+                mapel:     _ans.mapel,
+                fase,
+              };
+              const doc = await SipApi.simpanRancangDokumen(_cId, 'CP', judul, konten, null);
+              _dokumen = [doc, ..._dokumen.filter(d => d.jenis !== 'CP')];
+              if (btn) {
+                btn.textContent = '✓ Tersimpan';
+                btn.style.background = 'var(--success,#2d6a4f)';
+                btn.disabled = true;
+              }
+            } catch (e) {
+              console.error('[rancang] simpan CP gagal:', e);
+              if (btn) { btn.disabled = false; btn.textContent = '💾 Simpan CP'; }
+              if (status) status.textContent = '✗ Gagal';
+            }
+          });
+        }
+      }
+
       existingBtn.onclick = async () => {
         // Simpan settings ke DB agar pre-fill aktif di sesi berikutnya
         try {
