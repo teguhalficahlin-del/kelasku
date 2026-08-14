@@ -10,7 +10,7 @@
     async getProfile(userId) {
       return client
         .from('profiles')
-        .select('id, full_name')
+        .select('id, full_name, role_guru')
         .eq('user_id', userId)
         .single();
     },
