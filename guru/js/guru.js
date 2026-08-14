@@ -265,13 +265,13 @@ window.initCustomSelect = function (nativeEl, onChange) {
       list.innerHTML = '';
 
       const { data: classrooms, error } = await api.getClassrooms(teacherId);
-      if (error) { list.innerHTML = '<p class="empty-state">Gagal memuat classroom: ' + escHtml(error.message) + '</p>'; return; }
+      if (error) { list.innerHTML = '<p class="empty-state">Gagal memuat kelas: ' + escHtml(error.message) + '</p>'; return; }
 
       if (!classrooms || classrooms.length === 0) {
         list.innerHTML =
           '<div class="empty-state">' +
-            '<p>Belum ada classroom.</p>' +
-            '<button class="btn-buat-cl-empty">+ Buat Classroom Pertama</button>' +
+            '<p>Belum ada kelas.</p>' +
+            '<button class="btn-buat-cl-empty">+ Buat Kelas Pertama</button>' +
           '</div>';
         list.querySelector('.btn-buat-cl-empty').addEventListener('click', function () { openModal(); });
         return;
@@ -309,13 +309,13 @@ window.initCustomSelect = function (nativeEl, onChange) {
       const btn = document.getElementById('btn-lanjut');
 
       if (classroom) {
-        h3.textContent  = 'Edit Classroom';
+        h3.textContent  = 'Edit Kelas';
         btn.textContent = 'Simpan';
         document.getElementById('inp-name').value    = classroom.name;
         document.getElementById('inp-subject').value = classroom.subject || '';
         document.getElementById('inp-desc').value    = classroom.description || '';
       } else {
-        h3.textContent  = 'Buat Classroom Baru';
+        h3.textContent  = 'Buat Kelas Baru';
         btn.textContent = 'Lanjut →';
       }
 
@@ -330,7 +330,7 @@ window.initCustomSelect = function (nativeEl, onChange) {
       document.getElementById('step2-error').style.display = 'none';
       document.getElementById('form-classroom').reset();
       document.getElementById('schedule-rows').innerHTML = '';
-      document.querySelector('#modal-step1 h3').textContent = 'Buat Classroom Baru';
+      document.querySelector('#modal-step1 h3').textContent = 'Buat Kelas Baru';
       document.getElementById('btn-lanjut').textContent = 'Lanjut →';
       showStep(1);
       createdClassroom = null;
@@ -350,19 +350,19 @@ window.initCustomSelect = function (nativeEl, onChange) {
     async function handleDeleteClassroom(classroomId, classroomName) {
       const stats = await api.getClassroomStats(classroomId);
       if (stats.error) {
-        window.alert('Gagal memeriksa data classroom: ' + stats.error.message);
+        window.alert('Gagal memeriksa data kelas: ' + stats.error.message);
         return;
       }
 
       window.alert(
         '⚠️ PERINGATAN — Tindakan Tidak Bisa Dibatalkan\n\n' +
-        'Anda akan menghapus classroom "' + classroomName + '" beserta SELURUH datanya:\n' +
+        'Anda akan menghapus kelas "' + classroomName + '" beserta SELURUH datanya:\n' +
         '• ' + stats.members  + ' siswa terdaftar\n' +
         '• ' + stats.sessions + ' sesi absensi tersimpan\n\n' +
         'Semua data ini akan hilang permanen dan tidak bisa dipulihkan.'
       );
 
-      const input = window.prompt('Ketik nama classroom untuk konfirmasi:\n"' + classroomName + '"');
+      const input = window.prompt('Ketik nama kelas untuk konfirmasi:\n"' + classroomName + '"');
       if (input === null) return;
       if (input.trim().toLowerCase() !== classroomName.trim().toLowerCase()) {
         window.alert('Nama tidak cocok. Hapus dibatalkan.');
@@ -371,7 +371,7 @@ window.initCustomSelect = function (nativeEl, onChange) {
 
       const { error } = await api.deleteClassroom(classroomId);
       if (error) {
-        window.alert('Gagal menghapus classroom: ' + error.message);
+        window.alert('Gagal menghapus kelas: ' + error.message);
         return;
       }
 
@@ -380,7 +380,7 @@ window.initCustomSelect = function (nativeEl, onChange) {
 
       const list = document.getElementById('classroom-list');
       if (list && !list.querySelector('.classroom-card')) {
-        list.innerHTML = '<p class="empty-state">Belum ada classroom. Klik \'+ Buat Classroom\' untuk mulai.</p>';
+        list.innerHTML = '<p class="empty-state">Belum ada kelas. Klik \'+ Buat Kelas\' untuk mulai.</p>';
       }
     }
 
@@ -446,7 +446,7 @@ window.initCustomSelect = function (nativeEl, onChange) {
         // ── Mode Create (tidak berubah) ──
         const { data: classroom, error } = await api.createClassroom(currentTeacherId, name, subject, description);
         if (error || !classroom) {
-          modalError.textContent = 'Gagal membuat classroom: ' + (error?.message ?? 'respons tidak dikenali');
+          modalError.textContent = 'Gagal membuat kelas: ' + (error?.message ?? 'respons tidak dikenali');
           modalError.style.display = 'block';
           btn.disabled = false;
           btn.textContent = 'Lanjut →';
@@ -515,7 +515,7 @@ window.initCustomSelect = function (nativeEl, onChange) {
         if (cErr) {
           errEl.textContent = 'Gagal memeriksa konflik: ' + escHtml(cErr.message);
           errEl.style.display = 'block';
-          btn.disabled = false; btn.textContent = 'Simpan & Buat Classroom';
+          btn.disabled = false; btn.textContent = 'Simpan & Buat Kelas';
           return;
         }
 
@@ -526,7 +526,7 @@ window.initCustomSelect = function (nativeEl, onChange) {
             ' bentrok dengan "' + escHtml(c.conflict_classroom_name) + '"' +
             ' (' + escHtml(c.conflict_day) + ' ' + String(c.conflict_start).slice(0,5) + '–' + String(c.conflict_end).slice(0,5) + ').';
           errEl.style.display = 'block';
-          btn.disabled = false; btn.textContent = 'Simpan & Buat Classroom';
+          btn.disabled = false; btn.textContent = 'Simpan & Buat Kelas';
           return;
         }
 
@@ -541,7 +541,7 @@ window.initCustomSelect = function (nativeEl, onChange) {
         if (saveErr) {
           errEl.textContent = 'Gagal menyimpan jadwal: ' + escHtml(saveErr.message);
           errEl.style.display = 'block';
-          btn.disabled = false; btn.textContent = 'Simpan & Buat Classroom';
+          btn.disabled = false; btn.textContent = 'Simpan & Buat Kelas';
           return;
         }
       }
@@ -658,12 +658,12 @@ window.initCustomSelect = function (nativeEl, onChange) {
 
   var HELP_DASHBOARD = {
     title: 'Panduan Dashboard',
-    intro: 'Halaman ini adalah pusat kendali semua classroom Anda.',
+    intro: 'Halaman ini adalah pusat kendali semua kelas Anda.',
     items: [
-      { text: 'Klik <strong>+ Buat Classroom</strong> untuk membuat ruang kelas baru. Satu classroom mewakili satu kelas dan satu mata pelajaran — jika mengajar 3 kelas berbeda, buat 3 classroom terpisah. Gunakan kolom <strong>Deskripsi</strong> untuk mencatat nama sekolah atau keterangan tambahan, contoh: <em>SMP Negeri 1 Banyuwangi</em>.' },
-      { text: 'Saat membuat classroom, Anda bisa langsung menambahkan <strong>jadwal mengajar</strong> di langkah kedua — atau lewati dulu dan atur jadwal belakangan via tombol <strong>Kelola</strong>. Tanpa jadwal, fitur absensi tidak bisa digunakan.' },
-      { text: 'Setelah berhasil simpan, setiap classroom akan menampilkan kode unik, jumlah siswa, dan status jadwal. Klik <strong>Kelola</strong> untuk masuk dan mengelola siswa, jadwal, catatan, serta penilaian.' },
-      { text: 'Klik <strong>Edit</strong> untuk ubah nama kelas, mata pelajaran, atau deskripsi. Klik <strong>Hapus</strong> untuk hapus classroom beserta seluruh datanya secara permanen.' },
+      { text: 'Klik <strong>+ Buat Kelas</strong> untuk membuat ruang kelas baru. Satu kelas mewakili satu kelas dan satu mata pelajaran — jika mengajar 3 kelas berbeda, buat 3 kelas terpisah. Gunakan kolom <strong>Deskripsi</strong> untuk mencatat nama sekolah atau keterangan tambahan, contoh: <em>SMP Negeri 1 Banyuwangi</em>.' },
+      { text: 'Saat membuat kelas, Anda bisa langsung menambahkan <strong>jadwal mengajar</strong> di langkah kedua — atau lewati dulu dan atur jadwal belakangan via tombol <strong>Kelola</strong>. Tanpa jadwal, fitur absensi tidak bisa digunakan.' },
+      { text: 'Setelah berhasil simpan, setiap kelas akan menampilkan kode unik, jumlah siswa, dan status jadwal. Klik <strong>Kelola</strong> untuk masuk dan mengelola siswa, jadwal, catatan, serta penilaian.' },
+      { text: 'Klik <strong>Edit</strong> untuk ubah nama kelas, mata pelajaran, atau deskripsi. Klik <strong>Hapus</strong> untuk hapus kelas beserta seluruh datanya secara permanen.' },
       { text: 'Banner kuning di atas menunjukkan sisa hari trial Anda. Hubungi admin untuk aktivasi akun setelah trial berakhir.' }
     ]
   };

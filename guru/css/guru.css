@@ -372,6 +372,27 @@ main {
   line-height: var(--lh-loose);
 }
 
+.btn-buat-cl-empty {
+  display: inline-block;
+  margin-top: 1rem;
+  padding: 0 var(--btn-px);
+  min-height: var(--btn-h);
+  background: var(--gold);
+  color: var(--text-on-gold);
+  border: none;
+  border-radius: var(--btn-r);
+  font-size: var(--fs-ui);
+  font-weight: var(--fw-medium);
+  cursor: pointer;
+  font-family: inherit;
+  transition: background var(--transition), box-shadow var(--transition);
+  letter-spacing: 0.01em;
+}
+.btn-buat-cl-empty:hover {
+  background: var(--gold-hover);
+  box-shadow: var(--shadow-gold);
+}
+
 /* ============================================================
    Modal
    ============================================================ */
