@@ -1,6 +1,7 @@
-(function () {
+(async function () {
   const client = window.supabaseClient;
 
+  const container      = document.querySelector('.container');
   const errorMsg       = document.getElementById('error-msg');
   const step1          = document.getElementById('step-1');
   const stepKonfirmasi = document.getElementById('step-konfirmasi');
@@ -17,6 +18,15 @@
     errorMsg.style.display = 'none';
   }
 
+  // B2 — Redirect jika sudah login
+  container.style.visibility = 'hidden';
+  const { data: { session } } = await client.auth.getSession();
+  if (session) {
+    window.location.href = '../guru/dashboard.html';
+    return;
+  }
+  container.style.visibility = '';
+
   // -----------------------------------------------------------------------
   // Step 1 - Daftar akun
   // Profil dibuat otomatis oleh trigger fn_handle_new_user di DB.
@@ -30,6 +40,12 @@
     const email     = document.getElementById('email').value.trim();
     const password  = document.getElementById('password').value;
     const btn       = document.getElementById('btn-daftar');
+
+    // B4 — Validasi password minimal 8 karakter
+    if (password.length < 8) {
+      showError('Password minimal 8 karakter.');
+      return;
+    }
 
     btn.disabled = true;
     btn.textContent = 'Mendaftar...';
@@ -59,7 +75,16 @@
     if (!savedEmail) return;
     btn.disabled = true;
     btn.textContent = 'Mengirim...';
-    await client.auth.resend({ type: 'signup', email: savedEmail });
+
+    // B1 — Tangkap error resend
+    const { error: resendErr } = await client.auth.resend({ type: 'signup', email: savedEmail });
+    if (resendErr) {
+      showError('Gagal kirim ulang: ' + resendErr.message);
+      btn.disabled = false;
+      btn.textContent = 'Kirim ulang';
+      return;
+    }
+
     btn.textContent = 'Terkirim!';
     setTimeout(function () {
       btn.disabled = false;
