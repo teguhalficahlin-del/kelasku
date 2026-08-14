@@ -18,6 +18,25 @@
     errorMsg.style.display = 'none';
   }
 
+  // G1 + G2 — Terjemahan pesan error Supabase ke Bahasa Indonesia
+  function translateSupabaseError(msg) {
+    if (!msg) return 'Terjadi kesalahan. Coba lagi.';
+    const m = msg.toLowerCase();
+    if (m.includes('user already registered') || m.includes('email already registered')) {
+      return 'Email ini sudah terdaftar. Cek inbox untuk link konfirmasi, atau gunakan fitur login.';
+    }
+    if (m.includes('password should be at least')) {
+      return 'Password minimal 8 karakter.';
+    }
+    if (m.includes('rate limit')) {
+      return 'Terlalu sering mengirim email. Tunggu beberapa menit lalu coba lagi.';
+    }
+    if (m.includes('invalid login credentials')) {
+      return 'Email atau password salah.';
+    }
+    return msg;
+  }
+
   // B2 — Redirect jika sudah login
   container.style.visibility = 'hidden';
   const { data: { session } } = await client.auth.getSession();
@@ -25,7 +44,22 @@
     window.location.href = '../guru/dashboard.html';
     return;
   }
+
+  // B3 — Pulihkan state jika refresh saat step konfirmasi
+  const onboardState = JSON.parse(sessionStorage.getItem('sip_onboard') || 'null');
+  if (onboardState && onboardState.step === 'konfirmasi' && onboardState.email) {
+    savedEmail = onboardState.email;
+    document.getElementById('konfirmasi-email').textContent = savedEmail;
+    step1.style.display = 'none';
+    stepKonfirmasi.style.display = 'block';
+  }
+
   container.style.visibility = '';
+
+  // G3 — Hapus sessionStorage saat navigasi ke halaman login
+  document.querySelector('.btn-dashboard').addEventListener('click', function () {
+    sessionStorage.removeItem('sip_onboard');
+  });
 
   // -----------------------------------------------------------------------
   // Step 1 - Daftar akun
@@ -50,20 +84,31 @@
     btn.disabled = true;
     btn.textContent = 'Mendaftar...';
 
-    const { error: signUpError } = await client.auth.signUp({
+    const { data, error: signUpError } = await client.auth.signUp({
       email,
       password,
       options: { data: { full_name } },
     });
 
     if (signUpError) {
-      showError('Gagal daftar: ' + signUpError.message);
+      showError(translateSupabaseError(signUpError.message));
+      btn.disabled = false;
+      btn.textContent = 'Daftar';
+      return;
+    }
+
+    // G2 — Deteksi email sudah terdaftar (Supabase kirim sukses palsu saat
+    // confirm email ON — user dikembalikan tapi identities array kosong)
+    if (!data.user || data.user.identities?.length === 0) {
+      showError(translateSupabaseError('User already registered'));
       btn.disabled = false;
       btn.textContent = 'Daftar';
       return;
     }
 
     savedEmail = email;
+    // B3 — Simpan state agar tahan refresh
+    sessionStorage.setItem('sip_onboard', JSON.stringify({ step: 'konfirmasi', email: savedEmail }));
     document.getElementById('konfirmasi-email').textContent = email;
     step1.style.display = 'none';
     stepKonfirmasi.style.display = 'block';
@@ -79,7 +124,7 @@
     // B1 — Tangkap error resend
     const { error: resendErr } = await client.auth.resend({ type: 'signup', email: savedEmail });
     if (resendErr) {
-      showError('Gagal kirim ulang: ' + resendErr.message);
+      showError(translateSupabaseError(resendErr.message));
       btn.disabled = false;
       btn.textContent = 'Kirim ulang';
       return;
