@@ -527,9 +527,10 @@
   }
 
   function openAsmtModal(editId) {
-    const item   = editId ? _asmts.find(a => a.id === editId) : null;
-    const isEdit = !!item;
-    const tpOpts = _tpList.filter(t => !t.parent_id);
+    if (!editId) { openAsmtCreateModal(); return; }
+
+    const item    = _asmts.find(a => a.id === editId);
+    const tpOpts  = _tpList.filter(t => t.tipe === 'TP');
 
     let selJenis  = item?.jenis ?? 'FORMATIF';
     let selTeknik = item?.teknik ?? '';
@@ -554,7 +555,7 @@
 
     el('pai-modal-box').innerHTML = `
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
-  <h3 style="margin:0;color:var(--gold)">${isEdit ? 'Edit' : 'Tambah'} Penilaian</h3>
+  <h3 style="margin:0;color:var(--gold)">Edit Penilaian</h3>
   <button data-action="close-modal" style="background:transparent;border:none;cursor:pointer;font-size:1.25rem;padding:.2rem .35rem;border-radius:.25rem;line-height:1;opacity:.7">×</button>
 </div>
 <div style="display:flex;flex-direction:column;gap:.875rem">
@@ -587,7 +588,7 @@
     <button id="btn-asmt-save"
       style="padding:.5rem 1.25rem;background:var(--gold);
       color:var(--text-on-gold,#000);border:none;border-radius:.375rem;
-      font-weight:600;cursor:pointer">${isEdit ? 'Simpan' : 'Buat Penilaian'}</button>
+      font-weight:600;cursor:pointer">Simpan</button>
   </div>
   <div id="asmt-err" style="color:#e74c3c;font-size:var(--fs-caption);display:none"></div>
 </div>`;
@@ -597,7 +598,7 @@
 
     el('asmt-teknik-sel').addEventListener('change', function () {
       selTeknik = this.value;
-      const opts    = selTeknik ? (INSTRUMEN_MAP[selTeknik] || []) : [];
+      const opts     = selTeknik ? (INSTRUMEN_MAP[selTeknik] || []) : [];
       const instrRow = el('asmt-instr-row');
       const instrSel = el('asmt-instr-sel');
       if (opts.length) {
@@ -619,16 +620,11 @@
       };
       el('btn-asmt-save').disabled = true;
       try {
-        if (isEdit) {
-          await SipApi.updateAssessment(editId, payload);
-          _asmts = _asmts.map(a => a.id === editId ? { ...a, ...payload } : a);
-        } else {
-          const row = await SipApi.createAssessment(_cId, _tId, payload);
-          _asmts.push(row);
-        }
+        await SipApi.updateAssessment(editId, payload);
+        _asmts = _asmts.map(a => a.id === editId ? { ...a, ...payload } : a);
         closeModal();
         renderAsmtList();
-        toast(`Penilaian berhasil ${isEdit ? 'diperbarui' : 'dibuat'}`);
+        toast('Penilaian berhasil diperbarui');
       } catch (err) {
         el('asmt-err').textContent = err.message || 'Gagal menyimpan';
         el('asmt-err').style.display = '';
@@ -650,6 +646,271 @@
     } catch (err) {
       toast('Gagal menghapus: ' + (err.message || ''), false);
     }
+  }
+
+  // ── buildResultPayload — ekstrak payload per-siswa dari DOM row ──────────────
+  function buildResultPayload(srow, jenis, kktpItems) {
+    const payload = {};
+    if (jenis === 'DIAGNOSTIK') {
+      const chips = srow.querySelector('.stu-status-chips');
+      const st    = chips ? chipVal(chips) : null;
+      payload.status  = st;
+      payload.catatan = srow.querySelector('.stu-catatan')?.value.trim() || null;
+      if (st) payload.grup_diferensiasi = STATUS_GRUP[st];
+    } else if (jenis === 'FORMATIF') {
+      const chips = srow.querySelector('.stu-status-chips');
+      payload.status      = chips ? chipVal(chips) : null;
+      payload.umpan_balik = srow.querySelector('.stu-umpan-balik')?.value.trim() || null;
+    } else {
+      const raw = srow.querySelector('.stu-nilai')?.value;
+      const val = raw !== '' ? parseFloat(raw) : null;
+      payload.nilai         = isNaN(val) ? null : val;
+      payload.tindak_lanjut = srow.querySelector('.stu-tl')?.value || null;
+      const kktp = kktpItems.find(k => k.batas_bawah != null);
+      if (kktp && val != null && !isNaN(val)) payload.kktp_tercapai = val >= kktp.batas_bawah;
+    }
+    return payload;
+  }
+
+  // ── openAsmtCreateModal — modal tambah lengkap (siswa + input per siswa) ─────
+  function openAsmtCreateModal() {
+    const tpOpts    = _tpList.filter(t => t.tipe === 'TP');
+    const hasGroups = Object.keys(_sGroups).length > 0;
+    let selJenis    = 'FORMATIF';
+
+    const jenisChips = ['DIAGNOSTIK', 'FORMATIF', 'SUMATIF']
+      .map(j => chipHtml(j, JENIS_LBL[j], selJenis === j)).join('');
+
+    const tpOptHtml = [
+      `<option value="">— Opsional —</option>`,
+      ...tpOpts.map(t => `<option value="${t.id}">${esc(t.judul)}</option>`)
+    ].join('');
+
+    const teknikOptHtml = ['', 'OBSERVASI', 'TES', 'PENUGASAN', 'PROYEK', 'PORTOFOLIO', 'UNJUK_KERJA']
+      .map(t => `<option value="${t}">${t ? t.replace(/_/g, ' ') : '— Teknik (opsional) —'}</option>`)
+      .join('');
+
+    const grupBtns = hasGroups
+      ? ['A', 'B', 'C'].map(g =>
+          `<button type="button" data-filter-grup="${g}"
+            style="padding:.25rem .65rem;border-radius:1rem;font-size:var(--fs-caption);cursor:pointer;
+            border:1.5px solid var(--border-subtle,rgba(255,255,255,.18));
+            color:var(--text-secondary);background:transparent">Grup ${g}</button>`
+        ).join('')
+      : '';
+
+    const studentListHtml = _roster.length
+      ? _roster.map(s => {
+          const g     = _sGroups[s.id] ?? '';
+          const badge = g
+            ? `<span style="font-size:.65rem;padding:.1rem .4rem;border-radius:.25rem;
+                background:var(--gold);color:var(--text-on-gold,#000);font-weight:700">${g}</span>`
+            : '';
+          return `
+<label style="display:flex;align-items:center;gap:.5rem;padding:.3rem 0;cursor:pointer"
+  data-grup="${g}">
+  <input type="checkbox" class="asmt-stu-chk" data-sid="${s.id}"
+    style="width:1rem;height:1rem;cursor:pointer">
+  <span style="font-size:var(--fs-ui)">${esc(s.nama)}</span>
+  ${badge}
+</label>`;
+        }).join('')
+      : `<p style="color:var(--text-secondary);font-size:var(--fs-caption);margin:.25rem 0">
+          Belum ada siswa di kelas ini.</p>`;
+
+    el('pai-modal-box').innerHTML = `
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+  <h3 style="margin:0;color:var(--gold)">Tambah Penilaian</h3>
+  <button data-action="close-modal"
+    style="background:transparent;border:none;cursor:pointer;font-size:1.25rem;
+    padding:.2rem .35rem;border-radius:.25rem;line-height:1;opacity:.7">×</button>
+</div>
+<div style="display:flex;flex-direction:column;gap:.875rem">
+  <div>
+    ${fieldLbl('TP yang dinilai')}
+    <select id="asmt-tp-sel" style="${inputCss()}">${tpOptHtml}</select>
+  </div>
+  <div>
+    ${fieldLbl('Jenis penilaian')}
+    <div id="asmt-jenis-chips" style="display:flex;flex-wrap:wrap;gap:.5rem">${jenisChips}</div>
+  </div>
+  <div>
+    ${fieldLbl('Teknik')}
+    <select id="asmt-teknik-sel" style="${inputCss()}">${teknikOptHtml}</select>
+  </div>
+  <div id="asmt-instr-row" style="display:none">
+    ${fieldLbl('Instrumen')}
+    <select id="asmt-instr-sel" style="${inputCss()}">
+      <option value="">— Pilih —</option>
+    </select>
+  </div>
+  <div>
+    ${fieldLbl('Siswa yang dinilai')}
+    <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.5rem">
+      <button type="button" id="asmt-pilih-semua"
+        style="padding:.25rem .65rem;border-radius:1rem;font-size:var(--fs-caption);cursor:pointer;
+        border:1.5px solid var(--gold);background:var(--gold);color:var(--text-on-gold,#000)">
+        Pilih Semua
+      </button>
+      ${grupBtns}
+    </div>
+    <div id="asmt-student-list"
+      style="max-height:10rem;overflow-y:auto;
+      border:1px solid var(--border-subtle,rgba(255,255,255,.18));
+      border-radius:.375rem;padding:.375rem .625rem">
+      ${studentListHtml}
+    </div>
+  </div>
+  <div id="asmt-per-siswa-wrap" style="display:none">
+    <div style="font-size:var(--fs-caption);font-weight:700;color:var(--gold);
+      text-transform:uppercase;letter-spacing:.07em;margin-bottom:.5rem">Input per Siswa</div>
+    <div id="asmt-per-siswa-rows"></div>
+  </div>
+  <div>
+    ${fieldLbl('Refleksi guru (opsional)')}
+    <textarea id="asmt-refleksi" rows="2"
+      style="${inputCss('resize:vertical')}"
+      placeholder="Catatan refleksi…"></textarea>
+  </div>
+  <div style="display:flex;gap:.75rem;justify-content:flex-end;margin-top:.25rem">
+    <button data-action="close-modal"
+      style="min-height:var(--btn-h);background:transparent;color:var(--gold);
+      border:1.5px solid var(--gold-border);font-size:var(--fs-ui);
+      padding:0 var(--btn-px);border-radius:var(--btn-r);cursor:pointer">Batal</button>
+    <button id="btn-asmt-save"
+      style="padding:.5rem 1.25rem;background:var(--gold);
+      color:var(--text-on-gold,#000);border:none;border-radius:.375rem;
+      font-weight:600;cursor:pointer">Buat Penilaian</button>
+  </div>
+  <div id="asmt-err"
+    style="color:#e74c3c;font-size:var(--fs-caption);display:none"></div>
+</div>`;
+
+    // ── Wire Jenis chips ─────────────────────────────────────────────────
+    const jenisEl = el('pai-modal-box').querySelector('#asmt-jenis-chips');
+    wireChips(jenisEl, false, val => {
+      selJenis = val;
+      refreshPerSiswa(getSelSids());
+    });
+
+    // ── Wire Teknik cascade ──────────────────────────────────────────────
+    el('asmt-teknik-sel').addEventListener('change', function () {
+      const teknik   = this.value;
+      const opts     = teknik ? (INSTRUMEN_MAP[teknik] || []) : [];
+      const instrRow = el('asmt-instr-row');
+      const instrSel = el('asmt-instr-sel');
+      if (opts.length) {
+        instrSel.innerHTML = `<option value="">— Pilih —</option>` +
+          opts.map(i => `<option value="${i}">${i}</option>`).join('');
+        instrRow.style.display = '';
+      } else {
+        instrRow.style.display = 'none';
+      }
+    });
+
+    // ── Wire TP change (KKTP bisa berubah per TP) ───────────────────────
+    el('asmt-tp-sel').addEventListener('change', () => {
+      const sids = getSelSids();
+      if (sids.length) refreshPerSiswa(sids);
+    });
+
+    // ── Wire Pilih Semua ─────────────────────────────────────────────────
+    el('asmt-pilih-semua').addEventListener('click', () => {
+      el('asmt-student-list').querySelectorAll('.asmt-stu-chk')
+        .forEach(chk => { chk.checked = true; });
+      refreshPerSiswa(getSelSids());
+    });
+
+    // ── Wire Grup filter ─────────────────────────────────────────────────
+    el('pai-modal-box').querySelectorAll('[data-filter-grup]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const g = btn.dataset.filterGrup;
+        el('asmt-student-list').querySelectorAll('.asmt-stu-chk').forEach(chk => {
+          chk.checked = chk.closest('label')?.dataset.grup === g;
+        });
+        refreshPerSiswa(getSelSids());
+      });
+    });
+
+    // ── Wire checklist ───────────────────────────────────────────────────
+    el('asmt-student-list').addEventListener('change', e => {
+      if (e.target.classList.contains('asmt-stu-chk')) refreshPerSiswa(getSelSids());
+    });
+
+    // ── Helpers ──────────────────────────────────────────────────────────
+    function getSelSids() {
+      return Array.from(
+        el('asmt-student-list').querySelectorAll('.asmt-stu-chk:checked')
+      ).map(chk => chk.dataset.sid);
+    }
+
+    function getKktpItems() {
+      const tpId = el('asmt-tp-sel')?.value || null;
+      return tpId ? _tpList.filter(t => t.parent_id === tpId && t.tipe === 'KKTP') : [];
+    }
+
+    function refreshPerSiswa(sids) {
+      const wrap = el('asmt-per-siswa-wrap');
+      const rows = el('asmt-per-siswa-rows');
+      if (!wrap || !rows) return;
+      if (!sids.length) { wrap.style.display = 'none'; return; }
+      wrap.style.display = '';
+      const kktpItems = getKktpItems();
+      rows.innerHTML = sids
+        .map(sid => {
+          const stu = _roster.find(r => r.id === sid);
+          return stu ? studentRowHtml(stu, {}, selJenis, kktpItems) : '';
+        })
+        .join('');
+    }
+
+    // ── Save ─────────────────────────────────────────────────────────────
+    el('btn-asmt-save').addEventListener('click', async () => {
+      const sids  = getSelSids();
+      const errEl = el('asmt-err');
+      if (!sids.length) {
+        errEl.textContent = 'Pilih minimal satu siswa';
+        errEl.style.display = '';
+        return;
+      }
+      const payload = {
+        tp_kktp_id:    el('asmt-tp-sel').value || null,
+        jenis:         selJenis,
+        teknik:        el('asmt-teknik-sel').value || null,
+        instrumen:     el('asmt-instr-sel')?.value || null,
+        refleksi_guru: el('asmt-refleksi').value.trim() || null,
+      };
+      el('btn-asmt-save').disabled = true;
+      errEl.style.display = 'none';
+      try {
+        const row       = await SipApi.createAssessment(_cId, _tId, payload);
+        const kktpItems = getKktpItems();
+        _asmts.push(row);
+        const srows = el('pai-modal-box').querySelectorAll('.pai-srow');
+        for (const srow of srows) {
+          const sid        = srow.dataset.sid;
+          const resPayload = buildResultPayload(srow, selJenis, kktpItems);
+          if (selJenis === 'DIAGNOSTIK' && resPayload.grup_diferensiasi) {
+            try {
+              await SipApi.upsertStudentGroup(_cId, sid, resPayload.grup_diferensiasi);
+              _sGroups[sid] = resPayload.grup_diferensiasi;
+            } catch {}
+          }
+          try {
+            await SipApi.upsertAssessmentResult(_cId, _tId, row.id, sid, resPayload);
+          } catch {}
+        }
+        closeModal();
+        renderAsmtList();
+        toast('Penilaian berhasil dibuat');
+      } catch (err) {
+        errEl.textContent = err.message || 'Gagal menyimpan';
+        errEl.style.display = '';
+        el('btn-asmt-save').disabled = false;
+      }
+    });
+
+    openModal();
   }
 
   // ══════════════════════════════════════════════════════════════════════════════
@@ -832,34 +1093,13 @@ ${!_roster.length
 
     for (const row of rows) {
       const sid     = row.dataset.sid;
-      const payload = {};
+      const payload = buildResultPayload(row, jenis, kktpItems);
 
-      if (jenis === 'DIAGNOSTIK') {
-        const chips = row.querySelector('.stu-status-chips');
-        const st    = chips ? chipVal(chips) : null;
-        payload.status  = st;
-        payload.catatan = row.querySelector('.stu-catatan')?.value.trim() || null;
-        if (st) {
-          const g = STATUS_GRUP[st];
-          payload.grup_diferensiasi = g;
-          try {
-            await SipApi.upsertStudentGroup(_cId, sid, g);
-            _sGroups[sid] = g;
-          } catch {}
-        }
-      } else if (jenis === 'FORMATIF') {
-        const chips = row.querySelector('.stu-status-chips');
-        payload.status      = chips ? chipVal(chips) : null;
-        payload.umpan_balik = row.querySelector('.stu-umpan-balik')?.value.trim() || null;
-      } else {
-        const raw = row.querySelector('.stu-nilai')?.value;
-        const val = raw !== '' ? parseFloat(raw) : null;
-        payload.nilai         = isNaN(val) ? null : val;
-        payload.tindak_lanjut = row.querySelector('.stu-tl')?.value || null;
-        const kktp = kktpItems.find(k => k.batas_bawah != null);
-        if (kktp && val != null && !isNaN(val)) {
-          payload.kktp_tercapai = val >= kktp.batas_bawah;
-        }
+      if (jenis === 'DIAGNOSTIK' && payload.grup_diferensiasi) {
+        try {
+          await SipApi.upsertStudentGroup(_cId, sid, payload.grup_diferensiasi);
+          _sGroups[sid] = payload.grup_diferensiasi;
+        } catch {}
       }
 
       try {

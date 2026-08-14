@@ -276,6 +276,32 @@
       if (error) throw error;
     },
 
+    async getClassroomStudents(classroomId) {
+      const { data: members, error: e1 } = await client
+        .from('classroom_members')
+        .select('profile_id')
+        .eq('classroom_id', classroomId)
+        .eq('member_role', 'SISWA');
+      if (e1) throw e1;
+      if (!members?.length) return [];
+      const { data, error: e2 } = await client
+        .from('profiles')
+        .select('id, full_name')
+        .in('id', members.map(m => m.profile_id))
+        .order('full_name');
+      if (e2) throw e2;
+      return (data ?? []).map(p => ({ id: p.id, nama: p.full_name }));
+    },
+
+    async getAssessmentStudents(assessmentId) {
+      const { data, error } = await client
+        .from('assessment_results')
+        .select('student_id, status, catatan, umpan_balik, grup_diferensiasi, nilai, kktp_tercapai, tindak_lanjut')
+        .eq('assessment_id', assessmentId);
+      if (error) throw error;
+      return data ?? [];
+    },
+
     // ── grade_recap ────────────────────────────────────────────────────────
     async getGradeRecap(classroomId, semester, tahunAjaran) {
       const { data, error } = await client
