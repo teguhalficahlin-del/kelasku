@@ -7,6 +7,19 @@
   <link rel="stylesheet" href="../shared/css/design-system.css">
   <link rel="stylesheet" href="../shared/css/components.css">
   <link rel="stylesheet" href="css/guru.css">
+  <style>
+    /* Modal Peran Guru */
+    #modal-peran{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;}
+    #modal-peran .modal-box{max-width:420px;width:calc(100% - 2rem);}
+    #modal-peran .peran-cards{display:flex;flex-direction:column;gap:.75rem;margin:1rem 0 1.25rem;}
+    #modal-peran .peran-card{padding:.875rem 1rem;border:1.5px solid var(--border);border-radius:var(--r-card);cursor:pointer;transition:border-color .15s,background .15s;}
+    #modal-peran .peran-card:hover{border-color:var(--gold);background:var(--gold-muted);}
+    #modal-peran .peran-card.selected{border-color:var(--gold);background:var(--gold-muted);}
+    #modal-peran .peran-title{font-weight:600;color:var(--text-primary);margin-bottom:.25rem;}
+    #modal-peran .peran-desc{font-size:var(--fs-caption);color:var(--text-secondary);}
+    #modal-peran #btn-simpan-peran{width:100%;min-height:var(--btn-h);background:var(--gold);color:var(--text-on-gold);border:none;border-radius:8px;font-weight:600;font-size:var(--fs-ui);cursor:pointer;font-family:inherit;}
+    #modal-peran #btn-simpan-peran:disabled{opacity:.4;cursor:not-allowed;}
+  </style>
 </head>
 <body class="dashboard">
 
@@ -40,6 +53,26 @@
       </div>
     </div>
   </main>
+
+  <!-- Modal pilih peran guru — muncul sekali untuk akun baru -->
+  <div id="modal-peran" style="display:none;">
+    <div class="modal-backdrop"></div>
+    <div class="modal-box">
+      <h3>Satu Langkah Lagi</h3>
+      <p class="hint">Pilih peran Anda agar SIP Mandiri bisa menyesuaikan tampilan.</p>
+      <div class="peran-cards">
+        <div class="peran-card" data-peran="MAPEL">
+          <div class="peran-title">Guru Mata Pelajaran</div>
+          <div class="peran-desc">Mengajar satu mata pelajaran di SMP, SMA, atau SMK</div>
+        </div>
+        <div class="peran-card" data-peran="WALI_KELAS_SD">
+          <div class="peran-title">Wali Kelas SD</div>
+          <div class="peran-desc">Mengajar semua mata pelajaran di satu kelas SD</div>
+        </div>
+      </div>
+      <button type="button" id="btn-simpan-peran" disabled>Simpan &amp; Lanjut</button>
+    </div>
+  </div>
 
   <!-- Modal buat classroom — multi-step -->
   <div id="modal-classroom" style="display:none;">

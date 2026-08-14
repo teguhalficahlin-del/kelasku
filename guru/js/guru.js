@@ -268,7 +268,12 @@ window.initCustomSelect = function (nativeEl, onChange) {
       if (error) { list.innerHTML = '<p class="empty-state">Gagal memuat classroom: ' + escHtml(error.message) + '</p>'; return; }
 
       if (!classrooms || classrooms.length === 0) {
-        list.innerHTML = '<p class="empty-state">Belum ada classroom. Klik \'+ Buat Classroom\' untuk mulai.</p>';
+        list.innerHTML =
+          '<div class="empty-state">' +
+            '<p>Belum ada classroom.</p>' +
+            '<button class="btn-buat-cl-empty">+ Buat Classroom Pertama</button>' +
+          '</div>';
+        list.querySelector('.btn-buat-cl-empty').addEventListener('click', function () { openModal(); });
         return;
       }
 
@@ -573,6 +578,42 @@ window.initCustomSelect = function (nativeEl, onChange) {
       // status 'belum_trial': guru belum buat classroom — tidak tampilkan banner
     }
 
+    // -- Modal Pilih Peran --
+
+    function showModalPeran() {
+      return new Promise(function (resolve) {
+        const modal  = document.getElementById('modal-peran');
+        const btnOk  = document.getElementById('btn-simpan-peran');
+        const cards  = modal.querySelectorAll('.peran-card');
+        let chosenPeran = null;
+
+        cards.forEach(function (card) {
+          card.addEventListener('click', function () {
+            cards.forEach(function (c) { c.classList.remove('selected'); });
+            card.classList.add('selected');
+            chosenPeran = card.dataset.peran;
+            btnOk.disabled = false;
+          });
+        });
+
+        btnOk.addEventListener('click', async function () {
+          if (!chosenPeran) return;
+          btnOk.disabled = true;
+          btnOk.textContent = 'Menyimpan...';
+
+          await window.supabaseClient
+            .from('profiles')
+            .update({ role_guru: chosenPeran })
+            .eq('id', currentTeacherId);
+
+          modal.style.display = 'none';
+          resolve(chosenPeran);
+        });
+
+        modal.style.display = 'flex';
+      });
+    }
+
     // -- Init --
 
     window.addEventListener('DOMContentLoaded', async () => {
@@ -584,6 +625,10 @@ window.initCustomSelect = function (nativeEl, onChange) {
 
       currentTeacherId = profile.id;
       document.getElementById('guru-name').textContent = profile.full_name;
+
+      if (!profile.role_guru) {
+        await showModalPeran();
+      }
 
       // Baca status trial dari sessionStorage (diisi saat login)
       // Fallback ke RPC jika navigasi langsung atau sessionStorage kosong
