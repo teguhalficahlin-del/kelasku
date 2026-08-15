@@ -553,7 +553,18 @@
 </div>`;
 
     if (isWali) {
-      el('tp-mapel-sel')?.addEventListener('change', function () { selMapel = this.value; });
+      el('tp-mapel-sel')?.addEventListener('change', function () {
+        selMapel = this.value;
+        const filteredTps = _tpList.filter(t =>
+          t.tipe === 'TP' && (!t.mapel || t.mapel === selMapel)
+        );
+        const parentSel = el('tp-parent-sel');
+        if (parentSel) {
+          parentSel.innerHTML =
+            '<option value="">— Pilih TP —</option>' +
+            filteredTps.map(t => `<option value="${t.id}">${esc(t.judul)}</option>`).join('');
+        }
+      });
     }
 
     el('tp-tipe-sel').addEventListener('change', function () {
