@@ -696,10 +696,10 @@
   </select>
 </div>` : '';
 
-    // Filter penilaian berdasarkan mapel TP (tanpa TP = tidak lolos, konsisten dengan filter semester)
+    // Penilaian tanpa TP tetap muncul di semua filter mapel — label "Tanpa TP" ditampilkan di row
     const visible = isWali
       ? _asmts.filter(a => {
-          if (!a.tp_kktp_id) return false;
+          if (!a.tp_kktp_id) return true;
           const tp = _tpList.find(t => t.id === a.tp_kktp_id);
           return !tp || !tp.mapel || tp.mapel === _selMapel;
         })
@@ -744,8 +744,8 @@
     <div style="flex:1;min-width:0">
       <div style="font-size:var(--fs-ui);font-weight:var(--fw-medium,500);
           white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(title)}</div>
-      ${tp ? `<div style="font-size:var(--fs-caption);color:var(--text-secondary)">
-        ${esc(tp.judul)}</div>` : ''}
+      ${tp ? `<div style="font-size:var(--fs-caption);color:var(--text-secondary)">${esc(tp.judul)}</div>`
+           : `<div style="font-size:var(--fs-caption);color:var(--text-secondary);font-style:italic">Tanpa TP</div>`}
     </div>
     <button type="button" data-action="edit-asmt" data-id="${a.id}"
       style="background:transparent;border:none;cursor:pointer;font-size:1rem;padding:.2rem .35rem;border-radius:.25rem;line-height:1;opacity:.7" title="Edit">✏️</button>
