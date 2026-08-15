@@ -743,13 +743,18 @@
     let selTeknik    = item?.teknik    ?? '';
     let selInstrumen = item?.instrumen ?? '';
 
+    const isWali    = _roleGuru === 'WALI_KELAS_SD';
+    const _initTp   = _tpList.find(t => t.id === item?.tp_kktp_id);
+    let selMapel    = _initTp?.mapel ?? _selMapel ?? MAPEL_SD[0];
+
     const results = await SipApi.getAssessmentResults(editId).catch(() => []);
     const resMap  = Object.fromEntries(results.map(r => [r.student_id, r]));
 
     function buildTpOptHtml() {
+      const candidates = tpOpts.filter(t => !isWali || !t.mapel || t.mapel === selMapel);
       return [
         `<option value="">— Opsional —</option>`,
-        ...tpOpts.map(t => {
+        ...candidates.map(t => {
           const hasKktp = _tpList.some(k => k.parent_id === t.id && k.tipe === 'KKTP');
           return `<option value="${t.id}"${item?.tp_kktp_id === t.id ? ' selected' : ''}>${esc(t.judul)} ${hasKktp ? '✓' : '⚠'}</option>`;
         }),
@@ -764,6 +769,15 @@
       .map(i => `<option value="${i}"${selInstrumen === i ? ' selected' : ''}>${i}</option>`)
       .join('') : '';
 
+    const mapelChipsHtml = isWali
+      ? `<div>
+          ${fieldLbl('Mata Pelajaran')}
+          <select id="asmt-mapel-sel" style="${inputCss()}">
+            ${MAPEL_SD.map(m => `<option value="${esc(m)}"${m === selMapel ? ' selected' : ''}>${esc(m)}</option>`).join('')}
+          </select>
+        </div>`
+      : '';
+
     el('pai-modal-box').innerHTML = `
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
   <h3 style="margin:0;color:var(--gold)">Edit Penilaian</h3>
@@ -772,6 +786,7 @@
     padding:.2rem .35rem;border-radius:.25rem;line-height:1;opacity:.7">×</button>
 </div>
 <div style="display:flex;flex-direction:column;gap:.875rem">
+  ${mapelChipsHtml}
   <div>
     ${fieldLbl('Tujuan penilaian')}
     <textarea id="asmt-tujuan" rows="2"
@@ -844,6 +859,14 @@
 
     const bodyInstrWrap = el('asmt-body-instr-wrap');
     wireBodyInstrumen(bodyInstrWrap);
+
+    // ── Wire Mapel dropdown (WALI_KELAS_SD only) → cascade filter TP dropdown ──
+    if (isWali) {
+      el('asmt-mapel-sel')?.addEventListener('change', function () {
+        selMapel = this.value;
+        el('asmt-tp-sel').innerHTML = buildTpOptHtml();
+      });
+    }
 
     // Explicitly set instrSel.value + wire onchange for initial instrumen state.
     // Some browsers don't honour the `selected` attribute when innerHTML is set
