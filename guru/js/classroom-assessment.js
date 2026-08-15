@@ -469,12 +469,15 @@
   function openTpModal(editId) {
     const item   = editId ? _tpList.find(t => t.id === editId) : null;
     const isEdit = !!item;
-    const tpOpts = _tpList.filter(t => t.tipe === 'TP');
 
     let selTipe  = item?.tipe ?? 'TP';
     let selMapel = item?.mapel ?? _selMapel ?? MAPEL_SD[0]; // default ke mapel aktif Section 1
 
     const isWali = _roleGuru === 'WALI_KELAS_SD';
+    // Filter TP induk by mapel aktif agar guru tidak bisa pilih TP dari mapel yang salah
+    const tpOpts = _tpList.filter(t =>
+      t.tipe === 'TP' && (!isWali || !t.mapel || t.mapel === selMapel)
+    );
 
     const mapelChipsHtml = isWali
       ? `<div style="margin-bottom:.875rem">
