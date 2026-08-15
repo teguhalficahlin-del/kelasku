@@ -1569,29 +1569,31 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
     </select>
   </div>
   <div id="asmt-body-instr-wrap" class="pai-body-instr-wrap"></div>
-  <div>
-    <div style="font-size:var(--fs-caption);font-weight:700;color:var(--gold);
-      text-transform:uppercase;letter-spacing:.07em;margin-bottom:.375rem">
-      Output per Siswa</div>
-    <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.5rem">
-      <button type="button" id="asmt-pilih-semua"
-        style="padding:.25rem .65rem;border-radius:1rem;font-size:var(--fs-caption);cursor:pointer;
-        border:1.5px solid var(--gold);background:var(--gold);color:var(--text-on-gold,#000)">
-        Pilih Semua
-      </button>
-      ${grupBtns}
+  <div id="asmt-output-wrap" style="${selJenis === 'SUMATIF' ? '' : 'display:none'}">
+    <div>
+      <div style="font-size:var(--fs-caption);font-weight:700;color:var(--gold);
+        text-transform:uppercase;letter-spacing:.07em;margin-bottom:.375rem">
+        Output per Siswa</div>
+      <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.5rem">
+        <button type="button" id="asmt-pilih-semua"
+          style="padding:.25rem .65rem;border-radius:1rem;font-size:var(--fs-caption);cursor:pointer;
+          border:1.5px solid var(--gold);background:var(--gold);color:var(--text-on-gold,#000)">
+          Pilih Semua
+        </button>
+        ${grupBtns}
+      </div>
+      <div id="asmt-student-list"
+        style="max-height:10rem;overflow-y:auto;
+        border:1px solid var(--border-subtle,rgba(255,255,255,.18));
+        border-radius:.375rem;padding:.375rem .625rem">
+        ${studentListHtml}
+      </div>
     </div>
-    <div id="asmt-student-list"
-      style="max-height:10rem;overflow-y:auto;
-      border:1px solid var(--border-subtle,rgba(255,255,255,.18));
-      border-radius:.375rem;padding:.375rem .625rem">
-      ${studentListHtml}
+    <div id="asmt-per-siswa-wrap" style="display:none">
+      <div style="font-size:var(--fs-caption);color:var(--text-secondary);
+        margin-bottom:.5rem">Input nilai/status per siswa:</div>
+      <div id="asmt-per-siswa-rows"></div>
     </div>
-  </div>
-  <div id="asmt-per-siswa-wrap" style="display:none">
-    <div style="font-size:var(--fs-caption);color:var(--text-secondary);
-      margin-bottom:.5rem">Input nilai/status per siswa:</div>
-    <div id="asmt-per-siswa-rows"></div>
   </div>
   <div>
     ${fieldLbl('Refleksi guru (opsional)')}
@@ -1627,7 +1629,15 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
     // ── Wire Jenis dropdown ──────────────────────────────────────────────
     el('asmt-jenis-sel').addEventListener('change', function () {
       selJenis = this.value;
-      refreshPerSiswa(getSelSids());
+      const outputWrap = el('asmt-output-wrap');
+      if (selJenis === 'SUMATIF') {
+        if (outputWrap) outputWrap.style.display = '';
+        refreshPerSiswa(getSelSids());
+      } else {
+        if (outputWrap) outputWrap.style.display = 'none';
+        const perSiswaWrap = el('asmt-per-siswa-wrap');
+        if (perSiswaWrap) perSiswaWrap.style.display = 'none';
+      }
     });
 
     // ── Wire Teknik cascade → instrumen → body instrumen ─────────────────
@@ -1726,7 +1736,7 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
     el('btn-asmt-save').addEventListener('click', async () => {
       const sids  = getSelSids();
       const errEl = el('asmt-err');
-      if (!sids.length) {
+      if (!sids.length && selJenis === 'SUMATIF') {
         errEl.textContent = 'Pilih minimal satu siswa';
         errEl.style.display = '';
         return;
