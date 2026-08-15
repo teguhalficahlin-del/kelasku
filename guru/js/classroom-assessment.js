@@ -9,10 +9,11 @@
   let _tId    = null;
   let _loaded = false;
 
-  let _tpList  = [];  // rows from tp_kktp
-  let _asmts   = [];  // rows from assessments
-  let _roster  = [];  // [{id, nama}] active students in classroom
-  let _sGroups = {};  // { studentId: grup }
+  let _tpList   = [];  // rows from tp_kktp
+  let _asmts    = [];  // rows from assessments
+  let _roster   = [];  // [{id, nama}] active students in classroom
+  let _sGroups  = {};  // { studentId: grup }
+  let _roleGuru = null; // role_guru dari profiles (WALI_KELAS_SD | MAPEL | null)
 
   // ─── Constants ──────────────────────────────────────────────────────────────
   const CY           = new Date().getFullYear();
@@ -41,6 +42,11 @@
     { val: 'BB',  lbl: 'Belum Berkembang' },
   ];
   const TINGKAT_OBS = ['Terlihat jelas', 'Terlihat', 'Belum terlihat'];
+
+  const MAPEL_SD = [
+    'Bahasa Indonesia', 'Matematika', 'IPAS',
+    'Pendidikan Pancasila', 'Seni', 'Bahasa Inggris',
+  ];
 
   function teknikLbl(t) {
     return t ? t.split('_').map(w => w.charAt(0) + w.slice(1).toLowerCase()).join(' ') : '';
@@ -344,7 +350,19 @@
     const isEdit = !!item;
     const tpOpts = _tpList.filter(t => t.tipe === 'TP');
 
-    let selTipe = item?.tipe ?? 'TP';
+    let selTipe  = item?.tipe ?? 'TP';
+    let selMapel = item?.mapel ?? MAPEL_SD[0]; // hanya dipakai jika WALI_KELAS_SD
+
+    const isWali = _roleGuru === 'WALI_KELAS_SD';
+
+    const mapelChipsHtml = isWali
+      ? `<div style="margin-bottom:.875rem">
+          ${fieldLbl('Mata Pelajaran')}
+          <div id="tp-mapel-chips" style="display:flex;flex-wrap:wrap;gap:.5rem">
+            ${MAPEL_SD.map(m => chipHtml(m, m, selMapel === m)).join('')}
+          </div>
+        </div>`
+      : '';
 
     const tipeChips = ['CP', 'TP', 'KKTP']
       .map(t => chipHtml(t, TIPE_LBL[t], selTipe === t)).join('');
@@ -359,6 +377,7 @@
   <button data-action="close-modal" style="background:transparent;border:none;cursor:pointer;font-size:1.25rem;padding:.2rem .35rem;border-radius:.25rem;line-height:1;opacity:.7">×</button>
 </div>
 <div id="tp-form" style="display:flex;flex-direction:column;gap:.875rem">
+  ${mapelChipsHtml}
   <div>
     ${fieldLbl('Tipe')}
     <div id="tp-tipe-chips" style="display:flex;flex-wrap:wrap;gap:.5rem">${tipeChips}</div>
@@ -410,6 +429,11 @@
   <div id="tp-err" style="color:#e74c3c;font-size:var(--fs-caption);display:none"></div>
 </div>`;
 
+    if (isWali) {
+      const mapelChipsEl = el('pai-modal-box').querySelector('#tp-mapel-chips');
+      wireChips(mapelChipsEl, false, val => { selMapel = val; });
+    }
+
     const chipsEl = el('pai-modal-box').querySelector('#tp-tipe-chips');
     wireChips(chipsEl, false, val => {
       selTipe = val;
@@ -440,6 +464,7 @@
         batas_atas:   null,
         academic_year: el('tp-year').value.trim() || DEFAULT_YEAR,
         semester:     selTipe === 'CP' ? null : (parseInt(el('tp-sem').value) || 1),
+        ...(isWali ? { mapel: selMapel } : {}),
       };
       el('btn-tp-save').disabled = true;
       try {
@@ -1294,19 +1319,29 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
 
   // ── openAsmtCreateModal — modal tambah penilaian (42 pola wireframe) ─────────
   function openAsmtCreateModal() {
-    const tpOpts    = _tpList.filter(t => t.tipe === 'TP');
+    const isWali    = _roleGuru === 'WALI_KELAS_SD';
     const hasGroups = Object.keys(_sGroups).length > 0;
     let selJenis     = 'FORMATIF';
     let selTeknik    = '';
     let selInstrumen = '';
+    let selMapel     = MAPEL_SD[0]; // hanya dipakai jika isWali
+
+    // helper: bangun opsi TP berdasarkan mapel yang dipilih (jika wali)
+    function buildTpOptHtml() {
+      const candidates = _tpList.filter(t => {
+        if (t.tipe !== 'TP') return false;
+        if (!isWali) return true;
+        // TP tanpa mapel (data lama) → tetap muncul di semua mapel
+        return !t.mapel || t.mapel === selMapel;
+      });
+      return [
+        `<option value="">— Opsional —</option>`,
+        ...candidates.map(t => `<option value="${t.id}">${esc(t.judul)}</option>`),
+      ].join('');
+    }
 
     const jenisChips = ['DIAGNOSTIK', 'FORMATIF', 'SUMATIF']
       .map(j => chipHtml(j, JENIS_LBL[j], selJenis === j)).join('');
-
-    const tpOptHtml = [
-      `<option value="">— Opsional —</option>`,
-      ...tpOpts.map(t => `<option value="${t.id}">${esc(t.judul)}</option>`)
-    ].join('');
 
     const teknikOptHtml = ['', 'OBSERVASI', 'TES', 'PENUGASAN', 'PROYEK', 'PORTOFOLIO', 'UNJUK_KERJA']
       .map(t => `<option value="${t}">${t ? teknikLbl(t) : '— Teknik (opsional) —'}</option>`)
@@ -1340,6 +1375,15 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
       : `<p style="color:var(--text-secondary);font-size:var(--fs-caption);margin:.25rem 0">
           Belum ada siswa di kelas ini.</p>`;
 
+    const mapelChipsHtml = isWali
+      ? `<div>
+          ${fieldLbl('Mata Pelajaran')}
+          <div id="asmt-mapel-chips" style="display:flex;flex-wrap:wrap;gap:.5rem">
+            ${MAPEL_SD.map(m => chipHtml(m, m, selMapel === m)).join('')}
+          </div>
+        </div>`
+      : '';
+
     el('pai-modal-box').innerHTML = `
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
   <h3 style="margin:0;color:var(--gold)">Tambah Penilaian</h3>
@@ -1348,6 +1392,7 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
     padding:.2rem .35rem;border-radius:.25rem;line-height:1;opacity:.7">×</button>
 </div>
 <div style="display:flex;flex-direction:column;gap:.875rem">
+  ${mapelChipsHtml}
   <div>
     ${fieldLbl('Tujuan penilaian')}
     <textarea id="asmt-tujuan" rows="2"
@@ -1356,7 +1401,7 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
   </div>
   <div>
     ${fieldLbl('TP yang dinilai')}
-    <select id="asmt-tp-sel" style="${inputCss()}">${tpOptHtml}</select>
+    <select id="asmt-tp-sel" style="${inputCss()}">${buildTpOptHtml()}</select>
   </div>
   <div>
     ${fieldLbl('Jenis penilaian')}
@@ -1419,6 +1464,15 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
 
     const bodyInstrWrap = el('asmt-body-instr-wrap');
     wireBodyInstrumen(bodyInstrWrap);
+
+    // ── Wire Mapel chips (WALI_KELAS_SD only) → cascade filter TP dropdown ──
+    if (isWali) {
+      const mapelChipsEl = el('pai-modal-box').querySelector('#asmt-mapel-chips');
+      wireChips(mapelChipsEl, false, val => {
+        selMapel = val;
+        el('asmt-tp-sel').innerHTML = buildTpOptHtml();
+      });
+    }
 
     // ── Wire Jenis chips ─────────────────────────────────────────────────
     const jenisEl = el('pai-modal-box').querySelector('#asmt-jenis-chips');
@@ -1929,8 +1983,9 @@ ${!_roster.length
         const cId = new URLSearchParams(window.location.search).get('id');
         if (!cId) return;
         const { data: prof } = await client
-          .from('profiles').select('id').eq('user_id', session.user.id).single();
+          .from('profiles').select('id, role_guru').eq('user_id', session.user.id).single();
         if (!prof) return;
+        _roleGuru = prof.role_guru ?? null;
         await initAssessmentTab(cId, prof.id);
       }
     });
