@@ -2771,7 +2771,7 @@ ${metodeHtml}${hasilHtml}`;
     // Wire events
     cc.querySelectorAll('input[name="rc-metode"]').forEach(r => {
       r.addEventListener('change', function () {
-        _rcMetode = this.value; _rcHasil = null; _renderRecapContent(cc, sumatifs, allResults);
+        _rcMetode = this.value; _rcHasil = null; _rcPage2 = 0; _renderRecapContent(cc, sumatifs, allResults);
       });
     });
 
