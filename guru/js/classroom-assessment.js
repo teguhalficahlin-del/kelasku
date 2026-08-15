@@ -479,14 +479,14 @@
     const mapelChipsHtml = isWali
       ? `<div style="margin-bottom:.875rem">
           ${fieldLbl('Mata Pelajaran')}
-          <div id="tp-mapel-chips" style="display:flex;flex-wrap:wrap;gap:.5rem">
-            ${MAPEL_SD.map(m => chipHtml(m, m, selMapel === m)).join('')}
-          </div>
+          <select id="tp-mapel-sel" style="${inputCss()}">
+            ${MAPEL_SD.map(m => `<option value="${esc(m)}"${m === selMapel ? ' selected' : ''}>${esc(m)}</option>`).join('')}
+          </select>
         </div>`
       : '';
 
-    const tipeChips = ['CP', 'TP', 'KKTP']
-      .map(t => chipHtml(t, TIPE_LBL[t], selTipe === t)).join('');
+    const tipeOpts = ['CP', 'TP', 'KKTP']
+      .map(t => `<option value="${t}"${selTipe === t ? ' selected' : ''}>${TIPE_LBL[t]}</option>`).join('');
 
     const parentOpts = tpOpts.map(t =>
       `<option value="${t.id}"${item?.parent_id === t.id ? ' selected' : ''}>${esc(t.judul)}</option>`
@@ -501,7 +501,7 @@
   ${mapelChipsHtml}
   <div>
     ${fieldLbl('Tipe')}
-    <div id="tp-tipe-chips" style="display:flex;flex-wrap:wrap;gap:.5rem">${tipeChips}</div>
+    <select id="tp-tipe-sel" style="${inputCss()}">${tipeOpts}</select>
   </div>
   <div id="tp-parent-row" style="${selTipe === 'KKTP' ? '' : 'display:none'}">
     ${fieldLbl('TP induk')}
@@ -550,13 +550,12 @@
 </div>`;
 
     if (isWali) {
-      const mapelChipsEl = el('pai-modal-box').querySelector('#tp-mapel-chips');
-      wireChips(mapelChipsEl, false, val => { selMapel = val; });
+      el('tp-mapel-sel')?.addEventListener('change', function () { selMapel = this.value; });
     }
 
-    const chipsEl = el('pai-modal-box').querySelector('#tp-tipe-chips');
-    wireChips(chipsEl, false, val => {
-      selTipe = val;
+    el('tp-tipe-sel').addEventListener('change', function () {
+      selTipe = this.value;
+      const val = selTipe;
       el('tp-parent-row').style.display = val === 'KKTP' ? '' : 'none';
       el('tp-judul-row').style.display  = val === 'CP'   ? 'none' : '';
       el('tp-konten-row').style.display = val === 'KKTP' ? 'none' : '';
