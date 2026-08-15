@@ -472,7 +472,7 @@
     const tpOpts = _tpList.filter(t => t.tipe === 'TP');
 
     let selTipe  = item?.tipe ?? 'TP';
-    let selMapel = item?.mapel ?? MAPEL_SD[0]; // hanya dipakai jika WALI_KELAS_SD
+    let selMapel = item?.mapel ?? _selMapel ?? MAPEL_SD[0]; // default ke mapel aktif Section 1
 
     const isWali = _roleGuru === 'WALI_KELAS_SD';
 
