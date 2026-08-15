@@ -851,7 +851,7 @@
   }
 
   // ══════════════════════════════════════════════════════════════════════════════
-  // BODY INSTRUMEN — helpers untuk 42 pola wireframe
+  // ISI PENILAIAN — helpers untuk 42 pola wireframe
   // ══════════════════════════════════════════════════════════════════════════════
 
   function siswaPickerHtml(pickerId) {
