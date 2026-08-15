@@ -2598,8 +2598,8 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
       if (a.jenis !== 'SUMATIF') return false;
       if (_rcTeknik && a.teknik !== _rcTeknik) return false;
       if (_rcInstrumen && a.instrumen !== _rcInstrumen) return false;
-      // Filter semester, tahun, dan mapel via TP yang dikaitkan.
-      // Sumatif tanpa TP tidak bisa diketahui semesternya — tetap tampil di semua filter.
+      // Sumatif tanpa TP tidak bisa diketahui semesternya — tidak lolos filter.
+      if (!a.tp_kktp_id) return false;
       if (a.tp_kktp_id) {
         const tp = _tpList.find(t => t.id === a.tp_kktp_id);
         if (tp) {
