@@ -2844,7 +2844,9 @@ ${metodeHtml}${hasilHtml}`;
       let saved = 0; let skipped = 0;
       for (const [tpId, indices] of Object.entries(tpGroups)) {
         if (tpId === '__null__') { skipped += indices.length; continue; }
-        const kktp = _tpList.find(t => t.parent_id === tpId && t.tipe === 'KKTP');
+        // Pilih KKTP yang semesternya sesuai filter; fallback ke KKTP pertama jika tidak ada.
+        const kktpAll = _tpList.filter(t => t.parent_id === tpId && t.tipe === 'KKTP');
+        const kktp    = kktpAll.find(k => String(k.semester) === String(_rcSemester)) ?? kktpAll[0] ?? null;
 
         for (const s of _roster) {
           // Gunakan fungsi bersama agar nilai yang disimpan identik dengan yang ditampilkan
