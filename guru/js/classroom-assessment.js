@@ -736,47 +736,57 @@
   async function openAsmtModal(editId) {
     if (!editId) { openAsmtCreateModal(); return; }
 
-    const item    = _asmts.find(a => a.id === editId);
-    const tpOpts  = _tpList.filter(t => t.tipe === 'TP');
+    const item   = _asmts.find(a => a.id === editId);
+    const tpOpts = _tpList.filter(t => t.tipe === 'TP');
 
-    let selJenis  = item?.jenis ?? 'FORMATIF';
-    let selTeknik = item?.teknik ?? '';
+    let selJenis     = item?.jenis     ?? 'FORMATIF';
+    let selTeknik    = item?.teknik    ?? '';
+    let selInstrumen = item?.instrumen ?? '';
 
-    // Fetch existing results and build lookup map
     const results = await SipApi.getAssessmentResults(editId).catch(() => []);
     const resMap  = Object.fromEntries(results.map(r => [r.student_id, r]));
 
-    const jenisChips = ['DIAGNOSTIK', 'FORMATIF', 'SUMATIF']
-      .map(j => chipHtml(j, JENIS_LBL[j], selJenis === j)).join('');
-
-    const tpOptHtml = [
-      `<option value="">— Opsional —</option>`,
-      ...tpOpts.map(t =>
-        `<option value="${t.id}"${item?.tp_kktp_id === t.id ? ' selected' : ''}>${esc(t.judul)}</option>`)
-    ].join('');
+    function buildTpOptHtml() {
+      return [
+        `<option value="">— Opsional —</option>`,
+        ...tpOpts.map(t => {
+          const hasKktp = _tpList.some(k => k.parent_id === t.id && k.tipe === 'KKTP');
+          return `<option value="${t.id}"${item?.tp_kktp_id === t.id ? ' selected' : ''}>${esc(t.judul)} ${hasKktp ? '✓' : '⚠'}</option>`;
+        }),
+      ].join('');
+    }
 
     const teknikOptHtml = ['', 'OBSERVASI', 'TES', 'PENUGASAN', 'PROYEK', 'PORTOFOLIO', 'UNJUK_KERJA', 'TES_LISAN']
-      .map(t => `<option value="${t}"${selTeknik === t ? ' selected' : ''}>
-        ${t ? teknikLbl(t) : '— Teknik (opsional) —'}</option>`)
+      .map(t => `<option value="${t}"${selTeknik === t ? ' selected' : ''}>${t ? teknikLbl(t) : '— Teknik (opsional) —'}</option>`)
       .join('');
 
     const instrOpts = selTeknik ? (INSTRUMEN_MAP[selTeknik] || [])
-      .map(i => `<option value="${i}"${item?.instrumen === i ? ' selected' : ''}>${i}</option>`)
+      .map(i => `<option value="${i}"${selInstrumen === i ? ' selected' : ''}>${i}</option>`)
       .join('') : '';
 
     el('pai-modal-box').innerHTML = `
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
   <h3 style="margin:0;color:var(--gold)">Edit Penilaian</h3>
-  <button data-action="close-modal" style="background:transparent;border:none;cursor:pointer;font-size:1.25rem;padding:.2rem .35rem;border-radius:.25rem;line-height:1;opacity:.7">×</button>
+  <button data-action="close-modal"
+    style="background:transparent;border:none;cursor:pointer;font-size:1.25rem;
+    padding:.2rem .35rem;border-radius:.25rem;line-height:1;opacity:.7">×</button>
 </div>
 <div style="display:flex;flex-direction:column;gap:.875rem">
   <div>
+    ${fieldLbl('Tujuan penilaian')}
+    <textarea id="asmt-tujuan" rows="2"
+      style="${inputCss('resize:vertical')}"
+      placeholder="Apa yang ingin diketahui/dipantau?">${esc(item?.tujuan ?? '')}</textarea>
+  </div>
+  <div>
     ${fieldLbl('TP yang dinilai')}
-    <select id="asmt-tp-sel" style="${inputCss()}">${tpOptHtml}</select>
+    <select id="asmt-tp-sel" style="${inputCss()}">${buildTpOptHtml()}</select>
   </div>
   <div>
     ${fieldLbl('Jenis penilaian')}
-    <div id="asmt-jenis-chips" style="display:flex;flex-wrap:wrap;gap:.5rem">${jenisChips}</div>
+    <select id="asmt-jenis-sel" style="${inputCss()}">
+      ${['DIAGNOSTIK', 'FORMATIF', 'SUMATIF'].map(j => `<option value="${j}"${selJenis === j ? ' selected' : ''}>${JENIS_LBL[j]}</option>`).join('')}
+    </select>
   </div>
   <div>
     ${fieldLbl('Teknik')}
@@ -788,60 +798,86 @@
       <option value="">— Pilih —</option>${instrOpts}
     </select>
   </div>
+  <div id="asmt-body-instr-wrap" class="pai-body-instr-wrap"></div>
+  <div id="asmt-output-wrap" style="${selJenis === 'SUMATIF' ? '' : 'display:none'}">
+    <div style="font-size:var(--fs-caption);font-weight:700;color:var(--gold);
+      text-transform:uppercase;letter-spacing:.07em;margin-bottom:.5rem">Catat Nilai</div>
+    <div id="asmt-sum-names" style="display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:.375rem"></div>
+    <div id="asmt-sum-nav"
+      style="display:none;align-items:center;gap:.5rem;margin-bottom:.375rem">
+      <button type="button" id="asmt-sum-prev"
+        style="background:transparent;border:1px solid var(--border-subtle,rgba(255,255,255,.18));
+        color:var(--text-secondary);border-radius:.3rem;padding:.15rem .5rem;cursor:pointer;
+        font-size:var(--fs-caption)">←</button>
+      <span id="asmt-sum-page-lbl"
+        style="font-size:var(--fs-caption);color:var(--text-secondary)"></span>
+      <button type="button" id="asmt-sum-next"
+        style="background:transparent;border:1px solid var(--border-subtle,rgba(255,255,255,.18));
+        color:var(--text-secondary);border-radius:.3rem;padding:.15rem .5rem;cursor:pointer;
+        font-size:var(--fs-caption)">→</button>
+    </div>
+    <div id="asmt-sum-dots"
+      style="display:flex;gap:.35rem;margin-bottom:.625rem;min-height:.625rem"></div>
+    <div id="asmt-sum-input"
+      style="display:none;border:1px solid var(--border-subtle,rgba(255,255,255,.18));
+      border-radius:.4rem;padding:.625rem .75rem"></div>
+  </div>
+  <div id="asmt-diagform-wrap" style="${selJenis !== 'SUMATIF' ? '' : 'display:none'}">
+    <div style="font-size:var(--fs-caption);font-weight:700;color:var(--gold);
+      text-transform:uppercase;letter-spacing:.07em;margin-bottom:.5rem">Catat Nilai</div>
+    <div id="asmt-diag-rows"></div>
+  </div>
   <div>
     ${fieldLbl('Refleksi guru (opsional)')}
     <textarea id="asmt-refleksi" rows="2"
       style="${inputCss('resize:vertical')}"
       placeholder="Catatan refleksi…">${esc(item?.refleksi_guru ?? '')}</textarea>
   </div>
-  <div id="edit-output-wrap" style="${selJenis === 'SUMATIF' ? '' : 'display:none'}">
-    <div style="font-size:var(--fs-caption);font-weight:700;color:var(--gold);
-      text-transform:uppercase;letter-spacing:.07em;margin-bottom:.5rem">Catat Nilai</div>
-    <div id="edit-sum-names" style="display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:.375rem"></div>
-    <div id="edit-sum-nav"
-      style="display:none;align-items:center;gap:.5rem;margin-bottom:.375rem">
-      <button type="button" id="edit-sum-prev"
-        style="background:transparent;border:1px solid var(--border-subtle,rgba(255,255,255,.18));
-        color:var(--text-secondary);border-radius:.3rem;padding:.15rem .5rem;cursor:pointer;
-        font-size:var(--fs-caption)">←</button>
-      <span id="edit-sum-page-lbl"
-        style="font-size:var(--fs-caption);color:var(--text-secondary)"></span>
-      <button type="button" id="edit-sum-next"
-        style="background:transparent;border:1px solid var(--border-subtle,rgba(255,255,255,.18));
-        color:var(--text-secondary);border-radius:.3rem;padding:.15rem .5rem;cursor:pointer;
-        font-size:var(--fs-caption)">→</button>
-    </div>
-    <div id="edit-sum-dots"
-      style="display:flex;gap:.35rem;margin-bottom:.625rem;min-height:.625rem"></div>
-    <div id="edit-sum-input"
-      style="display:none;border:1px solid var(--border-subtle,rgba(255,255,255,.18));
-      border-radius:.4rem;padding:.625rem .75rem"></div>
-  </div>
-  <div id="edit-diagform-wrap" style="${selJenis !== 'SUMATIF' ? '' : 'display:none'}">
-    <div style="font-size:var(--fs-caption);font-weight:700;color:var(--gold);
-      text-transform:uppercase;letter-spacing:.07em;margin-bottom:.5rem">Catat Nilai</div>
-    <div id="edit-diag-rows"></div>
-  </div>
   <div style="display:flex;gap:.75rem;justify-content:flex-end;margin-top:.25rem">
-    <button data-action="close-modal" style="min-height:var(--btn-h);background:transparent;color:var(--gold);border:1.5px solid var(--gold-border);font-size:var(--fs-ui);padding:0 var(--btn-px);border-radius:var(--btn-r);cursor:pointer">Batal</button>
+    <button data-action="close-modal"
+      style="min-height:var(--btn-h);background:transparent;color:var(--gold);
+      border:1.5px solid var(--gold-border);font-size:var(--fs-ui);
+      padding:0 var(--btn-px);border-radius:var(--btn-r);cursor:pointer">Batal</button>
     <button id="btn-asmt-save"
       style="padding:.5rem 1.25rem;background:var(--gold);
       color:var(--text-on-gold,#000);border:none;border-radius:.375rem;
       font-weight:600;cursor:pointer">Simpan</button>
   </div>
-  <div id="asmt-err" style="color:#e74c3c;font-size:var(--fs-caption);display:none"></div>
+  <div id="asmt-err"
+    style="color:#e74c3c;font-size:var(--fs-caption);display:none"></div>
 </div>`;
 
-    // ── Wire Jenis chips ──────────────────────────────────────────────────────
-    const jenisEl = el('pai-modal-box').querySelector('#asmt-jenis-chips');
-    wireChips(jenisEl, false, val => {
-      selJenis = val;
-      renderEditCatatNilai();
+    const bodyInstrWrap = el('asmt-body-instr-wrap');
+    wireBodyInstrumen(bodyInstrWrap);
+
+    // Initial Isi Penilaian render + prefill from saved konten
+    if (selJenis !== 'SUMATIF' && selTeknik && selInstrumen) {
+      renderBodyInstrumen(selTeknik, selInstrumen, bodyInstrWrap);
+      if (item?.konten) prefillBodyInstrumen(bodyInstrWrap, item.konten, selTeknik, selInstrumen);
+    }
+
+    // ── Wire Jenis dropdown ──────────────────────────────────────────────────
+    el('asmt-jenis-sel').addEventListener('change', function () {
+      selJenis = this.value;
+      const outputWrap = el('asmt-output-wrap');
+      const diagWrap   = el('asmt-diagform-wrap');
+      if (selJenis === 'SUMATIF') {
+        if (outputWrap) outputWrap.style.display = '';
+        if (diagWrap)   diagWrap.style.display   = 'none';
+        bodyInstrWrap.innerHTML = '';
+        renderSumPage();
+      } else {
+        if (outputWrap) outputWrap.style.display = 'none';
+        if (diagWrap)   diagWrap.style.display   = '';
+        renderBodyInstrumen(selTeknik, selInstrumen, bodyInstrWrap);
+        renderDiagForm();
+      }
     });
 
-    // ── Wire Teknik dropdown ──────────────────────────────────────────────────
+    // ── Wire Teknik cascade → instrumen → body instrumen ─────────────────────
     el('asmt-teknik-sel').addEventListener('change', function () {
-      selTeknik = this.value;
+      selTeknik    = this.value;
+      selInstrumen = '';
       const opts     = selTeknik ? (INSTRUMEN_MAP[selTeknik] || []) : [];
       const instrRow = el('asmt-instr-row');
       const instrSel = el('asmt-instr-sel');
@@ -849,70 +885,70 @@
         instrSel.innerHTML = `<option value="">— Pilih —</option>` +
           opts.map(i => `<option value="${i}">${i}</option>`).join('');
         instrRow.style.display = '';
+        instrSel.onchange = function () {
+          selInstrumen = this.value;
+          if (selJenis !== 'SUMATIF')
+            renderBodyInstrumen(selTeknik, selInstrumen, bodyInstrWrap);
+        };
       } else {
         instrRow.style.display = 'none';
       }
       if (selJenis === 'SUMATIF') {
-        flushEditSumActive();
-        _editSumActiveSid = null;
-        renderEditSumPage();
+        bodyInstrWrap.innerHTML = '';
+        flushSumActive();
+        _sumActiveSid = null;
+        renderSumPage();
+      } else {
+        renderBodyInstrumen(selTeknik, '', bodyInstrWrap);
       }
     });
 
-    // ── Wire TP change → refresh KKTP indicator in open sum input ─────────────
-    el('asmt-tp-sel').addEventListener('change', () => { renderEditSumInput(); });
+    // ── SUMATIF pagination state ─────────────────────────────────────────────
+    const PAGE_SIZE   = 5;
+    let _sumPage      = 0;
+    let _sumActiveSid = null;
+    const _sumNilai   = {};
 
-    // ── SUMATIF pagination state ──────────────────────────────────────────────
-    const EDIT_PAGE_SIZE = 5;
-    let _editSumPage      = 0;
-    let _editSumActiveSid = null;
-
-    // Initialize _editSumNilai from resMap; derive predikat from saved nilai + current KKTP
-    const _editSumNilai = {};
+    // Initialize _sumNilai from resMap
     {
-      const isTesInit  = !selTeknik || selTeknik === 'TES';
-      const kktpInit   = item?.tp_kktp_id
+      const isTesInit = !selTeknik || selTeknik === 'TES';
+      const kktpInit  = item?.tp_kktp_id
         ? _tpList.filter(t => t.parent_id === item.tp_kktp_id && t.tipe === 'KKTP')
         : [];
-      const kktp0Init  = kktpInit[0];
+      const kktp0Init = kktpInit[0];
       for (const s of _roster) {
         const r = resMap[s.id];
         if (!r) continue;
         if (isTesInit) {
-          _editSumNilai[s.id] = { nilai: r.nilai ?? null, tl: r.tindak_lanjut ?? null };
+          _sumNilai[s.id] = { nilai: r.nilai ?? null, tl: r.tindak_lanjut ?? null };
         } else {
           const predikat = (r.nilai != null && kktp0Init)
             ? getPredikat(r.nilai, getRentang(kktp0Init))
             : null;
-          _editSumNilai[s.id] = { predikat, nilai: r.nilai ?? null, tl: r.tindak_lanjut ?? null };
+          _sumNilai[s.id] = { predikat, nilai: r.nilai ?? null, tl: r.tindak_lanjut ?? null };
         }
       }
     }
 
-    function getEditKktpItems() {
-      const tpId = el('asmt-tp-sel')?.value || null;
-      return tpId ? _tpList.filter(t => t.parent_id === tpId && t.tipe === 'KKTP') : [];
-    }
-
-    function flushEditSumActive() {
-      if (!_editSumActiveSid) return;
-      const tlEl  = el('edit-sum-tl');
+    function flushSumActive() {
+      if (!_sumActiveSid) return;
+      const tlEl  = el('asmt-sum-tl');
       const isTes = !selTeknik || selTeknik === 'TES';
       if (isTes) {
-        const nilaiEl = el('edit-sum-nilai');
+        const nilaiEl = el('asmt-sum-nilai');
         const raw     = nilaiEl?.value;
         const n       = raw !== '' && raw != null ? parseFloat(raw) : null;
-        _editSumNilai[_editSumActiveSid] = {
+        _sumNilai[_sumActiveSid] = {
           nilai: isNaN(n) ? null : n,
           tl:    tlEl ? chipVal(tlEl) : null,
         };
       } else {
-        const predChipsEl = el('edit-sum-pred-chips');
+        const predChipsEl = el('asmt-sum-pred-chips');
         const selPred     = predChipsEl ? chipVal(predChipsEl) : null;
-        const kktp        = getEditKktpItems()[0];
+        const kktp        = getKktpItems()[0];
         const rent        = kktp ? getRentang(kktp) : null;
         const autoN       = selPred && rent ? nilaiTengah(selPred, rent) : null;
-        _editSumNilai[_editSumActiveSid] = {
+        _sumNilai[_sumActiveSid] = {
           predikat: selPred,
           nilai:    autoN,
           tl:       tlEl ? chipVal(tlEl) : null,
@@ -920,12 +956,12 @@
       }
     }
 
-    function renderEditSumInput() {
-      const inputEl = el('edit-sum-input');
-      if (!_editSumActiveSid) { if (inputEl) inputEl.style.display = 'none'; return; }
-      const stu   = _roster.find(r => r.id === _editSumActiveSid);
-      const vals  = _editSumNilai[_editSumActiveSid] ?? {};
-      const kktp  = getEditKktpItems()[0];
+    function renderSumInput() {
+      const inputEl = el('asmt-sum-input');
+      if (!_sumActiveSid) { if (inputEl) inputEl.style.display = 'none'; return; }
+      const stu   = _roster.find(r => r.id === _sumActiveSid);
+      const vals  = _sumNilai[_sumActiveSid] ?? {};
+      const kktp  = getKktpItems()[0];
       const rent  = kktp ? getRentang(kktp) : null;
       const isTes = !selTeknik || selTeknik === 'TES';
 
@@ -938,11 +974,11 @@
         const kktpStr   = kktp && vals.nilai != null ? kktpStatText(vals.nilai, rent) : '';
         valorHtml = `
 <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.375rem">
-  <input type="number" id="edit-sum-nilai" min="0" max="100" step="0.5"
+  <input type="number" id="asmt-sum-nilai" min="0" max="100" step="0.5"
     placeholder="Nilai 0–100"
     value="${vals.nilai != null ? String(vals.nilai) : ''}"
     style="${inputCss('width:7rem;font-size:var(--fs-caption)')}">
-  <span id="edit-sum-kktp"
+  <span id="asmt-sum-kktp"
     style="font-size:var(--fs-caption);color:${kktpColor}">${kktpStr}</span>
 </div>`;
       } else {
@@ -955,15 +991,15 @@
         valorHtml = `
 <div style="margin-bottom:.375rem">
   <div style="font-size:var(--fs-caption);color:var(--text-secondary);margin-bottom:.25rem">Predikat:</div>
-  <div id="edit-sum-pred-chips" style="display:flex;flex-wrap:wrap;gap:.35rem">
+  <div id="asmt-sum-pred-chips" style="display:flex;flex-wrap:wrap;gap:.35rem">
     ${PREDIKAT_ORDER.map(p => chipHtml(p, p, selPred === p)).join('')}
   </div>
   <div style="margin-top:.375rem;display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
     <span style="font-size:var(--fs-caption);color:var(--text-secondary)">Nilai:</span>
-    <span id="edit-sum-pred-nilai"
+    <span id="asmt-sum-pred-nilai"
       style="font-size:var(--fs-ui);font-weight:600;min-width:2rem">
       ${autoN != null ? autoN : '—'}</span>
-    <span id="edit-sum-kktp"
+    <span id="asmt-sum-kktp"
       style="font-size:var(--fs-caption);color:${kktpColor}">${kktpStr}</span>
   </div>
 </div>`;
@@ -973,7 +1009,7 @@
 <div>
   <div style="font-size:var(--fs-caption);color:var(--text-secondary);margin-bottom:.25rem">
     Tindak lanjut:</div>
-  <div id="edit-sum-tl" style="display:flex;flex-wrap:wrap;gap:.35rem">
+  <div id="asmt-sum-tl" style="display:flex;flex-wrap:wrap;gap:.35rem">
     ${['Pengayaan','Penguatan','Pendampingan'].map(tl => chipHtml(tl, tl, vals.tl === tl)).join('')}
   </div>
 </div>`;
@@ -982,9 +1018,9 @@
       inputEl.style.display = '';
 
       if (isTes) {
-        el('edit-sum-nilai')?.addEventListener('input', function () {
-          const kktp2  = getEditKktpItems()[0];
-          const kktpEl = el('edit-sum-kktp');
+        el('asmt-sum-nilai')?.addEventListener('input', function () {
+          const kktp2  = getKktpItems()[0];
+          const kktpEl = el('asmt-sum-kktp');
           if (!kktpEl) return;
           const n     = this.value === '' ? null : parseFloat(this.value);
           const rent2 = kktp2 ? getRentang(kktp2) : null;
@@ -992,14 +1028,14 @@
           kktpEl.style.color = kktp2 ? kktpStatColor(n, rent2) : 'var(--text-secondary)';
         });
       } else {
-        const predChipsEl = el('edit-sum-pred-chips');
+        const predChipsEl = el('asmt-sum-pred-chips');
         if (predChipsEl) {
           wireChips(predChipsEl, false, selVal => {
-            const kktp2   = getEditKktpItems()[0];
+            const kktp2   = getKktpItems()[0];
             const rent2   = kktp2 ? getRentang(kktp2) : null;
             const autoN2  = rent2 ? nilaiTengah(selVal, rent2) : null;
-            const nilaiEl = el('edit-sum-pred-nilai');
-            const kktpEl  = el('edit-sum-kktp');
+            const nilaiEl = el('asmt-sum-pred-nilai');
+            const kktpEl  = el('asmt-sum-kktp');
             if (nilaiEl) nilaiEl.textContent = autoN2 != null ? String(autoN2) : '—';
             if (kktpEl) {
               kktpEl.textContent = autoN2 != null && kktp2 ? kktpStatText(autoN2, rent2) : '';
@@ -1009,22 +1045,22 @@
         }
       }
 
-      wireChips(el('edit-sum-tl'), false);
+      wireChips(el('asmt-sum-tl'), false);
     }
 
-    function renderEditSumPage() {
-      const names   = el('edit-sum-names');
-      const nav     = el('edit-sum-nav');
-      const pageLbl = el('edit-sum-page-lbl');
-      const dots    = el('edit-sum-dots');
+    function renderSumPage() {
+      const names   = el('asmt-sum-names');
+      const nav     = el('asmt-sum-nav');
+      const pageLbl = el('asmt-sum-page-lbl');
+      const dots    = el('asmt-sum-dots');
       if (!names) return;
       const total = _roster.length;
-      const pages = Math.ceil(total / EDIT_PAGE_SIZE) || 1;
-      _editSumPage = Math.max(0, Math.min(_editSumPage, pages - 1));
-      const slice  = _roster.slice(_editSumPage * EDIT_PAGE_SIZE, (_editSumPage + 1) * EDIT_PAGE_SIZE);
+      const pages = Math.ceil(total / PAGE_SIZE) || 1;
+      _sumPage    = Math.max(0, Math.min(_sumPage, pages - 1));
+      const slice = _roster.slice(_sumPage * PAGE_SIZE, (_sumPage + 1) * PAGE_SIZE);
       names.innerHTML = slice.map(s => {
-        const isAct  = s.id === _editSumActiveSid;
-        const hasVal = _editSumNilai[s.id]?.nilai != null || _editSumNilai[s.id]?.predikat != null;
+        const isAct  = s.id === _sumActiveSid;
+        const hasVal = _sumNilai[s.id]?.nilai != null || _sumNilai[s.id]?.predikat != null;
         return `<button type="button" data-sum-sid="${esc(s.id)}"
           style="padding:.3rem .7rem;border-radius:1rem;font-size:var(--fs-caption);cursor:pointer;
           border:1.5px solid ${isAct ? 'var(--gold)' : hasVal ? 'rgba(255,255,255,.4)' : 'var(--border-subtle,rgba(255,255,255,.18))'};
@@ -1034,18 +1070,18 @@
       }).join('');
       names.querySelectorAll('[data-sum-sid]').forEach(btn => {
         btn.addEventListener('click', () => {
-          flushEditSumActive();
-          _editSumActiveSid = btn.dataset.sumSid;
-          renderEditSumPage();
+          flushSumActive();
+          _sumActiveSid = btn.dataset.sumSid;
+          renderSumPage();
         });
       });
       if (pages > 1) {
         nav.style.display = 'flex';
-        if (pageLbl) pageLbl.textContent = `halaman ${_editSumPage + 1}/${pages}`;
-        const prevBtn = el('edit-sum-prev');
-        const nextBtn = el('edit-sum-next');
-        if (prevBtn) prevBtn.disabled = _editSumPage === 0;
-        if (nextBtn) nextBtn.disabled = _editSumPage === pages - 1;
+        if (pageLbl) pageLbl.textContent = `halaman ${_sumPage + 1}/${pages}`;
+        const prevBtn = el('asmt-sum-prev');
+        const nextBtn = el('asmt-sum-next');
+        if (prevBtn) prevBtn.disabled = _sumPage === 0;
+        if (nextBtn) nextBtn.disabled = _sumPage === pages - 1;
       } else {
         nav.style.display = 'none';
       }
@@ -1053,18 +1089,18 @@
         dots.innerHTML = pages > 1
           ? Array.from({length: pages}, (_, i) =>
               `<span style="width:.5rem;height:.5rem;border-radius:50%;display:inline-block;
-              background:${i === _editSumPage ? 'var(--gold)' : 'var(--border-subtle,rgba(255,255,255,.3))'}"></span>`
+              background:${i === _sumPage ? 'var(--gold)' : 'var(--border-subtle,rgba(255,255,255,.3))'}"></span>`
             ).join('')
           : '';
       }
-      if (_editSumActiveSid && !slice.some(s => s.id === _editSumActiveSid)) _editSumActiveSid = null;
-      renderEditSumInput();
+      if (_sumActiveSid && !slice.some(s => s.id === _sumActiveSid)) _sumActiveSid = null;
+      renderSumInput();
     }
 
-    function renderEditDiagForm() {
-      const wrap = el('edit-diag-rows');
+    function renderDiagForm() {
+      const wrap = el('asmt-diag-rows');
       if (!wrap) return;
-      const kktpItems = getEditKktpItems();
+      const kktpItems = getKktpItems();
       wrap.innerHTML = _roster.map(s =>
         studentRowHtml(s, resMap[s.id] ?? {}, selJenis, kktpItems)
       ).join('');
@@ -1076,49 +1112,50 @@
       });
     }
 
-    function renderEditCatatNilai() {
-      const sumWrap  = el('edit-output-wrap');
-      const diagWrap = el('edit-diagform-wrap');
-      if (selJenis === 'SUMATIF') {
-        if (sumWrap)  sumWrap.style.display  = '';
-        if (diagWrap) diagWrap.style.display = 'none';
-        renderEditSumPage();
-      } else {
-        if (sumWrap)  sumWrap.style.display  = 'none';
-        if (diagWrap) diagWrap.style.display = '';
-        renderEditDiagForm();
-      }
+    // ── Helpers ──────────────────────────────────────────────────────────────
+    function getKktpItems() {
+      const tpId = el('asmt-tp-sel')?.value || null;
+      return tpId ? _tpList.filter(t => t.parent_id === tpId && t.tipe === 'KKTP') : [];
     }
 
+    // ── Wire TP change ────────────────────────────────────────────────────────
+    el('asmt-tp-sel').addEventListener('change', () => { renderSumInput(); });
+
     // ── Wire pagination buttons ───────────────────────────────────────────────
-    el('edit-sum-prev')?.addEventListener('click', () => {
-      flushEditSumActive(); _editSumPage--; renderEditSumPage();
+    el('asmt-sum-prev')?.addEventListener('click', () => {
+      flushSumActive(); _sumPage--; renderSumPage();
     });
-    el('edit-sum-next')?.addEventListener('click', () => {
-      flushEditSumActive(); _editSumPage++; renderEditSumPage();
+    el('asmt-sum-next')?.addEventListener('click', () => {
+      flushSumActive(); _sumPage++; renderSumPage();
     });
 
-    // ── Initial render Catat Nilai ────────────────────────────────────────────
-    renderEditCatatNilai();
+    // ── Initial render ────────────────────────────────────────────────────────
+    if (selJenis === 'SUMATIF') renderSumPage();
+    else renderDiagForm();
 
     // ── Save ─────────────────────────────────────────────────────────────────
     el('btn-asmt-save').addEventListener('click', async () => {
+      const errEl     = el('asmt-err');
+      const instrBody = collectBodyInstrumen(bodyInstrWrap, selTeknik, selInstrumen);
       const payload = {
         tp_kktp_id:    el('asmt-tp-sel').value || null,
         jenis:         selJenis,
         teknik:        el('asmt-teknik-sel').value || null,
         instrumen:     el('asmt-instr-sel')?.value || null,
+        tujuan:        el('asmt-tujuan').value.trim() || null,
+        konten:        instrBody || null,
         refleksi_guru: el('asmt-refleksi').value.trim() || null,
       };
       el('btn-asmt-save').disabled = true;
+      errEl.style.display = 'none';
       try {
         await SipApi.updateAssessment(editId, payload);
         _asmts = _asmts.map(a => a.id === editId ? { ...a, ...payload } : a);
 
-        const kktpItems = getEditKktpItems();
+        const kktpItems = getKktpItems();
         if (selJenis === 'SUMATIF') {
-          flushEditSumActive();
-          for (const [sid, vals] of Object.entries(_editSumNilai)) {
+          flushSumActive();
+          for (const [sid, vals] of Object.entries(_sumNilai)) {
             if (vals.nilai == null) continue;
             const kktp       = kktpItems[0];
             const resPayload = { nilai: vals.nilai, tindak_lanjut: vals.tl || null };
@@ -1147,8 +1184,8 @@
         renderAsmtList();
         toast('Penilaian berhasil diperbarui');
       } catch (err) {
-        el('asmt-err').textContent = err.message || 'Gagal menyimpan';
-        el('asmt-err').style.display = '';
+        errEl.textContent = err.message || 'Gagal menyimpan';
+        errEl.style.display = '';
         el('btn-asmt-save').disabled = false;
       }
     });
