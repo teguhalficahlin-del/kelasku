@@ -368,7 +368,7 @@
   <button type="button" data-action="edit-tp" data-id="${k.id}"
     style="background:transparent;border:none;cursor:pointer;font-size:1rem;padding:.2rem .35rem;border-radius:.25rem;line-height:1;opacity:.7" title="Edit">✏️</button>
   <button type="button" data-action="del-tp"  data-id="${k.id}"
-    style="background:transparent;border:none;cursor:pointer;font-size:1rem;padding:.2rem .35rem;border-radius:.25rem;line-height:1;opacity:.7" title="Hapus">🗑</button>
+    style="background:rgba(231,76,60,.13);border:none;cursor:pointer;font-size:1rem;padding:.35rem .45rem;border-radius:.25rem;line-height:1;color:#e74c3c;min-width:2.25rem" title="Hapus">🗑</button>
 </div>`).join('');
 
     return `
@@ -387,7 +387,7 @@
     <button type="button" data-action="edit-tp" data-id="${tp.id}"
       style="background:transparent;border:none;cursor:pointer;font-size:1rem;padding:.2rem .35rem;border-radius:.25rem;line-height:1;opacity:.7" title="Edit">✏️</button>
     <button type="button" data-action="del-tp"  data-id="${tp.id}"
-      style="background:transparent;border:none;cursor:pointer;font-size:1rem;padding:.2rem .35rem;border-radius:.25rem;line-height:1;opacity:.7" title="Hapus">🗑</button>
+      style="background:rgba(231,76,60,.13);border:none;cursor:pointer;font-size:1rem;padding:.35rem .45rem;border-radius:.25rem;line-height:1;color:#e74c3c;min-width:2.25rem" title="Hapus">🗑</button>
   </div>
   ${tp.konten ? `<div style="padding:.375rem .75rem;font-size:var(--fs-caption);
       color:var(--text-secondary);
