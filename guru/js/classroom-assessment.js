@@ -19,7 +19,8 @@
   // ── Rekap section state ────────────────────────────────────────────────────
   let _rcSemester   = '1';
   let _rcTahun      = null;   // diinit ke DEFAULT_YEAR saat pertama renderRecap
-  let _rcMapel      = null;
+  let _rcMapel         = null;
+  let _rcMapelUserSet  = false; // true setelah user mengubah mapel di Section 3
   let _rcTeknik     = null;
   let _rcInstrumen  = null;
   let _rcPage1      = 0;      // DAFTAR NILAI pagination (5 per halaman)
@@ -2494,7 +2495,7 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
 
   function _renderRecapShell(c) {
     const isWali = _roleGuru === 'WALI_KELAS_SD';
-    if (isWali && !_rcMapel) _rcMapel = MAPEL_SD[0];
+    if (isWali && !_rcMapelUserSet) _rcMapel = _selMapel || MAPEL_SD[0];
 
     const allSumatifs = _asmts.filter(a => a.jenis === 'SUMATIF');
     const teknikSet   = [...new Set(allSumatifs.map(a => a.teknik).filter(Boolean))];
@@ -2554,7 +2555,7 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
       _rcTahun = this.value.trim() || DEFAULT_YEAR; _rcPage1 = _rcPage2 = 0; _rcHasil = null; _loadRecapContent();
     });
     c.querySelector('#rc-mapel')?.addEventListener('change', function () {
-      _rcMapel = this.value; _rcPage1 = _rcPage2 = 0; _rcHasil = null; _loadRecapContent();
+      _rcMapel = this.value; _rcMapelUserSet = true; _rcPage1 = _rcPage2 = 0; _rcHasil = null; _loadRecapContent();
     });
     c.querySelector('#rc-teknik')?.addEventListener('change', function () {
       _rcTeknik = this.value || null; _rcInstrumen = null; _rcPage1 = _rcPage2 = 0; _rcHasil = null;
