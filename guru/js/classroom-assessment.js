@@ -2806,19 +2806,25 @@ ${metodeHtml}${hasilHtml}`;
     cc.querySelector('#rc-btn-simpan')?.addEventListener('click', () => _simpanRecap(sumatifs, nilaiGrid));
   }
 
+  // Fungsi bersama untuk hitung nilai satu siswa — dipakai tampil DAN simpan agar identik.
+  // indices: array indeks sumatifs yang relevan; bobots: array bobot global (_rcBobots).
+  function _hitungNilaiSiswa(sid, indices, nilaiGrid, metode, bobots) {
+    if (metode === 'rata') {
+      const vals = indices.map(i => nilaiGrid[i][sid] ?? 0);
+      return vals.reduce((a, b) => a + b, 0) / vals.length;
+    } else if (metode === 'bobot') {
+      return indices.reduce((sum, i) =>
+        sum + (nilaiGrid[i][sid] ?? 0) * (bobots[i] || 0) / 100, 0);
+    } else {
+      return Math.max(...indices.map(i => nilaiGrid[i][sid] ?? 0));
+    }
+  }
+
   function _hitungNilaiAkhir(sumatifs, nilaiGrid, kktp) {
+    const indices = sumatifs.map((_, i) => i);
     return _roster.map(s => {
-      let nilaiAkhir;
-      if (_rcMetode === 'rata') {
-        const vals = sumatifs.map((_, i) => nilaiGrid[i][s.id] ?? 0);
-        nilaiAkhir = vals.reduce((a, b) => a + b, 0) / vals.length;
-      } else if (_rcMetode === 'bobot') {
-        nilaiAkhir = sumatifs.reduce((sum, _, i) =>
-          sum + (nilaiGrid[i][s.id] ?? 0) * (_rcBobots[i] || 0) / 100, 0);
-      } else {
-        nilaiAkhir = Math.max(...sumatifs.map((_, i) => nilaiGrid[i][s.id] ?? 0));
-      }
-      const predikat = kktp ? getPredikat(nilaiAkhir, getRentang(kktp)) : null;
+      const nilaiAkhir = _hitungNilaiSiswa(s.id, indices, nilaiGrid, _rcMetode, _rcBobots);
+      const predikat   = kktp ? getPredikat(nilaiAkhir, getRentang(kktp)) : null;
       return { id: s.id, nama: s.nama, nilaiAkhir, predikat };
     });
   }
@@ -2841,22 +2847,8 @@ ${metodeHtml}${hasilHtml}`;
         const kktp = _tpList.find(t => t.parent_id === tpId && t.tipe === 'KKTP');
 
         for (const s of _roster) {
-          let nilaiAkhir;
-          if (_rcMetode === 'rata') {
-            const vals = indices.map(i => nilaiGrid[i][s.id] ?? 0);
-            nilaiAkhir = vals.reduce((a, b) => a + b, 0) / vals.length;
-          } else if (_rcMetode === 'bobot') {
-            const totalBobotSub = indices.reduce((sum, i) => sum + (_rcBobots[i] || 0), 0);
-            if (totalBobotSub === 0) {
-              const vals = indices.map(i => nilaiGrid[i][s.id] ?? 0);
-              nilaiAkhir = vals.reduce((a, b) => a + b, 0) / vals.length;
-            } else {
-              nilaiAkhir = indices.reduce((sum, i) =>
-                sum + (nilaiGrid[i][s.id] ?? 0) * (_rcBobots[i] || 0) / totalBobotSub, 0);
-            }
-          } else {
-            nilaiAkhir = Math.max(...indices.map(i => nilaiGrid[i][s.id] ?? 0));
-          }
+          // Gunakan fungsi bersama agar nilai yang disimpan identik dengan yang ditampilkan
+          const nilaiAkhir = _hitungNilaiSiswa(s.id, indices, nilaiGrid, _rcMetode, _rcBobots);
           const predikat      = kktp ? getPredikat(nilaiAkhir, getRentang(kktp)) : null;
           const kktp_tercapai = predikat ? (predikat === 'BSH' || predikat === 'SB') : null;
           await SipApi.upsertGradeRecap(
