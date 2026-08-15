@@ -1492,9 +1492,6 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
       ].join('');
     }
 
-    const jenisChips = ['DIAGNOSTIK', 'FORMATIF', 'SUMATIF']
-      .map(j => chipHtml(j, JENIS_LBL[j], selJenis === j)).join('');
-
     const teknikOptHtml = ['', 'OBSERVASI', 'TES', 'PENUGASAN', 'PROYEK', 'PORTOFOLIO', 'UNJUK_KERJA']
       .map(t => `<option value="${t}">${t ? teknikLbl(t) : '— Teknik (opsional) —'}</option>`)
       .join('');
@@ -1530,9 +1527,9 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
     const mapelChipsHtml = isWali
       ? `<div>
           ${fieldLbl('Mata Pelajaran')}
-          <div id="asmt-mapel-chips" style="display:flex;flex-wrap:wrap;gap:.5rem">
-            ${MAPEL_SD.map(m => chipHtml(m, m, selMapel === m)).join('')}
-          </div>
+          <select id="asmt-mapel-sel" style="${inputCss()}">
+            ${MAPEL_SD.map(m => `<option value="${esc(m)}"${m === selMapel ? ' selected' : ''}>${esc(m)}</option>`).join('')}
+          </select>
         </div>`
       : '';
 
@@ -1557,7 +1554,9 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
   </div>
   <div>
     ${fieldLbl('Jenis penilaian')}
-    <div id="asmt-jenis-chips" style="display:flex;flex-wrap:wrap;gap:.5rem">${jenisChips}</div>
+    <select id="asmt-jenis-sel" style="${inputCss()}">
+      ${['DIAGNOSTIK', 'FORMATIF', 'SUMATIF'].map(j => `<option value="${j}"${selJenis === j ? ' selected' : ''}>${JENIS_LBL[j]}</option>`).join('')}
+    </select>
   </div>
   <div>
     ${fieldLbl('Teknik')}
@@ -1617,19 +1616,17 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
     const bodyInstrWrap = el('asmt-body-instr-wrap');
     wireBodyInstrumen(bodyInstrWrap);
 
-    // ── Wire Mapel chips (WALI_KELAS_SD only) → cascade filter TP dropdown ──
+    // ── Wire Mapel dropdown (WALI_KELAS_SD only) → cascade filter TP dropdown ──
     if (isWali) {
-      const mapelChipsEl = el('pai-modal-box').querySelector('#asmt-mapel-chips');
-      wireChips(mapelChipsEl, false, val => {
-        selMapel = val;
+      el('asmt-mapel-sel')?.addEventListener('change', function () {
+        selMapel = this.value;
         el('asmt-tp-sel').innerHTML = buildTpOptHtml();
       });
     }
 
-    // ── Wire Jenis chips ─────────────────────────────────────────────────
-    const jenisEl = el('pai-modal-box').querySelector('#asmt-jenis-chips');
-    wireChips(jenisEl, false, val => {
-      selJenis = val;
+    // ── Wire Jenis dropdown ──────────────────────────────────────────────
+    el('asmt-jenis-sel').addEventListener('change', function () {
+      selJenis = this.value;
       refreshPerSiswa(getSelSids());
     });
 
