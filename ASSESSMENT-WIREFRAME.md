@@ -1,5 +1,5 @@
 # ASSESSMENT-WIREFRAME.md
-# Panduan 42 Pola Wireframe Tab Penilaian — SIP Mandiri
+# Panduan 57 Pola Wireframe Tab Penilaian — SIP Mandiri
 
 > INSTRUKSI UNTUK CLAUDE CODE:
 > 1. Baca file ini SEBELUM menyentuh classroom-assessment.js
@@ -21,7 +21,7 @@
 
 ---
 
-## 2. Komponen Standar (berlaku semua 42 pola)
+## 2. Komponen Standar (berlaku semua 57 pola)
 
 ### HEADER MODAL (selalu tampil di atas body instrumen)
 
@@ -85,6 +85,7 @@ Tindak lanjut: [tuliskan tindak lanjut...]
 | Proyek | Rubrik / Checklist |
 | Portofolio | Rubrik / Checklist |
 | Unjuk Kerja | Rubrik / Checklist |
+| Tes Lisan | Wawancara / Monolog / Dialog |
 
 ---
 
@@ -238,7 +239,7 @@ Skor akhir dihitung otomatis
 
 ---
 
-## 11. 42 Pola Lengkap
+## 11. 57 Pola Lengkap
 
 > Setiap pola menampilkan: Header (terisi) → Body instrumen → Output per siswa → Footer
 > Header dan Footer selalu sama persis — lihat §2
@@ -1969,4 +1970,597 @@ Refleksi guru
 
 ---
 
-*ASSESSMENT-WIREFRAME.md — 42 pola lengkap, tidak boleh diringkas saat implementasi*
+---
+
+### 43. Diagnostik × Tes Lisan × Wawancara
+
+```
+──────────────── HEADER ────────────────
+Tujuan penilaian
+┌─────────────────────────────────────┐
+│ Apa yang ingin diketahui/dipantau?  │
+└─────────────────────────────────────┘
+Jenis       [Diagnostik ▼]
+Teknik      [Tes Lisan ▼]
+Instrumen   [Wawancara ▼]
+
+──────────────── BODY ──────────────────
+Topik wawancara: [tuliskan opsional...]
+
+Menjawab dengan baik
+  Siswa: [pilih ▼] [✓ nama siswa]
+
+Menjawab sebagian
+  Siswa: [pilih ▼] [✓ nama siswa]
+
+Belum bisa menjawab
+  Siswa: [pilih ▼] [✓ nama siswa]
+
+──────────────── OUTPUT PER SISWA ──────
+Status: [PAHAM / BELUM_PAHAM / PERLU_PERHATIAN ▼]
+Grup otomatis: A (Paham) / B (Belum Paham) / C (Perlu Perhatian)
+
+──────────────── FOOTER ────────────────
+Refleksi guru
+┌─────────────────────────────────────┐
+│ Catatan refleksi...                 │
+└─────────────────────────────────────┘
+[Batal]                  [Simpan Penilaian]
+```
+
+---
+
+### 44. Diagnostik × Tes Lisan × Monolog
+
+```
+──────────────── HEADER ────────────────
+Tujuan penilaian
+┌─────────────────────────────────────┐
+│ Apa yang ingin diketahui/dipantau?  │
+└─────────────────────────────────────┘
+Jenis       [Diagnostik ▼]
+Teknik      [Tes Lisan ▼]
+Instrumen   [Monolog ▼]
+
+──────────────── BODY ──────────────────
+Topik monolog: [tuliskan opsional...]
+
+├── Sangat Berkembang
+│   Deskripsi: [tuliskan deskriptor...]
+│   Siswa: [pilih ▼] [✓ nama siswa]
+├── Berkembang Sesuai Harapan
+│   Deskripsi: [tuliskan deskriptor...]
+│   Siswa: [pilih ▼] [✓ nama siswa]
+├── Mulai Berkembang
+│   Deskripsi: [tuliskan deskriptor...]
+│   Siswa: [pilih ▼] [✓ nama siswa]
+└── Belum Berkembang
+    Deskripsi: [tuliskan deskriptor...]
+    Siswa: [pilih ▼] [✓ nama siswa]
+
+──────────────── OUTPUT PER SISWA ──────
+Status: [PAHAM / BELUM_PAHAM / PERLU_PERHATIAN ▼]
+Grup otomatis: A (Paham) / B (Belum Paham) / C (Perlu Perhatian)
+
+──────────────── FOOTER ────────────────
+Refleksi guru
+┌─────────────────────────────────────┐
+│ Catatan refleksi...                 │
+└─────────────────────────────────────┘
+[Batal]                  [Simpan Penilaian]
+```
+
+---
+
+### 45. Diagnostik × Tes Lisan × Dialog
+
+```
+──────────────── HEADER ────────────────
+Tujuan penilaian
+┌─────────────────────────────────────┐
+│ Apa yang ingin diketahui/dipantau?  │
+└─────────────────────────────────────┘
+Jenis       [Diagnostik ▼]
+Teknik      [Tes Lisan ▼]
+Instrumen   [Dialog ▼]
+
+──────────────── BODY ──────────────────
+Topik dialog: [tuliskan opsional...]
+
+├── Sangat Berkembang
+│   Deskripsi: [tuliskan deskriptor...]
+│   Siswa: [pilih ▼] [✓ nama siswa]
+├── Berkembang Sesuai Harapan
+│   Deskripsi: [tuliskan deskriptor...]
+│   Siswa: [pilih ▼] [✓ nama siswa]
+├── Mulai Berkembang
+│   Deskripsi: [tuliskan deskriptor...]
+│   Siswa: [pilih ▼] [✓ nama siswa]
+└── Belum Berkembang
+    Deskripsi: [tuliskan deskriptor...]
+    Siswa: [pilih ▼] [✓ nama siswa]
+
+──────────────── OUTPUT PER SISWA ──────
+Status: [PAHAM / BELUM_PAHAM / PERLU_PERHATIAN ▼]
+Grup otomatis: A (Paham) / B (Belum Paham) / C (Perlu Perhatian)
+
+──────────────── FOOTER ────────────────
+Refleksi guru
+┌─────────────────────────────────────┐
+│ Catatan refleksi...                 │
+└─────────────────────────────────────┘
+[Batal]                  [Simpan Penilaian]
+```
+
+---
+
+### 46. Formatif × Tes Lisan × Wawancara
+
+```
+──────────────── HEADER ────────────────
+Tujuan penilaian
+┌─────────────────────────────────────┐
+│ Apa yang ingin diketahui/dipantau?  │
+└─────────────────────────────────────┘
+Jenis       [Formatif ▼]
+Teknik      [Tes Lisan ▼]
+Instrumen   [Wawancara ▼]
+
+──────────────── BODY ──────────────────
+Topik wawancara: [tuliskan opsional...]
+
+Menjawab dengan baik
+  Siswa: [pilih ▼] [✓ nama siswa]
+
+Menjawab sebagian
+  Siswa: [pilih ▼] [✓ nama siswa]
+
+Belum bisa menjawab
+  Siswa: [pilih ▼] [✓ nama siswa]
+
+──────────────── OUTPUT PER SISWA ──────
+Status: [TERCAPAI / BERKEMBANG / PERLU_DUKUNGAN ▼]
+Umpan balik: [tuliskan umpan balik...]
+Tindak lanjut: [tuliskan tindak lanjut...]
+
+──────────────── FOOTER ────────────────
+Refleksi guru
+┌─────────────────────────────────────┐
+│ Catatan refleksi...                 │
+└─────────────────────────────────────┘
+[Batal]                  [Simpan Penilaian]
+```
+
+---
+
+### 47. Formatif × Tes Lisan × Monolog
+
+```
+──────────────── HEADER ────────────────
+Tujuan penilaian
+┌─────────────────────────────────────┐
+│ Apa yang ingin diketahui/dipantau?  │
+└─────────────────────────────────────┘
+Jenis       [Formatif ▼]
+Teknik      [Tes Lisan ▼]
+Instrumen   [Monolog ▼]
+
+──────────────── BODY ──────────────────
+Topik monolog: [tuliskan opsional...]
+
+├── Sangat Berkembang
+│   Deskripsi: [tuliskan deskriptor...]
+│   Siswa: [pilih ▼] [✓ nama siswa]
+├── Berkembang Sesuai Harapan
+│   Deskripsi: [tuliskan deskriptor...]
+│   Siswa: [pilih ▼] [✓ nama siswa]
+├── Mulai Berkembang
+│   Deskripsi: [tuliskan deskriptor...]
+│   Siswa: [pilih ▼] [✓ nama siswa]
+└── Belum Berkembang
+    Deskripsi: [tuliskan deskriptor...]
+    Siswa: [pilih ▼] [✓ nama siswa]
+
+──────────────── OUTPUT PER SISWA ──────
+Status: [TERCAPAI / BERKEMBANG / PERLU_DUKUNGAN ▼]
+Umpan balik: [tuliskan umpan balik...]
+Tindak lanjut: [tuliskan tindak lanjut...]
+
+──────────────── FOOTER ────────────────
+Refleksi guru
+┌─────────────────────────────────────┐
+│ Catatan refleksi...                 │
+└─────────────────────────────────────┘
+[Batal]                  [Simpan Penilaian]
+```
+
+---
+
+### 48. Formatif × Tes Lisan × Dialog
+
+```
+──────────────── HEADER ────────────────
+Tujuan penilaian
+┌─────────────────────────────────────┐
+│ Apa yang ingin diketahui/dipantau?  │
+└─────────────────────────────────────┘
+Jenis       [Formatif ▼]
+Teknik      [Tes Lisan ▼]
+Instrumen   [Dialog ▼]
+
+──────────────── BODY ──────────────────
+Topik dialog: [tuliskan opsional...]
+
+├── Sangat Berkembang
+│   Deskripsi: [tuliskan deskriptor...]
+│   Siswa: [pilih ▼] [✓ nama siswa]
+├── Berkembang Sesuai Harapan
+│   Deskripsi: [tuliskan deskriptor...]
+│   Siswa: [pilih ▼] [✓ nama siswa]
+├── Mulai Berkembang
+│   Deskripsi: [tuliskan deskriptor...]
+│   Siswa: [pilih ▼] [✓ nama siswa]
+└── Belum Berkembang
+    Deskripsi: [tuliskan deskriptor...]
+    Siswa: [pilih ▼] [✓ nama siswa]
+
+──────────────── OUTPUT PER SISWA ──────
+Status: [TERCAPAI / BERKEMBANG / PERLU_DUKUNGAN ▼]
+Umpan balik: [tuliskan umpan balik...]
+Tindak lanjut: [tuliskan tindak lanjut...]
+
+──────────────── FOOTER ────────────────
+Refleksi guru
+┌─────────────────────────────────────┐
+│ Catatan refleksi...                 │
+└─────────────────────────────────────┘
+[Batal]                  [Simpan Penilaian]
+```
+
+---
+
+### 49. Sumatif × Tes Lisan × Wawancara
+
+```
+──────────────── HEADER ────────────────
+Tujuan penilaian
+┌─────────────────────────────────────┐
+│ Apa yang ingin diketahui/dipantau?  │
+└─────────────────────────────────────┘
+Jenis       [Sumatif ▼]
+Teknik      [Tes Lisan ▼]
+Instrumen   [Wawancara ▼]
+
+──────────────── BODY ──────────────────
+Topik wawancara: [tuliskan opsional...]
+
+Menjawab dengan baik
+  Siswa: [pilih ▼] [✓ nama siswa]
+
+Menjawab sebagian
+  Siswa: [pilih ▼] [✓ nama siswa]
+
+Belum bisa menjawab
+  Siswa: [pilih ▼] [✓ nama siswa]
+
+──────────────── OUTPUT PER SISWA ──────
+Nilai angka: [___] (0–100)
+KKTP: [otomatis dari rentang KKTP yang sudah diset]
+Tindak lanjut: [tuliskan tindak lanjut...]
+
+──────────────── FOOTER ────────────────
+Refleksi guru
+┌─────────────────────────────────────┐
+│ Catatan refleksi...                 │
+└─────────────────────────────────────┘
+[Batal]                  [Simpan Penilaian]
+```
+
+---
+
+### 50. Sumatif × Tes Lisan × Monolog
+
+```
+──────────────── HEADER ────────────────
+Tujuan penilaian
+┌─────────────────────────────────────┐
+│ Apa yang ingin diketahui/dipantau?  │
+└─────────────────────────────────────┘
+Jenis       [Sumatif ▼]
+Teknik      [Tes Lisan ▼]
+Instrumen   [Monolog ▼]
+
+──────────────── BODY ──────────────────
+Topik monolog: [tuliskan opsional...]
+
+├── Sangat Berkembang
+│   Deskripsi: [tuliskan deskriptor...]
+│   Siswa: [pilih ▼] [✓ nama siswa]
+├── Berkembang Sesuai Harapan
+│   Deskripsi: [tuliskan deskriptor...]
+│   Siswa: [pilih ▼] [✓ nama siswa]
+├── Mulai Berkembang
+│   Deskripsi: [tuliskan deskriptor...]
+│   Siswa: [pilih ▼] [✓ nama siswa]
+└── Belum Berkembang
+    Deskripsi: [tuliskan deskriptor...]
+    Siswa: [pilih ▼] [✓ nama siswa]
+
+──────────────── OUTPUT PER SISWA ──────
+Nilai angka: [___] (0–100)
+KKTP: [otomatis dari rentang KKTP yang sudah diset]
+Tindak lanjut: [tuliskan tindak lanjut...]
+
+──────────────── FOOTER ────────────────
+Refleksi guru
+┌─────────────────────────────────────┐
+│ Catatan refleksi...                 │
+└─────────────────────────────────────┘
+[Batal]                  [Simpan Penilaian]
+```
+
+---
+
+### 51. Sumatif × Tes Lisan × Dialog
+
+```
+──────────────── HEADER ────────────────
+Tujuan penilaian
+┌─────────────────────────────────────┐
+│ Apa yang ingin diketahui/dipantau?  │
+└─────────────────────────────────────┘
+Jenis       [Sumatif ▼]
+Teknik      [Tes Lisan ▼]
+Instrumen   [Dialog ▼]
+
+──────────────── BODY ──────────────────
+Topik dialog: [tuliskan opsional...]
+
+├── Sangat Berkembang
+│   Deskripsi: [tuliskan deskriptor...]
+│   Siswa: [pilih ▼] [✓ nama siswa]
+├── Berkembang Sesuai Harapan
+│   Deskripsi: [tuliskan deskriptor...]
+│   Siswa: [pilih ▼] [✓ nama siswa]
+├── Mulai Berkembang
+│   Deskripsi: [tuliskan deskriptor...]
+│   Siswa: [pilih ▼] [✓ nama siswa]
+└── Belum Berkembang
+    Deskripsi: [tuliskan deskriptor...]
+    Siswa: [pilih ▼] [✓ nama siswa]
+
+──────────────── OUTPUT PER SISWA ──────
+Nilai angka: [___] (0–100)
+KKTP: [otomatis dari rentang KKTP yang sudah diset]
+Tindak lanjut: [tuliskan tindak lanjut...]
+
+──────────────── FOOTER ────────────────
+Refleksi guru
+┌─────────────────────────────────────┐
+│ Catatan refleksi...                 │
+└─────────────────────────────────────┘
+[Batal]                  [Simpan Penilaian]
+```
+
+---
+
+### 52. Diagnostik × Tes Tertulis × Pilihan Ganda (Deskriptor)
+
+```
+──────────────── HEADER ────────────────
+Tujuan penilaian
+┌─────────────────────────────────────┐
+│ Apa yang ingin diketahui/dipantau?  │
+└─────────────────────────────────────┘
+Jenis       [Diagnostik ▼]
+Teknik      [Tes ▼]
+Instrumen   [Pilihan Ganda ▼]
+
+──────────────── BODY ──────────────────
+Menjawab dengan baik
+  Siswa: [pilih ▼] [✓ nama siswa]
+
+Menjawab sebagian
+  Siswa: [pilih ▼] [✓ nama siswa]
+
+Belum bisa menjawab
+  Siswa: [pilih ▼] [✓ nama siswa]
+
+──────────────── OUTPUT PER SISWA ──────
+Status: [PAHAM / BELUM_PAHAM / PERLU_PERHATIAN ▼]
+Grup otomatis: A (Paham) / B (Belum Paham) / C (Perlu Perhatian)
+
+──────────────── FOOTER ────────────────
+Refleksi guru
+┌─────────────────────────────────────┐
+│ Catatan refleksi...                 │
+└─────────────────────────────────────┘
+[Batal]                  [Simpan Penilaian]
+```
+
+---
+
+### 53. Diagnostik × Tes Tertulis × Uraian (Deskriptor)
+
+```
+──────────────── HEADER ────────────────
+Tujuan penilaian
+┌─────────────────────────────────────┐
+│ Apa yang ingin diketahui/dipantau?  │
+└─────────────────────────────────────┘
+Jenis       [Diagnostik ▼]
+Teknik      [Tes ▼]
+Instrumen   [Uraian ▼]
+
+──────────────── BODY ──────────────────
+Menjawab dengan baik
+  Siswa: [pilih ▼] [✓ nama siswa]
+
+Menjawab sebagian
+  Siswa: [pilih ▼] [✓ nama siswa]
+
+Belum bisa menjawab
+  Siswa: [pilih ▼] [✓ nama siswa]
+
+──────────────── OUTPUT PER SISWA ──────
+Status: [PAHAM / BELUM_PAHAM / PERLU_PERHATIAN ▼]
+Grup otomatis: A (Paham) / B (Belum Paham) / C (Perlu Perhatian)
+
+──────────────── FOOTER ────────────────
+Refleksi guru
+┌─────────────────────────────────────┐
+│ Catatan refleksi...                 │
+└─────────────────────────────────────┘
+[Batal]                  [Simpan Penilaian]
+```
+
+---
+
+### 54. Diagnostik × Tes Tertulis × Campuran (Deskriptor)
+
+```
+──────────────── HEADER ────────────────
+Tujuan penilaian
+┌─────────────────────────────────────┐
+│ Apa yang ingin diketahui/dipantau?  │
+└─────────────────────────────────────┘
+Jenis       [Diagnostik ▼]
+Teknik      [Tes ▼]
+Instrumen   [Campuran ▼]
+
+──────────────── BODY ──────────────────
+Menjawab dengan baik
+  Siswa: [pilih ▼] [✓ nama siswa]
+
+Menjawab sebagian
+  Siswa: [pilih ▼] [✓ nama siswa]
+
+Belum bisa menjawab
+  Siswa: [pilih ▼] [✓ nama siswa]
+
+──────────────── OUTPUT PER SISWA ──────
+Status: [PAHAM / BELUM_PAHAM / PERLU_PERHATIAN ▼]
+Grup otomatis: A (Paham) / B (Belum Paham) / C (Perlu Perhatian)
+
+──────────────── FOOTER ────────────────
+Refleksi guru
+┌─────────────────────────────────────┐
+│ Catatan refleksi...                 │
+└─────────────────────────────────────┘
+[Batal]                  [Simpan Penilaian]
+```
+
+---
+
+### 55. Formatif × Tes Tertulis × Pilihan Ganda (Deskriptor)
+
+```
+──────────────── HEADER ────────────────
+Tujuan penilaian
+┌─────────────────────────────────────┐
+│ Apa yang ingin diketahui/dipantau?  │
+└─────────────────────────────────────┘
+Jenis       [Formatif ▼]
+Teknik      [Tes ▼]
+Instrumen   [Pilihan Ganda ▼]
+
+──────────────── BODY ──────────────────
+Menjawab dengan baik
+  Siswa: [pilih ▼] [✓ nama siswa]
+
+Menjawab sebagian
+  Siswa: [pilih ▼] [✓ nama siswa]
+
+Belum bisa menjawab
+  Siswa: [pilih ▼] [✓ nama siswa]
+
+──────────────── OUTPUT PER SISWA ──────
+Status: [TERCAPAI / BERKEMBANG / PERLU_DUKUNGAN ▼]
+Umpan balik: [tuliskan umpan balik...]
+Tindak lanjut: [tuliskan tindak lanjut...]
+
+──────────────── FOOTER ────────────────
+Refleksi guru
+┌─────────────────────────────────────┐
+│ Catatan refleksi...                 │
+└─────────────────────────────────────┘
+[Batal]                  [Simpan Penilaian]
+```
+
+---
+
+### 56. Formatif × Tes Tertulis × Uraian (Deskriptor)
+
+```
+──────────────── HEADER ────────────────
+Tujuan penilaian
+┌─────────────────────────────────────┐
+│ Apa yang ingin diketahui/dipantau?  │
+└─────────────────────────────────────┘
+Jenis       [Formatif ▼]
+Teknik      [Tes ▼]
+Instrumen   [Uraian ▼]
+
+──────────────── BODY ──────────────────
+Menjawab dengan baik
+  Siswa: [pilih ▼] [✓ nama siswa]
+
+Menjawab sebagian
+  Siswa: [pilih ▼] [✓ nama siswa]
+
+Belum bisa menjawab
+  Siswa: [pilih ▼] [✓ nama siswa]
+
+──────────────── OUTPUT PER SISWA ──────
+Status: [TERCAPAI / BERKEMBANG / PERLU_DUKUNGAN ▼]
+Umpan balik: [tuliskan umpan balik...]
+Tindak lanjut: [tuliskan tindak lanjut...]
+
+──────────────── FOOTER ────────────────
+Refleksi guru
+┌─────────────────────────────────────┐
+│ Catatan refleksi...                 │
+└─────────────────────────────────────┘
+[Batal]                  [Simpan Penilaian]
+```
+
+---
+
+### 57. Formatif × Tes Tertulis × Campuran (Deskriptor)
+
+```
+──────────────── HEADER ────────────────
+Tujuan penilaian
+┌─────────────────────────────────────┐
+│ Apa yang ingin diketahui/dipantau?  │
+└─────────────────────────────────────┘
+Jenis       [Formatif ▼]
+Teknik      [Tes ▼]
+Instrumen   [Campuran ▼]
+
+──────────────── BODY ──────────────────
+Menjawab dengan baik
+  Siswa: [pilih ▼] [✓ nama siswa]
+
+Menjawab sebagian
+  Siswa: [pilih ▼] [✓ nama siswa]
+
+Belum bisa menjawab
+  Siswa: [pilih ▼] [✓ nama siswa]
+
+──────────────── OUTPUT PER SISWA ──────
+Status: [TERCAPAI / BERKEMBANG / PERLU_DUKUNGAN ▼]
+Umpan balik: [tuliskan umpan balik...]
+Tindak lanjut: [tuliskan tindak lanjut...]
+
+──────────────── FOOTER ────────────────
+Refleksi guru
+┌─────────────────────────────────────┐
+│ Catatan refleksi...                 │
+└─────────────────────────────────────┘
+[Batal]                  [Simpan Penilaian]
+```
+
+---
+
+*ASSESSMENT-WIREFRAME.md — 57 pola lengkap, tidak boleh diringkas saat implementasi*
