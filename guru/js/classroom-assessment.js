@@ -26,7 +26,8 @@
   let _rcPage1      = 0;      // DAFTAR NILAI pagination (5 per halaman)
   let _rcPage2      = 0;      // HASIL NILAI pagination (5 per halaman)
   let _rcMetode     = 'rata'; // 'rata' | 'bobot' | 'terbaik'
-  let _rcBobots     = [];
+  let _rcBobots          = [];
+  let _rcLastSumatifIds  = [];
   let _rcHasil      = null;   // null | [{id, nama, nilaiAkhir, predikat}]
   let _rcAllResults = [];     // [[result]] paralel dengan filtered sumatifs
 
@@ -2589,7 +2590,8 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
       sumatifs.map(a => SipApi.getAssessmentResults(a.id).catch(() => []))
     );
     _rcAllResults = allResults;
-    if (_rcBobots.length !== sumatifs.length) _rcBobots = sumatifs.map(() => 0);
+    const curIds = sumatifs.map(a => a.id).join(',');
+    if (curIds !== _rcLastSumatifIds) { _rcBobots = sumatifs.map(() => 0); _rcLastSumatifIds = curIds; }
     _renderRecapContent(cc, sumatifs, allResults);
   }
 
