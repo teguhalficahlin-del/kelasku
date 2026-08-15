@@ -2616,6 +2616,7 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
   }
 
   function _renderRecapContent(cc, sumatifs, allResults) {
+    if (!_rcHasil) _rcPage2 = 0; // jika tidak ada hasil, page2 selalu mulai dari 0
     // nilaiGrid[i][studentId] = nilai angka | null
     const nilaiGrid = sumatifs.map((_, i) => {
       const map = {};
