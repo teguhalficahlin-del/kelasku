@@ -586,7 +586,7 @@
     el('tp-parent-sel').addEventListener('change', function () {
       const judulEl = el('tp-judul');
       if (!judulEl || judulEl.value.trim() !== '') return;
-      const tp = tpOpts.find(t => t.id === this.value);
+      const tp = _tpList.find(t => t.id === this.value);
       judulEl.value = tp?.konten ?? '';
     });
 
