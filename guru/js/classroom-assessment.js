@@ -822,11 +822,6 @@
       style="display:none;border:1px solid var(--border-subtle,rgba(255,255,255,.18));
       border-radius:.4rem;padding:.625rem .75rem"></div>
   </div>
-  <div id="asmt-diagform-wrap" style="${selJenis !== 'SUMATIF' ? '' : 'display:none'}">
-    <div style="font-size:var(--fs-caption);font-weight:700;color:var(--gold);
-      text-transform:uppercase;letter-spacing:.07em;margin-bottom:.5rem">Catat Nilai</div>
-    <div id="asmt-diag-rows"></div>
-  </div>
   <div>
     ${fieldLbl('Refleksi guru (opsional)')}
     <textarea id="asmt-refleksi" rows="2"
@@ -875,17 +870,13 @@
     el('asmt-jenis-sel').addEventListener('change', function () {
       selJenis = this.value;
       const outputWrap = el('asmt-output-wrap');
-      const diagWrap   = el('asmt-diagform-wrap');
       if (selJenis === 'SUMATIF') {
         if (outputWrap) outputWrap.style.display = '';
-        if (diagWrap)   diagWrap.style.display   = 'none';
         bodyInstrWrap.innerHTML = '';
         renderSumPage();
       } else {
         if (outputWrap) outputWrap.style.display = 'none';
-        if (diagWrap)   diagWrap.style.display   = '';
         renderBodyInstrumen(selTeknik, selInstrumen, bodyInstrWrap);
-        renderDiagForm();
       }
     });
 
@@ -1112,21 +1103,6 @@
       renderSumInput();
     }
 
-    function renderDiagForm() {
-      const wrap = el('asmt-diag-rows');
-      if (!wrap) return;
-      const kktpItems = getKktpItems();
-      wrap.innerHTML = _roster.map(s =>
-        studentRowHtml(s, resMap[s.id] ?? {}, selJenis, kktpItems)
-      ).join('');
-      wrap.querySelectorAll('.pai-srow').forEach(srow => {
-        const statusChips = srow.querySelector('.stu-status-chips');
-        if (statusChips) wireChips(statusChips, false);
-        const tlChips = srow.querySelector('.stu-tl-chips');
-        if (tlChips) wireChips(tlChips, false);
-      });
-    }
-
     // ── Helpers ──────────────────────────────────────────────────────────────
     function getKktpItems() {
       const tpId = el('asmt-tp-sel')?.value || null;
@@ -1146,7 +1122,6 @@
 
     // ── Initial render ────────────────────────────────────────────────────────
     if (selJenis === 'SUMATIF') renderSumPage();
-    else renderDiagForm();
 
     // ── Save ─────────────────────────────────────────────────────────────────
     el('btn-asmt-save').addEventListener('click', async () => {
