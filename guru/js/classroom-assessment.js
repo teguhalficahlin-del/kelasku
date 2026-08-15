@@ -603,10 +603,16 @@
     });
 
     el('tp-parent-sel').addEventListener('change', function () {
-      const judulEl = el('tp-judul');
-      if (!judulEl || judulEl.value.trim() !== '') return;
       const tp = _tpList.find(t => t.id === this.value);
-      judulEl.value = tp?.konten ?? '';
+      // Auto-fill judul dari konten TP induk jika judul masih kosong
+      const judulEl = el('tp-judul');
+      if (judulEl && judulEl.value.trim() === '') judulEl.value = tp?.konten ?? '';
+      // BUG-1.1: wariskan mapel dari TP induk agar KKTP selalu selaras dengan TP-nya
+      if (isWali && tp?.mapel) {
+        selMapel = tp.mapel;
+        const mapelSel = el('tp-mapel-sel');
+        if (mapelSel) mapelSel.value = selMapel;
+      }
     });
 
     el('btn-tp-save').addEventListener('click', async () => {
