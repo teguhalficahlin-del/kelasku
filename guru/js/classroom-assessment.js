@@ -16,6 +16,19 @@
   let _roleGuru = null; // role_guru dari profiles (WALI_KELAS_SD | MAPEL | null)
   let _selMapel = null; // mapel aktif di Section 1 dropdown (WALI_KELAS_SD only, null = belum diinit)
 
+  // ── Rekap section state ────────────────────────────────────────────────────
+  let _rcSemester   = '1';
+  let _rcTahun      = null;   // diinit ke DEFAULT_YEAR saat pertama renderRecap
+  let _rcMapel      = null;
+  let _rcTeknik     = null;
+  let _rcInstrumen  = null;
+  let _rcPage1      = 0;      // DAFTAR NILAI pagination (5 per halaman)
+  let _rcPage2      = 0;      // HASIL NILAI pagination (5 per halaman)
+  let _rcMetode     = 'rata'; // 'rata' | 'bobot' | 'terbaik'
+  let _rcBobots     = [];
+  let _rcHasil      = null;   // null | [{id, nama, nilaiAkhir, predikat}]
+  let _rcAllResults = [];     // [[result]] paralel dengan filtered sumatifs
+
   // ─── Constants ──────────────────────────────────────────────────────────────
   const CY           = new Date().getFullYear();
   const DEFAULT_YEAR = `${CY - 1}/${CY}`;
@@ -47,6 +60,7 @@
 
   const DEFAULT_RENTANG = { BB: [0, 54], MB: [55, 69], BSH: [70, 84], SB: [85, 100] };
   const PREDIKAT_ORDER  = ['BB', 'MB', 'BSH', 'SB'];
+  const RC_PAGE_SIZE    = 5;
 
   const MAPEL_SD = [
     'Bahasa Indonesia', 'Matematika', 'IPAS',
@@ -2463,90 +2477,391 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
   async function renderRecap() {
     const c = el('pai-recap-wrap');
     if (!c) return;
+    if (!_rcTahun) _rcTahun = DEFAULT_YEAR;
+    _rcHasil      = null;
+    _rcAllResults = [];
+    _rcPage1      = 0;
+    _rcPage2      = 0;
+    _renderRecapShell(c);
+  }
 
-    c.innerHTML = '<div style="color:var(--text-secondary);padding:.5rem 0">Memuat rekap…</div>';
+  function _renderRecapShell(c) {
+    const isWali = _roleGuru === 'WALI_KELAS_SD';
+    if (isWali && !_rcMapel) _rcMapel = MAPEL_SD[0];
 
-    const sumatifs = _asmts.filter(a => a.jenis === 'SUMATIF');
+    const allSumatifs = _asmts.filter(a => a.jenis === 'SUMATIF');
+    const teknikSet   = [...new Set(allSumatifs.map(a => a.teknik).filter(Boolean))];
+    const instrSet    = _rcTeknik
+      ? [...new Set(allSumatifs.filter(a => a.teknik === _rcTeknik).map(a => a.instrumen).filter(Boolean))]
+      : [];
+
+    const sel = (v, cur) => v === cur ? ' selected' : '';
+    const capLbl = t => `<div style="font-size:var(--fs-caption);color:var(--text-secondary);margin-bottom:.3rem">${t}</div>`;
+
+    let html = `<div style="display:flex;flex-direction:column;gap:.6rem;margin-bottom:.75rem">`;
+
+    // Semester + tahun ajaran
+    html += `<div style="display:flex;gap:.75rem;flex-wrap:wrap;align-items:flex-end">
+      <div>${capLbl('Semester')}
+        <select id="rc-semester" style="${inputCss('max-width:8rem')}">
+          <option value="1"${sel('1',_rcSemester)}>Semester 1</option>
+          <option value="2"${sel('2',_rcSemester)}>Semester 2</option>
+        </select></div>
+      <div>${capLbl('Tahun Ajaran')}
+        <input type="text" id="rc-tahun" value="${esc(_rcTahun)}"
+          placeholder="${DEFAULT_YEAR}" style="${inputCss('max-width:8rem')}"></div>
+    </div>`;
+
+    // Mapel (WALI_KELAS_SD only)
+    if (isWali) {
+      html += `<div>${capLbl('Mata Pelajaran')}
+        <select id="rc-mapel" style="${inputCss('max-width:18rem')}">
+          ${MAPEL_SD.map(m => `<option value="${esc(m)}"${sel(m,_rcMapel)}>${esc(m)}</option>`).join('')}
+        </select></div>`;
+    }
+
+    // Teknik
+    html += `<div>${capLbl('Teknik')}
+      <select id="rc-teknik" style="${inputCss('max-width:14rem')}">
+        <option value="">Semua teknik</option>
+        ${teknikSet.map(t => `<option value="${esc(t)}"${sel(t,_rcTeknik)}>${esc(teknikLbl(t))}</option>`).join('')}
+      </select></div>`;
+
+    // Instrumen (hanya jika teknik dipilih)
+    if (_rcTeknik && instrSet.length) {
+      html += `<div>${capLbl('Instrumen')}
+        <select id="rc-instrumen" style="${inputCss('max-width:14rem')}">
+          <option value="">Semua instrumen</option>
+          ${instrSet.map(i => `<option value="${esc(i)}"${sel(i,_rcInstrumen)}>${esc(i)}</option>`).join('')}
+        </select></div>`;
+    }
+
+    html += `</div><div id="rc-content"><div style="color:var(--text-secondary);font-size:var(--fs-caption);padding:.5rem 0">Memuat…</div></div>`;
+    c.innerHTML = html;
+
+    // Wire filter events
+    c.querySelector('#rc-semester')?.addEventListener('change', function () {
+      _rcSemester = this.value; _rcPage1 = _rcPage2 = 0; _rcHasil = null; _loadRecapContent();
+    });
+    c.querySelector('#rc-tahun')?.addEventListener('change', function () {
+      _rcTahun = this.value.trim() || DEFAULT_YEAR; _rcPage1 = _rcPage2 = 0; _rcHasil = null; _loadRecapContent();
+    });
+    c.querySelector('#rc-mapel')?.addEventListener('change', function () {
+      _rcMapel = this.value; _rcPage1 = _rcPage2 = 0; _rcHasil = null; _loadRecapContent();
+    });
+    c.querySelector('#rc-teknik')?.addEventListener('change', function () {
+      _rcTeknik = this.value || null; _rcInstrumen = null; _rcPage1 = _rcPage2 = 0; _rcHasil = null;
+      _renderRecapShell(c); _loadRecapContent();
+    });
+    c.querySelector('#rc-instrumen')?.addEventListener('change', function () {
+      _rcInstrumen = this.value || null; _rcPage1 = _rcPage2 = 0; _rcHasil = null; _loadRecapContent();
+    });
+
+    _loadRecapContent();
+  }
+
+  async function _loadRecapContent() {
+    const cc = el('rc-content');
+    if (!cc) return;
+    cc.innerHTML = `<div style="color:var(--text-secondary);font-size:var(--fs-caption);padding:.5rem 0">Memuat…</div>`;
+
+    const sumatifs = _getFilteredSumatifs();
     if (!sumatifs.length) {
-      c.innerHTML = `<p style="color:var(--text-secondary);font-size:var(--fs-caption)">
-        Belum ada penilaian Sumatif. Rekap dihitung otomatis dari rata-rata nilai sumatif.</p>`;
+      cc.innerHTML = `<p style="color:var(--text-secondary);font-size:var(--fs-caption)">
+        Belum ada penilaian Sumatif untuk filter yang dipilih.</p>`;
+      return;
+    }
+    if (!_roster.length) {
+      cc.innerHTML = `<p style="color:var(--text-secondary);font-size:var(--fs-caption)">
+        Tidak ada siswa di kelas ini.</p>`;
       return;
     }
 
     const allResults = await Promise.all(
       sumatifs.map(a => SipApi.getAssessmentResults(a.id).catch(() => []))
     );
+    _rcAllResults = allResults;
+    if (_rcBobots.length !== sumatifs.length) _rcBobots = sumatifs.map(() => 0);
+    _renderRecapContent(cc, sumatifs, allResults);
+  }
 
-    // tpId -> studentId -> [nilai]
-    const tpMap = {};
-    sumatifs.forEach((a, i) => {
-      const tpId = a.tp_kktp_id ?? '__no_tp__';
-      if (!tpMap[tpId]) tpMap[tpId] = {};
-      (allResults[i] ?? []).forEach(r => {
-        if (r.nilai == null) return;
-        if (!tpMap[tpId][r.student_id]) tpMap[tpId][r.student_id] = [];
-        tpMap[tpId][r.student_id].push(r.nilai);
+  function _getFilteredSumatifs() {
+    const isWali = _roleGuru === 'WALI_KELAS_SD';
+    return _asmts.filter(a => {
+      if (a.jenis !== 'SUMATIF') return false;
+      if (_rcTeknik && a.teknik !== _rcTeknik) return false;
+      if (_rcInstrumen && a.instrumen !== _rcInstrumen) return false;
+      if (isWali && _rcMapel && a.tp_kktp_id) {
+        const tp = _tpList.find(t => t.id === a.tp_kktp_id);
+        if (tp?.mapel && tp.mapel !== _rcMapel) return false;
+      }
+      return true;
+    });
+  }
+
+  function _renderRecapContent(cc, sumatifs, allResults) {
+    // nilaiGrid[i][studentId] = nilai angka | null
+    const nilaiGrid = sumatifs.map((_, i) => {
+      const map = {};
+      (allResults[i] ?? []).forEach(r => { map[r.student_id] = r.nilai ?? null; });
+      return map;
+    });
+
+    // Header kolom: S{n}-{short judul TP} atau S{n}-—
+    const colHeaders = sumatifs.map((a, i) => {
+      const tp = a.tp_kktp_id ? _tpList.find(t => t.id === a.tp_kktp_id) : null;
+      const label = tp ? (tp.judul.length > 10 ? tp.judul.slice(0, 10) + '…' : tp.judul) : '—';
+      return `S${i + 1}-${label}`;
+    });
+
+    // KKTP untuk predikat: ambil dari TP pertama yang punya KKTP child
+    let _kktp = null;
+    for (const a of sumatifs) {
+      if (!a.tp_kktp_id) continue;
+      const k = _tpList.find(t => t.parent_id === a.tp_kktp_id && t.tipe === 'KKTP');
+      if (k) { _kktp = k; break; }
+    }
+
+    const thSt = `padding:.4rem .5rem;border-bottom:2px solid var(--gold);font-size:var(--fs-caption);white-space:nowrap;text-align:left`;
+    const tdSt = `padding:.4rem .5rem;font-size:var(--fs-ui);border-bottom:1px solid var(--border-subtle,rgba(255,255,255,.08))`;
+
+    // ── DAFTAR NILAI SUMATIF ────────────────────────────────────────────────
+    const totalPages1 = Math.ceil(_roster.length / RC_PAGE_SIZE);
+    const pageRoster  = _roster.slice(_rcPage1 * RC_PAGE_SIZE, (_rcPage1 + 1) * RC_PAGE_SIZE);
+
+    const valueRows = pageRoster.map((s, idx) => {
+      const no    = _rcPage1 * RC_PAGE_SIZE + idx + 1;
+      const cells = sumatifs.map((_, ci) => {
+        const n = nilaiGrid[ci][s.id];
+        return `<td style="${tdSt};text-align:center">${n != null ? n : 0}</td>`;
+      }).join('');
+      return `<tr>
+        <td style="${tdSt};text-align:center;color:var(--text-secondary)">${no}</td>
+        <td style="${tdSt}">${esc(s.nama)}</td>${cells}</tr>`;
+    }).join('');
+
+    const colHeaderCells = colHeaders.map(h =>
+      `<th style="${thSt};text-align:center" title="${esc(h)}">${esc(h)}</th>`
+    ).join('');
+
+    const pag1Html = totalPages1 > 1
+      ? `<div style="display:flex;align-items:center;justify-content:center;gap:.75rem;margin-top:.5rem;font-size:var(--fs-caption)">
+          <button data-rc-pag="1" data-dir="-1"${_rcPage1 === 0 ? ' disabled' : ''} style="padding:.2rem .6rem;cursor:pointer">←</button>
+          <span>Hal. ${_rcPage1 + 1}/${totalPages1}</span>
+          <button data-rc-pag="1" data-dir="1"${_rcPage1 === totalPages1 - 1 ? ' disabled' : ''} style="padding:.2rem .6rem;cursor:pointer">→</button>
+        </div>` : '';
+
+    // ── TENTUKAN NILAI AKHIR ────────────────────────────────────────────────
+    const isBobot    = _rcMetode === 'bobot';
+    const totalBobot = _rcBobots.reduce((a, b) => a + (parseFloat(b) || 0), 0);
+    const bobotValid = Math.abs(totalBobot - 100) < 0.01;
+
+    const bobotRowsHtml = isBobot
+      ? `<div style="display:flex;flex-direction:column;gap:.35rem;margin:-.25rem 0 .25rem 1.25rem">
+          ${sumatifs.map((_, i) => `<div style="display:flex;align-items:center;gap:.5rem;font-size:var(--fs-caption)">
+            <span style="min-width:3.5rem;white-space:nowrap">${esc(colHeaders[i])}</span>
+            <input type="number" id="rc-bobot-${i}" min="0" max="100" step="1"
+              value="${_rcBobots[i] ?? 0}" style="${inputCss('width:4.5rem;text-align:center')}"> <span>%</span>
+          </div>`).join('')}
+          <div style="font-size:var(--fs-caption);color:${bobotValid ? 'var(--success,#2d6a4f)' : '#c0392b'}">
+            Total: ${totalBobot}% ${bobotValid ? '✓' : '(harus 100%)'}
+          </div></div>` : '';
+
+    const hitungDis = isBobot && !bobotValid;
+    const metodeHtml = `
+<div style="margin-top:.75rem;background:var(--bg-card,#1e1e1e);border-radius:.5rem;
+  padding:.75rem;border:1px solid var(--border-subtle,rgba(255,255,255,.12))">
+  <div style="font-size:var(--fs-caption);font-weight:600;color:var(--gold);
+    margin-bottom:.5rem;text-transform:uppercase;letter-spacing:.04em">Tentukan Nilai Akhir</div>
+  <div style="display:flex;flex-direction:column;gap:.35rem;margin-bottom:.4rem">
+    ${[['rata','Rata-rata'],['bobot','Bobot per sumatif'],['terbaik','Nilai terbaik']].map(([v,l]) =>
+      `<label style="display:flex;align-items:flex-start;gap:.5rem;cursor:pointer;font-size:var(--fs-ui)">
+        <input type="radio" name="rc-metode" value="${v}"${_rcMetode === v ? ' checked' : ''}
+          style="margin-top:.15rem;accent-color:var(--gold)"> <span>${l}</span></label>`).join('')}
+  </div>
+  ${bobotRowsHtml}
+  <button id="rc-btn-hitung"${hitungDis ? ' disabled' : ''}
+    style="margin-top:.5rem;min-height:var(--btn-h);background:${hitungDis ? 'var(--border-subtle,rgba(255,255,255,.18))' : 'var(--gold)'};
+    color:${hitungDis ? 'var(--text-secondary)' : 'var(--text-on-gold)'};font-weight:var(--fw-medium);
+    font-size:var(--fs-ui);padding:0 var(--btn-px);border-radius:var(--btn-r);border:none;
+    cursor:${hitungDis ? 'default' : 'pointer'};width:100%">Hitung Nilai Akhir</button>
+</div>`;
+
+    // ── HASIL NILAI AKHIR ────────────────────────────────────────────────────
+    let hasilHtml = '';
+    if (_rcHasil) {
+      const totalPages2 = Math.ceil(_rcHasil.length / RC_PAGE_SIZE);
+      const pageHasil   = _rcHasil.slice(_rcPage2 * RC_PAGE_SIZE, (_rcPage2 + 1) * RC_PAGE_SIZE);
+      const hasilRows   = pageHasil.map((row, idx) => {
+        const no       = _rcPage2 * RC_PAGE_SIZE + idx + 1;
+        const predColor = (row.predikat === 'BSH' || row.predikat === 'SB')
+          ? 'var(--success,#2d6a4f)' : row.predikat ? '#c0392b' : 'var(--text-secondary)';
+        return `<tr>
+          <td style="${tdSt};text-align:center;color:var(--text-secondary)">${no}</td>
+          <td style="${tdSt}">${esc(row.nama)}</td>
+          <td style="${tdSt};text-align:center;font-weight:600">${row.nilaiAkhir.toFixed(1)}</td>
+          <td style="${tdSt};text-align:center;font-weight:600;color:${predColor}">${esc(row.predikat || '—')}</td>
+        </tr>`;
+      }).join('');
+
+      const pag2Html = totalPages2 > 1
+        ? `<div style="display:flex;align-items:center;justify-content:center;gap:.75rem;margin-top:.5rem;font-size:var(--fs-caption)">
+            <button data-rc-pag="2" data-dir="-1"${_rcPage2 === 0 ? ' disabled' : ''} style="padding:.2rem .6rem;cursor:pointer">←</button>
+            <span>Hal. ${_rcPage2 + 1}/${totalPages2}</span>
+            <button data-rc-pag="2" data-dir="1"${_rcPage2 === totalPages2 - 1 ? ' disabled' : ''} style="padding:.2rem .6rem;cursor:pointer">→</button>
+          </div>` : '';
+
+      hasilHtml = `
+<div style="margin-top:.75rem;background:var(--bg-card,#1e1e1e);border-radius:.5rem;
+  padding:.75rem;border:1px solid var(--border-subtle,rgba(255,255,255,.12))">
+  <div style="font-size:var(--fs-caption);font-weight:600;color:var(--gold);
+    margin-bottom:.5rem;text-transform:uppercase;letter-spacing:.04em">Hasil Nilai Akhir</div>
+  <div style="overflow-x:auto">
+    <table style="width:100%;border-collapse:collapse;min-width:280px">
+      <thead><tr>
+        <th style="${thSt};text-align:center">No</th>
+        <th style="${thSt}">Nama Siswa</th>
+        <th style="${thSt};text-align:center">Nilai Akhir</th>
+        <th style="${thSt};text-align:center">Predikat</th>
+      </tr></thead>
+      <tbody>${hasilRows}</tbody>
+    </table>
+  </div>
+  ${pag2Html}
+  <button id="rc-btn-simpan"
+    style="margin-top:.75rem;min-height:var(--btn-h);background:var(--gold);
+    color:var(--text-on-gold);font-weight:var(--fw-medium);font-size:var(--fs-ui);
+    padding:0 var(--btn-px);border-radius:var(--btn-r);border:none;cursor:pointer;width:100%">
+    Simpan Rekap</button>
+</div>`;
+    }
+
+    // Render
+    cc.innerHTML = `
+<div style="margin-bottom:.25rem">
+  <div style="font-size:var(--fs-caption);font-weight:600;color:var(--gold);
+    text-transform:uppercase;letter-spacing:.04em;margin-bottom:.4rem">Daftar Nilai Sumatif</div>
+  <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
+    <table style="width:100%;border-collapse:collapse;min-width:${130 + sumatifs.length * 80}px">
+      <thead><tr>
+        <th style="${thSt};text-align:center;width:2.5rem">No</th>
+        <th style="${thSt}">Nama Siswa</th>${colHeaderCells}
+      </tr></thead>
+      <tbody>${valueRows}</tbody>
+    </table>
+  </div>
+  ${pag1Html}
+</div>
+${metodeHtml}${hasilHtml}`;
+
+    // Wire events
+    cc.querySelectorAll('input[name="rc-metode"]').forEach(r => {
+      r.addEventListener('change', function () {
+        _rcMetode = this.value; _rcHasil = null; _renderRecapContent(cc, sumatifs, allResults);
       });
     });
 
-    const tpIds = Object.keys(tpMap);
-    if (!tpIds.length || !_roster.length) {
-      c.innerHTML = `<p style="color:var(--text-secondary);font-size:var(--fs-caption)">
-        Belum ada data nilai sumatif.</p>`;
-      return;
+    if (isBobot) {
+      sumatifs.forEach((_, i) => {
+        cc.querySelector(`#rc-bobot-${i}`)?.addEventListener('input', function () {
+          _rcBobots[i] = parseFloat(this.value) || 0;
+          _rcHasil = null;
+          _renderRecapContent(cc, sumatifs, allResults);
+        });
+      });
     }
 
-    const thStyle = `padding:.5rem .625rem;border-bottom:2px solid var(--gold);
-      font-size:var(--fs-caption);white-space:nowrap;text-align:left`;
-    const tpHeaders = tpIds.map(tid => {
-      const tp = _tpList.find(t => t.id === tid);
-      return `<th style="${thStyle}">${tp ? esc(tp.judul) : 'Tanpa TP'}</th>`;
-    }).join('');
+    cc.querySelector('#rc-btn-hitung')?.addEventListener('click', () => {
+      _rcHasil = _hitungNilaiAkhir(sumatifs, nilaiGrid, _kktp);
+      _rcPage2 = 0;
+      _renderRecapContent(cc, sumatifs, allResults);
+    });
 
-    const tdBorder = 'border-bottom:1px solid var(--border-subtle,rgba(255,255,255,.08))';
-    const rows = _roster.map(s => {
-      const cells = tpIds.map(tid => {
-        const vals = tpMap[tid][s.id] ?? [];
-        const avg  = vals.length
-          ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
-        const tp   = _tpList.find(t => t.id === tid);
-        const kktp = tp
-          ? _tpList.find(t => t.parent_id === tp.id && t.tipe === 'KKTP')
-          : null;
-        const tercapai = kktp && avg != null
-          ? (() => { const p = getPredikat(avg, getRentang(kktp)); return p === 'BSH' || p === 'SB'; })()
-          : null;
-        const badge    = tercapai === true ? ' ✓' : tercapai === false ? ' ✗' : '';
-        const color    = tercapai === true  ? 'var(--success,#2d6a4f)'
-                       : tercapai === false ? '#c0392b' : 'var(--text-secondary)';
-        return `<td style="padding:.5rem .625rem;text-align:center;${tdBorder};
-            font-size:var(--fs-ui);color:${color}">
-            ${avg != null ? avg.toFixed(1) + badge : '—'}
-          </td>`;
-      }).join('');
-      return `<tr>
-        <td style="padding:.5rem .625rem;${tdBorder};font-size:var(--fs-ui)">
-          ${esc(s.nama)}</td>
-        ${cells}
-      </tr>`;
-    }).join('');
+    cc.querySelectorAll('[data-rc-pag]').forEach(btn => {
+      btn.addEventListener('click', function () {
+        if (this.disabled) return;
+        const which = this.dataset.rcPag;
+        const dir   = parseInt(this.dataset.dir, 10);
+        const max1  = totalPages1 - 1;
+        const max2  = _rcHasil ? Math.ceil(_rcHasil.length / RC_PAGE_SIZE) - 1 : 0;
+        if (which === '1') _rcPage1 = Math.max(0, Math.min(max1, _rcPage1 + dir));
+        else               _rcPage2 = Math.max(0, Math.min(max2, _rcPage2 + dir));
+        _renderRecapContent(cc, sumatifs, allResults);
+      });
+    });
 
-    c.innerHTML = `
-<div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
-  <table style="width:100%;border-collapse:collapse;
-    min-width:${160 + tpIds.length * 110}px">
-    <thead>
-      <tr>
-        <th style="${thStyle}">Nama Siswa</th>
-        ${tpHeaders}
-      </tr>
-    </thead>
-    <tbody>${rows}</tbody>
-  </table>
-</div>
-<p style="font-size:var(--fs-caption);color:var(--text-secondary);margin-top:.5rem">
-  Nilai = rata-rata semua Sumatif per TP.
-  ✓/✗ = status KKTP (jika ada batas KKTP).</p>`;
+    cc.querySelector('#rc-btn-simpan')?.addEventListener('click', () => _simpanRecap(sumatifs, nilaiGrid));
+  }
+
+  function _hitungNilaiAkhir(sumatifs, nilaiGrid, kktp) {
+    return _roster.map(s => {
+      let nilaiAkhir;
+      if (_rcMetode === 'rata') {
+        const vals = sumatifs.map((_, i) => nilaiGrid[i][s.id] ?? 0);
+        nilaiAkhir = vals.reduce((a, b) => a + b, 0) / vals.length;
+      } else if (_rcMetode === 'bobot') {
+        nilaiAkhir = sumatifs.reduce((sum, _, i) =>
+          sum + (nilaiGrid[i][s.id] ?? 0) * (_rcBobots[i] || 0) / 100, 0);
+      } else {
+        nilaiAkhir = Math.max(...sumatifs.map((_, i) => nilaiGrid[i][s.id] ?? 0));
+      }
+      const predikat = kktp ? getPredikat(nilaiAkhir, getRentang(kktp)) : null;
+      return { id: s.id, nama: s.nama, nilaiAkhir, predikat };
+    });
+  }
+
+  async function _simpanRecap(sumatifs, nilaiGrid) {
+    const btn = el('rc-btn-simpan');
+    if (btn) { btn.disabled = true; btn.textContent = 'Menyimpan…'; }
+    try {
+      // Kelompokkan sumatif by tp_kktp_id
+      const tpGroups = {};
+      sumatifs.forEach((a, i) => {
+        const key = a.tp_kktp_id ?? '__null__';
+        if (!tpGroups[key]) tpGroups[key] = [];
+        tpGroups[key].push(i);
+      });
+
+      let saved = 0; let skipped = 0;
+      for (const [tpId, indices] of Object.entries(tpGroups)) {
+        if (tpId === '__null__') { skipped += indices.length; continue; }
+        const kktp = _tpList.find(t => t.parent_id === tpId && t.tipe === 'KKTP');
+
+        for (const s of _roster) {
+          let nilaiAkhir;
+          if (_rcMetode === 'rata') {
+            const vals = indices.map(i => nilaiGrid[i][s.id] ?? 0);
+            nilaiAkhir = vals.reduce((a, b) => a + b, 0) / vals.length;
+          } else if (_rcMetode === 'bobot') {
+            const totalBobotSub = indices.reduce((sum, i) => sum + (_rcBobots[i] || 0), 0);
+            if (totalBobotSub === 0) {
+              const vals = indices.map(i => nilaiGrid[i][s.id] ?? 0);
+              nilaiAkhir = vals.reduce((a, b) => a + b, 0) / vals.length;
+            } else {
+              nilaiAkhir = indices.reduce((sum, i) =>
+                sum + (nilaiGrid[i][s.id] ?? 0) * (_rcBobots[i] || 0) / totalBobotSub, 0);
+            }
+          } else {
+            nilaiAkhir = Math.max(...indices.map(i => nilaiGrid[i][s.id] ?? 0));
+          }
+          const predikat      = kktp ? getPredikat(nilaiAkhir, getRentang(kktp)) : null;
+          const kktp_tercapai = predikat ? (predikat === 'BSH' || predikat === 'SB') : null;
+          await SipApi.upsertGradeRecap(
+            _cId, s.id, tpId, _rcSemester, _rcTahun,
+            { nilai_akhir: parseFloat(nilaiAkhir.toFixed(2)), kktp_tercapai, deskripsi_capaian: null }
+          );
+          saved++;
+        }
+      }
+
+      let msg = `Rekap disimpan (${saved} entri).`;
+      if (skipped > 0) msg += ` ${skipped} sumatif tanpa TP dilewati.`;
+      toast(msg);
+    } catch (err) {
+      toast('Gagal menyimpan rekap: ' + (err.message || ''), false);
+    } finally {
+      if (btn) { btn.disabled = false; btn.textContent = 'Simpan Rekap'; }
+    }
   }
 
   // ══════════════════════════════════════════════════════════════════════════════
