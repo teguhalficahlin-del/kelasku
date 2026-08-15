@@ -1498,6 +1498,7 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
           return stu ? studentRowHtml(stu, {}, selJenis, kktpItems) : '';
         })
         .join('');
+      rows.querySelectorAll('.stu-status-chips').forEach(c => wireChips(c, false));
     }
 
     // ── Save ─────────────────────────────────────────────────────────────
@@ -1624,6 +1625,7 @@ ${!_roster.length
       ? _roster.filter(s => (_sGroups[s.id] ?? resMap[s.id]?.grup_diferensiasi ?? '') === filterGrup)
       : _roster;
     c.innerHTML = students.map(s => studentRowHtml(s, resMap[s.id] ?? {}, jenis, kktpItems)).join('');
+    c.querySelectorAll('.stu-status-chips').forEach(ch => wireChips(ch, false));
   }
 
   function studentRowHtml(student, res, jenis, kktpItems) {
