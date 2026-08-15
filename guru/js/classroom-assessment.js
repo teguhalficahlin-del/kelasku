@@ -2598,9 +2598,15 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
       if (a.jenis !== 'SUMATIF') return false;
       if (_rcTeknik && a.teknik !== _rcTeknik) return false;
       if (_rcInstrumen && a.instrumen !== _rcInstrumen) return false;
-      if (isWali && _rcMapel && a.tp_kktp_id) {
+      // Filter semester, tahun, dan mapel via TP yang dikaitkan.
+      // Sumatif tanpa TP tidak bisa diketahui semesternya — tetap tampil di semua filter.
+      if (a.tp_kktp_id) {
         const tp = _tpList.find(t => t.id === a.tp_kktp_id);
-        if (tp?.mapel && tp.mapel !== _rcMapel) return false;
+        if (tp) {
+          if (String(tp.semester) !== String(_rcSemester)) return false;
+          if (_rcTahun && tp.academic_year && tp.academic_year !== _rcTahun) return false;
+          if (isWali && _rcMapel && tp.mapel && tp.mapel !== _rcMapel) return false;
+        }
       }
       return true;
     });
