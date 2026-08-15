@@ -1459,7 +1459,7 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
       const raw = srow.querySelector('.stu-nilai')?.value;
       const val = raw !== '' ? parseFloat(raw) : null;
       payload.nilai         = isNaN(val) ? null : val;
-      payload.tindak_lanjut = srow.querySelector('.stu-tl')?.value.trim() || null;
+      payload.tindak_lanjut = chipVal(srow.querySelector('.stu-tl-chips')) || null;
       const kktp = kktpItems[0];
       if (kktp && val != null && !isNaN(val)) {
         const p = getPredikat(val, getRentang(kktp));
@@ -1722,7 +1722,7 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
           return stu ? studentRowHtml(stu, {}, selJenis, kktpItems) : '';
         })
         .join('');
-      rows.querySelectorAll('.stu-status-chips').forEach(c => wireChips(c, false));
+      rows.querySelectorAll('.stu-status-chips, .stu-tl-chips').forEach(c => wireChips(c, false));
     }
 
     // ── Save ─────────────────────────────────────────────────────────────
@@ -1863,7 +1863,7 @@ ${!_roster.length
       ? _roster.filter(s => (_sGroups[s.id] ?? resMap[s.id]?.grup_diferensiasi ?? '') === filterGrup)
       : _roster;
     c.innerHTML = students.map(s => studentRowHtml(s, resMap[s.id] ?? {}, jenis, kktpItems)).join('');
-    c.querySelectorAll('.stu-status-chips').forEach(ch => wireChips(ch, false));
+    c.querySelectorAll('.stu-status-chips, .stu-tl-chips').forEach(ch => wireChips(ch, false));
   }
 
   function studentRowHtml(student, res, jenis, kktpItems) {
@@ -1918,9 +1918,14 @@ ${!_roster.length
       ${kktpStr}
     </span>` : ''}
 </div>
-<input type="text" class="stu-tl" placeholder="Tindak lanjut… (opsional)"
-  value="${esc(res.tindak_lanjut ?? '')}"
-  style="${inputCss('font-size:var(--fs-caption);margin-top:.25rem')}">`;
+<div style="margin-top:.375rem">
+  <div style="font-size:var(--fs-caption);color:var(--text-secondary);margin-bottom:.25rem">
+    Tindak lanjut:</div>
+  <div class="stu-tl-chips" style="display:flex;flex-wrap:wrap;gap:.35rem">
+    ${['Pengayaan', 'Penguatan', 'Pendampingan']
+      .map(tl => chipHtml(tl, tl, res.tindak_lanjut === tl)).join('')}
+  </div>
+</div>`;
     }
 
     return `
