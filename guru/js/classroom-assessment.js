@@ -33,6 +33,15 @@
   const TIPE_LBL     = { CP: 'CP', TP: 'TP', KKTP: 'KKTP' };
   const TIPE_COLOR   = { CP: '#4a7c59', TP: 'var(--gold)', KKTP: '#7c4a7c' };
 
+  const STATUS_FORMATIF_LBL = { TERCAPAI: 'Tercapai', BERKEMBANG: 'Berkembang', PERLU_DUKUNGAN: 'Perlu Dukungan' };
+  const PREDIKAT_RUBRIK = [
+    { val: 'SB',  lbl: 'Sangat Berkembang' },
+    { val: 'BSH', lbl: 'Berkembang Sesuai Harapan' },
+    { val: 'MB',  lbl: 'Mulai Berkembang' },
+    { val: 'BB',  lbl: 'Belum Berkembang' },
+  ];
+  const TINGKAT_OBS = ['Terlihat jelas', 'Terlihat', 'Belum terlihat'];
+
   // ─── Micro-helpers ──────────────────────────────────────────────────────────
   function esc(s) {
     return String(s ?? '')
@@ -644,6 +653,616 @@
     }
   }
 
+  // ══════════════════════════════════════════════════════════════════════════════
+  // BODY INSTRUMEN — helpers untuk 42 pola wireframe
+  // ══════════════════════════════════════════════════════════════════════════════
+
+  function siswaPickerHtml(pickerId) {
+    const opts = _roster.map(s =>
+      `<option value="${esc(s.id)}">${esc(s.nama)}</option>`
+    ).join('');
+    return `<div class="pai-sw-picker" style="margin-top:.35rem">
+  <div class="pai-sw-chips" style="display:flex;flex-wrap:wrap;gap:.3rem;
+    min-height:1.25rem;margin-bottom:.3rem"></div>
+  ${_roster.length
+    ? `<select class="pai-sw-sel" style="${inputCss('font-size:var(--fs-caption)')}">
+        <option value="">+ Pilih siswa</option>${opts}
+      </select>`
+    : `<span style="color:var(--text-secondary);font-size:var(--fs-caption)">
+        Belum ada siswa</span>`}
+</div>`;
+  }
+
+  function chipSiswaHtml(sid, nama) {
+    return `<span class="pai-sw-chip" data-sid="${esc(sid)}"
+      style="display:inline-flex;align-items:center;gap:.25rem;padding:.15rem .5rem;
+      border-radius:1rem;background:var(--gold);color:var(--text-on-gold,#000);
+      font-size:var(--fs-caption);cursor:pointer" title="Klik untuk hapus">
+      ${esc(nama)} ×</span>`;
+  }
+
+  function aspekRowHtml(idx) {
+    return `<div class="pai-aspek-row" data-aspek="${idx}"
+      style="border:1px solid var(--border-subtle,rgba(255,255,255,.12));
+      border-radius:.5rem;padding:.625rem .75rem;margin-bottom:.5rem">
+  <div style="display:flex;gap:.5rem;align-items:center;margin-bottom:.625rem">
+    <label style="font-size:var(--fs-caption);color:var(--text-secondary);
+      white-space:nowrap">Aspek ${idx + 1}:</label>
+    <input class="aspek-nama" type="text" placeholder="Nama aspek…"
+      style="${inputCss('flex:1')}">
+    <button type="button" class="btn-del-aspek"
+      style="background:transparent;border:none;cursor:pointer;font-size:.875rem;
+      color:var(--text-secondary);padding:.2rem .35rem;border-radius:.25rem;
+      opacity:.7" title="Hapus aspek">✕</button>
+  </div>
+  ${PREDIKAT_RUBRIK.map(p => `
+  <div class="pai-pred-block" style="padding:.5rem 0;
+    border-top:1px solid var(--border-subtle,rgba(255,255,255,.08))">
+    <div style="font-size:var(--fs-caption);font-weight:600;margin-bottom:.3rem">
+      ${esc(p.lbl)}</div>
+    <textarea class="predikat-desk predikat-desk-${esc(p.val)}" rows="2"
+      placeholder="Deskripsi deskriptor… (opsional)"
+      style="${inputCss('resize:vertical;font-size:var(--fs-caption)')}"></textarea>
+    <div style="font-size:var(--fs-caption);color:var(--text-secondary);
+      margin:.25rem 0 .1rem">Siswa:</div>
+    ${siswaPickerHtml(`aspek-${idx}-${p.val}`)}
+  </div>`).join('')}
+</div>`;
+  }
+
+  function checklistItemHtml(idx) {
+    return `<div class="pai-item-row" data-item="${idx}"
+      style="border:1px solid var(--border-subtle,rgba(255,255,255,.12));
+      border-radius:.5rem;padding:.5rem .75rem;margin-bottom:.375rem">
+  <div style="display:flex;gap:.5rem;align-items:center;margin-bottom:.375rem">
+    <label style="font-size:var(--fs-caption);color:var(--text-secondary);
+      white-space:nowrap">Item ${idx + 1}:</label>
+    <input class="item-nama" type="text" placeholder="Deskripsi item…"
+      style="${inputCss('flex:1')}">
+    <button type="button" class="btn-del-item"
+      style="background:transparent;border:none;cursor:pointer;font-size:.875rem;
+      color:var(--text-secondary);padding:.2rem .35rem;border-radius:.25rem;
+      opacity:.7" title="Hapus item">✕</button>
+  </div>
+  <div style="font-size:var(--fs-caption);color:var(--text-secondary);
+    margin-bottom:.1rem">Siswa yang memenuhi:</div>
+  ${siswaPickerHtml(`item-${idx}`)}
+</div>`;
+  }
+
+  function observasiAspekHtml(idx) {
+    return `<div class="pai-obs-aspek" data-aspek="${idx}"
+      style="border:1px solid var(--border-subtle,rgba(255,255,255,.12));
+      border-radius:.5rem;padding:.625rem .75rem;margin-bottom:.5rem">
+  <div style="display:flex;gap:.5rem;align-items:center;margin-bottom:.375rem">
+    <label style="font-size:var(--fs-caption);color:var(--text-secondary);
+      white-space:nowrap">Aspek ${idx + 1}:</label>
+    <input class="obs-aspek-nama" type="text" placeholder="Nama aspek observasi…"
+      style="${inputCss('flex:1')}">
+    <button type="button" class="btn-del-obs-aspek"
+      style="background:transparent;border:none;cursor:pointer;font-size:.875rem;
+      color:var(--text-secondary);padding:.2rem .35rem;border-radius:.25rem;
+      opacity:.7" title="Hapus aspek">✕</button>
+  </div>
+  <div style="margin-bottom:.375rem">
+    <div style="font-size:var(--fs-caption);color:var(--text-secondary);
+      margin-bottom:.2rem">Indikator (opsional):</div>
+    <input class="obs-indikator" type="text" placeholder="Tuliskan indikator…"
+      style="${inputCss()}">
+  </div>
+  ${TINGKAT_OBS.map(t => `
+  <div style="padding:.375rem 0;
+    border-top:1px solid var(--border-subtle,rgba(255,255,255,.08))">
+    <div style="font-size:var(--fs-caption);font-weight:600;margin-bottom:.25rem">
+      ${esc(t)}:</div>
+    ${siswaPickerHtml(`obs-${idx}-${t.replace(/\s/g, '_')}`)}
+  </div>`).join('')}
+</div>`;
+  }
+
+  function anekdotCatatanHtml(idx, modePerSiswa) {
+    const siswaOpts = _roster.map(s =>
+      `<option value="${esc(s.id)}">${esc(s.nama)}</option>`
+    ).join('');
+    return `<div class="pai-anekdot-row" data-catatan="${idx}"
+      style="border:1px solid var(--border-subtle,rgba(255,255,255,.12));
+      border-radius:.5rem;padding:.5rem .75rem;margin-bottom:.375rem">
+  <div style="display:flex;justify-content:space-between;align-items:center;
+    margin-bottom:.375rem">
+    <span style="font-size:var(--fs-caption);font-weight:600">
+      Catatan ${idx + 1}</span>
+    <button type="button" class="btn-del-catatan"
+      style="background:transparent;border:none;cursor:pointer;font-size:.875rem;
+      color:var(--text-secondary);padding:.2rem .35rem;border-radius:.25rem;
+      opacity:.7" title="Hapus catatan">✕</button>
+  </div>
+  ${modePerSiswa
+    ? `<div style="margin-bottom:.375rem">
+        ${fieldLbl('Siswa')}
+        <select class="anekdot-siswa-sel"
+          style="${inputCss('font-size:var(--fs-caption)')}">
+          <option value="">— Pilih siswa —</option>${siswaOpts}
+        </select>
+      </div>`
+    : `<div style="margin-bottom:.375rem">
+        <div style="font-size:var(--fs-caption);color:var(--text-secondary);
+          margin-bottom:.25rem">Siswa yang terlibat:</div>
+        ${siswaPickerHtml(`anekdot-${idx}-siswa`)}
+      </div>`}
+  <div style="margin-bottom:.375rem">
+    ${fieldLbl('Deskripsi kejadian')}
+    <textarea class="anekdot-deskripsi" rows="2" placeholder="Tuliskan kejadian…"
+      style="${inputCss('resize:vertical;font-size:var(--fs-caption)')}"></textarea>
+  </div>
+  <div>
+    ${fieldLbl('Interpretasi (opsional)')}
+    <textarea class="anekdot-interpretasi" rows="2"
+      placeholder="Tuliskan interpretasi opsional…"
+      style="${inputCss('resize:vertical;font-size:var(--fs-caption)')}"></textarea>
+  </div>
+</div>`;
+  }
+
+  function pgSoalHtml(idx) {
+    return `<div class="pai-pg-soal" data-soal="${idx}"
+      style="border:1px solid var(--border-subtle,rgba(255,255,255,.12));
+      border-radius:.5rem;padding:.5rem .75rem;margin-bottom:.375rem">
+  <div style="display:flex;justify-content:space-between;align-items:center;
+    margin-bottom:.375rem">
+    <span style="font-size:var(--fs-caption);font-weight:600">Soal ${idx + 1}</span>
+    <button type="button" class="btn-del-pg-soal"
+      style="background:transparent;border:none;cursor:pointer;font-size:.875rem;
+      color:var(--text-secondary);padding:.2rem .35rem;border-radius:.25rem;
+      opacity:.7" title="Hapus soal">✕</button>
+  </div>
+  <div style="margin-bottom:.375rem">
+    ${fieldLbl('Pertanyaan (opsional)')}
+    <textarea class="pg-pertanyaan" rows="2" placeholder="Tuliskan pertanyaan…"
+      style="${inputCss('resize:vertical;font-size:var(--fs-caption)')}"></textarea>
+  </div>
+  <div style="margin-bottom:.375rem">
+    ${fieldLbl('Kunci jawaban')}
+    <select class="pg-kunci" style="${inputCss('font-size:var(--fs-caption)')}">
+      ${['A','B','C','D'].map(k => `<option value="${k}">${k}</option>`).join('')}
+    </select>
+  </div>
+  <div style="margin-bottom:.25rem">
+    <div style="font-size:var(--fs-caption);color:var(--text-secondary);
+      margin-bottom:.2rem">Siswa menjawab benar:</div>
+    ${siswaPickerHtml(`pg-${idx}-benar`)}
+  </div>
+  <div>
+    <div style="font-size:var(--fs-caption);color:var(--text-secondary);
+      margin-bottom:.2rem">Siswa menjawab salah:</div>
+    ${siswaPickerHtml(`pg-${idx}-salah`)}
+  </div>
+</div>`;
+  }
+
+  function uraianSoalHtml(idx) {
+    const skorRows = _roster.map(s => `
+<div class="uraian-srow" data-sid="${esc(s.id)}"
+  style="display:flex;align-items:center;gap:.5rem;padding:.25rem 0">
+  <span style="flex:1;font-size:var(--fs-caption)">${esc(s.nama)}</span>
+  <input type="number" class="uraian-skor" min="0" placeholder="Skor"
+    style="${inputCss('width:5rem;font-size:var(--fs-caption);text-align:center')}">
+</div>`).join('');
+    return `<div class="pai-uraian-soal" data-soal="${idx}"
+      style="border:1px solid var(--border-subtle,rgba(255,255,255,.12));
+      border-radius:.5rem;padding:.5rem .75rem;margin-bottom:.375rem">
+  <div style="display:flex;justify-content:space-between;align-items:center;
+    margin-bottom:.375rem">
+    <span style="font-size:var(--fs-caption);font-weight:600">Soal ${idx + 1}</span>
+    <button type="button" class="btn-del-uraian-soal"
+      style="background:transparent;border:none;cursor:pointer;font-size:.875rem;
+      color:var(--text-secondary);padding:.2rem .35rem;border-radius:.25rem;
+      opacity:.7" title="Hapus soal">✕</button>
+  </div>
+  <div style="margin-bottom:.375rem">
+    ${fieldLbl('Pertanyaan (opsional)')}
+    <textarea class="uraian-pertanyaan" rows="2" placeholder="Tuliskan pertanyaan…"
+      style="${inputCss('resize:vertical;font-size:var(--fs-caption)')}"></textarea>
+  </div>
+  <div style="display:flex;gap:.5rem;margin-bottom:.375rem">
+    <div style="flex:0 0 8rem">
+      ${fieldLbl('Skor maksimal')}
+      <input type="number" class="uraian-skor-maks" min="0" value="10"
+        style="${inputCss('font-size:var(--fs-caption)')}">
+    </div>
+  </div>
+  <div style="margin-bottom:.375rem">
+    ${fieldLbl('Rubrik opsional')}
+    <textarea class="uraian-rubrik" rows="2"
+      placeholder="Tuliskan kriteria penilaian…"
+      style="${inputCss('resize:vertical;font-size:var(--fs-caption)')}"></textarea>
+  </div>
+  <div>
+    <div style="font-size:var(--fs-caption);color:var(--text-secondary);
+      margin-bottom:.25rem">Input skor per siswa:</div>
+    <div class="uraian-skor-rows">${skorRows}</div>
+  </div>
+</div>`;
+  }
+
+  function konteksPrefixHtml(teknik) {
+    if (teknik === 'PENUGASAN') return `
+<div style="margin-bottom:.5rem">
+  ${fieldLbl('Deskripsi tugas (opsional)')}
+  <textarea id="pai-konteks-1" rows="2" placeholder="Tuliskan deskripsi tugas…"
+    style="${inputCss('resize:vertical;font-size:var(--fs-caption)')}"></textarea>
+</div>`;
+    if (teknik === 'PROYEK') return `
+<div style="margin-bottom:.5rem">
+  ${fieldLbl('Nama proyek (opsional)')}
+  <input type="text" id="pai-konteks-1" placeholder="Tuliskan nama proyek…"
+    style="${inputCss()}">
+  <div style="margin-top:.375rem">
+    ${fieldLbl('Deskripsi (opsional)')}
+    <textarea id="pai-konteks-2" rows="2" placeholder="Tuliskan deskripsi proyek…"
+      style="${inputCss('resize:vertical;font-size:var(--fs-caption)')}"></textarea>
+  </div>
+</div>`;
+    if (teknik === 'PORTOFOLIO') return `
+<div style="margin-bottom:.5rem">
+  ${fieldLbl('Tema portofolio (opsional)')}
+  <input type="text" id="pai-konteks-1" placeholder="Tuliskan tema…"
+    style="${inputCss()}">
+  <div style="margin-top:.375rem">
+    ${fieldLbl('Periode (opsional)')}
+    <input type="text" id="pai-konteks-2" placeholder="Tuliskan periode…"
+      style="${inputCss()}">
+  </div>
+</div>`;
+    if (teknik === 'UNJUK_KERJA') return `
+<div style="margin-bottom:.5rem">
+  ${fieldLbl('Deskripsi unjuk kerja (opsional)')}
+  <textarea id="pai-konteks-1" rows="2" placeholder="Tuliskan deskripsi…"
+    style="${inputCss('resize:vertical;font-size:var(--fs-caption)')}"></textarea>
+</div>`;
+    return '';
+  }
+
+  function addBtnHtml(cls, label) {
+    return `<button type="button" class="${esc(cls)}"
+      style="margin-top:.5rem;font-size:var(--fs-caption);background:transparent;
+      border:1.5px dashed var(--border-subtle,rgba(255,255,255,.3));
+      color:var(--text-secondary);border-radius:.375rem;cursor:pointer;
+      padding:.35rem .75rem;width:100%">${esc(label)}</button>`;
+  }
+
+  function renderBodyInstrumen(teknik, instrumen, container) {
+    if (!container) return;
+    let inner = '';
+
+    if (teknik === 'OBSERVASI') {
+      if (instrumen === 'Lembar Observasi') {
+        inner = `<div id="pai-obs-aspeks">${observasiAspekHtml(0)}</div>
+${addBtnHtml('btn-tambah-obs-aspek', '+ Tambah aspek observasi')}`;
+      } else if (instrumen === 'Catatan Anekdot') {
+        inner = `<div style="margin-bottom:.5rem">
+  ${fieldLbl('Mode')}
+  <select id="pai-anekdot-mode" style="${inputCss()}">
+    <option value="per_siswa">Per Siswa</option>
+    <option value="per_kejadian">Per Kejadian</option>
+  </select>
+</div>
+<div id="pai-anekdot-rows">${anekdotCatatanHtml(0, true)}</div>
+${addBtnHtml('btn-tambah-catatan', '+ Tambah catatan')}`;
+      } else if (instrumen === 'Checklist') {
+        inner = `<div id="pai-cl-items">${checklistItemHtml(0)}</div>
+${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
+      }
+    } else if (teknik === 'TES') {
+      if (instrumen === 'Pilihan Ganda') {
+        inner = `<div style="display:flex;gap:.75rem;margin-bottom:.5rem">
+  <div style="flex:1">
+    ${fieldLbl('Jumlah soal')}
+    <input type="number" id="pai-pg-jml" min="1" value="1" style="${inputCss()}">
+  </div>
+  <div style="flex:1">
+    ${fieldLbl('Bobot per soal')}
+    <select id="pai-pg-bobot" style="${inputCss()}">
+      <option value="sama_rata">Sama rata</option>
+      <option value="custom">Custom</option>
+    </select>
+  </div>
+</div>
+<div id="pai-pg-soals">${pgSoalHtml(0)}</div>
+${addBtnHtml('btn-tambah-pg-soal', '+ Tambah soal')}
+<div style="font-size:var(--fs-caption);color:var(--text-secondary);
+  margin-top:.375rem">Rekap skor dihitung otomatis</div>`;
+      } else if (instrumen === 'Uraian') {
+        inner = `<div id="pai-uraian-soals">${uraianSoalHtml(0)}</div>
+${addBtnHtml('btn-tambah-uraian-soal', '+ Tambah soal')}
+<div style="font-size:var(--fs-caption);color:var(--text-secondary);
+  margin-top:.375rem">Total skor dihitung otomatis</div>`;
+      } else if (instrumen === 'Campuran') {
+        inner = `<div style="font-size:var(--fs-ui);font-weight:600;
+  margin-bottom:.5rem">Bagian A — Pilihan Ganda</div>
+<div style="display:flex;gap:.75rem;margin-bottom:.5rem">
+  <div style="flex:1">
+    ${fieldLbl('Jumlah soal PG')}
+    <input type="number" id="pai-mix-pg-jml" min="1" value="1" style="${inputCss()}">
+  </div>
+  <div style="flex:1">
+    ${fieldLbl('Bobot bagian (%)')}
+    <input type="number" id="pai-mix-pg-bobot" min="0" max="100" value="60"
+      style="${inputCss()}">
+  </div>
+</div>
+<div id="pai-mix-pg-soals">${pgSoalHtml(0)}</div>
+${addBtnHtml('btn-tambah-mix-pg', '+ Tambah soal PG')}
+<div style="font-size:var(--fs-ui);font-weight:600;margin:.75rem 0 .5rem">
+  Bagian B — Uraian</div>
+<div style="display:flex;gap:.75rem;margin-bottom:.5rem">
+  <div style="flex:1">
+    ${fieldLbl('Jumlah soal Uraian')}
+    <input type="number" id="pai-mix-ur-jml" min="1" value="1" style="${inputCss()}">
+  </div>
+  <div style="flex:1">
+    ${fieldLbl('Bobot bagian (%)')}
+    <input type="number" id="pai-mix-ur-bobot" min="0" max="100" value="40"
+      style="${inputCss()}">
+  </div>
+</div>
+<div id="pai-mix-ur-soals">${uraianSoalHtml(0)}</div>
+${addBtnHtml('btn-tambah-mix-ur', '+ Tambah soal uraian')}
+<div style="font-size:var(--fs-caption);color:var(--text-secondary);margin-top:.5rem">
+  Total bobot: 100%. Skor akhir dihitung otomatis.</div>`;
+      }
+    } else if (['PENUGASAN','PROYEK','PORTOFOLIO','UNJUK_KERJA'].includes(teknik)) {
+      const prefix = konteksPrefixHtml(teknik);
+      if (instrumen === 'Rubrik') {
+        inner = `${prefix}
+<div id="pai-rubrik-aspeks">${aspekRowHtml(0)}</div>
+${addBtnHtml('btn-tambah-aspek', '+ Tambah aspek')}`;
+      } else if (instrumen === 'Checklist') {
+        inner = `${prefix}
+<div id="pai-cl-items">${checklistItemHtml(0)}</div>
+${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
+      }
+    }
+
+    container.innerHTML = inner
+      ? `<div style="background:var(--bg-elevated,rgba(255,255,255,.04));
+          border-radius:.5rem;padding:.75rem">
+          <div style="font-size:var(--fs-caption);font-weight:700;color:var(--gold);
+            text-transform:uppercase;letter-spacing:.07em;margin-bottom:.5rem">
+            Body Instrumen</div>
+          ${inner}</div>`
+      : '';
+  }
+
+  function wireBodyInstrumen(container) {
+    if (!container) return;
+
+    container.addEventListener('change', e => {
+      // Siswa picker: pilih siswa → tambah chip
+      if (e.target.classList.contains('pai-sw-sel')) {
+        const sid    = e.target.value;
+        if (!sid) return;
+        const picker = e.target.closest('.pai-sw-picker');
+        if (!picker) return;
+        if (picker.querySelector(`.pai-sw-chip[data-sid="${sid}"]`)) {
+          e.target.value = '';
+          return;
+        }
+        const stu = _roster.find(r => r.id === sid);
+        if (!stu) return;
+        picker.querySelector('.pai-sw-chips')
+          ?.insertAdjacentHTML('beforeend', chipSiswaHtml(sid, stu.nama));
+        const opt = e.target.querySelector(`option[value="${sid}"]`);
+        if (opt) opt.style.display = 'none';
+        e.target.value = '';
+        return;
+      }
+
+      // Anekdot mode toggle → re-render catatan rows
+      if (e.target.id === 'pai-anekdot-mode') {
+        const modePerSiswa = e.target.value === 'per_siswa';
+        const rowsDiv = container.querySelector('#pai-anekdot-rows');
+        if (!rowsDiv) return;
+        const n = rowsDiv.querySelectorAll('.pai-anekdot-row').length || 1;
+        rowsDiv.innerHTML = Array.from({ length: n }, (_, i) =>
+          anekdotCatatanHtml(i, modePerSiswa)
+        ).join('');
+      }
+    });
+
+    container.addEventListener('click', e => {
+      // Chip siswa: klik → hapus
+      const chip = e.target.closest('.pai-sw-chip');
+      if (chip && container.contains(chip)) {
+        const sid    = chip.dataset.sid;
+        const picker = chip.closest('.pai-sw-picker');
+        if (picker) {
+          const opt = picker.querySelector(`.pai-sw-sel option[value="${sid}"]`);
+          if (opt) opt.style.display = '';
+        }
+        chip.remove();
+        return;
+      }
+
+      const tgt = e.target.closest('button');
+      if (!tgt) return;
+
+      if (tgt.classList.contains('btn-tambah-aspek')) {
+        const d = container.querySelector('#pai-rubrik-aspeks');
+        if (d) d.insertAdjacentHTML('beforeend',
+          aspekRowHtml(d.querySelectorAll('.pai-aspek-row').length));
+        return;
+      }
+      if (tgt.classList.contains('btn-del-aspek')) {
+        tgt.closest('.pai-aspek-row')?.remove(); return;
+      }
+      if (tgt.classList.contains('btn-tambah-item')) {
+        const d = container.querySelector('#pai-cl-items');
+        if (d) d.insertAdjacentHTML('beforeend',
+          checklistItemHtml(d.querySelectorAll('.pai-item-row').length));
+        return;
+      }
+      if (tgt.classList.contains('btn-del-item')) {
+        tgt.closest('.pai-item-row')?.remove(); return;
+      }
+      if (tgt.classList.contains('btn-tambah-obs-aspek')) {
+        const d = container.querySelector('#pai-obs-aspeks');
+        if (d) d.insertAdjacentHTML('beforeend',
+          observasiAspekHtml(d.querySelectorAll('.pai-obs-aspek').length));
+        return;
+      }
+      if (tgt.classList.contains('btn-del-obs-aspek')) {
+        tgt.closest('.pai-obs-aspek')?.remove(); return;
+      }
+      if (tgt.classList.contains('btn-tambah-catatan')) {
+        const d   = container.querySelector('#pai-anekdot-rows');
+        const mode = container.querySelector('#pai-anekdot-mode')?.value;
+        if (d) d.insertAdjacentHTML('beforeend',
+          anekdotCatatanHtml(d.querySelectorAll('.pai-anekdot-row').length,
+            !mode || mode === 'per_siswa'));
+        return;
+      }
+      if (tgt.classList.contains('btn-del-catatan')) {
+        tgt.closest('.pai-anekdot-row')?.remove(); return;
+      }
+      if (tgt.classList.contains('btn-tambah-pg-soal')) {
+        const d = container.querySelector('#pai-pg-soals');
+        if (d) d.insertAdjacentHTML('beforeend',
+          pgSoalHtml(d.querySelectorAll('.pai-pg-soal').length));
+        return;
+      }
+      if (tgt.classList.contains('btn-del-pg-soal')) {
+        tgt.closest('.pai-pg-soal')?.remove(); return;
+      }
+      if (tgt.classList.contains('btn-tambah-uraian-soal')) {
+        const d = container.querySelector('#pai-uraian-soals');
+        if (d) d.insertAdjacentHTML('beforeend',
+          uraianSoalHtml(d.querySelectorAll('.pai-uraian-soal').length));
+        return;
+      }
+      if (tgt.classList.contains('btn-del-uraian-soal')) {
+        tgt.closest('.pai-uraian-soal')?.remove(); return;
+      }
+      if (tgt.classList.contains('btn-tambah-mix-pg')) {
+        const d = container.querySelector('#pai-mix-pg-soals');
+        if (d) d.insertAdjacentHTML('beforeend',
+          pgSoalHtml(d.querySelectorAll('.pai-pg-soal').length));
+        return;
+      }
+      if (tgt.classList.contains('btn-tambah-mix-ur')) {
+        const d = container.querySelector('#pai-mix-ur-soals');
+        if (d) d.insertAdjacentHTML('beforeend',
+          uraianSoalHtml(d.querySelectorAll('.pai-uraian-soal').length));
+        return;
+      }
+    });
+  }
+
+  function collectBodyInstrumen(container, teknik, instrumen) {
+    if (!container || !teknik || !instrumen) return null;
+    const data = {};
+
+    function getSiswaOfPicker(pickerEl) {
+      return Array.from(pickerEl?.querySelectorAll('.pai-sw-chip') ?? [])
+        .map(c => c.dataset.sid).filter(Boolean);
+    }
+
+    if (teknik === 'OBSERVASI') {
+      if (instrumen === 'Lembar Observasi') {
+        data.aspeks = Array.from(container.querySelectorAll('.pai-obs-aspek')).map(a => {
+          const pickers = a.querySelectorAll('.pai-sw-picker');
+          return {
+            nama:          a.querySelector('.obs-aspek-nama')?.value.trim() || '',
+            indikator:     a.querySelector('.obs-indikator')?.value.trim()  || null,
+            terlihat_jelas: getSiswaOfPicker(pickers[0]),
+            terlihat:       getSiswaOfPicker(pickers[1]),
+            belum_terlihat: getSiswaOfPicker(pickers[2]),
+          };
+        });
+      } else if (instrumen === 'Catatan Anekdot') {
+        const mode = container.querySelector('#pai-anekdot-mode')?.value || 'per_siswa';
+        data.mode   = mode;
+        data.catatan = Array.from(container.querySelectorAll('.pai-anekdot-row')).map(r => ({
+          siswa: mode === 'per_siswa'
+            ? (r.querySelector('.anekdot-siswa-sel')?.value || null)
+            : getSiswaOfPicker(r.querySelector('.pai-sw-picker')),
+          deskripsi:    r.querySelector('.anekdot-deskripsi')?.value.trim()    || '',
+          interpretasi: r.querySelector('.anekdot-interpretasi')?.value.trim() || null,
+        }));
+      } else if (instrumen === 'Checklist') {
+        data.items = Array.from(container.querySelectorAll('.pai-item-row')).map(r => ({
+          nama:  r.querySelector('.item-nama')?.value.trim() || '',
+          siswa: getSiswaOfPicker(r.querySelector('.pai-sw-picker')),
+        }));
+      }
+    } else if (teknik === 'TES') {
+      if (instrumen === 'Pilihan Ganda') {
+        data.bobot = container.querySelector('#pai-pg-bobot')?.value || 'sama_rata';
+        data.soals = Array.from(container.querySelectorAll('#pai-pg-soals .pai-pg-soal'))
+          .map(s => {
+            const pickers = s.querySelectorAll('.pai-sw-picker');
+            return {
+              pertanyaan: s.querySelector('.pg-pertanyaan')?.value.trim() || null,
+              kunci:      s.querySelector('.pg-kunci')?.value || 'A',
+              benar:      getSiswaOfPicker(pickers[0]),
+              salah:      getSiswaOfPicker(pickers[1]),
+            };
+          });
+      } else if (instrumen === 'Uraian') {
+        data.soals = Array.from(container.querySelectorAll('#pai-uraian-soals .pai-uraian-soal'))
+          .map(s => ({
+            pertanyaan: s.querySelector('.uraian-pertanyaan')?.value.trim() || null,
+            skor_maks:  parseFloat(s.querySelector('.uraian-skor-maks')?.value) || 0,
+            rubrik:     s.querySelector('.uraian-rubrik')?.value.trim() || null,
+            skor_siswa: Array.from(s.querySelectorAll('.uraian-srow'))
+              .map(r => ({ sid: r.dataset.sid, skor: parseFloat(r.querySelector('.uraian-skor')?.value) || null }))
+              .filter(x => x.skor !== null),
+          }));
+      } else if (instrumen === 'Campuran') {
+        data.pg_bobot = parseInt(container.querySelector('#pai-mix-pg-bobot')?.value) || 60;
+        data.ur_bobot = parseInt(container.querySelector('#pai-mix-ur-bobot')?.value) || 40;
+        data.pg_soals = Array.from(container.querySelectorAll('#pai-mix-pg-soals .pai-pg-soal'))
+          .map(s => {
+            const pickers = s.querySelectorAll('.pai-sw-picker');
+            return {
+              pertanyaan: s.querySelector('.pg-pertanyaan')?.value.trim() || null,
+              kunci:      s.querySelector('.pg-kunci')?.value || 'A',
+              benar:      getSiswaOfPicker(pickers[0]),
+              salah:      getSiswaOfPicker(pickers[1]),
+            };
+          });
+        data.ur_soals = Array.from(container.querySelectorAll('#pai-mix-ur-soals .pai-uraian-soal'))
+          .map(s => ({
+            pertanyaan: s.querySelector('.uraian-pertanyaan')?.value.trim() || null,
+            skor_maks:  parseFloat(s.querySelector('.uraian-skor-maks')?.value) || 0,
+            skor_siswa: Array.from(s.querySelectorAll('.uraian-srow'))
+              .map(r => ({ sid: r.dataset.sid, skor: parseFloat(r.querySelector('.uraian-skor')?.value) || null }))
+              .filter(x => x.skor !== null),
+          }));
+      }
+    } else if (['PENUGASAN','PROYEK','PORTOFOLIO','UNJUK_KERJA'].includes(teknik)) {
+      data.konteks1 = container.querySelector('#pai-konteks-1')?.value.trim() || null;
+      data.konteks2 = container.querySelector('#pai-konteks-2')?.value.trim() || null;
+      if (instrumen === 'Rubrik') {
+        data.aspeks = Array.from(container.querySelectorAll('.pai-aspek-row')).map(a => ({
+          nama: a.querySelector('.aspek-nama')?.value.trim() || '',
+          predikat: PREDIKAT_RUBRIK.map((p, i) => ({
+            val:      p.val,
+            label:    p.lbl,
+            deskripsi: a.querySelector(`.predikat-desk-${p.val}`)?.value.trim() || null,
+            siswa:    getSiswaOfPicker(a.querySelectorAll('.pai-sw-picker')[i]),
+          })),
+        }));
+      } else if (instrumen === 'Checklist') {
+        data.items = Array.from(container.querySelectorAll('.pai-item-row')).map(r => ({
+          nama:  r.querySelector('.item-nama')?.value.trim() || '',
+          siswa: getSiswaOfPicker(r.querySelector('.pai-sw-picker')),
+        }));
+      }
+    }
+
+    return Object.keys(data).length ? data : null;
+  }
+
   // ── buildResultPayload — ekstrak payload per-siswa dari DOM row ──────────────
   function buildResultPayload(srow, jenis, kktpItems) {
     const payload = {};
@@ -655,8 +1274,9 @@
       if (st) payload.grup_diferensiasi = STATUS_GRUP[st];
     } else if (jenis === 'FORMATIF') {
       const chips = srow.querySelector('.stu-status-chips');
-      payload.status      = chips ? chipVal(chips) : null;
-      payload.umpan_balik = srow.querySelector('.stu-umpan-balik')?.value.trim() || null;
+      payload.status        = chips ? chipVal(chips) : null;
+      payload.umpan_balik   = srow.querySelector('.stu-umpan-balik')?.value.trim()   || null;
+      payload.tindak_lanjut = srow.querySelector('.stu-tindak-lanjut')?.value.trim() || null;
     } else {
       const raw = srow.querySelector('.stu-nilai')?.value;
       const val = raw !== '' ? parseFloat(raw) : null;
@@ -668,11 +1288,13 @@
     return payload;
   }
 
-  // ── openAsmtCreateModal — modal tambah lengkap (siswa + input per siswa) ─────
+  // ── openAsmtCreateModal — modal tambah penilaian (42 pola wireframe) ─────────
   function openAsmtCreateModal() {
     const tpOpts    = _tpList.filter(t => t.tipe === 'TP');
     const hasGroups = Object.keys(_sGroups).length > 0;
-    let selJenis    = 'FORMATIF';
+    let selJenis     = 'FORMATIF';
+    let selTeknik    = '';
+    let selInstrumen = '';
 
     const jenisChips = ['DIAGNOSTIK', 'FORMATIF', 'SUMATIF']
       .map(j => chipHtml(j, JENIS_LBL[j], selJenis === j)).join('');
@@ -723,6 +1345,12 @@
 </div>
 <div style="display:flex;flex-direction:column;gap:.875rem">
   <div>
+    ${fieldLbl('Tujuan penilaian')}
+    <textarea id="asmt-tujuan" rows="2"
+      style="${inputCss('resize:vertical')}"
+      placeholder="Apa yang ingin diketahui/dipantau?"></textarea>
+  </div>
+  <div>
     ${fieldLbl('TP yang dinilai')}
     <select id="asmt-tp-sel" style="${inputCss()}">${tpOptHtml}</select>
   </div>
@@ -740,8 +1368,11 @@
       <option value="">— Pilih —</option>
     </select>
   </div>
+  <div id="asmt-body-instr-wrap" class="pai-body-instr-wrap"></div>
   <div>
-    ${fieldLbl('Siswa yang dinilai')}
+    <div style="font-size:var(--fs-caption);font-weight:700;color:var(--gold);
+      text-transform:uppercase;letter-spacing:.07em;margin-bottom:.375rem">
+      Output per Siswa</div>
     <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.5rem">
       <button type="button" id="asmt-pilih-semua"
         style="padding:.25rem .65rem;border-radius:1rem;font-size:var(--fs-caption);cursor:pointer;
@@ -758,8 +1389,8 @@
     </div>
   </div>
   <div id="asmt-per-siswa-wrap" style="display:none">
-    <div style="font-size:var(--fs-caption);font-weight:700;color:var(--gold);
-      text-transform:uppercase;letter-spacing:.07em;margin-bottom:.5rem">Input per Siswa</div>
+    <div style="font-size:var(--fs-caption);color:var(--text-secondary);
+      margin-bottom:.5rem">Input nilai/status per siswa:</div>
     <div id="asmt-per-siswa-rows"></div>
   </div>
   <div>
@@ -776,11 +1407,14 @@
     <button id="btn-asmt-save"
       style="padding:.5rem 1.25rem;background:var(--gold);
       color:var(--text-on-gold,#000);border:none;border-radius:.375rem;
-      font-weight:600;cursor:pointer">Buat Penilaian</button>
+      font-weight:600;cursor:pointer">Simpan Penilaian</button>
   </div>
   <div id="asmt-err"
     style="color:#e74c3c;font-size:var(--fs-caption);display:none"></div>
 </div>`;
+
+    const bodyInstrWrap = el('asmt-body-instr-wrap');
+    wireBodyInstrumen(bodyInstrWrap);
 
     // ── Wire Jenis chips ─────────────────────────────────────────────────
     const jenisEl = el('pai-modal-box').querySelector('#asmt-jenis-chips');
@@ -789,22 +1423,28 @@
       refreshPerSiswa(getSelSids());
     });
 
-    // ── Wire Teknik cascade ──────────────────────────────────────────────
+    // ── Wire Teknik cascade → instrumen → body instrumen ─────────────────
     el('asmt-teknik-sel').addEventListener('change', function () {
-      const teknik   = this.value;
-      const opts     = teknik ? (INSTRUMEN_MAP[teknik] || []) : [];
+      selTeknik    = this.value;
+      selInstrumen = '';
+      const opts     = selTeknik ? (INSTRUMEN_MAP[selTeknik] || []) : [];
       const instrRow = el('asmt-instr-row');
       const instrSel = el('asmt-instr-sel');
       if (opts.length) {
         instrSel.innerHTML = `<option value="">— Pilih —</option>` +
           opts.map(i => `<option value="${i}">${i}</option>`).join('');
         instrRow.style.display = '';
+        instrSel.onchange = function () {
+          selInstrumen = this.value;
+          renderBodyInstrumen(selTeknik, selInstrumen, bodyInstrWrap);
+        };
       } else {
         instrRow.style.display = 'none';
       }
+      renderBodyInstrumen(selTeknik, '', bodyInstrWrap);
     });
 
-    // ── Wire TP change (KKTP bisa berubah per TP) ───────────────────────
+    // ── Wire TP change ───────────────────────────────────────────────────
     el('asmt-tp-sel').addEventListener('change', () => {
       const sids = getSelSids();
       if (sids.length) refreshPerSiswa(sids);
@@ -869,11 +1509,14 @@
         errEl.style.display = '';
         return;
       }
+      const instrBody  = collectBodyInstrumen(bodyInstrWrap, selTeknik, selInstrumen);
       const payload = {
         tp_kktp_id:    el('asmt-tp-sel').value || null,
         jenis:         selJenis,
-        teknik:        el('asmt-teknik-sel').value || null,
-        instrumen:     el('asmt-instr-sel')?.value || null,
+        teknik:        selTeknik || null,
+        instrumen:     selInstrumen || null,
+        tujuan:        el('asmt-tujuan').value.trim() || null,
+        konten:        instrBody ? JSON.stringify(instrBody) : null,
         refleksi_guru: el('asmt-refleksi').value.trim() || null,
       };
       el('btn-asmt-save').disabled = true;
@@ -1006,14 +1649,17 @@ ${!_roster.length
   ${grup ? `Grup: <strong>${grup}</strong>` : 'Grup ditetapkan otomatis dari status'}
 </div>`;
     } else if (jenis === 'FORMATIF') {
-      const stChips = ['PAHAM', 'BELUM_PAHAM', 'PERLU_PERHATIAN']
-        .map(s => chipHtml(s, STATUS_LBL[s], res.status === s)).join('');
+      const stChips = ['TERCAPAI', 'BERKEMBANG', 'PERLU_DUKUNGAN']
+        .map(s => chipHtml(s, STATUS_FORMATIF_LBL[s], res.status === s)).join('');
       inputs = `
 <div class="stu-status-chips" style="display:flex;flex-wrap:wrap;gap:.35rem;margin-bottom:.4rem">
   ${stChips}
 </div>
 <input type="text" class="stu-umpan-balik" placeholder="Umpan balik… (opsional)"
   value="${esc(res.umpan_balik ?? '')}"
+  style="${inputCss('font-size:var(--fs-caption);margin-top:.25rem')}">
+<input type="text" class="stu-tindak-lanjut" placeholder="Tindak lanjut… (opsional)"
+  value="${esc(res.tindak_lanjut ?? '')}"
   style="${inputCss('font-size:var(--fs-caption);margin-top:.25rem')}">`;
     } else {
       const kktp     = kktpItems.find(k => k.batas_bawah != null);
