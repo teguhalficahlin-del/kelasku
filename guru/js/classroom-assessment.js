@@ -54,7 +54,9 @@
   ];
 
   function teknikLbl(t) {
-    return t ? t.split('_').map(w => w.charAt(0) + w.slice(1).toLowerCase()).join(' ') : '';
+    if (!t) return '';
+    if (t === 'TES') return 'Tes Tertulis';
+    return t.split('_').map(w => w.charAt(0) + w.slice(1).toLowerCase()).join(' ');
   }
 
   // ─── Micro-helpers ──────────────────────────────────────────────────────────
@@ -1458,9 +1460,8 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
 
   // ── openAsmtCreateModal — modal tambah penilaian (42 pola wireframe) ─────────
   function openAsmtCreateModal() {
-    const isWali    = _roleGuru === 'WALI_KELAS_SD';
-    const hasGroups = Object.keys(_sGroups).length > 0;
-    let selJenis     = 'FORMATIF';
+    const isWali = _roleGuru === 'WALI_KELAS_SD';
+    let selJenis  = 'FORMATIF';
     let selTeknik    = '';
     let selInstrumen = '';
     let selMapel     = MAPEL_SD[0]; // hanya dipakai jika isWali
@@ -1482,34 +1483,6 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
     const teknikOptHtml = ['', 'OBSERVASI', 'TES', 'PENUGASAN', 'PROYEK', 'PORTOFOLIO', 'UNJUK_KERJA', 'TES_LISAN']
       .map(t => `<option value="${t}">${t ? teknikLbl(t) : '— Teknik (opsional) —'}</option>`)
       .join('');
-
-    const grupBtns = hasGroups
-      ? ['A', 'B', 'C'].map(g =>
-          `<button type="button" data-filter-grup="${g}"
-            style="padding:.25rem .65rem;border-radius:1rem;font-size:var(--fs-caption);cursor:pointer;
-            border:1.5px solid var(--border-subtle,rgba(255,255,255,.18));
-            color:var(--text-secondary);background:transparent">Grup ${g}</button>`
-        ).join('')
-      : '';
-
-    const studentListHtml = _roster.length
-      ? _roster.map(s => {
-          const g     = _sGroups[s.id] ?? '';
-          const badge = g
-            ? `<span style="font-size:.65rem;padding:.1rem .4rem;border-radius:.25rem;
-                background:var(--gold);color:var(--text-on-gold,#000);font-weight:700">${g}</span>`
-            : '';
-          return `
-<label style="display:flex;align-items:center;gap:.5rem;padding:.3rem 0;cursor:pointer"
-  data-grup="${g}">
-  <input type="checkbox" class="asmt-stu-chk" data-sid="${s.id}"
-    style="width:1rem;height:1rem;cursor:pointer">
-  <span style="font-size:var(--fs-ui)">${esc(s.nama)}</span>
-  ${badge}
-</label>`;
-        }).join('')
-      : `<p style="color:var(--text-secondary);font-size:var(--fs-caption);margin:.25rem 0">
-          Belum ada siswa di kelas ini.</p>`;
 
     const mapelChipsHtml = isWali
       ? `<div>
@@ -1557,29 +1530,41 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
   </div>
   <div id="asmt-body-instr-wrap" class="pai-body-instr-wrap"></div>
   <div id="asmt-output-wrap" style="${selJenis === 'SUMATIF' ? '' : 'display:none'}">
-    <div>
-      <div style="font-size:var(--fs-caption);font-weight:700;color:var(--gold);
-        text-transform:uppercase;letter-spacing:.07em;margin-bottom:.375rem">
-        Output per Siswa</div>
-      <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.5rem">
-        <button type="button" id="asmt-pilih-semua"
-          style="padding:.25rem .65rem;border-radius:1rem;font-size:var(--fs-caption);cursor:pointer;
-          border:1.5px solid var(--gold);background:var(--gold);color:var(--text-on-gold,#000)">
-          Pilih Semua
-        </button>
-        ${grupBtns}
-      </div>
-      <div id="asmt-student-list"
-        style="max-height:10rem;overflow-y:auto;
-        border:1px solid var(--border-subtle,rgba(255,255,255,.18));
-        border-radius:.375rem;padding:.375rem .625rem">
-        ${studentListHtml}
-      </div>
+    <div style="font-size:var(--fs-caption);font-weight:700;color:var(--gold);
+      text-transform:uppercase;letter-spacing:.07em;margin-bottom:.5rem">Catat Nilai</div>
+    <div id="asmt-sum-names" style="display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:.375rem"></div>
+    <div id="asmt-sum-nav"
+      style="display:none;align-items:center;gap:.5rem;margin-bottom:.375rem">
+      <button type="button" id="asmt-sum-prev"
+        style="background:transparent;border:1px solid var(--border-subtle,rgba(255,255,255,.18));
+        color:var(--text-secondary);border-radius:.3rem;padding:.15rem .5rem;cursor:pointer;
+        font-size:var(--fs-caption)">←</button>
+      <span id="asmt-sum-page-lbl"
+        style="font-size:var(--fs-caption);color:var(--text-secondary)"></span>
+      <button type="button" id="asmt-sum-next"
+        style="background:transparent;border:1px solid var(--border-subtle,rgba(255,255,255,.18));
+        color:var(--text-secondary);border-radius:.3rem;padding:.15rem .5rem;cursor:pointer;
+        font-size:var(--fs-caption)">→</button>
     </div>
-    <div id="asmt-per-siswa-wrap" style="display:none">
-      <div style="font-size:var(--fs-caption);color:var(--text-secondary);
-        margin-bottom:.5rem">Input nilai/status per siswa:</div>
-      <div id="asmt-per-siswa-rows"></div>
+    <div id="asmt-sum-dots"
+      style="display:flex;gap:.35rem;margin-bottom:.625rem;min-height:.625rem"></div>
+    <div id="asmt-sum-input"
+      style="display:none;border:1px solid var(--border-subtle,rgba(255,255,255,.18));
+      border-radius:.4rem;padding:.625rem .75rem">
+      <div id="asmt-sum-nama"
+        style="font-size:var(--fs-ui);font-weight:600;margin-bottom:.5rem"></div>
+      <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.375rem">
+        <input type="number" id="asmt-sum-nilai" min="0" max="100" step="0.5"
+          placeholder="Nilai 0–100"
+          style="${inputCss('width:7rem;font-size:var(--fs-caption)')}">
+        <span id="asmt-sum-kktp"
+          style="font-size:var(--fs-caption);color:var(--text-secondary)"></span>
+      </div>
+      <div style="font-size:var(--fs-caption);color:var(--text-secondary);margin-bottom:.25rem">
+        Tindak lanjut:</div>
+      <div id="asmt-sum-tl" style="display:flex;flex-wrap:wrap;gap:.35rem">
+        ${['Pengayaan','Penguatan','Pendampingan'].map(tl => chipHtml(tl, tl, false)).join('')}
+      </div>
     </div>
   </div>
   <div>
@@ -1619,11 +1604,11 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
       const outputWrap = el('asmt-output-wrap');
       if (selJenis === 'SUMATIF') {
         if (outputWrap) outputWrap.style.display = '';
-        refreshPerSiswa(getSelSids());
+        if (selTeknik === 'TES') bodyInstrWrap.innerHTML = '';
+        renderSumPage();
       } else {
         if (outputWrap) outputWrap.style.display = 'none';
-        const perSiswaWrap = el('asmt-per-siswa-wrap');
-        if (perSiswaWrap) perSiswaWrap.style.display = 'none';
+        if (selTeknik === 'TES') renderBodyInstrumen(selTeknik, selInstrumen, bodyInstrWrap);
       }
     });
 
@@ -1640,95 +1625,147 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
         instrRow.style.display = '';
         instrSel.onchange = function () {
           selInstrumen = this.value;
-          renderBodyInstrumen(selTeknik, selInstrumen, bodyInstrWrap);
+          if (!(selJenis === 'SUMATIF' && selTeknik === 'TES'))
+            renderBodyInstrumen(selTeknik, selInstrumen, bodyInstrWrap);
         };
       } else {
         instrRow.style.display = 'none';
       }
-      renderBodyInstrumen(selTeknik, '', bodyInstrWrap);
+      if (selJenis === 'SUMATIF' && selTeknik === 'TES') {
+        bodyInstrWrap.innerHTML = '';
+      } else {
+        renderBodyInstrumen(selTeknik, '', bodyInstrWrap);
+      }
     });
 
-    // ── Wire TP change ───────────────────────────────────────────────────
-    el('asmt-tp-sel').addEventListener('change', () => {
-      const sids = getSelSids();
-      if (sids.length) refreshPerSiswa(sids);
-    });
+    // ── SUMATIF pagination state ─────────────────────────────────────────
+    const PAGE_SIZE   = 5;
+    let _sumPage      = 0;
+    let _sumActiveSid = null;
+    const _sumNilai   = {};
 
-    // ── Wire Pilih Semua ─────────────────────────────────────────────────
-    el('asmt-pilih-semua').addEventListener('click', () => {
-      el('asmt-student-list').querySelectorAll('.asmt-stu-chk')
-        .forEach(chk => { chk.checked = true; });
-      refreshPerSiswa(getSelSids());
-    });
-
-    // ── Wire Grup filter ─────────────────────────────────────────────────
-    el('pai-modal-box').querySelectorAll('[data-filter-grup]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const g = btn.dataset.filterGrup;
-        el('asmt-student-list').querySelectorAll('.asmt-stu-chk').forEach(chk => {
-          chk.checked = chk.closest('label')?.dataset.grup === g;
-        });
-        refreshPerSiswa(getSelSids());
-      });
-    });
-
-    // ── Wire checklist ───────────────────────────────────────────────────
-    el('asmt-student-list').addEventListener('change', e => {
-      if (e.target.classList.contains('asmt-stu-chk')) refreshPerSiswa(getSelSids());
-    });
-
-    // ── KKTP live update di tambah penilaian ────────────────────────────
-    el('asmt-per-siswa-wrap').addEventListener('input', e => {
-      if (!e.target.classList.contains('stu-nilai')) return;
-      const kktp = getKktpItems()[0];
-      if (!kktp) return;
-      const val     = parseFloat(e.target.value);
-      const stat    = e.target.closest('.pai-srow')?.querySelector('.stu-kktp-stat');
-      if (!stat) return;
-      const rentang = getRentang(kktp);
-      const n       = isNaN(val) || e.target.value === '' ? null : val;
-      stat.textContent = kktpStatText(n, rentang);
-      stat.style.color  = kktpStatColor(n, rentang);
-    });
-
-    // ── Helpers ──────────────────────────────────────────────────────────
-    function getSelSids() {
-      return Array.from(
-        el('asmt-student-list').querySelectorAll('.asmt-stu-chk:checked')
-      ).map(chk => chk.dataset.sid);
+    function flushSumActive() {
+      if (!_sumActiveSid) return;
+      const nilaiEl = el('asmt-sum-nilai');
+      const tlEl    = el('asmt-sum-tl');
+      const raw     = nilaiEl?.value;
+      const n       = raw !== '' && raw != null ? parseFloat(raw) : null;
+      _sumNilai[_sumActiveSid] = {
+        nilai: isNaN(n) ? null : n,
+        tl:    tlEl ? chipVal(tlEl) : null,
+      };
     }
 
+    function renderSumInput() {
+      const inputEl = el('asmt-sum-input');
+      if (!_sumActiveSid) { if (inputEl) inputEl.style.display = 'none'; return; }
+      const stu     = _roster.find(r => r.id === _sumActiveSid);
+      const vals    = _sumNilai[_sumActiveSid] ?? {};
+      const kktp    = getKktpItems()[0];
+      const rentang = kktp ? getRentang(kktp) : null;
+      el('asmt-sum-nama').textContent = stu?.nama ?? '';
+      el('asmt-sum-nilai').value      = vals.nilai != null ? String(vals.nilai) : '';
+      const kktpEl = el('asmt-sum-kktp');
+      kktpEl.textContent = kktp && vals.nilai != null ? kktpStatText(vals.nilai, rentang) : '';
+      kktpEl.style.color = kktp && vals.nilai != null
+        ? kktpStatColor(vals.nilai, rentang) : 'var(--text-secondary)';
+      el('asmt-sum-tl')?.querySelectorAll('.pai-chip').forEach(chip => {
+        const sel = chip.dataset.val === vals.tl;
+        chip.classList.toggle('pai-chip--sel', sel);
+        chip.style.background  = sel ? 'var(--gold)' : '';
+        chip.style.color       = sel ? 'var(--text-on-gold,#000)' : 'var(--text-secondary)';
+        chip.style.borderColor = sel ? 'var(--gold)' : 'var(--border-subtle,rgba(255,255,255,.18))';
+      });
+      if (inputEl) inputEl.style.display = '';
+    }
+
+    function renderSumPage() {
+      const names   = el('asmt-sum-names');
+      const nav     = el('asmt-sum-nav');
+      const pageLbl = el('asmt-sum-page-lbl');
+      const dots    = el('asmt-sum-dots');
+      if (!names) return;
+      const total = _roster.length;
+      const pages = Math.ceil(total / PAGE_SIZE) || 1;
+      _sumPage    = Math.max(0, Math.min(_sumPage, pages - 1));
+      const slice = _roster.slice(_sumPage * PAGE_SIZE, (_sumPage + 1) * PAGE_SIZE);
+      names.innerHTML = slice.map(s => {
+        const isAct  = s.id === _sumActiveSid;
+        const hasVal = _sumNilai[s.id]?.nilai != null;
+        return `<button type="button" data-sum-sid="${esc(s.id)}"
+          style="padding:.3rem .7rem;border-radius:1rem;font-size:var(--fs-caption);cursor:pointer;
+          border:1.5px solid ${isAct ? 'var(--gold)' : hasVal ? 'rgba(255,255,255,.4)' : 'var(--border-subtle,rgba(255,255,255,.18))'};
+          background:${isAct ? 'var(--gold)' : 'transparent'};
+          color:${isAct ? 'var(--text-on-gold,#000)' : hasVal ? 'var(--text-primary)' : 'var(--text-secondary)'}">
+          ${esc(s.nama)}${hasVal ? ' ✓' : ''}</button>`;
+      }).join('');
+      names.querySelectorAll('[data-sum-sid]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          flushSumActive();
+          _sumActiveSid = btn.dataset.sumSid;
+          renderSumPage();
+        });
+      });
+      if (pages > 1) {
+        nav.style.display = 'flex';
+        if (pageLbl) pageLbl.textContent = `halaman ${_sumPage + 1}/${pages}`;
+        const prevBtn = el('asmt-sum-prev');
+        const nextBtn = el('asmt-sum-next');
+        if (prevBtn) prevBtn.disabled = _sumPage === 0;
+        if (nextBtn) nextBtn.disabled = _sumPage === pages - 1;
+      } else {
+        nav.style.display = 'none';
+      }
+      if (dots) {
+        dots.innerHTML = pages > 1
+          ? Array.from({length: pages}, (_, i) =>
+              `<span style="width:.5rem;height:.5rem;border-radius:50%;display:inline-block;
+              background:${i === _sumPage ? 'var(--gold)' : 'var(--border-subtle,rgba(255,255,255,.3))'}"></span>`
+            ).join('')
+          : '';
+      }
+      if (_sumActiveSid && !slice.some(s => s.id === _sumActiveSid)) _sumActiveSid = null;
+      renderSumInput();
+    }
+
+    // ── Helpers ──────────────────────────────────────────────────────────
     function getKktpItems() {
       const tpId = el('asmt-tp-sel')?.value || null;
       return tpId ? _tpList.filter(t => t.parent_id === tpId && t.tipe === 'KKTP') : [];
     }
 
-    function refreshPerSiswa(sids) {
-      const wrap = el('asmt-per-siswa-wrap');
-      const rows = el('asmt-per-siswa-rows');
-      if (!wrap || !rows) return;
-      if (!sids.length) { wrap.style.display = 'none'; return; }
-      wrap.style.display = '';
-      const kktpItems = getKktpItems();
-      rows.innerHTML = sids
-        .map(sid => {
-          const stu = _roster.find(r => r.id === sid);
-          return stu ? studentRowHtml(stu, {}, selJenis, kktpItems) : '';
-        })
-        .join('');
-      rows.querySelectorAll('.stu-status-chips, .stu-tl-chips').forEach(c => wireChips(c, false));
-    }
+    // ── Wire TP change ───────────────────────────────────────────────────
+    el('asmt-tp-sel').addEventListener('change', () => { renderSumInput(); });
+
+    // ── Wire pagination buttons ──────────────────────────────────────────
+    el('asmt-sum-prev')?.addEventListener('click', () => {
+      flushSumActive(); _sumPage--; renderSumPage();
+    });
+    el('asmt-sum-next')?.addEventListener('click', () => {
+      flushSumActive(); _sumPage++; renderSumPage();
+    });
+
+    // ── Wire nilai input (KKTP live update) ─────────────────────────────
+    el('asmt-sum-nilai')?.addEventListener('input', function () {
+      const kktp   = getKktpItems()[0];
+      const kktpEl = el('asmt-sum-kktp');
+      if (!kktp || !kktpEl) return;
+      const n       = this.value === '' ? null : parseFloat(this.value);
+      const rentang = getRentang(kktp);
+      kktpEl.textContent = kktpStatText(n, rentang);
+      kktpEl.style.color  = kktpStatColor(n, rentang);
+    });
+
+    // ── Wire TL chips ────────────────────────────────────────────────────
+    wireChips(el('asmt-sum-tl'), false);
+
+    // ── Initial render ────────────────────────────────────────────────────
+    if (selJenis === 'SUMATIF') renderSumPage();
 
     // ── Save ─────────────────────────────────────────────────────────────
     el('btn-asmt-save').addEventListener('click', async () => {
-      const sids  = getSelSids();
-      const errEl = el('asmt-err');
-      if (!sids.length && selJenis === 'SUMATIF') {
-        errEl.textContent = 'Pilih minimal satu siswa';
-        errEl.style.display = '';
-        return;
-      }
-      const instrBody  = collectBodyInstrumen(bodyInstrWrap, selTeknik, selInstrumen);
+      const errEl     = el('asmt-err');
+      const instrBody = collectBodyInstrumen(bodyInstrWrap, selTeknik, selInstrumen);
       const payload = {
         tp_kktp_id:    el('asmt-tp-sel').value || null,
         jenis:         selJenis,
@@ -1744,19 +1781,31 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
         const row       = await SipApi.createAssessment(_cId, _tId, payload);
         const kktpItems = getKktpItems();
         _asmts.push(row);
-        const srows = el('pai-modal-box').querySelectorAll('.pai-srow');
-        for (const srow of srows) {
-          const sid        = srow.dataset.sid;
-          const resPayload = buildResultPayload(srow, selJenis, kktpItems);
-          if (selJenis === 'DIAGNOSTIK' && resPayload.grup_diferensiasi) {
-            try {
-              await SipApi.upsertStudentGroup(_cId, sid, resPayload.grup_diferensiasi);
-              _sGroups[sid] = resPayload.grup_diferensiasi;
-            } catch {}
+        if (selJenis === 'SUMATIF') {
+          flushSumActive();
+          for (const [sid, vals] of Object.entries(_sumNilai)) {
+            if (vals.nilai == null) continue;
+            const kktp       = kktpItems[0];
+            const resPayload = { nilai: vals.nilai, tindak_lanjut: vals.tl || null };
+            if (kktp) {
+              const p = getPredikat(vals.nilai, getRentang(kktp));
+              resPayload.kktp_tercapai = p === 'BSH' || p === 'SB';
+            }
+            try { await SipApi.upsertAssessmentResult(_cId, _tId, row.id, sid, resPayload); } catch {}
           }
-          try {
-            await SipApi.upsertAssessmentResult(_cId, _tId, row.id, sid, resPayload);
-          } catch {}
+        } else {
+          const srows = el('pai-modal-box').querySelectorAll('.pai-srow');
+          for (const srow of srows) {
+            const sid        = srow.dataset.sid;
+            const resPayload = buildResultPayload(srow, selJenis, kktpItems);
+            if (selJenis === 'DIAGNOSTIK' && resPayload.grup_diferensiasi) {
+              try {
+                await SipApi.upsertStudentGroup(_cId, sid, resPayload.grup_diferensiasi);
+                _sGroups[sid] = resPayload.grup_diferensiasi;
+              } catch {}
+            }
+            try { await SipApi.upsertAssessmentResult(_cId, _tId, row.id, sid, resPayload); } catch {}
+          }
         }
         closeModal();
         renderAsmtList();
