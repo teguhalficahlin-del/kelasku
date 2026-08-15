@@ -1411,6 +1411,7 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
           .map(s => ({
             pertanyaan: s.querySelector('.uraian-pertanyaan')?.value.trim() || null,
             skor_maks:  parseFloat(s.querySelector('.uraian-skor-maks')?.value) || 0,
+            rubrik:     s.querySelector('.uraian-rubrik')?.value.trim() || null,
             skor_siswa: Array.from(s.querySelectorAll('.uraian-srow'))
               .map(r => ({ sid: r.dataset.sid, skor: parseFloat(r.querySelector('.uraian-skor')?.value) || null }))
               .filter(x => x.skor !== null),
