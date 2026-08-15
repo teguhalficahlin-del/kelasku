@@ -2102,6 +2102,8 @@ ${!_roster.length
       tabPenilaian.classList.add('active');
       document.querySelectorAll('[id^="panel-"]').forEach(p => { p.style.display = 'none'; });
       panelPenilaian.style.display = '';
+      const _cId = new URLSearchParams(window.location.search).get('id');
+      if (_cId) try { localStorage.setItem('sip_tab_' + _cId, 'penilaian'); } catch (_) {}
 
       if (!_loaded) {
         const { data: { session } } = await client.auth.getSession();
