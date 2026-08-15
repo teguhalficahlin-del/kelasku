@@ -42,6 +42,10 @@
   ];
   const TINGKAT_OBS = ['Terlihat jelas', 'Terlihat', 'Belum terlihat'];
 
+  function teknikLbl(t) {
+    return t ? t.split('_').map(w => w.charAt(0) + w.slice(1).toLowerCase()).join(' ') : '';
+  }
+
   // ─── Micro-helpers ──────────────────────────────────────────────────────────
   function esc(s) {
     return String(s ?? '')
@@ -505,7 +509,7 @@
 
   function asmtRowHtml(a) {
     const tp      = _tpList.find(t => t.id === a.tp_kktp_id);
-    const teknik  = a.teknik ? a.teknik.replace(/_/g, ' ') : '';
+    const teknik  = teknikLbl(a.teknik);
     const title   = [teknik || JENIS_LBL[a.jenis], a.instrumen].filter(Boolean).join(' — ');
     return `
 <div style="border:1px solid var(--border-subtle,rgba(255,255,255,.12));
@@ -551,7 +555,7 @@
 
     const teknikOptHtml = ['', 'OBSERVASI', 'TES', 'PENUGASAN', 'PROYEK', 'PORTOFOLIO', 'UNJUK_KERJA']
       .map(t => `<option value="${t}"${selTeknik === t ? ' selected' : ''}>
-        ${t ? t.replace(/_/g, ' ') : '— Teknik (opsional) —'}</option>`)
+        ${t ? teknikLbl(t) : '— Teknik (opsional) —'}</option>`)
       .join('');
 
     const instrOpts = selTeknik ? (INSTRUMEN_MAP[selTeknik] || [])
@@ -1281,7 +1285,7 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
       const raw = srow.querySelector('.stu-nilai')?.value;
       const val = raw !== '' ? parseFloat(raw) : null;
       payload.nilai         = isNaN(val) ? null : val;
-      payload.tindak_lanjut = srow.querySelector('.stu-tl')?.value || null;
+      payload.tindak_lanjut = srow.querySelector('.stu-tl')?.value.trim() || null;
       const kktp = kktpItems.find(k => k.batas_bawah != null);
       if (kktp && val != null && !isNaN(val)) payload.kktp_tercapai = val >= kktp.batas_bawah;
     }
@@ -1305,7 +1309,7 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
     ].join('');
 
     const teknikOptHtml = ['', 'OBSERVASI', 'TES', 'PENUGASAN', 'PROYEK', 'PORTOFOLIO', 'UNJUK_KERJA']
-      .map(t => `<option value="${t}">${t ? t.replace(/_/g, ' ') : '— Teknik (opsional) —'}</option>`)
+      .map(t => `<option value="${t}">${t ? teknikLbl(t) : '— Teknik (opsional) —'}</option>`)
       .join('');
 
     const grupBtns = hasGroups
@@ -1473,6 +1477,25 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
       if (e.target.classList.contains('asmt-stu-chk')) refreshPerSiswa(getSelSids());
     });
 
+    // ── KKTP live update di tambah penilaian ────────────────────────────
+    el('asmt-per-siswa-wrap').addEventListener('input', e => {
+      if (!e.target.classList.contains('stu-nilai')) return;
+      const kktpItems = getKktpItems();
+      const kktp      = kktpItems.find(k => k.batas_bawah != null);
+      if (!kktp) return;
+      const val  = parseFloat(e.target.value);
+      const stat = e.target.closest('.pai-srow')?.querySelector('.stu-kktp-stat');
+      if (!stat) return;
+      if (isNaN(val) || e.target.value === '') {
+        stat.textContent = `KKTP — (≥${kktp.batas_bawah})`;
+        stat.style.color  = 'var(--text-secondary)';
+      } else {
+        const ok = val >= kktp.batas_bawah;
+        stat.textContent = `KKTP ${ok ? '✓ Tercapai' : '✗ Belum'} (≥${kktp.batas_bawah})`;
+        stat.style.color  = ok ? 'var(--success,#2d6a4f)' : '#c0392b';
+      }
+    });
+
     // ── Helpers ──────────────────────────────────────────────────────────
     function getSelSids() {
       return Array.from(
@@ -1616,6 +1639,26 @@ ${!_roster.length
 
     el('pai-modal-box')._resMap = resMap;
     buildStudentRows('all', asmt.jenis, kktpItems, resMap);
+
+    if (asmt.jenis === 'SUMATIF') {
+      const kktp = kktpItems.find(k => k.batas_bawah != null);
+      if (kktp) {
+        el('pai-srows')?.addEventListener('input', e => {
+          if (!e.target.classList.contains('stu-nilai')) return;
+          const val  = parseFloat(e.target.value);
+          const stat = e.target.closest('.pai-srow')?.querySelector('.stu-kktp-stat');
+          if (!stat) return;
+          if (isNaN(val) || e.target.value === '') {
+            stat.textContent = `KKTP — (≥${kktp.batas_bawah})`;
+            stat.style.color  = 'var(--text-secondary)';
+          } else {
+            const ok = val >= kktp.batas_bawah;
+            stat.textContent = `KKTP ${ok ? '✓ Tercapai' : '✗ Belum'} (≥${kktp.batas_bawah})`;
+            stat.style.color  = ok ? 'var(--success,#2d6a4f)' : '#c0392b';
+          }
+        });
+      }
+    }
   }
 
   function buildStudentRows(filterGrup, jenis, kktpItems, resMap) {
@@ -1648,7 +1691,9 @@ ${!_roster.length
   value="${esc(res.catatan ?? '')}"
   style="${inputCss('font-size:var(--fs-caption);margin-top:.25rem')}">
 <div style="font-size:var(--fs-caption);color:var(--text-secondary);margin-top:.25rem">
-  ${grup ? `Grup: <strong>${grup}</strong>` : 'Grup ditetapkan otomatis dari status'}
+  ${grup
+    ? `Grup: <strong>${grup}</strong>`
+    : 'Grup otomatis: A (Paham) / B (Belum Paham) / C (Perlu Perhatian)'}
 </div>`;
     } else if (jenis === 'FORMATIF') {
       const stChips = ['TERCAPAI', 'BERKEMBANG', 'PERLU_DUKUNGAN']
@@ -1664,28 +1709,26 @@ ${!_roster.length
   value="${esc(res.tindak_lanjut ?? '')}"
   style="${inputCss('font-size:var(--fs-caption);margin-top:.25rem')}">`;
     } else {
-      const kktp     = kktpItems.find(k => k.batas_bawah != null);
-      const kktpStr  = kktp && res.nilai != null
+      const kktp      = kktpItems.find(k => k.batas_bawah != null);
+      const kktpStr   = kktp && res.nilai != null
         ? (res.nilai >= kktp.batas_bawah ? '✓ Tercapai' : '✗ Belum')
         : '—';
-      const tlOpts = ['', 'PENGAYAAN', 'PENGUATAN', 'PENDAMPINGAN'].map(t =>
-        `<option value="${t}"${res.tindak_lanjut === t ? ' selected' : ''}>
-          ${t ? (t.charAt(0) + t.slice(1).toLowerCase()) : '— Tindak Lanjut —'}
-        </option>`
-      ).join('');
+      const kktpColor = kktp && res.nilai != null
+        ? (res.nilai >= kktp.batas_bawah ? 'var(--success,#2d6a4f)' : '#c0392b')
+        : 'var(--text-secondary)';
       inputs = `
 <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.4rem">
   <input type="number" class="stu-nilai" min="0" max="100" step="0.5"
     value="${res.nilai ?? ''}" placeholder="Nilai 0–100"
     style="${inputCss('width:7rem;font-size:var(--fs-caption)')}">
   ${kktp ? `<span class="stu-kktp-stat"
-      style="font-size:var(--fs-caption);color:var(--text-secondary)">
+      style="font-size:var(--fs-caption);color:${kktpColor}">
       KKTP ${kktpStr} (≥${kktp.batas_bawah})
     </span>` : ''}
 </div>
-<select class="stu-tl" style="${inputCss('font-size:var(--fs-caption)')}">
-  ${tlOpts}
-</select>`;
+<input type="text" class="stu-tl" placeholder="Tindak lanjut… (opsional)"
+  value="${esc(res.tindak_lanjut ?? '')}"
+  style="${inputCss('font-size:var(--fs-caption);margin-top:.25rem')}">`;
     }
 
     return `
