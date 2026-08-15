@@ -1190,11 +1190,11 @@
         if (selJenis === 'SUMATIF') {
           flushSumActive();
           for (const [sid, vals] of Object.entries(_sumNilai)) {
-            if (vals.nilai == null) continue;
+            if (vals.nilai == null && !vals.predikat) continue;
             const kktp       = kktpItems[0];
             const resPayload = { nilai: vals.nilai, tindak_lanjut: vals.tl || null };
             if (kktp) {
-              const p = getPredikat(vals.nilai, getRentang(kktp));
+              const p = vals.nilai != null ? getPredikat(vals.nilai, getRentang(kktp)) : (vals.predikat || null);
               resPayload.kktp_tercapai = p === 'BSH' || p === 'SB';
             }
             try { await SipApi.upsertAssessmentResult(_cId, _tId, editId, sid, resPayload); } catch {}
@@ -2365,11 +2365,11 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
         if (selJenis === 'SUMATIF') {
           flushSumActive();
           for (const [sid, vals] of Object.entries(_sumNilai)) {
-            if (vals.nilai == null) continue;
+            if (vals.nilai == null && !vals.predikat) continue;
             const kktp       = kktpItems[0];
             const resPayload = { nilai: vals.nilai, tindak_lanjut: vals.tl || null };
             if (kktp) {
-              const p = getPredikat(vals.nilai, getRentang(kktp));
+              const p = vals.nilai != null ? getPredikat(vals.nilai, getRentang(kktp)) : (vals.predikat || null);
               resPayload.kktp_tercapai = p === 'BSH' || p === 'SB';
             }
             try { await SipApi.upsertAssessmentResult(_cId, _tId, row.id, sid, resPayload); } catch {}
