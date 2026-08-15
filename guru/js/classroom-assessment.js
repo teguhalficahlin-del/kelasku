@@ -850,6 +850,21 @@
     const bodyInstrWrap = el('asmt-body-instr-wrap');
     wireBodyInstrumen(bodyInstrWrap);
 
+    // Explicitly set instrSel.value + wire onchange for initial instrumen state.
+    // Some browsers don't honour the `selected` attribute when innerHTML is set
+    // dynamically; setting .value programmatically after DOM creation is robust.
+    if (selTeknik) {
+      const instrSel = el('asmt-instr-sel');
+      if (instrSel) {
+        if (selInstrumen) instrSel.value = selInstrumen;
+        instrSel.onchange = function () {
+          selInstrumen = this.value;
+          if (selJenis !== 'SUMATIF')
+            renderBodyInstrumen(selTeknik, selInstrumen, bodyInstrWrap);
+        };
+      }
+    }
+
     // Initial Isi Penilaian render + prefill from saved konten
     if (selJenis !== 'SUMATIF' && selTeknik && selInstrumen) {
       renderBodyInstrumen(selTeknik, selInstrumen, bodyInstrWrap);
