@@ -1150,18 +1150,13 @@ ${addBtnHtml('btn-tambah-catatan', '+ Tambah catatan')}`;
 ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
       }
     } else if (teknik === 'TES') {
-      const tesRows = _roster.map(s => `
-<div class="tes-srow" data-sid="${esc(s.id)}"
-  style="display:flex;align-items:center;gap:.5rem;padding:.25rem 0">
-  <span style="flex:1;font-size:var(--fs-caption)">${esc(s.nama)}</span>
-  <input type="number" class="tes-nilai-akhir" min="0" max="100" step="0.5"
-    placeholder="0–100"
-    style="${inputCss('width:6rem;font-size:var(--fs-caption);text-align:center')}">
+      inner = ['Menjawab dengan baik', 'Menjawab sebagian', 'Belum bisa menjawab'].map((dsk, i) => `
+<div class="pai-tl-dsk-block" data-dsk="${i}"
+  style="padding:.5rem 0;border-top:1px solid var(--border-subtle,rgba(255,255,255,.08))">
+  <div style="font-size:var(--fs-caption);font-weight:600;margin-bottom:.25rem">
+    ${esc(dsk)}:</div>
+  ${siswaPickerHtml(`tes-dsk-${i}`)}
 </div>`).join('');
-      inner = `<div style="font-size:var(--fs-caption);color:var(--text-secondary);
-  margin-bottom:.5rem">Nilai akhir per siswa (0–100):</div>
-<div class="tes-nilai-rows">${_roster.length ? tesRows
-  : '<span style="color:var(--text-secondary);font-size:var(--fs-caption)">Belum ada siswa</span>'}</div>`;
     } else if (teknik === 'TES_LISAN') {
       if (instrumen === 'Wawancara') {
         inner = `<div style="margin-bottom:.5rem">
@@ -1214,7 +1209,7 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
           border-radius:.5rem;padding:.75rem">
           <div style="font-size:var(--fs-caption);font-weight:700;color:var(--gold);
             text-transform:uppercase;letter-spacing:.07em;margin-bottom:.5rem">
-            Body Instrumen</div>
+            Isi Penilaian</div>
           ${inner}</div>`
       : '';
   }
@@ -1381,13 +1376,11 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
         }));
       }
     } else if (teknik === 'TES') {
-      data.nilai_siswa = Array.from(container.querySelectorAll('.tes-srow'))
-        .map(r => ({
-          sid:   r.dataset.sid,
-          nilai: r.querySelector('.tes-nilai-akhir')?.value !== ''
-            ? parseFloat(r.querySelector('.tes-nilai-akhir')?.value) : null,
-        }))
-        .filter(x => x.nilai !== null && !isNaN(x.nilai));
+      const labels = ['Menjawab dengan baik', 'Menjawab sebagian', 'Belum bisa menjawab'];
+      data.deskriptor = Array.from(container.querySelectorAll('.pai-tl-dsk-block')).map((b, i) => ({
+        label: labels[i] ?? '',
+        siswa: getSiswaOfPicker(b.querySelector('.pai-sw-picker')),
+      }));
     } else if (teknik === 'TES_LISAN') {
       data.topik = container.querySelector('#pai-tl-topik')?.value.trim() || null;
       if (instrumen === 'Wawancara') {
