@@ -14,6 +14,7 @@
   let _roster   = [];  // [{id, nama}] active students in classroom
   let _sGroups  = {};  // { studentId: grup }
   let _roleGuru = null; // role_guru dari profiles (WALI_KELAS_SD | MAPEL | null)
+  let _selMapel = null; // mapel aktif di Section 1 dropdown (WALI_KELAS_SD only, null = belum diinit)
 
   // ─── Constants ──────────────────────────────────────────────────────────────
   const CY           = new Date().getFullYear();
@@ -343,57 +344,125 @@
   // ══════════════════════════════════════════════════════════════════════════════
 
   function renderTpList() {
-    const c = el('pai-tp-list');
+    const c      = el('pai-tp-list');
     if (!c) return;
-    const roots = _tpList.filter(t => !t.parent_id);
-    if (!roots.length) {
-      c.innerHTML = `<p style="color:var(--text-secondary);font-size:var(--fs-caption)">
-        Belum ada TP/KKTP. Klik "+ Tambah TP/KKTP" untuk mulai.</p>`;
-      return;
+    const isWali = _roleGuru === 'WALI_KELAS_SD';
+    if (isWali && _selMapel === null) _selMapel = MAPEL_SD[0];
+
+    const dropHtml = isWali ? `
+<div style="margin-bottom:.75rem">
+  <div style="font-size:var(--fs-caption);color:var(--text-secondary);margin-bottom:.3rem">Mata Pelajaran</div>
+  <select id="pai-tp-mapel-sel" style="${inputCss('max-width:18rem')}">
+    ${MAPEL_SD.map(m => `<option value="${esc(m)}"${m === _selMapel ? ' selected' : ''}>${esc(m)}</option>`).join('')}
+  </select>
+</div>` : '';
+
+    const allRoots = _tpList.filter(t => !t.parent_id);
+    const roots    = isWali
+      ? allRoots.filter(t => !t.mapel || t.mapel === _selMapel)
+      : allRoots;
+
+    const listHtml = roots.length
+      ? roots.map(tp => tpRowHtml(tp)).join('')
+      : `<p style="color:var(--text-secondary);font-size:var(--fs-caption)">
+          Belum ada TP/KKTP. Klik "+ Tambah TP/KKTP" untuk mulai.</p>`;
+
+    c.innerHTML = dropHtml + listHtml;
+
+    if (isWali) {
+      c.querySelector('#pai-tp-mapel-sel')?.addEventListener('change', function () {
+        _selMapel = this.value;
+        renderTpList();
+      });
     }
-    c.innerHTML = roots.map(tp => tpRowHtml(tp)).join('');
+
+    // Single-expand collapse wiring — klik header → tutup semua, buka yang diklik
+    const headers = Array.from(c.querySelectorAll('.pai-tp-hdr'));
+    headers.forEach(hdr => {
+      hdr.addEventListener('click', e => {
+        if (e.target.closest('button')) return;
+        const bodyId = hdr.dataset.bodyId;
+        const body   = bodyId ? document.getElementById(bodyId) : null;
+        if (!body) return;
+        const isOpen = body.style.display !== 'none';
+        headers.forEach(oh => {
+          const ob = oh.dataset.bodyId ? document.getElementById(oh.dataset.bodyId) : null;
+          if (ob) ob.style.display = 'none';
+          const oa = oh.querySelector('.pai-tp-arrow');
+          if (oa) oa.textContent = '▶';
+        });
+        if (!isOpen) {
+          body.style.display = '';
+          const arrow = hdr.querySelector('.pai-tp-arrow');
+          if (arrow) arrow.textContent = '▼';
+        }
+      });
+    });
   }
 
   function tpRowHtml(tp) {
-    const kids  = _tpList.filter(t => t.parent_id === tp.id);
-    const color = TIPE_COLOR[tp.tipe] ?? '#555';
+    const kids     = _tpList.filter(t => t.parent_id === tp.id);
+    const color    = TIPE_COLOR[tp.tipe] ?? '#555';
     const txtColor = color === 'var(--gold)' ? 'var(--text-on-gold,#000)' : '#fff';
-    const kHtml = kids.map(k => `
-<div style="display:flex;align-items:center;gap:.5rem;padding:.375rem .75rem;
-    margin-left:1.25rem;border-left:2px solid var(--border-subtle,rgba(255,255,255,.12))">
-  <span style="flex:1;font-size:var(--fs-caption);color:var(--text-secondary)">
-    ${esc(k.judul)}<br>
-    <span style="font-size:.7rem">${rentangSummary(getRentang(k))}</span>
-  </span>
-  <button type="button" data-action="edit-tp" data-id="${k.id}"
-    style="background:transparent;border:none;cursor:pointer;font-size:1rem;padding:.2rem .35rem;border-radius:.25rem;line-height:1;opacity:.7" title="Edit">✏️</button>
-  <button type="button" data-action="del-tp"  data-id="${k.id}"
-    style="background:rgba(231,76,60,.13);border:none;cursor:pointer;font-size:1rem;padding:.35rem .45rem;border-radius:.25rem;line-height:1;color:#e74c3c;min-width:2.25rem" title="Hapus">🗑</button>
-</div>`).join('');
+    const bodyId   = `pai-tp-body-${tp.id}`;
+
+    // Header label: CP shows konten snippet, TP/KKTP shows judul
+    const hdTxt = tp.tipe === 'CP'
+      ? esc(tp.konten ? tp.konten.slice(0, 60) + (tp.konten.length > 60 ? '…' : '') : '—')
+      : esc(tp.judul);
+
+    // Body content
+    const descHtml = tp.konten
+      ? `<div style="padding:.5rem .75rem .5rem 1.5rem;font-size:var(--fs-caption);
+            color:var(--text-secondary);
+            border-top:1px solid var(--border-subtle,rgba(255,255,255,.08))">
+            ${esc(tp.konten)}</div>`
+      : '';
+    const kHtml = kids.map(k => kktpChildHtml(k)).join('');
 
     return `
 <div style="border:1px solid var(--border-subtle,rgba(255,255,255,.12));
     border-radius:.5rem;margin-bottom:.5rem;overflow:hidden">
-  <div style="display:flex;align-items:center;gap:.5rem;padding:.625rem .75rem;
-      background:var(--bg-elevated,rgba(255,255,255,.04))">
+  <div class="pai-tp-hdr" data-body-id="${bodyId}"
+      style="display:flex;align-items:center;gap:.5rem;padding:.625rem .75rem;
+      background:var(--bg-elevated,rgba(255,255,255,.04));cursor:pointer;user-select:none">
     <span style="flex-shrink:0;font-size:.6875rem;font-weight:700;
         padding:.2rem .45rem;border-radius:.25rem;
         background:${color};color:${txtColor}">
       ${TIPE_LBL[tp.tipe] ?? tp.tipe}
     </span>
-    <span style="flex:1;font-size:var(--fs-ui);font-weight:var(--fw-medium,500)">
-      ${esc(tp.judul)}
-    </span>
+    <span style="flex:1;font-size:var(--fs-ui);font-weight:var(--fw-medium,500);
+        overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${hdTxt}</span>
+    <span class="pai-tp-arrow"
+        style="font-size:.75rem;color:var(--text-secondary);flex-shrink:0;margin-right:.15rem">▶</span>
     <button type="button" data-action="edit-tp" data-id="${tp.id}"
-      style="background:transparent;border:none;cursor:pointer;font-size:1rem;padding:.2rem .35rem;border-radius:.25rem;line-height:1;opacity:.7" title="Edit">✏️</button>
+      style="background:transparent;border:none;cursor:pointer;font-size:1rem;padding:.2rem .35rem;border-radius:.25rem;line-height:1;opacity:.7;flex-shrink:0" title="Edit">✏️</button>
     <button type="button" data-action="del-tp"  data-id="${tp.id}"
+      style="background:rgba(231,76,60,.13);border:none;cursor:pointer;font-size:1rem;padding:.35rem .45rem;border-radius:.25rem;line-height:1;color:#e74c3c;min-width:2.25rem;flex-shrink:0" title="Hapus">🗑</button>
+  </div>
+  <div id="${bodyId}" style="display:none">${descHtml}${kHtml}</div>
+</div>`;
+  }
+
+  function kktpChildHtml(k) {
+    const r = getRentang(k);
+    function cell(p) {
+      return `<div style="padding:.25rem .375rem;background:var(--bg-elevated,rgba(255,255,255,.04));border-radius:.25rem;font-size:.7rem"><strong style="color:var(--text-secondary)">${p}</strong> ${r[p]?.[0] ?? '?'}–${r[p]?.[1] ?? '?'}</div>`;
+    }
+    return `
+<div style="margin:.25rem .75rem .375rem 1.25rem;border-left:2px solid #7c4a7c;padding:.375rem .625rem">
+  <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.375rem">
+    <span style="font-size:.6875rem;font-weight:700;padding:.15rem .4rem;border-radius:.25rem;
+        background:#7c4a7c;color:#fff;flex-shrink:0">KKTP</span>
+    <span style="flex:1"></span>
+    <button type="button" data-action="edit-tp" data-id="${k.id}"
+      style="background:transparent;border:none;cursor:pointer;font-size:1rem;padding:.2rem .35rem;border-radius:.25rem;line-height:1;opacity:.7" title="Edit">✏️</button>
+    <button type="button" data-action="del-tp"  data-id="${k.id}"
       style="background:rgba(231,76,60,.13);border:none;cursor:pointer;font-size:1rem;padding:.35rem .45rem;border-radius:.25rem;line-height:1;color:#e74c3c;min-width:2.25rem" title="Hapus">🗑</button>
   </div>
-  ${tp.konten ? `<div style="padding:.375rem .75rem;font-size:var(--fs-caption);
-      color:var(--text-secondary);
-      border-top:1px solid var(--border-subtle,rgba(255,255,255,.08))">
-      ${esc(tp.konten)}</div>` : ''}
-  ${kHtml}
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:.25rem">
+    ${cell('BB')}${cell('MB')}${cell('BSH')}${cell('SB')}
+  </div>
 </div>`;
   }
 
