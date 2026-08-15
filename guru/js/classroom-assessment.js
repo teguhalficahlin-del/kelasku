@@ -898,7 +898,8 @@
     }
 
     // Initial Isi Penilaian render + prefill from saved konten
-    if (selJenis !== 'SUMATIF' && selTeknik && selInstrumen) {
+    // TES tidak punya sub-instrumen sehingga selInstrumen kosong — tetap render
+    if (selJenis !== 'SUMATIF' && selTeknik && (selInstrumen || selTeknik === 'TES')) {
       renderBodyInstrumen(selTeknik, selInstrumen, bodyInstrWrap);
       if (item?.konten) prefillBodyInstrumen(bodyInstrWrap, item.konten, selTeknik, selInstrumen);
     }
