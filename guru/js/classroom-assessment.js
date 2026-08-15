@@ -1694,6 +1694,142 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
     });
   }
 
+  function prefillBodyInstrumen(container, konten, teknik, instrumen) {
+    if (!container || !konten || !teknik || !instrumen) return;
+
+    function fillPicker(pickerEl, sids) {
+      if (!pickerEl || !Array.isArray(sids)) return;
+      const chips = pickerEl.querySelector('.pai-sw-chips');
+      const sel   = pickerEl.querySelector('.pai-sw-sel');
+      if (!chips) return;
+      for (const sid of sids) {
+        const stu = _roster.find(r => r.id === sid);
+        if (!stu) continue;
+        if (chips.querySelector(`.pai-sw-chip[data-sid="${sid}"]`)) continue;
+        chips.insertAdjacentHTML('beforeend', chipSiswaHtml(sid, stu.nama));
+        if (sel) {
+          const opt = sel.querySelector(`option[value="${sid}"]`);
+          if (opt) opt.style.display = 'none';
+        }
+      }
+    }
+
+    if (teknik === 'OBSERVASI') {
+      if (instrumen === 'Lembar Observasi' && Array.isArray(konten.aspeks)) {
+        const aspekEls = container.querySelectorAll('.pai-obs-aspek');
+        konten.aspeks.forEach((a, i) => {
+          const el = aspekEls[i];
+          if (!el) return;
+          const nameIn = el.querySelector('.obs-aspek-nama');
+          if (nameIn) nameIn.value = a.nama || '';
+          const indIn = el.querySelector('.obs-indikator');
+          if (indIn) indIn.value = a.indikator || '';
+          const pickers = el.querySelectorAll('.pai-sw-picker');
+          fillPicker(pickers[0], a.terlihat_jelas);
+          fillPicker(pickers[1], a.terlihat);
+          fillPicker(pickers[2], a.belum_terlihat);
+        });
+      } else if (instrumen === 'Catatan Anekdot') {
+        const modeEl = container.querySelector('#pai-anekdot-mode');
+        if (modeEl && konten.mode) modeEl.value = konten.mode;
+        const modePerSiswa = (konten.mode || 'per_siswa') === 'per_siswa';
+
+        if (Array.isArray(konten.catatan) && konten.catatan.length > 0) {
+          const rowsDiv = container.querySelector('#pai-anekdot-rows');
+          if (rowsDiv) {
+            rowsDiv.innerHTML = konten.catatan
+              .map((_, i) => anekdotCatatanHtml(i, modePerSiswa)).join('');
+            konten.catatan.forEach((c, i) => {
+              const row = rowsDiv.querySelectorAll('.pai-anekdot-row')[i];
+              if (!row) return;
+              const deskEl = row.querySelector('.anekdot-deskripsi');
+              if (deskEl) deskEl.value = c.deskripsi || '';
+              const interEl = row.querySelector('.anekdot-interpretasi');
+              if (interEl) interEl.value = c.interpretasi || '';
+              if (modePerSiswa) {
+                const siswaEl = row.querySelector('.anekdot-siswa-sel');
+                if (siswaEl && c.siswa) siswaEl.value = c.siswa;
+              } else {
+                fillPicker(row.querySelector('.pai-sw-picker'), c.siswa);
+              }
+            });
+          }
+        }
+      } else if (instrumen === 'Checklist' && Array.isArray(konten.items)) {
+        const itemsDiv = container.querySelector('#pai-cl-items');
+        if (itemsDiv) {
+          itemsDiv.innerHTML = konten.items
+            .map((_, i) => checklistItemHtml(i)).join('');
+          konten.items.forEach((it, i) => {
+            const row = itemsDiv.querySelectorAll('.pai-item-row')[i];
+            if (!row) return;
+            const namaEl = row.querySelector('.item-nama');
+            if (namaEl) namaEl.value = it.nama || '';
+            fillPicker(row.querySelector('.pai-sw-picker'), it.siswa);
+          });
+        }
+      }
+    } else if (teknik === 'TES' && Array.isArray(konten.deskriptor)) {
+      const blocks = container.querySelectorAll('.pai-tl-dsk-block');
+      konten.deskriptor.forEach((d, i) => {
+        fillPicker(blocks[i]?.querySelector('.pai-sw-picker'), d.siswa);
+      });
+    } else if (teknik === 'TES_LISAN') {
+      const topikEl = container.querySelector('#pai-tl-topik');
+      if (topikEl && konten.topik) topikEl.value = konten.topik;
+      if (instrumen === 'Wawancara' && Array.isArray(konten.deskriptor)) {
+        const blocks = container.querySelectorAll('.pai-tl-dsk-block');
+        konten.deskriptor.forEach((d, i) => {
+          fillPicker(blocks[i]?.querySelector('.pai-sw-picker'), d.siswa);
+        });
+      } else if (Array.isArray(konten.predikat)) {
+        const predPickers = Array.from(
+          container.querySelectorAll('.pai-tl-pred-block .pai-sw-picker')
+        );
+        konten.predikat.forEach((p, i) => {
+          const deskEl = container.querySelector(`.tl-pred-desk-${p.val}`);
+          if (deskEl) deskEl.value = p.deskripsi || '';
+          fillPicker(predPickers[i], p.siswa);
+        });
+      }
+    } else if (['PENUGASAN','PROYEK','PORTOFOLIO','UNJUK_KERJA'].includes(teknik)) {
+      const k1 = container.querySelector('#pai-konteks-1');
+      if (k1 && konten.konteks1) k1.value = konten.konteks1;
+      const k2 = container.querySelector('#pai-konteks-2');
+      if (k2 && konten.konteks2) k2.value = konten.konteks2;
+      if (instrumen === 'Rubrik' && Array.isArray(konten.aspeks)) {
+        const aspeksDiv = container.querySelector('#pai-rubrik-aspeks');
+        if (aspeksDiv) {
+          aspeksDiv.innerHTML = konten.aspeks.map((_, i) => aspekRowHtml(i)).join('');
+          konten.aspeks.forEach((a, i) => {
+            const row = aspeksDiv.querySelectorAll('.pai-aspek-row')[i];
+            if (!row) return;
+            const namaEl = row.querySelector('.aspek-nama');
+            if (namaEl) namaEl.value = a.nama || '';
+            const pickers = row.querySelectorAll('.pai-sw-picker');
+            (a.predikat || []).forEach((p, j) => {
+              const deskEl = row.querySelector(`.predikat-desk-${p.val}`);
+              if (deskEl) deskEl.value = p.deskripsi || '';
+              fillPicker(pickers[j], p.siswa);
+            });
+          });
+        }
+      } else if (instrumen === 'Checklist' && Array.isArray(konten.items)) {
+        const itemsDiv = container.querySelector('#pai-cl-items');
+        if (itemsDiv) {
+          itemsDiv.innerHTML = konten.items.map((_, i) => checklistItemHtml(i)).join('');
+          konten.items.forEach((it, i) => {
+            const row = itemsDiv.querySelectorAll('.pai-item-row')[i];
+            if (!row) return;
+            const namaEl = row.querySelector('.item-nama');
+            if (namaEl) namaEl.value = it.nama || '';
+            fillPicker(row.querySelector('.pai-sw-picker'), it.siswa);
+          });
+        }
+      }
+    }
+  }
+
   function collectBodyInstrumen(container, teknik, instrumen) {
     if (!container || !teknik || !instrumen) return null;
     const data = {};
