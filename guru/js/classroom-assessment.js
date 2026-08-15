@@ -1748,7 +1748,7 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
         teknik:        selTeknik || null,
         instrumen:     selInstrumen || null,
         tujuan:        el('asmt-tujuan').value.trim() || null,
-        konten:        instrBody ? JSON.stringify(instrBody) : null,
+        konten:        instrBody || null,
         refleksi_guru: el('asmt-refleksi').value.trim() || null,
       };
       el('btn-asmt-save').disabled = true;
