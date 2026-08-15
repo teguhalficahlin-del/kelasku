@@ -25,7 +25,8 @@
   let _rcInstrumen  = null;
   let _rcPage1      = 0;      // DAFTAR NILAI pagination (5 per halaman)
   let _rcPage2      = 0;      // HASIL NILAI pagination (5 per halaman)
-  let _rcMetode     = 'rata'; // 'rata' | 'bobot' | 'terbaik'
+  let _rcMetode          = 'rata'; // 'rata' | 'bobot' | 'terbaik'
+  let _rcMetodeListener  = null;   // listener delegasi pada cc — di-replace tiap render
   let _rcBobots          = [];
   let _rcLastSumatifIds  = [];
   let _rcHasil      = null;   // null | [{id, nama, nilaiAkhir, predikat}]
@@ -2771,12 +2772,13 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
 </div>
 ${metodeHtml}${hasilHtml}`;
 
-    // Wire events
-    cc.querySelectorAll('input[name="rc-metode"]').forEach(r => {
-      r.addEventListener('change', function () {
-        _rcMetode = this.value; _rcHasil = null; _rcPage2 = 0; _renderRecapContent(cc, sumatifs, allResults);
-      });
-    });
+    // Wire events — listener metode pada cc sendiri agar survive innerHTML replacement
+    if (_rcMetodeListener) cc.removeEventListener('change', _rcMetodeListener);
+    _rcMetodeListener = function (e) {
+      if (e.target.name !== 'rc-metode') return;
+      _rcMetode = e.target.value; _rcHasil = null; _rcPage2 = 0; _renderRecapContent(cc, sumatifs, allResults);
+    };
+    cc.addEventListener('change', _rcMetodeListener);
 
     if (isBobot) {
       sumatifs.forEach((_, i) => {
