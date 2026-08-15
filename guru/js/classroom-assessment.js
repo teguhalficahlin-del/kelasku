@@ -656,20 +656,38 @@
   // ══════════════════════════════════════════════════════════════════════════════
 
   function renderAsmtList() {
-    const c = el('pai-asmt-list');
+    const c      = el('pai-asmt-list');
     if (!c) return;
-    if (!_asmts.length) {
-      c.innerHTML = `<p style="color:var(--text-secondary);font-size:var(--fs-caption)">
-        Belum ada penilaian. Klik "+ Tambah Penilaian" untuk mulai.</p>`;
-      return;
-    }
-    const grouped = { DIAGNOSTIK: [], FORMATIF: [], SUMATIF: [] };
-    _asmts.forEach(a => { if (grouped[a.jenis]) grouped[a.jenis].push(a); });
+    const isWali = _roleGuru === 'WALI_KELAS_SD';
+    if (isWali && _selMapel === null) _selMapel = MAPEL_SD[0];
 
-    c.innerHTML = ['DIAGNOSTIK', 'FORMATIF', 'SUMATIF'].map(jenis => {
-      const list = grouped[jenis];
-      if (!list.length) return '';
-      return `
+    const dropHtml = isWali ? `
+<div style="margin-bottom:.75rem">
+  <div style="font-size:var(--fs-caption);color:var(--text-secondary);margin-bottom:.3rem">Mata Pelajaran</div>
+  <select id="pai-asmt-mapel-sel" style="${inputCss('max-width:18rem')}">
+    ${MAPEL_SD.map(m => `<option value="${esc(m)}"${m === _selMapel ? ' selected' : ''}>${esc(m)}</option>`).join('')}
+  </select>
+</div>` : '';
+
+    // Filter penilaian berdasarkan mapel TP (TP tanpa mapel tetap muncul di semua mapel)
+    const visible = isWali
+      ? _asmts.filter(a => {
+          if (!a.tp_kktp_id) return true;
+          const tp = _tpList.find(t => t.id === a.tp_kktp_id);
+          return !tp || !tp.mapel || tp.mapel === _selMapel;
+        })
+      : _asmts;
+
+    if (!visible.length) {
+      c.innerHTML = dropHtml + `<p style="color:var(--text-secondary);font-size:var(--fs-caption)">
+        Belum ada penilaian. Klik "+ Tambah Penilaian" untuk mulai.</p>`;
+    } else {
+      const grouped = { DIAGNOSTIK: [], FORMATIF: [], SUMATIF: [] };
+      visible.forEach(a => { if (grouped[a.jenis]) grouped[a.jenis].push(a); });
+      c.innerHTML = dropHtml + ['DIAGNOSTIK', 'FORMATIF', 'SUMATIF'].map(jenis => {
+        const list = grouped[jenis];
+        if (!list.length) return '';
+        return `
 <div style="margin-bottom:.875rem">
   <div style="font-size:var(--fs-caption);font-weight:700;color:var(--gold);
       text-transform:uppercase;letter-spacing:.07em;margin-bottom:.4rem">
@@ -677,7 +695,15 @@
   </div>
   ${list.map(a => asmtRowHtml(a)).join('')}
 </div>`;
-    }).join('');
+      }).join('');
+    }
+
+    if (isWali) {
+      c.querySelector('#pai-asmt-mapel-sel')?.addEventListener('change', function () {
+        _selMapel = this.value;
+        renderAsmtList();
+      });
+    }
   }
 
   function asmtRowHtml(a) {
@@ -703,7 +729,7 @@
     <button type="button" data-action="edit-asmt" data-id="${a.id}"
       style="background:transparent;border:none;cursor:pointer;font-size:1rem;padding:.2rem .35rem;border-radius:.25rem;line-height:1;opacity:.7" title="Edit">✏️</button>
     <button type="button" data-action="del-asmt"  data-id="${a.id}"
-      style="background:transparent;border:none;cursor:pointer;font-size:1rem;padding:.2rem .35rem;border-radius:.25rem;line-height:1;opacity:.7" title="Hapus">🗑</button>
+      style="background:rgba(231,76,60,.13);border:1.5px solid rgba(231,76,60,.3);cursor:pointer;font-size:1rem;padding:.35rem .45rem;border-radius:.25rem;line-height:1;color:#e74c3c;min-width:2.25rem;flex-shrink:0" title="Hapus">🗑</button>
   </div>
 </div>`;
   }
