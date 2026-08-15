@@ -1016,7 +1016,7 @@
   <div style="font-size:var(--fs-caption);color:var(--text-secondary);margin-bottom:.25rem">
     Tindak lanjut:</div>
   <div id="asmt-sum-tl" style="display:flex;flex-wrap:wrap;gap:.35rem">
-    ${['Pengayaan','Penguatan','Pendampingan'].map(tl => chipHtml(tl, tl, vals.tl === tl)).join('')}
+    ${[['PENGAYAAN','Pengayaan'],['PENGUATAN','Penguatan'],['PENDAMPINGAN','Pendampingan']].map(([v,l]) => chipHtml(v, l, vals.tl === v)).join('')}
   </div>
 </div>`;
 
@@ -2190,7 +2190,7 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
   <div style="font-size:var(--fs-caption);color:var(--text-secondary);margin-bottom:.25rem">
     Tindak lanjut:</div>
   <div id="asmt-sum-tl" style="display:flex;flex-wrap:wrap;gap:.35rem">
-    ${['Pengayaan','Penguatan','Pendampingan'].map(tl => chipHtml(tl, tl, vals.tl === tl)).join('')}
+    ${[['PENGAYAAN','Pengayaan'],['PENGUATAN','Penguatan'],['PENDAMPINGAN','Pendampingan']].map(([v,l]) => chipHtml(v, l, vals.tl === v)).join('')}
   </div>
 </div>`;
 
@@ -2413,8 +2413,8 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
   <div style="font-size:var(--fs-caption);color:var(--text-secondary);margin-bottom:.25rem">
     Tindak lanjut:</div>
   <div class="stu-tl-chips" style="display:flex;flex-wrap:wrap;gap:.35rem">
-    ${['Pengayaan', 'Penguatan', 'Pendampingan']
-      .map(tl => chipHtml(tl, tl, res.tindak_lanjut === tl)).join('')}
+    ${[['PENGAYAAN','Pengayaan'],['PENGUATAN','Penguatan'],['PENDAMPINGAN','Pendampingan']]
+      .map(([v,l]) => chipHtml(v, l, res.tindak_lanjut === v)).join('')}
   </div>
 </div>`;
     }
