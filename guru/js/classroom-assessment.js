@@ -389,9 +389,9 @@
     </select>
   </div>
   <div id="tp-judul-row" style="${selTipe === 'CP' ? 'display:none' : ''}">
-    ${fieldLbl('Judul')}
+    ${fieldLbl(selTipe === 'KKTP' ? 'Deskripsi' : 'Judul')}
     <input id="tp-judul" type="text" value="${esc(item?.judul ?? '')}"
-      placeholder="Judul TP/KKTP…" style="${inputCss()}">
+      placeholder="${selTipe === 'KKTP' ? 'Deskripsi KKTP…' : 'Judul TP/KKTP…'}" style="${inputCss()}">
   </div>
   <div id="tp-konten-row" style="${selTipe === 'KKTP' ? 'display:none' : ''}">
     ${fieldLbl(selTipe === 'CP' ? 'Deskripsi / Teks CP' : 'Deskripsi (opsional)')}
@@ -442,9 +442,19 @@
       el('tp-konten-row').style.display = val === 'KKTP' ? 'none' : '';
       el('tp-range-row').style.display  = val === 'KKTP' ? '' : 'none';
       el('tp-sem-wrap').style.display   = val === 'CP'   ? 'none' : '';
-      // update konten label text on the fly
-      const lbl = el('pai-modal-box').querySelector('#tp-konten-row > div');
-      if (lbl) lbl.textContent = val === 'CP' ? 'Deskripsi / Teks CP' : 'Deskripsi (opsional)';
+      const judulLbl = el('pai-modal-box').querySelector('#tp-judul-row > div');
+      if (judulLbl) judulLbl.textContent = val === 'KKTP' ? 'Deskripsi' : 'Judul';
+      const judulEl = el('tp-judul');
+      if (judulEl) judulEl.placeholder = val === 'KKTP' ? 'Deskripsi KKTP…' : 'Judul TP/KKTP…';
+      const kontenLbl = el('pai-modal-box').querySelector('#tp-konten-row > div');
+      if (kontenLbl) kontenLbl.textContent = val === 'CP' ? 'Deskripsi / Teks CP' : 'Deskripsi (opsional)';
+    });
+
+    el('tp-parent-sel').addEventListener('change', function () {
+      const judulEl = el('tp-judul');
+      if (!judulEl || judulEl.value.trim() !== '') return;
+      const tp = tpOpts.find(t => t.id === this.value);
+      judulEl.value = tp?.konten ?? '';
     });
 
     el('btn-tp-save').addEventListener('click', async () => {
