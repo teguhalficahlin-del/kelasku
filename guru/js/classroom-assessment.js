@@ -694,10 +694,10 @@
   </select>
 </div>` : '';
 
-    // Filter penilaian berdasarkan mapel TP (TP tanpa mapel tetap muncul di semua mapel)
+    // Filter penilaian berdasarkan mapel TP (tanpa TP = tidak lolos, konsisten dengan filter semester)
     const visible = isWali
       ? _asmts.filter(a => {
-          if (!a.tp_kktp_id) return true;
+          if (!a.tp_kktp_id) return false;
           const tp = _tpList.find(t => t.id === a.tp_kktp_id);
           return !tp || !tp.mapel || tp.mapel === _selMapel;
         })
