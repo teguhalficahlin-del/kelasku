@@ -133,6 +133,11 @@
 
   // ─── KKTP rentang helpers ────────────────────────────────────────────────────
   function getRentang(item)    { return item?.rentang ?? DEFAULT_RENTANG; }
+  function nilaiTengah(predikat, rentang) {
+    const r = rentang?.[predikat];
+    if (!r) return null;
+    return Math.round((r[0] + r[1]) / 2);
+  }
   function rentangSummary(rentang) {
     return PREDIKAT_ORDER.map(p => `${p}: ${rentang[p]?.[0] ?? '?'}–${rentang[p]?.[1] ?? '?'}`).join(' · ');
   }
@@ -1469,7 +1474,10 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
       });
       return [
         `<option value="">— Opsional —</option>`,
-        ...candidates.map(t => `<option value="${t.id}">${esc(t.judul)}</option>`),
+        ...candidates.map(t => {
+          const hasKktp = _tpList.some(k => k.parent_id === t.id && k.tipe === 'KKTP');
+          return `<option value="${t.id}">${esc(t.judul)} ${hasKktp ? '✓' : '⚠'}</option>`;
+        }),
       ].join('');
     }
 
@@ -1543,22 +1551,7 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
       style="display:flex;gap:.35rem;margin-bottom:.625rem;min-height:.625rem"></div>
     <div id="asmt-sum-input"
       style="display:none;border:1px solid var(--border-subtle,rgba(255,255,255,.18));
-      border-radius:.4rem;padding:.625rem .75rem">
-      <div id="asmt-sum-nama"
-        style="font-size:var(--fs-ui);font-weight:600;margin-bottom:.5rem"></div>
-      <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.375rem">
-        <input type="number" id="asmt-sum-nilai" min="0" max="100" step="0.5"
-          placeholder="Nilai 0–100"
-          style="${inputCss('width:7rem;font-size:var(--fs-caption)')}">
-        <span id="asmt-sum-kktp"
-          style="font-size:var(--fs-caption);color:var(--text-secondary)"></span>
-      </div>
-      <div style="font-size:var(--fs-caption);color:var(--text-secondary);margin-bottom:.25rem">
-        Tindak lanjut:</div>
-      <div id="asmt-sum-tl" style="display:flex;flex-wrap:wrap;gap:.35rem">
-        ${['Pengayaan','Penguatan','Pendampingan'].map(tl => chipHtml(tl, tl, false)).join('')}
-      </div>
-    </div>
+      border-radius:.4rem;padding:.625rem .75rem"></div>
   </div>
   <div>
     ${fieldLbl('Refleksi guru (opsional)')}
@@ -1597,11 +1590,11 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
       const outputWrap = el('asmt-output-wrap');
       if (selJenis === 'SUMATIF') {
         if (outputWrap) outputWrap.style.display = '';
-        if (selTeknik === 'TES') bodyInstrWrap.innerHTML = '';
+        bodyInstrWrap.innerHTML = '';
         renderSumPage();
       } else {
         if (outputWrap) outputWrap.style.display = 'none';
-        if (selTeknik === 'TES') renderBodyInstrumen(selTeknik, selInstrumen, bodyInstrWrap);
+        renderBodyInstrumen(selTeknik, selInstrumen, bodyInstrWrap);
       }
     });
 
@@ -1618,14 +1611,17 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
         instrRow.style.display = '';
         instrSel.onchange = function () {
           selInstrumen = this.value;
-          if (!(selJenis === 'SUMATIF' && selTeknik === 'TES'))
+          if (selJenis !== 'SUMATIF')
             renderBodyInstrumen(selTeknik, selInstrumen, bodyInstrWrap);
         };
       } else {
         instrRow.style.display = 'none';
       }
-      if (selJenis === 'SUMATIF' && selTeknik === 'TES') {
+      if (selJenis === 'SUMATIF') {
         bodyInstrWrap.innerHTML = '';
+        flushSumActive();
+        _sumActiveSid = null;
+        renderSumPage();
       } else {
         renderBodyInstrumen(selTeknik, '', bodyInstrWrap);
       }
@@ -1639,37 +1635,120 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
 
     function flushSumActive() {
       if (!_sumActiveSid) return;
-      const nilaiEl = el('asmt-sum-nilai');
-      const tlEl    = el('asmt-sum-tl');
-      const raw     = nilaiEl?.value;
-      const n       = raw !== '' && raw != null ? parseFloat(raw) : null;
-      _sumNilai[_sumActiveSid] = {
-        nilai: isNaN(n) ? null : n,
-        tl:    tlEl ? chipVal(tlEl) : null,
-      };
+      const tlEl  = el('asmt-sum-tl');
+      const isTes = !selTeknik || selTeknik === 'TES';
+      if (isTes) {
+        const nilaiEl = el('asmt-sum-nilai');
+        const raw     = nilaiEl?.value;
+        const n       = raw !== '' && raw != null ? parseFloat(raw) : null;
+        _sumNilai[_sumActiveSid] = {
+          nilai: isNaN(n) ? null : n,
+          tl:    tlEl ? chipVal(tlEl) : null,
+        };
+      } else {
+        const predChipsEl = el('asmt-sum-pred-chips');
+        const selPred     = predChipsEl ? chipVal(predChipsEl) : null;
+        const kktp        = getKktpItems()[0];
+        const rent        = kktp ? getRentang(kktp) : null;
+        const autoN       = selPred && rent ? nilaiTengah(selPred, rent) : null;
+        _sumNilai[_sumActiveSid] = {
+          predikat: selPred,
+          nilai:    autoN,
+          tl:       tlEl ? chipVal(tlEl) : null,
+        };
+      }
     }
 
     function renderSumInput() {
       const inputEl = el('asmt-sum-input');
       if (!_sumActiveSid) { if (inputEl) inputEl.style.display = 'none'; return; }
-      const stu     = _roster.find(r => r.id === _sumActiveSid);
-      const vals    = _sumNilai[_sumActiveSid] ?? {};
-      const kktp    = getKktpItems()[0];
-      const rentang = kktp ? getRentang(kktp) : null;
-      el('asmt-sum-nama').textContent = stu?.nama ?? '';
-      el('asmt-sum-nilai').value      = vals.nilai != null ? String(vals.nilai) : '';
-      const kktpEl = el('asmt-sum-kktp');
-      kktpEl.textContent = kktp && vals.nilai != null ? kktpStatText(vals.nilai, rentang) : '';
-      kktpEl.style.color = kktp && vals.nilai != null
-        ? kktpStatColor(vals.nilai, rentang) : 'var(--text-secondary)';
-      el('asmt-sum-tl')?.querySelectorAll('.pai-chip').forEach(chip => {
-        const sel = chip.dataset.val === vals.tl;
-        chip.classList.toggle('pai-chip--sel', sel);
-        chip.style.background  = sel ? 'var(--gold)' : '';
-        chip.style.color       = sel ? 'var(--text-on-gold,#000)' : 'var(--text-secondary)';
-        chip.style.borderColor = sel ? 'var(--gold)' : 'var(--border-subtle,rgba(255,255,255,.18))';
-      });
-      if (inputEl) inputEl.style.display = '';
+      const stu   = _roster.find(r => r.id === _sumActiveSid);
+      const vals  = _sumNilai[_sumActiveSid] ?? {};
+      const kktp  = getKktpItems()[0];
+      const rent  = kktp ? getRentang(kktp) : null;
+      const isTes = !selTeknik || selTeknik === 'TES';
+
+      const namaHtml = `<div style="font-size:var(--fs-ui);font-weight:600;margin-bottom:.5rem">
+        ${esc(stu?.nama ?? '')}</div>`;
+
+      let valorHtml;
+      if (isTes) {
+        const kktpColor = kktp && vals.nilai != null ? kktpStatColor(vals.nilai, rent) : 'var(--text-secondary)';
+        const kktpStr   = kktp && vals.nilai != null ? kktpStatText(vals.nilai, rent) : '';
+        valorHtml = `
+<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.375rem">
+  <input type="number" id="asmt-sum-nilai" min="0" max="100" step="0.5"
+    placeholder="Nilai 0–100"
+    value="${vals.nilai != null ? String(vals.nilai) : ''}"
+    style="${inputCss('width:7rem;font-size:var(--fs-caption)')}">
+  <span id="asmt-sum-kktp"
+    style="font-size:var(--fs-caption);color:${kktpColor}">${kktpStr}</span>
+</div>`;
+      } else {
+        const selPred   = vals.predikat ?? null;
+        const autoN     = selPred && rent ? nilaiTengah(selPred, rent) : null;
+        const kktpColor = autoN != null ? kktpStatColor(autoN, rent) : 'var(--text-secondary)';
+        const kktpStr   = kktp
+          ? (autoN != null ? kktpStatText(autoN, rent) : 'Pilih predikat')
+          : '';
+        valorHtml = `
+<div style="margin-bottom:.375rem">
+  <div style="font-size:var(--fs-caption);color:var(--text-secondary);margin-bottom:.25rem">Predikat:</div>
+  <div id="asmt-sum-pred-chips" style="display:flex;flex-wrap:wrap;gap:.35rem">
+    ${PREDIKAT_ORDER.map(p => chipHtml(p, p, selPred === p)).join('')}
+  </div>
+  <div style="margin-top:.375rem;display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
+    <span style="font-size:var(--fs-caption);color:var(--text-secondary)">Nilai:</span>
+    <span id="asmt-sum-pred-nilai"
+      style="font-size:var(--fs-ui);font-weight:600;min-width:2rem">
+      ${autoN != null ? autoN : '—'}</span>
+    <span id="asmt-sum-kktp"
+      style="font-size:var(--fs-caption);color:${kktpColor}">${kktpStr}</span>
+  </div>
+</div>`;
+      }
+
+      const tlHtml = `
+<div>
+  <div style="font-size:var(--fs-caption);color:var(--text-secondary);margin-bottom:.25rem">
+    Tindak lanjut:</div>
+  <div id="asmt-sum-tl" style="display:flex;flex-wrap:wrap;gap:.35rem">
+    ${['Pengayaan','Penguatan','Pendampingan'].map(tl => chipHtml(tl, tl, vals.tl === tl)).join('')}
+  </div>
+</div>`;
+
+      inputEl.innerHTML = namaHtml + valorHtml + tlHtml;
+      inputEl.style.display = '';
+
+      if (isTes) {
+        el('asmt-sum-nilai')?.addEventListener('input', function () {
+          const kktp2  = getKktpItems()[0];
+          const kktpEl = el('asmt-sum-kktp');
+          if (!kktpEl) return;
+          const n     = this.value === '' ? null : parseFloat(this.value);
+          const rent2 = kktp2 ? getRentang(kktp2) : null;
+          kktpEl.textContent = kktp2 ? kktpStatText(n, rent2) : '';
+          kktpEl.style.color = kktp2 ? kktpStatColor(n, rent2) : 'var(--text-secondary)';
+        });
+      } else {
+        const predChipsEl = el('asmt-sum-pred-chips');
+        if (predChipsEl) {
+          wireChips(predChipsEl, false, selVal => {
+            const kktp2   = getKktpItems()[0];
+            const rent2   = kktp2 ? getRentang(kktp2) : null;
+            const autoN2  = rent2 ? nilaiTengah(selVal, rent2) : null;
+            const nilaiEl = el('asmt-sum-pred-nilai');
+            const kktpEl  = el('asmt-sum-kktp');
+            if (nilaiEl) nilaiEl.textContent = autoN2 != null ? String(autoN2) : '—';
+            if (kktpEl) {
+              kktpEl.textContent = autoN2 != null && kktp2 ? kktpStatText(autoN2, rent2) : '';
+              kktpEl.style.color = autoN2 != null ? kktpStatColor(autoN2, rent2) : 'var(--text-secondary)';
+            }
+          });
+        }
+      }
+
+      wireChips(el('asmt-sum-tl'), false);
     }
 
     function renderSumPage() {
@@ -1684,7 +1763,7 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
       const slice = _roster.slice(_sumPage * PAGE_SIZE, (_sumPage + 1) * PAGE_SIZE);
       names.innerHTML = slice.map(s => {
         const isAct  = s.id === _sumActiveSid;
-        const hasVal = _sumNilai[s.id]?.nilai != null;
+        const hasVal = _sumNilai[s.id]?.nilai != null || _sumNilai[s.id]?.predikat != null;
         return `<button type="button" data-sum-sid="${esc(s.id)}"
           style="padding:.3rem .7rem;border-radius:1rem;font-size:var(--fs-caption);cursor:pointer;
           border:1.5px solid ${isAct ? 'var(--gold)' : hasVal ? 'rgba(255,255,255,.4)' : 'var(--border-subtle,rgba(255,255,255,.18))'};
@@ -1738,19 +1817,7 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
       flushSumActive(); _sumPage++; renderSumPage();
     });
 
-    // ── Wire nilai input (KKTP live update) ─────────────────────────────
-    el('asmt-sum-nilai')?.addEventListener('input', function () {
-      const kktp   = getKktpItems()[0];
-      const kktpEl = el('asmt-sum-kktp');
-      if (!kktp || !kktpEl) return;
-      const n       = this.value === '' ? null : parseFloat(this.value);
-      const rentang = getRentang(kktp);
-      kktpEl.textContent = kktpStatText(n, rentang);
-      kktpEl.style.color  = kktpStatColor(n, rentang);
-    });
-
-    // ── Wire TL chips ────────────────────────────────────────────────────
-    wireChips(el('asmt-sum-tl'), false);
+    // Nilai input + TL chips diwire per-render di renderSumInput()
 
     // ── Initial render ────────────────────────────────────────────────────
     if (selJenis === 'SUMATIF') renderSumPage();
