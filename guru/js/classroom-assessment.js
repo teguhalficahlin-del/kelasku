@@ -43,6 +43,9 @@
   ];
   const TINGKAT_OBS = ['Terlihat jelas', 'Terlihat', 'Belum terlihat'];
 
+  const DEFAULT_RENTANG = { BB: [0, 54], MB: [55, 69], BSH: [70, 84], SB: [85, 100] };
+  const PREDIKAT_ORDER  = ['BB', 'MB', 'BSH', 'SB'];
+
   const MAPEL_SD = [
     'Bahasa Indonesia', 'Matematika', 'IPAS',
     'Pendidikan Pancasila', 'Seni', 'Bahasa Inggris',
@@ -122,6 +125,54 @@
 
   function chipVal(containerEl) {
     return containerEl?.querySelector('.pai-chip--sel')?.dataset.val ?? null;
+  }
+
+  // ─── KKTP rentang helpers ────────────────────────────────────────────────────
+  function getRentang(item)    { return item?.rentang ?? DEFAULT_RENTANG; }
+  function rentangSummary(rentang) {
+    return PREDIKAT_ORDER.map(p => `${p}: ${rentang[p]?.[0] ?? '?'}–${rentang[p]?.[1] ?? '?'}`).join(' · ');
+  }
+  function getPredikat(nilai, rentang) {
+    const r = rentang ?? DEFAULT_RENTANG;
+    for (let i = PREDIKAT_ORDER.length - 1; i >= 0; i--) {
+      const p = PREDIKAT_ORDER[i];
+      if (nilai >= (r[p]?.[0] ?? 0)) return p;
+    }
+    return PREDIKAT_ORDER[0];
+  }
+  function kktpStatText(nilai, rentang) {
+    if (nilai == null || isNaN(nilai)) return 'KKTP —';
+    const p     = getPredikat(nilai, rentang);
+    const range = (rentang ?? DEFAULT_RENTANG)[p];
+    return `KKTP: ${p} (${range?.[0] ?? '?'}–${range?.[1] ?? '?'})`;
+  }
+  function kktpStatColor(nilai, rentang) {
+    if (nilai == null || isNaN(nilai)) return 'var(--text-secondary)';
+    const p = getPredikat(nilai, rentang ?? DEFAULT_RENTANG);
+    return p === 'SB' || p === 'BSH' ? 'var(--success,#2d6a4f)' : '#c0392b';
+  }
+  function buildRentangRowsHtml(rentang) {
+    return PREDIKAT_ORDER.map(p => {
+      const [low, high] = rentang[p] ?? [0, 100];
+      return `<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.375rem">
+        <span style="min-width:2.75rem;font-size:var(--fs-caption);font-weight:600;color:var(--text-primary)">${p}</span>
+        <input class="kktp-rentang-low" data-pred="${p}" type="number" min="0" max="100"
+          value="${low}" style="${inputCss('width:4.5rem;text-align:center')}">
+        <span style="font-size:var(--fs-caption);color:var(--text-secondary)">–</span>
+        <input class="kktp-rentang-high" data-pred="${p}" type="number" min="0" max="100"
+          value="${high}" style="${inputCss('width:4.5rem;text-align:center')}">
+      </div>`;
+    }).join('');
+  }
+  function collectRentang() {
+    const box = el('pai-modal-box');
+    const r   = {};
+    PREDIKAT_ORDER.forEach(p => {
+      const low  = box?.querySelector(`.kktp-rentang-low[data-pred="${p}"]`);
+      const high = box?.querySelector(`.kktp-rentang-high[data-pred="${p}"]`);
+      r[p] = [parseFloat(low?.value) || 0, parseFloat(high?.value) || 100];
+    });
+    return r;
   }
 
   // ─── Data loading ────────────────────────────────────────────────────────────
@@ -311,7 +362,8 @@
 <div style="display:flex;align-items:center;gap:.5rem;padding:.375rem .75rem;
     margin-left:1.25rem;border-left:2px solid var(--border-subtle,rgba(255,255,255,.12))">
   <span style="flex:1;font-size:var(--fs-caption);color:var(--text-secondary)">
-    ${esc(k.judul)}${k.batas_bawah != null ? ` (≥${k.batas_bawah})` : ''}
+    ${esc(k.judul)}<br>
+    <span style="font-size:.7rem">${rentangSummary(getRentang(k))}</span>
   </span>
   <button type="button" data-action="edit-tp" data-id="${k.id}"
     style="background:transparent;border:none;cursor:pointer;font-size:1rem;padding:.2rem .35rem;border-radius:.25rem;line-height:1;opacity:.7" title="Edit">✏️</button>
@@ -400,9 +452,8 @@
       placeholder="Teks capaian pembelajaran…">${esc(item?.konten ?? '')}</textarea>
   </div>
   <div id="tp-range-row" style="${selTipe === 'KKTP' ? '' : 'display:none'}">
-    ${fieldLbl('Batas KKTP (nilai minimum ketercapaian)')}
-    <input id="tp-batas-kktp" type="number" min="0" max="100" step="0.5"
-      value="${item?.batas_bawah ?? ''}" style="${inputCss()}">
+    ${fieldLbl('Rentang Predikat KKTP')}
+    ${buildRentangRowsHtml(item ? getRentang(item) : DEFAULT_RENTANG)}
   </div>
   <div style="display:flex;gap:.75rem">
     <div style="flex:1">
@@ -469,8 +520,8 @@
         judul,
         konten:       selTipe !== 'KKTP' ? (el('tp-konten').value.trim() || null) : null,
         parent_id:    selTipe === 'KKTP' ? (el('tp-parent-sel').value || null) : null,
-        batas_bawah:  selTipe === 'KKTP' && el('tp-batas-kktp').value !== ''
-                        ? parseFloat(el('tp-batas-kktp').value) : null,
+        rentang:      selTipe === 'KKTP' ? collectRentang() : null,
+        batas_bawah:  null,
         batas_atas:   null,
         academic_year: el('tp-year').value.trim() || DEFAULT_YEAR,
         semester:     selTipe === 'CP' ? null : (parseInt(el('tp-sem').value) || 1),
@@ -502,7 +553,12 @@
   async function confirmDeleteTp(id) {
     const item = _tpList.find(t => t.id === id);
     if (!item) return;
-    if (!confirm(`Hapus "${item.judul}"? Semua KKTP di bawahnya akan ikut terhapus.`)) return;
+    const msg = item.tipe === 'CP'
+      ? 'Menghapus CP ini akan menghapus entri ini secara permanen.'
+      : item.tipe === 'TP'
+        ? 'Menghapus TP ini akan menghapus KKTP dan semua penilaian terkait secara permanen.'
+        : 'Menghapus KKTP ini secara permanen.';
+    if (!confirm(msg)) return;
     try {
       await SipApi.deleteTpKktp(id);
       _tpList = _tpList.filter(t => t.id !== id && t.parent_id !== id);
@@ -1321,8 +1377,11 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
       const val = raw !== '' ? parseFloat(raw) : null;
       payload.nilai         = isNaN(val) ? null : val;
       payload.tindak_lanjut = srow.querySelector('.stu-tl')?.value.trim() || null;
-      const kktp = kktpItems.find(k => k.batas_bawah != null);
-      if (kktp && val != null && !isNaN(val)) payload.kktp_tercapai = val >= kktp.batas_bawah;
+      const kktp = kktpItems[0];
+      if (kktp && val != null && !isNaN(val)) {
+        const p = getPredikat(val, getRentang(kktp));
+        payload.kktp_tercapai = p === 'BSH' || p === 'SB';
+      }
     }
     return payload;
   }
@@ -1544,20 +1603,15 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
     // ── KKTP live update di tambah penilaian ────────────────────────────
     el('asmt-per-siswa-wrap').addEventListener('input', e => {
       if (!e.target.classList.contains('stu-nilai')) return;
-      const kktpItems = getKktpItems();
-      const kktp      = kktpItems.find(k => k.batas_bawah != null);
+      const kktp = getKktpItems()[0];
       if (!kktp) return;
-      const val  = parseFloat(e.target.value);
-      const stat = e.target.closest('.pai-srow')?.querySelector('.stu-kktp-stat');
+      const val     = parseFloat(e.target.value);
+      const stat    = e.target.closest('.pai-srow')?.querySelector('.stu-kktp-stat');
       if (!stat) return;
-      if (isNaN(val) || e.target.value === '') {
-        stat.textContent = `KKTP — (≥${kktp.batas_bawah})`;
-        stat.style.color  = 'var(--text-secondary)';
-      } else {
-        const ok = val >= kktp.batas_bawah;
-        stat.textContent = `KKTP ${ok ? '✓ Tercapai' : '✗ Belum'} (≥${kktp.batas_bawah})`;
-        stat.style.color  = ok ? 'var(--success,#2d6a4f)' : '#c0392b';
-      }
+      const rentang = getRentang(kktp);
+      const n       = isNaN(val) || e.target.value === '' ? null : val;
+      stat.textContent = kktpStatText(n, rentang);
+      stat.style.color  = kktpStatColor(n, rentang);
     });
 
     // ── Helpers ──────────────────────────────────────────────────────────
@@ -1704,24 +1758,18 @@ ${!_roster.length
     el('pai-modal-box')._resMap = resMap;
     buildStudentRows('all', asmt.jenis, kktpItems, resMap);
 
-    if (asmt.jenis === 'SUMATIF') {
-      const kktp = kktpItems.find(k => k.batas_bawah != null);
-      if (kktp) {
-        el('pai-srows')?.addEventListener('input', e => {
-          if (!e.target.classList.contains('stu-nilai')) return;
-          const val  = parseFloat(e.target.value);
-          const stat = e.target.closest('.pai-srow')?.querySelector('.stu-kktp-stat');
-          if (!stat) return;
-          if (isNaN(val) || e.target.value === '') {
-            stat.textContent = `KKTP — (≥${kktp.batas_bawah})`;
-            stat.style.color  = 'var(--text-secondary)';
-          } else {
-            const ok = val >= kktp.batas_bawah;
-            stat.textContent = `KKTP ${ok ? '✓ Tercapai' : '✗ Belum'} (≥${kktp.batas_bawah})`;
-            stat.style.color  = ok ? 'var(--success,#2d6a4f)' : '#c0392b';
-          }
-        });
-      }
+    if (asmt.jenis === 'SUMATIF' && kktpItems.length) {
+      const kktp = kktpItems[0];
+      el('pai-srows')?.addEventListener('input', e => {
+        if (!e.target.classList.contains('stu-nilai')) return;
+        const val     = parseFloat(e.target.value);
+        const stat    = e.target.closest('.pai-srow')?.querySelector('.stu-kktp-stat');
+        if (!stat) return;
+        const rentang = getRentang(kktp);
+        const n       = isNaN(val) || e.target.value === '' ? null : val;
+        stat.textContent = kktpStatText(n, rentang);
+        stat.style.color  = kktpStatColor(n, rentang);
+      });
     }
   }
 
@@ -1773,13 +1821,10 @@ ${!_roster.length
   value="${esc(res.tindak_lanjut ?? '')}"
   style="${inputCss('font-size:var(--fs-caption);margin-top:.25rem')}">`;
     } else {
-      const kktp      = kktpItems.find(k => k.batas_bawah != null);
-      const kktpStr   = kktp && res.nilai != null
-        ? (res.nilai >= kktp.batas_bawah ? '✓ Tercapai' : '✗ Belum')
-        : '—';
-      const kktpColor = kktp && res.nilai != null
-        ? (res.nilai >= kktp.batas_bawah ? 'var(--success,#2d6a4f)' : '#c0392b')
-        : 'var(--text-secondary)';
+      const kktp      = kktpItems[0];
+      const rentang   = kktp ? getRentang(kktp) : null;
+      const kktpColor = kktp ? kktpStatColor(res.nilai ?? null, rentang) : 'var(--text-secondary)';
+      const kktpStr   = kktp ? kktpStatText(res.nilai ?? null, rentang)  : 'KKTP —';
       inputs = `
 <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.4rem">
   <input type="number" class="stu-nilai" min="0" max="100" step="0.5"
@@ -1787,7 +1832,7 @@ ${!_roster.length
     style="${inputCss('width:7rem;font-size:var(--fs-caption)')}">
   ${kktp ? `<span class="stu-kktp-stat"
       style="font-size:var(--fs-caption);color:${kktpColor}">
-      KKTP ${kktpStr} (≥${kktp.batas_bawah})
+      ${kktpStr}
     </span>` : ''}
 </div>
 <input type="text" class="stu-tl" placeholder="Tindak lanjut… (opsional)"
@@ -1933,9 +1978,11 @@ ${!_roster.length
           ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
         const tp   = _tpList.find(t => t.id === tid);
         const kktp = tp
-          ? _tpList.find(t => t.parent_id === tp.id && t.tipe === 'KKTP' && t.batas_bawah != null)
+          ? _tpList.find(t => t.parent_id === tp.id && t.tipe === 'KKTP')
           : null;
-        const tercapai = kktp && avg != null ? avg >= kktp.batas_bawah : null;
+        const tercapai = kktp && avg != null
+          ? (() => { const p = getPredikat(avg, getRentang(kktp)); return p === 'BSH' || p === 'SB'; })()
+          : null;
         const badge    = tercapai === true ? ' ✓' : tercapai === false ? ' ✗' : '';
         const color    = tercapai === true  ? 'var(--success,#2d6a4f)'
                        : tercapai === false ? '#c0392b' : 'var(--text-secondary)';
