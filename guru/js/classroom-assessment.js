@@ -666,7 +666,7 @@
     const msg = item.tipe === 'CP'
       ? 'Menghapus CP ini akan menghapus entri ini secara permanen.'
       : item.tipe === 'TP'
-        ? 'Menghapus TP ini akan menghapus KKTP dan semua penilaian terkait secara permanen.'
+        ? 'TP ini akan dihapus. Penilaian yang terkait TP ini akan tetap ada tapi tidak lagi terhubung ke TP manapun.'
         : 'Menghapus KKTP ini secara permanen.';
     if (!confirm(msg)) return;
     try {
