@@ -118,7 +118,7 @@ async function getMapelListByJenjang(jenjang, opts) {
           .filter(v => Array.isArray(v.jenjang) && v.jenjang.includes('SMK'))
           .map(v => v.bidang)
           .filter(Boolean)
-      ).filter(b => b !== 'Umum')].sort((a, b) => a.localeCompare(b, 'id'));
+      )].filter(b => b !== 'Umum').sort((a, b) => a.localeCompare(b, 'id'));
       return bidangs.map(b => ({ key: b, label: b }));
     }
     if (bidang && !program) {
