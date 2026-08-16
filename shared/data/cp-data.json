@@ -3904,7 +3904,7 @@
       ]
     }
   },
-  "dasar_dasar_teknik_geologi": {
+  "dasar_dasar_teknik_geologi_pertambangan": {
     "bidang": "Energi dan Pertambangan",
     "program_keahlian": "Teknik Geologi Pertambangan",
     "jenjang": [
@@ -7870,72 +7870,315 @@
   },
   "pendidikan_agama_islam": {
     "bidang": "Umum",
-    "jenjang": ["SD", "SMP", "SMA", "SMK"],
+    "jenjang": [
+      "SD",
+      "SMP",
+      "SMA",
+      "SMK"
+    ],
     "fase_a": {
       "label": "PAI dan Budi Pekerti Fase A (Kelas 1–2 SD)",
       "cp_umum": "Pada akhir fase A, peserta didik mampu mengenal dan menyebutkan nama-nama Allah, rukun iman dan rukun Islam, kisah para nabi, serta membiasakan diri membaca Al-Qur'an dengan baik dan benar.",
       "elemen": [
-        { "nama": "Al-Qur'an dan Hadis", "cp_normatif": "Peserta didik mampu mengenal huruf hijaiyah dan harakatnya, membaca Al-Qur'an dengan tartil, serta menghafal surah-surah pendek." },
-        { "nama": "Akidah", "cp_normatif": "Peserta didik mampu mengenal rukun iman, meyakini adanya Allah dengan memahami asmaul husna, serta mengenal malaikat dan tugasnya." },
-        { "nama": "Akhlak", "cp_normatif": "Peserta didik mampu membiasakan perilaku terpuji seperti jujur, santun, dan kasih sayang dalam kehidupan sehari-hari." },
-        { "nama": "Fiqih", "cp_normatif": "Peserta didik mampu mengenal rukun Islam, tata cara bersuci, shalat, dan doa sehari-hari." },
-        { "nama": "Sejarah Peradaban Islam", "cp_normatif": "Peserta didik mampu mengenal kisah Nabi Muhammad SAW dan para nabi sebelumnya sebagai teladan hidup." }
+        {
+          "nama": "Al-Qur'an dan Hadis",
+          "cp_normatif": "Peserta didik mampu mengenal huruf hijaiyah dan harakatnya, membaca Al-Qur'an dengan tartil, serta menghafal surah-surah pendek."
+        },
+        {
+          "nama": "Akidah",
+          "cp_normatif": "Peserta didik mampu mengenal rukun iman, meyakini adanya Allah dengan memahami asmaul husna, serta mengenal malaikat dan tugasnya."
+        },
+        {
+          "nama": "Akhlak",
+          "cp_normatif": "Peserta didik mampu membiasakan perilaku terpuji seperti jujur, santun, dan kasih sayang dalam kehidupan sehari-hari."
+        },
+        {
+          "nama": "Fiqih",
+          "cp_normatif": "Peserta didik mampu mengenal rukun Islam, tata cara bersuci, shalat, dan doa sehari-hari."
+        },
+        {
+          "nama": "Sejarah Peradaban Islam",
+          "cp_normatif": "Peserta didik mampu mengenal kisah Nabi Muhammad SAW dan para nabi sebelumnya sebagai teladan hidup."
+        }
       ]
     },
     "fase_b": {
       "label": "PAI dan Budi Pekerti Fase B (Kelas 3–4 SD)",
       "cp_umum": "Pada akhir fase B, peserta didik mampu membaca Al-Qur'an dengan tartil, memahami makna asmaul husna, melaksanakan shalat dengan benar, dan meneladani akhlak Rasulullah SAW.",
       "elemen": [
-        { "nama": "Al-Qur'an dan Hadis", "cp_normatif": "Peserta didik mampu membaca Al-Qur'an dengan tartil, menghafal surah pilihan, dan memahami makna hadis tentang akhlak." },
-        { "nama": "Akidah", "cp_normatif": "Peserta didik mampu memahami sifat-sifat Allah, beriman kepada malaikat, kitab-kitab Allah, dan para rasul." },
-        { "nama": "Akhlak", "cp_normatif": "Peserta didik mampu menunjukkan perilaku jujur, amanah, hormat kepada orang tua dan guru, serta menjaga lingkungan." },
-        { "nama": "Fiqih", "cp_normatif": "Peserta didik mampu melaksanakan shalat fardu, shalat sunnah, dan memahami ketentuan zakat fitrah." },
-        { "nama": "Sejarah Peradaban Islam", "cp_normatif": "Peserta didik mampu menceritakan kisah keteladanan Nabi Muhammad SAW dan para sahabat dalam kehidupan sehari-hari." }
+        {
+          "nama": "Al-Qur'an dan Hadis",
+          "cp_normatif": "Peserta didik mampu membaca Al-Qur'an dengan tartil, menghafal surah pilihan, dan memahami makna hadis tentang akhlak."
+        },
+        {
+          "nama": "Akidah",
+          "cp_normatif": "Peserta didik mampu memahami sifat-sifat Allah, beriman kepada malaikat, kitab-kitab Allah, dan para rasul."
+        },
+        {
+          "nama": "Akhlak",
+          "cp_normatif": "Peserta didik mampu menunjukkan perilaku jujur, amanah, hormat kepada orang tua dan guru, serta menjaga lingkungan."
+        },
+        {
+          "nama": "Fiqih",
+          "cp_normatif": "Peserta didik mampu melaksanakan shalat fardu, shalat sunnah, dan memahami ketentuan zakat fitrah."
+        },
+        {
+          "nama": "Sejarah Peradaban Islam",
+          "cp_normatif": "Peserta didik mampu menceritakan kisah keteladanan Nabi Muhammad SAW dan para sahabat dalam kehidupan sehari-hari."
+        }
       ]
     },
     "fase_c": {
       "label": "PAI dan Budi Pekerti Fase C (Kelas 5–6 SD)",
       "cp_umum": "Pada akhir fase C, peserta didik mampu membaca, menghafal, dan memahami makna Al-Qur'an, meyakini hari akhir dan qada-qadar, membiasakan perilaku terpuji, serta memahami ketentuan ibadah.",
       "elemen": [
-        { "nama": "Al-Qur'an dan Hadis", "cp_normatif": "Peserta didik mampu membaca Al-Qur'an dengan tajwid dasar, menghafal juz 30, dan memahami kandungan hadis pilihan." },
-        { "nama": "Akidah", "cp_normatif": "Peserta didik mampu beriman kepada hari akhir, qada dan qadar, serta memahami hikmah beriman kepada rukun iman." },
-        { "nama": "Akhlak", "cp_normatif": "Peserta didik mampu menghindari perilaku tercela dan membiasakan perilaku terpuji dalam pergaulan sehari-hari." },
-        { "nama": "Fiqih", "cp_normatif": "Peserta didik mampu memahami ketentuan puasa, haji, dan halal-haram dalam kehidupan sehari-hari." },
-        { "nama": "Sejarah Peradaban Islam", "cp_normatif": "Peserta didik mampu meneladani perjuangan Nabi Muhammad SAW dalam membangun masyarakat Madinah." }
+        {
+          "nama": "Al-Qur'an dan Hadis",
+          "cp_normatif": "Peserta didik mampu membaca Al-Qur'an dengan tajwid dasar, menghafal juz 30, dan memahami kandungan hadis pilihan."
+        },
+        {
+          "nama": "Akidah",
+          "cp_normatif": "Peserta didik mampu beriman kepada hari akhir, qada dan qadar, serta memahami hikmah beriman kepada rukun iman."
+        },
+        {
+          "nama": "Akhlak",
+          "cp_normatif": "Peserta didik mampu menghindari perilaku tercela dan membiasakan perilaku terpuji dalam pergaulan sehari-hari."
+        },
+        {
+          "nama": "Fiqih",
+          "cp_normatif": "Peserta didik mampu memahami ketentuan puasa, haji, dan halal-haram dalam kehidupan sehari-hari."
+        },
+        {
+          "nama": "Sejarah Peradaban Islam",
+          "cp_normatif": "Peserta didik mampu meneladani perjuangan Nabi Muhammad SAW dalam membangun masyarakat Madinah."
+        }
       ]
     },
     "fase_d": {
       "label": "PAI dan Budi Pekerti Fase D (Kelas 7–9 SMP)",
       "cp_umum": "Pada akhir fase D, peserta didik mampu membaca Al-Qur'an dengan tartil dan memahami kandungannya, menganalisis rukun iman, membiasakan akhlak mulia, melaksanakan ibadah dengan benar, dan mengambil hikmah dari sejarah peradaban Islam untuk kehidupan masa kini.",
       "elemen": [
-        { "nama": "Al-Qur'an dan Hadis", "cp_normatif": "Peserta didik mampu membaca, menghafal, dan memahami kandungan Al-Qur'an surah-surah pilihan serta hadis tentang akhlak, toleransi, dan semangat berilmu. Peserta didik menganalisis hubungan antara isi kandungan Al-Qur'an dengan kehidupan sehari-hari." },
-        { "nama": "Akidah", "cp_normatif": "Peserta didik mampu menganalisis dan meyakini kebenaran rukun iman (iman kepada Allah, malaikat, kitab, rasul, hari akhir, dan qada-qadar) serta menghubungkan keyakinan tersebut dengan sikap dan perilaku dalam kehidupan." },
-        { "nama": "Akhlak", "cp_normatif": "Peserta didik mampu membiasakan akhlak mulia seperti jujur, amanah, toleransi, saling menghormati, dan menghindari perilaku tercela. Peserta didik memahami pentingnya akhlak dalam membangun hubungan sosial yang harmonis." },
-        { "nama": "Fiqih", "cp_normatif": "Peserta didik mampu memahami dan melaksanakan ketentuan ibadah mahdah (shalat, puasa, zakat, haji) dan muamalah sesuai syariat Islam, serta memahami konsep halal-haram dalam kehidupan sehari-hari." },
-        { "nama": "Sejarah Peradaban Islam", "cp_normatif": "Peserta didik mampu menganalisis perkembangan peradaban Islam dari masa Rasulullah SAW, khulafaur rasyidin, Dinasti Umayyah, Abbasiyah, hingga perkembangan Islam di Nusantara, dan mengambil hikmah untuk kehidupan masa kini." }
+        {
+          "nama": "Al-Qur'an dan Hadis",
+          "cp_normatif": "Peserta didik mampu membaca, menghafal, dan memahami kandungan Al-Qur'an surah-surah pilihan serta hadis tentang akhlak, toleransi, dan semangat berilmu. Peserta didik menganalisis hubungan antara isi kandungan Al-Qur'an dengan kehidupan sehari-hari."
+        },
+        {
+          "nama": "Akidah",
+          "cp_normatif": "Peserta didik mampu menganalisis dan meyakini kebenaran rukun iman (iman kepada Allah, malaikat, kitab, rasul, hari akhir, dan qada-qadar) serta menghubungkan keyakinan tersebut dengan sikap dan perilaku dalam kehidupan."
+        },
+        {
+          "nama": "Akhlak",
+          "cp_normatif": "Peserta didik mampu membiasakan akhlak mulia seperti jujur, amanah, toleransi, saling menghormati, dan menghindari perilaku tercela. Peserta didik memahami pentingnya akhlak dalam membangun hubungan sosial yang harmonis."
+        },
+        {
+          "nama": "Fiqih",
+          "cp_normatif": "Peserta didik mampu memahami dan melaksanakan ketentuan ibadah mahdah (shalat, puasa, zakat, haji) dan muamalah sesuai syariat Islam, serta memahami konsep halal-haram dalam kehidupan sehari-hari."
+        },
+        {
+          "nama": "Sejarah Peradaban Islam",
+          "cp_normatif": "Peserta didik mampu menganalisis perkembangan peradaban Islam dari masa Rasulullah SAW, khulafaur rasyidin, Dinasti Umayyah, Abbasiyah, hingga perkembangan Islam di Nusantara, dan mengambil hikmah untuk kehidupan masa kini."
+        }
       ]
     },
     "fase_e": {
       "label": "PAI dan Budi Pekerti Fase E (Kelas 10 SMA/SMK)",
       "cp_umum": "Pada akhir fase E, peserta didik mampu menganalisis ayat Al-Qur'an dan hadis tentang kewajiban berilmu dan toleransi, meyakini hari akhir dan qada-qadar, membiasakan akhlak mulia dalam kehidupan modern, memahami fikih munakahat dan mawaris, serta menganalisis peran tokoh Islam dalam perkembangan ilmu pengetahuan.",
       "elemen": [
-        { "nama": "Al-Qur'an dan Hadis", "cp_normatif": "Peserta didik mampu menganalisis kandungan Al-Qur'an dan hadis tentang kewajiban menuntut ilmu, toleransi, persatuan, dan etos kerja, serta mengimplementasikannya dalam kehidupan sehari-hari." },
-        { "nama": "Akidah", "cp_normatif": "Peserta didik mampu menganalisis makna iman kepada hari akhir dan qada-qadar, serta menghubungkannya dengan sikap optimis, ikhtiar, dan tawakal dalam kehidupan." },
-        { "nama": "Akhlak", "cp_normatif": "Peserta didik mampu membiasakan akhlak mulia dalam kehidupan modern, menghindari sikap intoleran dan radikalisme, serta berkontribusi positif dalam masyarakat plural." },
-        { "nama": "Fiqih", "cp_normatif": "Peserta didik mampu memahami ketentuan fikih tentang pernikahan, waris, dan muamalah kontemporer, serta menerapkannya sesuai konteks kehidupan." },
-        { "nama": "Sejarah Peradaban Islam", "cp_normatif": "Peserta didik mampu menganalisis peran ilmuwan Muslim dalam perkembangan ilmu pengetahuan dan teknologi, serta mengambil teladan untuk kehidupan masa kini." }
+        {
+          "nama": "Al-Qur'an dan Hadis",
+          "cp_normatif": "Peserta didik mampu menganalisis kandungan Al-Qur'an dan hadis tentang kewajiban menuntut ilmu, toleransi, persatuan, dan etos kerja, serta mengimplementasikannya dalam kehidupan sehari-hari."
+        },
+        {
+          "nama": "Akidah",
+          "cp_normatif": "Peserta didik mampu menganalisis makna iman kepada hari akhir dan qada-qadar, serta menghubungkannya dengan sikap optimis, ikhtiar, dan tawakal dalam kehidupan."
+        },
+        {
+          "nama": "Akhlak",
+          "cp_normatif": "Peserta didik mampu membiasakan akhlak mulia dalam kehidupan modern, menghindari sikap intoleran dan radikalisme, serta berkontribusi positif dalam masyarakat plural."
+        },
+        {
+          "nama": "Fiqih",
+          "cp_normatif": "Peserta didik mampu memahami ketentuan fikih tentang pernikahan, waris, dan muamalah kontemporer, serta menerapkannya sesuai konteks kehidupan."
+        },
+        {
+          "nama": "Sejarah Peradaban Islam",
+          "cp_normatif": "Peserta didik mampu menganalisis peran ilmuwan Muslim dalam perkembangan ilmu pengetahuan dan teknologi, serta mengambil teladan untuk kehidupan masa kini."
+        }
       ]
     },
     "fase_f": {
       "label": "PAI dan Budi Pekerti Fase F (Kelas 11–12 SMA/SMK)",
       "cp_umum": "Pada akhir fase F, peserta didik mampu mengevaluasi berbagai permasalahan kontemporer dari perspektif Islam, menganalisis ijtihad ulama dalam menjawab tantangan zaman, membiasakan akhlak mulia sebagai generasi penerus bangsa, serta memperkuat komitmen beragama yang moderat dan toleran.",
       "elemen": [
-        { "nama": "Al-Qur'an dan Hadis", "cp_normatif": "Peserta didik mampu mengevaluasi kandungan Al-Qur'an dan hadis tentang permasalahan kontemporer seperti lingkungan hidup, keadilan sosial, dan kemajuan teknologi, serta menjadikannya panduan hidup." },
-        { "nama": "Akidah", "cp_normatif": "Peserta didik mampu mengevaluasi berbagai aliran pemikiran dalam Islam dan memperkuat keyakinan beragama yang moderat, toleran, dan berwawasan kebangsaan." },
-        { "nama": "Akhlak", "cp_normatif": "Peserta didik mampu menginternalisasi akhlak mulia sebagai karakter diri, berkontribusi dalam masyarakat, dan menjadi agen perdamaian di era globalisasi." },
-        { "nama": "Fiqih", "cp_normatif": "Peserta didik mampu menganalisis ijtihad ulama kontemporer dalam menjawab permasalahan fiqih modern seperti ekonomi syariah, bioetika Islam, dan fiqih lingkungan." },
-        { "nama": "Sejarah Peradaban Islam", "cp_normatif": "Peserta didik mampu mengevaluasi kondisi umat Islam di era modern dan kontemporer, menganalisis faktor kemajuan dan kemunduran, serta merumuskan kontribusi yang bisa diberikan generasi muda Muslim." }
+        {
+          "nama": "Al-Qur'an dan Hadis",
+          "cp_normatif": "Peserta didik mampu mengevaluasi kandungan Al-Qur'an dan hadis tentang permasalahan kontemporer seperti lingkungan hidup, keadilan sosial, dan kemajuan teknologi, serta menjadikannya panduan hidup."
+        },
+        {
+          "nama": "Akidah",
+          "cp_normatif": "Peserta didik mampu mengevaluasi berbagai aliran pemikiran dalam Islam dan memperkuat keyakinan beragama yang moderat, toleran, dan berwawasan kebangsaan."
+        },
+        {
+          "nama": "Akhlak",
+          "cp_normatif": "Peserta didik mampu menginternalisasi akhlak mulia sebagai karakter diri, berkontribusi dalam masyarakat, dan menjadi agen perdamaian di era globalisasi."
+        },
+        {
+          "nama": "Fiqih",
+          "cp_normatif": "Peserta didik mampu menganalisis ijtihad ulama kontemporer dalam menjawab permasalahan fiqih modern seperti ekonomi syariah, bioetika Islam, dan fiqih lingkungan."
+        },
+        {
+          "nama": "Sejarah Peradaban Islam",
+          "cp_normatif": "Peserta didik mampu mengevaluasi kondisi umat Islam di era modern dan kontemporer, menganalisis faktor kemajuan dan kemunduran, serta merumuskan kontribusi yang bisa diberikan generasi muda Muslim."
+        }
       ]
+    }
+  },
+  "dasar_dasar_teknik_elektronika": {
+    "bidang": "Teknologi Manufaktur dan Rekayasa",
+    "program_keahlian": "Teknik Elektronika",
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_e": {
+      "label": "Dasar-dasar Teknik Elektronika (Kelas 10 SMK)",
+      "cp_umum": null,
+      "elemen": []
+    }
+  },
+  "kepercayaan_terhadap_tuhan_yang_maha_esa": {
+    "bidang": null,
+    "program_keahlian": null,
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_e": {
+      "label": "Kepercayaan Terhadap Tuhan Yang Maha Esa dan Budi Pekerti (Kelas 10-11 SMK)",
+      "cp_umum": null,
+      "elemen": []
+    },
+    "fase_f": {
+      "label": "Kepercayaan Terhadap Tuhan Yang Maha Esa dan Budi Pekerti (Kelas 12 SMK)",
+      "cp_umum": null,
+      "elemen": []
+    }
+  },
+  "koding_dan_kecerdasan_artifisial": {
+    "bidang": null,
+    "program_keahlian": null,
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_e": {
+      "label": "Koding dan Kecerdasan Artifisial (Kelas 10-11 SMK)",
+      "cp_umum": null,
+      "elemen": []
+    },
+    "fase_f": {
+      "label": "Koding dan Kecerdasan Artifisial (Kelas 12 SMK)",
+      "cp_umum": null,
+      "elemen": []
+    }
+  },
+  "kreativitas_inovasi_dan_kewirausahaan": {
+    "bidang": null,
+    "program_keahlian": null,
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_e": {
+      "label": "Kreativitas, Inovasi, dan Kewirausahaan (Kelas 10-11 SMK)",
+      "cp_umum": null,
+      "elemen": []
+    },
+    "fase_f": {
+      "label": "Kreativitas, Inovasi, dan Kewirausahaan (Kelas 12 SMK)",
+      "cp_umum": null,
+      "elemen": []
+    }
+  },
+  "pendidikan_agama_buddha": {
+    "bidang": null,
+    "program_keahlian": null,
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_e": {
+      "label": "Pendidikan Agama Buddha dan Budi Pekerti (Kelas 10-11 SMK)",
+      "cp_umum": null,
+      "elemen": []
+    },
+    "fase_f": {
+      "label": "Pendidikan Agama Buddha dan Budi Pekerti (Kelas 12 SMK)",
+      "cp_umum": null,
+      "elemen": []
+    }
+  },
+  "pendidikan_agama_hindu": {
+    "bidang": null,
+    "program_keahlian": null,
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_e": {
+      "label": "Pendidikan Agama Hindu dan Budi Pekerti (Kelas 10-11 SMK)",
+      "cp_umum": null,
+      "elemen": []
+    },
+    "fase_f": {
+      "label": "Pendidikan Agama Hindu dan Budi Pekerti (Kelas 12 SMK)",
+      "cp_umum": null,
+      "elemen": []
+    }
+  },
+  "pendidikan_agama_katolik": {
+    "bidang": null,
+    "program_keahlian": null,
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_e": {
+      "label": "Pendidikan Agama Katolik dan Budi Pekerti (Kelas 10-11 SMK)",
+      "cp_umum": null,
+      "elemen": []
+    },
+    "fase_f": {
+      "label": "Pendidikan Agama Katolik dan Budi Pekerti (Kelas 12 SMK)",
+      "cp_umum": null,
+      "elemen": []
+    }
+  },
+  "pendidikan_agama_khonghucu": {
+    "bidang": null,
+    "program_keahlian": null,
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_e": {
+      "label": "Pendidikan Agama Khonghucu dan Budi Pekerti (Kelas 10-11 SMK)",
+      "cp_umum": null,
+      "elemen": []
+    },
+    "fase_f": {
+      "label": "Pendidikan Agama Khonghucu dan Budi Pekerti (Kelas 12 SMK)",
+      "cp_umum": null,
+      "elemen": []
+    }
+  },
+  "pendidikan_agama_kristen": {
+    "bidang": null,
+    "program_keahlian": null,
+    "jenjang": [
+      "SMK"
+    ],
+    "fase_e": {
+      "label": "Pendidikan Agama Kristen dan Budi Pekerti (Kelas 10-11 SMK)",
+      "cp_umum": null,
+      "elemen": []
+    },
+    "fase_f": {
+      "label": "Pendidikan Agama Kristen dan Budi Pekerti (Kelas 12 SMK)",
+      "cp_umum": null,
+      "elemen": []
     }
   }
 }
