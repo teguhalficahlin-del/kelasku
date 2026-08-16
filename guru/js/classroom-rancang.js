@@ -1401,7 +1401,7 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
     const checked = (_ans.elemenTerpilih || []).includes(nama);
     return `<label class="rp-elemen-check${checked ? ' checked' : ''}">
   <input type="checkbox" value="${esc(nama)}"${checked ? ' checked' : ''}>
-  <span>${esc(nama)}</span>
+  <span>${esc(toTitleCase(nama))}</span>
 </label>`;
   }).join('')}
 </div>`;
