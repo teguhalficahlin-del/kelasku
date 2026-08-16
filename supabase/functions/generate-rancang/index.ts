@@ -21,7 +21,7 @@ Aturan output yang tidak boleh dilanggar:
 
 // ─── Prompt builders ─────────────────────────────────────────────────────────
 
-function buildCpSummaryPrompt(konteks: Record<string, unknown>, elemenList: Array<{ nama: string; cp_normatif: string }>) {
+function buildCpSummaryPrompt(konteks: Record<string, unknown>, elemenList: Array<{ nama: string; cp_normatif: string }>, elemenDifilter = false) {
   const lines = elemenList.map((e, i) =>
     `Elemen ${i + 1}: ${e.nama}\nCP Normatif:\n${e.cp_normatif}`
   ).join('\n\n');
@@ -29,7 +29,7 @@ function buildCpSummaryPrompt(konteks: Record<string, unknown>, elemenList: Arra
   return `Mata pelajaran: ${konteks.mapel}
 Jenjang: ${konteks.jenjang}
 Fase: ${konteks.fase}
-
+${elemenDifilter ? '\nCatatan: guru hanya mengampu elemen berikut (bukan semua elemen mapel)\n' : ''}
 Berikut adalah teks CP normatif untuk setiap elemen:
 
 ${lines}
@@ -54,11 +54,12 @@ Skema output JSON:
 
 function buildAtpPrompt(payload: Record<string, unknown>) {
   const { konteks, smk, niat_guru, preferensi } = payload as Record<string, Record<string, unknown>>;
+  const semester_list = payload.semester_list as string[] | undefined;
 
   const smkSection = smk ? `
 Konteks SMK:
-- Jurusan: ${smk.jurusan}
-- Rumpun: ${smk.rumpun}
+${smk.bidang_keahlian ? `- Bidang keahlian: ${smk.bidang_keahlian}` : ''}
+${smk.program_keahlian ? `- Program keahlian: ${smk.program_keahlian}` : ''}
 - Tujuan utama: ${Array.isArray(smk.tujuan) ? smk.tujuan.join(', ') : smk.tujuan}
 - Status PKL: ${smk.status_pkl}
 - Pola jadwal: ${smk.pola_jadwal}
@@ -75,8 +76,10 @@ Visi Guru:
   return `Konteks Pembelajaran:
 - Mata pelajaran: ${konteks.mapel}
 - Jenjang: ${konteks.jenjang}
+- Kelas: ${konteks.kelas || '-'}
 - Fase: ${konteks.fase}
 - JP per minggu: ${konteks.jp_per_minggu}
+${semester_list?.length ? `- Semester aktif: ${semester_list.join(', ')}` : ''}
 ${smkSection}
 ${niatGuruSection}
 
@@ -111,6 +114,7 @@ Skema output JSON:
 
 function buildRencanaPrompt(payload: Record<string, unknown>) {
   const { konteks, smk, niat_guru, preferensi, tp_terpilih, konteks_kelas } = payload as Record<string, Record<string, unknown>>;
+  const semester_list = payload.semester_list as string[] | undefined;
 
   const pendekatan_kktp = String((tp_terpilih as Record<string,unknown>)?.pendekatan_kktp || 'rubrik');
   const isGenreBased = String(preferensi?.pendekatan || '').includes('Genre-Based');
@@ -168,8 +172,9 @@ Format output kktp: { "indikator": ["...", "...", "..."], "persentase_minimal": 
 
 Konteks:
 - Mata pelajaran: ${konteks?.mapel}
-- Jenjang: ${konteks?.jenjang} — Fase: ${konteks?.fase}
-${smk ? `- Jurusan SMK: ${smk.jurusan}, Rumpun: ${smk.rumpun}` : ''}
+- Jenjang: ${konteks?.jenjang} — Kelas: ${konteks?.kelas || '-'} — Fase: ${konteks?.fase}
+${semester_list?.length ? `- Semester aktif: ${semester_list.join(', ')}` : ''}
+${smk && (smk.bidang_keahlian || smk.program_keahlian) ? `- Bidang keahlian: ${smk.bidang_keahlian || '-'}, Program keahlian: ${smk.program_keahlian || '-'}` : ''}
 ${niat_guru ? `- Visi guru: suasana "${niat_guru.suasana_belajar}", titik mulai "${niat_guru.titik_mulai}", perkembangan diinginkan "${niat_guru.perkembangan_diinginkan}", pengalaman dominan "${niat_guru.pengalaman_dominan}"` : ''}
 
 Preferensi Guru:
@@ -309,7 +314,7 @@ Deno.serve(async (req) => {
     return json({ error: 'Request body tidak valid' }, 400);
   }
 
-  const { mode, konteks, smk, niat_guru, preferensi, tp_terpilih, konteks_kelas, elemen_list } = body;
+  const { mode, konteks, smk, niat_guru, preferensi, tp_terpilih, konteks_kelas, elemen_list, semester_list, elemen_difilter } = body;
 
   if (!mode || !['cp_summary', 'atp', 'rencana'].includes(mode as string)) {
     return json({ error: 'mode harus: cp_summary | atp | rencana' }, 400);
@@ -324,20 +329,21 @@ Deno.serve(async (req) => {
     }
     prompt = buildCpSummaryPrompt(
       konteks as Record<string, unknown>,
-      elemen_list as Array<{ nama: string; cp_normatif: string }>
+      elemen_list as Array<{ nama: string; cp_normatif: string }>,
+      elemen_difilter as boolean
     );
     maxTokens = 2000;
   } else if (mode === 'atp') {
     if (!konteks || !preferensi) {
       return json({ error: 'atp membutuhkan konteks dan preferensi' }, 400);
     }
-    prompt = buildAtpPrompt({ konteks, smk, niat_guru, preferensi });
+    prompt = buildAtpPrompt({ konteks, smk, niat_guru, preferensi, semester_list });
     maxTokens = 4000;
   } else {
     if (!konteks || !tp_terpilih || !konteks_kelas) {
       return json({ error: 'rencana membutuhkan konteks, tp_terpilih, dan konteks_kelas' }, 400);
     }
-    prompt = buildRencanaPrompt({ konteks, smk, niat_guru, preferensi, tp_terpilih, konteks_kelas });
+    prompt = buildRencanaPrompt({ konteks, smk, niat_guru, preferensi, tp_terpilih, konteks_kelas, semester_list });
     maxTokens = 6000;
   }
 

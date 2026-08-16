@@ -1199,9 +1199,11 @@ ${(() => {
         try {
           const result = await callAI({
             mode: 'cp_summary',
-            konteks: { mapel: _ans.mapel, jenjang: _ans.jenjang, fase: _settings?.fase },
-            elemen_list: _cpElemen,
-            ...(_ans.elemenTerpilih?.length ? { elemen_terpilih: _ans.elemenTerpilih } : {}),
+            konteks: { mapel: _ans.mapel, jenjang: _ans.jenjang, fase: _settings?.fase, kelas: _profil?.kelas || '' },
+            elemen_list: _ans.elemenTerpilih?.length
+              ? _cpElemen.filter(e => _ans.elemenTerpilih.map(n => n.trim().toLowerCase()).includes(e.nama.trim().toLowerCase()))
+              : _cpElemen,
+            elemen_difilter: !!(_ans.elemenTerpilih?.length),
           });
           _cpRingkasan = result?.ringkasan || [];
         } catch {
@@ -1627,9 +1629,11 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
         try {
           const result = await callAI({
             mode: 'cp_summary',
-            konteks: { mapel: _ans.mapel, jenjang, fase },
-            elemen_list: _cpElemen,
-            ...(_ans.elemenTerpilih?.length ? { elemen_terpilih: _ans.elemenTerpilih } : {}),
+            konteks: { mapel: _ans.mapel, jenjang, fase, kelas: _profil?.kelas || '' },
+            elemen_list: _ans.elemenTerpilih?.length
+              ? _cpElemen.filter(e => _ans.elemenTerpilih.map(n => n.trim().toLowerCase()).includes(e.nama.trim().toLowerCase()))
+              : _cpElemen,
+            elemen_difilter: !!(_ans.elemenTerpilih?.length),
           });
           _cpRingkasan = result?.ringkasan || [];
         } catch {
@@ -2146,10 +2150,11 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
     try {
       const result = await callAI({
         mode: 'atp',
-        konteks: { mapel: _ans.mapel, jenjang: _ans.jenjang, fase: _ans.fase, jp_per_minggu: _ans.preferensi.jp_per_minggu },
-        smk: _ans.smk,
+        konteks: { mapel: _ans.mapel, jenjang: _ans.jenjang, fase: _ans.fase, jp_per_minggu: _ans.preferensi.jp_per_minggu, kelas: _profil?.kelas || '' },
+        smk: _ans.smk ? { ..._ans.smk, bidang_keahlian: _ans.bidangKeahlian || null, program_keahlian: _ans.programKeahlian || null } : null,
         niat_guru: _ans.niat_guru,
         preferensi: _ans.preferensi,
+        semester_list: _profil?.semester_list || [],
       });
       _atpList = result?.tp_list || [];
       if (!_atpList.length) throw new Error('ATP kosong');
@@ -2506,12 +2511,13 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
     try {
       const result = await callAI({
         mode: 'rencana',
-        konteks: { mapel: _ans.mapel, jenjang: _ans.jenjang, fase: _ans.fase, jp_per_minggu: _ans.preferensi?.jp_per_minggu },
-        smk: _ans.smk,
+        konteks: { mapel: _ans.mapel, jenjang: _ans.jenjang, fase: _ans.fase, jp_per_minggu: _ans.preferensi?.jp_per_minggu, kelas: _profil?.kelas || '' },
+        smk: _ans.smk ? { ..._ans.smk, bidang_keahlian: _ans.bidangKeahlian || null, program_keahlian: _ans.programKeahlian || null } : null,
         niat_guru: _ans.niat_guru,
         preferensi: _ans.preferensi,
         tp_terpilih: _ans.tp_terpilih,
         konteks_kelas: _ans.konteks_kelas,
+        semester_list: _profil?.semester_list || [],
       });
       _step = 6;
       renderStep6(result);
