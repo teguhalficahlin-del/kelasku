@@ -315,6 +315,19 @@
 
   // ─── Helpers Step 0 ────────────────────────────────────────────────────────
 
+  const TITLE_CASE_EXCEPTIONS = new Set([
+    'CAD','CAM','CASR','CNC','DCS','FCAW','GMAW','GTAW','IMO','IPA',
+    'JIG','MICE','OAW','PPKS','RI','SAR','SAW','SMAW','VSAT',
+  ]);
+
+  function toTitleCase(str) {
+    return str.replace(/\S+/g, w =>
+      TITLE_CASE_EXCEPTIONS.has(w.toUpperCase())
+        ? w.toUpperCase()
+        : w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()
+    );
+  }
+
   function computeSemesterOptions(expiresAt) {
     const now = new Date();
     const end = expiresAt ? new Date(expiresAt) : new Date(now.getTime() + 365 * 86400 * 1000);
@@ -336,6 +349,12 @@
       result.push(semLabel(cur));
       if (cur.y === endSem.y && cur.s === endSem.s) break;
       cur = cur.s === 1 ? { y: cur.y, s: 2 } : { y: cur.y + 1, s: 1 };
+    }
+
+    // Minimal 2 semester agar guru trial (30 hari) tetap punya pilihan Ganjil + Genap
+    while (result.length < 2) {
+      cur = cur.s === 1 ? { y: cur.y, s: 2 } : { y: cur.y + 1, s: 1 };
+      result.push(semLabel(cur));
     }
 
     return result;
@@ -743,7 +762,7 @@ ${makeCustomDropdown('rp-s0-elemen-dd', elems.map(e => ({ value: e.key, label: e
 <div class="rp-s0-checkbox-grid" id="rp-s0-cp-elemen-list">
   ${allElemen.map(nama => `<label class="rp-s0-checkbox-row">
   <input type="checkbox" value="${esc(nama)}" class="rp-s0-cp-elemen-cb">
-  <span>${esc(nama)}</span>
+  <span>${esc(toTitleCase(nama))}</span>
 </label>`).join('')}
 </div>`
                       : `<p class="rp-block-subtitle" style="color:var(--text-muted);">Elemen belum tersedia untuk mata pelajaran ini.</p>`;
