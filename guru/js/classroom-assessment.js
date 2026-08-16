@@ -227,6 +227,21 @@
   async function initAssessmentTab(cId, tId) {
     _cId = cId;
     _tId = tId;
+    // Reset state yang mungkin bocor dari classroom sebelumnya
+    _selMapel         = null;
+    _rcSemester       = '1';
+    _rcTahun          = null;
+    _rcMapel          = null;
+    _rcMapelUserSet   = false;
+    _rcTeknik         = null;
+    _rcInstrumen      = null;
+    _rcPage1          = 0;
+    _rcPage2          = 0;
+    _rcMetode         = 'rata';
+    _rcBobots         = [];
+    _rcLastSumatifIds = [];
+    _rcHasil          = null;
+    _rcMetodeListener = null;
     const panel = el('panel-penilaian');
     if (!panel) return;
     panel.innerHTML = '<div style="padding:1.5rem;color:var(--text-secondary)">Memuat data penilaian…</div>';
