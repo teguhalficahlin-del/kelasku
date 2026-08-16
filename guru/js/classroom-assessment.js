@@ -653,7 +653,7 @@
         batas_atas:   null,
         academic_year: el('tp-year').value.trim() || DEFAULT_YEAR,
         semester:     selTipe === 'CP' ? null : (parseInt(el('tp-sem').value) || 1),
-        ...(isWali ? { mapel: selMapel } : {}),
+        mapel: isWali ? selMapel : (_classroomMapelKey || null),
       };
       el('btn-tp-save').disabled = true;
       try {
