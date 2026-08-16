@@ -15,6 +15,8 @@
   let _sGroups  = {};  // { studentId: grup }
   let _roleGuru = null; // role_guru dari profiles (WALI_KELAS_SD | MAPEL | null)
   let _selMapel = null; // mapel aktif di Section 1 dropdown (WALI_KELAS_SD only, null = belum diinit)
+  let _classroomMapelKey = ''; // window._classroomMapelKey — mapel fix classroom (guru MAPEL)
+  let _classroomJenjang  = ''; // window._classroomJenjang  — jenjang classroom
 
   // ── Rekap section state ────────────────────────────────────────────────────
   let _rcSemester   = '1';
@@ -227,6 +229,8 @@
     _cId = cId;
     _tId = tId;
     // Reset state yang mungkin bocor dari classroom sebelumnya
+    _classroomMapelKey = window._classroomMapelKey || '';
+    _classroomJenjang  = window._classroomJenjang  || '';
     _selMapel         = null;
     _rcSemester       = '1';
     _rcTahun          = null;
