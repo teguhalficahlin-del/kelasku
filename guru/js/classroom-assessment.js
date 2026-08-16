@@ -2677,9 +2677,9 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
     const bobotRowsHtml = isBobot
       ? `<div style="display:flex;flex-direction:column;gap:.35rem;margin:-.25rem 0 .25rem 1.25rem">
           ${sumatifs.map((_, i) => `<div style="display:flex;align-items:center;gap:.5rem;font-size:var(--fs-caption)">
-            <span style="min-width:3.5rem;white-space:nowrap">${esc(colHeaders[i])}</span>
+            <span style="min-width:3.5rem;max-width:8rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(colHeaders[i])}</span>
             <input type="number" id="rc-bobot-${i}" min="0" max="100" step="1"
-              value="${_rcBobots[i] ?? 0}" style="${inputCss('width:4.5rem;text-align:center')}"> <span>%</span>
+              value="${_rcBobots[i] ?? 0}" style="${inputCss('flex:1 1 0;min-width:3.5rem;text-align:center')}"> <span>%</span>
           </div>`).join('')}
           <div style="font-size:var(--fs-caption);color:${bobotValid ? 'var(--success,#2d6a4f)' : '#c0392b'}">
             Total: ${totalBobot}% ${bobotValid ? '✓' : '(harus 100%)'}
