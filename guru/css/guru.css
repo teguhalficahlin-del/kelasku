@@ -2035,6 +2035,44 @@ h2.panel-header.open .panel-collapse-arrow {
   font-weight: var(--fw-semibold);
 }
 
+/* Upgrade tier banner — tampil di Penilaian + Rancang saat tier = TRIAL */
+.upgrade-tier-banner {
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+  padding: 1.25rem 1.5rem;
+  margin: 1.5rem 0;
+  border-radius: var(--r-sm);
+  background: var(--gold-muted);
+  border: 1px solid var(--gold-border);
+  color: var(--text-primary);
+  font-size: var(--fs-body);
+  line-height: var(--lh-normal);
+}
+.upgrade-tier-banner strong {
+  font-size: var(--fs-h3);
+  font-weight: var(--fw-semibold);
+  color: var(--gold);
+}
+.upgrade-tier-banner p {
+  color: var(--text-secondary);
+  margin: 0;
+}
+.upgrade-tier-banner .btn-upgrade {
+  align-self: flex-start;
+  padding: .5rem 1.25rem;
+  border-radius: var(--r-sm);
+  background: var(--gold);
+  color: var(--text-on-gold);
+  font-size: var(--fs-ui);
+  font-weight: var(--fw-semibold);
+  border: none;
+  cursor: pointer;
+}
+.upgrade-tier-banner .btn-upgrade:hover {
+  background: var(--gold-hover);
+}
+
 #semester-banner {
   padding: .625rem 1rem;
   border-radius: var(--r-sm);

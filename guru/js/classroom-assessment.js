@@ -2926,6 +2926,33 @@ ${metodeHtml}${hasilHtml}`;
       if (_cId) try { localStorage.setItem('sip_tab_' + _cId, 'penilaian'); } catch (_) {}
 
       if (!_loaded) {
+        // Tier gate — cek tier dari sessionStorage atau RPC
+        let _ts = null;
+        try { _ts = JSON.parse(sessionStorage.getItem('guru_trial_status') || 'null'); } catch (_) {}
+        if (!_ts) {
+          try {
+            const { data } = await client.rpc('fn_guru_trial_status');
+            if (data) { _ts = data; sessionStorage.setItem('guru_trial_status', JSON.stringify(_ts)); }
+          } catch (_) {}
+        }
+        if (_ts && _ts.status === 'EXPIRED') {
+          panelPenilaian.innerHTML =
+            '<div class="upgrade-tier-banner">' +
+            '<strong>Akun Tidak Aktif</strong>' +
+            '<p>Akun Anda tidak aktif. Hubungi admin untuk mengaktifkan kembali.</p>' +
+            '</div>';
+          return;
+        }
+        if (_ts && _ts.tier === 'TRIAL') {
+          panelPenilaian.innerHTML =
+            '<div class="upgrade-tier-banner">' +
+            '<strong>Fitur Premium</strong>' +
+            '<p>Tab ini tersedia untuk Guru Go dan Guru Pro. Upgrade untuk mengakses fitur lengkap.</p>' +
+            '<button class="btn-upgrade" onclick="alert(\'Hubungi admin untuk upgrade: teguhalficahlin@gmail.com\')">Lihat paket</button>' +
+            '</div>';
+          return;
+        }
+
         const { data: { session } } = await client.auth.getSession();
         if (!session) return;
         const cId = new URLSearchParams(window.location.search).get('id');

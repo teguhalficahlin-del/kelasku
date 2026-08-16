@@ -2440,10 +2440,20 @@ ${sec1}${sec2}${sec3}${sec4}${sec5}
           if (data) { _ts = data; sessionStorage.setItem('guru_trial_status', JSON.stringify(_ts)); }
         } catch (_) {}
       }
-      if (_ts && _ts.status !== 'AKTIF') {
+      if (_ts && _ts.status === 'EXPIRED') {
         panelRancang.innerHTML =
-          '<div style="padding:1.5rem;color:var(--text-secondary);font-size:var(--fs-body);">' +
-          'Fitur ini hanya tersedia untuk akun Guru. Hubungi admin untuk aktivasi.' +
+          '<div class="upgrade-tier-banner">' +
+          '<strong>Akun Tidak Aktif</strong>' +
+          '<p>Akun Anda tidak aktif. Hubungi admin untuk mengaktifkan kembali.</p>' +
+          '</div>';
+        return;
+      }
+      if (_ts && _ts.tier === 'TRIAL') {
+        panelRancang.innerHTML =
+          '<div class="upgrade-tier-banner">' +
+          '<strong>Fitur Premium</strong>' +
+          '<p>Tab ini tersedia untuk Guru Go dan Guru Pro. Upgrade untuk mengakses fitur lengkap.</p>' +
+          '<button class="btn-upgrade" onclick="alert(\'Hubungi admin untuk upgrade: teguhalficahlin@gmail.com\')">Lihat paket</button>' +
           '</div>';
         return;
       }
