@@ -1,12 +1,12 @@
-﻿/* ============================================================
-   SIP Mandiri â€” Design System (guru portal)
-   Tokens â†’ Base â†’ Login â†’ Dashboard â†’ Modal â†’ Classroom
+/* ============================================================
+   SIP Mandiri — Design System (guru portal)
+   Tokens → Base → Login → Dashboard → Modal → Classroom
    ============================================================ */
 
-/* â”€â”€ Reset â”€â”€ */
+/* ── Reset ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* ── Global select dark theme ── */
+/* -- Global select dark theme -- */
 select {
   background: var(--bg-elevated);
   color: var(--text-primary);
@@ -26,7 +26,7 @@ select option:checked {
   color: var(--gold);
 }
 
-/* â”€â”€ Base â”€â”€ */
+/* ── Base ── */
 body {
   font-family: var(--font-sans);
   font-size: var(--fs-body);
@@ -48,7 +48,7 @@ body {
   box-sizing: border-box;
 }
 
-/* â”€â”€ Login â€” Typography â”€â”€ */
+/* ── Login — Typography ── */
 h1 {
   font-size: var(--fs-display);
   font-weight: var(--fw-bold);
@@ -66,7 +66,7 @@ h2 {
   letter-spacing: -0.01em;
 }
 
-/* â”€â”€ Login â€” Section card â”€â”€ */
+/* ── Login — Section card ── */
 section {
   background: var(--bg-surface);
   border: 1px solid var(--border);
@@ -75,7 +75,7 @@ section {
   padding: 2rem;
 }
 
-/* â”€â”€ Labels â”€â”€ */
+/* ── Labels ── */
 label {
   display: block;
   font-size: var(--fs-caption);
@@ -86,7 +86,7 @@ label {
   text-transform: uppercase;
 }
 
-/* â”€â”€ Inputs â”€â”€ */
+/* ── Inputs ── */
 input[type="email"],
 input[type="password"] {
   display: block;
@@ -111,7 +111,7 @@ input:focus {
 
 input::placeholder { color: var(--text-muted); }
 
-/* â”€â”€ Submit button (primary) â”€â”€ */
+/* ── Submit button (primary) ── */
 button[type="submit"] {
   display: block;
   width: 100%;
@@ -136,7 +136,7 @@ button[type="submit"]:hover:not(:disabled) {
 }
 button[type="submit"]:disabled { opacity: 0.4; cursor: not-allowed; }
 
-/* â”€â”€ Error message â”€â”€ */
+/* ── Error message ── */
 .error-msg {
   background: var(--danger-bg);
   border: 1px solid var(--danger-border);
@@ -148,7 +148,7 @@ button[type="submit"]:disabled { opacity: 0.4; cursor: not-allowed; }
   line-height: var(--lh-normal);
 }
 
-/* â”€â”€ Login footer link â”€â”€ */
+/* ── Login footer link ── */
 .link-daftar {
   font-size: var(--fs-ui);
   color: var(--text-secondary);
@@ -226,7 +226,7 @@ main {
   box-sizing: border-box;
 }
 
-/* â”€â”€ Toolbar â”€â”€ */
+/* ── Toolbar ── */
 .toolbar {
   display: flex;
   align-items: center;
@@ -253,7 +253,7 @@ main {
 #btn-buat-classroom:hover { background: var(--gold-hover); box-shadow: var(--shadow-gold); }
 #btn-buat-classroom:disabled { opacity: 0.4; cursor: not-allowed; }
 
-/* â”€â”€ Classroom card â”€â”€ */
+/* ── Classroom card ── */
 .classroom-card {
   background: var(--bg-surface);
   border: 1px solid var(--border);
@@ -522,7 +522,7 @@ main {
 
 .opsional { font-weight: var(--fw-regular); color: var(--text-muted); }
 
-/* â”€â”€ Step 2: Schedule input table â”€â”€ */
+/* ── Step 2: Schedule input table ── */
 .schedule-table-wrap {
   overflow-x: auto;
   margin-bottom: .875rem;
@@ -627,7 +627,7 @@ main {
 #btn-simpan-jadwal:hover:not(:disabled) { background: var(--gold-hover); box-shadow: var(--shadow-gold); }
 #btn-simpan-jadwal:disabled { opacity: 0.4; cursor: not-allowed; }
 
-/* â”€â”€ Card warning banner (no schedule) â”€â”€ */
+/* ── Card warning banner (no schedule) ── */
 .card-no-schedule {
   background: var(--warning-bg);
   border: 1px solid rgba(251,191,36,0.25);
@@ -692,7 +692,7 @@ main {
   font-size: var(--fs-h3);
 }
 
-/* â”€â”€ Panel â”€â”€ */
+/* ── Panel ── */
 .panel {
   background: var(--bg-surface);
   border: 1px solid var(--border);
@@ -730,7 +730,7 @@ main {
   color: var(--text-secondary);
 }
 
-/* â”€â”€ Inline form â”€â”€ */
+/* ── Inline form ── */
 .inline-form {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
@@ -785,7 +785,7 @@ input[type="file"] { font-size: var(--fs-body); }
   color: var(--text-secondary);
 }
 
-/* â”€â”€ Roster action buttons â”€â”€ */
+/* ── Roster action buttons ── */
 #btn-gen-terpilih {
   display: inline-flex;
   align-items: center;
@@ -832,7 +832,7 @@ input[type="file"] { font-size: var(--fs-body); }
 }
 #btn-hapus-terpilih:disabled { opacity: 0.4; cursor: not-allowed; }
 
-/* â”€â”€ Per-row action buttons â”€â”€ */
+/* ── Per-row action buttons ── */
 .btn-gen-akun {
   display: inline-flex;
   align-items: center;
@@ -886,7 +886,7 @@ input[type="file"] { font-size: var(--fs-body); }
   border-color: var(--border-strong);
 }
 
-/* â”€â”€ Table (compatibility) â”€â”€ */
+/* ── Table (compatibility) ── */
 table { width: 100%; border-collapse: collapse; font-size: var(--fs-body); }
 th {
   text-align: left;
@@ -902,9 +902,9 @@ td { padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border); }
 .status-sudah { color: var(--success); font-weight: var(--fw-semibold); }
 .status-belum { color: var(--text-muted); }
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   CLASSROOM PAGE â€” dipindah dari guru/classroom.html
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+/* ═══════════════════════════════════════════════════════
+   CLASSROOM PAGE — dipindah dari guru/classroom.html
+   ═══════════════════════════════════════════════════════ */
 
 /* Trial gate */
 .trial-hint {
@@ -1159,7 +1159,7 @@ td { padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border); }
   border-color: var(--danger);
 }
 
-/* â”€â”€ Tab navigation â”€â”€ */
+/* ── Tab navigation ── */
 .tab-bar {
   display: flex;
   gap: .375rem;
@@ -1189,7 +1189,7 @@ td { padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border); }
   color: var(--gold);
 }
 
-/* â”€â”€ Panel collapse â”€â”€ */
+/* ── Panel collapse ── */
 h2.panel-header {
   cursor: pointer;
   display: flex;
@@ -1209,7 +1209,7 @@ h2.panel-header.open .panel-collapse-arrow {
 .panel-body-collapse {
 }
 
-/* â”€â”€ Schedule list (flex, no table) â”€â”€ */
+/* ── Schedule list (flex, no table) ── */
 .sch-list {
   display: flex;
   flex-direction: column;
@@ -1240,7 +1240,7 @@ h2.panel-header.open .panel-collapse-arrow {
 .sch-actions { display: flex; gap: var(--space-xs); flex-wrap: wrap; align-items: center; justify-content: flex-start; }
 .sch-actions .btn-sm { flex: 1; justify-content: center; font-size: var(--fs-body); padding: .5rem .5rem; }
 
-/* â”€â”€ Schedule modal inputs â”€â”€ */
+/* ── Schedule modal inputs ── */
 .sch-label {
   display: flex;
   flex-direction: column;
@@ -1299,7 +1299,7 @@ h2.panel-header.open .panel-collapse-arrow {
   white-space: nowrap;
 }
 
-/* â”€â”€ Small action buttons â”€â”€ */
+/* ── Small action buttons ── */
 .btn-sm {
   font-size: var(--fs-ui);
   font-weight: 600;
@@ -1318,7 +1318,7 @@ h2.panel-header.open .panel-collapse-arrow {
 .btn-sm-danger { border-color: var(--danger-border); color: var(--danger); }
 .btn-sm-danger:hover:not(:disabled) { background: var(--danger-bg); }
 
-/* â”€â”€ Jadwal: empty state + tambah hari â”€â”€ */
+/* ── Jadwal: empty state + tambah hari ── */
 .btn-add-first-sch {
   display: block;
   margin: .75rem auto 0;
@@ -1382,7 +1382,7 @@ h2.panel-header.open .panel-collapse-arrow {
 }
 .btn-add-day-confirm:hover { background: var(--gold-muted); border-color: var(--gold); }
 
-/* â”€â”€ Absensi â”€â”€ */
+/* ── Absensi ── */
 .abs-day-header {
   font-weight: 600;
   color: var(--text-secondary);
@@ -1476,7 +1476,7 @@ h2.panel-header.open .panel-collapse-arrow {
 .abs-save-ok  { color: var(--success-text); }
 .abs-save-err { color: var(--danger); }
 .abs-disabled-msg { font-size: var(--fs-caption); color: var(--text-muted); font-style: italic; margin-top: .625rem; }
-/* â”€â”€ Rekap â”€â”€ */
+/* ── Rekap ── */
 .rekap-date-range {
   display: flex;
   gap: var(--space-md);
@@ -1600,7 +1600,7 @@ h2.panel-header.open .panel-collapse-arrow {
 #btn-export-excel:hover:not(:disabled) { background: var(--gold-muted); border-color: var(--gold); }
 #btn-export-excel:disabled { opacity: .45; cursor: not-allowed; }
 
-/* Share overlay â€” glassmorphism */
+/* Share overlay — glassmorphism */
 .share-overlay {
   position: fixed;
   inset: 0;
@@ -1644,7 +1644,7 @@ h2.panel-header.open .panel-collapse-arrow {
 }
 .share-box button { align-self: flex-end; }
 
-/* â”€â”€ Assessment modal â€” dark theme inputs, controls, tombol â”€â”€ */
+/* ── Assessment modal — dark theme inputs, controls, tombol ── */
 #assessment-modal .modal-body label {
   display: block;
   font-size: var(--fs-caption);
@@ -1752,7 +1752,7 @@ h2.panel-header.open .panel-collapse-arrow {
   cursor: not-allowed;
 }
 
-/* ── Step 1 Read-only ───────────────────────────────── */
+/* -- Step 1 Read-only --------------------------------- */
 .rp-readonly-card {
   background: var(--surface-2, #1e1e2e);
   border: 1px solid var(--border);
@@ -1818,7 +1818,7 @@ h2.panel-header.open .panel-collapse-arrow {
 }
 .rp-btn-next:hover { opacity: 0.85; }
 
-/* ── Step 6 Save row ────────────────────────────────── */
+/* -- Step 6 Save row ---------------------------------- */
 .rp-save-row {
   display: flex;
   gap: var(--space-sm);
@@ -1855,7 +1855,7 @@ h2.panel-header.open .panel-collapse-arrow {
 }
 .rp-btn-dokumen:hover { background: var(--gold-10, rgba(212,175,55,.1)); }
 
-/* ── Step 7 Identitas ───────────────────────────────── */
+/* -- Step 7 Identitas --------------------------------- */
 .rp-identitas-grid {
   display: grid;
   grid-template-columns: 1fr;
@@ -1874,7 +1874,7 @@ h2.panel-header.open .panel-collapse-arrow {
   color: var(--gold);
 }
 
-/* ── Step 7 Dokumen list ────────────────────────────── */
+/* -- Step 7 Dokumen list ------------------------------ */
 .rp-dok-seksi {
   margin-bottom: var(--space-md);
 }
@@ -1978,7 +1978,7 @@ h2.panel-header.open .panel-collapse-arrow {
   }
 }
 
-/* Modal responsif â€” di layar lebar berubah jadi centered card */
+/* Modal responsif — di layar lebar berubah jadi centered card */
 @media (min-width: 540px) {
   #assessment-modal.share-overlay {
     display: flex;
@@ -2000,9 +2000,9 @@ h2.panel-header.open .panel-collapse-arrow {
   }
 }
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   DASHBOARD PAGE â€” dipindah dari guru/dashboard.html
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+/* ═══════════════════════════════════════════════════════
+   DASHBOARD PAGE — dipindah dari guru/dashboard.html
+   ═══════════════════════════════════════════════════════ */
 
 .trial-banner {
   padding: .625rem 1rem;
@@ -2035,7 +2035,7 @@ h2.panel-header.open .panel-collapse-arrow {
   font-weight: var(--fw-semibold);
 }
 
-/* Upgrade tier banner — tampil di Penilaian + Rancang saat tier = TRIAL */
+/* Upgrade tier banner � tampil di Penilaian + Rancang saat tier = TRIAL */
 .upgrade-tier-banner {
   display: flex;
   flex-direction: column;
@@ -2093,7 +2093,7 @@ h2.panel-header.open .panel-collapse-arrow {
   font-weight: var(--fw-semibold);
 }
 
-/* ── Tombol Mulai Semester Baru ── */
+/* -- Tombol Mulai Semester Baru -- */
 .btn-semester-baru {
   display: block;
   width: 100%;
@@ -2121,7 +2121,7 @@ h2.panel-header.open .panel-collapse-arrow {
   background: var(--gold-hover);
 }
 
-/* ── Locked overlay (fase terkunci) ── */
+/* -- Locked overlay (fase terkunci) -- */
 .locked-overlay {
   position: fixed;
   inset: 0;
@@ -2166,11 +2166,11 @@ h2.panel-header.open .panel-collapse-arrow {
   color: var(--text-primary);
 }
 .locked-modal .warning-item::before {
-  content: '⚠️';
+  content: '??';
   flex-shrink: 0;
 }
 
-/* â”€â”€ Export Excel header button â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Export Excel header button ────────────────────────────────────────────── */
 
 .btn-export-header {
   font-size: var(--fs-caption);
@@ -2197,7 +2197,7 @@ h2.panel-header.open .panel-collapse-arrow {
   cursor: not-allowed;
 }
 
-/* â”€â”€ Rekap pagination â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Rekap pagination ──────────────────────────────────────────────────────── */
 
 .rekap-pagination {
   display: flex;
@@ -2257,7 +2257,7 @@ h2.panel-header.open .panel-collapse-arrow {
   padding: 0;
 }
 
-/* â”€â”€ Panel Catatan â€” scoped overrides â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Panel Catatan — scoped overrides ────────────────────────────────────── */
 
 #panel-catatan select,
 #panel-catatan textarea {
@@ -2303,7 +2303,7 @@ h2.panel-header.open .panel-collapse-arrow {
   color: var(--text-primary);
 }
 
-/* â”€â”€ Note card action buttons â”€â”€ */
+/* ── Note card action buttons ── */
 .btn-note-edit,
 .btn-note-delete {
   min-height: var(--btn-h-sm);
@@ -2341,7 +2341,7 @@ h2.panel-header.open .panel-collapse-arrow {
    Tab Penilaian
    ================================================================ */
 
-/* Filter row â€” input tahun ajaran + select semester */
+/* Filter row — input tahun ajaran + select semester */
 .penilaian-filter-row {
   display: flex;
   gap: var(--space-sm);
@@ -2376,7 +2376,7 @@ h2.panel-header.open .panel-collapse-arrow {
   color: var(--text-muted);
 }
 
-/* ── Custom select dropdown (semester filter) ── */
+/* -- Custom select dropdown (semester filter) -- */
 .custom-select {
   position: relative;
   display: inline-block;
@@ -2522,7 +2522,7 @@ h2.panel-header.open .panel-collapse-arrow {
   color: var(--success);
 }
 
-/* Nilai siswa â€” tabel */
+/* Nilai siswa — tabel */
 .sg-table-wrap { overflow-x: auto; }
 .sg-table {
   width: 100%;
@@ -2556,7 +2556,7 @@ h2.panel-header.open .panel-collapse-arrow {
   white-space: nowrap;
 }
 
-/* â”€â”€ Assessment accordion â€” hierarki pai-accordion â”€â”€ */
+/* ── Assessment accordion — hierarki pai-accordion ── */
 .pai-accordion-item {
   border: 1px solid var(--border);
   border-radius: var(--card-r);
@@ -2643,7 +2643,7 @@ h2.panel-header.open .panel-collapse-arrow {
   margin-bottom: var(--space-xs);
 }
 
-/* â”€â”€ Inline penilaian (pai-inline-*) â”€â”€ */
+/* ── Inline penilaian (pai-inline-*) ── */
 .pai-inline-row {
   display: flex;
   align-items: center;
@@ -2770,7 +2770,7 @@ h2.panel-header.open .panel-collapse-arrow {
   white-space: nowrap;
 }
 
-/* â”€â”€ Penilaian sections â”€â”€ */
+/* ── Penilaian sections ── */
 .pai-section {
   background: var(--bg-surface);
   border: 1px solid var(--border);
@@ -2813,7 +2813,7 @@ h2.panel-header.open .panel-collapse-arrow {
   font-size: var(--fs-ui);
 }
 
-/* â”€â”€ Perencanaan sub-sections â”€â”€ */
+/* ── Perencanaan sub-sections ── */
 .pai-subsec {
   background: var(--bg-elevated);
   border: 1px solid var(--border);
@@ -2842,7 +2842,7 @@ h2.panel-header.open .panel-collapse-arrow {
   padding: var(--space-sm) var(--card-p);
 }
 
-/* â”€â”€ CP konten â”€â”€ */
+/* ── CP konten ── */
 .pai-cp-konten {
   font-size: var(--fs-body);
   color: var(--text-primary);
@@ -2879,7 +2879,7 @@ h2.panel-header.open .panel-collapse-arrow {
   font-family: inherit;
 }
 
-/* â”€â”€ TP row â”€â”€ */
+/* ── TP row ── */
 .pai-tp-row {
   display: flex;
   align-items: flex-start;
@@ -2937,7 +2937,7 @@ h2.panel-header.open .panel-collapse-arrow {
   white-space: nowrap;
 }
 
-/* â”€â”€ KKTP list â”€â”€ */
+/* ── KKTP list ── */
 .pai-kktp-list {
   padding-left: var(--space-sm);
   margin-top: var(--space-xs);
@@ -2983,7 +2983,7 @@ h2.panel-header.open .panel-collapse-arrow {
   min-height: var(--btn-h-xs);
 }
 
-/* â”€â”€ Shared item actions â”€â”€ */
+/* ── Shared item actions ── */
 .pai-item-actions {
   display: flex;
   gap: var(--space-xs);
@@ -3135,7 +3135,7 @@ h2.panel-header.open .panel-collapse-arrow {
    TAB RANCANG PEMBELAJARAN (.rp-*)
    ============================================================ */
 
-/* ── Step bar ── */
+/* -- Step bar -- */
 .rp-step-bar {
   display: flex;
   align-items: center;
@@ -3211,7 +3211,7 @@ h2.panel-header.open .panel-collapse-arrow {
 
 .rp-step-line.done { background: var(--gold); }
 
-/* ── Block wrapper ── */
+/* -- Block wrapper -- */
 .rp-block {
   background: var(--bg-surface);
   border: 1px solid var(--border);
@@ -3334,12 +3334,12 @@ h2.panel-header.open .panel-collapse-arrow {
   border-top: 1px solid var(--border);
 }
 
-/* ── Question group ── */
+/* -- Question group -- */
 .rp-q {
   margin-bottom: var(--space-md);
 }
 
-/* ── Step 1 dropdown select ── */
+/* -- Step 1 dropdown select -- */
 .rp-select {
   display: block;
   width: 100%;
@@ -3465,7 +3465,7 @@ h2.panel-header.open .panel-collapse-arrow {
   color: var(--gold);
 }
 
-/* ── P2b — Elemen checkbox list ── */
+/* -- P2b � Elemen checkbox list -- */
 .rp-elemen-list {
   display: flex;
   flex-direction: column;
@@ -3542,7 +3542,7 @@ h2.panel-header.open .panel-collapse-arrow {
   margin-top: var(--space-xs);
 }
 
-/* ── Chip group ── */
+/* -- Chip group -- */
 .rp-chip-group {
   display: flex;
   flex-wrap: wrap;
@@ -3584,7 +3584,7 @@ h2.panel-header.open .panel-collapse-arrow {
   font-weight: var(--fw-semibold);
 }
 
-/* ── CP preview card (premium) ── */
+/* -- CP preview card (premium) -- */
 .rp-cp-card {
   background: var(--bg-surface);
   border: 1px solid var(--border);
@@ -3656,7 +3656,7 @@ h2.panel-header.open .panel-collapse-arrow {
   margin-bottom: var(--space-md);
 }
 
-/* ── ATP cards ── */
+/* -- ATP cards -- */
 .rp-atp-list {
   display: flex;
   flex-direction: column;
@@ -3756,7 +3756,7 @@ h2.panel-header.open .panel-collapse-arrow {
   box-shadow: 0 0 0 3px var(--gold-muted);
 }
 
-/* ── Output cards ── */
+/* -- Output cards -- */
 .rp-output-section {
   background: var(--bg-surface);
   border: 1px solid var(--border);
@@ -3860,7 +3860,7 @@ h2.panel-header.open .panel-collapse-arrow {
 
 .rp-tl-desc { color: var(--text-secondary); line-height: var(--lh-normal); }
 
-/* ── Loading state ── */
+/* -- Loading state -- */
 .rp-loading {
   display: flex;
   align-items: center;
@@ -3884,7 +3884,7 @@ h2.panel-header.open .panel-collapse-arrow {
   40%           { opacity: 1;   transform: scale(1.2); }
 }
 
-/* ── Bottom action row ── */
+/* -- Bottom action row -- */
 .rp-action-row {
   display: flex;
   gap: var(--space-sm);
@@ -3892,7 +3892,7 @@ h2.panel-header.open .panel-collapse-arrow {
   margin-top: var(--space-lg);
 }
 
-/* ── Input text full-width ── */
+/* -- Input text full-width -- */
 .rp-input {
   width: 100%;
   background: var(--input-bg);
@@ -3917,7 +3917,7 @@ h2.panel-header.open .panel-collapse-arrow {
   margin-top: var(--space-xs);
 }
 
-/* ── Textarea ── */
+/* -- Textarea -- */
 .rp-textarea {
   width: 100%;
   background: var(--input-bg);
@@ -3939,7 +3939,7 @@ h2.panel-header.open .panel-collapse-arrow {
   box-shadow: 0 0 0 3px var(--gold-muted);
 }
 
-/* ── Conditional input after chip ── */
+/* -- Conditional input after chip -- */
 .rp-cond-input {
   margin-top: var(--space-sm);
   display: none;
@@ -3947,7 +3947,7 @@ h2.panel-header.open .panel-collapse-arrow {
 
 .rp-cond-input.visible { display: block; }
 
-/* ── Section divider label ── */
+/* -- Section divider label -- */
 .rp-section-label {
   font-size: var(--fs-caption);
   font-weight: var(--fw-semibold);
@@ -3957,7 +3957,7 @@ h2.panel-header.open .panel-collapse-arrow {
   margin: var(--space-md) 0 var(--space-sm);
 }
 
-/* ── LKS items ── */
+/* -- LKS items -- */
 .rp-lks-q {
   display: flex;
   gap: var(--space-sm);
@@ -3978,7 +3978,7 @@ h2.panel-header.open .panel-collapse-arrow {
   flex-shrink: 0;
 }
 
-/* ─── Step 0: Profil Guru ───────────────────────────────────────────────────── */
+/* --- Step 0: Profil Guru ----------------------------------------------------- */
 
 .rp-step0-header {
   text-align: center;
@@ -4040,14 +4040,14 @@ h2.panel-header.open .panel-collapse-arrow {
   cursor: pointer;
 }
 
-/* ── Step 0 accordion ── */
+/* -- Step 0 accordion -- */
 .rp-s0-acc-panel {
   background: var(--bg-surface);
   border: 1px solid var(--border);
   border-radius: var(--card-r);
   margin-bottom: var(--space-lg);
   box-shadow: var(--shadow-card);
-  overflow: hidden;
+  overflow: visible;
 }
 .rp-s0-acc-header {
   display: flex;
@@ -4083,7 +4083,7 @@ h2.panel-header.open .panel-collapse-arrow {
 }
 .rp-s0-acc-panel.open .rp-s0-acc-body { display: block; }
 
-/* ── Step 0 multiselect ── */
+/* -- Step 0 multiselect -- */
 .rp-s0-ms { position: relative; }
 .rp-s0-ms-trigger {
   display: flex;
@@ -4103,7 +4103,7 @@ h2.panel-header.open .panel-collapse-arrow {
 }
 .rp-s0-ms-trigger:hover { border-color: var(--gold); }
 .rp-s0-ms-trigger::after {
-  content: '▾';
+  content: '?';
   font-size: var(--fs-badge);
   color: var(--text-muted);
   flex-shrink: 0;
