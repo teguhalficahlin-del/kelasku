@@ -317,17 +317,27 @@
 
   function computeSemesterOptions(expiresAt) {
     const now = new Date();
-    const end = expiresAt ? new Date(expiresAt) : new Date(now.getTime() + 30 * 86400 * 1000);
-    const result = [];
-    const seen = new Set();
-    let cur = new Date(now.getFullYear(), now.getMonth(), 1);
-    while (cur <= end && result.length < 6) {
-      const m = cur.getMonth();
-      const y = cur.getFullYear();
-      const label = m >= 6 ? `Ganjil ${y}/${y + 1}` : `Genap ${y - 1}/${y}`;
-      if (!seen.has(label)) { seen.add(label); result.push(label); }
-      cur.setMonth(cur.getMonth() + 1);
+    const end = expiresAt ? new Date(expiresAt) : new Date(now.getTime() + 365 * 86400 * 1000);
+
+    function semIdx(d) {
+      const m = d.getMonth(), y = d.getFullYear();
+      return m >= 6 ? { y, s: 1 } : { y: y - 1, s: 2 };
     }
+    function semLabel(sem) {
+      return sem.s === 1 ? `Ganjil ${sem.y}/${sem.y + 1}` : `Genap ${sem.y}/${sem.y + 1}`;
+    }
+
+    const startSem = semIdx(now);
+    const endSem   = semIdx(end);
+    const result   = [];
+    let cur = { ...startSem };
+
+    while (result.length < 4) {
+      result.push(semLabel(cur));
+      if (cur.y === endSem.y && cur.s === endSem.s) break;
+      cur = cur.s === 1 ? { y: cur.y, s: 2 } : { y: cur.y + 1, s: 1 };
+    }
+
     return result;
   }
 
@@ -526,17 +536,10 @@
 
 <div id="rp-s0-mapel-section" style="display:none;"></div>
 <div id="rp-s0-kelas-section" style="display:none;"></div>
-<div id="rp-s0-jam-section" style="display:none;">
-  <div class="rp-block">
-    <div class="rp-block-title">4. Jam Pelajaran per Minggu</div>
-    <input type="number" class="rp-input rp-s0-input" id="rp-s0-jam"
-      min="1" max="50" placeholder="Contoh: 2" style="max-width:120px;">
-  </div>
-</div>
 
 <div id="rp-s0-semester-section" style="display:none;">
   <div class="rp-block">
-    <div class="rp-block-title">5. Semester Aktif</div>
+    <div class="rp-block-title">4. Semester Aktif</div>
     <p class="rp-block-subtitle">Pilih semester yang tercakup dalam lisensi Anda.</p>
     <div class="rp-s0-semester-list" id="rp-s0-semester-list">
       ${semesterOpts.map(s => `
@@ -550,7 +553,7 @@
 
 <div id="rp-s0-identitas-section" style="display:none;">
   <div class="rp-block">
-    <div class="rp-block-title">6. Identitas Dokumen</div>
+    <div class="rp-block-title">5. Identitas Dokumen</div>
     <p class="rp-block-subtitle">Digunakan untuk header dan tanda tangan pada file yang diunduh.</p>
     <div class="rp-identitas-grid">
       <div class="rp-q">
@@ -611,14 +614,13 @@
   async function renderStep0MapelSection(jenjang) {
     const mapelSection = el('rp-s0-mapel-section');
     const kelasSection = el('rp-s0-kelas-section');
-    const jamSection   = el('rp-s0-jam-section');
     const semSection   = el('rp-s0-semester-section');
     const idSection    = el('rp-s0-identitas-section');
     const footer       = el('rp-s0-footer');
     if (!mapelSection) return;
 
     // Reset semua section di bawah jenjang
-    [kelasSection, jamSection, semSection, idSection, footer].forEach(s => {
+    [kelasSection, semSection, idSection, footer].forEach(s => {
       if (s) s.style.display = 'none';
     });
 
@@ -653,7 +655,6 @@
         if (!val) return;
         if (kelasSection.style.display !== 'none') return;
         renderStep0KelasSection(jenjang);
-        jamSection.style.display = '';
         semSection.style.display = '';
         idSection.style.display = '';
         footer.style.display = '';
@@ -676,7 +677,7 @@
           chip.classList.add('selected');
           const detail = el('rp-s0-smk-detail');
           if (!detail) return;
-          [kelasSection, jamSection, semSection, idSection, footer].forEach(s => {
+          [kelasSection, semSection, idSection, footer].forEach(s => {
             if (s) s.style.display = 'none';
           });
 
@@ -687,7 +688,6 @@ ${makeCustomDropdown('rp-s0-smk-umum-dd', SMK_UMUM_MAPEL.map(m => ({ value: m, l
               if (!val) return;
               if (kelasSection.style.display !== 'none') return;
               renderStep0KelasSection(jenjang);
-              jamSection.style.display = '';
               semSection.style.display = '';
               idSection.style.display = '';
               footer.style.display = '';
@@ -723,7 +723,7 @@ ${makeCustomDropdown('rp-s0-elemen-dd', elems.map(e => ({ value: e.key, label: e
                   wireCustomDropdown('rp-s0-elemen-dd', async val => {
                     if (!val || val === '') return;
                     el('rp-s0-cp-elemen-wrap')?.remove();
-                    [kelasSection, jamSection, semSection, idSection, footer].forEach(s => {
+                    [kelasSection, semSection, idSection, footer].forEach(s => {
                       if (s) s.style.display = 'none';
                     });
                     const cpData = await loadCpData();
@@ -749,7 +749,6 @@ ${makeCustomDropdown('rp-s0-elemen-dd', elems.map(e => ({ value: e.key, label: e
                       : `<p class="rp-block-subtitle" style="color:var(--text-muted);">Elemen belum tersedia untuk mata pelajaran ini.</p>`;
                     el('rp-s0-elemen-wrap')?.appendChild(cpWrap);
                     renderStep0KelasSection(jenjang);
-                    jamSection.style.display = '';
                     semSection.style.display = '';
                     idSection.style.display = '';
                     footer.style.display = '';
@@ -767,7 +766,6 @@ ${makeCustomDropdown('rp-s0-elemen-dd', elems.map(e => ({ value: e.key, label: e
     const wrap = el('rp-s0-sd-mapel-wrap');
     if (!wrap) return;
     const kelasSection  = el('rp-s0-kelas-section');
-    const jamSection    = el('rp-s0-jam-section');
     const semSection    = el('rp-s0-semester-section');
     const idSection     = el('rp-s0-identitas-section');
     const footer        = el('rp-s0-footer');
@@ -791,7 +789,6 @@ ${makeCustomDropdown('rp-s0-sdmapel-dd', SD_MAPEL_GURU.map(m => ({ value: m, lab
     }
 
     renderStep0KelasSection('SD');
-    jamSection.style.display = '';
     semSection.style.display = '';
     idSection.style.display = '';
     footer.style.display = '';
@@ -891,9 +888,6 @@ ${makeCustomDropdown('rp-s0-sdmapel-dd', SD_MAPEL_GURU.map(m => ({ value: m, lab
 
     const fase = faseFromKelas(kelas);
 
-    const jamVal = el('rp-s0-jam')?.value.trim();
-    const jamPerMinggu = jamVal ? parseInt(jamVal) : null;
-
     const semesterList = [...(el('rp-s0-semester-list')?.querySelectorAll('.rp-s0-semester-cb:checked') || [])]
       .map(cb => cb.value);
 
@@ -913,7 +907,7 @@ ${makeCustomDropdown('rp-s0-sdmapel-dd', SD_MAPEL_GURU.map(m => ({ value: m, lab
       jenjang, peran, mapel_list: mapelList, mapel, mapel_key: mapelKey,
       bidang_keahlian: bidangKeahlian, program_keahlian: programKeahlian,
       elemen_terpilih: elemenTerpilih,
-      kelas, fase, jam_per_minggu: jamPerMinggu,
+      kelas, fase,
       semester_list: semesterList,
       nama_guru: namaGuru, nip_guru: nipGuru,
       nama_kepsek: namaKepsek, nip_kepsek: nipKepsek,
