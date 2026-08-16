@@ -2952,7 +2952,94 @@ ${metodeHtml}${hasilHtml}`;
     }
   });
 
-  // ─── Download Excel — 3 sheet ────────────────────────────────────────────────
+  // ─── Download Excel — 4 sheet ────────────────────────────────────────────────
+
+  // Kembalikan string deskriptor hasil penilaian untuk satu siswa dari konten JSONB.
+  // Mengembalikan '-' jika siswa tidak dinilai atau format tidak dikenal.
+  function extractHasilDiagForm(konten, teknik, instrumen, siswaId) {
+    if (!konten || !teknik || !siswaId) return '-';
+    try {
+      const k = typeof konten === 'string' ? JSON.parse(konten) : konten;
+      const TES_LABELS = ['Menjawab dengan baik', 'Menjawab sebagian', 'Belum bisa menjawab'];
+
+      if (teknik === 'OBSERVASI') {
+        if (instrumen === 'Lembar Observasi' && Array.isArray(k.aspeks)) {
+          const hasil = [];
+          for (const a of k.aspeks) {
+            const nama = a.nama || '';
+            if (Array.isArray(a.terlihat_jelas) && a.terlihat_jelas.includes(siswaId))
+              hasil.push(`${nama}: Terlihat jelas`);
+            else if (Array.isArray(a.terlihat) && a.terlihat.includes(siswaId))
+              hasil.push(`${nama}: Terlihat`);
+            else if (Array.isArray(a.belum_terlihat) && a.belum_terlihat.includes(siswaId))
+              hasil.push(`${nama}: Belum terlihat`);
+          }
+          return hasil.length ? hasil.join('; ') : '-';
+        }
+        if (instrumen === 'Catatan Anekdot' && Array.isArray(k.catatan)) {
+          const catatan = k.catatan.filter(c =>
+            c.siswa === siswaId || (Array.isArray(c.siswa) && c.siswa.includes(siswaId))
+          );
+          if (!catatan.length) return '-';
+          return catatan.map(c => [c.deskripsi, c.interpretasi].filter(Boolean).join(' | ')).join('; ');
+        }
+        if (instrumen === 'Checklist' && Array.isArray(k.items)) {
+          const checkedItems = k.items
+            .filter(it => Array.isArray(it.siswa) && it.siswa.includes(siswaId))
+            .map(it => it.nama || '');
+          return checkedItems.length ? checkedItems.join('; ') : '-';
+        }
+      }
+
+      if (teknik === 'TES' && Array.isArray(k.deskriptor)) {
+        for (let i = 0; i < k.deskriptor.length; i++) {
+          if (Array.isArray(k.deskriptor[i].siswa) && k.deskriptor[i].siswa.includes(siswaId))
+            return TES_LABELS[i] ?? `Deskriptor ${i + 1}`;
+        }
+        return '-';
+      }
+
+      if (teknik === 'TES_LISAN') {
+        if (instrumen === 'Wawancara' && Array.isArray(k.deskriptor)) {
+          for (let i = 0; i < k.deskriptor.length; i++) {
+            if (Array.isArray(k.deskriptor[i].siswa) && k.deskriptor[i].siswa.includes(siswaId))
+              return TES_LABELS[i] ?? `Deskriptor ${i + 1}`;
+          }
+          return '-';
+        }
+        // Monolog / Dialog — konten.predikat
+        if (Array.isArray(k.predikat)) {
+          for (const p of k.predikat) {
+            if (Array.isArray(p.siswa) && p.siswa.includes(siswaId))
+              return `${p.val ?? ''}${p.deskripsi ? ': ' + p.deskripsi : ''}`;
+          }
+          return '-';
+        }
+      }
+
+      if (['PENUGASAN', 'PROYEK', 'PORTOFOLIO', 'UNJUK_KERJA'].includes(teknik)) {
+        if (instrumen === 'Rubrik' && Array.isArray(k.aspeks)) {
+          const hasil = [];
+          for (const a of k.aspeks) {
+            if (!Array.isArray(a.predikat)) continue;
+            for (const p of a.predikat) {
+              if (Array.isArray(p.siswa) && p.siswa.includes(siswaId))
+                hasil.push(`${a.nama || ''}: ${p.val ?? ''}${p.deskripsi ? ' – ' + p.deskripsi : ''}`);
+            }
+          }
+          return hasil.length ? hasil.join('; ') : '-';
+        }
+        if (instrumen === 'Checklist' && Array.isArray(k.items)) {
+          const checked = k.items
+            .filter(it => Array.isArray(it.siswa) && it.siswa.includes(siswaId))
+            .map(it => it.nama || '');
+          return checked.length ? checked.join('; ') : '-';
+        }
+      }
+    } catch (_) { /* parse error */ }
+    return '-';
+  }
+
   async function downloadPenilaianExcel() {
     const XLSX = window.XLSX;
     if (!XLSX) { alert('Library Excel tidak tersedia.'); return; }
@@ -2983,53 +3070,98 @@ ${metodeHtml}${hasilHtml}`;
             tp.tipe,
             tp.tipe === 'CP' ? (tp.konten ?? '') : (tp.judul ?? ''),
             tp.tipe === 'CP' ? '' : (tp.semester ?? ''),
-            tp.tipe === 'CP' ? (tp.academic_year ?? '') : (tp.academic_year ?? ''),
+            tp.academic_year ?? '',
             '', '', '', '',
           ]);
         }
       }
       XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(s1rows), 'TP & KKTP');
 
-      // ── Sheet 2: Daftar Penilaian ─────────────────────────────────────────
-      const s2rows = [['Jenis', 'TP', 'Teknik', 'Instrumen', 'Nama Siswa', 'Nilai', 'Predikat', 'Tindak Lanjut']];
-      if (_asmts.length) {
+      // ── Helper: baris per siswa untuk satu penilaian ──────────────────────
+      function appendDiagFormRows(rows, asmt, tpJudul, headerSumatif) {
+        const konten = asmt.konten
+          ? (typeof asmt.konten === 'string' ? (() => { try { return JSON.parse(asmt.konten); } catch { return null; } })() : asmt.konten)
+          : null;
+        let no = rows.length; // nomor baris (1-based setelah header)
+        for (const siswa of _roster) {
+          const hasil = extractHasilDiagForm(konten, asmt.teknik, asmt.instrumen, siswa.id);
+          rows.push([
+            ++no - 1,
+            siswa.nama,
+            asmt.teknik ?? '',
+            asmt.instrumen ?? '',
+            tpJudul,
+            hasil,
+          ]);
+        }
+      }
+
+      // ── Sheet 2–3: Diagnostik & Formatif (konten JSONB) ───────────────────
+      const diagAsmts = _asmts.filter(a => a.jenis === 'DIAGNOSTIK');
+      const formAsmts = _asmts.filter(a => a.jenis === 'FORMATIF');
+      const sumAsmts  = _asmts.filter(a => a.jenis === 'SUMATIF');
+
+      const diagHdr = ['No', 'Nama Siswa', 'Teknik', 'Instrumen', 'TP', 'Hasil/Deskriptor'];
+      const diagRows = [diagHdr];
+      let diagNo = 0;
+      for (const a of diagAsmts) {
+        const tp = a.tp_kktp_id ? _tpList.find(t => t.id === a.tp_kktp_id) : null;
+        const tpJudul = tp ? (tp.judul || tp.konten || '') : 'Tanpa TP';
+        const konten = a.konten
+          ? (typeof a.konten === 'string' ? (() => { try { return JSON.parse(a.konten); } catch { return null; } })() : a.konten)
+          : null;
+        for (const siswa of _roster) {
+          diagRows.push([++diagNo, siswa.nama, a.teknik ?? '', a.instrumen ?? '', tpJudul,
+            extractHasilDiagForm(konten, a.teknik, a.instrumen, siswa.id)]);
+        }
+      }
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(diagRows), 'Diagnostik');
+
+      const formRows = [diagHdr.slice()];
+      let formNo = 0;
+      for (const a of formAsmts) {
+        const tp = a.tp_kktp_id ? _tpList.find(t => t.id === a.tp_kktp_id) : null;
+        const tpJudul = tp ? (tp.judul || tp.konten || '') : 'Tanpa TP';
+        const konten = a.konten
+          ? (typeof a.konten === 'string' ? (() => { try { return JSON.parse(a.konten); } catch { return null; } })() : a.konten)
+          : null;
+        for (const siswa of _roster) {
+          formRows.push([++formNo, siswa.nama, a.teknik ?? '', a.instrumen ?? '', tpJudul,
+            extractHasilDiagForm(konten, a.teknik, a.instrumen, siswa.id)]);
+        }
+      }
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(formRows), 'Formatif');
+
+      // ── Sheet 4: Sumatif (assessment_results) ─────────────────────────────
+      const sumHdr  = ['No', 'Nama Siswa', 'Teknik', 'Instrumen', 'TP', 'Nilai', 'Predikat', 'Tindak Lanjut'];
+      const sumRows = [sumHdr];
+      if (sumAsmts.length) {
         const allRes = await Promise.all(
-          _asmts.map(a => SipApi.getAssessmentResults(a.id).catch(() => []))
+          sumAsmts.map(a => SipApi.getAssessmentResults(a.id).catch(() => []))
         );
-        for (let i = 0; i < _asmts.length; i++) {
-          const a   = _asmts[i];
+        let sumNo = 0;
+        for (let i = 0; i < sumAsmts.length; i++) {
+          const a   = sumAsmts[i];
           const res = allRes[i];
           const tp  = a.tp_kktp_id ? _tpList.find(t => t.id === a.tp_kktp_id) : null;
           const kktp0 = tp ? _tpList.find(k => k.parent_id === tp.id && k.tipe === 'KKTP') : null;
           const tpJudul = tp ? (tp.judul || tp.konten || '') : 'Tanpa TP';
-
-          if (!res.length) {
-            s2rows.push([a.jenis ?? '', tpJudul, a.teknik ?? '', a.instrumen ?? '', '', '', '', '']);
-          } else {
-            for (const r of res) {
-              const siswa = _roster.find(s => s.id === r.student_id);
-              const nama  = siswa?.nama ?? r.student_id;
-              const predikat = (r.nilai != null && kktp0)
-                ? getPredikat(r.nilai, getRentang(kktp0))
-                : '';
-              s2rows.push([
-                a.jenis ?? '',
-                tpJudul,
-                a.teknik ?? '',
-                a.instrumen ?? '',
-                nama,
-                r.nilai ?? '',
-                predikat,
-                r.tindak_lanjut ?? '',
-              ]);
-            }
+          const resMap = Object.fromEntries(res.map(r => [r.student_id, r]));
+          for (const siswa of _roster) {
+            const r = resMap[siswa.id];
+            const nilai = r?.nilai ?? '-';
+            const predikat = (r?.nilai != null && kktp0)
+              ? getPredikat(r.nilai, getRentang(kktp0))
+              : '-';
+            sumRows.push([++sumNo, siswa.nama, a.teknik ?? '', a.instrumen ?? '', tpJudul,
+              nilai, predikat, r?.tindak_lanjut ?? '-']);
           }
         }
       }
-      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(s2rows), 'Daftar Penilaian');
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(sumRows), 'Sumatif');
 
-      // ── Sheet 3: Rekap Semester ───────────────────────────────────────────
-      const s3rows = [['Semester', 'Tahun Ajaran', 'TP', 'Nama Siswa', 'Nilai Akhir', 'Predikat', 'KKTP Tercapai']];
+      // ── Sheet 5: Rekap Semester ───────────────────────────────────────────
+      const s5rows = [['Semester', 'Tahun Ajaran', 'TP', 'Nama Siswa', 'Nilai Akhir', 'Predikat', 'KKTP Tercapai']];
       const years  = [...new Set(_tpList.map(t => t.academic_year).filter(Boolean))];
       if (!years.length) years.push(DEFAULT_YEAR);
 
@@ -3041,9 +3173,8 @@ ${metodeHtml}${hasilHtml}`;
             hasRecap = true;
             const tp    = _tpList.find(t => t.id === r.tp_kktp_id);
             const siswa = _roster.find(s => s.id === r.student_id);
-            s3rows.push([
-              sem,
-              yr,
+            s5rows.push([
+              sem, yr,
               tp ? (tp.judul || tp.konten || '') : '',
               siswa?.nama ?? r.student_id,
               r.nilai_akhir ?? '',
@@ -3053,8 +3184,8 @@ ${metodeHtml}${hasilHtml}`;
           }
         }
       }
-      if (!hasRecap) s3rows.push(['', '', '', 'Belum ada rekap tersimpan', '', '', '']);
-      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(s3rows), 'Rekap Semester');
+      if (!hasRecap) s5rows.push(['', '', '', 'Belum ada rekap tersimpan', '', '', '']);
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(s5rows), 'Rekap Semester');
 
       // ── Unduh ─────────────────────────────────────────────────────────────
       const nama  = (window._classroomName || 'Kelas').replace(/[\\/:*?"<>|]/g, '_');
