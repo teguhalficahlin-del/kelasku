@@ -30,7 +30,6 @@
   let _rcBobots          = [];
   let _rcLastSumatifIds  = [];
   let _rcHasil      = null;   // null | [{id, nama, nilaiAkhir, predikat}]
-  let _rcAllResults = [];     // [[result]] paralel dengan filtered sumatifs
 
   // ─── Constants ──────────────────────────────────────────────────────────────
   const CY           = new Date().getFullYear();
@@ -2504,7 +2503,6 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
     if (!c) return;
     if (!_rcTahun) _rcTahun = DEFAULT_YEAR;
     _rcHasil      = null;
-    _rcAllResults = [];
     _rcPage1      = 0;
     _rcPage2      = 0;
     _renderRecapShell(c);
@@ -2605,7 +2603,6 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
     const allResults = await Promise.all(
       sumatifs.map(a => SipApi.getAssessmentResults(a.id).catch(() => []))
     );
-    _rcAllResults = allResults;
     const curIds = sumatifs.map(a => a.id).join(',');
     if (curIds !== _rcLastSumatifIds) { _rcBobots = sumatifs.map(() => 0); _rcLastSumatifIds = curIds; }
     _renderRecapContent(cc, sumatifs, allResults);
