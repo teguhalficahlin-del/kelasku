@@ -4029,6 +4029,7 @@ h2.panel-header.open .panel-collapse-arrow {
   cursor: pointer;
   font-size: var(--fs-ui);
   color: var(--text-primary);
+  text-transform: none;
 }
 
 .rp-s0-checkbox-row input[type="checkbox"] {
