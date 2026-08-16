@@ -137,7 +137,7 @@ async function getMapelListByJenjang(jenjang, opts) {
           v.bidang === bidang && v.program_keahlian === program)
         .map(([k]) => ({ key: k, label: mapelKeyToLabel(k) }))
         .sort((a, b) => a.label.localeCompare(b.label, 'id'));
-      return [...entries, { key: '__lainnya__', label: 'Lainnya (input manual)' }];
+      return entries;
     }
   }
 

@@ -201,12 +201,12 @@
 
   // ─── Custom dropdown helpers ─────────────────────────────────────────────────
 
-  function makeCustomDropdown(id, opsi, saved) {
+  function makeCustomDropdown(id, opsi, saved, hideLainnya) {
     // Support array of string atau array of {value, label}
     const normalizedOpsi = opsi.map(o =>
       typeof o === 'string' ? { value: o, label: o } : o
     );
-    const isLainnya = !!saved && !normalizedOpsi.some(o => o.value === saved);
+    const isLainnya = !hideLainnya && !!saved && !normalizedOpsi.some(o => o.value === saved);
     const currentVal = isLainnya ? '__lainnya__' : (saved || '');
     const savedLabel = normalizedOpsi.find(o => o.value === saved)?.label || saved || '';
     const currentLabel = isLainnya ? 'Lainnya'
@@ -217,7 +217,7 @@
       ...normalizedOpsi.map(o =>
         `<div class="rp-custom-select-option${saved === o.value ? ' selected' : ''}" data-value="${esc(o.value)}">${esc(o.label)}</div>`
       ),
-      `<div class="rp-custom-select-option${isLainnya ? ' selected' : ''}" data-value="__lainnya__">Lainnya</div>`,
+      ...(hideLainnya ? [] : [`<div class="rp-custom-select-option${isLainnya ? ' selected' : ''}" data-value="__lainnya__">Lainnya</div>`]),
     ].join('');
 
     return `<div class="rp-custom-select" id="${id}" data-value="${esc(currentVal)}" tabindex="0">
@@ -647,7 +647,7 @@
       const mapelArr = jenjang === 'SMP' ? SMP_MAPEL : SMA_MAPEL;
       mapelSection.innerHTML = `<div class="rp-block" id="rp-s0-mapel-block">
   <div class="rp-block-title">2. Mata Pelajaran</div>
-  ${makeCustomDropdown('rp-s0-mapel-dd', mapelArr.map(m => ({ value: m, label: m })), '')}
+  ${makeCustomDropdown('rp-s0-mapel-dd', mapelArr.map(m => ({ value: m, label: m })), '', true)}
 </div>`;
       wireCustomDropdown('rp-s0-mapel-dd', val => {
         if (!val) return;
@@ -682,7 +682,7 @@
 
           if (chip.dataset.value === 'UMUM') {
             detail.innerHTML = `<label class="rp-q-label" style="color:var(--gold)">Mata pelajaran</label>
-${makeCustomDropdown('rp-s0-smk-umum-dd', SMK_UMUM_MAPEL.map(m => ({ value: m, label: m })), '')}`;
+${makeCustomDropdown('rp-s0-smk-umum-dd', SMK_UMUM_MAPEL.map(m => ({ value: m, label: m })), '', true)}`;
             wireCustomDropdown('rp-s0-smk-umum-dd', val => {
               if (!val) return;
               if (kelasSection.style.display !== 'none') return;
@@ -699,7 +699,7 @@ ${makeCustomDropdown('rp-s0-smk-umum-dd', SMK_UMUM_MAPEL.map(m => ({ value: m, l
               const bidangs = await getMapelListByJenjang('SMK', {});
               if (!el('rp-s0-smk-detail')) return;
               detail.innerHTML = `<label class="rp-q-label" style="color:var(--gold)">Bidang keahlian</label>
-${makeCustomDropdown('rp-s0-bidang-dd', bidangs.map(b => ({ value: b.key, label: b.label })), '')}
+${makeCustomDropdown('rp-s0-bidang-dd', bidangs.map(b => ({ value: b.key, label: b.label })), '', true)}
 <div id="rp-s0-program-wrap" style="margin-top:var(--space-sm);display:none;"></div>
 <div id="rp-s0-elemen-wrap" style="margin-top:var(--space-sm);display:none;"></div>`;
               wireCustomDropdown('rp-s0-bidang-dd', async () => {
@@ -710,7 +710,7 @@ ${makeCustomDropdown('rp-s0-bidang-dd', bidangs.map(b => ({ value: b.key, label:
                 if (!pw) return;
                 pw.style.display = '';
                 pw.innerHTML = `<label class="rp-q-label" style="color:var(--gold)">Program keahlian</label>
-${makeCustomDropdown('rp-s0-program-dd', programs.map(p => ({ value: p.key, label: p.label })), '')}`;
+${makeCustomDropdown('rp-s0-program-dd', programs.map(p => ({ value: p.key, label: p.label })), '', true)}`;
                 wireCustomDropdown('rp-s0-program-dd', async () => {
                   const prog = getCustomSelVal('rp-s0-program-dd');
                   if (!prog || prog === '__lainnya__') return;
@@ -719,13 +719,41 @@ ${makeCustomDropdown('rp-s0-program-dd', programs.map(p => ({ value: p.key, labe
                   if (!ew) return;
                   ew.style.display = '';
                   ew.innerHTML = `<label class="rp-q-label" style="color:var(--gold)">Elemen / Mata pelajaran</label>
-${makeCustomDropdown('rp-s0-elemen-dd', elems.map(e => ({ value: e.key, label: e.label })), '')}`;
-                  wireCustomDropdown('rp-s0-elemen-dd', () => {});
-                  renderStep0KelasSection(jenjang);
-                  jamSection.style.display = '';
-                  semSection.style.display = '';
-                  idSection.style.display = '';
-                  footer.style.display = '';
+${makeCustomDropdown('rp-s0-elemen-dd', elems.map(e => ({ value: e.key, label: e.label })), '', true)}`;
+                  wireCustomDropdown('rp-s0-elemen-dd', async val => {
+                    if (!val || val === '') return;
+                    el('rp-s0-cp-elemen-wrap')?.remove();
+                    [kelasSection, jamSection, semSection, idSection, footer].forEach(s => {
+                      if (s) s.style.display = 'none';
+                    });
+                    const cpData = await loadCpData();
+                    const allElemen = [];
+                    const seen = new Set();
+                    ['fase_e', 'fase_f'].forEach(fk => {
+                      (cpData?.[val]?.[fk]?.elemen || []).forEach(e => {
+                        if (!seen.has(e.nama)) { seen.add(e.nama); allElemen.push(e.nama); }
+                      });
+                    });
+                    const cpWrap = document.createElement('div');
+                    cpWrap.id = 'rp-s0-cp-elemen-wrap';
+                    cpWrap.style.marginTop = 'var(--space-sm)';
+                    cpWrap.innerHTML = allElemen.length
+                      ? `<label class="rp-q-label" style="color:var(--gold)">Elemen yang diajarkan</label>
+<p class="rp-block-subtitle">Pilih elemen CP yang Anda ampu. Boleh lebih dari satu.</p>
+<div class="rp-s0-checkbox-grid" id="rp-s0-cp-elemen-list">
+  ${allElemen.map(nama => `<label class="rp-s0-checkbox-row">
+  <input type="checkbox" value="${esc(nama)}" class="rp-s0-cp-elemen-cb">
+  <span>${esc(nama)}</span>
+</label>`).join('')}
+</div>`
+                      : `<p class="rp-block-subtitle" style="color:var(--text-muted);">Elemen belum tersedia untuk mata pelajaran ini.</p>`;
+                    el('rp-s0-elemen-wrap')?.appendChild(cpWrap);
+                    renderStep0KelasSection(jenjang);
+                    jamSection.style.display = '';
+                    semSection.style.display = '';
+                    idSection.style.display = '';
+                    footer.style.display = '';
+                  });
                 });
               });
             })();
@@ -758,7 +786,7 @@ ${makeCustomDropdown('rp-s0-elemen-dd', elems.map(e => ({ value: e.key, label: e
     } else {
       wrap.style.display = '';
       wrap.innerHTML = `<div class="rp-block-title" style="margin-top:var(--space-sm);">Mata pelajaran</div>
-${makeCustomDropdown('rp-s0-sdmapel-dd', SD_MAPEL_GURU.map(m => ({ value: m, label: m })), '')}`;
+${makeCustomDropdown('rp-s0-sdmapel-dd', SD_MAPEL_GURU.map(m => ({ value: m, label: m })), '', true)}`;
       wireCustomDropdown('rp-s0-sdmapel-dd', () => {});
     }
 
@@ -812,7 +840,7 @@ ${makeCustomDropdown('rp-s0-sdmapel-dd', SD_MAPEL_GURU.map(m => ({ value: m, lab
     if (!jenjang) return showErr('Pilih jenjang sekolah.');
 
     let peran = null, mapelList = [], mapel = '', mapelKey = '';
-    let bidangKeahlian = null, programKeahlian = null;
+    let bidangKeahlian = null, programKeahlian = null, elemenTerpilih = [];
 
     if (jenjang === 'SD') {
       const peranChip = el('rp-s0-peran')?.querySelector('.rp-chip.selected');
@@ -848,11 +876,12 @@ ${makeCustomDropdown('rp-s0-sdmapel-dd', SD_MAPEL_GURU.map(m => ({ value: m, lab
         const elemenVal = getCustomSelVal('rp-s0-elemen-dd');
         if (!bidangKeahlian) return showErr('Pilih bidang keahlian.');
         if (!programKeahlian) return showErr('Pilih program keahlian.');
-        if (!elemenVal) return showErr('Pilih elemen / mata pelajaran.');
-        const isLainnya = elemenVal === 'Lainnya';
-        mapelKey  = isLainnya ? '' : elemenVal;
-        mapel     = isLainnya ? (el('rp-s0-elemen-dd-txt')?.value.trim() || elemenVal) : elemenVal;
+        if (!elemenVal) return showErr('Pilih mata pelajaran produktif.');
+        mapelKey = elemenVal;
+        mapel = mapelKeyToLabel(elemenVal);
         mapelList = [mapel];
+        elemenTerpilih = [...(el('rp-s0-cp-elemen-list')?.querySelectorAll('.rp-s0-cp-elemen-cb:checked') || [])]
+          .map(cb => cb.value);
       }
     }
 
@@ -883,6 +912,7 @@ ${makeCustomDropdown('rp-s0-sdmapel-dd', SD_MAPEL_GURU.map(m => ({ value: m, lab
     const payload = {
       jenjang, peran, mapel_list: mapelList, mapel, mapel_key: mapelKey,
       bidang_keahlian: bidangKeahlian, program_keahlian: programKeahlian,
+      elemen_terpilih: elemenTerpilih,
       kelas, fase, jam_per_minggu: jamPerMinggu,
       semester_list: semesterList,
       nama_guru: namaGuru, nip_guru: nipGuru,
@@ -903,7 +933,7 @@ ${makeCustomDropdown('rp-s0-sdmapel-dd', SD_MAPEL_GURU.map(m => ({ value: m, lab
       _ans.fase             = _profil.fase || '';
       _ans.bidangKeahlian   = _profil.bidang_keahlian || null;
       _ans.programKeahlian  = _profil.program_keahlian || null;
-      _ans.elemenTerpilih   = _profil.mapel_list || [];
+      _ans.elemenTerpilih   = _profil.elemen_terpilih || [];
       // Tampilkan step bar dan pindah ke step 1
       const stepBar = el('rp-step-bar');
       if (stepBar) stepBar.style.display = '';
