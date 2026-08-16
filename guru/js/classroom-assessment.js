@@ -259,6 +259,17 @@
     if (!panel) return;
 
     panel.innerHTML = `
+<div style="display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:.5rem;min-height:2rem">
+  <span style="font-size:var(--fs-caption);color:var(--text-secondary)">Tab Penilaian</span>
+  <button type="button" id="btn-unduh-excel-penilaian"
+    style="font-size:var(--fs-caption);padding:.25rem .75rem;border-radius:.375rem;
+    border:1px solid var(--gold);background:transparent;color:var(--gold);cursor:pointer;
+    display:flex;align-items:center;gap:.375rem;white-space:nowrap">
+    ⬇ Unduh Excel
+  </button>
+</div>
+
 <div class="panel">
   <h2 class="panel-header" data-panel="pan-tp-body"
     style="font-size:var(--fs-h3);color:var(--gold)">
@@ -313,6 +324,7 @@
 
     initCollapsePanel();
     panel.addEventListener('click', handleClick);
+    el('btn-unduh-excel-penilaian')?.addEventListener('click', downloadPenilaianExcel);
     renderTpList();
     renderAsmtList();
   }
@@ -2939,5 +2951,121 @@ ${metodeHtml}${hasilHtml}`;
       if (saved === 'penilaian') tabPenilaian.click();
     }
   });
+
+  // ─── Download Excel — 3 sheet ────────────────────────────────────────────────
+  async function downloadPenilaianExcel() {
+    const XLSX = window.XLSX;
+    if (!XLSX) { alert('Library Excel tidak tersedia.'); return; }
+
+    const btn = el('btn-unduh-excel-penilaian');
+    if (btn) { btn.disabled = true; btn.textContent = '⏳ Menyiapkan…'; }
+
+    try {
+      const wb = XLSX.utils.book_new();
+
+      // ── Sheet 1: TP & KKTP ────────────────────────────────────────────────
+      const s1rows = [['Tipe', 'Judul/Konten', 'Semester', 'Tahun Ajaran', 'BB', 'MB', 'BSH', 'SB']];
+      for (const tp of _tpList) {
+        if (tp.tipe === 'KKTP') {
+          const r = tp.rentang ?? DEFAULT_RENTANG;
+          s1rows.push([
+            'KKTP',
+            tp.konten ?? '',
+            '',
+            '',
+            r.BB ? `${r.BB[0]}–${r.BB[1]}` : '',
+            r.MB ? `${r.MB[0]}–${r.MB[1]}` : '',
+            r.BSH ? `${r.BSH[0]}–${r.BSH[1]}` : '',
+            r.SB  ? `${r.SB[0]}–${r.SB[1]}`  : '',
+          ]);
+        } else {
+          s1rows.push([
+            tp.tipe,
+            tp.tipe === 'CP' ? (tp.konten ?? '') : (tp.judul ?? ''),
+            tp.tipe === 'CP' ? '' : (tp.semester ?? ''),
+            tp.tipe === 'CP' ? (tp.academic_year ?? '') : (tp.academic_year ?? ''),
+            '', '', '', '',
+          ]);
+        }
+      }
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(s1rows), 'TP & KKTP');
+
+      // ── Sheet 2: Daftar Penilaian ─────────────────────────────────────────
+      const s2rows = [['Jenis', 'TP', 'Teknik', 'Instrumen', 'Nama Siswa', 'Nilai', 'Predikat', 'Tindak Lanjut']];
+      if (_asmts.length) {
+        const allRes = await Promise.all(
+          _asmts.map(a => SipApi.getAssessmentResults(a.id).catch(() => []))
+        );
+        for (let i = 0; i < _asmts.length; i++) {
+          const a   = _asmts[i];
+          const res = allRes[i];
+          const tp  = a.tp_kktp_id ? _tpList.find(t => t.id === a.tp_kktp_id) : null;
+          const kktp0 = tp ? _tpList.find(k => k.parent_id === tp.id && k.tipe === 'KKTP') : null;
+          const tpJudul = tp ? (tp.judul || tp.konten || '') : 'Tanpa TP';
+
+          if (!res.length) {
+            s2rows.push([a.jenis ?? '', tpJudul, a.teknik ?? '', a.instrumen ?? '', '', '', '', '']);
+          } else {
+            for (const r of res) {
+              const siswa = _roster.find(s => s.id === r.student_id);
+              const nama  = siswa?.nama ?? r.student_id;
+              const predikat = (r.nilai != null && kktp0)
+                ? getPredikat(r.nilai, getRentang(kktp0))
+                : '';
+              s2rows.push([
+                a.jenis ?? '',
+                tpJudul,
+                a.teknik ?? '',
+                a.instrumen ?? '',
+                nama,
+                r.nilai ?? '',
+                predikat,
+                r.tindak_lanjut ?? '',
+              ]);
+            }
+          }
+        }
+      }
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(s2rows), 'Daftar Penilaian');
+
+      // ── Sheet 3: Rekap Semester ───────────────────────────────────────────
+      const s3rows = [['Semester', 'Tahun Ajaran', 'TP', 'Nama Siswa', 'Nilai Akhir', 'Predikat', 'KKTP Tercapai']];
+      const years  = [...new Set(_tpList.map(t => t.academic_year).filter(Boolean))];
+      if (!years.length) years.push(DEFAULT_YEAR);
+
+      let hasRecap = false;
+      for (const sem of ['1', '2']) {
+        for (const yr of years) {
+          const rows = await SipApi.getGradeRecap(_cId, sem, yr).catch(() => []);
+          for (const r of rows) {
+            hasRecap = true;
+            const tp    = _tpList.find(t => t.id === r.tp_kktp_id);
+            const siswa = _roster.find(s => s.id === r.student_id);
+            s3rows.push([
+              sem,
+              yr,
+              tp ? (tp.judul || tp.konten || '') : '',
+              siswa?.nama ?? r.student_id,
+              r.nilai_akhir ?? '',
+              r.nilai_akhir != null ? getPredikat(r.nilai_akhir, DEFAULT_RENTANG) : '',
+              r.kktp_tercapai === true ? 'Ya' : r.kktp_tercapai === false ? 'Tidak' : '',
+            ]);
+          }
+        }
+      }
+      if (!hasRecap) s3rows.push(['', '', '', 'Belum ada rekap tersimpan', '', '', '']);
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(s3rows), 'Rekap Semester');
+
+      // ── Unduh ─────────────────────────────────────────────────────────────
+      const nama  = (window._classroomName || 'Kelas').replace(/[\\/:*?"<>|]/g, '_');
+      const tanggal = new Date().toISOString().slice(0, 10);
+      XLSX.writeFile(wb, `Penilaian_${nama}_${tanggal}.xlsx`);
+    } catch (err) {
+      console.error('downloadPenilaianExcel error:', err);
+      alert('Gagal mengunduh Excel: ' + (err.message ?? err));
+    } finally {
+      if (btn) { btn.disabled = false; btn.innerHTML = '⬇ Unduh Excel'; }
+    }
+  }
 
 }());
