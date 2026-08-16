@@ -198,63 +198,6 @@
     return getChipValues(groupEl).length > 0;
   }
 
-  function attachLainnya(wrap, placeholder) {
-    const multi = wrap.dataset.multi === '1';
-    const chip = document.createElement('div');
-    chip.className = 'rp-chip';
-    chip.textContent = 'Lainnya';
-    chip.dataset.value = 'Lainnya';
-    chip.dataset.isLainnya = '1';
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.className = 'rp-lainnya-input rp-input';
-    input.placeholder = placeholder;
-    chip.addEventListener('click', () => {
-      if (!multi) wrap.querySelectorAll('.rp-chip').forEach(c => c.classList.remove('selected'));
-      chip.classList.toggle('selected');
-      const show = chip.classList.contains('selected');
-      input.style.display = show ? 'block' : 'none';
-      if (show) input.focus(); else input.value = '';
-    });
-    wrap.appendChild(chip);
-    wrap.parentElement.appendChild(input);
-    return wrap;
-  }
-
-  // Pre-select chips dari nilai tersimpan (string atau array).
-  // Nilai bebas (bukan value chip standar) → pilih chip Lainnya + isi input.
-  function restoreChips(groupEl, savedValues) {
-    if (!groupEl) return;
-    const vals = Array.isArray(savedValues)
-      ? savedValues.filter(Boolean)
-      : (savedValues ? [savedValues] : []);
-    if (!vals.length) return;
-
-    const standardChips = [...groupEl.querySelectorAll('.rp-chip')].filter(c => c.dataset.isLainnya !== '1');
-    const standardValues = new Set(standardChips.map(c => c.dataset.value));
-    const lainnyaChip = groupEl.querySelector('.rp-chip[data-is-lainnya="1"]');
-    const lainnyaInput = groupEl.parentElement?.querySelector('.rp-lainnya-input');
-    const freeTexts = [];
-
-    vals.forEach(v => {
-      if (standardValues.has(v)) {
-        standardChips.find(c => c.dataset.value === v)?.classList.add('selected');
-      } else if (v === 'Lainnya') {
-        lainnyaChip?.classList.add('selected');
-      } else {
-        freeTexts.push(v);
-      }
-    });
-
-    if (freeTexts.length && lainnyaChip) {
-      lainnyaChip.classList.add('selected');
-      if (lainnyaInput) {
-        lainnyaInput.value = freeTexts[0];
-        lainnyaInput.style.display = 'block';
-      }
-    }
-  }
-
   // ─── Custom dropdown helpers ─────────────────────────────────────────────────
 
   function makeCustomDropdown(id, opsi, saved) {
@@ -1466,9 +1409,8 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
 
     _genAtp = true;
     const btn = el('rp-btn-gen-atp');
-    if (btn) { btn.disabled = true; btn.textContent = 'Generating…'; }
+    if (btn) { btn.disabled = true; btn.textContent = 'AI sedang menyusun ATP…'; }
 
-    renderStep4Loading();
     try {
       const result = await callAI({
         mode: 'atp',
@@ -1483,9 +1425,7 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
       saveRpState();
       renderStep4(_atpList);
     } catch (err) {
-      _step = 3;
-      renderStepBar();
-      showError('rp-atp-error', 'Gagal generate ATP: ' + (err.message || 'Coba lagi.'));
+      showError('rp-step3b-error', 'Gagal generate ATP: ' + (err.message || 'Coba lagi.'));
       if (btn) { btn.disabled = false; btn.textContent = 'Hasilkan ATP →'; }
     } finally {
       _genAtp = false;
@@ -1681,21 +1621,6 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
     });
   }
 
-  function handleStep4Submit() {
-    const body = el('rp-body');
-    const selectedCard = body?.querySelector('.rp-atp-card.selected');
-    if (!selectedCard) { showError('rp-atp-error','Pilih satu TP terlebih dahulu.'); return; }
-    const idx = parseInt(selectedCard.dataset.idx);
-    const tp = { ..._atpList[idx] };
-    const editedJudul = selectedCard.querySelector('.rp-atp-edit-input')?.value.trim();
-    if (editedJudul) tp.judul = editedJudul;
-    _ans.tp_terpilih = tp;
-    showError('rp-atp-error','');
-    _step = 5;
-    saveRpState();
-    renderStep5();
-  }
-
   // ─── Step 5 — Konteks Kelas ─────────────────────────────────────────────────
 
   function renderStep5() {
@@ -1852,9 +1777,8 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
 
     _genRencana = true;
     const btn = el('rp-btn-gen-rencana');
-    if (btn) { btn.disabled = true; btn.textContent = 'Generating…'; }
+    if (btn) { btn.disabled = true; btn.textContent = 'AI sedang merancang rencana…'; }
 
-    renderStep6Loading();
     try {
       const result = await callAI({
         mode: 'rencana',
@@ -1868,9 +1792,7 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
       _step = 6;
       renderStep6(result);
     } catch (err) {
-      _step = 5;
-      renderStepBar();
-      showError('rp-rencana-error', 'Gagal generate rencana: ' + (err.message || 'Coba lagi.'));
+      showError('rp-step5-error', 'Gagal generate rencana: ' + (err.message || 'Coba lagi.'));
       if (btn) { btn.disabled = false; btn.textContent = 'Generate rencana pertemuan'; }
     } finally {
       _genRencana = false;
@@ -2066,7 +1988,8 @@ ${sec1}${sec2}${sec3}${sec4}${sec5}
   <button type="button" class="rp-btn-dokumen" id="rp-btn-lihat-dokumen">
     📄 Lihat semua dokumen →
   </button>
-</div>`;
+</div>
+<div id="rp-step6-error" class="error-msg" style="display:none;"></div>`;
 
     // Buka accordion pertama
     body.querySelector('.rp-output-section')?.classList.add('open');
@@ -2110,7 +2033,7 @@ ${sec1}${sec2}${sec3}${sec4}${sec5}
         console.error('[rancang] simpan RPM gagal:', e);
         btn.disabled = false;
         btn.textContent = '💾 Simpan RPM ini';
-        showError('rp-atp-error', 'Gagal menyimpan. Coba lagi.');
+        showError('rp-step6-error', 'Gagal menyimpan. Coba lagi.');
       }
     });
 
@@ -2362,6 +2285,7 @@ ${sec1}${sec2}${sec3}${sec4}${sec5}
     Object.assign(_ans, { mapel:'', mapelKey:'', bidangKeahlian:null, programKeahlian:null, jenjang:'', fase:'', elemenTerpilih:[], smk:null, niat_guru:{}, preferensi:{}, tp_terpilih:null, konteks_kelas:{} });
     _cpElemen = []; _cpRingkasan = []; _cpLabel = ''; _cpUmum = ''; _atpList = []; _rencana = null;
     _genCp = false; _genAtp = false; _genRencana = false;
+    _settings = null;
     _step = 1;
     renderStep1();
   }
@@ -2409,6 +2333,7 @@ ${sec1}${sec2}${sec3}${sec4}${sec5}
       case 4: if (_atpList.length) { renderStep4(_atpList); } else { renderStep1(); } break;
       case 5: renderStep5(); break;
       case 6: if (_rencana) { renderStep6(_rencana); } else if (_atpList.length) { renderStep4(_atpList); } else { renderStep1(); } break;
+      case 7: renderStep7(); break;
       default: renderStep1(); break;
     }
 
