@@ -2619,7 +2619,7 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
       if (a.tp_kktp_id) {
         const tp = _tpList.find(t => t.id === a.tp_kktp_id);
         if (tp) {
-          if (String(tp.semester) !== String(_rcSemester)) return false;
+          if (tp.semester != null && String(tp.semester) !== String(_rcSemester)) return false;
           if (_rcTahun && tp.academic_year && tp.academic_year !== _rcTahun) return false;
           if (isWali && _rcMapel && tp.mapel && tp.mapel !== _rcMapel) return false;
         }
