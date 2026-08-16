@@ -3134,7 +3134,7 @@ ${metodeHtml}${hasilHtml}`;
       });
 
       const sumHdr = ['No', 'Nama Siswa',
-        ...sumMeta.flatMap(m => [`Nilai (${m.lbl})`, `Predikat (${m.lbl})`, `Tindak Lanjut (${m.lbl})`]),
+        ...sumMeta.flatMap(m => [`Nilai (${m.lbl})`, `Predikat (${m.lbl})`, `Tindak Lanjut (${m.lbl})`, `Refleksi Guru (${m.lbl})`]),
       ];
       const sumRows = [sumHdr];
       _roster.forEach((siswa, idx) => {
@@ -3144,7 +3144,7 @@ ${metodeHtml}${hasilHtml}`;
           const nilai = r?.nilai ?? '-';
           const predikat = (r?.nilai != null && m.kktp0)
             ? getPredikat(r.nilai, getRentang(m.kktp0)) : '-';
-          row.push(nilai, predikat, r?.tindak_lanjut ?? '-');
+          row.push(nilai, predikat, r?.tindak_lanjut ?? '-', m.a.refleksi_guru ?? '-');
         }
         sumRows.push(row);
       });
