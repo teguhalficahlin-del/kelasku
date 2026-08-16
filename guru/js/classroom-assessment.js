@@ -511,7 +511,7 @@
     const isEdit = !!item;
 
     let selTipe  = item?.tipe ?? 'TP';
-    let selMapel = item?.mapel ?? _selMapel ?? MAPEL_SD[0]; // default ke mapel aktif Section 1
+    let selMapel = item?.mapel ?? _selMapel ?? _classroomMapelKey ?? MAPEL_SD[0]; // default ke mapel aktif Section 1
 
     const isWali = _roleGuru === 'WALI_KELAS_SD';
     // Filter TP induk by mapel aktif agar guru tidak bisa pilih TP dari mapel yang salah
@@ -786,7 +786,7 @@
 
     const isWali    = _roleGuru === 'WALI_KELAS_SD';
     const _initTp   = _tpList.find(t => t.id === item?.tp_kktp_id);
-    let selMapel    = _initTp?.mapel ?? _selMapel ?? MAPEL_SD[0];
+    let selMapel    = _initTp?.mapel ?? _selMapel ?? _classroomMapelKey ?? MAPEL_SD[0];
 
     const results = await SipApi.getAssessmentResults(editId).catch(() => []);
     const resMap  = Object.fromEntries(results.map(r => [r.student_id, r]));
@@ -2004,7 +2004,7 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
     let selJenis  = 'FORMATIF';
     let selTeknik    = '';
     let selInstrumen = '';
-    let selMapel     = MAPEL_SD[0]; // hanya dipakai jika isWali
+    let selMapel     = _selMapel ?? _classroomMapelKey ?? MAPEL_SD[0]; // hanya dipakai jika isWali
 
     // helper: bangun opsi TP berdasarkan mapel yang dipilih (jika wali)
     function buildTpOptHtml() {
