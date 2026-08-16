@@ -89,6 +89,21 @@
       return client.auth.signOut();
     },
 
+    // ── Rancang Profil (step 0 — per akun guru) ───────────────
+    async getRancangProfil() {
+      const { data, error } = await client.rpc('fn_get_rancang_profil');
+      if (error) return null;
+      return data;
+    },
+
+    async upsertRancangProfil(payload) {
+      const { data, error } = await client.rpc('fn_upsert_rancang_profil', {
+        p_payload: payload,
+      });
+      if (error) throw error;
+      return data;
+    },
+
     // ── Rancang Settings ───────────────────────────────────────
     async getRancangSettings(classroomId) {
       const { data, error } = await client

@@ -81,3 +81,65 @@ function normalizeMapelKey(mapel) {
   // Fallback: gunakan raw key langsung (untuk mapel SMK spesifik)
   return raw;
 }
+
+// Konversi key cp-data.json ke label human-readable
+function mapelKeyToLabel(key) {
+  if (!key) return '';
+  const ACRONYMS = ['IPAS','IPA','IPS','PJOK','PPKn','PAI'];
+  const special = {
+    ipas: 'IPAS', ipa: 'IPA', ips: 'IPS', pjok: 'PJOK',
+    projek_ipas: 'Projek IPAS',
+    projek_kreatif_kewirausahaan: 'Projek Kreatif dan Kewirausahaan',
+    prakarya_dan_kewirausahaan: 'Prakarya dan Kewirausahaan',
+  };
+  if (special[key]) return special[key];
+  return key.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+}
+
+// Ambil daftar mapel dari cp-data.json, difilter per jenjang/peran/bidang/program.
+// Mengembalikan array { key, label } sudah sortir alfabetis.
+async function getMapelListByJenjang(jenjang, opts) {
+  const data = await loadCpData();
+  if (!data) return [];
+  const { peran, bidang, program } = opts || {};
+
+  if (jenjang === 'SMP' || jenjang === 'SMA') {
+    return Object.entries(data)
+      .filter(([, v]) => Array.isArray(v.jenjang) && v.jenjang.includes(jenjang))
+      .map(([k]) => ({ key: k, label: mapelKeyToLabel(k) }))
+      .sort((a, b) => a.label.localeCompare(b.label, 'id'));
+  }
+
+  if (jenjang === 'SMK') {
+    if (!bidang) {
+      // Daftar bidang keahlian unik (non-Umum = produktif, plus Umum)
+      const bidangs = [...new Set(
+        Object.values(data)
+          .filter(v => Array.isArray(v.jenjang) && v.jenjang.includes('SMK'))
+          .map(v => v.bidang)
+          .filter(Boolean)
+      )].sort((a, b) => a.localeCompare(b, 'id'));
+      return bidangs.map(b => ({ key: b, label: b }));
+    }
+    if (bidang && !program) {
+      // Program keahlian dalam bidang terpilih
+      const programs = [...new Set(
+        Object.values(data)
+          .filter(v => Array.isArray(v.jenjang) && v.jenjang.includes('SMK') && v.bidang === bidang && v.program_keahlian)
+          .map(v => v.program_keahlian)
+      )].sort((a, b) => a.localeCompare(b, 'id'));
+      return programs.map(p => ({ key: p, label: p }));
+    }
+    if (bidang && program) {
+      // Elemen/mapel dalam program terpilih
+      const entries = Object.entries(data)
+        .filter(([, v]) => Array.isArray(v.jenjang) && v.jenjang.includes('SMK') &&
+          v.bidang === bidang && v.program_keahlian === program)
+        .map(([k]) => ({ key: k, label: mapelKeyToLabel(k) }))
+        .sort((a, b) => a.label.localeCompare(b.label, 'id'));
+      return [...entries, { key: '__lainnya__', label: 'Lainnya (input manual)' }];
+    }
+  }
+
+  return [];
+}

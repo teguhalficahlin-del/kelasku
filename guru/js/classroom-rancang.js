@@ -8,6 +8,7 @@
   let _cId = null;
   let _loaded = false;
   let _settings = null;   // data dari rancang_settings (pre-fill + identitas)
+  let _profil   = null;   // data dari rancang_profil (step 0 — per akun guru)
   let _dokumen  = [];     // data dari rancang_dokumen (daftar file tersimpan)
 
   // Jawaban per blok
@@ -38,7 +39,7 @@
   // Hasil generate rencana terakhir (untuk navigasi balik ke step 6)
   let _rencana = null;
 
-  // Step saat ini: 1–6
+  // Step saat ini: 0 = profil (onboarding), 1–7 = wizard
   let _step = 1;
 
   // Guard flag per generate
@@ -312,6 +313,471 @@
     return val;
   }
 
+  // ─── Helpers Step 0 ────────────────────────────────────────────────────────
+
+  function computeSemesterOptions(expiresAt) {
+    const now = new Date();
+    const end = expiresAt ? new Date(expiresAt) : new Date(now.getTime() + 30 * 86400 * 1000);
+    const result = [];
+    const seen = new Set();
+    let cur = new Date(now.getFullYear(), now.getMonth(), 1);
+    while (cur <= end && result.length < 6) {
+      const m = cur.getMonth();
+      const y = cur.getFullYear();
+      const label = m >= 6 ? `Ganjil ${y}/${y + 1}` : `Genap ${y - 1}/${y}`;
+      if (!seen.has(label)) { seen.add(label); result.push(label); }
+      cur.setMonth(cur.getMonth() + 1);
+    }
+    return result;
+  }
+
+  function autoTahunAjaran() {
+    const now = new Date();
+    const y = now.getFullYear();
+    return now.getMonth() >= 6 ? `${y}/${y + 1}` : `${y - 1}/${y}`;
+  }
+
+  function kelasUntukJenjang(jenjang) {
+    if (jenjang === 'SD')  return ['1','2','3','4','5','6'];
+    if (jenjang === 'SMP') return ['7','8','9'];
+    return ['10','11','12']; // SMA/SMK
+  }
+
+  function faseFromKelas(kelas) {
+    const k = parseInt(kelas);
+    if (k <= 2) return 'fase_a';
+    if (k <= 4) return 'fase_b';
+    if (k <= 6) return 'fase_c';
+    if (k <= 9) return 'fase_d';
+    if (k === 10) return 'fase_e';
+    return 'fase_f';
+  }
+
+  function faseLabel(faseKey) {
+    const map = {
+      fase_a: 'Fase A (Kelas 1–2 SD)',
+      fase_b: 'Fase B (Kelas 3–4 SD)',
+      fase_c: 'Fase C (Kelas 5–6 SD)',
+      fase_d: 'Fase D (Kelas 7–9 SMP)',
+      fase_e: 'Fase E (Kelas 10 SMA/SMK)',
+      fase_f: 'Fase F (Kelas 11–12 SMA/SMK)',
+    };
+    return map[faseKey] || faseKey;
+  }
+
+  // SD Wali Kelas: daftar mapel multi-select
+  const SD_WALI_MAPEL = [
+    'Bahasa Indonesia','Bahasa Inggris','IPAS','Matematika',
+    'Pendidikan Pancasila','Seni Musik','Seni Rupa','Seni Tari','Seni Teater',
+  ];
+
+  // SD Guru MAPEL: dropdown single
+  const SD_MAPEL_GURU = [
+    'Kepercayaan Terhadap Tuhan Yang Maha Esa dan Budi Pekerti',
+    'Koding dan Kecerdasan Artifisial',
+    'Pendidikan Agama Buddha dan Budi Pekerti',
+    'Pendidikan Agama Hindu dan Budi Pekerti',
+    'Pendidikan Agama Islam dan Budi Pekerti',
+    'Pendidikan Agama Katolik dan Budi Pekerti',
+    'Pendidikan Agama Khonghucu dan Budi Pekerti',
+    'Pendidikan Agama Kristen dan Budi Pekerti',
+    'PJOK',
+    'Program Kebutuhan Khusus Pengembangan Diri dan Gerak',
+    'Program Kebutuhan Khusus POMSK',
+  ];
+
+  // ─── Step 0 — Profil Guru (onboarding, dikunci per akun) ───────────────────
+
+  async function renderStep0() {
+    _step = 0;
+    const panel = el('rp-step-bar');
+    if (panel) panel.style.display = 'none'; // sembunyikan step bar saat step 0
+
+    const body = el('rp-body');
+    if (!body) return;
+
+    // Ambil expires_at dari session storage (sudah dimuat saat tab click)
+    let expiresAt = null;
+    try {
+      const ts = JSON.parse(sessionStorage.getItem('guru_trial_status') || 'null');
+      if (ts?.expires_at) expiresAt = ts.expires_at;
+    } catch (_) {}
+
+    const semesterOpts = computeSemesterOptions(expiresAt);
+    const tahunAjaranAuto = autoTahunAjaran();
+
+    body.innerHTML = `
+<div class="rp-step0-header">
+  <div class="rp-step0-badge">Profil Mengajar</div>
+  <h2 class="rp-step0-title">Selamat datang! Isi profil mengajar Anda.</h2>
+  <p class="rp-step0-desc">
+    Data ini digunakan di semua classroom Anda dan hanya perlu diisi sekali.
+    Admin dapat membantu jika ada perubahan.
+  </p>
+</div>
+
+<div class="rp-block" id="rp-s0-jenjang-block">
+  <div class="rp-block-title">1. Jenjang Sekolah</div>
+  <div class="rp-chip-group rp-s0-chips" data-key="jenjang" data-multi="0" data-required="1" id="rp-s0-jenjang">
+    ${['SD','SMP','SMA','SMK'].map(j =>
+      `<div class="rp-chip" data-value="${j}">${j}</div>`
+    ).join('')}
+  </div>
+</div>
+
+<div id="rp-s0-mapel-section" style="display:none;"></div>
+<div id="rp-s0-kelas-section" style="display:none;"></div>
+<div id="rp-s0-jam-section" style="display:none;">
+  <div class="rp-block">
+    <div class="rp-block-title">4. Jam Pelajaran per Minggu</div>
+    <input type="number" class="rp-input rp-s0-input" id="rp-s0-jam"
+      min="1" max="50" placeholder="Contoh: 2" style="max-width:120px;">
+  </div>
+</div>
+
+<div id="rp-s0-semester-section" style="display:none;">
+  <div class="rp-block">
+    <div class="rp-block-title">5. Semester Aktif</div>
+    <p class="rp-block-subtitle">Pilih semester yang tercakup dalam lisensi Anda.</p>
+    <div class="rp-s0-semester-list" id="rp-s0-semester-list">
+      ${semesterOpts.map(s => `
+      <label class="rp-s0-checkbox-row">
+        <input type="checkbox" value="${esc(s)}" class="rp-s0-semester-cb">
+        <span>${esc(s)}</span>
+      </label>`).join('')}
+    </div>
+  </div>
+</div>
+
+<div id="rp-s0-identitas-section" style="display:none;">
+  <div class="rp-block">
+    <div class="rp-block-title">6. Identitas Dokumen</div>
+    <p class="rp-block-subtitle">Digunakan untuk header dan tanda tangan pada file yang diunduh.</p>
+    <div class="rp-identitas-grid">
+      <div class="rp-q">
+        <label class="rp-q-label" style="color:var(--gold)">Nama guru</label>
+        <input type="text" class="rp-input" id="rp-s0-nama-guru"
+          placeholder="Contoh: Roni Satria, S.Ag">
+      </div>
+      <div class="rp-q">
+        <label class="rp-q-label" style="color:var(--gold)">NIP guru <span style="color:var(--text-muted)">(opsional)</span></label>
+        <input type="text" class="rp-input" id="rp-s0-nip-guru"
+          placeholder="Contoh: 197001012000011001">
+      </div>
+      <div class="rp-q">
+        <label class="rp-q-label" style="color:var(--gold)">Nama kepala sekolah</label>
+        <input type="text" class="rp-input" id="rp-s0-nama-kepsek"
+          placeholder="Contoh: Dr. Ahmad Fauzi, M.Pd">
+      </div>
+      <div class="rp-q">
+        <label class="rp-q-label" style="color:var(--gold)">NIP kepala sekolah <span style="color:var(--text-muted)">(opsional)</span></label>
+        <input type="text" class="rp-input" id="rp-s0-nip-kepsek"
+          placeholder="Contoh: 196805121990031005">
+      </div>
+      <div class="rp-q">
+        <label class="rp-q-label" style="color:var(--gold)">Tahun ajaran</label>
+        <input type="text" class="rp-input" id="rp-s0-tahun-ajaran"
+          placeholder="Contoh: 2026/2027" value="${esc(tahunAjaranAuto)}">
+      </div>
+      <div class="rp-q">
+        <label class="rp-q-label" style="color:var(--gold)">Kota / Kabupaten</label>
+        <input type="text" class="rp-input" id="rp-s0-kota"
+          placeholder="Contoh: Ujungbatu">
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="rp-step0-footer" style="display:none;" id="rp-s0-footer">
+  <div id="rp-step0-error" class="error-msg" style="display:none;"></div>
+  <button type="button" class="rp-step0-submit" id="rp-s0-submit">
+    Simpan &amp; Mulai Rancang
+  </button>
+</div>`;
+
+    // Wire jenjang chip click
+    const jenjangGroup = el('rp-s0-jenjang');
+    jenjangGroup?.querySelectorAll('.rp-chip').forEach(chip => {
+      chip.addEventListener('click', async () => {
+        jenjangGroup.querySelectorAll('.rp-chip').forEach(c => c.classList.remove('selected'));
+        chip.classList.add('selected');
+        await renderStep0MapelSection(chip.dataset.value);
+      });
+    });
+
+    // Submit handler
+    el('rp-s0-submit')?.addEventListener('click', handleStep0Submit);
+  }
+
+  async function renderStep0MapelSection(jenjang) {
+    const mapelSection = el('rp-s0-mapel-section');
+    const kelasSection = el('rp-s0-kelas-section');
+    const jamSection   = el('rp-s0-jam-section');
+    const semSection   = el('rp-s0-semester-section');
+    const idSection    = el('rp-s0-identitas-section');
+    const footer       = el('rp-s0-footer');
+    if (!mapelSection) return;
+
+    // Reset semua section di bawah jenjang
+    [kelasSection, jamSection, semSection, idSection, footer].forEach(s => {
+      if (s) s.style.display = 'none';
+    });
+
+    if (jenjang === 'SD') {
+      mapelSection.style.display = '';
+      mapelSection.innerHTML = `
+<div class="rp-block">
+  <div class="rp-block-title">2. Peran di SD</div>
+  <div class="rp-chip-group rp-s0-chips" data-key="peran" data-multi="0" data-required="1" id="rp-s0-peran">
+    <div class="rp-chip" data-value="WALI">Wali Kelas</div>
+    <div class="rp-chip" data-value="MAPEL">Guru MAPEL</div>
+  </div>
+  <div id="rp-s0-sd-mapel-wrap" style="margin-top:var(--space-sm);display:none;"></div>
+</div>`;
+
+      el('rp-s0-peran')?.querySelectorAll('.rp-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+          el('rp-s0-peran').querySelectorAll('.rp-chip').forEach(c => c.classList.remove('selected'));
+          chip.classList.add('selected');
+          renderStep0SdMapel(chip.dataset.value);
+        });
+      });
+
+    } else if (jenjang === 'SMP' || jenjang === 'SMA') {
+      mapelSection.style.display = '';
+      mapelSection.innerHTML = `<div class="rp-block" id="rp-s0-mapel-block">
+  <div class="rp-block-title">2. Mata Pelajaran</div>
+  <div class="rp-loading"><div class="rp-loading-dot"></div>Memuat daftar mapel…</div>
+</div>`;
+      const list = await getMapelListByJenjang(jenjang, {});
+      const block = el('rp-s0-mapel-block');
+      if (!block) return;
+      block.innerHTML = `<div class="rp-block-title">2. Mata Pelajaran</div>
+${makeCustomDropdown('rp-s0-mapel-dd', list.map(m => ({ value: m.key, label: m.label })), '')}`;
+      wireCustomDropdown('rp-s0-mapel-dd', () => {});
+      // Show kelas after mapel selection detected via dropdown open/close
+      // Wire kelas section with a simple "Lanjut" pattern
+      renderStep0KelasSection(jenjang);
+      jamSection.style.display = '';
+      semSection.style.display = '';
+      idSection.style.display = '';
+      footer.style.display = '';
+
+    } else if (jenjang === 'SMK') {
+      mapelSection.style.display = '';
+      mapelSection.innerHTML = `<div class="rp-block" id="rp-s0-smk-block">
+  <div class="rp-block-title">2. Program Keahlian</div>
+  <div class="rp-loading"><div class="rp-loading-dot"></div>Memuat bidang keahlian…</div>
+</div>`;
+      const bidangs = await getMapelListByJenjang('SMK', {});
+      const block = el('rp-s0-smk-block');
+      if (!block) return;
+      block.innerHTML = `<div class="rp-block-title">2. Bidang Keahlian</div>
+${makeCustomDropdown('rp-s0-bidang-dd', bidangs.map(b => ({ value: b.key, label: b.label })), '')}
+<div id="rp-s0-program-wrap" style="margin-top:var(--space-sm);display:none;"></div>
+<div id="rp-s0-elemen-wrap" style="margin-top:var(--space-sm);display:none;"></div>`;
+
+      wireCustomDropdown('rp-s0-bidang-dd', async () => {
+        const bidang = getCustomSelVal('rp-s0-bidang-dd');
+        if (!bidang || bidang === '__lainnya__') return;
+        const programs = await getMapelListByJenjang('SMK', { bidang });
+        const pw = el('rp-s0-program-wrap');
+        if (!pw) return;
+        pw.style.display = '';
+        pw.innerHTML = `<label class="rp-q-label" style="color:var(--gold)">Program keahlian</label>
+${makeCustomDropdown('rp-s0-program-dd', programs.map(p => ({ value: p.key, label: p.label })), '')}`;
+        wireCustomDropdown('rp-s0-program-dd', async () => {
+          const prog = getCustomSelVal('rp-s0-program-dd');
+          if (!prog || prog === '__lainnya__') return;
+          const elems = await getMapelListByJenjang('SMK', { bidang, program: prog });
+          const ew = el('rp-s0-elemen-wrap');
+          if (!ew) return;
+          ew.style.display = '';
+          ew.innerHTML = `<label class="rp-q-label" style="color:var(--gold)">Elemen / Mata pelajaran</label>
+${makeCustomDropdown('rp-s0-elemen-dd', elems.map(e => ({ value: e.key, label: e.label })), '')}`;
+          wireCustomDropdown('rp-s0-elemen-dd', () => {});
+          renderStep0KelasSection(jenjang);
+          jamSection.style.display = '';
+          semSection.style.display = '';
+          idSection.style.display = '';
+          footer.style.display = '';
+        });
+      });
+    }
+  }
+
+  function renderStep0SdMapel(peran) {
+    const wrap = el('rp-s0-sd-mapel-wrap');
+    if (!wrap) return;
+    const kelasSection  = el('rp-s0-kelas-section');
+    const jamSection    = el('rp-s0-jam-section');
+    const semSection    = el('rp-s0-semester-section');
+    const idSection     = el('rp-s0-identitas-section');
+    const footer        = el('rp-s0-footer');
+
+    if (peran === 'WALI') {
+      wrap.style.display = '';
+      wrap.innerHTML = `<div class="rp-block-title" style="margin-top:var(--space-sm);">Mata pelajaran yang diampu</div>
+<p class="rp-block-subtitle">Pilih satu atau lebih.</p>
+<div class="rp-s0-checkbox-grid" id="rp-s0-wali-mapel">
+  ${SD_WALI_MAPEL.map(m => `
+  <label class="rp-s0-checkbox-row">
+    <input type="checkbox" value="${esc(m)}" class="rp-s0-wali-cb">
+    <span>${esc(m)}</span>
+  </label>`).join('')}
+</div>`;
+    } else {
+      wrap.style.display = '';
+      wrap.innerHTML = `<div class="rp-block-title" style="margin-top:var(--space-sm);">Mata pelajaran</div>
+${makeCustomDropdown('rp-s0-sdmapel-dd', SD_MAPEL_GURU.map(m => ({ value: m, label: m })), '')}`;
+      wireCustomDropdown('rp-s0-sdmapel-dd', () => {});
+    }
+
+    renderStep0KelasSection('SD');
+    jamSection.style.display = '';
+    semSection.style.display = '';
+    idSection.style.display = '';
+    footer.style.display = '';
+  }
+
+  function renderStep0KelasSection(jenjang) {
+    const kelasSection = el('rp-s0-kelas-section');
+    if (!kelasSection) return;
+    const kelasList = kelasUntukJenjang(jenjang);
+    kelasSection.style.display = '';
+    kelasSection.innerHTML = `
+<div class="rp-block">
+  <div class="rp-block-title">3. Kelas</div>
+  <div class="rp-chip-group rp-s0-chips" data-key="kelas" data-multi="0" data-required="1" id="rp-s0-kelas">
+    ${kelasList.map(k => `<div class="rp-chip" data-value="${k}">${k}</div>`).join('')}
+  </div>
+  <div id="rp-s0-fase-display" class="rp-s0-fase-hint" style="margin-top:var(--space-xs);display:none;"></div>
+</div>`;
+
+    el('rp-s0-kelas')?.querySelectorAll('.rp-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        el('rp-s0-kelas').querySelectorAll('.rp-chip').forEach(c => c.classList.remove('selected'));
+        chip.classList.add('selected');
+        const fase = faseFromKelas(chip.dataset.value);
+        const faseD = el('rp-s0-fase-display');
+        if (faseD) {
+          faseD.style.display = '';
+          faseD.textContent = `Fase: ${faseLabel(fase)}`;
+        }
+      });
+    });
+  }
+
+  async function handleStep0Submit() {
+    const btn = el('rp-s0-submit');
+    const errEl = el('rp-step0-error');
+    if (btn) { btn.disabled = true; btn.textContent = 'Menyimpan…'; }
+    const showErr = msg => {
+      if (errEl) { errEl.textContent = msg; errEl.style.display = ''; }
+      if (btn) { btn.disabled = false; btn.textContent = 'Simpan & Mulai Rancang'; }
+    };
+
+    // Kumpulkan data
+    const jenjangChip = el('rp-s0-jenjang')?.querySelector('.rp-chip.selected');
+    const jenjang = jenjangChip?.dataset.value || '';
+    if (!jenjang) return showErr('Pilih jenjang sekolah.');
+
+    let peran = null, mapelList = [], mapel = '', mapelKey = '';
+    let bidangKeahlian = null, programKeahlian = null;
+
+    if (jenjang === 'SD') {
+      const peranChip = el('rp-s0-peran')?.querySelector('.rp-chip.selected');
+      peran = peranChip?.dataset.value || '';
+      if (!peran) return showErr('Pilih peran Anda di SD.');
+      if (peran === 'WALI') {
+        mapelList = [...(el('rp-s0-wali-mapel')?.querySelectorAll('.rp-s0-wali-cb:checked') || [])]
+          .map(cb => cb.value);
+        if (!mapelList.length) return showErr('Pilih minimal satu mata pelajaran.');
+        mapel = mapelList.join(', ');
+        mapelKey = normalizeMapelKey(mapelList[0]);
+      } else {
+        const v = getCustomSelVal('rp-s0-sdmapel-dd');
+        if (!v) return showErr('Pilih mata pelajaran.');
+        mapel = v; mapelKey = normalizeMapelKey(v); mapelList = [v];
+      }
+    } else if (jenjang === 'SMP' || jenjang === 'SMA') {
+      const v = getCustomSelVal('rp-s0-mapel-dd');
+      if (!v) return showErr('Pilih mata pelajaran.');
+      mapelKey = v;
+      mapel = v; // label ditampilkan nanti via mapelKeyToLabel — key stored, label derived
+      mapelList = [v];
+    } else if (jenjang === 'SMK') {
+      bidangKeahlian  = getCustomSelVal('rp-s0-bidang-dd')  || null;
+      programKeahlian = getCustomSelVal('rp-s0-program-dd') || null;
+      const elemenVal = getCustomSelVal('rp-s0-elemen-dd');
+      if (!bidangKeahlian) return showErr('Pilih bidang keahlian.');
+      if (!programKeahlian) return showErr('Pilih program keahlian.');
+      if (!elemenVal) return showErr('Pilih elemen / mata pelajaran.');
+      const isLainnya = elemenVal === 'Lainnya';
+      mapelKey  = isLainnya ? '' : elemenVal;
+      mapel     = isLainnya ? (el('rp-s0-elemen-dd-txt')?.value.trim() || elemenVal) : elemenVal;
+      mapelList = [mapel];
+    }
+
+    const kelasChip = el('rp-s0-kelas')?.querySelector('.rp-chip.selected');
+    const kelas = kelasChip?.dataset.value || '';
+    if (!kelas) return showErr('Pilih kelas yang Anda ajar.');
+
+    const fase = faseFromKelas(kelas);
+
+    const jamVal = el('rp-s0-jam')?.value.trim();
+    const jamPerMinggu = jamVal ? parseInt(jamVal) : null;
+
+    const semesterList = [...(el('rp-s0-semester-list')?.querySelectorAll('.rp-s0-semester-cb:checked') || [])]
+      .map(cb => cb.value);
+
+    const namaGuru   = el('rp-s0-nama-guru')?.value.trim()   || '';
+    const nipGuru    = el('rp-s0-nip-guru')?.value.trim()    || '';
+    const namaKepsek = el('rp-s0-nama-kepsek')?.value.trim() || '';
+    const nipKepsek  = el('rp-s0-nip-kepsek')?.value.trim()  || '';
+    const tahunAjaran = el('rp-s0-tahun-ajaran')?.value.trim() || autoTahunAjaran();
+    const kota       = el('rp-s0-kota')?.value.trim()        || '';
+
+    if (!namaGuru) return showErr('Isi nama guru.');
+    if (!namaKepsek) return showErr('Isi nama kepala sekolah.');
+
+    const roleGuru = (jenjang === 'SD' && peran === 'WALI') ? 'WALI_KELAS_SD' : 'MAPEL';
+
+    const payload = {
+      jenjang, peran, mapel_list: mapelList, mapel, mapel_key: mapelKey,
+      bidang_keahlian: bidangKeahlian, program_keahlian: programKeahlian,
+      kelas, fase, jam_per_minggu: jamPerMinggu,
+      semester_list: semesterList,
+      nama_guru: namaGuru, nip_guru: nipGuru,
+      nama_kepsek: namaKepsek, nip_kepsek: nipKepsek,
+      tahun_ajaran: tahunAjaran, kota,
+      is_locked: true,
+      role_guru: roleGuru,
+    };
+
+    try {
+      const result = await SipApi.upsertRancangProfil(payload);
+      if (!result?.is_locked) throw new Error('lock not confirmed');
+      _profil = result;
+      // Populate _ans dari profil baru
+      _ans.jenjang          = _profil.jenjang || '';
+      _ans.mapelKey         = _profil.mapel_key || '';
+      _ans.mapel            = _profil.mapel || '';
+      _ans.fase             = _profil.fase || '';
+      _ans.bidangKeahlian   = _profil.bidang_keahlian || null;
+      _ans.programKeahlian  = _profil.program_keahlian || null;
+      _ans.elemenTerpilih   = _profil.mapel_list || [];
+      // Tampilkan step bar dan pindah ke step 1
+      const stepBar = el('rp-step-bar');
+      if (stepBar) stepBar.style.display = '';
+      _step = 1;
+      renderStep1();
+    } catch (e) {
+      console.error('[rancang][step0] upsert gagal:', e);
+      showErr('Gagal menyimpan profil. Coba lagi.');
+    }
+  }
+
   // ─── Step 1 — Identitas Konteks ─────────────────────────────────────────────
 
   function renderStep1() {
@@ -320,9 +786,9 @@
     const body = el('rp-body');
     if (!body) return;
 
-    // Jika settings sudah ada (pre-filled dari DB) → tampilkan read-only
-    const hasSettings = _settings &&
-      _settings.jenjang && _settings.mapel && _settings.fase;
+    // Jika profil step 0 sudah locked, atau settings classroom sudah ada → read-only
+    const hasSettings = (_profil?.is_locked) ||
+      (_settings && _settings.jenjang && _settings.mapel && _settings.fase);
 
     if (hasSettings) {
       renderStep1ReadOnly();
@@ -361,20 +827,26 @@
     }
   }
 
-  // ── Step 1 Read-only (pre-filled dari DB) ─────────────────────
+  // ── Step 1 Read-only (pre-filled dari profil atau settings) ───────────────
   function renderStep1ReadOnly() {
     const body = el('rp-body');
     if (!body) return;
 
-    const jenjang  = _settings.jenjang  || '—';
-    const mapel    = _settings.mapel    || '—';
-    const faseRaw  = _settings.fase || '';
+    // Preferensikan data dari _profil (step 0), fallback ke _settings (lama)
+    const src = (_profil?.is_locked) ? _profil : (_settings || {});
+    const jenjang  = src.jenjang  || '—';
+    const mapelArr = src.mapel_list;
+    const mapel    = (Array.isArray(mapelArr) && mapelArr.length)
+      ? mapelArr.join(', ')
+      : (src.mapel || '—');
+    const kelas    = src.kelas    || null;
+    const faseRaw  = src.fase || '';
     const faseLabel = faseRaw
       ? faseRaw.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
       : '—';
     const fase = faseLabel;
-    const bidang   = _settings.bidang_keahlian  || null;
-    const program  = _settings.program_keahlian || null;
+    const bidang   = src.bidang_keahlian  || null;
+    const program  = src.program_keahlian || null;
 
     const smkRows = (jenjang === 'SMK' && bidang) ? `
       <div class="rp-readonly-row">
@@ -400,13 +872,17 @@
       <span class="rp-readonly-label">Mata pelajaran</span>
       <span class="rp-readonly-val">${esc(mapel)}</span>
     </div>
+    ${kelas ? `<div class="rp-readonly-row">
+      <span class="rp-readonly-label">Kelas</span>
+      <span class="rp-readonly-val">${esc(kelas)}</span>
+    </div>` : ''}
     <div class="rp-readonly-row">
       <span class="rp-readonly-label">Fase</span>
       <span class="rp-readonly-val">${esc(fase)}</span>
     </div>
   </div>
   <p class="rp-readonly-hint">
-    Data diambil dari identitas kelas.
+    Data diambil dari profil akun Anda.
   </p>
 </div>
 ${(() => {
@@ -2041,69 +2517,46 @@ ${sec1}${sec2}${sec3}${sec4}${sec5}
       _dokumen = await SipApi.getRancangDokumen(_cId) ?? [];
     } catch (_) {}
 
-    // Reload settings untuk identitas
+    // Reload settings (per classroom) dan profil (per akun)
     try {
       _settings = await SipApi.getRancangSettings(_cId) ?? _settings;
     } catch (_) {}
+    if (!_profil) {
+      try { _profil = await SipApi.getRancangProfil(); } catch (_) {}
+    }
 
-    const s = _settings || {};
+    // Sumber identitas: profil (step 0) diutamakan, fallback ke settings lama
+    const idSrc = _profil?.is_locked
+      ? {
+          nama_guru:    _profil.nama_guru    || '',
+          nip_guru:     _profil.nip_guru     || '',
+          nama_kepsek:  _profil.nama_kepsek  || '',
+          nip_kepsek:   _profil.nip_kepsek   || '',
+          tahun_ajaran: _profil.tahun_ajaran || '',
+          semester:     (_profil.semester_list || []).join(', '),
+          kota:         _profil.kota         || '',
+        }
+      : (_settings || {});
 
-    // ── Render identitas form ──────────────────────────────────
+    // ── Identitas read-only (data dari profil akun, diubah via admin) ─────────
     const identitasHtml = `
 <div class="rp-block" id="rp-identitas-block">
   <div class="rp-block-title">Identitas Dokumen</div>
-  <p class="rp-block-subtitle">
-    Digunakan untuk header dan tanda tangan pada file Word yang diunduh.
-  </p>
-  <div class="rp-identitas-grid">
-    <div class="rp-q">
-      <label class="rp-q-label" style="color:var(--gold)">Nama guru</label>
-      <input type="text" class="rp-input" id="rp-id-nama-guru"
-        placeholder="Contoh: Roni Satria, S.Ag"
-        value="${esc(s.nama_guru || '')}">
-    </div>
-    <div class="rp-q">
-      <label class="rp-q-label" style="color:var(--gold)">NIP guru</label>
-      <input type="text" class="rp-input" id="rp-id-nip-guru"
-        placeholder="Contoh: 197001012000011001"
-        value="${esc(s.nip_guru || '')}">
-    </div>
-    <div class="rp-q">
-      <label class="rp-q-label" style="color:var(--gold)">Nama kepala sekolah</label>
-      <input type="text" class="rp-input" id="rp-id-nama-kepsek"
-        placeholder="Contoh: Dr. Ahmad Fauzi, M.Pd"
-        value="${esc(s.nama_kepsek || '')}">
-    </div>
-    <div class="rp-q">
-      <label class="rp-q-label" style="color:var(--gold)">NIP kepala sekolah</label>
-      <input type="text" class="rp-input" id="rp-id-nip-kepsek"
-        placeholder="Contoh: 196805121990031005"
-        value="${esc(s.nip_kepsek || '')}">
-    </div>
-    <div class="rp-q">
-      <label class="rp-q-label" style="color:var(--gold)">Tahun ajaran</label>
-      <input type="text" class="rp-input" id="rp-id-tahun-ajaran"
-        placeholder="Contoh: 2025/2026"
-        value="${esc(s.tahun_ajaran || '')}">
-    </div>
-    <div class="rp-q">
-      <label class="rp-q-label" style="color:var(--gold)">Semester</label>
-      <input type="text" class="rp-input" id="rp-id-semester"
-        placeholder="Contoh: Ganjil"
-        value="${esc(s.semester || '')}">
-    </div>
-    <div class="rp-q">
-      <label class="rp-q-label" style="color:var(--gold)">Kota / Kabupaten</label>
-      <input type="text" class="rp-input" id="rp-id-kota"
-        placeholder="Contoh: Ujungbatu"
-        value="${esc(s.kota || '')}">
-    </div>
-  </div>
-  <div class="rp-save-row" style="margin-top:var(--space-md);">
-    <button type="button" class="rp-btn-simpan" id="rp-btn-simpan-identitas">
-      💾 Simpan identitas
-    </button>
-    <span class="rp-identitas-status" id="rp-identitas-status"></span>
+  <p class="rp-block-subtitle">Data diambil dari profil akun Anda.</p>
+  <div class="rp-readonly-card">
+    ${[
+      ['Nama guru',          idSrc.nama_guru    || '—'],
+      ['NIP guru',           idSrc.nip_guru     || '—'],
+      ['Nama kepala sekolah',idSrc.nama_kepsek  || '—'],
+      ['NIP kepala sekolah', idSrc.nip_kepsek   || '—'],
+      ['Tahun ajaran',       idSrc.tahun_ajaran || '—'],
+      ['Semester',           idSrc.semester     || '—'],
+      ['Kota / Kabupaten',   idSrc.kota         || '—'],
+    ].map(([lbl, val]) => `
+    <div class="rp-readonly-row">
+      <span class="rp-readonly-label">${esc(lbl)}</span>
+      <span class="rp-readonly-val">${esc(val)}</span>
+    </div>`).join('')}
   </div>
 </div>`;
 
@@ -2183,37 +2636,6 @@ ${sec1}${sec2}${sec3}${sec4}${sec5}
       });
     });
 
-    // ── Simpan identitas ───────────────────────────────────────
-    el('rp-btn-simpan-identitas')?.addEventListener('click', async () => {
-      const btn    = el('rp-btn-simpan-identitas');
-      const status = el('rp-identitas-status');
-      btn.disabled = true;
-      btn.textContent = 'Menyimpan…';
-      try {
-        const payload = {
-          nama_guru:    (el('rp-id-nama-guru')?.value   || '').trim(),
-          nip_guru:     (el('rp-id-nip-guru')?.value    || '').trim(),
-          nama_kepsek:  (el('rp-id-nama-kepsek')?.value || '').trim(),
-          nip_kepsek:   (el('rp-id-nip-kepsek')?.value  || '').trim(),
-          tahun_ajaran: (el('rp-id-tahun-ajaran')?.value|| '').trim(),
-          semester:     (el('rp-id-semester')?.value    || '').trim(),
-          kota:         (el('rp-id-kota')?.value        || '').trim(),
-        };
-        _settings = await SipApi.upsertRancangSettings(_cId, payload);
-        btn.disabled = false;
-        btn.textContent = '💾 Simpan identitas';
-        if (status) {
-          status.textContent = '✓ Tersimpan';
-          setTimeout(() => { status.textContent = ''; }, 2500);
-        }
-      } catch (e) {
-        console.error('[rancang] simpan identitas gagal:', e);
-        btn.disabled = false;
-        btn.textContent = '💾 Simpan identitas';
-        if (status) status.textContent = '✗ Gagal menyimpan';
-      }
-    });
-
     // ── Download Word ──────────────────────────────────────────
     body.querySelectorAll('.rp-btn-download').forEach(btn => {
       btn.addEventListener('click', async () => {
@@ -2225,7 +2647,20 @@ ${sec1}${sec2}${sec3}${sec4}${sec5}
         try {
           const konten = await SipApi.getRancangDokumenKonten(docId);
           if (!konten) throw new Error('konten kosong');
-          await generateDocxRancang(konten, jenis, judul, _settings || {});
+          // Identitas: profil (step 0) diutamakan, fallback ke settings lama
+          const identitasDoc = _profil?.is_locked
+            ? {
+                ...(_settings || {}),
+                nama_guru:    _profil.nama_guru    || '',
+                nip_guru:     _profil.nip_guru     || '',
+                nama_kepsek:  _profil.nama_kepsek  || '',
+                nip_kepsek:   _profil.nip_kepsek   || '',
+                tahun_ajaran: _profil.tahun_ajaran || '',
+                semester:     (_profil.semester_list || []).join(', '),
+                kota:         _profil.kota         || '',
+              }
+            : (_settings || {});
+          await generateDocxRancang(konten, jenis, judul, identitasDoc);
           btn.disabled = false;
           btn.textContent = '⬇ Unduh Word';
         } catch (e) {
@@ -2345,17 +2780,27 @@ ${sec1}${sec2}${sec3}${sec4}${sec5}
 <div class="rp-step-bar" id="rp-step-bar"></div>
 <div id="rp-body"></div>`;
 
-    // Fetch settings & dokumen paralel
+    // Fetch profil (per akun), settings & dokumen paralel
     try {
-      const [settings, dokumen] = await Promise.all([
+      const [profil, settings, dokumen] = await Promise.all([
+        SipApi.getRancangProfil(),
         SipApi.getRancangSettings(_cId),
         SipApi.getRancangDokumen(_cId),
       ]);
+      _profil   = profil;
       _settings = settings;
       _dokumen  = dokumen ?? [];
 
-      // Pre-fill _ans dari settings jika ada
-      if (_settings) {
+      // Pre-fill _ans: profil (step 0) diutamakan, fallback ke settings
+      if (_profil?.is_locked) {
+        _ans.jenjang         = _profil.jenjang          || '';
+        _ans.mapelKey        = _profil.mapel_key         || '';
+        _ans.mapel           = _profil.mapel             || '';
+        _ans.fase            = _profil.fase              || '';
+        _ans.bidangKeahlian  = _profil.bidang_keahlian   || null;
+        _ans.programKeahlian = _profil.program_keahlian  || null;
+        _ans.elemenTerpilih  = _profil.mapel_list        || [];
+      } else if (_settings) {
         if (_settings.jenjang)          _ans.jenjang          = _settings.jenjang;
         if (_settings.mapel_key)        _ans.mapelKey         = _settings.mapel_key;
         if (_settings.mapel)            _ans.mapel            = _settings.mapel;
@@ -2366,25 +2811,29 @@ ${sec1}${sec2}${sec3}${sec4}${sec5}
           _ans.elemenTerpilih = _settings.elemen_terpilih;
       }
     } catch (_) {
-      // Gagal fetch settings — lanjut tanpa pre-fill
+      _profil   = null;
       _settings = null;
       _dokumen  = [];
     }
 
+    // Jika step 0 belum diisi → tampilkan step 0, skip restore & auto-fill
+    if (!_profil?.is_locked) {
+      renderStep0();
+      _loaded = true;
+      return;
+    }
+
     const restored = await restoreRpState();
 
-    // Auto-fill dari identitas kelas — SETELAH restore,
-    // hanya isi field yang masih kosong setelah restore localStorage
+    // Auto-fill dari identitas kelas — SETELAH restore (hanya jika profil tidak ada)
     if (!_ans.mapel) {
       if (window._classroomMapelKey) {
-        // Classroom sudah pernah isi rancang: gunakan identitas tersimpan di kolom classrooms
         _ans.mapelKey = window._classroomMapelKey;
         _ans.mapel    = window._classroomSubject || window._classroomMapelKey;
         if (!_ans.jenjang         && window._classroomJenjang)  _ans.jenjang         = window._classroomJenjang;
         if (!_ans.bidangKeahlian  && window._classroomBidang)   _ans.bidangKeahlian  = window._classroomBidang;
         if (!_ans.programKeahlian && window._classroomProgram)  _ans.programKeahlian = window._classroomProgram;
       } else if (window._classroomSubject) {
-        // Classroom lama: fallback normalizeMapelKey dari subject
         const guessedKey = normalizeMapelKey(window._classroomSubject);
         if (guessedKey) {
           _ans.mapelKey = guessedKey;
@@ -2400,8 +2849,6 @@ ${sec1}${sec2}${sec3}${sec4}${sec5}
       }
     }
 
-    // Jika restore ke step 1 dan auto-fill mengisi sesuatu,
-    // render ulang Step 1 agar cascade terpanggil
     if (!restored || _step === 1) renderStep1();
     _loaded = true;
   }
