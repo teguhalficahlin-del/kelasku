@@ -1523,14 +1523,6 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
     });
   }
 
-  function renderStep4Loading() {
-    _step = 4;
-    renderStepBar();
-    const body = el('rp-body');
-    if (!body) return;
-    body.innerHTML = `<div class="rp-block">${loading('AI sedang menyusun alur pembelajaran…')}<div id="rp-atp-error" class="error-msg" style="display:none;"></div></div>`;
-  }
-
   function renderStep4(list) {
     _step = 4;
     renderStepBar();
@@ -1905,14 +1897,6 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
 </div>`).join('');
     }
     return '<div style="color:var(--text-muted);font-size:var(--fs-caption);">Format KKTP tidak dikenal.</div>';
-  }
-
-  function renderStep6Loading() {
-    _step = 6;
-    renderStepBar();
-    const body = el('rp-body');
-    if (!body) return;
-    body.innerHTML = `<div class="rp-block">${loading('AI sedang merancang rencana pertemuan…')}<div id="rp-rencana-error" class="error-msg" style="display:none;"></div></div>`;
   }
 
   function renderStep6(data) {
