@@ -386,6 +386,105 @@
     'Program Kebutuhan Khusus POMSK',
   ];
 
+  // SMP: 26 mapel resmi (Kepka BSKAP)
+  const SMP_MAPEL = [
+    'Bahasa Indonesia',
+    'Bahasa Inggris',
+    'Informatika',
+    'IPA',
+    'IPS',
+    'Kepercayaan Terhadap Tuhan Yang Maha Esa dan Budi Pekerti',
+    'Koding dan Kecerdasan Artifisial',
+    'Matematika',
+    'Pendidikan Agama Buddha dan Budi Pekerti',
+    'Pendidikan Agama Hindu dan Budi Pekerti',
+    'Pendidikan Agama Islam dan Budi Pekerti',
+    'Pendidikan Agama Katolik dan Budi Pekerti',
+    'Pendidikan Agama Khonghucu dan Budi Pekerti',
+    'Pendidikan Agama Kristen dan Budi Pekerti',
+    'Pendidikan Pancasila',
+    'PJOK',
+    'Prakarya Budidaya',
+    'Prakarya Kerajinan',
+    'Prakarya Pengolahan',
+    'Prakarya Rekayasa',
+    'Program Kebutuhan Khusus Pengembangan Diri dan Gerak untuk Peserta Didik Berkebutuhan Khusus Dengan Hambatan Fisik/Tunadaksa',
+    'Program Kebutuhan Khusus Pengembangan Orientasi, Mobilitas, Sosial, dan Komunikasi (POMSK) untuk Peserta Didik Dengan Hambatan Penglihatan/Tunanetra',
+    'Seni Musik',
+    'Seni Rupa',
+    'Seni Tari',
+    'Seni Teater',
+  ];
+
+  // SMA: 40 mapel resmi (Kepka BSKAP)
+  const SMA_MAPEL = [
+    'Antropologi',
+    'Bahasa Arab',
+    'Bahasa Indonesia',
+    'Bahasa Inggris',
+    'Bahasa Jepang',
+    'Bahasa Jerman',
+    'Bahasa Korea',
+    'Bahasa Mandarin',
+    'Bahasa Prancis',
+    'Biologi',
+    'Ekonomi',
+    'Fisika',
+    'Geografi',
+    'Informatika',
+    'IPA',
+    'IPS',
+    'Kepercayaan Terhadap Tuhan Yang Maha Esa dan Budi Pekerti',
+    'Kimia',
+    'Koding dan Kecerdasan Artifisial',
+    'Matematika',
+    'Pendidikan Agama Buddha dan Budi Pekerti',
+    'Pendidikan Agama Hindu dan Budi Pekerti',
+    'Pendidikan Agama Islam dan Budi Pekerti',
+    'Pendidikan Agama Katolik dan Budi Pekerti',
+    'Pendidikan Agama Khonghucu dan Budi Pekerti',
+    'Pendidikan Agama Kristen dan Budi Pekerti',
+    'Pendidikan Pancasila',
+    'PJOK',
+    'Prakarya Budidaya',
+    'Prakarya Kerajinan',
+    'Prakarya Pengolahan',
+    'Prakarya Rekayasa',
+    'Program Kebutuhan Khusus Pengembangan Diri dan Gerak untuk Peserta Didik Berkebutuhan Khusus Dengan Hambatan Fisik/Tunadaksa',
+    'Program Kebutuhan Khusus Pengembangan Orientasi, Mobilitas, Sosial, dan Komunikasi (POMSK) untuk Peserta Didik Dengan Hambatan Penglihatan/Tunanetra',
+    'Sejarah',
+    'Seni Musik',
+    'Seni Rupa',
+    'Seni Tari',
+    'Seni Teater',
+    'Sosiologi',
+  ];
+
+  // SMK mapel umum: 21 mapel (Kepka BSKAP)
+  const SMK_UMUM_MAPEL = [
+    'Bahasa Indonesia',
+    'Bahasa Inggris',
+    'Informatika',
+    'Kepercayaan Terhadap Tuhan Yang Maha Esa dan Budi Pekerti',
+    'Koding dan Kecerdasan Artifisial',
+    'Kreativitas, Inovasi, dan Kewirausahaan',
+    'Matematika',
+    'Pendidikan Agama Buddha dan Budi Pekerti',
+    'Pendidikan Agama Hindu dan Budi Pekerti',
+    'Pendidikan Agama Islam dan Budi Pekerti',
+    'Pendidikan Agama Katolik dan Budi Pekerti',
+    'Pendidikan Agama Khonghucu dan Budi Pekerti',
+    'Pendidikan Agama Kristen dan Budi Pekerti',
+    'Pendidikan Pancasila',
+    'PJOK',
+    'Projek IPAS',
+    'Sejarah',
+    'Seni Musik',
+    'Seni Rupa',
+    'Seni Tari',
+    'Seni Teater',
+  ];
+
   // ─── Step 0 — Profil Guru (onboarding, dikunci per akun) ───────────────────
 
   async function renderStep0() {
@@ -545,62 +644,92 @@
 
     } else if (jenjang === 'SMP' || jenjang === 'SMA') {
       mapelSection.style.display = '';
+      const mapelArr = jenjang === 'SMP' ? SMP_MAPEL : SMA_MAPEL;
       mapelSection.innerHTML = `<div class="rp-block" id="rp-s0-mapel-block">
   <div class="rp-block-title">2. Mata Pelajaran</div>
-  <div class="rp-loading"><div class="rp-loading-dot"></div>Memuat daftar mapel…</div>
+  ${makeCustomDropdown('rp-s0-mapel-dd', mapelArr.map(m => ({ value: m, label: m })), '')}
 </div>`;
-      const list = await getMapelListByJenjang(jenjang, {});
-      const block = el('rp-s0-mapel-block');
-      if (!block) return;
-      block.innerHTML = `<div class="rp-block-title">2. Mata Pelajaran</div>
-${makeCustomDropdown('rp-s0-mapel-dd', list.map(m => ({ value: m.key, label: m.label })), '')}`;
-      wireCustomDropdown('rp-s0-mapel-dd', () => {});
-      // Show kelas after mapel selection detected via dropdown open/close
-      // Wire kelas section with a simple "Lanjut" pattern
-      renderStep0KelasSection(jenjang);
-      jamSection.style.display = '';
-      semSection.style.display = '';
-      idSection.style.display = '';
-      footer.style.display = '';
+      wireCustomDropdown('rp-s0-mapel-dd', val => {
+        if (!val) return;
+        if (kelasSection.style.display !== 'none') return;
+        renderStep0KelasSection(jenjang);
+        jamSection.style.display = '';
+        semSection.style.display = '';
+        idSection.style.display = '';
+        footer.style.display = '';
+      });
 
     } else if (jenjang === 'SMK') {
       mapelSection.style.display = '';
       mapelSection.innerHTML = `<div class="rp-block" id="rp-s0-smk-block">
-  <div class="rp-block-title">2. Program Keahlian</div>
-  <div class="rp-loading"><div class="rp-loading-dot"></div>Memuat bidang keahlian…</div>
+  <div class="rp-block-title">2. Tipe Mengajar</div>
+  <div class="rp-chip-group rp-s0-chips" data-key="smk-tipe" data-multi="0" data-required="1" id="rp-s0-smk-tipe">
+    <div class="rp-chip" data-value="UMUM">Mapel umum</div>
+    <div class="rp-chip" data-value="PRODUKTIF">Mapel produktif</div>
+  </div>
+  <div id="rp-s0-smk-detail" style="margin-top:var(--space-sm);"></div>
 </div>`;
-      const bidangs = await getMapelListByJenjang('SMK', {});
-      const block = el('rp-s0-smk-block');
-      if (!block) return;
-      block.innerHTML = `<div class="rp-block-title">2. Bidang Keahlian</div>
+
+      el('rp-s0-smk-tipe')?.querySelectorAll('.rp-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+          el('rp-s0-smk-tipe').querySelectorAll('.rp-chip').forEach(c => c.classList.remove('selected'));
+          chip.classList.add('selected');
+          const detail = el('rp-s0-smk-detail');
+          if (!detail) return;
+          [kelasSection, jamSection, semSection, idSection, footer].forEach(s => {
+            if (s) s.style.display = 'none';
+          });
+
+          if (chip.dataset.value === 'UMUM') {
+            detail.innerHTML = `<label class="rp-q-label" style="color:var(--gold)">Mata pelajaran</label>
+${makeCustomDropdown('rp-s0-smk-umum-dd', SMK_UMUM_MAPEL.map(m => ({ value: m, label: m })), '')}`;
+            wireCustomDropdown('rp-s0-smk-umum-dd', val => {
+              if (!val) return;
+              if (kelasSection.style.display !== 'none') return;
+              renderStep0KelasSection(jenjang);
+              jamSection.style.display = '';
+              semSection.style.display = '';
+              idSection.style.display = '';
+              footer.style.display = '';
+            });
+
+          } else {
+            detail.innerHTML = `<div class="rp-loading"><div class="rp-loading-dot"></div>Memuat bidang keahlian…</div>`;
+            (async () => {
+              const bidangs = await getMapelListByJenjang('SMK', {});
+              if (!el('rp-s0-smk-detail')) return;
+              detail.innerHTML = `<label class="rp-q-label" style="color:var(--gold)">Bidang keahlian</label>
 ${makeCustomDropdown('rp-s0-bidang-dd', bidangs.map(b => ({ value: b.key, label: b.label })), '')}
 <div id="rp-s0-program-wrap" style="margin-top:var(--space-sm);display:none;"></div>
 <div id="rp-s0-elemen-wrap" style="margin-top:var(--space-sm);display:none;"></div>`;
-
-      wireCustomDropdown('rp-s0-bidang-dd', async () => {
-        const bidang = getCustomSelVal('rp-s0-bidang-dd');
-        if (!bidang || bidang === '__lainnya__') return;
-        const programs = await getMapelListByJenjang('SMK', { bidang });
-        const pw = el('rp-s0-program-wrap');
-        if (!pw) return;
-        pw.style.display = '';
-        pw.innerHTML = `<label class="rp-q-label" style="color:var(--gold)">Program keahlian</label>
+              wireCustomDropdown('rp-s0-bidang-dd', async () => {
+                const bidang = getCustomSelVal('rp-s0-bidang-dd');
+                if (!bidang || bidang === '__lainnya__') return;
+                const programs = await getMapelListByJenjang('SMK', { bidang });
+                const pw = el('rp-s0-program-wrap');
+                if (!pw) return;
+                pw.style.display = '';
+                pw.innerHTML = `<label class="rp-q-label" style="color:var(--gold)">Program keahlian</label>
 ${makeCustomDropdown('rp-s0-program-dd', programs.map(p => ({ value: p.key, label: p.label })), '')}`;
-        wireCustomDropdown('rp-s0-program-dd', async () => {
-          const prog = getCustomSelVal('rp-s0-program-dd');
-          if (!prog || prog === '__lainnya__') return;
-          const elems = await getMapelListByJenjang('SMK', { bidang, program: prog });
-          const ew = el('rp-s0-elemen-wrap');
-          if (!ew) return;
-          ew.style.display = '';
-          ew.innerHTML = `<label class="rp-q-label" style="color:var(--gold)">Elemen / Mata pelajaran</label>
+                wireCustomDropdown('rp-s0-program-dd', async () => {
+                  const prog = getCustomSelVal('rp-s0-program-dd');
+                  if (!prog || prog === '__lainnya__') return;
+                  const elems = await getMapelListByJenjang('SMK', { bidang, program: prog });
+                  const ew = el('rp-s0-elemen-wrap');
+                  if (!ew) return;
+                  ew.style.display = '';
+                  ew.innerHTML = `<label class="rp-q-label" style="color:var(--gold)">Elemen / Mata pelajaran</label>
 ${makeCustomDropdown('rp-s0-elemen-dd', elems.map(e => ({ value: e.key, label: e.label })), '')}`;
-          wireCustomDropdown('rp-s0-elemen-dd', () => {});
-          renderStep0KelasSection(jenjang);
-          jamSection.style.display = '';
-          semSection.style.display = '';
-          idSection.style.display = '';
-          footer.style.display = '';
+                  wireCustomDropdown('rp-s0-elemen-dd', () => {});
+                  renderStep0KelasSection(jenjang);
+                  jamSection.style.display = '';
+                  semSection.style.display = '';
+                  idSection.style.display = '';
+                  footer.style.display = '';
+                });
+              });
+            })();
+          }
         });
       });
     }
@@ -703,20 +832,28 @@ ${makeCustomDropdown('rp-s0-sdmapel-dd', SD_MAPEL_GURU.map(m => ({ value: m, lab
     } else if (jenjang === 'SMP' || jenjang === 'SMA') {
       const v = getCustomSelVal('rp-s0-mapel-dd');
       if (!v) return showErr('Pilih mata pelajaran.');
-      mapelKey = v;
-      mapel = v; // label ditampilkan nanti via mapelKeyToLabel — key stored, label derived
-      mapelList = [v];
+      mapel = v; mapelKey = normalizeMapelKey(v); mapelList = [v];
     } else if (jenjang === 'SMK') {
-      bidangKeahlian  = getCustomSelVal('rp-s0-bidang-dd')  || null;
-      programKeahlian = getCustomSelVal('rp-s0-program-dd') || null;
-      const elemenVal = getCustomSelVal('rp-s0-elemen-dd');
-      if (!bidangKeahlian) return showErr('Pilih bidang keahlian.');
-      if (!programKeahlian) return showErr('Pilih program keahlian.');
-      if (!elemenVal) return showErr('Pilih elemen / mata pelajaran.');
-      const isLainnya = elemenVal === 'Lainnya';
-      mapelKey  = isLainnya ? '' : elemenVal;
-      mapel     = isLainnya ? (el('rp-s0-elemen-dd-txt')?.value.trim() || elemenVal) : elemenVal;
-      mapelList = [mapel];
+      const smkTipeChip = el('rp-s0-smk-tipe')?.querySelector('.rp-chip.selected');
+      const smkTipe = smkTipeChip?.dataset.value || '';
+      if (!smkTipe) return showErr('Pilih tipe mengajar (Mapel umum atau Mapel produktif).');
+      if (smkTipe === 'UMUM') {
+        const v = getCustomSelVal('rp-s0-smk-umum-dd');
+        if (!v) return showErr('Pilih mata pelajaran.');
+        mapel = v; mapelKey = normalizeMapelKey(v); mapelList = [v];
+        bidangKeahlian = null; programKeahlian = null;
+      } else {
+        bidangKeahlian  = getCustomSelVal('rp-s0-bidang-dd')  || null;
+        programKeahlian = getCustomSelVal('rp-s0-program-dd') || null;
+        const elemenVal = getCustomSelVal('rp-s0-elemen-dd');
+        if (!bidangKeahlian) return showErr('Pilih bidang keahlian.');
+        if (!programKeahlian) return showErr('Pilih program keahlian.');
+        if (!elemenVal) return showErr('Pilih elemen / mata pelajaran.');
+        const isLainnya = elemenVal === 'Lainnya';
+        mapelKey  = isLainnya ? '' : elemenVal;
+        mapel     = isLainnya ? (el('rp-s0-elemen-dd-txt')?.value.trim() || elemenVal) : elemenVal;
+        mapelList = [mapel];
+      }
     }
 
     const kelasChip = el('rp-s0-kelas')?.querySelector('.rp-chip.selected');
