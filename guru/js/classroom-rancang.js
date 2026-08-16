@@ -328,6 +328,77 @@
     );
   }
 
+  // ─── Step 0 accordion + multiselect helpers ────────────────────────────────
+
+  const _S0_PANEL_IDS = [
+    'rp-s0-jenjang-acc','rp-s0-mapel-acc','rp-s0-kelas-acc',
+    'rp-s0-semester-acc','rp-s0-identitas-acc',
+  ];
+
+  function s0AccOpen(panelId) {
+    _S0_PANEL_IDS.forEach(id => { if (id !== panelId) el(id)?.classList.remove('open'); });
+    el(panelId)?.classList.add('open');
+  }
+
+  function s0AccShow(panelId) {
+    const p = el(panelId);
+    if (!p) return;
+    p.style.display = '';
+    s0AccOpen(panelId);
+  }
+
+  function s0AccReveal(panelId) {
+    const p = el(panelId);
+    if (p) p.style.display = '';
+  }
+
+  function s0AccHide(panelId) {
+    const p = el(panelId);
+    if (!p) return;
+    p.style.display = 'none';
+    p.classList.remove('open');
+  }
+
+  function s0AccSummary(panelId, text) {
+    const sp = el(panelId)?.querySelector('.rp-s0-acc-summary');
+    if (sp) sp.textContent = text;
+  }
+
+  function s0AccIsVisible(panelId) {
+    const p = el(panelId);
+    return p ? p.style.display !== 'none' : false;
+  }
+
+  function wireS0Multiselect(msWrapId, cbClass, placeholder, onChangeCb) {
+    const wrap = el(msWrapId);
+    if (!wrap) return;
+    const trigger   = wrap.querySelector('.rp-s0-ms-trigger');
+    const labelSpan = trigger?.querySelector('.rp-s0-ms-label');
+    const panel     = wrap.querySelector('.rp-s0-ms-panel');
+    const tagsDiv   = wrap.querySelector('.rp-s0-ms-tags');
+    if (!trigger || !panel || !tagsDiv) return;
+
+    function update() {
+      const checked = [...panel.querySelectorAll(`.${cbClass}:checked`)];
+      if (labelSpan) labelSpan.textContent = checked.length ? `${checked.length} dipilih` : placeholder;
+      tagsDiv.innerHTML = checked.map(cb => {
+        const txt = cb.closest('label')?.querySelector('span')?.textContent || cb.value;
+        return `<span class="rp-s0-ms-tag">${esc(txt)}</span>`;
+      }).join('');
+      onChangeCb?.(checked.map(cb => cb.value));
+    }
+
+    trigger.addEventListener('click', e => {
+      e.stopPropagation();
+      panel.classList.toggle('rp-s0-ms-open');
+    });
+    document.addEventListener('click', e => {
+      if (!wrap.contains(e.target)) panel.classList.remove('rp-s0-ms-open');
+    });
+    panel.querySelectorAll(`.${cbClass}`).forEach(cb => cb.addEventListener('change', update));
+    update();
+  }
+
   function computeSemesterOptions(expiresAt) {
     const now = new Date();
     const end = expiresAt ? new Date(expiresAt) : new Date(now.getTime() + 365 * 86400 * 1000);
@@ -544,35 +615,68 @@
   </p>
 </div>
 
-<div class="rp-block" id="rp-s0-jenjang-block">
-  <div class="rp-block-title">1. Jenjang Sekolah</div>
-  <div class="rp-chip-group rp-s0-chips" data-key="jenjang" data-multi="0" data-required="1" id="rp-s0-jenjang">
-    ${['SD','SMP','SMA','SMK'].map(j =>
-      `<div class="rp-chip" data-value="${j}">${j}</div>`
-    ).join('')}
+<div class="rp-s0-acc-panel open" id="rp-s0-jenjang-acc">
+  <div class="rp-s0-acc-header">
+    <span class="rp-s0-acc-title">1. Jenjang Sekolah</span>
+    <span class="rp-s0-acc-summary"></span>
+    <span class="rp-s0-acc-chevron">▾</span>
   </div>
-</div>
-
-<div id="rp-s0-mapel-section" style="display:none;"></div>
-<div id="rp-s0-kelas-section" style="display:none;"></div>
-
-<div id="rp-s0-semester-section" style="display:none;">
-  <div class="rp-block">
-    <div class="rp-block-title">4. Semester Aktif</div>
-    <p class="rp-block-subtitle">Pilih semester yang tercakup dalam lisensi Anda.</p>
-    <div class="rp-s0-semester-list" id="rp-s0-semester-list">
-      ${semesterOpts.map(s => `
-      <label class="rp-s0-checkbox-row">
-        <input type="checkbox" value="${esc(s)}" class="rp-s0-semester-cb">
-        <span>${esc(s)}</span>
-      </label>`).join('')}
+  <div class="rp-s0-acc-body">
+    <div class="rp-chip-group rp-s0-chips" data-key="jenjang" data-multi="0" data-required="1" id="rp-s0-jenjang">
+      ${['SD','SMP','SMA','SMK'].map(j =>
+        `<div class="rp-chip" data-value="${j}">${j}</div>`
+      ).join('')}
     </div>
   </div>
 </div>
 
-<div id="rp-s0-identitas-section" style="display:none;">
-  <div class="rp-block">
-    <div class="rp-block-title">5. Identitas Dokumen</div>
+<div class="rp-s0-acc-panel" id="rp-s0-mapel-acc" style="display:none;">
+  <div class="rp-s0-acc-header">
+    <span class="rp-s0-acc-title" id="rp-s0-mapel-acc-title">2. Mata Pelajaran</span>
+    <span class="rp-s0-acc-summary"></span>
+    <span class="rp-s0-acc-chevron">▾</span>
+  </div>
+  <div class="rp-s0-acc-body" id="rp-s0-mapel-body"></div>
+</div>
+
+<div class="rp-s0-acc-panel" id="rp-s0-kelas-acc" style="display:none;">
+  <div class="rp-s0-acc-header">
+    <span class="rp-s0-acc-title">3. Kelas</span>
+    <span class="rp-s0-acc-summary"></span>
+    <span class="rp-s0-acc-chevron">▾</span>
+  </div>
+  <div class="rp-s0-acc-body" id="rp-s0-kelas-body"></div>
+</div>
+
+<div class="rp-s0-acc-panel" id="rp-s0-semester-acc" style="display:none;">
+  <div class="rp-s0-acc-header">
+    <span class="rp-s0-acc-title">4. Semester Aktif</span>
+    <span class="rp-s0-acc-summary"></span>
+    <span class="rp-s0-acc-chevron">▾</span>
+  </div>
+  <div class="rp-s0-acc-body">
+    <p class="rp-block-subtitle">Pilih semester yang tercakup dalam lisensi Anda.</p>
+    <div class="rp-s0-ms" id="rp-s0-semester-ms">
+      <button type="button" class="rp-s0-ms-trigger"><span class="rp-s0-ms-label">Pilih semester…</span></button>
+      <div class="rp-s0-ms-tags"></div>
+      <div class="rp-s0-ms-panel" id="rp-s0-semester-list">
+        ${semesterOpts.map(s => `
+        <label class="rp-s0-checkbox-row">
+          <input type="checkbox" value="${esc(s)}" class="rp-s0-semester-cb">
+          <span>${esc(s)}</span>
+        </label>`).join('')}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="rp-s0-acc-panel" id="rp-s0-identitas-acc" style="display:none;">
+  <div class="rp-s0-acc-header">
+    <span class="rp-s0-acc-title">5. Identitas Dokumen</span>
+    <span class="rp-s0-acc-summary"></span>
+    <span class="rp-s0-acc-chevron">▾</span>
+  </div>
+  <div class="rp-s0-acc-body">
     <p class="rp-block-subtitle">Digunakan untuk header dan tanda tangan pada file yang diunduh.</p>
     <div class="rp-identitas-grid">
       <div class="rp-q">
@@ -616,14 +720,31 @@
   </button>
 </div>`;
 
+    // Accordion single-expand via event delegation
+    body.addEventListener('click', e => {
+      const header = e.target.closest('.rp-s0-acc-header');
+      if (!header) return;
+      const panel = header.closest('.rp-s0-acc-panel');
+      if (!panel) return;
+      const wasOpen = panel.classList.contains('open');
+      body.querySelectorAll('.rp-s0-acc-panel').forEach(p => p.classList.remove('open'));
+      if (!wasOpen) panel.classList.add('open');
+    });
+
     // Wire jenjang chip click
     const jenjangGroup = el('rp-s0-jenjang');
     jenjangGroup?.querySelectorAll('.rp-chip').forEach(chip => {
       chip.addEventListener('click', async () => {
         jenjangGroup.querySelectorAll('.rp-chip').forEach(c => c.classList.remove('selected'));
         chip.classList.add('selected');
+        s0AccSummary('rp-s0-jenjang-acc', chip.dataset.value);
         await renderStep0MapelSection(chip.dataset.value);
       });
+    });
+
+    // Wire semester multiselect
+    wireS0Multiselect('rp-s0-semester-ms', 'rp-s0-semester-cb', 'Pilih semester…', vals => {
+      s0AccSummary('rp-s0-semester-acc', vals.length ? `${vals.length} semester dipilih` : '');
     });
 
     // Submit handler
@@ -631,29 +752,24 @@
   }
 
   async function renderStep0MapelSection(jenjang) {
-    const mapelSection = el('rp-s0-mapel-section');
-    const kelasSection = el('rp-s0-kelas-section');
-    const semSection   = el('rp-s0-semester-section');
-    const idSection    = el('rp-s0-identitas-section');
-    const footer       = el('rp-s0-footer');
-    if (!mapelSection) return;
+    const mapelBody = el('rp-s0-mapel-body');
+    const footer    = el('rp-s0-footer');
+    if (!mapelBody) return;
 
     // Reset semua section di bawah jenjang
-    [kelasSection, semSection, idSection, footer].forEach(s => {
-      if (s) s.style.display = 'none';
-    });
+    ['rp-s0-mapel-acc','rp-s0-kelas-acc','rp-s0-semester-acc','rp-s0-identitas-acc'].forEach(s0AccHide);
+    if (footer) footer.style.display = 'none';
 
     if (jenjang === 'SD') {
-      mapelSection.style.display = '';
-      mapelSection.innerHTML = `
-<div class="rp-block">
-  <div class="rp-block-title">2. Peran di SD</div>
+      const titleEl = el('rp-s0-mapel-acc-title');
+      if (titleEl) titleEl.textContent = '2. Peran di SD';
+      mapelBody.innerHTML = `
   <div class="rp-chip-group rp-s0-chips" data-key="peran" data-multi="0" data-required="1" id="rp-s0-peran">
     <div class="rp-chip" data-value="WALI">Wali Kelas</div>
     <div class="rp-chip" data-value="MAPEL">Guru MAPEL</div>
   </div>
-  <div id="rp-s0-sd-mapel-wrap" style="margin-top:var(--space-sm);display:none;"></div>
-</div>`;
+  <div id="rp-s0-sd-mapel-wrap" style="margin-top:var(--space-sm);display:none;"></div>`;
+      s0AccShow('rp-s0-mapel-acc');
 
       el('rp-s0-peran')?.querySelectorAll('.rp-chip').forEach(chip => {
         chip.addEventListener('click', () => {
@@ -664,31 +780,31 @@
       });
 
     } else if (jenjang === 'SMP' || jenjang === 'SMA') {
-      mapelSection.style.display = '';
+      const titleEl = el('rp-s0-mapel-acc-title');
+      if (titleEl) titleEl.textContent = '2. Mata Pelajaran';
       const mapelArr = jenjang === 'SMP' ? SMP_MAPEL : SMA_MAPEL;
-      mapelSection.innerHTML = `<div class="rp-block" id="rp-s0-mapel-block">
-  <div class="rp-block-title">2. Mata Pelajaran</div>
-  ${makeCustomDropdown('rp-s0-mapel-dd', mapelArr.map(m => ({ value: m, label: m })), '', true)}
-</div>`;
+      mapelBody.innerHTML = makeCustomDropdown('rp-s0-mapel-dd', mapelArr.map(m => ({ value: m, label: m })), '', true);
+      s0AccShow('rp-s0-mapel-acc');
       wireCustomDropdown('rp-s0-mapel-dd', val => {
         if (!val) return;
-        if (kelasSection.style.display !== 'none') return;
+        if (s0AccIsVisible('rp-s0-kelas-acc')) return;
+        s0AccSummary('rp-s0-mapel-acc', val);
         renderStep0KelasSection(jenjang);
-        semSection.style.display = '';
-        idSection.style.display = '';
-        footer.style.display = '';
+        s0AccReveal('rp-s0-semester-acc');
+        s0AccReveal('rp-s0-identitas-acc');
+        if (footer) footer.style.display = '';
       });
 
     } else if (jenjang === 'SMK') {
-      mapelSection.style.display = '';
-      mapelSection.innerHTML = `<div class="rp-block" id="rp-s0-smk-block">
-  <div class="rp-block-title">2. Tipe Mengajar</div>
+      const titleEl = el('rp-s0-mapel-acc-title');
+      if (titleEl) titleEl.textContent = '2. Tipe Mengajar';
+      mapelBody.innerHTML = `
   <div class="rp-chip-group rp-s0-chips" data-key="smk-tipe" data-multi="0" data-required="1" id="rp-s0-smk-tipe">
     <div class="rp-chip" data-value="UMUM">Mapel umum</div>
     <div class="rp-chip" data-value="PRODUKTIF">Mapel produktif</div>
   </div>
-  <div id="rp-s0-smk-detail" style="margin-top:var(--space-sm);"></div>
-</div>`;
+  <div id="rp-s0-smk-detail" style="margin-top:var(--space-sm);"></div>`;
+      s0AccShow('rp-s0-mapel-acc');
 
       el('rp-s0-smk-tipe')?.querySelectorAll('.rp-chip').forEach(chip => {
         chip.addEventListener('click', () => {
@@ -696,20 +812,20 @@
           chip.classList.add('selected');
           const detail = el('rp-s0-smk-detail');
           if (!detail) return;
-          [kelasSection, semSection, idSection, footer].forEach(s => {
-            if (s) s.style.display = 'none';
-          });
+          ['rp-s0-kelas-acc','rp-s0-semester-acc','rp-s0-identitas-acc'].forEach(s0AccHide);
+          if (footer) footer.style.display = 'none';
 
           if (chip.dataset.value === 'UMUM') {
             detail.innerHTML = `<label class="rp-q-label" style="color:var(--gold)">Mata pelajaran</label>
 ${makeCustomDropdown('rp-s0-smk-umum-dd', SMK_UMUM_MAPEL.map(m => ({ value: m, label: m })), '', true)}`;
             wireCustomDropdown('rp-s0-smk-umum-dd', val => {
               if (!val) return;
-              if (kelasSection.style.display !== 'none') return;
+              if (s0AccIsVisible('rp-s0-kelas-acc')) return;
+              s0AccSummary('rp-s0-mapel-acc', `Umum | ${val}`);
               renderStep0KelasSection(jenjang);
-              semSection.style.display = '';
-              idSection.style.display = '';
-              footer.style.display = '';
+              s0AccReveal('rp-s0-semester-acc');
+              s0AccReveal('rp-s0-identitas-acc');
+              if (footer) footer.style.display = '';
             });
 
           } else {
@@ -742,9 +858,8 @@ ${makeCustomDropdown('rp-s0-elemen-dd', elems.map(e => ({ value: e.key, label: e
                   wireCustomDropdown('rp-s0-elemen-dd', async val => {
                     if (!val || val === '') return;
                     el('rp-s0-cp-elemen-wrap')?.remove();
-                    [kelasSection, semSection, idSection, footer].forEach(s => {
-                      if (s) s.style.display = 'none';
-                    });
+                    ['rp-s0-kelas-acc','rp-s0-semester-acc','rp-s0-identitas-acc'].forEach(s0AccHide);
+                    if (footer) footer.style.display = 'none';
                     const cpData = await loadCpData();
                     const allElemen = [];
                     const seen = new Set();
@@ -759,18 +874,26 @@ ${makeCustomDropdown('rp-s0-elemen-dd', elems.map(e => ({ value: e.key, label: e
                     cpWrap.innerHTML = allElemen.length
                       ? `<label class="rp-q-label" style="color:var(--gold)">Elemen yang diajarkan</label>
 <p class="rp-block-subtitle">Pilih elemen CP yang Anda ampu. Boleh lebih dari satu.</p>
-<div class="rp-s0-checkbox-grid" id="rp-s0-cp-elemen-list">
-  ${allElemen.map(nama => `<label class="rp-s0-checkbox-row">
+<div class="rp-s0-ms" id="rp-s0-elemen-ms">
+  <button type="button" class="rp-s0-ms-trigger"><span class="rp-s0-ms-label">Pilih elemen…</span></button>
+  <div class="rp-s0-ms-tags"></div>
+  <div class="rp-s0-ms-panel" id="rp-s0-cp-elemen-list">
+    ${allElemen.map(nama => `<label class="rp-s0-checkbox-row">
   <input type="checkbox" value="${esc(nama)}" class="rp-s0-cp-elemen-cb">
   <span>${esc(toTitleCase(nama))}</span>
 </label>`).join('')}
+  </div>
 </div>`
                       : `<p class="rp-block-subtitle" style="color:var(--text-muted);">Elemen belum tersedia untuk mata pelajaran ini.</p>`;
                     el('rp-s0-elemen-wrap')?.appendChild(cpWrap);
+                    if (allElemen.length) {
+                      wireS0Multiselect('rp-s0-elemen-ms', 'rp-s0-cp-elemen-cb', 'Pilih elemen…', () => {});
+                    }
+                    s0AccSummary('rp-s0-mapel-acc', `Produktif | ${mapelKeyToLabel(val)}`);
                     renderStep0KelasSection(jenjang);
-                    semSection.style.display = '';
-                    idSection.style.display = '';
-                    footer.style.display = '';
+                    s0AccReveal('rp-s0-semester-acc');
+                    s0AccReveal('rp-s0-identitas-acc');
+                    if (footer) footer.style.display = '';
                   });
                 });
               });
@@ -782,12 +905,9 @@ ${makeCustomDropdown('rp-s0-elemen-dd', elems.map(e => ({ value: e.key, label: e
   }
 
   function renderStep0SdMapel(peran) {
-    const wrap = el('rp-s0-sd-mapel-wrap');
+    const wrap   = el('rp-s0-sd-mapel-wrap');
+    const footer = el('rp-s0-footer');
     if (!wrap) return;
-    const kelasSection  = el('rp-s0-kelas-section');
-    const semSection    = el('rp-s0-semester-section');
-    const idSection     = el('rp-s0-identitas-section');
-    const footer        = el('rp-s0-footer');
 
     if (peran === 'WALI') {
       wrap.style.display = '';
@@ -808,24 +928,21 @@ ${makeCustomDropdown('rp-s0-sdmapel-dd', SD_MAPEL_GURU.map(m => ({ value: m, lab
     }
 
     renderStep0KelasSection('SD');
-    semSection.style.display = '';
-    idSection.style.display = '';
-    footer.style.display = '';
+    s0AccReveal('rp-s0-semester-acc');
+    s0AccReveal('rp-s0-identitas-acc');
+    if (footer) footer.style.display = '';
   }
 
   function renderStep0KelasSection(jenjang) {
-    const kelasSection = el('rp-s0-kelas-section');
-    if (!kelasSection) return;
+    const kelasBody = el('rp-s0-kelas-body');
+    if (!kelasBody) return;
     const kelasList = kelasUntukJenjang(jenjang);
-    kelasSection.style.display = '';
-    kelasSection.innerHTML = `
-<div class="rp-block">
-  <div class="rp-block-title">3. Kelas</div>
-  <div class="rp-chip-group rp-s0-chips" data-key="kelas" data-multi="0" data-required="1" id="rp-s0-kelas">
-    ${kelasList.map(k => `<div class="rp-chip" data-value="${k}">${k}</div>`).join('')}
-  </div>
-  <div id="rp-s0-fase-display" class="rp-s0-fase-hint" style="margin-top:var(--space-xs);display:none;"></div>
-</div>`;
+    kelasBody.innerHTML = `
+<div class="rp-chip-group rp-s0-chips" data-key="kelas" data-multi="0" data-required="1" id="rp-s0-kelas">
+  ${kelasList.map(k => `<div class="rp-chip" data-value="${k}">${k}</div>`).join('')}
+</div>
+<div id="rp-s0-fase-display" class="rp-s0-fase-hint" style="margin-top:var(--space-xs);display:none;"></div>`;
+    s0AccShow('rp-s0-kelas-acc');
 
     el('rp-s0-kelas')?.querySelectorAll('.rp-chip').forEach(chip => {
       chip.addEventListener('click', () => {
@@ -833,10 +950,9 @@ ${makeCustomDropdown('rp-s0-sdmapel-dd', SD_MAPEL_GURU.map(m => ({ value: m, lab
         chip.classList.add('selected');
         const fase = faseFromKelas(chip.dataset.value);
         const faseD = el('rp-s0-fase-display');
-        if (faseD) {
-          faseD.style.display = '';
-          faseD.textContent = `Fase: ${faseLabel(fase)}`;
-        }
+        if (faseD) { faseD.style.display = ''; faseD.textContent = `Fase: ${faseLabel(fase)}`; }
+        s0AccSummary('rp-s0-kelas-acc', `Kelas ${chip.dataset.value} | ${faseLabel(fase)}`);
+        s0AccShow('rp-s0-semester-acc');
       });
     });
   }
