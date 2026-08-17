@@ -1180,7 +1180,8 @@ ${makeCustomDropdown('rp-s0-sdmapel-dd', SD_MAPEL_GURU.map(m => ({ value: m, lab
             if (cpFase) { _cpElemen = cpFase.elemen || []; _cpUmum = cpFase.cp_umum || ''; }
           }
         }
-        renderNavRowCp();`r`n        return;
+        renderNavRowCp();
+        return;
       }
 
       // CP belum tersimpan — generate + simpan otomatis
