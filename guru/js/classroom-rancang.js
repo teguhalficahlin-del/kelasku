@@ -482,6 +482,15 @@
     'Pendidikan Pancasila','Seni Musik','Seni Rupa','Seni Tari','Seni Teater',
   ];
 
+  // Fase A tidak punya CP Bahasa Inggris dan IPAS
+  function sdWaliMapelUntukFase(fase) {
+    if (fase === 'fase_a') {
+      return ['Bahasa Indonesia','Matematika','Pendidikan Pancasila',
+              'Seni Musik','Seni Rupa','Seni Tari','Seni Teater'];
+    }
+    return SD_WALI_MAPEL;
+  }
+
   // SD Guru MAPEL: dropdown single
   const SD_MAPEL_GURU = [
     'Koding dan Kecerdasan Artifisial',
@@ -921,7 +930,7 @@ ${makeCustomDropdown('rp-s0-elemen-dd', elems.map(e => ({ value: e.key, label: e
       wrap.innerHTML = `<div class="rp-block-title" style="margin-top:var(--space-sm);">Mata pelajaran yang diampu</div>
 <p class="rp-block-subtitle">Pilih satu atau lebih.</p>
 <div class="rp-s0-checkbox-grid" id="rp-s0-wali-mapel">
-  ${SD_WALI_MAPEL.map(m => `
+  ${sdWaliMapelUntukFase('fase_a').map(m => `
   <label class="rp-s0-checkbox-row">
     <input type="checkbox" value="${esc(m)}" class="rp-s0-wali-cb">
     <span>${esc(m)}</span>
@@ -960,6 +969,15 @@ ${makeCustomDropdown('rp-s0-sdmapel-dd', SD_MAPEL_GURU.map(m => ({ value: m, lab
         if (faseD) { faseD.style.display = ''; faseD.textContent = `Fase: ${faseLabel(fase)}`; }
         s0AccSummary('rp-s0-kelas-acc', `Kelas ${chip.dataset.value} | ${faseLabel(fase)}`);
         s0AccShow('rp-s0-semester-acc');
+        // SD Wali: update daftar mapel sesuai fase (Fase A tidak ada IPAS & Bahasa Inggris)
+        const waliGrid = el('rp-s0-wali-mapel');
+        if (waliGrid) {
+          waliGrid.innerHTML = sdWaliMapelUntukFase(fase).map(m => `
+  <label class="rp-s0-checkbox-row">
+    <input type="checkbox" value="${esc(m)}" class="rp-s0-wali-cb">
+    <span>${esc(m)}</span>
+  </label>`).join('');
+        }
       });
     });
   }
