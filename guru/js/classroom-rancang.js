@@ -1204,8 +1204,8 @@ ${makeCustomDropdown('rp-s0-sdmapel-dd', SD_MAPEL_GURU.map(m => ({ value: m, lab
   <button type="button" class="rp-btn-next" id="rp-step1-ro-next">Lanjut ke preferensi →</button>
 </div>`;
       } else {
-        const saved = _dokumen.some(d => d.jenis === 'CP');
         const mapelNama = _ans.mapel || _settings?.mapel || '';
+        const saved = _dokumen.some(d => d.jenis === 'CP' && d.judul.includes(mapelNama));
         navWrap.innerHTML = `
 <div class="rp-nav-row" style="justify-content:space-between;align-items:center;">
   ${saved
