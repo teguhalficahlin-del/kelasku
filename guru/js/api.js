@@ -93,6 +93,16 @@
     async getRancangProfil() {
       const { data, error } = await client.rpc('fn_get_rancang_profil');
       if (error) return null;
+      if (!data) return null;
+      // role_guru ada di tabel profiles, bukan rancang_profil — fetch dan merge
+      if (data.profile_id) {
+        const { data: prof } = await client
+          .from('profiles')
+          .select('role_guru')
+          .eq('id', data.profile_id)
+          .maybeSingle();
+        if (prof?.role_guru) data.role_guru = prof.role_guru;
+      }
       return data;
     },
 

@@ -63,6 +63,17 @@
     return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
+  // Pastikan nilai bertipe array — handle array, JSON string, comma-string, null
+  function normalizeArray(val) {
+    if (Array.isArray(val)) return val;
+    if (!val) return [];
+    if (typeof val === 'string') {
+      try { const p = JSON.parse(val); if (Array.isArray(p)) return p; } catch (_) {}
+      return val.split(',').map(s => s.trim()).filter(Boolean);
+    }
+    return [];
+  }
+
   function el(id) { return document.getElementById(id); }
 
   function showError(containerId, msg) {
@@ -1189,7 +1200,8 @@ ${makeCustomDropdown('rp-s0-sdmapel-dd', SD_MAPEL_GURU.map(m => ({ value: m, lab
       const fase = _ans.fase || _profil?.fase || _settings?.fase || '';
 
       if (isWaliSd) {
-        const mapelList = (_profil?.mapel_list?.length ? _profil.mapel_list : [_ans.mapel]).filter(Boolean);
+        const _mapelArr = normalizeArray(_profil?.mapel_list).filter(Boolean);
+        const mapelList = _mapelArr.length ? _mapelArr : [_ans.mapel].filter(Boolean);
         if (navWrap) navWrap.innerHTML = `<div class="rp-nav-row"><span class="rp-identitas-status">Menyiapkan ringkasan CP…</span></div>`;
         let anyFailed = false;
         for (let i = 0; i < mapelList.length; i++) {
@@ -2821,7 +2833,10 @@ ${sec1}${sec2}${sec3}${sec4}${sec5}
   </div>
 </div>`;
 
-    const mapelList = (_profil?.mapel_list?.length ? _profil.mapel_list : [_ans.mapel || _settings?.mapel || '']).filter(Boolean);
+    const mapelList = (() => {
+      const arr = normalizeArray(_profil?.mapel_list).filter(Boolean);
+      return arr.length ? arr : [_ans.mapel || _settings?.mapel || ''].filter(Boolean);
+    })();
 
     function matchesMapel(d, mapel) {
       return d.judul.toLowerCase().includes(mapel.toLowerCase());
@@ -3176,7 +3191,7 @@ ${tpList.map((tp, i) => {
         _ans.fase            = _profil.fase              || '';
         _ans.bidangKeahlian  = _profil.bidang_keahlian   || null;
         _ans.programKeahlian = _profil.program_keahlian  || null;
-        _ans.elemenTerpilih  = _profil.mapel_list        || [];
+        _ans.elemenTerpilih  = normalizeArray(_profil.elemen_terpilih);
       } else if (_settings) {
         if (_settings.jenjang)          _ans.jenjang          = _settings.jenjang;
         if (_settings.mapel_key)        _ans.mapelKey         = _settings.mapel_key;
