@@ -167,7 +167,7 @@ async function generateDocxRancang(konten, jenis, judul, identitas) {
                 cell(ins.nama   || '-'),
                 cell(ins.bobot  ? `${ins.bobot}%` : '-'),
                 cell(ins.detail || '-'),
-              ]}) : []),
+              ]})) : []),
             ],
           })]
         : []),
