@@ -1142,9 +1142,14 @@ ${makeCustomDropdown('rp-s0-sdmapel-dd', SD_MAPEL_GURU.map(m => ({ value: m, lab
     Data diambil dari profil akun Anda.
   </p>
 </div>
-${(() => {
-  const sudahAdaCp = _dokumen.some(d => d.jenis === 'CP');
-  if (sudahAdaCp) return `
+<div id="rp-nav-row-cp"></div>`;
+
+    function renderNavRowCp() {
+      const navWrap = el('rp-nav-row-cp');
+      if (!navWrap) return;
+      const sudahAdaCp = _dokumen.some(d => d.jenis === 'CP');
+      if (sudahAdaCp) {
+        navWrap.innerHTML = `
 <div class="rp-nav-row" style="justify-content:space-between;">
   <button type="button" class="rp-btn-simpan" id="rp-btn-simpan-cp-nav"
     style="background:var(--success,#2d6a4f);cursor:default;" disabled>
@@ -1154,7 +1159,9 @@ ${(() => {
     📄 Lihat dokumen →
   </button>
 </div>`;
-  return `
+        el('rp-btn-lihat-dok-cp')?.addEventListener('click', () => navigateToStep(7));
+      } else {
+        navWrap.innerHTML = `
 <div class="rp-nav-row" style="justify-content:space-between;">
   <button type="button" class="rp-btn-simpan" id="rp-btn-simpan-cp-nav">
     💾 Simpan CP
@@ -1163,30 +1170,25 @@ ${(() => {
     ${jenjang === 'SMK' ? 'Lanjut ke konteks SMK →' : 'Lanjut ke preferensi →'}
   </button>
 </div>`;
-})()}`;
+        el('rp-step1-ro-next')?.addEventListener('click', () => {
+          if (_ans.jenjang === 'SMK') renderStep2();
+          else renderStep3A();
+        });
+      }
+    }
 
-
-    // Tombol lanjut (hanya ada jika CP belum tersimpan)
-    el('rp-step1-ro-next')?.addEventListener('click', () => {
-      if (_ans.jenjang === 'SMK') renderStep2();
-      else renderStep3A();
-    });
-
-    // Tombol lihat dokumen (hanya ada jika CP sudah tersimpan)
-    el('rp-btn-lihat-dok-cp')?.addEventListener('click', () => {
-      navigateToStep(7);
-    });
-
-    // Tampilkan CP + auto-generate ringkasan
+    // Tampilkan CP + auto-generate ringkasan, nav-row muncul di bawah CP block
     if (_cpElemen.length || _cpUmum) {
       renderCpReadOnly();
     } else if (_ans.mapelKey && _settings?.fase) {
       fetchCpData(_ans.mapelKey, _settings.fase).then(cpFase => {
-        if (!cpFase) return;
+        if (!cpFase) { renderNavRowCp(); return; }
         _cpElemen  = cpFase.elemen  || [];
         _cpUmum    = cpFase.cp_umum || '';
         renderCpReadOnly();
       });
+    } else {
+      renderNavRowCp();
     }
 
     async function renderCpReadOnly() {
@@ -1236,10 +1238,13 @@ ${(() => {
 ${_cpUmum ? `<p class="rp-cp-umum">${esc(_cpUmum)}</p>` : ''}
 ${elemenHtml}`;
 
-      body.appendChild(cpBlock);
+      body.insertBefore(cpBlock, el('rp-nav-row-cp'));
 
       // Tambah save-row di bawah CP block (konsisten dengan flow non-read-only)
-      attachSimpanCpRow(body);
+      attachSimpanCpRow(body, el('rp-nav-row-cp'));
+
+      // Render nav-row di bawah CP block
+      renderNavRowCp();
 
       // Wire tombol Simpan CP di nav-row (rp-btn-simpan-cp-nav)
       const simpanHandler = async () => {
