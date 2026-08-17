@@ -2832,9 +2832,8 @@ ${sec1}${sec2}${sec3}${sec4}${sec5}
   </div>
 </div>`;
 
-    // ── Render daftar dokumen ──────────────────────────────────
-    const grouped = { CP: [], TP: [], RPM: [] };
-    _dokumen.forEach(d => { if (grouped[d.jenis]) grouped[d.jenis].push(d); });
+    // ── Render daftar dokumen — hierarki per mapel ────────────
+    const mapelList = (_profil?.mapel_list?.length ? _profil.mapel_list : [_ans.mapel || _settings?.mapel || '']).filter(Boolean);
 
     function dokumenKartu(d) {
       const tgl = new Date(d.created_at).toLocaleDateString('id-ID', {
@@ -2858,43 +2857,36 @@ ${sec1}${sec2}${sec3}${sec4}${sec5}
 </div>`;
     }
 
-    // Navigasi ke step relevan saat dokumen belum ada
-    function stepNav(jenis) {
-      if (jenis === 'TP')  return `<button type="button" class="rp-link-btn" data-goto="4">→ Generate ATP di Step 4</button>`;
-      if (jenis === 'RPM') return `<button type="button" class="rp-link-btn" data-goto="4">→ Rancang RPM di Step 4</button>`;
-      return `<button type="button" class="rp-link-btn" data-goto="1">← Kembali ke Step 1</button>`;
+    function matchesMapel(d, mapel) {
+      return d.judul.toLowerCase().includes(mapel.toLowerCase());
     }
 
-    function seksiDokumen(jenis, label) {
-      const list = grouped[jenis];
-      if (!list.length) return `
-<div class="rp-dok-seksi">
-  <div class="rp-dok-seksi-title">${label}</div>
-  <div class="rp-dok-kosong">
-    Belum tersimpan. ${stepNav(jenis)}
-  </div>
-</div>`;
+    // RPM yang tidak cocok ke mapel mana pun → bucket mapel pertama
+    const rpmUnmatched = _dokumen.filter(d => d.jenis === 'RPM' && !mapelList.some(m => matchesMapel(d, m)));
+
+    function hierarkiMapel(mapel, isFirst) {
+      const cp  = _dokumen.filter(d => d.jenis === 'CP'  && matchesMapel(d, mapel));
+      const atp = _dokumen.filter(d => d.jenis === 'TP'  && matchesMapel(d, mapel));
+      const rpm = [
+        ..._dokumen.filter(d => d.jenis === 'RPM' && matchesMapel(d, mapel)),
+        ...(isFirst ? rpmUnmatched : []),
+      ];
       return `
-<div class="rp-dok-seksi">
-  <div class="rp-dok-seksi-title">${label}</div>
-  ${list.map(dokumenKartu).join('')}
+<div class="rp-dok-seksi" style="border-left:3px solid var(--gold-border);padding-left:var(--space-md);margin-bottom:var(--space-lg)">
+  <div class="rp-dok-seksi-title" style="color:var(--gold)">${esc(mapel)}</div>
+  <div style="font-size:var(--fs-caption);color:var(--text-secondary);margin-bottom:var(--space-xs)">Capaian Pembelajaran</div>
+  ${cp.length ? cp.map(dokumenKartu).join('') : `<div class="rp-dok-kosong" style="margin-bottom:var(--space-sm)">Belum tersedia</div>`}
+  <div style="font-size:var(--fs-caption);color:var(--text-secondary);margin:var(--space-sm) 0 var(--space-xs)">Alur Tujuan Pembelajaran</div>
+  ${atp.length ? atp.map(dokumenKartu).join('') : `<div class="rp-dok-kosong" style="margin-bottom:var(--space-sm)">Belum tersedia. <button type="button" class="rp-link-btn" data-goto="4">→ Generate ATP</button></div>`}
+  <div style="font-size:var(--fs-caption);color:var(--text-secondary);margin:var(--space-sm) 0 var(--space-xs)">Rencana Pembelajaran</div>
+  ${rpm.length ? rpm.map(dokumenKartu).join('') : `<div class="rp-dok-kosong" style="margin-bottom:var(--space-sm)">Belum tersedia. <button type="button" class="rp-link-btn" data-goto="4">→ Rancang RPM</button></div>`}
 </div>`;
     }
-
-    // RPM dikelompokkan per TP
-    const rpmList = grouped['RPM'];
 
     const dokumenHtml = `
 <div class="rp-block">
   <div class="rp-block-title">Dokumen Tersimpan</div>
-  ${seksiDokumen('CP','Capaian Pembelajaran')}
-  ${seksiDokumen('TP','Alur Tujuan Pembelajaran')}
-  <div class="rp-dok-seksi">
-    <div class="rp-dok-seksi-title">Rencana Pembelajaran (per TP)</div>
-    ${rpmList.length
-      ? rpmList.map(dokumenKartu).join('')
-      : `<div class="rp-dok-kosong">Belum tersimpan. ${stepNav('RPM')}</div>`}
-  </div>
+  ${mapelList.map((m, i) => hierarkiMapel(m, i === 0)).join('')}
 </div>`;
 
     body.innerHTML = identitasHtml + dokumenHtml;
