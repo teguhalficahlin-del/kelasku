@@ -2798,7 +2798,7 @@ ${sec1}${sec2}${sec3}${sec4}${sec5}
 
     try { _dokumen = await SipApi.getRancangDokumen(_cId) ?? []; } catch (_) {}
     try { _settings = await SipApi.getRancangSettings(_cId) ?? _settings; } catch (_) {}
-    if (!_profil) { try { _profil = await SipApi.getRancangProfil(); } catch (_) {} }
+    try { _profil = await SipApi.getRancangProfil(); } catch (_) {}
 
     const idSrc = _profil?.is_locked
       ? {
@@ -2972,8 +2972,8 @@ ${tpList.map((tp, i) => {
            ${tpSubAccordions()}`
         : `<div class="rp-dok-kosong">Belum tersedia. <button type="button" class="rp-link-btn" data-goto="4">→ Generate ATP</button></div>`;
 
-      const cpTitle  = cpDocs[0]  ? esc(cpDocs[0].judul)  : 'CP';
-      const atpTitle = atpDoc     ? esc(atpDoc.judul)      : 'ATP';
+      const cpTitle  = 'Capaian Pembelajaran';
+      const atpTitle = 'Alur Tujuan Pembelajaran';
 
       kontenEl.innerHTML = `
 <div class="rp-s7-acc-group">
