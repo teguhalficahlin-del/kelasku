@@ -2784,20 +2784,10 @@ ${sec1}${sec2}${sec3}${sec4}${sec5}
     const body = el('rp-body');
     if (!body) return;
 
-    // Reload dokumen terbaru dari DB
-    try {
-      _dokumen = await SipApi.getRancangDokumen(_cId) ?? [];
-    } catch (_) {}
+    try { _dokumen = await SipApi.getRancangDokumen(_cId) ?? []; } catch (_) {}
+    try { _settings = await SipApi.getRancangSettings(_cId) ?? _settings; } catch (_) {}
+    if (!_profil) { try { _profil = await SipApi.getRancangProfil(); } catch (_) {} }
 
-    // Reload settings (per classroom) dan profil (per akun)
-    try {
-      _settings = await SipApi.getRancangSettings(_cId) ?? _settings;
-    } catch (_) {}
-    if (!_profil) {
-      try { _profil = await SipApi.getRancangProfil(); } catch (_) {}
-    }
-
-    // Sumber identitas: profil (step 0) diutamakan, fallback ke settings lama
     const idSrc = _profil?.is_locked
       ? {
           nama_guru:    _profil.nama_guru    || '',
@@ -2810,7 +2800,6 @@ ${sec1}${sec2}${sec3}${sec4}${sec5}
         }
       : (_settings || {});
 
-    // ── Identitas read-only (data dari profil akun, diubah via admin) ─────────
     const identitasHtml = `
 <div class="rp-block" id="rp-identitas-block">
   <div class="rp-block-title">Identitas Dokumen</div>
@@ -2832,12 +2821,15 @@ ${sec1}${sec2}${sec3}${sec4}${sec5}
   </div>
 </div>`;
 
-    // ── Render daftar dokumen — hierarki per mapel ────────────
     const mapelList = (_profil?.mapel_list?.length ? _profil.mapel_list : [_ans.mapel || _settings?.mapel || '']).filter(Boolean);
+
+    function matchesMapel(d, mapel) {
+      return d.judul.toLowerCase().includes(mapel.toLowerCase());
+    }
 
     function dokumenKartu(d) {
       const tgl = new Date(d.created_at).toLocaleDateString('id-ID', {
-        day: '2-digit', month: 'short', year: 'numeric'
+        day: '2-digit', month: 'short', year: 'numeric',
       });
       return `
 <div class="rp-dok-kartu" data-id="${esc(d.id)}">
@@ -2847,106 +2839,228 @@ ${sec1}${sec2}${sec3}${sec4}${sec5}
   </div>
   <div class="rp-dok-actions">
     <button type="button" class="rp-btn-download" data-id="${esc(d.id)}"
-      data-jenis="${esc(d.jenis)}" data-judul="${esc(d.judul)}">
-      ⬇ Unduh Word
-    </button>
-    <button type="button" class="rp-btn-hapus-dok" data-id="${esc(d.id)}">
-      🗑
-    </button>
+      data-jenis="${esc(d.jenis)}" data-judul="${esc(d.judul)}">⬇ Unduh Word</button>
+    <button type="button" class="rp-btn-hapus-dok" data-id="${esc(d.id)}">🗑</button>
   </div>
 </div>`;
     }
 
-    function matchesMapel(d, mapel) {
-      return d.judul.toLowerCase().includes(mapel.toLowerCase());
-    }
-
-    // RPM yang tidak cocok ke mapel mana pun → bucket mapel pertama
-    const rpmUnmatched = _dokumen.filter(d => d.jenis === 'RPM' && !mapelList.some(m => matchesMapel(d, m)));
-
-    function hierarkiMapel(mapel, isFirst) {
-      const cp  = _dokumen.filter(d => d.jenis === 'CP'  && matchesMapel(d, mapel));
-      const atp = _dokumen.filter(d => d.jenis === 'TP'  && matchesMapel(d, mapel));
-      const rpm = [
-        ..._dokumen.filter(d => d.jenis === 'RPM' && matchesMapel(d, mapel)),
-        ...(isFirst ? rpmUnmatched : []),
-      ];
-      return `
-<div class="rp-dok-seksi" style="border-left:3px solid var(--gold-border);padding-left:var(--space-md);margin-bottom:var(--space-lg)">
-  <div class="rp-dok-seksi-title" style="color:var(--gold)">${esc(mapel)}</div>
-  <div style="font-size:var(--fs-caption);color:var(--text-secondary);margin-bottom:var(--space-xs)">Capaian Pembelajaran</div>
-  ${cp.length ? cp.map(dokumenKartu).join('') : `<div class="rp-dok-kosong" style="margin-bottom:var(--space-sm)">Belum tersedia</div>`}
-  <div style="font-size:var(--fs-caption);color:var(--text-secondary);margin:var(--space-sm) 0 var(--space-xs)">Alur Tujuan Pembelajaran</div>
-  ${atp.length ? atp.map(dokumenKartu).join('') : `<div class="rp-dok-kosong" style="margin-bottom:var(--space-sm)">Belum tersedia. <button type="button" class="rp-link-btn" data-goto="4">→ Generate ATP</button></div>`}
-  <div style="font-size:var(--fs-caption);color:var(--text-secondary);margin:var(--space-sm) 0 var(--space-xs)">Rencana Pembelajaran</div>
-  ${rpm.length ? rpm.map(dokumenKartu).join('') : `<div class="rp-dok-kosong" style="margin-bottom:var(--space-sm)">Belum tersedia. <button type="button" class="rp-link-btn" data-goto="4">→ Rancang RPM</button></div>`}
-</div>`;
-    }
+    // Dropdown mapel (hanya tampil jika lebih dari 1 mapel)
+    const mapelDropdown = mapelList.length > 1
+      ? `<div style="margin-bottom:var(--space-md)">
+           <select id="rp-s7-mapel-sel" class="rp-select" style="width:100%;max-width:320px">
+             ${mapelList.map(m => `<option value="${esc(m)}">${esc(m)}</option>`).join('')}
+           </select>
+         </div>`
+      : mapelList.length === 1
+        ? `<div style="font-weight:600;color:var(--gold);margin-bottom:var(--space-md)">${esc(mapelList[0])}</div>`
+        : '';
 
     const dokumenHtml = `
-<div class="rp-block">
+<div class="rp-block" id="rp-dok-block">
   <div class="rp-block-title">Dokumen Tersimpan</div>
-  ${mapelList.map((m, i) => hierarkiMapel(m, i === 0)).join('')}
+  ${mapelDropdown}
+  <div id="rp-s7-konten"></div>
 </div>`;
 
     body.innerHTML = identitasHtml + dokumenHtml;
 
-    // ── Navigasi dari placeholder ──────────────────────────────
-    body.querySelectorAll('[data-goto]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const n = parseInt(btn.dataset.goto);
-        if (n) navigateToStep(n);
-      });
-    });
-
-    // ── Download Word ──────────────────────────────────────────
-    body.querySelectorAll('.rp-btn-download').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        const docId = btn.dataset.id;
-        const jenis = btn.dataset.jenis;
-        const judul = btn.dataset.judul;
-        btn.disabled = true;
-        btn.textContent = 'Memuat…';
-        try {
-          const konten = await SipApi.getRancangDokumenKonten(docId);
-          if (!konten) throw new Error('konten kosong');
-          // Identitas: profil (step 0) diutamakan, fallback ke settings lama
-          const identitasDoc = _profil?.is_locked
-            ? {
-                ...(_settings || {}),
-                nama_guru:    _profil.nama_guru    || '',
-                nip_guru:     _profil.nip_guru     || '',
-                nama_kepsek:  _profil.nama_kepsek  || '',
-                nip_kepsek:   _profil.nip_kepsek   || '',
-                tahun_ajaran: _profil.tahun_ajaran || '',
-                semester:     (_profil.semester_list || []).join(', '),
-                kota:         _profil.kota         || '',
-              }
-            : (_settings || {});
-          await generateDocxRancang(konten, jenis, judul, identitasDoc);
-          btn.disabled = false;
-          btn.textContent = '⬇ Unduh Word';
-        } catch (e) {
-          console.error('[rancang] download gagal:', e);
-          btn.disabled = false;
-          btn.textContent = '⬇ Unduh Word';
+    // ── Accordion toggle helper (single-expand dalam container) ───────────────
+    function attachAccordionToggle(container, panelSel, headerSel, bodySubSel, chevronSubSel) {
+      container.addEventListener('click', e => {
+        const header = e.target.closest(headerSel);
+        if (!header) return;
+        const panel = header.closest(panelSel);
+        if (!panel) return;
+        const wasOpen = panel.classList.contains('open');
+        container.querySelectorAll(panelSel).forEach(p => {
+          p.classList.remove('open');
+          const b = p.querySelector(bodySubSel);
+          if (b) b.style.display = 'none';
+          const c = p.querySelector(chevronSubSel);
+          if (c) c.textContent = '▶';
+        });
+        if (!wasOpen) {
+          panel.classList.add('open');
+          const b = panel.querySelector(bodySubSel);
+          if (b) b.style.display = 'block';
+          const c = panel.querySelector(chevronSubSel);
+          if (c) c.textContent = '▼';
         }
       });
-    });
+    }
 
-    // ── Hapus dokumen ──────────────────────────────────────────
-    body.querySelectorAll('.rp-btn-hapus-dok').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        const docId = btn.dataset.id;
-        if (!confirm('Hapus dokumen ini?')) return;
+    // ── Render konten per mapel terpilih ──────────────────────────────────────
+    async function renderKontenMapel(mapel, isFirst) {
+      const kontenEl = document.getElementById('rp-s7-konten');
+      if (!kontenEl) return;
+      kontenEl.innerHTML = '<div class="rp-dok-kosong">Memuat…</div>';
+
+      const cpDocs  = _dokumen.filter(d => d.jenis === 'CP'  && matchesMapel(d, mapel));
+      const atpDocs = _dokumen.filter(d => d.jenis === 'TP'  && matchesMapel(d, mapel));
+      const atpDoc  = atpDocs[0] || null;
+
+      // RPM unmatched (tidak cocok ke mapel mana pun) → masuk mapel pertama
+      const rpmUnmatched = isFirst
+        ? _dokumen.filter(d => d.jenis === 'RPM' && !mapelList.some(m => matchesMapel(d, m)))
+        : [];
+
+      // Ambil daftar TP dari konten dokumen ATP
+      let tpList = [];
+      if (atpDoc) {
         try {
-          await SipApi.hapusRancangDokumen(docId);
-          _dokumen = _dokumen.filter(d => d.id !== docId);
-          btn.closest('.rp-dok-kartu')?.remove();
-        } catch (e) {
-          console.error('[rancang] hapus gagal:', e);
+          const konten = await SipApi.getRancangDokumenKonten(atpDoc.id);
+          tpList = Array.isArray(konten?.atp) ? konten.atp : [];
+        } catch (_) {}
+      }
+
+      // Sub-accordion TP di dalam body ATP
+      function tpSubAccordions() {
+        const rpmAll = [
+          ..._dokumen.filter(d => d.jenis === 'RPM' && matchesMapel(d, mapel)),
+          ...rpmUnmatched,
+        ];
+
+        if (!tpList.length) {
+          // Fallback: tampilkan RPM langsung tanpa sub-accordion TP
+          return rpmAll.length
+            ? rpmAll.map(dokumenKartu).join('')
+            : `<div class="rp-dok-kosong">Belum tersedia. <button type="button" class="rp-link-btn" data-goto="4">→ Rancang RPM</button></div>`;
         }
+
+        return `<div class="rp-s7-tp-group" style="margin-top:var(--space-sm)">
+${tpList.map((tp, i) => {
+  const rpmDocs = _dokumen.filter(d =>
+    d.jenis === 'RPM' && (d.tp_id === tp.id || d.tp_id === tp.judul)
+  );
+  const rpmHtml = rpmDocs.length
+    ? rpmDocs.map(dokumenKartu).join('')
+    : `<div class="rp-dok-kosong">Belum tersedia. <button type="button" class="rp-link-btn" data-goto="4">→ Rancang RPM</button></div>`;
+  return `<div class="rp-s7-tp-panel" style="border-left:2px solid var(--border);margin-bottom:var(--space-xs)">
+  <div class="rp-s7-tp-header" style="display:flex;align-items:center;gap:var(--space-xs);padding:var(--space-xs) var(--space-sm);cursor:pointer;user-select:none">
+    <span class="rp-s7-tp-chevron" style="font-size:0.7em;color:var(--text-secondary)">▶</span>
+    <span style="font-size:var(--fs-caption);color:var(--text-secondary)">TP ${i + 1} — ${esc(tp.judul || '')}</span>
+  </div>
+  <div class="rp-s7-tp-body" style="display:none;padding:0 var(--space-sm) var(--space-sm)">${rpmHtml}</div>
+</div>`;
+}).join('')}
+</div>`;
+      }
+
+      // Body accordion ATP
+      const atpBodyHtml = atpDoc
+        ? `<div style="display:flex;gap:var(--space-xs);margin-bottom:var(--space-sm)">
+             <button type="button" class="rp-btn-download" data-id="${esc(atpDoc.id)}"
+               data-jenis="${esc(atpDoc.jenis)}" data-judul="${esc(atpDoc.judul)}">⬇ Unduh Word</button>
+             <button type="button" class="rp-btn-hapus-dok" data-id="${esc(atpDoc.id)}">🗑</button>
+           </div>
+           ${tpSubAccordions()}`
+        : `<div class="rp-dok-kosong">Belum tersedia. <button type="button" class="rp-link-btn" data-goto="4">→ Generate ATP</button></div>`;
+
+      const cpTitle  = cpDocs[0]  ? esc(cpDocs[0].judul)  : 'CP';
+      const atpTitle = atpDoc     ? esc(atpDoc.judul)      : 'ATP';
+
+      kontenEl.innerHTML = `
+<div class="rp-s7-acc-group">
+  <div class="rp-s7-acc-panel" style="border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:var(--space-xs);overflow:hidden">
+    <div class="rp-s7-acc-header" style="display:flex;align-items:center;gap:var(--space-xs);padding:var(--space-sm) var(--space-md);cursor:pointer;user-select:none;background:var(--surface-2)">
+      <span class="rp-s7-acc-chevron" style="font-size:0.75em;color:var(--text-secondary)">▶</span>
+      <span style="font-weight:600;font-size:var(--fs-body)">${cpTitle}</span>
+    </div>
+    <div class="rp-s7-acc-body" style="display:none;padding:var(--space-sm) var(--space-md)">
+      ${cpDocs.length ? cpDocs.map(dokumenKartu).join('') : `<div class="rp-dok-kosong">Belum tersedia</div>`}
+    </div>
+  </div>
+  <div class="rp-s7-acc-panel" style="border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:var(--space-xs);overflow:hidden">
+    <div class="rp-s7-acc-header" style="display:flex;align-items:center;gap:var(--space-xs);padding:var(--space-sm) var(--space-md);cursor:pointer;user-select:none;background:var(--surface-2)">
+      <span class="rp-s7-acc-chevron" style="font-size:0.75em;color:var(--text-secondary)">▶</span>
+      <span style="font-weight:600;font-size:var(--fs-body)">${atpTitle}</span>
+    </div>
+    <div class="rp-s7-acc-body" style="display:none;padding:var(--space-sm) var(--space-md)">
+      ${atpBodyHtml}
+    </div>
+  </div>
+</div>`;
+
+      // Level 1: CP / ATP single-expand
+      attachAccordionToggle(kontenEl, '.rp-s7-acc-panel', '.rp-s7-acc-header', '.rp-s7-acc-body', '.rp-s7-acc-chevron');
+
+      // Level 2: TP single-expand (dalam masing-masing ATP body)
+      kontenEl.querySelectorAll('.rp-s7-tp-group').forEach(group => {
+        attachAccordionToggle(group, '.rp-s7-tp-panel', '.rp-s7-tp-header', '.rp-s7-tp-body', '.rp-s7-tp-chevron');
       });
+
+      // data-goto
+      kontenEl.querySelectorAll('[data-goto]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const n = parseInt(btn.dataset.goto);
+          if (n) navigateToStep(n);
+        });
+      });
+
+      // Download Word
+      kontenEl.querySelectorAll('.rp-btn-download').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const docId = btn.dataset.id;
+          const jenis = btn.dataset.jenis;
+          const judul = btn.dataset.judul;
+          btn.disabled = true;
+          btn.textContent = 'Memuat…';
+          try {
+            const konten = await SipApi.getRancangDokumenKonten(docId);
+            if (!konten) throw new Error('konten kosong');
+            const identitasDoc = _profil?.is_locked
+              ? {
+                  ...(_settings || {}),
+                  nama_guru:    _profil.nama_guru    || '',
+                  nip_guru:     _profil.nip_guru     || '',
+                  nama_kepsek:  _profil.nama_kepsek  || '',
+                  nip_kepsek:   _profil.nip_kepsek   || '',
+                  tahun_ajaran: _profil.tahun_ajaran || '',
+                  semester:     (_profil.semester_list || []).join(', '),
+                  kota:         _profil.kota         || '',
+                }
+              : (_settings || {});
+            await generateDocxRancang(konten, jenis, judul, identitasDoc);
+            btn.disabled = false;
+            btn.textContent = '⬇ Unduh Word';
+          } catch (e) {
+            console.error('[rancang] download gagal:', e);
+            btn.disabled = false;
+            btn.textContent = '⬇ Unduh Word';
+          }
+        });
+      });
+
+      // Hapus dokumen
+      kontenEl.querySelectorAll('.rp-btn-hapus-dok').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const docId = btn.dataset.id;
+          if (!confirm('Hapus dokumen ini?')) return;
+          try {
+            await SipApi.hapusRancangDokumen(docId);
+            _dokumen = _dokumen.filter(d => d.id !== docId);
+            const kartu = btn.closest('.rp-dok-kartu');
+            if (kartu) {
+              kartu.remove();
+            } else {
+              // tombol ATP di luar kartu — re-render
+              await renderKontenMapel(mapel, isFirst);
+            }
+          } catch (e) {
+            console.error('[rancang] hapus gagal:', e);
+          }
+        });
+      });
+    }
+
+    if (mapelList.length) {
+      await renderKontenMapel(mapelList[0], true);
+    }
+
+    document.getElementById('rp-s7-mapel-sel')?.addEventListener('change', e => {
+      const mapel = e.target.value;
+      renderKontenMapel(mapel, mapelList.indexOf(mapel) === 0);
     });
   }
 
