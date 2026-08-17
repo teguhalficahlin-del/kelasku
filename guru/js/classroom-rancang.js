@@ -1228,7 +1228,7 @@ ${makeCustomDropdown('rp-s0-sdmapel-dd', SD_MAPEL_GURU.map(m => ({ value: m, lab
         const cpFase = await fetchCpData(mk, faseApi);
         const elemen = cpFase?.elemen || [];
         const cpUmum = cpFase?.cp_umum || '';
-        if (!elemen.length) throw new Error('elemen kosong');
+        if (!elemen.length) { btn.textContent = 'Data CP belum tersedia'; btn.style.background = 'transparent'; btn.style.border = '1px solid var(--text-muted)'; btn.style.color = 'var(--text-muted)'; btn.style.cursor = 'default'; return; }
         let ringkasan = [];
         try {
           const result = await callAI({
