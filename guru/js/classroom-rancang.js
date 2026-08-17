@@ -2841,7 +2841,14 @@ ${sec1}${sec2}${sec3}${sec4}${sec5}
     })();
 
     function matchesMapel(d, mapel) {
-      return d.judul.toLowerCase().includes(mapel.toLowerCase());
+      const judul = d.judul.toLowerCase();
+      const m = mapel.toLowerCase();
+      // Gunakan startsWith pada bagian setelah " — " agar dokumen lama
+      // multi-mapel (judulnya mengandung semua nama mapel) tidak cocok
+      // untuk mapel yang bukan bagian pertamanya
+      const sepIdx = judul.indexOf(' — ');
+      if (sepIdx !== -1) return judul.slice(sepIdx + 3).startsWith(m);
+      return judul.includes(m);
     }
 
     function dokumenKartu(d) {
