@@ -163,11 +163,11 @@ async function generateDocxRancang(konten, jenis, judul, identitas) {
                 cell('Bobot', { bold: true, shading: 'F0F0F0', width: 15 }),
                 cell('Deskripsi', { bold: true, shading: 'F0F0F0', width: 55 }),
               ]}),
-              ...(r.asesmen.instrumen.map(ins => new TableRow({ children: [
+              ...(Array.isArray(r.asesmen?.instrumen) ? r.asesmen.instrumen.map(ins => new TableRow({ children: [
                 cell(ins.nama   || '-'),
                 cell(ins.bobot  ? `${ins.bobot}%` : '-'),
                 cell(ins.detail || '-'),
-              ]}))),
+              ]}) : []),
             ],
           })]
         : []),
