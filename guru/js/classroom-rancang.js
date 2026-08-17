@@ -1266,7 +1266,8 @@ ${makeCustomDropdown('rp-s0-sdmapel-dd', SD_MAPEL_GURU.map(m => ({ value: m, lab
         }
       }
 
-      renderNavRowCp();`r`n    }
+      renderNavRowCp();
+    }
 
     async function renderCpReadOnly() {
       const body = el('rp-body');
