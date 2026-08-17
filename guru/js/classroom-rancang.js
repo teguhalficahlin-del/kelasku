@@ -484,7 +484,6 @@
 
   // SD Guru MAPEL: dropdown single
   const SD_MAPEL_GURU = [
-    'Kepercayaan Terhadap Tuhan Yang Maha Esa dan Budi Pekerti',
     'Koding dan Kecerdasan Artifisial',
     'Pendidikan Agama Buddha dan Budi Pekerti',
     'Pendidikan Agama Hindu dan Budi Pekerti',
@@ -504,7 +503,6 @@
     'Informatika',
     'IPA',
     'IPS',
-    'Kepercayaan Terhadap Tuhan Yang Maha Esa dan Budi Pekerti',
     'Koding dan Kecerdasan Artifisial',
     'Matematika',
     'Pendidikan Agama Buddha dan Budi Pekerti',
@@ -545,7 +543,6 @@
     'Informatika',
     'IPA',
     'IPS',
-    'Kepercayaan Terhadap Tuhan Yang Maha Esa dan Budi Pekerti',
     'Kimia',
     'Koding dan Kecerdasan Artifisial',
     'Matematika',
@@ -576,7 +573,6 @@
     'Bahasa Indonesia',
     'Bahasa Inggris',
     'Informatika',
-    'Kepercayaan Terhadap Tuhan Yang Maha Esa dan Budi Pekerti',
     'Koding dan Kecerdasan Artifisial',
     'Kreativitas, Inovasi, dan Kewirausahaan',
     'Matematika',
