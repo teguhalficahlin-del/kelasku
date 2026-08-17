@@ -1212,18 +1212,20 @@ ${makeCustomDropdown('rp-s0-sdmapel-dd', SD_MAPEL_GURU.map(m => ({ value: m, lab
             const cpFase = await fetchCpData(mk, fase);
             const elemen = cpFase?.elemen || [];
             const cpUmum = cpFase?.cp_umum || '';
-            let ringkasan = [];
-            if (elemen.length) {
-              try {
-                const result = await callAI({ mode: 'cp_summary', konteks: { mapel: m, jenjang: _ans.jenjang, fase, kelas: _profil?.kelas || '' }, elemen_list: elemen, elemen_difilter: false });
-                ringkasan = result?.ringkasan || [];
-              } catch { ringkasan = elemen.map(e => ({ elemen: e.nama, konkret: null })); }
+            if (!elemen.length) {
+              console.warn(`[rancang][step1] CP ${m} — elemen kosong, skip simpan`);
+              anyFailed = true;
+              continue;
             }
+            let ringkasan = [];
+            try {
+              const result = await callAI({ mode: 'cp_summary', konteks: { mapel: m, jenjang: _ans.jenjang, fase, kelas: _profil?.kelas || '' }, elemen_list: elemen, elemen_difilter: false });
+              ringkasan = result?.ringkasan || [];
+            } catch { ringkasan = elemen.map(e => ({ elemen: e.nama, konkret: null })); }
             const judulDoc = `CP — ${m}`.trim();
             const konten = { elemen, ringkasan, cp_umum: cpUmum, mapel: m, fase };
             const doc = await SipApi.simpanRancangDokumen(_cId, 'CP', judulDoc, konten, null);
             _dokumen = [doc, ..._dokumen.filter(d => !(d.jenis === 'CP' && d.judul === judulDoc))];
-            if (i === mapelList.length - 1) { _cpElemen = elemen; _cpUmum = cpUmum; _cpRingkasan = ringkasan; _ans.mapel = m; }
           } catch (e) {
             console.error(`[rancang][step1] generate CP ${m} gagal:`, e);
             anyFailed = true;
