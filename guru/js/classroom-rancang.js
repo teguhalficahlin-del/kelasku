@@ -1173,9 +1173,9 @@ ${makeCustomDropdown('rp-s0-sdmapel-dd', SD_MAPEL_GURU.map(m => ({ value: m, lab
   <span class="rp-readonly-label">${esc(m)}</span>
   <span style="display:flex;align-items:center;gap:var(--space-sm)">
     ${saved
-      ? `<button type="button" class="rp-btn-simpan" disabled>✓ Tersimpan</button>
+      ? `<button type="button" class="rp-btn-tersimpan" disabled style="font-size:var(--fs-sm);padding:2px var(--space-sm);background:transparent;border:1px solid var(--success,#4caf50);color:var(--success,#4caf50);border-radius:var(--btn-r);cursor:default;white-space:nowrap">✓ Tersimpan</button>
          <a href="#" class="rp-link-dokumen" data-mapel="${esc(m)}" style="color:var(--gold);font-size:var(--fs-sm);white-space:nowrap">Lihat di tab Dokumen →</a>`
-      : `<button type="button" class="rp-btn-simpan rp-btn-generate-cp" data-mapel="${esc(m)}">Generate CP</button>`
+      : `<button type="button" class="rp-btn-simpan rp-btn-generate-cp" data-mapel="${esc(m)}" style="background:var(--gold);color:var(--text-on-gold,#1a1a1a);border:none;font-weight:var(--fw-medium)">Generate CP</button>`
     }
   </span>
 </div>`;
@@ -1196,10 +1196,10 @@ ${makeCustomDropdown('rp-s0-sdmapel-dd', SD_MAPEL_GURU.map(m => ({ value: m, lab
 <div class="rp-nav-row" style="justify-content:space-between;align-items:center;">
   ${saved
     ? `<span style="display:flex;align-items:center;gap:var(--space-sm)">
-         <button type="button" class="rp-btn-simpan" disabled>✓ Tersimpan</button>
+         <button type="button" class="rp-btn-tersimpan" disabled style="font-size:var(--fs-sm);padding:2px var(--space-sm);background:transparent;border:1px solid var(--success,#4caf50);color:var(--success,#4caf50);border-radius:var(--btn-r);cursor:default;white-space:nowrap">✓ Tersimpan</button>
          <a href="#" class="rp-link-dokumen" style="color:var(--gold);font-size:var(--fs-sm)">Lihat di tab Dokumen →</a>
        </span>`
-    : `<button type="button" class="rp-btn-simpan rp-btn-generate-cp" data-mapel="${esc(mapelNama)}">Generate CP</button>`
+    : `<button type="button" class="rp-btn-simpan rp-btn-generate-cp" data-mapel="${esc(mapelNama)}" style="background:var(--gold);color:var(--text-on-gold,#1a1a1a);border:none;font-weight:var(--fw-medium)">Generate CP</button>`
   }
   <button type="button" class="rp-btn-next" id="rp-step1-ro-next">
     ${jenjang === 'SMK' ? 'Lanjut ke konteks SMK →' : 'Lanjut ke preferensi →'}
