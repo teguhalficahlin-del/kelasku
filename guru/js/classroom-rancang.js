@@ -46,6 +46,11 @@
   // Phase 2C pipeline state — loaded from server, not from localStorage as authority
   let _phase2cState = null;
 
+  // Stable client operation IDs for regenerate — generated once per intent, cleared on success.
+  // A retry of the SAME intent reuses the same ID; a NEW click generates a fresh one.
+  let _ctxRegenOpId = null;
+  let _asmRegenOpId = null;
+
   // Step saat ini: 0 = profil (onboarding), 1–7 = wizard
   let _step = 1;
 
@@ -2926,10 +2931,15 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
     const btn = el(btnId);
     if (btn) { btn.disabled = true; btn.textContent = 'Generating…'; }
     showError('rp2c-ctx-error', '');
+    // Stable operation ID: generate once per intent, reuse on retry, clear on success.
+    if (isRegenerate && !_ctxRegenOpId) _ctxRegenOpId = crypto.randomUUID();
+    const extra = isRegenerate ? { action, client_operation_id: _ctxRegenOpId } : { action };
     try {
-      _phase2cState = await SipApi.phase2cGenerate(phase2cPayload({ action }));
+      _phase2cState = await SipApi.phase2cGenerate(phase2cPayload(extra));
+      _ctxRegenOpId = null; // success — next click starts a new intent
       saveRpState(); renderContextCheckpoint();
     } catch (e) {
+      // keep _ctxRegenOpId so a network retry sends the same operation ID
       if (btn) { btn.disabled = false; btn.textContent = isRegenerate ? '⟳ Regenerate' : 'Generate Context'; }
       showError('rp2c-ctx-error', e.message || 'Generate gagal. Coba lagi.');
     }
@@ -3168,10 +3178,15 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
     const btn = el(btnId);
     if (btn) { btn.disabled = true; btn.textContent = 'Generating…'; }
     showError('rp2c-asm-error', '');
+    // Stable operation ID: generate once per intent, reuse on retry, clear on success.
+    if (isRegenerate && !_asmRegenOpId) _asmRegenOpId = crypto.randomUUID();
+    const extra = isRegenerate ? { action, client_operation_id: _asmRegenOpId } : { action };
     try {
-      _phase2cState = await SipApi.phase2cGenerate(phase2cPayload({ action }));
+      _phase2cState = await SipApi.phase2cGenerate(phase2cPayload(extra));
+      _asmRegenOpId = null; // success — next click starts a new intent
       saveRpState(); renderAssessmentCheckpoint();
     } catch (e) {
+      // keep _asmRegenOpId so a network retry sends the same operation ID
       if (btn) { btn.disabled = false; btn.textContent = isRegenerate ? '⟳ Regenerate' : 'Generate Asesmen + KKTP'; }
       showError('rp2c-asm-error', e.message || 'Generate gagal. Coba lagi.');
     }

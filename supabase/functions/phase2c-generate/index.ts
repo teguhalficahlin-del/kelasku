@@ -237,6 +237,20 @@ async function makeIdempotencyKey(prefix: string, ...parts: unknown[]): Promise<
   return prefix + ':' + await sha256(parts);
 }
 
+// UUID v4 format (client must use crypto.randomUUID())
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+function isValidUuidV4(s: string): boolean { return UUID_RE.test(s); }
+
+// Stable regenerate key — binds to user + artifact identity + operation inputs + client intent.
+// client_operation_id is NOT authority; ownership is always from JWT + DB lookups above.
+async function makeRegenKey(
+  prefix: string, profileId: string, artifactKind: string,
+  planningContextId: string, sourceHash: string, depHash: string,
+  clientOperationId: string,
+): Promise<string> {
+  return prefix + ':' + await sha256({ profileId, artifactKind, planningContextId, sourceHash, depHash, clientOperationId });
+}
+
 // ── Main handler ──────────────────────────────────────────────────────────────
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
@@ -377,10 +391,17 @@ Deno.serve(async (req) => {
         }
       }
 
-      const idempotencyKey = await makeIdempotencyKey(
-        isRegenerate ? 'ctx_regen' : 'ctx_gen',
-        planningContextId, sourceHash, isRegenerate ? Date.now() : 'initial'
-      );
+      let idempotencyKey: string;
+      if (isRegenerate) {
+        const clientOpId = String(body.client_operation_id ?? '');
+        if (!isValidUuidV4(clientOpId))
+          return reply({ error: 'client_operation_id harus UUID v4 yang valid' }, 400);
+        idempotencyKey = await makeRegenKey(
+          'ctx_regen', profile.id, 'CONTEXT_SPEC', planningContextId, sourceHash, depHash, clientOpId,
+        );
+      } else {
+        idempotencyKey = await makeIdempotencyKey('ctx_gen', planningContextId, sourceHash, 'initial');
+      }
 
       // Call AI
       const raw = await callAI(
@@ -645,10 +666,17 @@ Deno.serve(async (req) => {
         }
       }
 
-      const idempotencyKey = await makeIdempotencyKey(
-        isRegenerate ? 'asm_regen' : 'asm_gen',
-        planningContextId, sourceHash, isRegenerate ? Date.now() : 'initial'
-      );
+      let idempotencyKey: string;
+      if (isRegenerate) {
+        const clientOpId = String(body.client_operation_id ?? '');
+        if (!isValidUuidV4(clientOpId))
+          return reply({ error: 'client_operation_id harus UUID v4 yang valid' }, 400);
+        idempotencyKey = await makeRegenKey(
+          'asm_regen', profile.id, 'ASSESSMENT_SPEC', planningContextId, sourceHash, depHash, clientOpId,
+        );
+      } else {
+        idempotencyKey = await makeIdempotencyKey('asm_gen', planningContextId, sourceHash, 'initial');
+      }
 
       const raw = await callAI(
         'Anda adalah perancang pembelajaran. Hanya keluarkan JSON valid tanpa teks tambahan.',
