@@ -59,15 +59,23 @@
     <div class="modal-backdrop"></div>
     <div class="modal-box">
       <h3>Satu Langkah Lagi</h3>
-      <p class="hint">Pilih peran Anda agar SIP Mandiri bisa menyesuaikan tampilan.</p>
+      <p class="hint">Pilih dan konfirmasi peran authoring Anda. Setelah dikunci, perubahan memerlukan bantuan admin.</p>
       <div class="peran-cards">
-        <div class="peran-card" data-peran="MAPEL">
-          <div class="peran-title">Guru Mata Pelajaran</div>
-          <div class="peran-desc">Mengajar satu mata pelajaran di SMP, SMA, atau SMK</div>
-        </div>
-        <div class="peran-card" data-peran="WALI_KELAS_SD">
+        <div class="peran-card" data-peran="WALI_KELAS">
           <div class="peran-title">Wali Kelas SD</div>
-          <div class="peran-desc">Mengajar semua mata pelajaran di satu kelas SD</div>
+          <div class="peran-desc">Satu home classroom, beberapa mata pelajaran, fase A/B/C</div>
+        </div>
+        <div class="peran-card" data-peran="GURU_MAPEL_SDSMP_SMA">
+          <div class="peran-title">Guru Mapel SD/SMP/SMA</div>
+          <div class="peran-desc">Satu mata pelajaran, dapat digunakan pada beberapa kelas</div>
+        </div>
+        <div class="peran-card" data-peran="GURU_MAPEL_UMUM_SMK">
+          <div class="peran-title">Guru Mapel Umum SMK</div>
+          <div class="peran-desc">Program siswa menjadi konteks, bukan domain kewenangan</div>
+        </div>
+        <div class="peran-card" data-peran="GURU_MAPEL_PRODUKTIF_SMK">
+          <div class="peran-title">Guru Mapel Produktif SMK</div>
+          <div class="peran-desc">Program dan elemen CP menjadi bagian domain pembelajaran</div>
         </div>
       </div>
       <button type="button" id="btn-simpan-peran" disabled>Simpan &amp; Lanjut</button>

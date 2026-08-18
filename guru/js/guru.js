@@ -336,7 +336,7 @@ window.initCustomSelect = function (nativeEl, onChange) {
       // Sembunyikan field Mata Pelajaran untuk Wali Kelas SD
       const subjectLabel = document.querySelector('label[for="inp-subject"]');
       const subjectInput = document.getElementById('inp-subject');
-      if (currentRoleGuru === 'WALI_KELAS_SD') {
+      if (currentRoleGuru === 'WALI_KELAS' || currentRoleGuru === 'WALI_KELAS_SD') {
         subjectLabel.style.display = 'none';
         subjectInput.style.display = 'none';
         if (!classroom) subjectInput.value = 'Semua Mata Pelajaran';
@@ -476,7 +476,7 @@ window.initCustomSelect = function (nativeEl, onChange) {
       } else {
         // ── Validasi batasan classroom per role ──
         if (cachedClassrooms.length >= 1) {
-          if (currentRoleGuru === 'WALI_KELAS_SD') {
+          if (currentRoleGuru === 'WALI_KELAS' || currentRoleGuru === 'WALI_KELAS_SD') {
             modalError.textContent = 'Wali Kelas SD hanya dapat memiliki 1 kelas. Hubungi admin jika perlu bantuan.';
             modalError.style.display = 'block';
             btn.disabled = false;
@@ -656,10 +656,14 @@ window.initCustomSelect = function (nativeEl, onChange) {
           btnOk.disabled = true;
           btnOk.textContent = 'Menyimpan...';
 
-          await window.supabaseClient
-            .from('profiles')
-            .update({ role_guru: chosenPeran })
-            .eq('id', currentTeacherId);
+          try {
+            await api.declareAndLockRole(chosenPeran);
+          } catch (err) {
+            btnOk.disabled = false;
+            btnOk.textContent = 'Simpan & Lanjut';
+            window.alert('Peran tidak dapat dikunci: ' + (err?.message || 'kesalahan server'));
+            return;
+          }
 
           modal.style.display = 'none';
           resolve(chosenPeran);
@@ -682,8 +686,8 @@ window.initCustomSelect = function (nativeEl, onChange) {
       currentRoleGuru  = profile.role_guru ?? null;
       document.getElementById('guru-name').textContent = profile.full_name;
 
-      if (!profile.role_guru) {
-        await showModalPeran();
+      if (!profile.role_locked_at) {
+        currentRoleGuru = await showModalPeran();
       }
 
       // Baca status trial dari sessionStorage (diisi saat login)

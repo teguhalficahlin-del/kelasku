@@ -10,7 +10,7 @@
     async getProfile(userId) {
       return client
         .from('profiles')
-        .select('id, full_name, role_guru')
+        .select('id, full_name, role_guru, role_locked_at')
         .eq('user_id', userId)
         .single();
     },
@@ -111,6 +111,24 @@
         p_payload: payload,
       });
       if (error) throw error;
+      return data;
+    },
+
+    async declareAndLockRole(roleGuru) {
+      const { data, error } = await client.rpc('fn_declare_and_lock_role', {
+        p_role_guru: roleGuru,
+        p_confirmed: true,
+      });
+      if (error) throw error;
+      return data;
+    },
+
+    async applyTeachingFoundation(payload) {
+      const { data, error } = await client.functions.invoke('teaching-foundation', {
+        body: { action: 'apply_foundation', confirmed: true, ...payload },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
       return data;
     },
 

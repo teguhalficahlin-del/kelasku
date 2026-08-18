@@ -1061,8 +1061,6 @@ ${makeCustomDropdown('rp-s0-sdmapel-dd', SD_MAPEL_GURU.map(m => ({ value: m, lab
     if (!namaGuru) return showErr('Isi nama guru.');
     if (!namaKepsek) return showErr('Isi nama kepala sekolah.');
 
-    const roleGuru = (jenjang === 'SD' && peran === 'WALI') ? 'WALI_KELAS_SD' : 'MAPEL';
-
     const payload = {
       jenjang, peran, mapel_list: mapelList, mapel, mapel_key: mapelKey,
       bidang_keahlian: bidangKeahlian, program_keahlian: programKeahlian,
@@ -1073,10 +1071,31 @@ ${makeCustomDropdown('rp-s0-sdmapel-dd', SD_MAPEL_GURU.map(m => ({ value: m, lab
       nama_kepsek: namaKepsek, nip_kepsek: nipKepsek,
       tahun_ajaran: tahunAjaran, kota,
       is_locked: true,
-      role_guru: roleGuru,
     };
 
     try {
+      const subjectKeys = (jenjang === 'SD' && peran === 'WALI')
+        ? mapelList.map(normalizeMapelKey).filter(Boolean)
+        : [mapelKey];
+      const cpMetaRes = await fetch('../shared/data/cp-data.meta.json');
+      if (!cpMetaRes.ok) throw new Error('Metadata revision CP tidak tersedia');
+      const cpMeta = await cpMetaRes.json();
+      const elementRefs = elemenTerpilih.map(elementName => ({
+        subject_key: mapelKey,
+        phase_key: fase,
+        element_name: elementName,
+        cp_dataset_revision: cpMeta.revision,
+      }));
+      await SipApi.applyTeachingFoundation({
+        jenjang,
+        phase_key: fase,
+        subject_keys: subjectKeys,
+        selected_subject_key: mapelKey,
+        bidang: bidangKeahlian,
+        program_keahlian: programKeahlian,
+        element_refs: elementRefs,
+        classroom_id: _cId,
+      });
       const result = await SipApi.upsertRancangProfil(payload);
       if (!result?.is_locked) throw new Error('lock not confirmed');
       _profil = result;
