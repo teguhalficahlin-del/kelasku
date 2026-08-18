@@ -86,3 +86,22 @@ export function validateCanonicalFoundation(
     }
   }
 }
+
+export function validateProductiveClassroomDomain(input: {
+  roleGuru: string;
+  subject: Record<string, unknown> | undefined;
+  contextBidang: unknown;
+  contextProgram: unknown;
+  classroomBidang: unknown;
+  classroomProgram: unknown;
+}) {
+  if (input.roleGuru !== 'GURU_MAPEL_PRODUKTIF_SMK') return;
+  const { subject, contextBidang, contextProgram, classroomBidang, classroomProgram } = input;
+  if (typeof contextBidang !== 'string' || !contextBidang ||
+      typeof contextProgram !== 'string' || !contextProgram ||
+      classroomBidang !== contextBidang || classroomProgram !== contextProgram ||
+      subject?.bidang !== contextBidang || subject?.program_keahlian !== contextProgram ||
+      subject?.bidang === 'Umum') {
+    throw new Error('Productive program/domain tidak konsisten');
+  }
+}

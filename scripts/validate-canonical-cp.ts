@@ -1,6 +1,7 @@
 import {
   phaseRecord,
   validateCanonicalFoundation,
+  validateProductiveClassroomDomain,
   verifyCanonicalBytes,
 } from '../supabase/functions/_shared/canonical-cp.ts';
 
@@ -74,6 +75,19 @@ const productiveInput = {
   }],
 };
 validateCanonicalFoundation(verified.data, verified.revision, productiveInput);
+validateProductiveClassroomDomain({roleGuru:productiveInput.roleGuru,subject:productive,
+  contextBidang:productiveInput.bidang,contextProgram:productiveInput.program,
+  classroomBidang:productiveInput.bidang,classroomProgram:productiveInput.program});
+expectDenied('productive classroom program mismatch', () => validateProductiveClassroomDomain({
+  roleGuru:productiveInput.roleGuru,subject:productive,
+  contextBidang:productiveInput.bidang,contextProgram:productiveInput.program,
+  classroomBidang:productiveInput.bidang,classroomProgram:'Program Tidak Valid',
+}));
+expectDenied('productive classroom program missing', () => validateProductiveClassroomDomain({
+  roleGuru:productiveInput.roleGuru,subject:productive,
+  contextBidang:productiveInput.bidang,contextProgram:productiveInput.program,
+  classroomBidang:productiveInput.bidang,classroomProgram:null,
+}));
 expectDenied('C9 invalid productive composite', () => validateCanonicalFoundation(verified.data, verified.revision, {
   ...productiveInput, program: 'Program Tidak Valid',
 }));
@@ -104,4 +118,6 @@ console.log(JSON.stringify({
   C6_other_subject_element: 'DENIED', C7_other_phase_element: 'DENIED',
   C8_wrong_revision: 'DENIED', C9_invalid_productive_composite: 'DENIED',
   C10_valid_productive_composite: 'PASS',
+  productive_classroom_match: 'PASS', productive_classroom_mismatch: 'DENIED',
+  productive_classroom_missing: 'DENIED', general_smk_productive_escalation: 'DENIED',
 }, null, 2));

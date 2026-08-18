@@ -2,6 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { PGlite } from '@electric-sql/pglite';
 
 const migration = await readFile(new URL('../supabase/migrations/20260818000003_phase2a_planning_foundation.sql', import.meta.url), 'utf8');
+const remediation = await readFile(new URL('../supabase/migrations/20260818000004_phase2a_allocation_policy_authority.sql', import.meta.url), 'utf8');
 const db = new PGlite();
 const REV = 'a'.repeat(64);
 const H = (c) => c.repeat(64);
@@ -45,6 +46,7 @@ INSERT INTO rancang_dokumen VALUES('${ids.legacy}','${ids.ca}','TP','{"atp":[1,2
 `);
 const before = await scalar(`SELECT (SELECT count(*) FROM profiles)::int p,(SELECT count(*) FROM classrooms)::int c,(SELECT count(*) FROM rancang_dokumen)::int d`);
 await db.exec(migration);
+await db.exec(remediation);
 const after = await scalar(`SELECT (SELECT count(*) FROM profiles)::int p,(SELECT count(*) FROM classrooms)::int c,(SELECT count(*) FROM rancang_dokumen)::int d`);
 assert(JSON.stringify(before)===JSON.stringify(after),'migration changed legacy/Phase 1 rows');
 assert((await scalar(`SELECT count(*)::int n FROM pg_class WHERE relname LIKE 'rancang_%' AND relname IN ('rancang_atp','rancang_atp_revisions','rancang_tp','rancang_tp_revisions','rancang_atp_revision_items','rancang_tp_revision_elements','rancang_legacy_atp_mappings','rancang_planning_contexts','rancang_meeting_allocations','rancang_meeting_allocation_items')`)).n===10,'Phase 2A rancang tables missing');
@@ -69,10 +71,15 @@ assert(stale.status==='STALE' && stale.selected_tp_revision_id===first.revision_
 await denied('forged profile/context',()=>db.query(`SELECT fn_phase2a_revise_tp($1::uuid,$2::uuid,$3::uuid,$4::text,$5::text,'x','',1::smallint,1,NULL::jsonb,'[]'::jsonb)`,[ids.pb,ids.tb,first.id,H('7'),H('8')]));
 await denied('unbound classroom',()=>db.query(`SELECT fn_phase2a_save_planning_context($1::uuid,$2::uuid,$3::uuid,$4::uuid,$5::uuid,'2026/2027',1::smallint,'{}'::jsonb,'{}'::jsonb,'{}'::jsonb,NULL::jsonb,'{}'::jsonb,$6::text)`,[ids.pa,ids.ta,ids.cb,first.id,first.revision_id,H('9')]));
 await denied('allocation sum mismatch',()=>db.query(`SELECT fn_phase2a_confirm_allocation($1,$2,3,40,40,'TEACHER',$3,'[{"meeting_no":1,"jp":2}]')`,[ids.pa,pc1.id,H('0')]));
-const alloc1=(await db.query(`SELECT fn_phase2a_confirm_allocation($1,$2,3,40,40,'TEACHER',$3,'[{"meeting_no":1,"jp":1,"duration_minutes":999},{"meeting_no":2,"jp":2,"duration_minutes":999}]') r`,[ids.pa,pc1.id,H('1')])).rows[0].r;
-const alloc2=(await db.query(`SELECT fn_phase2a_confirm_allocation($1,$2,3,45,40,'TEACHER',$3,'[{"meeting_no":1,"jp":3}]') r`,[ids.pa,pc1.id,H('2')])).rows[0].r;
+const alloc1=(await db.query(`SELECT fn_phase2a_confirm_allocation($1,$2,3,999,999,'TEACHER',$3,'[{"meeting_no":1,"jp":1,"duration_minutes":999},{"meeting_no":2,"jp":2,"duration_minutes":999}]') r`,[ids.pa,pc1.id,H('1')])).rows[0].r;
+assert(alloc1.standard_jp_minutes===40 && alloc1.effective_jp_minutes===40,'RPC trusted forged JP minutes');
+await db.query(`INSERT INTO classroom_jp_policies(classroom_id,profile_id,standard_jp_minutes,effective_jp_minutes,override_reason,confirmed_by_profile_id) VALUES($1,$2,40,35,'Operational bell schedule',$2)`,[ids.ca,ids.pa]);
+const alloc2=(await db.query(`SELECT fn_phase2a_confirm_allocation($1,$2,3,999,999,'TEACHER',$3,'[{"meeting_no":1,"jp":3}]') r`,[ids.pa,pc1.id,H('2')])).rows[0].r;
+assert(alloc2.standard_jp_minutes===40 && alloc2.effective_jp_minutes===35 && alloc2.meetings[0].duration_minutes===105,'authorized JP override was not authoritative');
+await denied('override without reason',()=>db.query(`UPDATE classroom_jp_policies SET override_reason=NULL WHERE classroom_id=$1`,[ids.ca]));
 assert(alloc1.meetings[0].duration_minutes===40 && alloc1.meetings[1].duration_minutes===80,'server duration invariant failed');
 assert((await scalar(`SELECT superseded_at IS NOT NULL old,(SELECT superseded_at IS NULL FROM rancang_meeting_allocations WHERE id=$2) current FROM rancang_meeting_allocations WHERE id=$1`,[alloc1.id,alloc2.id])).old,'allocation supersession failed');
+assert((await scalar(`SELECT effective_jp_minutes=40 preserved FROM rancang_meeting_allocations WHERE id=$1`,[alloc1.id])).preserved,'historical allocation JP snapshot changed');
 
 const legacyItems=Array.from({length:11},(_,i)=>({judul:`Legacy ${i+1}`,deskripsi:'',semester:i<6?1:2,estimasi_jp:2,raw_element_value:'Nama elemen lama tidak dikenal',source_hash:(i.toString(16).padStart(1,'0')).repeat(64),element_refs:[]}));
 const legacy=(await db.query(`SELECT fn_phase2a_persist_atp($1,$2,'LEGACY_IMPORT',$3,$4,$5::jsonb,NULL,$6,$7) r`,[ids.pa,ids.ta,H('3'),REV,JSON.stringify(legacyItems),ids.legacy,H('4')])).rows[0].r;
@@ -88,4 +95,4 @@ await denied('direct authenticated insert',()=>asUser(ids.ua,()=>db.exec(`INSERT
 await denied('teacher service RPC',()=>asUser(ids.ua,()=>db.query(`SELECT fn_phase2a_get_atp($1,$2)`,[ids.pa,createA.atp_id])));
 await db.exec('RESET ROLE; SET ROLE anon'); await denied('anon service RPC',()=>db.query(`SELECT fn_phase2a_get_atp($1,$2)`,[ids.pa,createA.atp_id])); await db.exec('RESET ROLE');
 
-console.log(JSON.stringify({migration:'PASS',tables_11:'PASS',rls_11:'PASS',preservation:'PASS',silent_adoption:'PASS',lifecycle:'PASS',scoped_hash:'PASS',planning_context:'PASS',allocation:'PASS',legacy:'PASS',rls_adversarial:'PASS',database:'PGlite disposable PostgreSQL'},null,2));
+console.log(JSON.stringify({migration:'PASS',remediation_migration:'PASS',tables_11:'PASS',rls_11:'PASS',preservation:'PASS',silent_adoption:'PASS',lifecycle:'PASS',scoped_hash:'PASS',planning_context:'PASS',allocation:'PASS',forged_effective_jp:'IGNORED',default_jp:'PASS',authorized_override:'PASS',override_without_reason:'DENIED',historical_jp_snapshot:'PASS',legacy:'PASS',rls_adversarial:'PASS',database:'PGlite disposable PostgreSQL'},null,2));

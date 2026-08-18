@@ -1,5 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { phaseRecord, verifyCanonicalBytes, type CpDataset } from '../_shared/canonical-cp.ts';
+import { phaseRecord, validateCanonicalFoundation, validateProductiveClassroomDomain, verifyCanonicalBytes, type CpDataset } from '../_shared/canonical-cp.ts';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -95,6 +95,17 @@ Deno.serve(async req=>{
     if(context.cp_dataset_revision!==cp.revision) return reply({error:'Teaching Context memakai revision CP berbeda'},409);
     const subject=cp.data[context.subject_key]; const phase=subject&&phaseRecord(subject,context.phase_key);
     const canonicalNames=Array.isArray(phase?.elemen)?(phase!.elemen as Array<Record<string,unknown>>).map(e=>String(e.nama)):[];
+    const validateAuthorizedDomain=()=>validateCanonicalFoundation(cp.data,cp.revision,{
+      roleGuru:profile.role_guru,jenjang:context.jenjang,phaseKey:context.phase_key,
+      subjectKeys:[context.subject_key],selectedSubject:context.subject_key,
+      bidang:context.bidang??null,program:context.program_keahlian??null,elementRefs:[],
+    });
+    const validateProductiveClassroom=()=>{
+      validateAuthorizedDomain();
+      validateProductiveClassroomDomain({roleGuru:profile.role_guru,subject,
+        contextBidang:context.bidang,contextProgram:context.program_keahlian,
+        classroomBidang:classroom.bidang_keahlian,classroomProgram:classroom.program_keahlian});
+    };
     if(action==='persist_generated_atp'||action==='adopt_legacy_atp'){
       let list=Array.isArray(body.tp_list)?body.tp_list as Array<Record<string,unknown>>:[];
       let legacyId:string|null=null; let legacyHash:string|null=null; let source='AI';
@@ -105,6 +116,7 @@ Deno.serve(async req=>{
         if(body.confirmed!==true) return reply({error:'Konfirmasi adoption diperlukan'},400);
         list=doc.konten.atp; legacyHash=await sha(doc.konten); source='LEGACY_IMPORT';
       }
+      if(source!=='LEGACY_IMPORT') validateProductiveClassroom();
       if(!list.length) return reply({error:'ATP kosong'},400);
       const normalized=[];
       for(let i=0;i<list.length;i++){
@@ -149,6 +161,7 @@ Deno.serve(async req=>{
     }
 
     if(action==='revise_tp'){
+      validateProductiveClassroom();
       const current=body.tp as Record<string,unknown>||{}; const title=String(body.judul||'').trim();
       const raw=current.elemen_cp; const rawNames=Array.isArray(raw)?raw.map(String):typeof raw==='string'?[raw]:[];
       const exact=[...new Set(rawNames.filter(n=>canonicalNames.includes(n)))];
