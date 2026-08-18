@@ -10,6 +10,10 @@
   let _settings = null;   // data dari rancang_settings (pre-fill + identitas)
   let _profil   = null;   // data dari rancang_profil (step 0 — per akun guru)
   let _dokumen  = [];     // data dari rancang_dokumen (daftar file tersimpan)
+  let _teachingContext = null; // Phase 1 authority resolved for active subject/classroom
+  let _durableAtp = null;      // { atp_id, atp_revision_id }
+  let _planningContext = null; // durable Phase 2A planning context
+  let _jpPolicy = null;
 
   // Jawaban per blok
   const _ans = {
@@ -1086,7 +1090,7 @@ ${makeCustomDropdown('rp-s0-sdmapel-dd', SD_MAPEL_GURU.map(m => ({ value: m, lab
         element_name: elementName,
         cp_dataset_revision: cpMeta.revision,
       }));
-      await SipApi.applyTeachingFoundation({
+      const foundation = await SipApi.applyTeachingFoundation({
         jenjang,
         phase_key: fase,
         subject_keys: subjectKeys,
@@ -1096,6 +1100,13 @@ ${makeCustomDropdown('rp-s0-sdmapel-dd', SD_MAPEL_GURU.map(m => ({ value: m, lab
         element_refs: elementRefs,
         classroom_id: _cId,
       });
+      _teachingContext = {
+        id: foundation.teaching_context_id,
+        cp_dataset_revision: foundation.cp_dataset_revision,
+        subject_key: mapelKey,
+        phase_key: fase,
+        jenjang,
+      };
       const result = await SipApi.upsertRancangProfil(payload);
       if (!result?.is_locked) throw new Error('lock not confirmed');
       _profil = result;
@@ -2196,7 +2207,20 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
         preferensi: _ans.preferensi,
         semester_list: _profil?.semester_list || [],
       });
-      _atpList = result?.tp_list || [];
+      const generatedList = result?.tp_list || [];
+      if (!generatedList.length) throw new Error('ATP kosong');
+      if (!_teachingContext) {
+        _teachingContext = await SipApi.getTeachingContextForClassroom(_cId, _ans.mapelKey);
+      }
+      if (!_teachingContext?.id) throw new Error('Teaching Context belum tersedia. Konfirmasi ulang profil mengajar.');
+      const durable = await SipApi.phase2aPlanning({
+        action: 'persist_generated_atp',
+        classroom_id: _cId,
+        teaching_context_id: _teachingContext.id,
+        tp_list: generatedList,
+      });
+      _durableAtp = { atp_id: durable.atp_id, atp_revision_id: durable.atp_revision_id };
+      _atpList = durable.tp_list || [];
       if (!_atpList.length) throw new Error('ATP kosong');
       _step = 4;
       saveRpState();
@@ -2334,7 +2358,7 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
 <div class="rp-save-row" style="margin-top:var(--space-md);">
   <button type="button" class="rp-btn-simpan" id="rp-btn-simpan-atp"
     ${atpSudahSimpan ? 'disabled style="background:var(--success,#2d6a4f);cursor:default;"' : ''}>
-    ${atpSudahSimpan ? '✓ Tersimpan' : '💾 Simpan ATP'}
+    ${atpSudahSimpan ? '✓ Snapshot tersimpan' : (_durableAtp ? '💾 Simpan snapshot ATP' : '💾 Simpan ATP')}
   </button>
   <span class="rp-identitas-status" id="rp-atp-simpan-status"></span>
 </div>
@@ -2344,13 +2368,21 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
 </div>`;
 
     body.querySelectorAll('.rp-btn-rancang-tp').forEach(btn => {
-      btn.addEventListener('click', e => {
+      btn.addEventListener('click', async e => {
         e.stopPropagation();
         const card = btn.closest('.rp-atp-card');
         const idx = parseInt(card.dataset.idx);
-        const tp = { ..._atpList[idx] };
+        let tp = { ..._atpList[idx] };
         const editedJudul = card.querySelector('.rp-atp-edit-input')?.value.trim();
-        if (editedJudul) tp.judul = editedJudul;
+        if (editedJudul && editedJudul !== tp.judul) {
+          try {
+            const revised = await SipApi.phase2aPlanning({ action:'revise_tp', classroom_id:_cId,
+              teaching_context_id:_teachingContext?.id, tp, judul:editedJudul });
+            _durableAtp = { atp_id: revised.atp_id, atp_revision_id: revised.atp_revision_id };
+            _atpList = revised.tp_list || _atpList;
+            tp = { ...(_atpList.find(x => x.id === tp.id) || tp) };
+          } catch (err) { return showError('rp-atp-error','Gagal menyimpan revisi TP: '+(err.message||'Coba lagi.')); }
+        }
         showKktpModal(tp, (pendekatan_kktp) => {
           tp.pendekatan_kktp = pendekatan_kktp;
           _ans.tp_terpilih = tp;
@@ -2483,7 +2515,7 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
   <div id="rp-step5-error" class="error-msg" style="display:none;"></div>
   <div class="rp-action-row">
     ${btnSecondary('rp-btn-back5','← Kembali ke ATP')}
-    ${btnPrimary('rp-btn-gen-rencana','Generate rencana pertemuan')}
+    ${btnPrimary('rp-btn-gen-rencana','Simpan konteks & atur pertemuan')}
   </div>
 </div>`;
 
@@ -2546,10 +2578,115 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
 
     _genRencana = true;
     const btn = el('rp-btn-gen-rencana');
-    if (btn) { btn.disabled = true; btn.textContent = 'AI sedang merancang rencana…'; }
+    if (btn) { btn.disabled = true; btn.textContent = 'Menyimpan konteks…'; }
 
     try {
-      const result = await callAI({
+      if (!_teachingContext) {
+        _teachingContext = await SipApi.getTeachingContextForClassroom(_cId, _ans.mapelKey);
+      }
+      if (!_teachingContext?.id || !_ans.tp_terpilih?.id || !_ans.tp_terpilih?.revision_id) {
+        throw new Error('Stable TP atau Teaching Context belum tersedia. Generate ATP kembali.');
+      }
+      const semester = Number(_ans.tp_terpilih.semester);
+      const saved = await SipApi.phase2aPlanning({
+        action: 'save_planning_context',
+        classroom_id: _cId,
+        teaching_context_id: _teachingContext.id,
+        tp_id: _ans.tp_terpilih.id,
+        tp_revision_id: _ans.tp_terpilih.revision_id,
+        academic_year: _profil?.tahun_ajaran,
+        semester,
+        teacher_intent: _ans.niat_guru,
+        preferences: _ans.preferensi,
+        class_context: _ans.konteks_kelas,
+        smk_context: _ans.smk,
+      });
+      _planningContext = saved.planning_context;
+      _jpPolicy = saved.jp_policy;
+      saveRpState();
+      renderMeetingAllocation();
+    } catch (err) {
+      showError('rp-step5-error', 'Gagal menyimpan konteks perencanaan: ' + (err.message || 'Coba lagi.'));
+      if (btn) { btn.disabled = false; btn.textContent = 'Simpan konteks & atur pertemuan'; }
+    } finally {
+      _genRencana = false;
+    }
+  }
+
+  function proposedMeetingJp(total, weekly) {
+    const chunk = Math.max(1, Math.min(Number(weekly) || 2, total));
+    const rows = [];
+    let remaining = total;
+    while (remaining > 0) { rows.push(Math.min(chunk, remaining)); remaining -= chunk; }
+    return rows;
+  }
+
+  function renderMeetingAllocation() {
+    const body = el('rp-body');
+    if (!body || !_planningContext) return;
+    const total = Number(_ans.tp_terpilih?.estimasi_jp) || 2;
+    const proposed = proposedMeetingJp(total, _ans.preferensi?.jp_per_minggu);
+    const effective = Number(_jpPolicy?.effective_jp_minutes) || 45;
+    body.innerHTML = `<div class="rp-block">
+      <div class="rp-block-title">Konfirmasi Alokasi Pertemuan</div>
+      <p class="rp-block-subtitle">Estimasi TP: ${total} JP · Usulan ${proposed.length} pertemuan · ${effective} menit/JP</p>
+      <div class="rp-q"><label class="rp-q-label">Durasi efektif per JP</label>
+        <input id="rp-effective-jp" class="rp-input" type="number" min="1" max="180" value="${effective}" style="max-width:8rem"> menit
+        <input id="rp-jp-override-reason" class="rp-input" type="text" placeholder="Alasan kebijakan sekolah (wajib jika berbeda dari standar)" style="margin-top:var(--space-xs)">
+      </div>
+      <div id="rp-allocation-list">${proposed.map((jp,i)=>`<div class="rp-q" style="display:flex;align-items:center;gap:var(--space-sm)">
+        <label class="rp-q-label" style="min-width:8rem">Pertemuan ${i+1}</label>
+        <input class="rp-input rp-allocation-jp" type="number" min="1" max="20" value="${jp}" style="max-width:7rem"> <span>JP (${jp*effective} menit)</span>
+      </div>`).join('')}</div>
+      <div id="rp-allocation-error" class="error-msg" style="display:none"></div>
+      <div class="rp-action-row">${btnSecondary('rp-btn-back-allocation','← Ubah konteks')}${btnPrimary('rp-btn-confirm-allocation','Konfirmasi alokasi')}</div>
+    </div>`;
+    el('rp-btn-back-allocation')?.addEventListener('click', renderStep5);
+    el('rp-btn-confirm-allocation')?.addEventListener('click', confirmMeetingAllocation);
+    body.querySelectorAll('.rp-allocation-jp').forEach(input => input.addEventListener('input', () => {
+      const jp = Number(input.value) || 0;
+      const label = input.nextElementSibling;
+      const currentMinutes = Number(el('rp-effective-jp')?.value) || effective;
+      if (label) label.textContent = `JP (${jp * currentMinutes} menit)`;
+    }));
+    el('rp-effective-jp')?.addEventListener('input', () => body.querySelectorAll('.rp-allocation-jp').forEach(input => {
+      const label=input.nextElementSibling, minutes=Number(el('rp-effective-jp')?.value)||0;
+      if(label) label.textContent=`JP (${(Number(input.value)||0)*minutes} menit)`;
+    }));
+  }
+
+  async function confirmMeetingAllocation() {
+    const btn = el('rp-btn-confirm-allocation');
+    const jpValues = [...document.querySelectorAll('.rp-allocation-jp')].map(x => Number(x.value));
+    const effective = Number(el('rp-effective-jp')?.value);
+    const standard = Number(_jpPolicy?.standard_jp_minutes) || effective;
+    const overrideReason = (el('rp-jp-override-reason')?.value || '').trim();
+    if (!jpValues.length || jpValues.some(x => !Number.isInteger(x) || x <= 0)) {
+      return showError('rp-allocation-error','Setiap pertemuan harus memiliki JP positif.');
+    }
+    if (!Number.isInteger(effective) || effective <= 0 || (effective !== standard && !overrideReason)) {
+      return showError('rp-allocation-error','Isi durasi JP yang valid dan alasan jika berbeda dari standar.');
+    }
+    btn.disabled = true; btn.textContent = 'Mengonfirmasi…';
+    try {
+      if (effective !== Number(_jpPolicy?.effective_jp_minutes)) {
+        _jpPolicy = await SipApi.phase2aPlanning({ action:'set_jp_policy', classroom_id:_cId,
+          teaching_context_id:_teachingContext.id, effective_jp_minutes:effective, override_reason:overrideReason });
+      }
+      await SipApi.phase2aPlanning({
+        action: 'confirm_allocation', classroom_id: _cId, teaching_context_id: _teachingContext.id,
+        planning_context_id: _planningContext.id, proposal_source: 'ATP_ESTIMATE',
+        meetings: jpValues.map((jp,i)=>({meeting_no:i+1,jp})),
+      });
+      await generateLegacyRencanaAfterAllocation();
+    } catch (err) {
+      showError('rp-allocation-error','Gagal mengonfirmasi alokasi: '+(err.message||'Coba lagi.'));
+      btn.disabled=false; btn.textContent='Konfirmasi alokasi';
+    }
+  }
+
+  async function generateLegacyRencanaAfterAllocation() {
+    const result = await callAI({
         mode: 'rencana',
         konteks: { mapel: _ans.mapel, jenjang: _ans.jenjang, fase: _ans.fase, jp_per_minggu: _ans.preferensi?.jp_per_minggu, kelas: _profil?.kelas || '' },
         smk: _ans.smk ? { ..._ans.smk, bidang_keahlian: _ans.bidangKeahlian || null, program_keahlian: _ans.programKeahlian || null } : null,
@@ -2559,14 +2696,8 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
         konteks_kelas: _ans.konteks_kelas,
         semester_list: _profil?.semester_list || [],
       });
-      _step = 6;
-      renderStep6(result);
-    } catch (err) {
-      showError('rp-step5-error', 'Gagal generate rencana: ' + (err.message || 'Coba lagi.'));
-      if (btn) { btn.disabled = false; btn.textContent = 'Generate rencana pertemuan'; }
-    } finally {
-      _genRencana = false;
-    }
+    _step = 6;
+    renderStep6(result);
   }
 
   // ─── Step 6 — Output ────────────────────────────────────────────────────────
@@ -3122,6 +3253,7 @@ ${tpList.map((tp, i) => {
     _cpElemen = []; _cpRingkasan = []; _cpLabel = ''; _cpUmum = ''; _atpList = []; _rencana = null;
     _genCp = false; _genAtp = false; _genRencana = false;
     _settings = null;
+    _teachingContext = null; _durableAtp = null; _planningContext = null; _jpPolicy = null;
     _step = 1;
     renderStep1();
   }
@@ -3136,6 +3268,10 @@ ${tpList.map((tp, i) => {
         cpElemen: _cpElemen, cpRingkasan: _cpRingkasan,
         cpLabel: _cpLabel, cpUmum: _cpUmum,
         rencana: _rencana,
+        durableAtp: _durableAtp,
+        teachingContext: _teachingContext,
+        planningContext: _planningContext,
+        jpPolicy: _jpPolicy,
       }));
     } catch (_) {}
   }
@@ -3151,19 +3287,31 @@ ${tpList.map((tp, i) => {
       try { localStorage.removeItem('rp_state_' + _cId); } catch (_) {}
       return false;
     }
-    const { step, ans, atpList, cpElemen, cpRingkasan, cpLabel, cpUmum, rencana } = saved || {};
+    const { step, ans, atpList, cpElemen, cpRingkasan, cpLabel, cpUmum, rencana, durableAtp, teachingContext, planningContext, jpPolicy } = saved || {};
     if (!step || !ans) return false;
 
+    const serverDurableAtp = _durableAtp;
+    const serverAtpList = _atpList;
+    const serverTeachingContext = _teachingContext;
+    const serverPlanningContext = _planningContext;
+    const serverJpPolicy = _jpPolicy;
+    const serverSelectedTp = _ans.tp_terpilih;
     Object.assign(_ans, ans);
-    _atpList = Array.isArray(atpList) ? atpList : [];
+    if (serverPlanningContext && serverSelectedTp) _ans.tp_terpilih = serverSelectedTp;
+    _atpList = serverDurableAtp ? serverAtpList : (Array.isArray(atpList) ? atpList : []);
+    if (serverDurableAtp && !_ans.tp_terpilih?.id) _ans.tp_terpilih = null;
     _cpElemen = Array.isArray(cpElemen) ? cpElemen : [];
     _cpRingkasan = Array.isArray(cpRingkasan) ? cpRingkasan : [];
     _cpLabel = cpLabel || '';
     _cpUmum = cpUmum || '';
     _rencana = rencana || null;
-    _step = step;
+    _durableAtp = serverDurableAtp || durableAtp || null;
+    _teachingContext = serverTeachingContext || teachingContext || null;
+    _planningContext = serverPlanningContext || planningContext || null;
+    _jpPolicy = serverJpPolicy || jpPolicy || null;
+    _step = (serverDurableAtp && step > 4 && !_ans.tp_terpilih) ? 4 : step;
 
-    switch (step) {
+    switch (_step) {
       case 2: renderStep2(); break;
       case 3: renderStep3A(); break;
       case 4: if (_atpList.length) { renderStep4(_atpList); } else { renderStep1(); } break;
@@ -3217,6 +3365,29 @@ ${tpList.map((tp, i) => {
         _ans.bidangKeahlian  = _profil.bidang_keahlian   || null;
         _ans.programKeahlian = _profil.program_keahlian  || null;
         _ans.elemenTerpilih  = normalizeArray(_profil.elemen_terpilih);
+        try {
+          _teachingContext = await SipApi.getTeachingContextForClassroom(_cId, _ans.mapelKey);
+          if (_teachingContext?.id) {
+            const latest = await SipApi.phase2aPlanning({ action:'get_latest_atp', classroom_id:_cId,
+              teaching_context_id:_teachingContext.id });
+            if (latest?.tp_list?.length) {
+              _durableAtp = { atp_id:latest.atp_id, atp_revision_id:latest.atp_revision_id };
+              _atpList = latest.tp_list;
+            }
+            const latestPlanning = await SipApi.phase2aPlanning({ action:'get_latest_planning_context', classroom_id:_cId,
+              teaching_context_id:_teachingContext.id });
+            if (latestPlanning?.planning_context) {
+              _planningContext = latestPlanning.planning_context;
+              _jpPolicy = latestPlanning.jp_policy;
+              const pc = _planningContext;
+              _ans.tp_terpilih = _atpList.find(tp => tp.id === pc.tp_id && tp.revision_id === pc.selected_tp_revision_id) || null;
+              _ans.niat_guru = pc.teacher_intent_snapshot || {};
+              _ans.preferensi = pc.preferences_snapshot || {};
+              _ans.konteks_kelas = pc.class_context_snapshot || {};
+              _ans.smk = pc.smk_context_snapshot || null;
+            }
+          }
+        } catch (e) { console.warn('[rancang] durable ATP belum dapat dimuat:', e); }
       } else if (_settings) {
         if (_settings.jenjang)          _ans.jenjang          = _settings.jenjang;
         if (_settings.mapel_key)        _ans.mapelKey         = _settings.mapel_key;
@@ -3266,7 +3437,10 @@ ${tpList.map((tp, i) => {
       }
     }
 
-    if (!restored || _step === 1) renderStep1();
+    if (!restored || _step === 1) {
+      if (_planningContext && _ans.tp_terpilih) { _step = 5; renderStep5(); }
+      else renderStep1();
+    }
     _loaded = true;
   }
 

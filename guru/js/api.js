@@ -137,6 +137,29 @@
       return data;
     },
 
+    async getTeachingContextForClassroom(classroomId, subjectKey) {
+      const { data: bindings, error: bindingError } = await client
+        .from('teaching_context_classrooms')
+        .select('teaching_context_id')
+        .eq('classroom_id', classroomId)
+        .eq('status', 'ACTIVE');
+      if (bindingError) throw bindingError;
+      const ids = (bindings || []).map(x => x.teaching_context_id);
+      if (!ids.length) return null;
+      let query = client.from('teaching_contexts').select('*').in('id', ids).eq('status', 'ACTIVE');
+      if (subjectKey) query = query.eq('subject_key', subjectKey);
+      const { data, error } = await query.order('updated_at', { ascending: false }).limit(1).maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+
+    async phase2aPlanning(payload) {
+      const { data, error } = await client.functions.invoke('phase2a-planning', { body: payload });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data?.result;
+    },
+
     // ── Rancang Settings ───────────────────────────────────────
     async getRancangSettings(classroomId) {
       const { data, error } = await client
