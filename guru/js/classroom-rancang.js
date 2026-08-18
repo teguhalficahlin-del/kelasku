@@ -2217,6 +2217,7 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
         action: 'persist_generated_atp',
         classroom_id: _cId,
         teaching_context_id: _teachingContext.id,
+        atp_id: _durableAtp?.atp_id || null,
         tp_list: generatedList,
       });
       _durableAtp = { atp_id: durable.atp_id, atp_revision_id: durable.atp_revision_id };
@@ -3377,6 +3378,10 @@ ${tpList.map((tp, i) => {
             const latestPlanning = await SipApi.phase2aPlanning({ action:'get_latest_planning_context', classroom_id:_cId,
               teaching_context_id:_teachingContext.id });
             if (latestPlanning?.planning_context) {
+              if (latestPlanning.durable_atp?.tp_list?.length) {
+                _durableAtp = { atp_id:latestPlanning.durable_atp.atp_id, atp_revision_id:latestPlanning.durable_atp.atp_revision_id };
+                _atpList = latestPlanning.durable_atp.tp_list;
+              }
               _planningContext = latestPlanning.planning_context;
               _jpPolicy = latestPlanning.jp_policy;
               const pc = _planningContext;

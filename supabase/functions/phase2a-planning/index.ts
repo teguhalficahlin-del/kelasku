@@ -74,7 +74,15 @@ Deno.serve(async req=>{
         .order('updated_at',{ascending:false}).limit(1).maybeSingle();
       if(error) throw error;
       const std=standardMinutes(context.jenjang); const {data:policy}=await admin.from('classroom_jp_policies').select('*').eq('classroom_id',classroomId).maybeSingle();
-      return reply({result:pc?{planning_context:pc,jp_policy:policy||{standard_jp_minutes:std,effective_jp_minutes:std}}:null});
+      let durableAtp=null;
+      if(pc){
+        const {data:tp}=await admin.from('rancang_tp').select('atp_id').eq('id',pc.tp_id).maybeSingle();
+        if(tp){
+          const {data,error:atpError}=await admin.rpc('fn_phase2a_get_atp',{p_profile_id:profile.id,p_atp_id:tp.atp_id});
+          if(atpError) throw atpError; durableAtp=data;
+        }
+      }
+      return reply({result:pc?{planning_context:pc,durable_atp:durableAtp,jp_policy:policy||{standard_jp_minutes:std,effective_jp_minutes:std}}:null});
     }
 
     const cp=await canonical();
@@ -105,9 +113,17 @@ Deno.serve(async req=>{
         normalized.push({...core,source_hash:await sha(core)});
       }
       const atpCore={context_id:context.id,tp_list:normalized.map(x=>({...x,source_hash:undefined})),source};
+      const atpSourceHash=await sha(atpCore);
+      let targetAtpId=body.atp_id||null;
+      if(!targetAtpId&&source!=='LEGACY_IMPORT'){
+        const {data:existing}=await admin.from('rancang_atp').select('id,rancang_atp_revisions!inner(source_hash)')
+          .eq('profile_id',profile.id).eq('teaching_context_id',context.id).eq('status','ACTIVE')
+          .eq('rancang_atp_revisions.source_hash',atpSourceHash).limit(1).maybeSingle();
+        targetAtpId=existing?.id||null;
+      }
       const {data,error}=await admin.rpc('fn_phase2a_persist_atp',{p_profile_id:profile.id,p_teaching_context_id:context.id,
-        p_source:source,p_source_hash:await sha(atpCore),p_cp_dataset_revision:cp.revision,p_tp_list:normalized,
-        p_atp_id:body.atp_id||null,p_legacy_document_id:legacyId,p_legacy_payload_hash:legacyHash});
+        p_source:source,p_source_hash:atpSourceHash,p_cp_dataset_revision:cp.revision,p_tp_list:normalized,
+        p_atp_id:targetAtpId,p_legacy_document_id:legacyId,p_legacy_payload_hash:legacyHash});
       if(error) throw error; return reply({result:data});
     }
 
