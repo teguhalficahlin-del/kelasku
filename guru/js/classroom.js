@@ -754,16 +754,8 @@
 
   async function loadTrialStatus() {
     try {
-      const stored = sessionStorage.getItem('guru_trial_status');
-      if (stored) { trialStatus = JSON.parse(stored); return; }
-    } catch (_) {}
-    try {
-      const { data } = await client.rpc('fn_guru_trial_status');
-      if (data) {
-        trialStatus = data;
-        try { sessionStorage.setItem('guru_trial_status', JSON.stringify(trialStatus)); } catch (_) {}
-      }
-    } catch (_) {}
+      trialStatus = await window.api.getTrialStatus();
+    } catch (_) { trialStatus = null; }
   }
 
   function applyTrialGate() {

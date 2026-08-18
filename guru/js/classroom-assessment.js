@@ -2926,15 +2926,9 @@ ${metodeHtml}${hasilHtml}`;
       if (_cId) try { localStorage.setItem('sip_tab_' + _cId, 'penilaian'); } catch (_) {}
 
       if (!_loaded) {
-        // Tier gate — cek tier dari sessionStorage atau RPC
+        // Tier gate — server authoritative; cache hanya diisi ulang oleh RPC.
         let _ts = null;
-        try { _ts = JSON.parse(sessionStorage.getItem('guru_trial_status') || 'null'); } catch (_) {}
-        if (!_ts) {
-          try {
-            const { data } = await client.rpc('fn_guru_trial_status');
-            if (data) { _ts = data; sessionStorage.setItem('guru_trial_status', JSON.stringify(_ts)); }
-          } catch (_) {}
-        }
+        try { _ts = await window.api.getTrialStatus(); } catch (_) {}
         if (_ts && _ts.status === 'EXPIRED') {
           panelPenilaian.innerHTML =
             '<div class="upgrade-tier-banner">' +

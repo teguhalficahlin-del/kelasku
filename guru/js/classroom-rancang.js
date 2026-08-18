@@ -3295,15 +3295,9 @@ ${tpList.map((tp, i) => {
       const cId = new URLSearchParams(window.location.search).get('id');
       if (cId) try { localStorage.setItem('sip_tab_' + cId, 'rancang'); } catch (_) {}
 
-      // Trial gate — fitur hanya untuk AKTIF
+      // Trial gate — server authoritative; cache hanya diisi ulang oleh RPC.
       let _ts = null;
-      try { _ts = JSON.parse(sessionStorage.getItem('guru_trial_status') || 'null'); } catch (_) {}
-      if (!_ts) {
-        try {
-          const { data } = await window.supabaseClient.rpc('fn_guru_trial_status');
-          if (data) { _ts = data; sessionStorage.setItem('guru_trial_status', JSON.stringify(_ts)); }
-        } catch (_) {}
-      }
+      try { _ts = await window.api.getTrialStatus(); } catch (_) {}
       if (_ts && _ts.status === 'EXPIRED') {
         panelRancang.innerHTML =
           '<div class="upgrade-tier-banner">' +

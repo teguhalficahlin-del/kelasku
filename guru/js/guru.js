@@ -162,9 +162,10 @@ window.initCustomSelect = function (nativeEl, onChange) {
 
       // Ambil status trial sebelum redirect — disimpan agar dashboard tidak perlu RPC ulang
       try {
-        const ts = await api.getTrialStatus();
+        const { data: ts } = await client.rpc('fn_guru_trial_status');
         if (ts) sessionStorage.setItem('guru_trial_status', JSON.stringify(ts));
-      } catch (_) { /* dashboard akan fallback ke RPC jika sessionStorage kosong */ }
+        else sessionStorage.removeItem('guru_trial_status');
+      } catch (_) { sessionStorage.removeItem('guru_trial_status'); }
 
       window.location.href = 'dashboard.html';
     });
@@ -690,20 +691,8 @@ window.initCustomSelect = function (nativeEl, onChange) {
         currentRoleGuru = await showModalPeran();
       }
 
-      // Baca status trial dari sessionStorage (diisi saat login)
-      // Fallback ke RPC jika navigasi langsung atau sessionStorage kosong
-      let trialStatus = null;
-      try {
-        const stored = sessionStorage.getItem('guru_trial_status');
-        if (stored) { trialStatus = JSON.parse(stored); }
-      } catch (_) {}
-
-      if (!trialStatus) {
-        trialStatus = await api.getTrialStatus();
-        if (trialStatus) {
-          try { sessionStorage.setItem('guru_trial_status', JSON.stringify(trialStatus)); } catch (_) {}
-        }
-      }
+      // Server selalu authoritative; getTrialStatus menimpa cache browser.
+      const trialStatus = await api.getTrialStatus();
 
       applyTrialUI(trialStatus);
       applySemesterUI(getCurrentSemesterPhase());

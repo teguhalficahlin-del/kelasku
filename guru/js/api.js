@@ -81,11 +81,16 @@
 
     async getTrialStatus() {
       const { data, error } = await client.rpc('fn_guru_trial_status');
-      if (error) return null;
+      if (error) {
+        try { sessionStorage.removeItem('guru_trial_status'); } catch (_) {}
+        return null;
+      }
+      try { sessionStorage.setItem('guru_trial_status', JSON.stringify(data)); } catch (_) {}
       return data;
     },
 
-    signOut() {
+    async signOut() {
+      try { sessionStorage.removeItem('guru_trial_status'); } catch (_) {}
       return client.auth.signOut();
     },
 
