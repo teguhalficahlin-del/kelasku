@@ -63,8 +63,6 @@ CREATE TABLE rancang_artifact_version_states (
   CHECK (NOT needs_update OR invalidated_at IS NOT NULL),
   CHECK (usable = (
     lifecycle_status IN ('GENERATED','CONFIRMED')
-    AND decision_status='ACCEPTED'
-    AND validation_status='VALID'
     AND needs_update=false
   ))
 );
@@ -200,8 +198,7 @@ CREATE OR REPLACE FUNCTION fn_phase2b_recompute_usable(p_version_id uuid)
 RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$
 BEGIN
   UPDATE rancang_artifact_version_states
-  SET usable=(lifecycle_status IN ('GENERATED','CONFIRMED') AND decision_status='ACCEPTED'
-              AND validation_status='VALID' AND needs_update=false),updated_at=now()
+  SET usable=(lifecycle_status IN ('GENERATED','CONFIRMED') AND needs_update=false),updated_at=now()
   WHERE version_id=p_version_id;
 END $$;
 
@@ -304,7 +301,7 @@ BEGIN
   IF NOT FOUND THEN RAISE EXCEPTION 'Artifact version tidak diizinkan' USING ERRCODE='42501'; END IF;
   SELECT * INTO v_state FROM rancang_artifact_version_states WHERE version_id=p_version_id FOR UPDATE;
   IF p_action='GENERATED' AND v_state.lifecycle_status IN ('PENDING','GENERATING') THEN
-    UPDATE rancang_artifact_version_states SET lifecycle_status='GENERATED',updated_at=now() WHERE version_id=p_version_id; v_event:='GENERATED';
+    UPDATE rancang_artifact_version_states SET lifecycle_status='GENERATED',usable=(needs_update=false),updated_at=now() WHERE version_id=p_version_id; v_event:='GENERATED';
   ELSIF p_action='CONFIRM' AND v_state.lifecycle_status='GENERATED' THEN
     UPDATE rancang_artifact_version_states SET lifecycle_status='CONFIRMED',confirmed_at=now(),updated_at=now() WHERE version_id=p_version_id; v_event:='CONFIRMED';
   ELSIF p_action='FAIL' AND v_state.lifecycle_status IN ('PENDING','GENERATING') THEN
@@ -313,8 +310,6 @@ BEGIN
     UPDATE rancang_artifact_version_states SET lifecycle_status='GENERATING',updated_at=now() WHERE version_id=p_version_id; v_event:='RECOVERED';
   ELSIF p_action='VALIDATE' AND p_validation_status IN ('INCOMPLETE','VALID','INVALID') THEN
     UPDATE rancang_artifact_version_states SET validation_status=p_validation_status,
-      usable=(lifecycle_status IN ('GENERATED','CONFIRMED') AND decision_status='ACCEPTED'
-              AND p_validation_status='VALID' AND needs_update=false),
       validation_summary=COALESCE(p_validation_summary,'{}'),updated_at=now() WHERE version_id=p_version_id; v_event:='VALIDATED';
   ELSE RAISE EXCEPTION 'Transition artifact tidak valid'; END IF;
   PERFORM fn_phase2b_recompute_usable(p_version_id);
@@ -342,7 +337,7 @@ BEGIN
     IF FOUND AND (p_expected_selection_revision IS NULL OR v_selection.selection_revision<>p_expected_selection_revision) THEN
       RAISE EXCEPTION 'Selection conflict' USING ERRCODE='40001'; END IF;
     IF FOUND THEN
-      UPDATE rancang_artifact_version_states SET decision_status='SUPERSEDED',usable=false,updated_at=now()
+      UPDATE rancang_artifact_version_states SET decision_status='SUPERSEDED',updated_at=now()
         WHERE version_id=v_selection.selected_version_id AND decision_status='ACCEPTED';
       UPDATE rancang_artifact_selections SET selected_version_id=p_version_id,selected_by=p_profile_id,
         selected_at=now(),selection_revision=selection_revision+1 WHERE artifact_id=v_version.artifact_id RETURNING * INTO v_selection;
@@ -351,7 +346,7 @@ BEGIN
       INSERT INTO rancang_artifact_selections(artifact_id,selected_version_id,selected_by)
       VALUES(v_version.artifact_id,p_version_id,p_profile_id) RETURNING * INTO v_selection;
     END IF;
-    UPDATE rancang_artifact_version_states SET decision_status='ACCEPTED',usable=true,updated_at=now() WHERE version_id=p_version_id;
+    UPDATE rancang_artifact_version_states SET decision_status='ACCEPTED',updated_at=now() WHERE version_id=p_version_id;
     PERFORM fn_phase2b_recompute_usable(p_version_id); v_event:='CANDIDATE_ACCEPTED';
   ELSIF p_decision='REJECT' THEN
     UPDATE rancang_artifact_version_states SET decision_status='REJECTED',rejected_at=now(),updated_at=now() WHERE version_id=p_version_id;

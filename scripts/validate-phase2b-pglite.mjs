@@ -81,6 +81,7 @@ await denied('forged meeting duration',()=>one(createSql,[ids.pa,pc.id,mi.id,JSO
 const forgedDeps = JSON.stringify([{kind:'PLANNING_CONTEXT',planning_context_id:'ffffffff-ffff-ffff-ffff-ffffffffffff',hash:H('d')}]);
 await denied('forged dependency identifier',()=>one(`SELECT fn_phase2b_create_version($1,$2,'MATERIAL_SPEC','ROOT',NULL,NULL,NULL,'AI',false,'{}','{}',$3,$4,NULL,NULL,$5::jsonb,'forged-dep')`,[ids.pa,pc.id,H('6'),H('6'),forgedDeps]));
 await one(`SELECT fn_phase2b_transition_version($1,$2,'GENERATED',NULL,NULL,NULL,'generated-1')`,[ids.pa,v1.version_id]);
+assert((await one(`SELECT usable FROM rancang_artifact_version_states WHERE version_id=$1`,[v1.version_id])).usable,'generated fresh artifact is not usable under locked contract');
 await one(`SELECT fn_phase2b_transition_version($1,$2,'VALIDATE','VALID','{}',NULL,'validated-1')`,[ids.pa,v1.version_id]);
 await one(`SELECT fn_phase2b_decide_candidate($1,$2,'ACCEPT',0,'accept-1')`,[ids.pa,v1.version_id]);
 assert((await one(`SELECT usable,decision_status FROM rancang_artifact_version_states WHERE version_id=$1`,[v1.version_id])).usable,'accepted valid version not usable');
@@ -104,7 +105,7 @@ await denied('stale concurrent selection revision',()=>one(`SELECT fn_phase2b_de
 await one(`SELECT fn_phase2b_decide_candidate($1,$2,'ACCEPT',1,'accept-3')`,[ids.pa,edit.version_id]);
 assert((await one(`SELECT selected_version_id=$1 selected,selection_revision FROM rancang_artifact_selections WHERE artifact_id=$2`,[edit.version_id,v1.artifact_id])).selected,'explicit replacement selection failed');
 await one(`SELECT fn_phase2b_transition_version($1,$2,'VALIDATE','INVALID','{"blocking":true}',NULL,'invalid-3')`,[ids.pa,edit.version_id]);
-assert(!(await one(`SELECT usable FROM rancang_artifact_version_states WHERE version_id=$1`,[edit.version_id])).usable,'invalid selected version remained usable');
+assert((await one(`SELECT usable FROM rancang_artifact_version_states WHERE version_id=$1`,[edit.version_id])).usable,'validation incorrectly changed locked artifact usability');
 await one(`SELECT fn_phase2b_transition_version($1,$2,'VALIDATE','VALID','{}',NULL,'revalidated-3')`,[ids.pa,edit.version_id]);
 
 const invalidated = (await one(`SELECT fn_phase2b_invalidate_dependants($1,'MEETING_ALLOCATION_ITEM',$2,$3,'ALLOCATION_CHANGED','inv-1') n`,[ids.pa,mi.id,H('9')])).n;
