@@ -74,15 +74,21 @@ Deno.serve(async req=>{
         .order('updated_at',{ascending:false}).limit(1).maybeSingle();
       if(error) throw error;
       const std=standardMinutes(context.jenjang); const {data:policy}=await admin.from('classroom_jp_policies').select('*').eq('classroom_id',classroomId).maybeSingle();
-      let durableAtp=null;
+      let durableAtp=null, selectedTp=null;
       if(pc){
         const {data:tp}=await admin.from('rancang_tp').select('atp_id').eq('id',pc.tp_id).maybeSingle();
         if(tp){
           const {data,error:atpError}=await admin.rpc('fn_phase2a_get_atp',{p_profile_id:profile.id,p_atp_id:tp.atp_id});
           if(atpError) throw atpError; durableAtp=data;
         }
+        const {data:revision,error:revisionError}=await admin.from('rancang_tp_revisions')
+          .select('id,judul,deskripsi,semester,estimasi_jp,raw_element_value').eq('id',pc.selected_tp_revision_id).eq('tp_id',pc.tp_id).maybeSingle();
+        if(revisionError) throw revisionError;
+        if(revision) selectedTp={id:pc.tp_id,revision_id:revision.id,judul:revision.judul,deskripsi:revision.deskripsi,
+          semester:revision.semester,estimasi_jp:revision.estimasi_jp,elemen_cp:revision.raw_element_value};
       }
-      return reply({result:pc?{planning_context:pc,durable_atp:durableAtp,jp_policy:policy||{standard_jp_minutes:std,effective_jp_minutes:std}}:null});
+      return reply({result:pc?{planning_context:pc,durable_atp:durableAtp,selected_tp:selectedTp,
+        jp_policy:policy||{standard_jp_minutes:std,effective_jp_minutes:std}}:null});
     }
 
     const cp=await canonical();

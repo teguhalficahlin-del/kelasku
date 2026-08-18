@@ -3385,7 +3385,8 @@ ${tpList.map((tp, i) => {
               _planningContext = latestPlanning.planning_context;
               _jpPolicy = latestPlanning.jp_policy;
               const pc = _planningContext;
-              _ans.tp_terpilih = _atpList.find(tp => tp.id === pc.tp_id && tp.revision_id === pc.selected_tp_revision_id) || null;
+              _ans.tp_terpilih = latestPlanning.selected_tp ||
+                _atpList.find(tp => tp.id === pc.tp_id && tp.revision_id === pc.selected_tp_revision_id) || null;
               _ans.niat_guru = pc.teacher_intent_snapshot || {};
               _ans.preferensi = pc.preferences_snapshot || {};
               _ans.konteks_kelas = pc.class_context_snapshot || {};
