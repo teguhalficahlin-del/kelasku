@@ -160,6 +160,13 @@
       return data?.result;
     },
 
+    async phase2cGenerate(payload) {
+      const { data, error } = await client.functions.invoke('phase2c-generate', { body: payload });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data?.result;
+    },
+
     // ── Rancang Settings ───────────────────────────────────────
     async getRancangSettings(classroomId) {
       const { data, error } = await client

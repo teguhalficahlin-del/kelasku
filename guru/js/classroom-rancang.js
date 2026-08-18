@@ -43,6 +43,9 @@
   // Hasil generate rencana terakhir (untuk navigasi balik ke step 6)
   let _rencana = null;
 
+  // Phase 2C pipeline state — loaded from server, not from localStorage as authority
+  let _phase2cState = null;
+
   // Step saat ini: 0 = profil (onboarding), 1–7 = wizard
   let _step = 1;
 
@@ -2679,7 +2682,7 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
         planning_context_id: _planningContext.id, proposal_source: 'ATP_ESTIMATE',
         meetings: jpValues.map((jp,i)=>({meeting_no:i+1,jp})),
       });
-      await generateLegacyRencanaAfterAllocation();
+      await enterPhase2CPipeline();
     } catch (err) {
       showError('rp-allocation-error','Gagal mengonfirmasi alokasi: '+(err.message||'Coba lagi.'));
       btn.disabled=false; btn.textContent='Konfirmasi alokasi';
@@ -2701,7 +2704,516 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
     renderStep6(result);
   }
 
-  // ─── Step 6 — Output ────────────────────────────────────────────────────────
+  // ─── Phase 2C Pipeline ──────────────────────────────────────────────────────
+
+  function phase2cPayload(extra) {
+    return {
+      classroom_id: _cId,
+      teaching_context_id: _teachingContext?.id || '',
+      planning_context_id: _planningContext?.id || '',
+      ...extra,
+    };
+  }
+
+  // Entry point after allocation confirmed OR from resume
+  async function enterPhase2CPipeline() {
+    _step = 6;
+    renderStepBar();
+    const body = el('rp-body');
+    if (!body) return;
+    body.innerHTML = `<div class="rp-block"><div class="rp-block-title">Memuat status pipeline…</div></div>`;
+    try {
+      _phase2cState = await SipApi.phase2cGenerate(phase2cPayload({ action: 'get_pipeline_state' }));
+      saveRpState();
+      renderStep6Phase2C();
+    } catch (err) {
+      body.innerHTML = `<div class="rp-block">
+        <div class="rp-block-title" style="color:var(--error);">Gagal memuat pipeline</div>
+        <p style="font-size:var(--fs-caption);color:var(--text-secondary);">${esc(err.message || 'Coba lagi.')}</p>
+        <button class="btn btn-primary" id="rp2c-retry-load">Coba lagi</button>
+      </div>`;
+      el('rp2c-retry-load')?.addEventListener('click', enterPhase2CPipeline);
+    }
+  }
+
+  function renderStep6Phase2C() {
+    const s = _phase2cState;
+    if (!s) { enterPhase2CPipeline(); return; }
+    // Route to the right checkpoint
+    const ctxConfirmed = s.context_spec?.confirmed;
+    if (!ctxConfirmed) {
+      renderContextCheckpoint();
+    } else {
+      renderAssessmentCheckpoint();
+    }
+  }
+
+  // ── Checkpoint 1: Context Specification ────────────────────────────────────
+  function renderContextCheckpoint() {
+    const body = el('rp-body');
+    if (!body) return;
+    const s = _phase2cState;
+    const ctx = s?.context_spec;
+    const alloc = s?.meeting_allocation;
+    const tp = _ans.tp_terpilih;
+
+    const allocHtml = alloc?.items?.length
+      ? alloc.items.map(item =>
+          `<div style="display:flex;gap:var(--space-sm);align-items:center;padding:var(--space-xs) 0;
+            border-bottom:1px solid var(--border);font-size:var(--fs-caption);">
+            <span style="color:var(--text-muted);min-width:7rem;">Pertemuan ${item.meeting_no}</span>
+            <span style="color:var(--text-primary);font-weight:var(--fw-medium);">${item.jp} JP</span>
+            <span style="color:var(--text-muted);">${item.duration_minutes} menit</span>
+          </div>`).join('')
+      : '<p style="color:var(--text-muted);font-size:var(--fs-caption);">Alokasi belum tersedia.</p>';
+
+    const hasCtx = !!ctx?.artifact_id;
+    const ctxUsable = ctx?.usable === true;
+    const ctxContent = ctx?.content;
+
+    // Candidates for selection
+    const candidates = ctx?.candidates?.filter(c => c.version_id !== ctx?.selected_version_id) ?? [];
+
+    let ctxBodyHtml = '';
+    if (!hasCtx) {
+      ctxBodyHtml = `<div style="color:var(--text-muted);font-size:var(--fs-caption);padding:var(--space-md) 0;">
+        Context Specification belum dibuat. Klik "Generate Context" untuk memulai.
+      </div>`;
+    } else if (!ctxUsable) {
+      ctxBodyHtml = `<div style="color:var(--warning,#f59e0b);font-size:var(--fs-caption);padding:var(--space-md) 0;">
+        Context Specification perlu diperbarui.
+      </div>`;
+    } else {
+      ctxBodyHtml = renderContextDecisions(ctxContent);
+    }
+
+    const candidatesHtml = candidates.length ? `
+<div style="margin-top:var(--space-md);padding:var(--space-sm);background:var(--surface-1);border-radius:var(--radius-md);">
+  <div style="font-size:var(--fs-caption);font-weight:var(--fw-semibold);color:var(--text-muted);margin-bottom:var(--space-xs);">
+    Kandidat baru tersedia — pilih untuk menggantikan versi aktif:
+  </div>
+  ${candidates.map(c => `
+    <div style="display:flex;align-items:center;gap:var(--space-sm);padding:var(--space-xs) 0;border-bottom:1px solid var(--border);">
+      <span style="font-size:var(--fs-caption);color:var(--text-secondary);">v${c.version_no} (${c.origin === 'TEACHER' ? 'Edit guru' : 'AI'})</span>
+      <button class="btn btn-sm rp2c-select-ctx-candidate" data-vid="${esc(c.version_id)}" style="font-size:var(--fs-badge);">
+        Gunakan kandidat ini
+      </button>
+    </div>`).join('')}
+</div>` : '';
+
+    body.innerHTML = `
+<div class="rp-block">
+  <div class="rp-block-title">Step 6 — Generate RPM (Checkpoint 1/2)</div>
+  <div style="font-size:var(--fs-caption);color:var(--text-muted);">TP: ${esc(tp?.judul || '-')}</div>
+</div>
+
+<div class="rp-block" style="margin-bottom:var(--space-sm);">
+  <div style="font-weight:var(--fw-semibold);font-size:var(--fs-ui);color:var(--text-primary);margin-bottom:var(--space-sm);">
+    Alokasi Pertemuan yang Dikonfirmasi
+  </div>
+  ${allocHtml}
+</div>
+
+<div class="rp-block">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-sm);">
+    <div style="font-weight:var(--fw-semibold);font-size:var(--fs-ui);color:var(--text-primary);">
+      Checkpoint 1 — Context Specification
+      ${ctx?.lifecycle_status === 'CONFIRMED'
+        ? '<span style="color:var(--success,#4caf50);font-size:var(--fs-badge);margin-left:var(--space-xs);">✓ Dikonfirmasi</span>'
+        : ctxUsable
+          ? '<span style="color:var(--gold);font-size:var(--fs-badge);margin-left:var(--space-xs);">Siap dikonfirmasi</span>'
+          : '<span style="color:var(--text-muted);font-size:var(--fs-badge);margin-left:var(--space-xs);">Belum dibuat</span>'}
+    </div>
+    ${ctx?.origin === 'TEACHER' ? '<span style="font-size:var(--fs-badge);color:var(--gold);">✏ Diedit guru</span>' : ''}
+  </div>
+
+  <div id="rp2c-ctx-body">${ctxBodyHtml}</div>
+  ${candidatesHtml}
+
+  <div id="rp2c-ctx-edit-area" style="display:none;"></div>
+  <div id="rp2c-ctx-error" class="error-msg" style="display:none;"></div>
+
+  <div class="rp-action-row" style="flex-wrap:wrap;gap:var(--space-sm);">
+    ${!hasCtx
+      ? `${btnPrimary('rp2c-btn-gen-ctx', 'Generate Context')}`
+      : `${btnSecondary('rp2c-btn-regen-ctx', '⟳ Regenerate')}
+         ${ctxUsable && !el('rp2c-ctx-edit-area')?.style?.display !== 'none'
+           ? `${btnSecondary('rp2c-btn-edit-ctx', '✏ Edit')}` : ''}
+         ${ctxUsable && ctx?.lifecycle_status !== 'CONFIRMED'
+           ? `${btnPrimary('rp2c-btn-confirm-ctx', 'Konfirmasi & Lanjut →')}` : ''}
+         ${ctx?.lifecycle_status === 'CONFIRMED'
+           ? `${btnPrimary('rp2c-btn-to-asm', 'Lanjut ke Asesmen →')}` : ''}`
+    }
+  </div>
+</div>`;
+
+    // Bind events
+    el('rp2c-btn-gen-ctx')?.addEventListener('click', () => runGenerateContext(false));
+    el('rp2c-btn-regen-ctx')?.addEventListener('click', () => runGenerateContext(true));
+    el('rp2c-btn-edit-ctx')?.addEventListener('click', () => showContextEditor(ctx?.content));
+    el('rp2c-btn-confirm-ctx')?.addEventListener('click', () => runConfirmContext());
+    el('rp2c-btn-to-asm')?.addEventListener('click', () => renderAssessmentCheckpoint());
+
+    body.querySelectorAll('.rp2c-select-ctx-candidate').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const vid = btn.dataset.vid;
+        if (!vid) return;
+        btn.disabled = true; btn.textContent = 'Memilih…';
+        try {
+          _phase2cState = await SipApi.phase2cGenerate(phase2cPayload({
+            action: 'select_context_candidate', version_id: vid,
+            selection_revision: _phase2cState?.context_spec?.selection_revision ?? 0,
+          }));
+          saveRpState(); renderContextCheckpoint();
+        } catch (e) {
+          btn.disabled = false; btn.textContent = 'Gunakan kandidat ini';
+          showError('rp2c-ctx-error', e.message || 'Gagal memilih kandidat.');
+        }
+      });
+    });
+  }
+
+  function renderContextDecisions(content) {
+    if (!content?.context_decisions?.length) return '<p style="color:var(--text-muted);font-size:var(--fs-caption);">Belum ada data.</p>';
+    return content.context_decisions.map(d => `
+<div style="border:1px solid var(--border);border-radius:var(--radius-md);padding:var(--space-sm);margin-bottom:var(--space-sm);">
+  <div style="font-size:var(--fs-badge);color:var(--text-muted);margin-bottom:var(--space-xs);">${esc(d.id || '')} · ${esc(d.source || '')}</div>
+  <div style="font-size:var(--fs-caption);color:var(--text-secondary);margin-bottom:2px;"><strong>Raw:</strong> ${esc(d.raw || '')}</div>
+  <div style="font-size:var(--fs-caption);color:var(--text-secondary);margin-bottom:2px;"><strong>Interpretasi:</strong> ${esc(d.interpretation || '')}</div>
+  <div style="font-size:var(--fs-caption);color:var(--text-secondary);margin-bottom:var(--space-xs);"><strong>Implikasi:</strong> ${esc(d.implication || '')}</div>
+  ${(d.prefer?.length || d.avoid?.length) ? `
+  <div style="display:flex;gap:var(--space-sm);flex-wrap:wrap;">
+    ${d.prefer?.length ? `<div style="font-size:var(--fs-badge);color:var(--success,#4caf50);">✓ ${d.prefer.map(esc).join('; ')}</div>` : ''}
+    ${d.avoid?.length ? `<div style="font-size:var(--fs-badge);color:var(--error,#ef4444);">✗ ${d.avoid.map(esc).join('; ')}</div>` : ''}
+  </div>` : ''}
+</div>`).join('') +
+    (content.constraints?.length ? `<div style="margin-top:var(--space-sm);padding:var(--space-sm);background:var(--surface-1);border-radius:var(--radius-sm);">
+      <div style="font-size:var(--fs-badge);font-weight:var(--fw-semibold);color:var(--text-muted);">Kendala:</div>
+      ${content.constraints.map(c => `<div style="font-size:var(--fs-caption);color:var(--text-secondary);">• ${esc(c)}</div>`).join('')}
+    </div>` : '');
+  }
+
+  function showContextEditor(content) {
+    const editArea = el('rp2c-ctx-edit-area');
+    if (!editArea) return;
+    const json = JSON.stringify(content ?? {}, null, 2);
+    editArea.style.display = 'block';
+    editArea.innerHTML = `
+<div style="margin-top:var(--space-md);">
+  <div style="font-size:var(--fs-caption);color:var(--text-muted);margin-bottom:var(--space-xs);">
+    Edit JSON Context Specification. Harus tetap mengikuti schema.
+  </div>
+  <textarea id="rp2c-ctx-editor" rows="18"
+    style="width:100%;font-family:monospace;font-size:11px;padding:var(--space-sm);
+    border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface-1);
+    color:var(--text-primary);resize:vertical;">${esc(json)}</textarea>
+  <div class="rp-action-row" style="margin-top:var(--space-sm);">
+    ${btnSecondary('rp2c-btn-cancel-edit-ctx', 'Batal')}
+    ${btnPrimary('rp2c-btn-save-edit-ctx', 'Simpan Edit')}
+  </div>
+</div>`;
+    el('rp2c-btn-cancel-edit-ctx')?.addEventListener('click', () => {
+      editArea.style.display = 'none'; editArea.innerHTML = '';
+    });
+    el('rp2c-btn-save-edit-ctx')?.addEventListener('click', () => runSaveContextEdit());
+  }
+
+  async function runGenerateContext(isRegenerate) {
+    const body = el('rp-body');
+    if (!body) return;
+    const action = isRegenerate ? 'regenerate_context_spec' : 'generate_context_spec';
+    const btnId = isRegenerate ? 'rp2c-btn-regen-ctx' : 'rp2c-btn-gen-ctx';
+    const btn = el(btnId);
+    if (btn) { btn.disabled = true; btn.textContent = 'Generating…'; }
+    showError('rp2c-ctx-error', '');
+    try {
+      _phase2cState = await SipApi.phase2cGenerate(phase2cPayload({ action }));
+      saveRpState(); renderContextCheckpoint();
+    } catch (e) {
+      if (btn) { btn.disabled = false; btn.textContent = isRegenerate ? '⟳ Regenerate' : 'Generate Context'; }
+      showError('rp2c-ctx-error', e.message || 'Generate gagal. Coba lagi.');
+    }
+  }
+
+  async function runSaveContextEdit() {
+    const textarea = el('rp2c-ctx-editor');
+    if (!textarea) return;
+    let parsed;
+    try { parsed = JSON.parse(textarea.value); }
+    catch { showError('rp2c-ctx-error', 'JSON tidak valid. Perbaiki syntax dulu.'); return; }
+    const btn = el('rp2c-btn-save-edit-ctx');
+    if (btn) { btn.disabled = true; btn.textContent = 'Menyimpan…'; }
+    try {
+      _phase2cState = await SipApi.phase2cGenerate(phase2cPayload({
+        action: 'save_context_spec_edit', content: parsed,
+      }));
+      saveRpState(); renderContextCheckpoint();
+    } catch (e) {
+      if (btn) { btn.disabled = false; btn.textContent = 'Simpan Edit'; }
+      showError('rp2c-ctx-error', e.message || 'Simpan gagal.');
+    }
+  }
+
+  async function runConfirmContext() {
+    const ctx = _phase2cState?.context_spec;
+    if (!ctx?.selected_version_id) return;
+    const btn = el('rp2c-btn-confirm-ctx');
+    if (btn) { btn.disabled = true; btn.textContent = 'Mengonfirmasi…'; }
+    showError('rp2c-ctx-error', '');
+    try {
+      _phase2cState = await SipApi.phase2cGenerate(phase2cPayload({
+        action: 'confirm_context_spec', version_id: ctx.selected_version_id,
+      }));
+      saveRpState(); renderAssessmentCheckpoint();
+    } catch (e) {
+      if (btn) { btn.disabled = false; btn.textContent = 'Konfirmasi & Lanjut →'; }
+      showError('rp2c-ctx-error', e.message || 'Konfirmasi gagal.');
+    }
+  }
+
+  // ── Checkpoint 2: Assessment Specification ─────────────────────────────────
+  function renderAssessmentCheckpoint() {
+    const body = el('rp-body');
+    if (!body) return;
+    const s = _phase2cState;
+    const ctx = s?.context_spec;
+    const asm = s?.assessment_spec;
+    const tp = _ans.tp_terpilih;
+
+    if (!ctx?.confirmed) {
+      renderContextCheckpoint(); return;
+    }
+
+    const hasAsm = !!asm?.artifact_id;
+    const asmUsable = asm?.usable === true;
+    const asmConfirmed = asm?.lifecycle_status === 'CONFIRMED';
+
+    const candidates = asm?.candidates?.filter(c => c.version_id !== asm?.selected_version_id) ?? [];
+
+    let asmBodyHtml = '';
+    if (!hasAsm) {
+      asmBodyHtml = `<div style="color:var(--text-muted);font-size:var(--fs-caption);padding:var(--space-md) 0;">
+        Assessment Specification belum dibuat. Klik "Generate Asesmen + KKTP".
+      </div>`;
+    } else if (!asmUsable) {
+      asmBodyHtml = `<div style="color:var(--warning,#f59e0b);font-size:var(--fs-caption);padding:var(--space-md) 0;">
+        Assessment Specification perlu diperbarui.
+      </div>`;
+    } else {
+      asmBodyHtml = renderAssessmentContent(asm?.content);
+    }
+
+    const candidatesHtml = candidates.length ? `
+<div style="margin-top:var(--space-md);padding:var(--space-sm);background:var(--surface-1);border-radius:var(--radius-md);">
+  <div style="font-size:var(--fs-caption);font-weight:var(--fw-semibold);color:var(--text-muted);margin-bottom:var(--space-xs);">
+    Kandidat baru tersedia:
+  </div>
+  ${candidates.map(c => `
+    <div style="display:flex;align-items:center;gap:var(--space-sm);padding:var(--space-xs) 0;border-bottom:1px solid var(--border);">
+      <span style="font-size:var(--fs-caption);color:var(--text-secondary);">v${c.version_no}</span>
+      <button class="btn btn-sm rp2c-select-asm-candidate" data-vid="${esc(c.version_id)}" style="font-size:var(--fs-badge);">
+        Gunakan kandidat ini
+      </button>
+    </div>`).join('')}
+</div>` : '';
+
+    body.innerHTML = `
+<div class="rp-block">
+  <div class="rp-block-title">Step 6 — Generate RPM (Checkpoint 2/2)</div>
+  <div style="font-size:var(--fs-caption);color:var(--text-muted);">TP: ${esc(tp?.judul || '-')}</div>
+</div>
+
+<div class="rp-block" style="margin-bottom:var(--space-sm);">
+  <div style="display:flex;align-items:center;justify-content:space-between;">
+    <div style="font-weight:var(--fw-semibold);font-size:var(--fs-ui);color:var(--text-primary);">
+      Checkpoint 1 — Context Specification
+    </div>
+    <span style="color:var(--success,#4caf50);font-size:var(--fs-badge);">✓ Dikonfirmasi</span>
+  </div>
+  <div style="font-size:var(--fs-caption);color:var(--text-muted);margin-top:2px;">v${ctx?.selected_version_no ?? 1} · ${ctx?.origin === 'TEACHER' ? 'Edit guru' : 'AI'}</div>
+  <button class="btn btn-sm" id="rp2c-btn-back-to-ctx" style="margin-top:var(--space-xs);font-size:var(--fs-badge);">← Lihat Context</button>
+</div>
+
+<div class="rp-block">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-sm);">
+    <div style="font-weight:var(--fw-semibold);font-size:var(--fs-ui);color:var(--text-primary);">
+      Checkpoint 2 — Asesmen + KKTP
+      ${asmConfirmed
+        ? '<span style="color:var(--success,#4caf50);font-size:var(--fs-badge);margin-left:var(--space-xs);">✓ Dikonfirmasi</span>'
+        : asmUsable
+          ? '<span style="color:var(--gold);font-size:var(--fs-badge);margin-left:var(--space-xs);">Siap dikonfirmasi</span>'
+          : '<span style="color:var(--text-muted);font-size:var(--fs-badge);margin-left:var(--space-xs);">Belum dibuat</span>'}
+    </div>
+    ${asm?.teacher_edited ? '<span style="font-size:var(--fs-badge);color:var(--gold);">✏ Diedit guru</span>' : ''}
+  </div>
+
+  <div id="rp2c-asm-body">${asmBodyHtml}</div>
+  ${candidatesHtml}
+
+  <div id="rp2c-asm-edit-area" style="display:none;"></div>
+  <div id="rp2c-asm-error" class="error-msg" style="display:none;"></div>
+
+  <div class="rp-action-row" style="flex-wrap:wrap;gap:var(--space-sm);">
+    ${!hasAsm
+      ? `${btnPrimary('rp2c-btn-gen-asm', 'Generate Asesmen + KKTP')}`
+      : `${btnSecondary('rp2c-btn-regen-asm', '⟳ Regenerate')}
+         ${asmUsable ? `${btnSecondary('rp2c-btn-edit-asm', '✏ Edit')}` : ''}
+         ${asmUsable && !asmConfirmed ? `${btnPrimary('rp2c-btn-confirm-asm', 'Konfirmasi Checkpoint 2 ✓')}` : ''}
+         ${asmConfirmed ? `<div style="padding:var(--space-sm);font-size:var(--fs-caption);color:var(--success,#4caf50);">Checkpoint 2 selesai. Tahap berikutnya (Material, Pertemuan, LKS) akan segera tersedia.</div>` : ''}`
+    }
+  </div>
+</div>`;
+
+    el('rp2c-btn-back-to-ctx')?.addEventListener('click', () => renderContextCheckpoint());
+    el('rp2c-btn-gen-asm')?.addEventListener('click', () => runGenerateAssessment(false));
+    el('rp2c-btn-regen-asm')?.addEventListener('click', () => runGenerateAssessment(true));
+    el('rp2c-btn-edit-asm')?.addEventListener('click', () => showAssessmentEditor(asm?.content));
+    el('rp2c-btn-confirm-asm')?.addEventListener('click', () => runConfirmAssessment());
+
+    body.querySelectorAll('.rp2c-select-asm-candidate').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const vid = btn.dataset.vid;
+        if (!vid) return;
+        btn.disabled = true; btn.textContent = 'Memilih…';
+        try {
+          _phase2cState = await SipApi.phase2cGenerate(phase2cPayload({
+            action: 'select_assessment_candidate', version_id: vid,
+            selection_revision: _phase2cState?.assessment_spec?.selection_revision ?? 0,
+          }));
+          saveRpState(); renderAssessmentCheckpoint();
+        } catch (e) {
+          btn.disabled = false; btn.textContent = 'Gunakan kandidat ini';
+          showError('rp2c-asm-error', e.message || 'Gagal memilih kandidat.');
+        }
+      });
+    });
+  }
+
+  function renderAssessmentContent(content) {
+    if (!content) return '<p style="color:var(--text-muted);font-size:var(--fs-caption);">Tidak ada data.</p>';
+
+    const evidenceHtml = content.success_evidence?.length
+      ? `<div style="margin-bottom:var(--space-md);">
+          <div style="font-size:var(--fs-caption);font-weight:var(--fw-semibold);color:var(--text-muted);margin-bottom:var(--space-xs);">Bukti Ketercapaian</div>
+          ${content.success_evidence.map(e => `<div style="font-size:var(--fs-caption);color:var(--text-secondary);padding:2px 0;">• ${esc(e)}</div>`).join('')}
+        </div>` : '';
+
+    const kktpHtml = content.kktp?.length
+      ? `<div style="margin-bottom:var(--space-md);">
+          <div style="font-size:var(--fs-caption);font-weight:var(--fw-semibold);color:var(--text-muted);margin-bottom:var(--space-xs);">KKTP</div>
+          ${content.kktp.map(k => `
+            <div style="border:1px solid var(--border);border-radius:var(--radius-sm);padding:var(--space-sm);margin-bottom:var(--space-xs);">
+              <div style="font-size:var(--fs-caption);color:var(--text-primary);font-weight:var(--fw-medium);margin-bottom:4px;">${esc(k.id||'')} ${esc(k.deskripsi||'')}</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--space-xs);font-size:11px;">
+                <div style="color:var(--success,#4caf50);"><strong>Paham:</strong> ${esc(k.paham||'-')}</div>
+                <div style="color:var(--gold);"><strong>Hampir:</strong> ${esc(k.hampir||'-')}</div>
+                <div style="color:var(--error,#ef4444);"><strong>Belum:</strong> ${esc(k.belum||'-')}</div>
+              </div>
+            </div>`).join('')}
+        </div>` : '';
+
+    const formativeHtml = content.formative?.length
+      ? `<div style="margin-bottom:var(--space-md);">
+          <div style="font-size:var(--fs-caption);font-weight:var(--fw-semibold);color:var(--text-muted);margin-bottom:var(--space-xs);">Formative Checkpoint</div>
+          ${content.formative.map(f => `
+            <div style="border:1px solid var(--border);border-radius:var(--radius-sm);padding:var(--space-sm);margin-bottom:var(--space-xs);">
+              <div style="font-size:var(--fs-caption);color:var(--text-muted);margin-bottom:4px;">Pertemuan ${f.meeting_no}</div>
+              <div style="font-size:var(--fs-caption);color:var(--text-secondary);">Bukti: ${esc(f.expected_evidence||'-')}</div>
+              ${f.classification_anchor ? `
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--space-xs);font-size:11px;margin-top:4px;">
+                <div style="color:var(--success,#4caf50);">Paham: ${esc(f.classification_anchor.paham||'-')}</div>
+                <div style="color:var(--gold);">Hampir: ${esc(f.classification_anchor.hampir||'-')}</div>
+                <div style="color:var(--error,#ef4444);">Belum: ${esc(f.classification_anchor.belum||'-')}</div>
+              </div>` : ''}
+            </div>`).join('')}
+        </div>` : '';
+
+    const summativeHtml = content.summative
+      ? `<div style="margin-bottom:var(--space-md);">
+          <div style="font-size:var(--fs-caption);font-weight:var(--fw-semibold);color:var(--text-muted);margin-bottom:var(--space-xs);">Asesmen Sumatif</div>
+          <div style="font-size:var(--fs-caption);color:var(--text-secondary);">${esc(content.summative.jenis||'-')}: ${esc(content.summative.instrumen||'-')}</div>
+        </div>` : '';
+
+    return evidenceHtml + kktpHtml + formativeHtml + summativeHtml;
+  }
+
+  function showAssessmentEditor(content) {
+    const editArea = el('rp2c-asm-edit-area');
+    if (!editArea) return;
+    const json = JSON.stringify(content ?? {}, null, 2);
+    editArea.style.display = 'block';
+    editArea.innerHTML = `
+<div style="margin-top:var(--space-md);">
+  <div style="font-size:var(--fs-caption);color:var(--text-muted);margin-bottom:var(--space-xs);">
+    Edit JSON Assessment Specification. Schema harus dipertahankan.
+  </div>
+  <textarea id="rp2c-asm-editor" rows="20"
+    style="width:100%;font-family:monospace;font-size:11px;padding:var(--space-sm);
+    border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface-1);
+    color:var(--text-primary);resize:vertical;">${esc(json)}</textarea>
+  <div class="rp-action-row" style="margin-top:var(--space-sm);">
+    ${btnSecondary('rp2c-btn-cancel-edit-asm', 'Batal')}
+    ${btnPrimary('rp2c-btn-save-edit-asm', 'Simpan Edit')}
+  </div>
+</div>`;
+    el('rp2c-btn-cancel-edit-asm')?.addEventListener('click', () => {
+      editArea.style.display = 'none'; editArea.innerHTML = '';
+    });
+    el('rp2c-btn-save-edit-asm')?.addEventListener('click', () => runSaveAssessmentEdit());
+  }
+
+  async function runGenerateAssessment(isRegenerate) {
+    const action = isRegenerate ? 'regenerate_assessment_spec' : 'generate_assessment_spec';
+    const btnId = isRegenerate ? 'rp2c-btn-regen-asm' : 'rp2c-btn-gen-asm';
+    const btn = el(btnId);
+    if (btn) { btn.disabled = true; btn.textContent = 'Generating…'; }
+    showError('rp2c-asm-error', '');
+    try {
+      _phase2cState = await SipApi.phase2cGenerate(phase2cPayload({ action }));
+      saveRpState(); renderAssessmentCheckpoint();
+    } catch (e) {
+      if (btn) { btn.disabled = false; btn.textContent = isRegenerate ? '⟳ Regenerate' : 'Generate Asesmen + KKTP'; }
+      showError('rp2c-asm-error', e.message || 'Generate gagal. Coba lagi.');
+    }
+  }
+
+  async function runSaveAssessmentEdit() {
+    const textarea = el('rp2c-asm-editor');
+    if (!textarea) return;
+    let parsed;
+    try { parsed = JSON.parse(textarea.value); }
+    catch { showError('rp2c-asm-error', 'JSON tidak valid.'); return; }
+    const btn = el('rp2c-btn-save-edit-asm');
+    if (btn) { btn.disabled = true; btn.textContent = 'Menyimpan…'; }
+    try {
+      _phase2cState = await SipApi.phase2cGenerate(phase2cPayload({
+        action: 'save_assessment_spec_edit', content: parsed,
+      }));
+      saveRpState(); renderAssessmentCheckpoint();
+    } catch (e) {
+      if (btn) { btn.disabled = false; btn.textContent = 'Simpan Edit'; }
+      showError('rp2c-asm-error', e.message || 'Simpan gagal.');
+    }
+  }
+
+  async function runConfirmAssessment() {
+    const asm = _phase2cState?.assessment_spec;
+    if (!asm?.selected_version_id) return;
+    const btn = el('rp2c-btn-confirm-asm');
+    if (btn) { btn.disabled = true; btn.textContent = 'Mengonfirmasi…'; }
+    showError('rp2c-asm-error', '');
+    try {
+      _phase2cState = await SipApi.phase2cGenerate(phase2cPayload({
+        action: 'confirm_assessment_spec', version_id: asm.selected_version_id,
+      }));
+      saveRpState(); renderAssessmentCheckpoint();
+    } catch (e) {
+      if (btn) { btn.disabled = false; btn.textContent = 'Konfirmasi Checkpoint 2 ✓'; }
+      showError('rp2c-asm-error', e.message || 'Konfirmasi gagal.');
+    }
+  }
+
+  // ─── Step 6 — Output (legacy) ────────────────────────────────────────────────────────
 
   function renderKktp(kktp, pendekatan) {
     if (!kktp) return '<div style="color:var(--text-muted);font-size:var(--fs-caption);">KKTP tidak tersedia.</div>';
@@ -3273,6 +3785,7 @@ ${tpList.map((tp, i) => {
         teachingContext: _teachingContext,
         planningContext: _planningContext,
         jpPolicy: _jpPolicy,
+        phase2cState: _phase2cState,
       }));
     } catch (_) {}
   }
@@ -3288,7 +3801,7 @@ ${tpList.map((tp, i) => {
       try { localStorage.removeItem('rp_state_' + _cId); } catch (_) {}
       return false;
     }
-    const { step, ans, atpList, cpElemen, cpRingkasan, cpLabel, cpUmum, rencana, durableAtp, teachingContext, planningContext, jpPolicy } = saved || {};
+    const { step, ans, atpList, cpElemen, cpRingkasan, cpLabel, cpUmum, rencana, durableAtp, teachingContext, planningContext, jpPolicy, phase2cState } = saved || {};
     if (!step || !ans) return false;
 
     const serverDurableAtp = _durableAtp;
@@ -3310,6 +3823,7 @@ ${tpList.map((tp, i) => {
     _teachingContext = serverTeachingContext || teachingContext || null;
     _planningContext = serverPlanningContext || planningContext || null;
     _jpPolicy = serverJpPolicy || jpPolicy || null;
+    _phase2cState = phase2cState || null; // cache only — server state wins on resume
     _step = (serverDurableAtp && step > 4 && !_ans.tp_terpilih) ? 4 : step;
 
     switch (_step) {
@@ -3317,7 +3831,7 @@ ${tpList.map((tp, i) => {
       case 3: renderStep3A(); break;
       case 4: if (_atpList.length) { renderStep4(_atpList); } else { renderStep1(); } break;
       case 5: renderStep5(); break;
-      case 6: if (_rencana) { renderStep6(_rencana); } else if (_atpList.length) { renderStep4(_atpList); } else { renderStep1(); } break;
+      case 6: if (_planningContext?.id) { enterPhase2CPipeline(); } else if (_rencana) { renderStep6(_rencana); } else if (_atpList.length) { renderStep4(_atpList); } else { renderStep1(); } break;
       case 7: renderStep7(); break;
       default: renderStep1(); break;
     }
