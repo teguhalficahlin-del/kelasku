@@ -3506,7 +3506,10 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
     if (_matRegenOpId) return;
     _matRegenOpId = crypto.randomUUID();
     try {
-      _phase2cState = await SipApi.phase2Material(phase2cPayloadMat({ action: 'regenerate_material_spec' }));
+      _phase2cState = await SipApi.phase2Material(phase2cPayloadMat({
+        action: 'regenerate_material_spec',
+        client_operation_id: _matRegenOpId,
+      }));
       saveRpState();
       renderMaterialSpec();
     } catch (e) {
@@ -5684,9 +5687,13 @@ ${tpList.map((tp, i) => {
       throw new Error(`Rencana pertemuan ${meetingNo} belum di-generate`);
     }
 
-    // Compute a simple hash of the meeting plan content for staleness check
+    // Compute a simple hash of the meeting plan content for staleness check.
+    // PKG_SCHEMA_REV ikut di-hash: menaikkannya membatalkan SELURUH paket lama
+    // di IndexedDB. Dinaikkan ke 2 karena paket rev 1 dikompilasi dengan
+    // roster_snapshot kosong — getRosterForRuntime memakai kolom yang salah.
+    const PKG_SCHEMA_REV = 2;
     const contentStr   = JSON.stringify(meetPlan.content ?? {});
-    const sourceHash   = await _simpleHash(contentStr);
+    const sourceHash   = await _simpleHash(PKG_SCHEMA_REV + '|' + contentStr);
 
     // Check existing package in IndexedDB
     const existing = await window.RuntimeDb.packages.getForMeeting(planCtxId, meetingNo);
@@ -5713,7 +5720,22 @@ ${tpList.map((tp, i) => {
     let rosterSnapshot = [];
     try {
       rosterSnapshot = await SipApi.getRosterForRuntime(_cId);
-    } catch (_) {}
+    } catch (e) {
+      console.error('[runtime] daftar siswa gagal dimuat:', e);
+      // Peringatan ditaruh di elemennya sendiri, bukan #rp-runtime-msg, karena
+      // pemanggil menimpa pesan itu dengan status "siap offline" setelah selesai.
+      const anchor = el('rp-runtime-msg');
+      if (anchor) {
+        let warn = el('rp-roster-warn');
+        if (!warn) {
+          warn = document.createElement('div');
+          warn.id = 'rp-roster-warn';
+          warn.style.cssText = 'font-size:var(--fs-caption);color:var(--warning,#f59e0b);margin-bottom:var(--space-xs);';
+          anchor.insertAdjacentElement('afterend', warn);
+        }
+        warn.textContent = '⚠ Daftar siswa gagal dimuat — layar mengajar akan tampil tanpa nama siswa.';
+      }
+    }
 
     // Find meeting allocation
     const alloc = (s?.meeting_allocation?.items ?? []).find(a => a.meeting_no === meetingNo)

@@ -503,11 +503,10 @@
     async getRosterForRuntime(classroomId) {
       const { data, error } = await client
         .from('classroom_roster')
-        .select('id, profiles(nama)')
-        .eq('classroom_id', classroomId)
-        .eq('is_active', true);
+        .select('id, full_name')
+        .eq('classroom_id', classroomId);
       if (error) throw error;
-      return (data ?? []).map(r => ({ id: r.id, nama: r.profiles?.nama ?? '' }));
+      return (data ?? []).map(r => ({ id: r.id, nama: r.full_name ?? '' }));
     },
   };
 }());
