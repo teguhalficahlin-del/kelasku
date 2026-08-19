@@ -2935,6 +2935,12 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
             action: 'select_context_candidate', version_id: vid,
             selection_revision: _phase2cState?.context_spec?.selection_revision ?? 0,
           }));
+          const newSelectedId = _phase2cState?.context_spec?.selected_version_id;
+          if (newSelectedId !== vid) {
+            console.warn('[select_candidate] selected_version_id tidak berubah setelah select:', {
+              expected: vid, actual: newSelectedId,
+            });
+          }
           saveRpState(); renderContextCheckpoint();
         } catch (e) {
           btn.disabled = false; btn.textContent = 'Gunakan kandidat ini';
@@ -3166,6 +3172,12 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
             action: 'select_assessment_candidate', version_id: vid,
             selection_revision: _phase2cState?.assessment_spec?.selection_revision ?? 0,
           }));
+          const newSelectedId = _phase2cState?.assessment_spec?.selected_version_id;
+          if (newSelectedId !== vid) {
+            console.warn('[select_candidate] selected_version_id tidak berubah setelah select:', {
+              expected: vid, actual: newSelectedId,
+            });
+          }
           saveRpState(); renderAssessmentCheckpoint();
         } catch (e) {
           btn.disabled = false; btn.textContent = 'Gunakan kandidat ini';
@@ -3361,6 +3373,10 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
 
     const matUsable   = mat?.usable === true;
     const needsUpdate = mat?.needs_update === true;
+    const matCandidates = mat?.candidates?.filter(c => c.version_id !== mat?.selected_version_id) ?? [];
+    const matHasActiveCandidate = matCandidates.length > 0;
+    const matHasArtifact = !!mat?.artifact_id;
+    const matShowRegenBtn = matHasArtifact && !matHasActiveCandidate;
 
     let matBodyHtml = '';
     if (!mat?.artifact_id) {
@@ -3406,9 +3422,13 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
   <div id="rp2c-mat-edit-area" style="display:none;"></div>
   <div id="rp2c-mat-error" class="error-msg" style="display:none;"></div>
 
+  ${matHasActiveCandidate ? `<div style="margin-top:var(--space-sm);font-size:var(--fs-badge);color:var(--text-muted);">Kandidat regenerate baru tersedia — pemilihan kandidat Material belum didukung di UI ini.</div>` : ''}
+  <div id="rp2c-mat-regen-error" class="error-msg" style="display:none;"></div>
+
   <div class="rp-action-row" style="flex-wrap:wrap;gap:var(--space-sm);">
     ${matUsable
       ? `${btnSecondary('rp2c-btn-edit-mat', '✏ Edit')}
+         ${matShowRegenBtn ? btnSecondary('rp2c-btn-regen-mat', '⟳ Regenerate') : ''}
          ${btnPrimary('rp2c-btn-mat-next', 'Lanjut ke Pertemuan →')}`
       : ''
     }
@@ -3418,6 +3438,21 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
     el('rp2c-mat-back-asm')?.addEventListener('click', () => renderAssessmentCheckpoint());
     el('rp2c-btn-edit-mat')?.addEventListener('click', () => showMaterialEditor(mat?.content));
     el('rp2c-btn-mat-next')?.addEventListener('click', () => enterMeetingPipeline());
+    el('rp2c-btn-regen-mat')?.addEventListener('click', () => runRegenerateMaterial());
+  }
+
+  async function runRegenerateMaterial() {
+    if (_matRegenOpId) return;
+    _matRegenOpId = crypto.randomUUID();
+    try {
+      _phase2cState = await SipApi.phase2Material(phase2cPayloadMat({ action: 'regenerate_material_spec' }));
+      saveRpState();
+      renderMaterialSpec();
+    } catch (e) {
+      showError('rp2c-mat-regen-error', e?.message ?? 'Gagal regenerate Material.');
+    } finally {
+      _matRegenOpId = null;
+    }
   }
 
   function renderMaterialContent(content) {
@@ -3887,6 +3922,7 @@ ${candidatesHtml}
       try {
         const resp = await SipApi.phase2Followup(phase2cPayloadFu({ action: 'generate_follow_up' }));
         _phase2cState = resp.result;
+        saveRpState();
         renderFollowUpPipeline();
       } catch (e) {
         showError('rp2-fu-error', e?.message ?? 'Gagal regenerate');
