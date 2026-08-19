@@ -591,63 +591,80 @@ Deno.serve(async (req) => {
       );
       const deps = await makeMeetingDeps(itemId, ctxVer.id, asmVer.id, matVer.id);
 
-      let failed = false;
-      let failReason = '';
-      let violationHint: string | undefined;
+      // Satu attempt saja — TIDAK ada retry di server. Dua panggilan AI dalam
+      // satu request menembus wall clock Edge Function dan berakhir 546.
+      // Kegagalan dikembalikan apa adanya beserta violations supaya klien bisa
+      // menampilkan pesan yang berguna dan memutuskan sendiri apakah mengulang.
+      //
+      // Status HTTP sengaja 200 meski gagal: guru/js/api.js mengevaluasi
+      // `if (error) throw error` SEBELUM membaca `data.error`, sehingga respons
+      // non-2xx sampai ke UI sebagai 'Edge Function returned a non-2xx status
+      // code' — pesan yang tidak berguna. Dengan 200 + field `error`, api.js
+      // melempar Error(data.error) dan guru melihat penyebab sebenarnya.
+      let content: unknown;
+      try {
+        const raw = await callAI(SYSTEM_PROMPT, buildMeetingPrompt(
+          meetingNo, jp, durMin, authority,
+          ctxVer.content, asmVer.content, matVer.content,
+        ));
+        content = extractJson(raw);
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : 'Error tidak diketahui';
+        const { data: stErr } = await admin.rpc('fn_phase2c_get_pipeline_state', {
+          p_profile_id: profile.id, p_planning_context_id: planningContextId,
+        });
+        return reply({
+          result: stErr,
+          error: `Pertemuan ${meetingNo} gagal di-generate: ${msg}`,
+          meeting_results: [{ meeting_no: meetingNo, status: 'failed', error: msg }],
+        });
+      }
 
-      for (let attempt = 0; attempt <= 1; attempt++) {
-        try {
-          const raw = await callAI(SYSTEM_PROMPT, buildMeetingPrompt(
-            meetingNo, jp, durMin, authority,
-            ctxVer.content, asmVer.content, matVer.content, violationHint,
-          ));
-          const content = extractJson(raw);
+      const { data: validation } = await admin.rpc('fn_phase2_validate_meeting_plan', {
+        p_content: content, p_expected_duration_minutes: durMin,
+      });
 
-          const { data: validation } = await admin.rpc('fn_phase2_validate_meeting_plan', {
-            p_content: content, p_expected_duration_minutes: durMin,
-          });
+      if (validation?.status !== 'valid') {
+        const viols = (validation?.violations as Array<Record<string,unknown>>) ?? [];
+        const hint = viols
+          .map(v => `[${v.rule}]${v.scope ? ' '+v.scope+':' : ''} ${v.message}`)
+          .join('\n');
+        const brief = viols.slice(0, 3)
+          .map(v => `• ${v.message}`)
+          .join('\n');
+        const more = viols.length > 3 ? `\n(+${viols.length - 3} pelanggaran lain)` : '';
+        const { data: stInvalid } = await admin.rpc('fn_phase2c_get_pipeline_state', {
+          p_profile_id: profile.id, p_planning_context_id: planningContextId,
+        });
+        return reply({
+          result: stInvalid,
+          error: `Output AI Pertemuan ${meetingNo} tidak memenuhi schema:\n${brief}${more}`,
+          violations: viols,
+          meeting_results: [{ meeting_no: meetingNo, status: 'failed', error: hint }],
+        });
+      }
 
-          if (validation?.status === 'valid') {
-            const { data: createResult, error: createError } = await admin.rpc(
-              'fn_phase2b_create_version', {
-                p_profile_id: profile.id, p_planning_context_id: planningContextId,
-                p_artifact_kind: 'MEETING_PLAN',
-                p_scope_key: `MEETING_${meetingNo}`,
-                p_meeting_allocation_item_id: itemId,
-                p_parent_version_id: null, p_candidate_of_version_id: null,
-                p_origin: 'AI', p_teacher_edited: false,
-                p_content: content, p_source_snapshot: authority,
-                p_source_hash: sourceHash, p_dependency_hash: depHash,
-                p_prompt_version: PROMPT_VERSION, p_model_version: MODEL,
-                p_dependencies: deps, p_idempotency_key: idempotencyKey,
-              }
-            );
-            if (createError) throw createError;
-
-            if (!createResult.idempotent) {
-              await transitionAndAccept(
-                createResult.version_id, validation, 0, true,
-                'meet_gen_transition', 'meet_validate', 'meet_autoselect'
-              );
-            }
-            failed = false;
-            break;
-          } else {
-            const viols = (validation?.violations as Array<Record<string,unknown>>) ?? [];
-            violationHint = viols
-              .map(v => `[${v.rule}]${v.scope ? ' '+v.scope+':' : ''} ${v.message}`)
-              .join('\n');
-            if (attempt >= 1) {
-              failed = true;
-              failReason = `Validasi gagal setelah retry: ${violationHint}`;
-            }
-          }
-        } catch (e) {
-          if (attempt >= 1) {
-            failed = true;
-            failReason = e instanceof Error ? e.message : 'Error tidak diketahui';
-          }
+      const { data: createResult, error: createError } = await admin.rpc(
+        'fn_phase2b_create_version', {
+          p_profile_id: profile.id, p_planning_context_id: planningContextId,
+          p_artifact_kind: 'MEETING_PLAN',
+          p_scope_key: `MEETING_${meetingNo}`,
+          p_meeting_allocation_item_id: itemId,
+          p_parent_version_id: null, p_candidate_of_version_id: null,
+          p_origin: 'AI', p_teacher_edited: false,
+          p_content: content, p_source_snapshot: authority,
+          p_source_hash: sourceHash, p_dependency_hash: depHash,
+          p_prompt_version: PROMPT_VERSION, p_model_version: MODEL,
+          p_dependencies: deps, p_idempotency_key: idempotencyKey,
         }
+      );
+      if (createError) throw createError;
+
+      if (!createResult.idempotent) {
+        await transitionAndAccept(
+          createResult.version_id, validation, 0, true,
+          'meet_gen_transition', 'meet_validate', 'meet_autoselect'
+        );
       }
 
       const { data: state } = await admin.rpc('fn_phase2c_get_pipeline_state', {
@@ -655,11 +672,7 @@ Deno.serve(async (req) => {
       });
       return reply({
         result: state,
-        meeting_results: [{
-          meeting_no: meetingNo,
-          status: failed ? 'failed' : 'generated',
-          error: failed ? failReason : null,
-        }],
+        meeting_results: [{ meeting_no: meetingNo, status: 'generated', error: null }],
       });
     }
 
