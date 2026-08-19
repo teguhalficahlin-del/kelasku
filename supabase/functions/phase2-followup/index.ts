@@ -13,7 +13,9 @@ const LOCKED_ROLES = new Set([
 ]);
 const PROMPT_VERSION = 'phase2-followup-v1.0';
 const MODEL          = 'claude-sonnet-4-6';
-const AI_TIMEOUT_MS  = 55_000;
+// Satu panggilan AI per request. Input Follow-Up besar (seluruh konten Meeting
+// Plan + Assessment + Context, ~15k token) sehingga 55s terlalu ketat.
+const AI_TIMEOUT_MS  = 120_000;
 
 const reply = (body: unknown, status = 200) =>
   Response.json(body, { status, headers: CORS });
@@ -36,7 +38,10 @@ async function sha256(v: unknown): Promise<string> {
 async function callAI(systemPrompt: string, userPrompt: string): Promise<string> {
   const apiKey = Deno.env.get('ANTHROPIC_API_KEY');
   if (!apiKey) throw new Error('ANTHROPIC_API_KEY tidak tersedia');
-  const MAX_ATTEMPTS = 3;
+  // 1, bukan 3: tiga percobaan x AI_TIMEOUT_MS menembus wall clock Edge
+  // Function dan berujung 546/409 tanpa pesan berguna. Retry jadi keputusan
+  // guru lewat tombol Coba Lagi, bukan diulang diam-diam di server.
+  const MAX_ATTEMPTS = 1;
   let lastErr: Error = new Error('Tidak ada attempt');
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
     const controller = new AbortController();
@@ -474,13 +479,23 @@ Deno.serve(async (req) => {
       ));
       let content: unknown;
       try { content = extractJson(raw); }
-      catch { return reply({ error: 'Output AI tidak valid — coba lagi' }, 409); }
+      catch (e) {
+        const m = e instanceof Error ? e.message : 'Error tidak diketahui';
+        return reply({ error: `Output AI Follow-Up tidak dapat diparsing: ${m}` });
+      }
 
       const { data: validation } = await admin.rpc('fn_phase2_validate_follow_up', {
         p_content: content,
       });
-      if (validation?.status !== 'valid')
-        return reply({ error: 'Output AI tidak memenuhi schema', violations: validation?.violations }, 409);
+      if (validation?.status !== 'valid') {
+        const viols = (validation?.violations as Array<Record<string,unknown>>) ?? [];
+        const brief = viols.slice(0, 3).map(v => `• ${v.message}`).join('\n');
+        const more  = viols.length > 3 ? `\n(+${viols.length - 3} pelanggaran lain)` : '';
+        return reply({
+          error: `Output AI Follow-Up tidak memenuhi schema:\n${brief}${more}`,
+          violations: viols,
+        });
+      }
 
       const { data: fuSel } = fuArtifact
         ? await admin.from('rancang_artifact_selections')
@@ -621,6 +636,11 @@ Deno.serve(async (req) => {
     if ((err as Record<string,unknown>)?.code === '23505' &&
         String((err as Record<string,unknown>)?.message ?? '').includes('uq_one_active_candidate'))
       return reply({ error: 'Regenerate sedang berjalan atau batas tercapai.' }, 409);
-    return reply({ error: 'Operasi Follow-Up gagal' }, 409);
+    // Pesan asli DITAMPILKAN, tidak ditelan jadi 'Operasi Follow-Up gagal'.
+    // Status 200 disengaja: guru/js/api.js menjalankan `if (error) throw error`
+    // sebelum membaca `data.error`, sehingga respons non-2xx sampai ke UI
+    // sebagai 'Edge Function returned a non-2xx status code'.
+    const m = err instanceof Error ? err.message : String(err);
+    return reply({ error: `Operasi Follow-Up gagal: ${m}` });
   }
 });
