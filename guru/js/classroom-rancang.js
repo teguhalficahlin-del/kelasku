@@ -66,6 +66,7 @@
   let _ctxRegenOpId = null;
   let _asmRegenOpId = null;
   let _matRegenOpId = null;
+  let _fuRegenOpId  = null;
   // Per-meeting regenerate op IDs: Map<meeting_no, client_operation_id>
   const _meetRegenOpIds = new Map();
 
@@ -3890,10 +3891,21 @@ ${plansHtml}
   <p style="font-size:var(--fs-caption);color:var(--text-muted);">Menyusun tindak lanjut…</p>
 </div>`;
       try {
-        const resp = await SipApi.phase2Followup(phase2cPayloadFu({ action: 'generate_follow_up' }));
+        // Stable operation ID: dibuat sekali per intent, dipakai ulang saat retry,
+        // dibersihkan saat sukses — pola yang sama dengan _ctxRegenOpId.
+        // WAJIB dikirim meski ini generate pertama: server menentukan sendiri
+        // apakah ini regenerate (artifact FOLLOW_UP sudah ada), dan bila ya ia
+        // menolak 400 'client_operation_id harus UUID v4 yang valid'.
+        if (!_fuRegenOpId) _fuRegenOpId = crypto.randomUUID();
+        const resp = await SipApi.phase2Followup(phase2cPayloadFu({
+          action: 'generate_follow_up',
+          client_operation_id: _fuRegenOpId,
+        }));
+        _fuRegenOpId = null; // sukses — klik berikutnya adalah intent baru
         _phase2cState = resp.result;
         renderFollowUpPipeline();
       } catch (e) {
+        // _fuRegenOpId sengaja dipertahankan supaya retry mengirim ID yang sama
         body.innerHTML = `
 <div class="rp-block">
   <div class="rp-block-title">Step 6 — Tindak Lanjut</div>
@@ -4015,12 +4027,24 @@ ${candidatesHtml}
     el('rp2-fu-back-meet')?.addEventListener('click', renderMeetingPipeline);
     el('rp2-fu-edit')?.addEventListener('click', () => showFollowUpEditor(content ?? {}));
     el('rp2-fu-regen')?.addEventListener('click', async () => {
+      const btn = el('rp2-fu-regen');
+      if (btn) { btn.disabled = true; btn.textContent = 'Generating…'; }
+      showError('rp2-fu-error', '');
       try {
-        const resp = await SipApi.phase2Followup(phase2cPayloadFu({ action: 'generate_follow_up' }));
+        // Jalur ini SELALU regenerate di sisi server (artifact FOLLOW_UP sudah
+        // ada), jadi client_operation_id wajib. Tanpa ini server membalas 400.
+        if (!_fuRegenOpId) _fuRegenOpId = crypto.randomUUID();
+        const resp = await SipApi.phase2Followup(phase2cPayloadFu({
+          action: 'generate_follow_up',
+          client_operation_id: _fuRegenOpId,
+        }));
+        _fuRegenOpId = null; // sukses — klik berikutnya adalah intent baru
         _phase2cState = resp.result;
         saveRpState();
         renderFollowUpPipeline();
       } catch (e) {
+        // _fuRegenOpId dipertahankan supaya retry mengirim ID yang sama
+        if (btn) { btn.disabled = false; btn.textContent = '⟳ Regenerate'; }
         showError('rp2-fu-error', e?.message ?? 'Gagal regenerate');
       }
     });
