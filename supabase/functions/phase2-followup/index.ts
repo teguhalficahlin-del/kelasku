@@ -126,6 +126,58 @@ function extractJson(raw: string): unknown {
   throw new Error('Output AI tidak dapat diparsing sebagai JSON');
 }
 
+// -----------------------------------------------------------------------------
+// Normalisasi konten FOLLOW_UP sebelum validasi.
+// Validator mewajibkan pengayaan/penguatan/pendampingan berupa OBJECT berisi
+// target, gap_addressed, dan activities[]. AI kerap membalas array activities
+// langsung (atau string) untuk ketiga jalur itu, sehingga muncul MISSING_JALUR
+// "<jalur> wajib ada dan berupa object". Bentuk yang salah dibungkus di sini.
+//
+// kktp_refs divalidasi di ROOT, bukan per jalur. Bila AI tidak mengisinya,
+// diisi dari ID KKTP nyata milik Assessment Spec - bukan konstanta karangan,
+// supaya rujukannya tidak menggantung.
+//
+// TIDAK dikarang server: activities. Bila kosong, validator tetap menolak
+// dengan MISSING_ACTIVITIES - itu konten nyata yang harus datang dari AI.
+// -----------------------------------------------------------------------------
+function normalizeFollowUpContent(
+  raw: unknown,
+  assessmentContent: Record<string, unknown>,
+): Record<string, unknown> {
+  const c: Record<string, unknown> =
+    (raw && typeof raw === 'object' && !Array.isArray(raw))
+      ? { ...(raw as Record<string, unknown>) }
+      : {};
+
+  const wrapJalur = (val: unknown, target: string): Record<string, unknown> => {
+    // AI membalas array activities langsung, bukan object jalur
+    if (Array.isArray(val)) return { target, gap_addressed: '', activities: val };
+    if (val && typeof val === 'object') {
+      const o = { ...(val as Record<string, unknown>) };
+      if (typeof o.target !== 'string' || !o.target.trim()) o.target = target;
+      if (typeof o.gap_addressed !== 'string') o.gap_addressed = '';
+      if (!Array.isArray(o.activities)) o.activities = [];
+      return o;
+    }
+    // string / angka / null / undefined
+    return { target, gap_addressed: '', activities: [] };
+  };
+
+  c.pengayaan    = wrapJalur(c.pengayaan,    'Siswa yang sudah mencapai seluruh KKTP');
+  c.penguatan    = wrapJalur(c.penguatan,    'Siswa yang mendekati KKTP');
+  c.pendampingan = wrapJalur(c.pendampingan, 'Siswa yang masih jauh dari KKTP');
+
+  if (!Array.isArray(c.kktp_refs) || c.kktp_refs.length === 0) {
+    const ids = ((assessmentContent.kktp as Array<Record<string,unknown>>) ?? [])
+      .map((k, i) => String(k.id ?? `KKTP-${String(i + 1).padStart(2, '0')}`))
+      .filter(s => s.trim() !== '');
+    c.kktp_refs = ids.length ? ids : ['KKTP-01'];
+  }
+
+  return c;
+}
+
+
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 function isValidUuidV4(s: string): boolean { return UUID_RE.test(s); }
 
@@ -240,15 +292,38 @@ Bagi menjadi 3 jalur berdasarkan posisi siswa terhadap KKTP:
 - penguatan: siswa yang mendekati KKTP (kategori "hampir")
 - pendampingan: siswa yang masih jauh dari KKTP (kategori "belum")
 
-Untuk setiap jalur:
+Ketiga jalur (pengayaan, penguatan, pendampingan) HARUS berupa OBJECT di root
+JSON - BUKAN array, BUKAN string. Masing-masing berisi:
 - target: deskripsi singkat target siswa
 - gap_addressed: gap konkret yang ditangani (mengacu pada KKTP spesifik)
-- activities: minimal 1 activity dengan:
+- activities: array, minimal 1 activity, tiap activity punya:
   - id: format FU-E01/FU-R01/FU-S01 dst (E=pengayaan, R=penguatan, S=pendampingan)
   - deskripsi: aktivitas konkret dan spesifik (MINIMAL 30 karakter, bukan kalimat generik)
   - durasi_estimasi: estimasi waktu (contoh: "2 x pertemuan", "1 jam mandiri")
   - resource_refs: array string referensi resource (boleh kosong array)
-- kktp_refs: array ID KKTP yang dirujuk (gunakan ID dari daftar di atas)
+
+kktp_refs berada di ROOT JSON (bukan di dalam tiap jalur), berisi array ID KKTP
+yang dirujuk - gunakan ID dari daftar KKTP di atas, minimal 1 item.
+
+BENTUK OUTPUT (isi dengan konten nyata, jangan salin teks contoh):
+{
+  "pengayaan": {
+    "target": "Siswa yang sudah mencapai seluruh KKTP",
+    "gap_addressed": "string",
+    "activities": [{"id":"FU-E01","deskripsi":"string","durasi_estimasi":"string","resource_refs":[]}]
+  },
+  "penguatan": {
+    "target": "Siswa yang mendekati KKTP",
+    "gap_addressed": "string",
+    "activities": [{"id":"FU-R01","deskripsi":"string","durasi_estimasi":"string","resource_refs":[]}]
+  },
+  "pendampingan": {
+    "target": "Siswa yang masih jauh dari KKTP",
+    "gap_addressed": "string",
+    "activities": [{"id":"FU-S01","deskripsi":"string","durasi_estimasi":"string","resource_refs":[]}]
+  },
+  "kktp_refs": ["KKTP-01"]
+}
 
 PENTING: deskripsi activity HARUS konkret dan menunjuk gap spesifik dari KKTP.
 Hindari kalimat generik seperti "beri soal lebih sulit" atau "beri bimbingan tambahan".
@@ -478,7 +553,7 @@ Deno.serve(async (req) => {
         authority, asmVer.content, meetingContents, ctxVer.content
       ));
       let content: unknown;
-      try { content = extractJson(raw); }
+      try { content = normalizeFollowUpContent(extractJson(raw), asmVer.content); }
       catch (e) {
         const m = e instanceof Error ? e.message : 'Error tidak diketahui';
         return reply({ error: `Output AI Follow-Up tidak dapat diparsing: ${m}` });
