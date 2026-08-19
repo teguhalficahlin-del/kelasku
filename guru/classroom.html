@@ -7,6 +7,16 @@
   <link rel="stylesheet" href="../shared/css/design-system.css">
   <link rel="stylesheet" href="../shared/css/components.css">
   <link rel="stylesheet" href="css/guru.css">
+  <!-- PWA: dapat dipasang ke layar utama -->
+  <link rel="manifest" href="../manifest.webmanifest">
+  <meta name="theme-color" content="#0A0A0F">
+  <link rel="icon" href="../icons/favicon-32.png" sizes="32x32" type="image/png">
+  <!-- iOS tidak membaca ikon dari manifest; apple-touch-icon wajib dan harus opak -->
+  <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="SIP Mandiri">
 </head>
 <body class="dashboard">
 
@@ -178,11 +188,6 @@
   <script src="js/classroom-rancang-data.js"></script>
   <script src="js/classroom-rancang-ai.js"></script>
   <script src="js/classroom-rancang.js?v=phase2a-20260818"></script>
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/kelasku/guru/sw.js')
-        .catch(function(e) { console.warn('[sw] register failed', e); });
-    }
-  </script>
+  <script src="../shared/js/pwa.js"></script>
 </body>
 </html>

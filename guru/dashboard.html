@@ -20,6 +20,16 @@
     #modal-peran #btn-simpan-peran{width:100%;min-height:var(--btn-h);background:var(--gold);color:var(--text-on-gold);border:none;border-radius:8px;font-weight:600;font-size:var(--fs-ui);cursor:pointer;font-family:inherit;}
     #modal-peran #btn-simpan-peran:disabled{opacity:.4;cursor:not-allowed;}
   </style>
+  <!-- PWA: dapat dipasang ke layar utama -->
+  <link rel="manifest" href="../manifest.webmanifest">
+  <meta name="theme-color" content="#0A0A0F">
+  <link rel="icon" href="../icons/favicon-32.png" sizes="32x32" type="image/png">
+  <!-- iOS tidak membaca ikon dari manifest; apple-touch-icon wajib dan harus opak -->
+  <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="SIP Mandiri">
 </head>
 <body class="dashboard">
 
@@ -150,5 +160,6 @@
   <script src="../shared/js/supabase.js"></script>
   <script src="js/api.js"></script>
   <script src="js/guru.js"></script>
+  <script src="../shared/js/pwa.js"></script>
 </body>
 </html>
