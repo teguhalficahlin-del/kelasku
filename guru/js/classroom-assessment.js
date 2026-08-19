@@ -796,6 +796,43 @@
     }
   }
 
+  // Blok kendali visibilitas hasil penilaian ke portal siswa/ortu.
+  // Diletakkan pada penilaian (bukan per nilai) — guru memutuskan sekali untuk
+  // satu penilaian. DIAGNOSTIK default tidak ditampilkan karena ia alat kerja
+  // guru untuk mengelompokkan siswa, bukan bahan bacaan siswa.
+  function visPenilaianHtml(item, jenis) {
+    const baru   = !item;
+    const defOn  = jenis !== 'DIAGNOSTIK';
+    const cekSis = baru ? defOn : !!item.is_visible_siswa;
+    const cekOrt = baru ? defOn : !!item.is_visible_ortu;
+    return `
+  <div>
+    ${fieldLbl('Tampilkan hasil di portal')}
+    <label style="display:flex;align-items:center;gap:.5rem;font-size:var(--fs-caption);color:var(--text-secondary);margin-bottom:.35rem;cursor:pointer">
+      <input type="checkbox" id="asmt-vis-siswa"${cekSis ? ' checked' : ''}>
+      <span>Tampilkan ke siswa</span>
+    </label>
+    <label style="display:flex;align-items:center;gap:.5rem;font-size:var(--fs-caption);color:var(--text-secondary);cursor:pointer">
+      <input type="checkbox" id="asmt-vis-ortu"${cekOrt ? ' checked' : ''}>
+      <span>Tampilkan ke orang tua</span>
+    </label>
+    <div style="font-size:var(--fs-caption);color:var(--text-muted);margin-top:.35rem">
+      Bila tidak dicentang, nilai penilaian ini hanya terlihat oleh Anda.
+    </div>
+  </div>`;
+  }
+
+  // Penanda visibilitas pada daftar penilaian.
+  function visAsmtBadgeHtml(a) {
+    const t = [];
+    if (a.is_visible_siswa) t.push('Siswa');
+    if (a.is_visible_ortu)  t.push('Ortu');
+    const label = t.length ? 'LIHAT ' + t.join(' + ') : 'Hanya guru';
+    const color = t.length ? 'var(--gold)' : 'var(--text-muted)';
+    return `<span title="${t.length ? 'Hasil terlihat di portal ' + t.join(' dan ') : 'Hasil tidak tampil di portal siswa/ortu'}"
+      style="flex-shrink:0;font-size:.625rem;color:${color};white-space:nowrap;opacity:.9">${label}</span>`;
+  }
+
   function asmtRowHtml(a) {
     const tp      = _tpList.find(t => t.id === a.tp_kktp_id);
     const teknik  = teknikLbl(a.teknik);
@@ -810,6 +847,7 @@
       ${tp ? `<div style="font-size:var(--fs-caption);color:var(--text-secondary)">${esc(tp.judul)}</div>`
            : `<div style="font-size:var(--fs-caption);color:var(--text-secondary);font-style:italic">Tanpa TP</div>`}
     </div>
+    ${visAsmtBadgeHtml(a)}
     <button type="button" data-action="edit-asmt" data-id="${a.id}"
       style="background:transparent;border:none;cursor:pointer;font-size:1rem;padding:.2rem .35rem;border-radius:.25rem;line-height:1;opacity:.7" title="Edit">✏️</button>
     <button type="button" data-action="del-asmt"  data-id="${a.id}"
@@ -928,6 +966,7 @@
       style="${inputCss('resize:vertical')}"
       placeholder="Catatan refleksi…">${esc(item?.refleksi_guru ?? '')}</textarea>
   </div>
+  ${visPenilaianHtml(item, selJenis)}
   <div style="display:flex;gap:.75rem;justify-content:flex-end;margin-top:.25rem">
     <button data-action="close-modal"
       style="min-height:var(--btn-h);background:transparent;color:var(--gold);
@@ -1244,6 +1283,8 @@
         tujuan:        el('asmt-tujuan').value.trim() || null,
         konten:        instrBody || null,
         refleksi_guru: el('asmt-refleksi').value.trim() || null,
+        is_visible_siswa: !!el('asmt-vis-siswa')?.checked,
+        is_visible_ortu:  !!el('asmt-vis-ortu')?.checked,
       };
       el('btn-asmt-save').disabled = true;
       errEl.style.display = 'none';
@@ -2145,6 +2186,7 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
       style="${inputCss('resize:vertical')}"
       placeholder="Catatan refleksi…"></textarea>
   </div>
+  ${visPenilaianHtml(null, selJenis)}
   <div style="display:flex;gap:.75rem;justify-content:flex-end;margin-top:.25rem">
     <button data-action="close-modal"
       style="min-height:var(--btn-h);background:transparent;color:var(--gold);
@@ -2420,6 +2462,8 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
         tujuan:        el('asmt-tujuan').value.trim() || null,
         konten:        instrBody || null,
         refleksi_guru: el('asmt-refleksi').value.trim() || null,
+        is_visible_siswa: !!el('asmt-vis-siswa')?.checked,
+        is_visible_ortu:  !!el('asmt-vis-ortu')?.checked,
       };
       el('btn-asmt-save').disabled = true;
       errEl.style.display = 'none';
