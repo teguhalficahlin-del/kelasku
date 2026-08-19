@@ -222,6 +222,10 @@ Jika worksheet.required=true, gunakan HANYA stimulus/resource dari fasilitas kel
 INSTRUKSI applied_context_decision_ids:
 Pilih minimal 1 ID dari: ${decisionIds.join(', ') || 'CTX-01'}
 
+PENTING: Output harus selesai dalam satu respons. Jika perlu memilih antara detail
+dan kelengkapan, pilih kelengkapan. Potong deskripsi jika perlu, tapi jangan potong
+struktur JSON.
+
 Output JSON murni — schema wajib sesuai kontrak meeting_plan. Tanpa markdown fence, tanpa teks tambahan.`;
 }
 
@@ -349,7 +353,10 @@ Deno.serve(async (req) => {
 
     const SYSTEM_PROMPT =
       'Anda adalah perancang pembelajaran.\n' +
-      'Hanya keluarkan JSON valid tanpa teks tambahan, tanpa markdown fence.';
+      'Hanya keluarkan JSON valid tanpa teks tambahan, tanpa markdown fence.\n' +
+      'Buat output yang RINGKAS. Setiap string maksimal 2 kalimat. Hindari ' +
+      'penjelasan panjang. Prioritaskan kelengkapan struktur JSON di atas ' +
+      'detail narasi.';
 
     // ── Helper: build standard dependencies array for a meeting item ──────────
     const makeMeetingDeps = async (
