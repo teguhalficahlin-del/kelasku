@@ -4,7 +4,7 @@
  * Dimuat oleh semua halaman masuk. Satu berkas agar tag di tiap halaman cukup
  * satu baris, dan agar perilaku pemasangan seragam di seluruh portal.
  *
- * Android/Chrome : menampilkan tombol "Pasang aplikasi" saat browser menyatakan
+ * Android/Chrome : menampilkan tombol "Install" saat browser menyatakan
  *                  aplikasi memenuhi syarat (event beforeinstallprompt).
  * iOS/Safari     : tidak punya event itu sama sekali — pemasangan hanya lewat
  *                  menu Bagikan. Karena itu ditampilkan petunjuk singkat.
@@ -75,14 +75,14 @@
     var prompt = e;
 
     var bar = buatBilah(
-      '<span style="flex:1">Pasang SIP Mandiri untuk membukanya langsung dari layar utama.</span>' +
-      '<button id="pwa-pasang" style="padding:.4rem .9rem;border:none;border-radius:.35rem;' +
-      'background:#D4AF37;color:#0A0A0F;font-weight:600;cursor:pointer;font-family:inherit">Pasang</button>' +
+      '<span style="flex:1">Install SIP Mandiri untuk membukanya langsung dari layar utama.</span>' +
+      '<button id="pwa-install" style="padding:.4rem .9rem;border:none;border-radius:.35rem;' +
+      'background:#D4AF37;color:#0A0A0F;font-weight:600;cursor:pointer;font-family:inherit">Install</button>' +
       '<button id="pwa-tutup" aria-label="Tutup" style="background:transparent;border:none;' +
       'color:#9A9AA5;font-size:1.25rem;line-height:1;cursor:pointer;padding:0 .25rem">&times;</button>'
     );
 
-    bar.querySelector('#pwa-pasang').addEventListener('click', function () {
+    bar.querySelector('#pwa-install').addEventListener('click', function () {
       bar.remove();
       prompt.prompt();
     });
@@ -93,7 +93,7 @@
   if (iniSafariIos()) {
     window.addEventListener('load', function () {
       buatBilah(
-        '<span style="flex:1">Pasang ke layar utama: ketuk tombol <strong>Bagikan</strong> ' +
+        '<span style="flex:1">Install ke layar utama: ketuk tombol <strong>Bagikan</strong> ' +
         'di bilah Safari, lalu pilih <strong>Tambahkan ke Layar Utama</strong>.</span>' +
         '<button id="pwa-tutup" aria-label="Tutup" style="background:transparent;border:none;' +
         'color:#9A9AA5;font-size:1.25rem;line-height:1;cursor:pointer;padding:0 .25rem">&times;</button>'
