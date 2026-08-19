@@ -101,26 +101,39 @@ function extractJson(raw: string): unknown {
 }
 
 // ── Normalisasi konten MEETING_PLAN sebelum validasi ──────────────────────────
-// Dua kelas field yang tidak perlu bergantung pada kepatuhan AI:
-//   1. meeting_no / jp / duration_minutes — server yang otoritatif (dari
-//      rancang_meeting_allocation_items). Prompt pun menyatakan ketiganya tidak
-//      boleh diubah AI, jadi nilai server selalu menang.
-//   2. step_id — deterministik dari urutan activity, diisi otomatis bila hilang.
-// Field lain (title, teacher_action, student_action, completion_cue, phase,
-// planned_minutes) TIDAK diisi otomatis: itu konten nyata yang tidak boleh
-// dikarang server, dan validator tetap menolak bila AI menghilangkannya.
+// Tujuan: mengecilkan output yang harus ditulis AI. Field yang server sudah tahu
+// atau bisa hitung sendiri tidak lagi diminta di prompt, lalu di-inject di sini
+// sebelum fn_phase2_validate_meeting_plan dipanggil.
+//
+// OTORITATIF — selalu ditimpa dari rancang_meeting_allocation_items:
+//   meeting_no, jp, duration_minutes
+// DETERMINISTIK — dihitung/diturunkan server:
+//   step_id (urutan activity), duration_check (jumlah planned_minutes)
+// DEFAULT — hanya diisi bila AI tidak mengisi (?? / ||), tidak pernah menimpa:
+//   resource_refs, recovery_refs, assessment_checkpoint_id, differentiation_ref,
+//   teacher_notes, applied_context_decision_ids
+//
+// TIDAK PERNAH dikarang server: title, teacher_action, student_action,
+// completion_cue, phase, planned_minutes, differentiation, formative_checkpoint.
+// Itu konten nyata; validator tetap menolak bila AI menghilangkannya.
 function normalizeMeetingContent(
-  raw: unknown, meetingNo: number, jp: number, durationMinutes: number,
+  raw: unknown,
+  allocationItem: Record<string, unknown>,
+  meetingNo: number,
 ): Record<string, unknown> {
   const c: Record<string, unknown> =
     (raw && typeof raw === 'object' && !Array.isArray(raw))
       ? { ...(raw as Record<string, unknown>) }
       : {};
 
-  c.meeting_no       = meetingNo;
-  c.jp               = jp;
-  c.duration_minutes = durationMinutes;
+  const allocDuration = Number(allocationItem.duration_minutes);
 
+  // Root — otoritatif server
+  c.meeting_no       = allocationItem.meeting_no;
+  c.jp               = allocationItem.jp;
+  c.duration_minutes = allocationItem.duration_minutes;
+
+  // Activities — step_id deterministik + default field opsional
   if (Array.isArray(c.activities)) {
     c.activities = (c.activities as unknown[]).map((a, i) => {
       const act: Record<string, unknown> =
@@ -129,9 +142,26 @@ function normalizeMeetingContent(
           : {};
       const sid = typeof act.step_id === 'string' ? act.step_id.trim() : '';
       if (!sid) act.step_id = `m${meetingNo}-s${String(i + 1).padStart(2, '0')}`;
+      act.resource_refs            = Array.isArray(act.resource_refs) ? act.resource_refs : [];
+      act.recovery_refs            = Array.isArray(act.recovery_refs) ? act.recovery_refs : [];
+      act.assessment_checkpoint_id = act.assessment_checkpoint_id ?? null;
+      act.differentiation_ref      = act.differentiation_ref ?? null;
       return act;
     });
   }
+
+  // duration_check — dihitung server; dibaca phase2-validator CHECK 3 (TIME_OVERFLOW)
+  const totalPlanned = (Array.isArray(c.activities) ? c.activities as Record<string,unknown>[] : [])
+    .reduce((sum, a) => sum + (Number(a.planned_minutes) || 0), 0);
+  c.duration_check = {
+    total_planned_minutes: totalPlanned,
+    matches_allocation:    totalPlanned === allocDuration,
+  };
+
+  // Default array — tidak menimpa isi dari AI
+  if (!Array.isArray(c.teacher_notes)) c.teacher_notes = [];
+  if (!Array.isArray(c.applied_context_decision_ids)) c.applied_context_decision_ids = [];
+
   return c;
 }
 
@@ -203,7 +233,7 @@ function buildMeetingPrompt(
     ? `\nKOREKSI WAJIB dari percobaan sebelumnya:\n${violationHint}\n`
     : '';
 
-  return `IDENTITAS PERTEMUAN (TIDAK BOLEH DIUBAH AI):
+  return `IDENTITAS PERTEMUAN (KONTEKS INPUT — jangan tulis ulang di output JSON):
 meeting_no: ${meetingNo}
 jp: ${jp}
 duration_minutes: ${durationMinutes}
@@ -262,10 +292,11 @@ PENTING: Output harus selesai dalam satu respons. Jika perlu memilih antara deta
 dan kelengkapan, pilih kelengkapan. Potong deskripsi jika perlu, tapi jangan potong
 struktur JSON.
 
+JANGAN tulis field berikut — server yang mengisinya, menulisnya hanya membuang tempat:
+meeting_no, jp, duration_minutes, step_id, duration_check, resource_refs,
+recovery_refs, assessment_checkpoint_id, differentiation_ref, teacher_notes.
+
 FIELD WAJIB di root JSON:
-- meeting_no: ${meetingNo}   (sudah ditentukan — jangan ubah, jangan hilangkan)
-- jp: ${jp}
-- duration_minutes: ${durationMinutes}
 - activities: array, minimal 1 item; tiap phase minimal 1 activity
 - formative_checkpoint: object, wajib punya classification_anchor berisi paham, hampir, belum
 - differentiation: object, wajib punya paham, hampir, belum — masing-masing berisi
@@ -274,19 +305,18 @@ FIELD WAJIB di root JSON:
 - worksheet: opsional; bila required=true maka tasks tidak boleh kosong
 
 SETIAP activity WAJIB punya SEMUA field berikut — tidak boleh ada yang hilang:
-- step_id         : string, format m${meetingNo}-s01, m${meetingNo}-s02, dst berurutan
 - title           : string
 - teacher_action  : string — apa yang guru lakukan
 - student_action  : string — apa yang siswa lakukan
 - completion_cue  : string — tanda aktivitas selesai
 - phase           : salah satu dari opening | understand | apply | reflect | closing
 - planned_minutes : integer > 0
-Lebih baik teks pendek di semua field daripada ada field yang hilang.
+Urutan activities menentukan urutan pelaksanaan. Lebih baik teks pendek di semua
+field daripada ada field yang hilang.
 
 BENTUK OUTPUT (isi dengan konten nyata, jangan salin teks contoh):
-{"meeting_no":${meetingNo},"jp":${jp},"duration_minutes":${durationMinutes},
- "activities":[{"step_id":"m${meetingNo}-s01","title":"...","phase":"opening",
-   "planned_minutes":15,"teacher_action":"...","student_action":"...","completion_cue":"..."}],
+{"activities":[{"title":"...","phase":"opening","planned_minutes":15,
+   "teacher_action":"...","student_action":"...","completion_cue":"..."}],
  "formative_checkpoint":{"expected_evidence":"...",
    "classification_anchor":{"paham":"...","hampir":"...","belum":"..."}},
  "differentiation":{"paham":{"aktivitas":"...","bukti_belajar":"..."},
@@ -542,7 +572,7 @@ Deno.serve(async (req) => {
               meetingNo, jp, durMin, authority,
               ctxVer.content, asmVer.content, matVer.content, violationHint,
             ));
-            const content = normalizeMeetingContent(extractJson(raw), meetingNo, jp, durMin);
+            const content = normalizeMeetingContent(extractJson(raw), item, meetingNo);
 
             const { data: validation } = await admin.rpc('fn_phase2_validate_meeting_plan', {
               p_content: content, p_expected_duration_minutes: durMin,
@@ -686,7 +716,7 @@ Deno.serve(async (req) => {
           meetingNo, jp, durMin, authority,
           ctxVer.content, asmVer.content, matVer.content,
         ));
-        content = normalizeMeetingContent(extractJson(raw), meetingNo, jp, durMin);
+        content = normalizeMeetingContent(extractJson(raw), item, meetingNo);
       } catch (e) {
         const msg = e instanceof Error ? e.message : 'Error tidak diketahui';
         const { data: stErr } = await admin.rpc('fn_phase2c_get_pipeline_state', {
@@ -826,7 +856,7 @@ Deno.serve(async (req) => {
         ctxVer.content, asmVer.content, matVer.content,
       ));
       let content: unknown;
-      try { content = normalizeMeetingContent(extractJson(raw), meetingNo, item.jp as number, durMin); }
+      try { content = normalizeMeetingContent(extractJson(raw), item, meetingNo); }
       catch { return reply({ error: 'Output AI tidak valid — coba lagi' }, 409); }
 
       const { data: validation } = await admin.rpc('fn_phase2_validate_meeting_plan', {
