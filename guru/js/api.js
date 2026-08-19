@@ -1,6 +1,26 @@
 (function () {
   const client = window.supabaseClient;
 
+  // Error classification helper — dipakai caller untuk pesan UI yang tepat.
+  // Tiga method yang BELUM diubah (getRancangDokumen, getRancangSettings,
+  // getRancangProfil) masih return null/[] karena caller-nya belum diaudit;
+  // ubah bertahap setelah semua caller dipetakan.
+  window.classifySipApiError = function classifySipApiError(error) {
+    const msg = error?.message ?? '';
+    const status = error?.status ?? 0;
+    if (status === 401 || msg.includes('JWT') || msg.includes('Unauthorized') || msg.includes('tidak diizinkan'))
+      return { kind: 'AUTH', retryable: false, userMessage: 'Sesi berakhir. Muat ulang halaman.' };
+    if (status === 403 || msg.includes('diizinkan'))
+      return { kind: 'FORBIDDEN', retryable: false, userMessage: 'Akses tidak diizinkan.' };
+    if (status === 409 || msg.includes('conflict') || msg.includes('revision') || msg.includes('stale') || msg.includes('batas regenerate'))
+      return { kind: 'CONFLICT', retryable: false, userMessage: msg || 'Konflik data. Muat ulang.' };
+    if (status === 400 || msg.includes('tidak valid') || msg.includes('diperlukan') || msg.includes('schema'))
+      return { kind: 'VALIDATION', retryable: false, userMessage: msg || 'Data tidak valid.' };
+    if (!status || status >= 500 || msg.includes('network') || msg.includes('fetch') || msg.includes('timeout'))
+      return { kind: 'NETWORK', retryable: true, userMessage: 'Koneksi bermasalah. Coba lagi.' };
+    return { kind: 'UNKNOWN', retryable: false, userMessage: msg || 'Terjadi kesalahan.' };
+  };
+
   window.api = {
 
     getSession() {
@@ -83,7 +103,7 @@
       const { data, error } = await client.rpc('fn_guru_trial_status');
       if (error) {
         try { sessionStorage.removeItem('guru_trial_status'); } catch (_) {}
-        return null;
+        throw error;
       }
       try { sessionStorage.setItem('guru_trial_status', JSON.stringify(data)); } catch (_) {}
       return data;
@@ -167,6 +187,34 @@
       return data?.result;
     },
 
+    async phase2Material(payload) {
+      const { data, error } = await client.functions.invoke('phase2-material', { body: payload });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data?.result;
+    },
+
+    async phase2Meeting(payload) {
+      const { data, error } = await client.functions.invoke('phase2-meeting', { body: payload });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data;  // returns { result, meeting_results? } — caller unpacks
+    },
+
+    async phase2Followup(payload) {
+      const { data, error } = await client.functions.invoke('phase2-followup', { body: payload });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data;  // returns { result }
+    },
+
+    async phase2Validator(payload) {
+      const { data, error } = await client.functions.invoke('phase2-validator', { body: payload });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data;  // returns { result, validation }
+    },
+
     // ── Rancang Settings ───────────────────────────────────────
     async getRancangSettings(classroomId) {
       const { data, error } = await client
@@ -243,6 +291,42 @@
         .single();
       if (error) return null;
       return data?.konten ?? null;
+    },
+
+    // ── Phase 2C — Document Hub (Step 7) ──────────────────────────────────
+    async getPlanningContextsForClassroom(classroomId) {
+      const { data, error } = await client
+        .from('rancang_planning_contexts')
+        .select('id, tp_id, selected_tp_revision_id, academic_year, semester, status, updated_at')
+        .eq('classroom_id', classroomId)
+        .neq('status', 'ARCHIVED')
+        .order('updated_at', { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+
+    async getPipelineStateForContext(classroomId, teachingContextId, planningContextId) {
+      const { data, error } = await client.functions.invoke('phase2c-generate', {
+        body: {
+          action: 'get_pipeline_state',
+          classroom_id: classroomId,
+          teaching_context_id: teachingContextId,
+          planning_context_id: planningContextId,
+        },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data?.result;
+    },
+
+    async getArtifactContent(artifactVersionId) {
+      const { data, error } = await client
+        .from('rancang_artifact_versions')
+        .select('content')
+        .eq('id', artifactVersionId)
+        .single();
+      if (error) throw error;
+      return data?.content ?? null;
     },
 
     // ── tp_kktp (CP / TP / KKTP per classroom) ────────────────────────────
@@ -404,6 +488,26 @@
           { onConflict: 'classroom_id,student_id,tp_kktp_id,semester,tahun_ajaran' }
         );
       if (error) throw error;
+    },
+
+    // ── Runtime sync ─────────────────────────────────────────────────────────
+    async runtimeSync(payload) {
+      const { data, error } = await client.functions.invoke(
+        'runtime-sync', { body: payload });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data;
+    },
+
+    // ── Runtime roster snapshot ───────────────────────────────────────────────
+    async getRosterForRuntime(classroomId) {
+      const { data, error } = await client
+        .from('classroom_roster')
+        .select('id, profiles(nama)')
+        .eq('classroom_id', classroomId)
+        .eq('is_active', true);
+      if (error) throw error;
+      return (data ?? []).map(r => ({ id: r.id, nama: r.profiles?.nama ?? '' }));
     },
   };
 }());

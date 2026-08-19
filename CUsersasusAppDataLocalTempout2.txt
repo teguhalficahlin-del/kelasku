@@ -1,0 +1,574 @@
+=== HAL 47 ===
+Perencanaan Pembelajaran dan Asesmen
+Dalam pembelajaran mendalam, asesmen tidak hanya berfungsi untuk mengukur hasil belajar, tetapi
+juga menjadi bagian penting dari proses pembelajaran itu sendiri. Dua jenis asesmen utama yang
+digunakan adalah asesmen formatif dan sumatif, dengan penekanan pada asesmen autentik dan
+holistik.
+• Autentik, asesmen yang merepresentasikan realitas kehidupan atau konteks sehari-hari, berfokus
+pada proses dan produk belajar dalam konteks yang nyata dan bermakna. Bertujuan mengukur
+kompetensi nyata, seperti pemecahan masalah, berpikir kritis, berpikir kreatif, kolaborasi, dan
+komunikasi.
+• Holistik, asesmen yang melihat keseluruhan aspek kemampuan siswa secara utuh dan terpadu
+(pengetahuan, keterampilan, dan sikap). Dapat terintegrasi dalam berbagai dimensi pembelajaran
+untuk memberi gambaran komprehensif terhadap perkembangan belajar siswa.
+Asesmen formatif dengan penekanan pada asesmen autentik dan holistik digunakan selama proses
+pembelajaran untuk memberikan umpan balik dan memperbaiki strategi belajar, dengan ciri-ciri:
+• dilakukan secara berkala selama pembelajaran;
+• berfokus pada proses, bukan hanya hasil akhir;
+• mendorong refleksi dan melibatkan murid secara aktif; dan
+• kontekstual dan relevan dengan kehidupan nyata.
+Contoh: jurnal reflektif, penilaian antarteman (peer assessment), penilaian diri (self assessment), peta
+konsep, observasi kinerja, dll.
+Asesmen sumatif dengan penekanan pada asesmen autentik dan holistik dilakukan di akhir topik/
+tujuan pembelajaran untuk mengevaluasi pencapaian kompetensi secara menyeluruh. Ciri-cirinya:
+• menilai hasil belajar akhir;
+• menilai keterampilan berpikir tingkat tinggi; dan
+• menilai aspek pengetahuan, keterampilan, dan sikap secara terpadu.
+Contoh: projek tematik (kolaborasi beberapa mata pelajaran); portofolio; studi kasus, presentasi
+interdisipliner, dan lain-lain.
+Asesmen dalam pembelajaran memiliki tiga fungsi utama, yaitu assessment as learning untuk refleksi
+diri murid dan refleksi proses pembelajaran yang membantu murid belajar menjadi pemelajar aktif
+dan mandiri, assessment for learning untuk membantu pendidik memperbaiki proses pembelajaran,
+dan assessment of learning untuk menilai capaian pembelajaran murid pada akhir pembelajaran.
+Untuk penguatan pemahaman tentang hubungan antara asesmen formatif dan asesmen sumatif
+dengan assessment as learning, assessment for learning, assessment of learning dapat dilihat pada
+infografik berikut.
+Panduan Pembelajaran dan Asesmen Pendidikan Anak Usia Dini, Jenjang Pendidikan Dasar, dan Jenjang Pendidikan Menengah 39
+=== HAL 48 ===
+edisi revisi - Tahun 2025
+Asesmen Formatif Asesmen Sumatif
+Assessment as Learning Assessment for Learning Assessment
+untuk refleksi diri murid dan untuk perbaikan proses of Learning
+refleksi proses pembelajaran pembelajaran untuk penilaian capaian
+pembelajaran murid pada
+Contoh: Contoh: akhir pembelajaran
+Jurnal reflektif, self-assessment, Peta konsep, umpan balik
+peer assessment, checklist formatif, Classroom Assessment Contoh:
+kemajuan belajar, Technique (CATs), observasi, exit Tes lisan, tes tertulis,
+dan lainnya ticket dan lainnya laporan, penilaian projek,
+portofolio, dan lainnya
+Kriteria Ketercapaian Tujuan Pembelajaran
+Untuk mengetahui apakah murid telah berhasil mencapai tujuan pembelajaran, pendidik perlu
+menetapkan kriteria ketercapaian tujuan pembelajaran. Kriteria ini dikembangkan saat pendidik
+merencanakan asesmen, yang dilakukan saat pendidik menyusun perencanaan pembelajaran, baik dalam
+bentuk rencana pelaksanaan pembelajaran ataupun modul ajar.
+Kriteria ketercapaian ini juga menjadi salah satu pertimbangan dalam memilih/membuat instrumen
+asesmen, karena belum tentu suatu asesmen sesuai dengan tujuan dan kriteria ketercapaian tujuan
+pembelajaran. Kriteria ini merupakan penjelasan tentang kompetensi apa yang perlu ditunjukkan/
+didemonstrasikan murid sebagai bukti (evidence) bahwa ia telah mencapai tujuan pembelajaran.
+Dengan demikian, kriteria yang digunakan untuk menentukan apakah murid telah mencapai tujuan
+pembelajaran dapat dikembangkan pendidik dengan menggunakan beberapa pendekatan, di
+antaranya: 1) menggunakan deskripsi kriteria; 2) menggunakan rubrik; 3) menggunakan skala atau
+interval nilai; dan 4) menggunakan persentase, atau pendekatan lainnya sesuai dengan kebutuhan dan
+kesiapan pendidik dalam mengembangkannya.
+Berikut adalah contoh-contoh pendekatan yang dimaksud.
+Contoh salah satu tujuan pembelajaran mata pelajaran Bahasa
+Indonesia Fase C: “Murid mampu menulis laporan hasil pengamatan dan
+wawancara”
+40
+=== HAL 49 ===
+Perencanaan Pembelajaran dan Asesmen
+Pendekatan 1: Menggunakan Deskripsi Kriteria
+Tujuan Pembelajaran: Murid mampu menulis laporan dari gagasan, hasil pengamatan, pengalaman,
+dan imajinasi.
+Pendidik menetapkan kriteria ketercapaian: Laporan murid menunjukkan kemampuannya menulis
+teks eksplanasi, hasil pengamatan, dan pengalaman secara jelas. Laporan menjelaskan hubungan
+kausalitas yang logis disertai dengan argumen yang logis sehingga dapat meyakinkan pembaca.
+Tabel 3.4. Contoh Deskripsi Kriteria untuk Ketercapaian Tujuan Pembelajaran
+Kriteria Belum Tercapai Tercapai
+Laporan menunjukkan kemampuan 
+penulisan teks eksplanasi dengan
+runtut.
+Laporan menunjukkan hasil 
+pengamatan berdasarkan data yang
+terkumpul.
+Laporan menceritakan pengalaman 
+secara terstruktur.
+Laporan menjelaskan hubungan 
+kausalitas yang logis disertai dengan
+argumen yang logis sehingga dapat
+meyakinkan pembaca.
+Kesimpulan:
+Murid dianggap mencapai tujuan pembelajaran jika minimal 3 kriteria tercapai.
+Pada contoh ini, hanya ada dua kriteria yang tercapai sehingga murid masuk
+kategori belum mencapai tujuan pembelajaran. Oleh karena itu, perlu dilakukan
+intervensi pembelajaran agar pencapaian murid dapat diperbaiki.
+Pendekatan 2: Menggunakan Rubrik
+Contohnya, dalam tugas menulis laporan, pendidik menetapkan kriteria ketercapaian yang terdiri
+atas dua bagian: Isi laporan dan penulisan. Dalam rubrik terdapat empat tahap pencapaian, dari baru
+berkembang, layak, cakap hingga mahir. Dalam setiap tahapan ada deskripsi yang menjelaskan performa
+murid. Pendidik menggunakan rubrik ini untuk mengevaluasi laporan yang dihasilkan oleh murid.
+Panduan Pembelajaran dan Asesmen Pendidikan Anak Usia Dini, Jenjang Pendidikan Dasar, dan Jenjang Pendidikan Menengah 41
+=== HAL 50 ===
+edisi revisi - Tahun 2025
+Tabel 3.5. Contoh Rubrik untuk Kriteria Ketuntasan Tujuan Pembelajaran
+Baru
+Layak Cakap Mahir
+berkembang
+Isi laporan Belum mampu Mampu Mampu menulis Mampu menulis
+menulis teks menulis teks teks eksplanasi, teks eksplanasi,
+eksplanasi, hasil eksplanasi, hasil hasil pengamatan, hasil pengamatan,
+pengamatan, dan pengamatan, dan pengalaman dan pengalaman
+pengalaman belum dan pengalaman secara jelas. Laporan secara jelas. Laporan
+jelas tertuang secara jelas. menjelaskan menjelaskan
+dalam tulisan. Laporan hubungan kausalitas hubungan kausalitas
+Ide dan informasi menunjukkan yang logis disertai yang logis disertai
+dalam laporan hubungan yang dengan argumen dengan argumen
+tercampur dan jelas di sebagian yang logis sehingga yang logis sehingga
+hubungan antara paragraf. dapat meyakinkan dapat meyakinkan
+paragraf tidak pembaca. pembaca serta ada
+berhubungan. fakta-fakta pendukung
+yang relevan.
+Penulisan Belum Hanya Sudah Semua tanda baca
+(tanda menggunakan menggunakan menggunakan tanda dan huruf kapital
+baca dan tanda baca dan tanda baca atau baca dan huruf digunakan secara
+huruf huruf kapital atau hanya huruf kapital tapi belum tepat.
+kapital) sebagian besar kapital saja. tepat.
+tidak digunakan
+secara tepat.
+Kesimpulan: Murid dianggap sudah mencapai tujuan pembelajaran jika kedua kriteria di atas mencapai
+minimal tahap cakap.
+Berikut contoh kriteria ketercapaian tujuan pembelajaran dari Tujuan Pembelajaran yang diambil
+langsung dari CP dengan pendekatan menggunakan rubrik, pada mata pelajaran Matematika Fase
+E. “Menggeneralisasi sifat-sifat bilangan berpangkat (termasuk bilangan pangkat pecahan) dan
+menggunakannya untuk menyelesaikan masalah”.
+Tabel 3.6. Contoh Rubrik untuk Kriteria Ketercapaian Tujuan Pembelajaran
+Aspek yang Dinilai Mulai memahami Memahami Sangat memahami
+Mengenal sifat bilangan Dapat Dapat memilih sifat Dapat memilih sifat
+berpangkat mengidentifikasi bilangan pangkat dan bilangan pangkat dan
+informasi dari soal, menggunakannya menggunakannya
+tetapi kesulitan dalam untuk menyelesaikan untuk menyelesaikan
+memilih sifat bilangan permasalahan permasalahan kompleks
+berpangkat yang tepat
+tanpa kesalahan
+untuk digunakan.
+42
+=== HAL 51 ===
+Perencanaan Pembelajaran dan Asesmen
+Aspek yang Dinilai Mulai memahami Memahami Sangat memahami
+Menerapkan sifat Menyelesaikan soal Menyelesaikan soal Menyelesaikan soal
+bilangan berpangkat sederhana (1 sifat) dengan dua sifat bilangan campuran termasuk
+dengan bantuan dan/ berpangkat dan/atau bilangan berpangkat
+atau jawaban akhir menunjukan proses pecahan dengan benar,
+tidak logis atau tidak pengerjaan yang logis dapat menjelaskan secara
+selesai
+logis
+Menyimpulkan pola Menyebutkan hasil Mengidentifikasi Menjelaskan pola
+dan generalisasi tanpa menyimpulkan pola operasi bilangan dan sifat bilangan
+pola berpangkat berpangkat yang
+ditemukan
+Pemecahan masalah Menyelesaikan soal Menyelesaikan soal Menyelesaikan soal
+kontekstual kontekstual dengan kontekstual dengan kontekstual dengan
+menggunakan 1 - 2 sifat bilangan beberapa sifat bilangan
+satu sifat bilangan berpangkat berpangkat
+berpangkat
+Kesimpulan: Murid dianggap sudah mencapai tujuan pembelajaran jika semua aspek 1 sd 3 mencapai
+minimal tahap memahami, aspek 4 minimal tahap mulai memahami.
+Pendekatan 3: Menggunakan interval nilai
+Pendidik dapat menggunakan interval nilai yang diolah dari rubrik. Seperti dalam tugas menulis
+laporan, pendidik dapat menetapkan empat kriteria ketercapaian, yaitu:
+• menunjukkan kemampuan penulisan teks eksplanasi dengan runtut;
+• menunjukkan hasil pengamatan yang jelas;
+• menceritakan pengalaman secara jelas; dan
+• menjelaskan hubungan kausalitas yang logis. disertai dengan argumen yang logis sehingga dapat
+meyakinkan pembaca.
+Untuk setiap kriteria terdapat 5 (lima) skala pencapaian (1-5).
+Pendidik membandingkan hasil tulisan murid dengan rubrik untuk menentukan ketercapaian murid.
+Pencapaian penulisan laporan dilihat dari 3 unsur yaitu pembuka, isi, dan penutup.
+Panduan Pembelajaran dan Asesmen Pendidikan Anak Usia Dini, Jenjang Pendidikan Dasar, dan Jenjang Pendidikan Menengah 43
+=== HAL 52 ===
+edisi revisi - Tahun 2025
+Tabel 3.7. Contoh Kriteria Ketuntasan Tujuan Pembelajaran Menggunakan Interval
+belum muncul muncul muncul muncul pada
+muncul pada salah pada pada pada tiga pembuka,
+Skala
+pada bagian satu unsur dua unsur unsur isi, dan
+pembuka, penutup; serta
+isi dan menambahkan
+Kriteria
+penutup rekomendasi
+Ketercapaian
+(1) (2) (3) (4) (5)
+Laporan menunjukkan 
+kemampuan penulisan teks
+eksplanasi dengan runtut.
+Laporan menunjukkan hasil 
+pengamatan yang jelas.
+Laporan menceritakan 
+pengalaman secara jelas.
+Laporan menjelaskan 
+hubungan kausalitas yang
+logis disertai dengan
+argumen yang logis
+sehingga dapat meyakinkan
+pembaca.
+*Pendidik diberi keleluasaan untuk menentukan jumlah kriteria dan skala ketercapaiannya, sesuai dengan kebutuhan.
+Diasumsikan untuk setiap kriteria memiliki tingkat kesulitan yang sama, sehingga bobotnya sama.
+Pembagi merupakan total dari jumlah skala (dalam hal ini 5 skala) dan nilai maksimum (dalam hal
+ini nilai maksimumnya 5). Satuan pendidikan dan/atau pendidik dapat memberikan bobot sehingga
+penghitungan disesuaikan dengan bobot kriteria.
+Setelah mendapatkan nilai (baik dari rubrik ataupun nilai dari tes), pendidik dan/atau satuan
+pendidikan dapat menentukan interval nilai untuk menentukan ketercapaian dan tindak lanjut sesuai
+dengan intervalnya. Interval nilai yang digunakan adalah sebagai berikut:
+Interval Ketercapaian dan Tindak Lanjut
+0 - 20 Belum mencapai tujuan pembelajaran.
+Pendidik menanyakan kepada murid tantangan apa yang mereka hadapi (perlu
+remedial dengan mempelajari kembali seluruh kriteria).
+21 - 40 Belum mencapai tujuan pembelajaran, perlu remedial dengan mempelajari kembali
+sebagian besar kriteria.
+44
+=== HAL 53 ===
+Perencanaan Pembelajaran dan Asesmen
+Interval Ketercapaian dan Tindak Lanjut
+41- 60 Hampir mencapai tujuan pembelajaran, perlu remedial dengan mempelajari
+kembali kriteria yang diperlukan.
+61 - 80 Sudah mencapai tujuan pembelajaran
+81-100 Sudah mencapai tujuan pembelajaran, perlu tantangan lebih (pengayaan).
+Pendekatan dengan interval nilai, jika diperlukan dapat dikonversi dalam angka untuk pengolahan nilai
+sumatif. Sebagai contoh: Didi memperoleh 3 kriteria pada bobot 4, dan satu kriteria berada pada bobot
+2. Oleh karena itu, pendidik dapat menghitung 3x4 = 12, ditambah 2x1 = 2. Jadi, 12+2 = 14. Karena
+kriterianya ada 4 dan skalanya ada 5 sehingga jumlah pembagi adalah 20. Jadi, 14:20 x100 = 70. Dengan
+demikian, murid mendapat nilai 70. Dengan menggunakan interval nilai di atas, Didi berada pada
+interval 61-80.
+Dari hasil konversi nilai dan kriteria interval yang digunakan, dapat diambil kesimpulan bahwa murid
+tersebut sudah mencapai tujuan pembelajaran. Dengan demikian, Didi dapat melanjutkan pada tujuan
+pembelajaran selanjutnya, tetapi tidak perlu memberikan pengayaan atau tantangan lebih.
+Pendekatan 4. Menggunakan pendekatan persentase
+Sebagai contoh pendidik mengajar bahasa Indonesia pada Fase C. Misalnya, pada Fase C terdapat
+4 tujuan pembelajaran. Pada masing-masing tujuan pembelajaran terdapat 5 kriteria/indikator
+pembelajaran sehingga dalam satu fase murid mempunyai 20 indikator/kriteria pembelajaran.
+Jika murid A telah mencapai 15 kriteria/indikator pembelajaran, maka ia telah menguasai 75%. Murid
+B dinyatakan telah mencapai 18 kriteria pembelajaran. Dengan demikian, murid B telah menguasai
+90% dari kriteria pembelajaran yang terdapat pada tujuan pembelajaran.
+Pendidik adalah sosok yang paling memahami kemajuan belajar murid sehingga pendidik perlu
+memiliki kompetensi dan keleluasaan untuk melakukan asesmen agar sesuai dengan kebutuhan
+murid masing- masing. Keleluasaan tersebut mencakup perancangan asesmen, waktu pelaksanaan,
+penggunaan teknik dan instrumen asesmen, penentuan kriteria ketercapaian tujuan pembelajaran,
+dan pengolahan hasil asesmen. Satuan pendidikan berdasarkan kesepakatan pendidik berwenang
+untuk memutuskan perlu atau tidaknya melakukan penilaian tersebut.
+Pendidik perlu memahami prinsip-prinsip asesmen yang disampaikan dalam Bab II, di mana salah satu
+prinsipnya adalah bahwa asesmen dilakukan secara objektif. Pendidik diharapkan menggunakan berbagai
+teknik asesmen, bukan hanya tes tertulis/lisan, tetapi bisa menggunakan teknik asesmen observasi (murid
+diamati secara berkala dalam kurun waktu tertentu) dan teknik asesmen performa (praktik, produk,
+projek, dan portofolio). Hal ini perlu dilakukan agar pembelajaran bisa lebih terfokus pada proses kegiatan
+pembelajaran yang bermakna sehingga informasi serta umpan balik mengenai kemampuan murid juga
+menjadi lebih kaya dan bermanfaat dalam proses perancangan pembelajaran berikutnya.
+Panduan Pembelajaran dan Asesmen Pendidikan Anak Usia Dini, Jenjang Pendidikan Dasar, dan Jenjang Pendidikan Menengah 45
+=== HAL 54 ===
+edisi revisi - Tahun 2025
+Catatan:
+Asesmen formatif dan sumatif tidak selalu dalam bentuk tes tertulis,
+tetapi pendidik dapat menggunakan berbagai variasi teknik asesmen
+lainnya.
+Asesmen sumatif juga tidak diartikan sebagai kewajiban yang harus
+dilakukan di tengah atau di akhir semester. Asesmen sumatif dilakukan
+sesuai dengan kebutuhan dan dapat dilakukan untuk satu atau lebih tujuan
+pembelajaran.
+Tujuan remedial bukan hanya untuk perbaikan nilai, tetapi untuk
+meningkatkan capaian belajar murid. Dengan demikian, remedial tidak
+dilakukan dengan memberikan soal atau tugas semata, melainkan dengan
+memberikan pendampingan kepada murid untuk mempelajari kembali
+kriteria-kriteria tujuan pembelajaran yang belum tercapai.
+Pengayaan dapat dilakukan dengan memberikan tantangan yang berbeda
+dengan tingkat kompleksitas yang lebih dari murid yang lain. Pengayaan
+bukan berarti murid diberi soal yang lebih sulit, tetapi untuk mempertajam
+dan memperluas pengetahuan murid dengan berbagai referensi.
+Berikut adalah beberapa instrumen asesmen yang dapat menjadi inspirasi bagi pendidik.
+Rubrik Pedoman yang dibuat untuk menilai dan mengevaluasi kualitas
+capaian kinerja murid sehingga pendidik dapat menyediakan
+bantuan yang diperlukan untuk meningkatkan kinerja. Rubrik juga
+dapat digunakan oleh pendidik untuk memusatkan perhatian pada
+kompetensi yang harus dikuasai. Capaian kinerja dituangkan dalam
+bentuk kriteria atau dimensi yang akan dinilai yang dibuat secara
+bertingkat dari kurang sampai terbaik.
+Ceklis Daftar informasi, data, ciri-ciri, karakteristik, atau elemen yang dituju.
+Catatan Anekdotal Catatan singkat hasil observasi yang difokuskan pada performa dan
+perilaku yang menonjol, disertai latar belakang kejadian dan hasil
+analisis atas observasi yang dilakukan.
+Grafik Perkembangan Grafik atau infografik yang menggambarkan tahap perkembangan
+(Kontinum) belajar.
+46
+=== HAL 55 ===
+Perencanaan Pembelajaran dan Asesmen
+Instrumen asesmen dapat dikembangkan berdasarkan teknik penilaian yang digunakan oleh
+pendidik. Di bawah ini diuraikan contoh teknik asesmen yang dapat diadaptasi, yaitu :
+Observasi Asesmen yang dilakukan secara berkesinambungan melalui pengamatan perilaku
+yang diamati secara berkala. Observasi dapat difokuskan untuk semua murid atau
+per individu. Observasi dapat dilakukan dalam tugas atau aktivitas rutin/harian.
+Kinerja Asesmen yang ditujukan untuk mendemonstrasikan dan mengaplikasikan
+pengetahuannya ke dalam berbagai macam konteks sesuai dengan kriteria
+yang diinginkan. Asesmen kinerja dapat berupa praktik, menghasilkan produk,
+melakukan projek, atau membuat portofolio.
+Projek Asesmen yang meliputi kegiatan perancangan, pelaksanaan, dan pelaporan,
+yang harus diselesaikan dalam periode/waktu tertentu.
+Tes Tertulis Tes dengan soal dan jawaban disajikan secara tertulis untuk mengukur atau
+memperoleh informasi tentang kemampuan murid. Tes tertulis dapat berbentuk
+esai, pilihan ganda, uraian, atau bentuk-bentuk tes tertulis lainnya.
+Tes Lisan Pemberian soal/pertanyaan agar murid dapat menjawab secara lisan dan diberikan
+ketika pembelajaran berlangsung.
+Penugasan Pemberian tugas kepada murid untuk mengukur pengetahuan dan memfasilitasi
+murid memperoleh atau meningkatkan pengetahuan.
+Portofolio Kumpulan dokumen hasil penilaian, penghargaan, dan karya murid dalam bidang
+tertentu yang mencerminkan perkembangan (reflektif-integratif) dalam kurun
+waktu tertentu.
+Classroom Strategi asesmen formatif yang sederhana, cepat, dan efektif untuk mengukur
+Assessment pemahaman murid secara langsung selama proses pembelajaran berlangsung.
+Technique Contohnya: minute paper, di akhir pelajaran murid menulis 1 hal paling penting
+(CATs) yang dipelajari dan 2 hal yang masih membingungkan; muddiest point, murid
+menjawab satu pertanyaan bagian apa yang paling membingungkan dari
+pelajaran; one sentence summary, murid merangkum topik dengan menjawab
+“siapa melakukan apa, kapan, dimana, bagaimana, dan mengapa” dalam satu
+kalimat; background knowledge probe, kuesioner singkat di awal pelajaran untuk
+mengetahui pengetahuan awal murid; chain notes, murid menjawab pertanyaan di
+amplop yang diedarkan selama pembelajaran; atau strategi lainnya.
+Exit ticket Asesmen formatif sederhana yang dilakukan di akhir pembelajaran, murid
+menjawab satu atau beberapa pertanyaan singkat sebelum meninggalkan kelas.
+Panduan Pembelajaran dan Asesmen Pendidikan Anak Usia Dini, Jenjang Pendidikan Dasar, dan Jenjang Pendidikan Menengah 47
+=== HAL 56 ===
+edisi revisi - Tahun 2025
+Teknik asesmen dapat dilakukan secara berbeda di jenjang tertentu,
+sesuai dengan karakteristiknya.
+Untuk satuan PAUD dan SD Fase A, teknik asesmen tidak disarankan menggunakan tes,
+baik tertulis maupun lisan. Penerapan teknik tes dinilai kurang tepat karena pada fase
+ini kemampuan baca-tulis anak masih dalam tahap pembinaan. Pelaksanaan asesmen
+literasi dan numerasi pada tahap ini dilakukan dalam suasana bermain dan interaksi yang
+menyenangkan, sebagai bagian dari pengamatan terhadap proses belajar anak. Kegiatan ini
+dirancang agar setiap murid merasa diterima, dihargai, dan bebas berekspresi tanpa tekanan
+sehingga pembentukan rasa positif terhadap belajar yang merupakan fondasi esensial bagi
+murid untuk menjadi pembelajar sepanjang hayat, dapat terus terbangun.
+Selain itu, perlu dipahami bahwa kemampuan fondasi merupakan perilaku yang dapat
+diamati, bukan kemampuan yang tepat diukur melalui tes tertulis maupun lisan. Hasil
+tes yang cenderung hanya berupa angka berisiko memberi pelabelan pada murid dan
+berpotensi mempengaruhi persepsi diri mereka secara negatif. Oleh karena itu, praktik
+asesmen harus didasarkan pada observasi autentik untuk mendukung perkembangan
+murid secara menyeluruh. Ragam bentuk asesmen yang dapat dilakukan untuk fase
+fondasi dan SD Fase A, antara lain: catatan anekdot, ceklis, hasil karya, portofolio,
+dokumentasi, dll. Referensi pelaporan perkembangan anak usia dini dapat dibaca pada
+panduan berikut: https://kurikulum.kemdikbud.go.id/file/1675427835_manage_file.pdf
+Untuk pendidikan khusus, asesmen cenderung lebih beragam karena perlu pendekatan
+individual. Pada Pendidikan Kesetaraan, asesmen muatan keterampilan dapat berbentuk
+observasi, demonstrasi, tes lisan, tes tulis, portofolio, dan/atau uji kompetensi pada lembaga
+sertifikasi dan kompetensi.
+Sementara itu pada SMK, terdapat bentuk penilaian atau asesmen khas yang membedakan
+dengan jenjang yang lain, yaitu::
+a. Asesmen Praktik Kerja Lapangan (PKL)
+• Asesmen/pengukuran terhadap capaian pembelajaran selama melaksanakan
+pembelajaran di dunia kerja, meliputi substansi kompetensi ataupun budaya kerja.
+• Asesmen dilakukan oleh pembimbing PKL/ instruktur dari dunia kerja dan atau bersama
+dengan guru pembimbing.
+• Hasil asesmen disampaikan pada rapor dengan mencantumkan keterangan dari dunia
+kerja tentang kinerja secara keseluruhan berdasarkan jurnal PKL, sertifikat, atau surat
+keterangan praktek kerja lapangan dari dunia kerja.
+• Secara lebih lengkap, asesmen PKL juga dapat mengacu pada Panduan PKL.
+• Mendorong murid berkinerja baik saat melakukan pembelajaran di dunia kerja serta
+memberikan kebanggaan pada murid.
+48
+=== HAL 57 ===
+Perencanaan Pembelajaran dan Asesmen
+b. Uji Kompetensi Keahlian
+• Asesmen terhadap pencapaian kualifikasi jenjang 2 (dua) atau 3 (tiga) pada KKNI atau
+skema okupasi yang dilaksanakan di akhir masa studi oleh Lembaga Sertifikasi Profesi
+(LSP-P1/LSP-2/LSP-3), Panitia Teknis Uji Kompetensi (PTUK), atau satuan pendidikan yang
+terakreditasi bersama dengan dunia kerja.
+• Dapat memperhitungkan paspor keterampilan (skills passport) yang diperoleh pada tahap
+pembelajaran sebelumnya.
+• Dapat berupa observasi, demonstrasi, tes lisan, tes tulis, dan/atau portofolio sesuai dengan
+prosedur yang ditetapkan oleh dunia kerja, LSP, dan/atau PTUK.
+• Hasil dari uji kompetensi adalah predikat capaian kompetensi sebagaimana ditetapkan
+oleh penyelenggara, sertifikat keahlian, kredensial mikro, atau kredensial lainnya untuk
+menghadapi dunia kerja.
+c. Ujian Unit Kompetensi
+• Asesmen terhadap pencapaian satu atau beberapa unit kompetensi untuk mencapai
+kemampuan melaksanakan satu bidang pekerjaan spesifik.
+• Ujian Unit Kompetensi dapat mengujikan beberapa unit kompetensi yang membentuk 1
+(satu) Skema Sertifikasi atau Skill Set.
+• Ujian Unit Kompetensi dapat dilaksanakan setiap tahun atau semester oleh satuan
+pendidikan terakreditasi.
+• Dapat berupa unjuk kerja (praktik demonstrasi) dan dilengkapi dengan tes tertulis, tes
+lisan, dan/atau portofolio.
+• Mendorong pendidik melaksanakan pembelajaran tuntas (mastery learning) pada materi
+kejuruan. Pembelajaran tuntas dalam hal ini pembelajaran yang menekankan pada
+pemenuhan unit atau elemen kompetensi sesuai dengan SKKNI.
+• Hasil dari ujian unit kompetensi adalah predikat capaian kompetensi sebagaimana
+ditetapkan oleh penyelenggara, sertifikat keahlian, kredensial mikro, dan/atau skill
+passport sebagai bekal menghadapi Uji Kompetensi Keahlian di akhir masa pembelajaran.
+Satuan pendidikan dapat bekerjasama dengan mitra dunia kerja untuk mendukung
+pembelajaran, asesmen, dan uji kompetensi yang selaras dengan prinsip-prinsip asesmen.
+Panduan Pembelajaran dan Asesmen Pendidikan Anak Usia Dini, Jenjang Pendidikan Dasar, dan Jenjang Pendidikan Menengah 49
+=== HAL 58 ===
+edisi revisi - Tahun 2025
+Pelaksanaan Pembelajaran
+4
+dan Asesmen
+Pelaksanaan pembelajaran dalam pembelajaran mendalam menekankan keterpaduan antara
+pembelajaran dan asesmen sebagai bagian dari satu siklus belajar yang utuh dan berkesinambungan.
+Asesmen, khususnya asesmen formatif, tidak dipisahkan dari proses belajar, melainkan digunakan
+secara strategis untuk mengeksplorasi cara berpikir murid, memberi umpan balik bermakna, dan
+menyesuaikan strategi pembelajaran untuk mendorong pemahaman yang lebih dalam. Dalam
+kerangka ini, diferensiasi berperan sebagai penguat pembelajaran mendalam karena memungkinkan
+guru untuk merancang pengalaman belajar yang relevan, menantang, dan bermakna bagi setiap
+murid berdasarkan kesiapan, minat, dan gaya belajarnya. Melalui diferensiasi konten, proses,
+produk, atau lingkungan belajar, murid tidak hanya terbantu untuk memahami materi, tetapi juga
+diberi ruang untuk berpikir kritis, merefleksikan pembelajaran, dan menerapkan pemahaman dalam
+berbagai konteks nyata. Dengan demikian, diferensiasi bukan sekadar strategi untuk memenuhi
+keberagaman, tetapi menjadi jembatan yang memastikan setiap murid dapat terlibat secara
+aktif dalam pembelajaran yang bermakna, transformatif, dan berorientasi pada pengembangan
+kompetensi secara utuh.
+Pelaksanaan pembelajaran mendalam menuntut pendidik untuk merancang pengalaman belajar
+yang tidak hanya berorientasi pada penyampaian materi, tetapi lebih dari itu, yaitu mendorong
+murid untuk membangun pemahaman bermakna, mengaitkan antarkonsep, serta mampu
+menerapkan pengetahuan dan keterampilan dalam berbagai konteks kehidupan nyata. Dalam
+kerangka ini, asesmen formatif menjadi bagian penting dari siklus pembelajaran karena memberikan
+gambaran terhadap proses berpikir dan capaian belajar murid, sekaligus menjadi dasar dalam
+merancang strategi pembelajaran yang responsif. Salah satu strategi yang dapat digunakan
+untuk mendukung pembelajaran mendalam adalah melakukan penyesuaian pendekatan belajar
+berdasarkan informasi dari asesmen, termasuk melalui pengelompokan fleksibel yang bersifat
+sementara dan kontekstual. Namun, perlu ditegaskan bahwa pengelompokan ini tidak bertujuan
+untuk memberi label atau menciptakan hirarki kemampuan antar murid, karena hal itu justru dapat
+melemahkan rasa percaya diri dan merusak iklim kelas yang inklusif.
+Dalam pembelajaran mendalam, pengelompokan atau penyesuaian strategi bukan semata-mata
+berdasarkan tingkat “kemampuan” murid, melainkan diarahkan untuk menciptakan pengalaman
+belajar yang kolaboratif, bermakna, dan mendorong keterlibatan aktif setiap murid. Misalnya,
+pembelajaran dalam kelompok kecil dapat diarahkan untuk mengeksplorasi peran yang berbeda
+dalam satu proyek, membahas ide-ide dari berbagai sudut pandang, atau melakukan eksplorasi
+solusi atas suatu masalah nyata. Peran dan tugas dapat bergilir agar murid berkesempatan
+mengembangkan berbagai kompetensi, tidak hanya yang menjadi kekuatannya. Dengan demikian,
+diferensiasi konten, proses, dan produk bukanlah tujuan akhir, melainkan alat untuk memfasilitasi
+keterlibatan murid dalam proses berpikir yang dalam dan reflektif.
+Pendidik juga diharapkan memberi ruang bagi murid untuk memilih cara belajar atau
+mengekspresikan pemahamannya, misalnya melalui pilihan media pembelajaran (artikel, video,
+modul, atau esai), strategi penyelesaian masalah, atau bentuk akhir dari tugas belajar (produk).
+Namun yang terpenting, murid dibimbing untuk merefleksikan proses belajarnya, mengembangkan
+50
+=== HAL 59 ===
+Pelaksanaan Pembelajaran dan Asesmen
+pertanyaan baru, dan menumbuhkan kesadaran tentang bagaimana mereka belajar. Itulah inti dari
+pembelajaran mendalam: pembelajaran yang memberi makna, mendorong kemandirian berpikir,
+serta memungkinkan transfer pengetahuan ke dalam konteks yang lebih luas. Dalam kerangka
+ini, guru berperan bukan sebagai pengatur kelompok atau pemberi tugas semata, tetapi sebagai
+fasilitator yang menciptakan ruang belajar dinamis, reflektif, dan penuh makna.
+Berikut ini adalah ilustrasi siklus perencanaan dan pelaksanaan pembelajaran dan asesmen dalam
+kerangka pembelajaran mendalam:
+• Pendidik menyusun rencana pembelajaran yang berfokus pada pencapaian pemahaman
+bermakna, termasuk perencanaan asesmen formatif untuk mengeksplorasi cara berpikir, latar
+belakang pengetahuan, dan kesiapan belajar murid.
+• Di awal pembelajaran, pendidik melakukan asesmen untuk memahami titik awal belajar masing-
+masing murid, bukan sekadar menilai apa yang sudah dikuasai, tetapi juga mengidentifikasi
+potensi dan cara belajar yang paling efektif.
+• Berdasarkan hasil asesmen, pendidik menyesuaikan strategi pembelajaran agar lebih kontekstual,
+kolaboratif, dan mendorong eksplorasi serta refleksi. Pada tahap ini, pendidik menciptakan ruang
+belajar yang menantang, menggugah rasa ingin tahu, dan memberi kesempatan bagi murid untuk
+terlibat aktif, mengembangkan ide, dan memecahkan masalah secara kreatif.
+• Selama proses pembelajaran, pendidik menggunakan asesmen formatif secara berkelanjutan
+untuk memantau pemahaman dan memfasilitasi umpan balik yang membangun, guna
+memperdalam proses berpikir murid.
+• Di akhir pembelajaran, asesmen dilakukan untuk melihat sejauh mana murid membangun
+pemahaman terhadap kompetensi inti. Hasil asesmen ini sekaligus menjadi dasar perencanaan
+pembelajaran selanjutnya sehingga siklus belajar terus berlanjut secara reflektif dan adaptif.
+Dalam praktiknya, penyesuaian pembelajaran berdasarkan kebutuhan murid memang menantang.
+Namun, pembelajaran mendalam tidak selalu menuntut rancangan yang rumit atau sepenuhnya
+berbeda-beda, melainkan menekankan pada bagaimana pembelajaran dirancang dan dijalankan
+agar bermakna, relevan, dan memfasilitasi pemahaman yang utuh bagi setiap murid. Tantangan
+seperti keterbatasan waktu, jumlah murid yang banyak, atau ruang kelas yang terbatas dapat diatasi
+dengan strategi yang fleksibel, kolaboratif, dan berorientasi pada proses belajar, bukan hanya pada
+hasil akhir.
+Dalam pembelajaran mendalam, meskipun murid menempuh jalur belajar atau menunjukkan
+hasil akhir yang berbeda, kompetensi yang diukur tetap sama. Oleh karena itu, tidak diperlukan
+rubrik asesmen yang berbeda. Asesmen tetap berfokus pada kedalaman pemahaman terhadap
+kompetensi yang telah ditetapkan.
+Panduan Pembelajaran dan Asesmen Pendidikan Anak Usia Dini, Jenjang Pendidikan Dasar, dan Jenjang Pendidikan Menengah 51
+=== HAL 60 ===
+edisi revisi - Tahun 2025
+Pengolahan dan Pelaporan
+5
+Hasil Asesmen
+Ringkasan Bab
+Pengolahan Hasil Asesmen
+Pelaporan Hasil belajar
+Mekanisme Kenaikan Kelas dan Kelulusan
+Penting untuk diperhatikan bahwa pendidik tidak menggabungkan
+hasil asesmen formatif dan sumatif karena asesmen formatif dan sumatif
+memiliki fungsi yang berbeda. Asesmen formatif bertujuan untuk
+memberikan umpan balik pada proses sehingga asesmen formatif bukan
+menjadi penentu atau pembagi untuk nilai akhir. Sementara itu, asesmen
+sumatif bertujuan untuk untuk menilai pencapaian hasil belajar murid.
+Dalam mengolah dan menentukan hasil akhir asesmen sumatif, pendidik
+perlu membagi asesmennya ke dalam beberapa kegiatan asesmen
+sumatif agar murid dapat menyelesaikan asesmen sumatifnya dalam
+kondisi yang optimal (tidak terburu-buru atau tidak terlalu padat). Untuk
+situasi ini, nilai akhir merupakan gabungan dari beberapa kegiatan
+asesmen tersebut.
+A. Pengolahan Hasil Asesmen
+Pengolahan hasil asesmen dilakukan dengan menganalisis secara kuantitatif dan/atau kualitatif
+terhadap hasil asesmen. Hasil asesmen untuk setiap tujuan pembelajaran diperoleh melalui data
+kualitatif (hasil amatan atau rubrik) maupun data kuantitatif (berupa angka). Data-data ini diperoleh
+dengan membandingkan pencapaian hasil belajar murid dengan kriteria ketercapaian tujuan
+pembelajaran, baik pada capaian pembelajaran di akhir fase, maupun tujuan-tujuan pembelajaran
+turunannya. Berikut adalah cara pengolahan hasil asesmen
+52
+=== HAL 61 ===
+Pengolahan dan Pelaporan Hasil Asesmen
+1. Mengolah hasil asesmen untuk mengevaluasi
+ketercapaian satu tujuan pembelajaran
+Asesmen sumatif dilaksanakan secara periodik setiap selesai satu atau lebih tujuan pembelajaran.
+Hasil asesmen perlu diolah menjadi capaian dari tujuan pembelajaran setiap murid. Hasil asesmen
+dapat berupa data kualitatif ataupun data kuantitatif. Pendidik diberi keleluasaan untuk mengolah
+data kuantitatif, baik secara rerata maupun proporsional.
+Contoh:
+Pendidik telah melaksanakan asesmen untuk salah satu tujuan pembelajaran mata pelajaran IPAS
+Fase C: Menyelidiki ragam sumber energi yang dapat dimanfaatkan di lingkungan sekitar,
+dengan indikator terdiri atas:
+1. kemampuan menguraikan manfaat sumber energi; dan
+2. kemampuan menjelaskan ragam sumber energi alternatif.
+Indikator 1 dan 2 menggunakan teknik tes tertulis dan essay. Hasil asesmen sumatif murid dipetakan
+ke dalam 4 kualitas, yaitu: 1) perlu bimbingan; 2) cukup; 3) baik; dan 4) sangat baik.
+Tabel 5.1. Rubrik tujuan pembelajaran:
+Menyelidiki ragam sumber energi yang dapat dimanfaatkan di lingkungan sekitar
+Kriteria Perlu Cukup Baik Sangat Baik
+Bimbingan
+Mampu Belum Mampu Menguraikan 1 Menguraikan 2 Menguraikan
+menguraikan menguraikan contoh manfaat contoh manfaat lebih dari 2
+manfaat manfaat sumber energi sumber energi contoh manfaat
+sumber energi sumber energi sumber energi
+Mampu belum mampu Menjelaskan 1 Menjelaskan 2 Menjelaskan
+menjelaskan menjelaskan ragam sumber ragam sumber 3 ragam
+ragam ragam sumber energi alternatif energi alternatif sumber energi
+sumber energi energi alternatif alternatif
+alternatif
+Pendidik menentukan kriteria ketercapaian tujuan pembelajaran pada kualitas yang diyakininya,
+misalkan pada kualitas cukup, murid dianggap telah mencapai kriteria ketercapaian kompetensi.
+Adapun pengolahan hasil asesmen tujuan pembelajaran dapat disajikan seperti dalam tabel
+berikut ini.
+Panduan Pembelajaran dan Asesmen Pendidikan Anak Usia Dini, Jenjang Pendidikan Dasar, dan Jenjang Pendidikan Menengah 53
+=== HAL 62 ===
+edisi revisi - Tahun 2025
+Tabel 5.2. Hasil asesmen tujuan pembelajaran:
+Menyelidiki ragam sumber energi yang dapat dimanfaatkan di lingkungan sekitar
+Nama Kriteria 1 Kriteria 2 Deskripsi
+Amar Baik Cukup Mampu menguraikan 2 contoh manfaat sumber
+energi dan mampu menjelaskan 1 ragam sumber
+energi alternatif.
+Badu Perlu Cukup Belum mampu menguraikan manfaat sumber energi
+bimbingan tetapi mampu menjelaskan satu ragam sumber
+energi alternatif.
+Candra Sangat Baik Mampu menguraikan lebih dari 2 contoh manfaat
+Baik sumber energi serta dapat menjelaskan 2 ragam
+sumber energi alternatif.
+… … … …
+Zakariya Cukup Baik Mampu menguraikan 1 contoh manfaat sumber
+energi serta dapat menjelaskan 2 ragam sumber
+energi alternatif.
+2. Mengolah hasil asesmen dari beberapa tujuan
+pembelajaran menjadi nilai akhir
+Tujuan pembelajaran yang dicapai murid merupakan bahan yang diolah menjadi nilai akhir mata
+pelajaran dalam kurun waktu pelaporan (biasanya satu semester). Untuk mendapatkan nilai akhir
+mata pelajaran tersebut, data kuantitatif langsung diolah, sedangkan untuk deskripsi, pendidik
+dapat memberikan penjelasan mengenai kompetensi yang sudah dikuasai murid, dan kompetensi
+yang belum dikuasai, serta dapat ditambahkan tindak lanjut secara ringkas.
+Contoh:
+1) Apabila pengukuran pencapaian dilakukan untuk setiap tujuan pem-
+belajaran dengan data kuantitatif (angka pencapaian)
+• Misalnya, dalam 1 semester ada 6 tujuan pembelajaran untuk mata pelajaran IPA, 7 tujuan
+pembelajaran untuk Bahasa Indonesia, dan 5 tujuan pembelajaran untuk mata pelajaran Agama
+(contoh hanya 3 mata pelajaran, tetapi cara ini dapat berlaku untuk semua mata pelajaran).
+54

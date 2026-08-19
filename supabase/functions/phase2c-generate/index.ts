@@ -251,6 +251,33 @@ async function makeRegenKey(
   return prefix + ':' + await sha256({ profileId, artifactKind, planningContextId, sourceHash, depHash, clientOperationId });
 }
 
+// ── Version binding verification ─────────────────────────────────────────────
+// Prevents cross-classroom state corruption: confirms version_id belongs to
+// the authorized planningContextId + profileId + expectedKind before any RPC.
+async function verifyVersionBinding(
+  admin: ReturnType<typeof createClient>,
+  versionId: string,
+  profileId: string,
+  planningContextId: string,
+  expectedKind: string,
+): Promise<boolean> {
+  const { data: versionCheck } = await admin
+    .from('rancang_artifact_versions')
+    .select('id, artifact_id')
+    .eq('id', versionId)
+    .eq('profile_id', profileId)
+    .eq('planning_context_id', planningContextId)
+    .maybeSingle();
+  if (!versionCheck) return false;
+  const { data: artifactCheck } = await admin
+    .from('rancang_artifacts')
+    .select('id')
+    .eq('id', versionCheck.artifact_id)
+    .eq('artifact_kind', expectedKind)
+    .maybeSingle();
+  return !!artifactCheck;
+}
+
 // ── Main handler ──────────────────────────────────────────────────────────────
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
@@ -399,6 +426,19 @@ Deno.serve(async (req) => {
         idempotencyKey = await makeRegenKey(
           'ctx_regen', profile.id, 'CONTEXT_SPEC', planningContextId, sourceHash, depHash, clientOpId,
         );
+
+        // Server-side regenerate limit: max 3 candidates per artifact
+        const { data: ctxArtifactForLimit } = await admin.from('rancang_artifacts')
+          .select('id').eq('planning_context_id', planningContextId)
+          .eq('profile_id', profile.id).eq('artifact_kind', 'CONTEXT_SPEC').maybeSingle();
+        const { count: regenCount } = ctxArtifactForLimit
+          ? await admin.from('rancang_artifact_versions')
+              .select('id', { count: 'exact', head: true })
+              .eq('artifact_id', ctxArtifactForLimit.id)
+              .not('candidate_of_version_id', 'is', null)
+          : { count: 0 };
+        if ((regenCount ?? 0) >= 3)
+          return reply({ error: 'Batas regenerate Context (3×) sudah tercapai.' }, 409);
       } else {
         idempotencyKey = await makeIdempotencyKey('ctx_gen', planningContextId, sourceHash, 'initial');
       }
@@ -555,6 +595,9 @@ Deno.serve(async (req) => {
       const versionId = String(body.version_id ?? '');
       if (!versionId) return reply({ error: 'version_id diperlukan' }, 400);
 
+      if (!await verifyVersionBinding(admin, versionId, profile.id, planningContextId, 'CONTEXT_SPEC'))
+        return reply({ error: 'Version tidak diizinkan' }, 403);
+
       const idempotencyKey = await makeIdempotencyKey('ctx_confirm', planningContextId, versionId);
       const { data, error } = await admin.rpc('fn_phase2b_transition_version', {
         p_profile_id: profile.id, p_version_id: versionId,
@@ -611,6 +654,9 @@ Deno.serve(async (req) => {
       const versionId = String(body.version_id ?? '');
       const selRev = Number(body.selection_revision ?? 0);
       if (!versionId) return reply({ error: 'version_id diperlukan' }, 400);
+
+      if (!await verifyVersionBinding(admin, versionId, profile.id, planningContextId, 'CONTEXT_SPEC'))
+        return reply({ error: 'Version tidak diizinkan' }, 403);
 
       const { error } = await admin.rpc('fn_phase2b_decide_candidate', {
         p_profile_id: profile.id, p_version_id: versionId,
@@ -674,6 +720,19 @@ Deno.serve(async (req) => {
         idempotencyKey = await makeRegenKey(
           'asm_regen', profile.id, 'ASSESSMENT_SPEC', planningContextId, sourceHash, depHash, clientOpId,
         );
+
+        // Server-side regenerate limit: max 3 candidates per artifact
+        const { data: asmArtifactForLimit } = await admin.from('rancang_artifacts')
+          .select('id').eq('planning_context_id', planningContextId)
+          .eq('profile_id', profile.id).eq('artifact_kind', 'ASSESSMENT_SPEC').maybeSingle();
+        const { count: asmRegenCount } = asmArtifactForLimit
+          ? await admin.from('rancang_artifact_versions')
+              .select('id', { count: 'exact', head: true })
+              .eq('artifact_id', asmArtifactForLimit.id)
+              .not('candidate_of_version_id', 'is', null)
+          : { count: 0 };
+        if ((asmRegenCount ?? 0) >= 3)
+          return reply({ error: 'Batas regenerate Assessment (3×) sudah tercapai.' }, 409);
       } else {
         idempotencyKey = await makeIdempotencyKey('asm_gen', planningContextId, sourceHash, 'initial');
       }
@@ -840,6 +899,9 @@ Deno.serve(async (req) => {
       });
       if (!gateOk) return reply({ error: 'Context Specification belum dikonfirmasi' }, 409);
 
+      if (!await verifyVersionBinding(admin, versionId, profile.id, planningContextId, 'ASSESSMENT_SPEC'))
+        return reply({ error: 'Version tidak diizinkan' }, 403);
+
       const { data, error } = await admin.rpc('fn_phase2b_transition_version', {
         p_profile_id: profile.id, p_version_id: versionId,
         p_action: 'CONFIRM', p_validation_status: null, p_validation_summary: null,
@@ -860,6 +922,9 @@ Deno.serve(async (req) => {
       const selRev = Number(body.selection_revision ?? 0);
       if (!versionId) return reply({ error: 'version_id diperlukan' }, 400);
 
+      if (!await verifyVersionBinding(admin, versionId, profile.id, planningContextId, 'ASSESSMENT_SPEC'))
+        return reply({ error: 'Version tidak diizinkan' }, 403);
+
       const { error } = await admin.rpc('fn_phase2b_decide_candidate', {
         p_profile_id: profile.id, p_version_id: versionId,
         p_decision: 'ACCEPT', p_expected_selection_revision: selRev,
@@ -877,6 +942,9 @@ Deno.serve(async (req) => {
 
   } catch (err) {
     console.error('phase2c-generate', err);
+    if ((err as Record<string,unknown>)?.code === '23505' &&
+        String((err as Record<string,unknown>)?.message ?? '').includes('uq_one_active_candidate'))
+      return reply({ error: 'Regenerate sedang berjalan atau batas tercapai.' }, 409);
     return reply({ error: 'Operasi Phase 2C gagal' }, 409);
   }
 });

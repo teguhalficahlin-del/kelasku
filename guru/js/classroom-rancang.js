@@ -7,6 +7,7 @@
 
   let _cId = null;
   let _loaded = false;
+  let _initializing = false;  // guard: mencegah initRancangTab paralel
   let _settings = null;   // data dari rancang_settings (pre-fill + identitas)
   let _profil   = null;   // data dari rancang_profil (step 0 — per akun guru)
   let _dokumen  = [];     // data dari rancang_dokumen (daftar file tersimpan)
@@ -14,6 +15,19 @@
   let _durableAtp = null;      // { atp_id, atp_revision_id }
   let _planningContext = null; // durable Phase 2A planning context
   let _jpPolicy = null;
+
+  // async guard flags — mencegah double-submit pada fungsi kritis
+  let _confirmingAllocation = false;
+  let _enteringPipeline     = false;
+  let _confirmingCtx        = false;
+  let _confirmingAsm        = false;
+  let _enteringMaterial     = false;
+  let _enteringMeeting      = false;
+  let _enteringFollowup     = false;
+  let _enteringValidation   = false;
+
+  // wireCustomDropdown AbortController registry
+  const _dropdownControllers = new Map();
 
   // Jawaban per blok
   const _ans = {
@@ -50,6 +64,9 @@
   // A retry of the SAME intent reuses the same ID; a NEW click generates a fresh one.
   let _ctxRegenOpId = null;
   let _asmRegenOpId = null;
+  let _matRegenOpId = null;
+  // Per-meeting regenerate op IDs: Map<meeting_no, client_operation_id>
+  const _meetRegenOpIds = new Map();
 
   // Step saat ini: 0 = profil (onboarding), 1–7 = wizard
   let _step = 1;
@@ -257,13 +274,28 @@
   value="${esc(isLainnya ? saved : '')}">`;
   }
 
+  function cleanupAllDropdowns() {
+    _dropdownControllers.forEach(c => c.abort());
+    _dropdownControllers.clear();
+  }
+
   function wireCustomDropdown(id, onLainnyaToggle) {
+    // Cleanup controller lama jika ada
+    if (_dropdownControllers.has(id)) {
+      _dropdownControllers.get(id).abort();
+      _dropdownControllers.delete(id);
+    }
+
     const wrap = el(id);
     if (!wrap) return;
     const trigger = wrap.querySelector('.rp-custom-select-trigger');
     const panel = wrap.querySelector('.rp-custom-select-panel');
     const labelEl = wrap.querySelector('.rp-custom-select-label');
     const txt = el(id + '-txt');
+
+    const controller = new AbortController();
+    const { signal } = controller;
+    _dropdownControllers.set(id, controller);
 
     function openPanel() {
       const rect = wrap.getBoundingClientRect();
@@ -286,7 +318,7 @@
       e.stopPropagation();
       if (wrap.classList.contains('open')) closePanel();
       else openPanel();
-    });
+    }, { signal });
 
     wrap.addEventListener('keydown', e => {
       if (e.key === 'Enter' || e.key === ' ') {
@@ -295,7 +327,7 @@
         else openPanel();
       }
       if (e.key === 'Escape') closePanel();
-    });
+    }, { signal });
 
     panel?.querySelectorAll('.rp-custom-select-option').forEach(opt => {
       opt.addEventListener('click', e => {
@@ -317,15 +349,15 @@
         }
         closePanel();
         if (onLainnyaToggle) onLainnyaToggle(val);
-      });
+      }, { signal });
     });
 
-    document.addEventListener('click', function handler(e) {
+    document.addEventListener('click', e => {
       if (!document.contains(wrap)) return;
       if (!wrap.contains(e.target)) closePanel();
-    });
+    }, { signal });
 
-    window.addEventListener('scroll', closePanel, { passive: true });
+    window.addEventListener('scroll', closePanel, { signal, passive: true });
   }
 
   function getCustomSelVal(id) {
@@ -616,6 +648,7 @@
   // ─── Step 0 — Profil Guru (onboarding, dikunci per akun) ───────────────────
 
   async function renderStep0() {
+    cleanupAllDropdowns();
     _step = 0;
     const panel = el('rp-step-bar');
     if (panel) panel.style.display = 'none'; // sembunyikan step bar saat step 0
@@ -1140,6 +1173,7 @@ ${makeCustomDropdown('rp-s0-sdmapel-dd', SD_MAPEL_GURU.map(m => ({ value: m, lab
   // ─── Step 1 — Identitas Konteks ─────────────────────────────────────────────
 
   function renderStep1() {
+    cleanupAllDropdowns();
     _step = 1;
     renderStepBar();
     const body = el('rp-body');
@@ -1900,6 +1934,7 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
   // ─── Step 2 — SMK ───────────────────────────────────────────────────────────
 
   function renderStep2() {
+    cleanupAllDropdowns();
     _step = 2;
     renderStepBar();
     const body = el('rp-body');
@@ -2048,6 +2083,7 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
   // ─── Step 3 — Niat Guru + Preferensi ───────────────────────────────────────
 
   function renderStep3A() {
+    cleanupAllDropdowns();
     _step = 3;
     renderStepBar();
     const body = el('rp-body');
@@ -2107,6 +2143,7 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
   }
 
   function renderStep3B() {
+    cleanupAllDropdowns();
     const body = el('rp-body');
     if (!body) return;
 
@@ -2334,6 +2371,7 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
   }
 
   function renderStep4(list) {
+    cleanupAllDropdowns();
     _step = 4;
     renderStepBar();
     const body = el('rp-body');
@@ -2434,6 +2472,7 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
   // ─── Step 5 — Konteks Kelas ─────────────────────────────────────────────────
 
   function renderStep5() {
+    cleanupAllDropdowns();
     _step = 5;
     renderStepBar();
     const body = el('rp-body');
@@ -2665,32 +2704,38 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
   }
 
   async function confirmMeetingAllocation() {
-    const btn = el('rp-btn-confirm-allocation');
-    const jpValues = [...document.querySelectorAll('.rp-allocation-jp')].map(x => Number(x.value));
-    const effective = Number(el('rp-effective-jp')?.value);
-    const standard = Number(_jpPolicy?.standard_jp_minutes) || effective;
-    const overrideReason = (el('rp-jp-override-reason')?.value || '').trim();
-    if (!jpValues.length || jpValues.some(x => !Number.isInteger(x) || x <= 0)) {
-      return showError('rp-allocation-error','Setiap pertemuan harus memiliki JP positif.');
-    }
-    if (!Number.isInteger(effective) || effective <= 0 || (effective !== standard && !overrideReason)) {
-      return showError('rp-allocation-error','Isi durasi JP yang valid dan alasan jika berbeda dari standar.');
-    }
-    btn.disabled = true; btn.textContent = 'Mengonfirmasi…';
+    if (_confirmingAllocation) return;
+    _confirmingAllocation = true;
     try {
-      if (effective !== Number(_jpPolicy?.effective_jp_minutes)) {
-        _jpPolicy = await SipApi.phase2aPlanning({ action:'set_jp_policy', classroom_id:_cId,
-          teaching_context_id:_teachingContext.id, effective_jp_minutes:effective, override_reason:overrideReason });
+      const btn = el('rp-btn-confirm-allocation');
+      const jpValues = [...document.querySelectorAll('.rp-allocation-jp')].map(x => Number(x.value));
+      const effective = Number(el('rp-effective-jp')?.value);
+      const standard = Number(_jpPolicy?.standard_jp_minutes) || effective;
+      const overrideReason = (el('rp-jp-override-reason')?.value || '').trim();
+      if (!jpValues.length || jpValues.some(x => !Number.isInteger(x) || x <= 0)) {
+        return showError('rp-allocation-error','Setiap pertemuan harus memiliki JP positif.');
       }
-      await SipApi.phase2aPlanning({
-        action: 'confirm_allocation', classroom_id: _cId, teaching_context_id: _teachingContext.id,
-        planning_context_id: _planningContext.id, proposal_source: 'ATP_ESTIMATE',
-        meetings: jpValues.map((jp,i)=>({meeting_no:i+1,jp})),
-      });
-      await enterPhase2CPipeline();
-    } catch (err) {
-      showError('rp-allocation-error','Gagal mengonfirmasi alokasi: '+(err.message||'Coba lagi.'));
-      btn.disabled=false; btn.textContent='Konfirmasi alokasi';
+      if (!Number.isInteger(effective) || effective <= 0 || (effective !== standard && !overrideReason)) {
+        return showError('rp-allocation-error','Isi durasi JP yang valid dan alasan jika berbeda dari standar.');
+      }
+      btn.disabled = true; btn.textContent = 'Mengonfirmasi…';
+      try {
+        if (effective !== Number(_jpPolicy?.effective_jp_minutes)) {
+          _jpPolicy = await SipApi.phase2aPlanning({ action:'set_jp_policy', classroom_id:_cId,
+            teaching_context_id:_teachingContext.id, effective_jp_minutes:effective, override_reason:overrideReason });
+        }
+        await SipApi.phase2aPlanning({
+          action: 'confirm_allocation', classroom_id: _cId, teaching_context_id: _teachingContext.id,
+          planning_context_id: _planningContext.id, proposal_source: 'ATP_ESTIMATE',
+          meetings: jpValues.map((jp,i)=>({meeting_no:i+1,jp})),
+        });
+        await enterPhase2CPipeline();
+      } catch (err) {
+        showError('rp-allocation-error','Gagal mengonfirmasi alokasi: '+(err.message||'Coba lagi.'));
+        btn.disabled=false; btn.textContent='Konfirmasi alokasi';
+      }
+    } finally {
+      _confirmingAllocation = false;
     }
   }
 
@@ -2722,39 +2767,56 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
 
   // Entry point after allocation confirmed OR from resume
   async function enterPhase2CPipeline() {
-    _step = 6;
-    renderStepBar();
-    const body = el('rp-body');
-    if (!body) return;
-    body.innerHTML = `<div class="rp-block"><div class="rp-block-title">Memuat status pipeline…</div></div>`;
+    if (_enteringPipeline) return;
+    _enteringPipeline = true;
     try {
-      _phase2cState = await SipApi.phase2cGenerate(phase2cPayload({ action: 'get_pipeline_state' }));
-      saveRpState();
-      renderStep6Phase2C();
-    } catch (err) {
-      body.innerHTML = `<div class="rp-block">
-        <div class="rp-block-title" style="color:var(--error);">Gagal memuat pipeline</div>
-        <p style="font-size:var(--fs-caption);color:var(--text-secondary);">${esc(err.message || 'Coba lagi.')}</p>
-        <button class="btn btn-primary" id="rp2c-retry-load">Coba lagi</button>
-      </div>`;
-      el('rp2c-retry-load')?.addEventListener('click', enterPhase2CPipeline);
+      _step = 6;
+      renderStepBar();
+      const body = el('rp-body');
+      if (!body) return;
+      body.innerHTML = `<div class="rp-block"><div class="rp-block-title">Memuat status pipeline…</div></div>`;
+      try {
+        _phase2cState = await SipApi.phase2cGenerate(phase2cPayload({ action: 'get_pipeline_state' }));
+        saveRpState();
+        renderStep6Phase2C();
+      } catch (err) {
+        body.innerHTML = `<div class="rp-block">
+          <div class="rp-block-title" style="color:var(--error);">Gagal memuat pipeline</div>
+          <p style="font-size:var(--fs-caption);color:var(--text-secondary);">${esc(err.message || 'Coba lagi.')}</p>
+          <button class="btn btn-primary" id="rp2c-retry-load">Coba lagi</button>
+        </div>`;
+        el('rp2c-retry-load')?.addEventListener('click', enterPhase2CPipeline);
+      }
+    } finally {
+      _enteringPipeline = false;
     }
   }
 
   function renderStep6Phase2C() {
     const s = _phase2cState;
-    if (!s) { enterPhase2CPipeline(); return; }
-    // Route to the right checkpoint
+    // State dari localStorage ditandai stale — refresh dari server dulu
+    if (!s || s._stale) { enterPhase2CPipeline(); return; }
     const ctxConfirmed = s.context_spec?.confirmed;
+    const asmConfirmed = s.assessment_spec?.lifecycle_status === 'CONFIRMED';
+    const matUsable    = s.material_spec?.usable === true;
+    // Any meeting has been generated (has artifact_id) → resume meeting pipeline view
+    const anyMeetingGenerated = (s.meeting_plans ?? []).some(m => !!m.artifact_id);
     if (!ctxConfirmed) {
       renderContextCheckpoint();
-    } else {
+    } else if (!asmConfirmed) {
       renderAssessmentCheckpoint();
+    } else if (!matUsable) {
+      enterMaterialPipeline();
+    } else if (anyMeetingGenerated) {
+      renderMeetingPipeline();
+    } else {
+      renderMaterialSpec();
     }
   }
 
   // ── Checkpoint 1: Context Specification ────────────────────────────────────
   function renderContextCheckpoint() {
+    cleanupAllDropdowns();
     const body = el('rp-body');
     if (!body) return;
     const s = _phase2cState;
@@ -2965,24 +3027,31 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
   }
 
   async function runConfirmContext() {
-    const ctx = _phase2cState?.context_spec;
-    if (!ctx?.selected_version_id) return;
-    const btn = el('rp2c-btn-confirm-ctx');
-    if (btn) { btn.disabled = true; btn.textContent = 'Mengonfirmasi…'; }
-    showError('rp2c-ctx-error', '');
+    if (_confirmingCtx) return;
+    _confirmingCtx = true;
     try {
-      _phase2cState = await SipApi.phase2cGenerate(phase2cPayload({
-        action: 'confirm_context_spec', version_id: ctx.selected_version_id,
-      }));
-      saveRpState(); renderAssessmentCheckpoint();
-    } catch (e) {
-      if (btn) { btn.disabled = false; btn.textContent = 'Konfirmasi & Lanjut →'; }
-      showError('rp2c-ctx-error', e.message || 'Konfirmasi gagal.');
+      const ctx = _phase2cState?.context_spec;
+      if (!ctx?.selected_version_id) return;
+      const btn = el('rp2c-btn-confirm-ctx');
+      if (btn) { btn.disabled = true; btn.textContent = 'Mengonfirmasi…'; }
+      showError('rp2c-ctx-error', '');
+      try {
+        _phase2cState = await SipApi.phase2cGenerate(phase2cPayload({
+          action: 'confirm_context_spec', version_id: ctx.selected_version_id,
+        }));
+        saveRpState(); renderAssessmentCheckpoint();
+      } catch (e) {
+        if (btn) { btn.disabled = false; btn.textContent = 'Konfirmasi & Lanjut →'; }
+        showError('rp2c-ctx-error', e.message || 'Konfirmasi gagal.');
+      }
+    } finally {
+      _confirmingCtx = false;
     }
   }
 
   // ── Checkpoint 2: Assessment Specification ─────────────────────────────────
   function renderAssessmentCheckpoint() {
+    cleanupAllDropdowns();
     const body = el('rp-body');
     if (!body) return;
     const s = _phase2cState;
@@ -3212,19 +3281,1021 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
   }
 
   async function runConfirmAssessment() {
-    const asm = _phase2cState?.assessment_spec;
-    if (!asm?.selected_version_id) return;
-    const btn = el('rp2c-btn-confirm-asm');
-    if (btn) { btn.disabled = true; btn.textContent = 'Mengonfirmasi…'; }
-    showError('rp2c-asm-error', '');
+    if (_confirmingAsm) return;
+    _confirmingAsm = true;
     try {
-      _phase2cState = await SipApi.phase2cGenerate(phase2cPayload({
-        action: 'confirm_assessment_spec', version_id: asm.selected_version_id,
+      const asm = _phase2cState?.assessment_spec;
+      if (!asm?.selected_version_id) return;
+      const btn = el('rp2c-btn-confirm-asm');
+      if (btn) { btn.disabled = true; btn.textContent = 'Mengonfirmasi…'; }
+      showError('rp2c-asm-error', '');
+      try {
+        _phase2cState = await SipApi.phase2cGenerate(phase2cPayload({
+          action: 'confirm_assessment_spec', version_id: asm.selected_version_id,
+        }));
+        saveRpState(); enterMaterialPipeline();
+      } catch (e) {
+        if (btn) { btn.disabled = false; btn.textContent = 'Konfirmasi Checkpoint 2 ✓'; }
+        showError('rp2c-asm-error', e.message || 'Konfirmasi gagal.');
+      }
+    } finally {
+      _confirmingAsm = false;
+    }
+  }
+
+  // ── Checkpoint 3: Material Specification ──────────────────────────────────────
+  function phase2cPayloadMat(extra) {
+    return {
+      classroom_id: _cId,
+      teaching_context_id: _teachingContext?.id,
+      planning_context_id: _planningContext?.id,
+      ...extra,
+    };
+  }
+
+  async function enterMaterialPipeline() {
+    if (_enteringMaterial) return;
+    _enteringMaterial = true;
+    try {
+      const body = el('rp-body');
+      if (!body) return;
+      body.innerHTML = `<div class="rp-block">
+        <div class="rp-block-title">Menyusun materi pembelajaran…</div>
+        <div style="font-size:var(--fs-caption);color:var(--text-muted);margin-top:var(--space-sm);">
+          AI sedang menyusun konsep inti, konteks nyata, dan media yang feasible.
+        </div>
+      </div>`;
+      try {
+        _phase2cState = await SipApi.phase2Material(phase2cPayloadMat({ action: 'generate_material_spec' }));
+        saveRpState(); renderMaterialSpec();
+      } catch (e) {
+        body.innerHTML = `<div class="rp-block">
+          <div class="rp-block-title" style="color:var(--error);">Generate Material gagal</div>
+          <p style="font-size:var(--fs-caption);color:var(--text-secondary);">${esc(e.message || 'Coba lagi.')}</p>
+          <button class="btn btn-primary" id="rp2-mat-retry">Coba Lagi</button>
+        </div>`;
+        el('rp2-mat-retry')?.addEventListener('click', enterMaterialPipeline);
+      }
+    } finally {
+      _enteringMaterial = false;
+    }
+  }
+
+  function renderMaterialSpec() {
+    cleanupAllDropdowns();
+    const body = el('rp-body');
+    if (!body) return;
+    const s   = _phase2cState;
+    const mat = s?.material_spec;
+    const asm = s?.assessment_spec;
+    const tp  = _ans.tp_terpilih;
+
+    if (!asm?.confirmed) { renderAssessmentCheckpoint(); return; }
+
+    const matUsable   = mat?.usable === true;
+    const needsUpdate = mat?.needs_update === true;
+
+    let matBodyHtml = '';
+    if (!mat?.artifact_id) {
+      matBodyHtml = `<div style="color:var(--text-muted);font-size:var(--fs-caption);padding:var(--space-md) 0;">
+        Material Specification belum tersedia.
+      </div>`;
+    } else if (needsUpdate) {
+      matBodyHtml = `<div style="color:var(--warning,#f59e0b);font-size:var(--fs-caption);padding:var(--space-md) 0;">
+        Material Specification perlu diperbarui (dependensi berubah).
+      </div>`;
+    } else {
+      matBodyHtml = renderMaterialContent(mat?.content);
+    }
+
+    body.innerHTML = `
+<div class="rp-block">
+  <div class="rp-block-title">Step 6 — Generate RPM (Material)</div>
+  <div style="font-size:var(--fs-caption);color:var(--text-muted);">TP: ${esc(tp?.judul || '-')}</div>
+</div>
+
+<div class="rp-block" style="margin-bottom:var(--space-sm);">
+  <div style="display:flex;align-items:center;justify-content:space-between;">
+    <div style="font-weight:var(--fw-semibold);font-size:var(--fs-ui);color:var(--text-primary);">
+      Checkpoint 1 &amp; 2
+    </div>
+    <span style="color:var(--success,#4caf50);font-size:var(--fs-badge);">✓ Selesai</span>
+  </div>
+  <button class="btn btn-sm" id="rp2c-mat-back-asm" style="margin-top:var(--space-xs);font-size:var(--fs-badge);">← Lihat Asesmen</button>
+</div>
+
+<div class="rp-block">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-sm);">
+    <div style="font-weight:var(--fw-semibold);font-size:var(--fs-ui);color:var(--text-primary);">
+      Material Specification
+      ${matUsable
+        ? '<span style="color:var(--success,#4caf50);font-size:var(--fs-badge);margin-left:var(--space-xs);">✓ Siap</span>'
+        : '<span style="color:var(--text-muted);font-size:var(--fs-badge);margin-left:var(--space-xs);">Belum tersedia</span>'}
+    </div>
+    ${mat?.teacher_edited ? '<span style="font-size:var(--fs-badge);color:var(--gold);">✏ Diedit guru</span>' : ''}
+  </div>
+
+  <div id="rp2c-mat-body">${matBodyHtml}</div>
+  <div id="rp2c-mat-edit-area" style="display:none;"></div>
+  <div id="rp2c-mat-error" class="error-msg" style="display:none;"></div>
+
+  <div class="rp-action-row" style="flex-wrap:wrap;gap:var(--space-sm);">
+    ${matUsable
+      ? `${btnSecondary('rp2c-btn-edit-mat', '✏ Edit')}
+         ${btnPrimary('rp2c-btn-mat-next', 'Lanjut ke Pertemuan →')}`
+      : ''
+    }
+  </div>
+</div>`;
+
+    el('rp2c-mat-back-asm')?.addEventListener('click', () => renderAssessmentCheckpoint());
+    el('rp2c-btn-edit-mat')?.addEventListener('click', () => showMaterialEditor(mat?.content));
+    el('rp2c-btn-mat-next')?.addEventListener('click', () => enterMeetingPipeline());
+  }
+
+  function renderMaterialContent(content) {
+    if (!content) return '<p style="color:var(--text-muted);font-size:var(--fs-caption);">Tidak ada data.</p>';
+
+    const konsepHtml = content.konsep_inti?.length
+      ? `<div style="margin-bottom:var(--space-md);">
+          <div style="font-size:var(--fs-caption);font-weight:var(--fw-semibold);color:var(--text-muted);margin-bottom:var(--space-xs);">Konsep Inti</div>
+          ${content.konsep_inti.map(k => `
+            <details style="border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:var(--space-xs);">
+              <summary style="padding:var(--space-sm);cursor:pointer;font-size:var(--fs-caption);color:var(--text-primary);font-weight:var(--fw-medium);">
+                ${esc(k.id || '')} ${esc(k.judul || '')}
+              </summary>
+              <div style="padding:var(--space-sm);padding-top:0;font-size:var(--fs-caption);color:var(--text-secondary);">
+                <p style="margin:0 0 var(--space-xs);">${esc(k.penjelasan || '')}</p>
+                ${k.prasyarat?.length ? `<div style="color:var(--text-muted);">Prasyarat: ${k.prasyarat.map(p => esc(p)).join(', ')}</div>` : ''}
+              </div>
+            </details>`).join('')}
+        </div>` : '';
+
+    const miskonsepsiHtml = content.miskonsepsi?.length
+      ? `<div style="margin-bottom:var(--space-md);">
+          <div style="font-size:var(--fs-caption);font-weight:var(--fw-semibold);color:var(--text-muted);margin-bottom:var(--space-xs);">Miskonsepsi</div>
+          ${content.miskonsepsi.map(m => `
+            <div style="border:1px solid var(--border);border-radius:var(--radius-sm);padding:var(--space-sm);margin-bottom:var(--space-xs);">
+              <div style="font-size:var(--fs-caption);color:var(--error,#ef4444);margin-bottom:4px;">✗ ${esc(m.miskonsepsi || '')}</div>
+              <div style="font-size:var(--fs-caption);color:var(--success,#4caf50);">✓ ${esc(m.klarifikasi || '')}</div>
+            </div>`).join('')}
+        </div>` : '';
+
+    const konteksHtml = content.konteks_nyata?.length
+      ? `<div style="margin-bottom:var(--space-md);">
+          <div style="font-size:var(--fs-caption);font-weight:var(--fw-semibold);color:var(--text-muted);margin-bottom:var(--space-xs);">Konteks Nyata</div>
+          ${content.konteks_nyata.map(k => `
+            <div style="font-size:var(--fs-caption);color:var(--text-secondary);padding:2px 0;">
+              • <span style="color:var(--gold);">[${esc(k.sumber || '')}]</span> ${esc(k.deskripsi || '')}
+            </div>`).join('')}
+        </div>` : '';
+
+    const mediaHtml = content.media_feasible?.length
+      ? `<div style="margin-bottom:var(--space-md);">
+          <div style="font-size:var(--fs-caption);font-weight:var(--fw-semibold);color:var(--text-muted);margin-bottom:var(--space-xs);">Media Feasible</div>
+          ${content.media_feasible.map(m => `
+            <div style="font-size:var(--fs-caption);color:var(--text-secondary);padding:2px 0;">
+              • <strong>${esc(m.jenis || '')}</strong> — ${esc(m.deskripsi || '')}
+              ${m.requires_facility ? `<span style="color:var(--text-muted);"> (perlu: ${esc(m.requires_facility)})</span>` : ''}
+            </div>`).join('')}
+        </div>` : '';
+
+    return konsepHtml + miskonsepsiHtml + konteksHtml + mediaHtml;
+  }
+
+  function showMaterialEditor(content) {
+    const editArea = el('rp2c-mat-edit-area');
+    if (!editArea) return;
+    const json = JSON.stringify(content ?? {}, null, 2);
+    editArea.style.display = 'block';
+    editArea.innerHTML = `
+<div style="margin-top:var(--space-md);">
+  <div style="font-size:var(--fs-caption);color:var(--text-muted);margin-bottom:var(--space-xs);">
+    Edit JSON Material Specification. Schema harus dipertahankan.
+  </div>
+  <textarea id="rp2c-mat-editor" rows="20"
+    style="width:100%;font-family:monospace;font-size:11px;padding:var(--space-sm);
+    border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface-1);
+    color:var(--text-primary);resize:vertical;">${esc(json)}</textarea>
+  <div class="rp-action-row" style="margin-top:var(--space-sm);">
+    ${btnSecondary('rp2c-btn-cancel-edit-mat', 'Batal')}
+    ${btnPrimary('rp2c-btn-save-edit-mat', 'Simpan Edit')}
+  </div>
+</div>`;
+    el('rp2c-btn-cancel-edit-mat')?.addEventListener('click', () => {
+      editArea.style.display = 'none'; editArea.innerHTML = '';
+    });
+    el('rp2c-btn-save-edit-mat')?.addEventListener('click', () => runSaveMaterialEdit());
+  }
+
+  async function runSaveMaterialEdit() {
+    const textarea = el('rp2c-mat-editor');
+    if (!textarea) return;
+    let parsed;
+    try { parsed = JSON.parse(textarea.value); }
+    catch { showError('rp2c-mat-error', 'JSON tidak valid. Perbaiki syntax dulu.'); return; }
+    const btn = el('rp2c-btn-save-edit-mat');
+    if (btn) { btn.disabled = true; btn.textContent = 'Menyimpan…'; }
+    try {
+      _phase2cState = await SipApi.phase2Material(phase2cPayloadMat({
+        action: 'save_material_spec_edit', content: parsed,
       }));
-      saveRpState(); renderAssessmentCheckpoint();
+      saveRpState(); renderMaterialSpec();
     } catch (e) {
-      if (btn) { btn.disabled = false; btn.textContent = 'Konfirmasi Checkpoint 2 ✓'; }
-      showError('rp2c-asm-error', e.message || 'Konfirmasi gagal.');
+      if (btn) { btn.disabled = false; btn.textContent = 'Simpan Edit'; }
+      showError('rp2c-mat-error', e.message || 'Simpan gagal.');
+    }
+  }
+
+  // ─── Step 6 — Meeting Plan Pipeline ────────────────────────────────────────────────
+
+  function phase2cPayloadMeet(extra) {
+    return {
+      classroom_id:        _cId,
+      teaching_context_id: _teachingContext?.id,
+      planning_context_id: _planningContext?.id,
+      ...extra,
+    };
+  }
+
+  async function enterMeetingPipeline() {
+    if (_enteringMeeting) return;
+    _enteringMeeting = true;
+    try {
+      const body = el('rp-body');
+      if (!body) return;
+      const totalMeetings = _phase2cState?.meeting_plans?.length ?? 0;
+
+      body.innerHTML = `<div class="rp-block">
+        <div class="rp-block-title">Menyusun Rencana Pertemuan…</div>
+        <div id="rp2-meet-progress" style="margin-top:var(--space-sm);">
+          ${totalMeetings > 0
+            ? _phase2cState.meeting_plans.map(m =>
+                `<div id="rp2-meet-prog-${m.meeting_no}" style="font-size:var(--fs-caption);
+                 color:var(--text-muted);padding:2px 0;">
+                  Pertemuan ${m.meeting_no}/${totalMeetings} — ${
+                    m.usable && !m.needs_update ? '✓ sudah siap, dilewati' : 'menunggu…'
+                  }
+                </div>`).join('')
+            : `<div style="font-size:var(--fs-caption);color:var(--text-muted);">
+                 AI sedang menyusun rencana pertemuan satu per satu…
+               </div>`}
+        </div>
+      </div>`;
+
+      try {
+        const resp = await SipApi.phase2Meeting(phase2cPayloadMeet({ action: 'generate_all_meetings' }));
+        _phase2cState = resp.result;
+        saveRpState();
+
+        // Update progress labels from meeting_results
+        const results = resp.meeting_results ?? [];
+        results.forEach(r => {
+          const progEl = el(`rp2-meet-prog-${r.meeting_no}`);
+          if (progEl) {
+            progEl.style.color = r.status === 'failed'
+              ? 'var(--error,#ef4444)' : 'var(--success,#4caf50)';
+            progEl.textContent = `Pertemuan ${r.meeting_no} — ${
+              r.status === 'generated' ? '✓ berhasil' :
+              r.status === 'skipped'   ? '→ dilewati (sudah siap)' :
+              `✗ gagal: ${r.error ?? ''}`}`;
+          }
+        });
+
+        await new Promise(r => setTimeout(r, 600)); // brief pause so user sees result
+        renderMeetingPipeline();
+      } catch (e) {
+        body.innerHTML = `<div class="rp-block">
+          <div class="rp-block-title" style="color:var(--error);">Generate Pertemuan gagal</div>
+          <p style="font-size:var(--fs-caption);color:var(--text-secondary);">${esc(e.message || 'Coba lagi.')}</p>
+          <div class="rp-action-row">
+            <button class="btn btn-sm" id="rp2-meet-back-mat">← Kembali ke Materi</button>
+            <button class="btn btn-primary" id="rp2-meet-retry">Coba Lagi</button>
+          </div>
+        </div>`;
+        el('rp2-meet-back-mat')?.addEventListener('click', renderMaterialSpec);
+        el('rp2-meet-retry')?.addEventListener('click', enterMeetingPipeline);
+      }
+    } finally {
+      _enteringMeeting = false;
+    }
+  }
+
+  function renderMeetingPipeline() {
+    cleanupAllDropdowns();
+    const body = el('rp-body');
+    if (!body) return;
+    const s = _phase2cState;
+    const plans = s?.meeting_plans ?? [];
+    const tp    = _ans.tp_terpilih;
+
+    const allUsable = plans.length > 0 && plans.every(m => m.usable === true && m.needs_update === false);
+
+    const plansHtml = plans.map(m => {
+      const usable      = m.usable === true;
+      const needsUpdate = m.needs_update === true;
+      const hasContent  = !!m.content;
+      const hasArtifact = !!m.artifact_id;
+
+      const badge = !hasArtifact
+        ? '<span style="color:var(--text-muted);font-size:var(--fs-badge);">○ Belum</span>'
+        : needsUpdate
+        ? '<span style="color:var(--warning,#f59e0b);font-size:var(--fs-badge);">⚠ Perlu diperbarui</span>'
+        : usable
+        ? '<span style="color:var(--success,#4caf50);font-size:var(--fs-badge);">✓ Siap</span>'
+        : '<span style="color:var(--error,#ef4444);font-size:var(--fs-badge);">✗ Gagal</span>';
+
+      const candidatesHtml = (() => {
+        const cands = (m.candidates ?? []).filter(c => c.version_id !== m.selected_version_id);
+        if (!cands.length) return '';
+        return `<div style="margin-top:var(--space-sm);padding:var(--space-sm);background:var(--surface-1);border-radius:var(--radius-sm);">
+          <div style="font-size:var(--fs-badge);color:var(--text-muted);margin-bottom:4px;">Kandidat tersedia:</div>
+          ${cands.map(c => `
+            <div style="display:flex;align-items:center;gap:var(--space-sm);padding:2px 0;">
+              <span style="font-size:var(--fs-badge);color:var(--text-secondary);">v${c.version_no} (${c.origin === 'TEACHER' ? 'Edit guru' : 'AI'})</span>
+              <button class="btn btn-sm rp2-meet-select-candidate"
+                data-meeting-no="${m.meeting_no}" data-vid="${esc(c.version_id)}"
+                data-sel-rev="${m.selection_revision ?? 0}"
+                style="font-size:var(--fs-badge);">Gunakan ini</button>
+            </div>`).join('')}
+        </div>`;
+      })();
+
+      const contentHtml = hasContent ? renderMeetingContent(m.meeting_no, m.content) : '';
+
+      const editedBadge = m.teacher_edited
+        ? '<span style="font-size:var(--fs-badge);color:var(--gold);">✏ Diedit guru</span>' : '';
+
+      // Regenerate button: show only if artifact exists and regen limit not yet reached
+      // (we check via candidates count — if already has candidate, limit reached)
+      const hasCandidate = (m.candidates ?? []).length > 0;
+      const regenBtn = hasArtifact && !hasCandidate
+        ? `<button class="btn btn-sm rp2-meet-regen" data-meeting-no="${m.meeting_no}"
+             style="font-size:var(--fs-badge);">⟳ Regenerate</button>`
+        : hasCandidate
+        ? `<span style="font-size:var(--fs-badge);color:var(--text-muted);">(batas regen tercapai)</span>`
+        : '';
+
+      const retryBtn = !hasArtifact
+        ? `<button class="btn btn-primary rp2-meet-retry-single" data-meeting-no="${m.meeting_no}"
+             style="font-size:var(--fs-badge);">↺ Generate Pertemuan ${m.meeting_no}</button>`
+        : '';
+
+      return `
+<details id="rp2-meet-detail-${m.meeting_no}" class="rp-block"
+  style="padding:var(--space-sm) var(--space-md);margin-bottom:var(--space-xs);">
+  <summary style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;
+    list-style:none;padding:var(--space-xs) 0;">
+    <span style="font-weight:var(--fw-semibold);font-size:var(--fs-ui);color:var(--text-primary);">
+      Pertemuan ${m.meeting_no} — ${m.jp} JP (${m.duration_minutes} menit)
+    </span>
+    <span style="display:flex;align-items:center;gap:var(--space-sm);">
+      ${editedBadge} ${badge}
+    </span>
+  </summary>
+
+  <div style="margin-top:var(--space-sm);padding-top:var(--space-sm);border-top:1px solid var(--border);">
+    ${contentHtml || '<p style="font-size:var(--fs-caption);color:var(--text-muted);">Konten belum tersedia.</p>'}
+    ${candidatesHtml}
+    <div id="rp2-meet-edit-area-${m.meeting_no}" style="display:none;"></div>
+    <div id="rp2-meet-error-${m.meeting_no}" class="error-msg" style="display:none;"></div>
+    <div class="rp-action-row" style="flex-wrap:wrap;gap:var(--space-sm);margin-top:var(--space-sm);">
+      ${hasContent
+        ? `<button class="btn btn-sm rp2-meet-edit" data-meeting-no="${m.meeting_no}"
+             style="font-size:var(--fs-badge);">✏ Edit</button>`
+        : ''}
+      ${regenBtn}
+      ${retryBtn}
+    </div>
+  </div>
+</details>`;
+    }).join('');
+
+    body.innerHTML = `
+<div class="rp-block">
+  <div class="rp-block-title">Step 6 — Rencana Pertemuan</div>
+  <div style="font-size:var(--fs-caption);color:var(--text-muted);">TP: ${esc(tp?.judul || '-')}</div>
+</div>
+
+<div class="rp-block" style="margin-bottom:var(--space-sm);">
+  <div style="display:flex;align-items:center;justify-content:space-between;">
+    <span style="font-size:var(--fs-ui);font-weight:var(--fw-semibold);color:var(--text-primary);">
+      Checkpoint 1 &amp; 2 + Material
+    </span>
+    <span style="color:var(--success,#4caf50);font-size:var(--fs-badge);">✓ Selesai</span>
+  </div>
+  <button class="btn btn-sm" id="rp2-meet-back-mat" style="margin-top:var(--space-xs);font-size:var(--fs-badge);">
+    ← Lihat Materi
+  </button>
+</div>
+
+${plansHtml}
+
+<div class="rp-block" style="margin-top:var(--space-sm);">
+  <div id="rp2-meet-pipeline-error" class="error-msg" style="display:none;"></div>
+  ${allUsable
+    ? `<div class="rp-action-row">
+         ${btnPrimary('rp2-meet-btn-next', 'Lanjut ke Tindak Lanjut →')}
+       </div>`
+    : `<p style="font-size:var(--fs-caption);color:var(--text-muted);">
+         Selesaikan semua pertemuan untuk melanjutkan.
+       </p>`}
+</div>`;
+
+    // Event: back to material
+    el('rp2-meet-back-mat')?.addEventListener('click', renderMaterialSpec);
+
+    // Event: next step → Follow-Up pipeline
+    el('rp2-meet-btn-next')?.addEventListener('click', enterFollowUpPipeline);
+
+    // Event: edit per meeting
+    body.querySelectorAll('.rp2-meet-edit').forEach(btn => {
+      const mNo = Number(btn.dataset.meetingNo);
+      btn.addEventListener('click', () => {
+        const mp = plans.find(m => m.meeting_no === mNo);
+        showMeetingEditor(mNo, mp?.content ?? {});
+      });
+    });
+
+    // Event: regenerate per meeting
+    body.querySelectorAll('.rp2-meet-regen').forEach(btn => {
+      const mNo = Number(btn.dataset.meetingNo);
+      btn.addEventListener('click', () => runRegenerateMeeting(mNo));
+    });
+
+    // Event: retry single failed meeting
+    body.querySelectorAll('.rp2-meet-retry-single').forEach(btn => {
+      const mNo = Number(btn.dataset.meetingNo);
+      btn.addEventListener('click', () => runRetryMeeting(mNo));
+    });
+
+    // Event: select candidate
+    body.querySelectorAll('.rp2-meet-select-candidate').forEach(btn => {
+      const mNo  = Number(btn.dataset.meetingNo);
+      const vid  = btn.dataset.vid;
+      const selRev = Number(btn.dataset.selRev ?? 0);
+      btn.addEventListener('click', () => runSelectMeetingCandidate(mNo, vid, selRev));
+    });
+  }
+
+  // ─── Follow-Up Pipeline ────────────────────────────────────────────────────
+
+  async function enterFollowUpPipeline() {
+    if (_enteringFollowup) return;
+    _enteringFollowup = true;
+    try {
+      const body = el('rp-body');
+      if (!body) return;
+      body.innerHTML = `
+<div class="rp-block">
+  <div class="rp-block-title">Step 6 — Tindak Lanjut</div>
+  <p style="font-size:var(--fs-caption);color:var(--text-muted);">Menyusun tindak lanjut…</p>
+</div>`;
+      try {
+        const resp = await SipApi.phase2Followup(phase2cPayloadFu({ action: 'generate_follow_up' }));
+        _phase2cState = resp.result;
+        renderFollowUpPipeline();
+      } catch (e) {
+        body.innerHTML = `
+<div class="rp-block">
+  <div class="rp-block-title">Step 6 — Tindak Lanjut</div>
+  <div class="error-msg" style="display:block;">${esc(e?.message ?? 'Gagal generate tindak lanjut')}</div>
+  <div class="rp-action-row" style="margin-top:var(--space-sm);">
+    <button class="btn btn-sm" id="rp2-fu-back-meet">← Kembali ke Pertemuan</button>
+    <button class="btn btn-primary" id="rp2-fu-retry">Coba Lagi</button>
+  </div>
+</div>`;
+        el('rp2-fu-back-meet')?.addEventListener('click', renderMeetingPipeline);
+        el('rp2-fu-retry')?.addEventListener('click', enterFollowUpPipeline);
+      }
+    } finally {
+      _enteringFollowup = false;
+    }
+  }
+
+  function phase2cPayloadFu(extra) {
+    const base = {
+      classroom_id:        _cId,
+      teaching_context_id: _teachingContext?.id,
+      planning_context_id: _planningContext?.id,
+    };
+    return { ...base, ...extra };
+  }
+
+  function renderFollowUpPipeline() {
+    cleanupAllDropdowns();
+    const body = el('rp-body');
+    if (!body) return;
+    const fu = _phase2cState?.follow_up;
+    const content = fu?.content ?? null;
+    const usable  = fu?.usable === true;
+    const hasArtifact = !!fu?.artifact_id;
+    const hasCandidate = (fu?.candidates ?? []).length > 0;
+
+    const JALUR = [
+      { key: 'pengayaan',    label: 'Pengayaan',    desc: 'Siswa yang sudah mencapai seluruh KKTP' },
+      { key: 'penguatan',    label: 'Penguatan',    desc: 'Siswa yang mendekati KKTP' },
+      { key: 'pendampingan', label: 'Pendampingan', desc: 'Siswa yang masih jauh dari KKTP' },
+    ];
+
+    const jalurHtml = content
+      ? JALUR.map(j => {
+          const jd = content[j.key] ?? {};
+          const acts = jd.activities ?? [];
+          return `
+<details class="rp-block" style="padding:var(--space-sm) var(--space-md);margin-bottom:var(--space-xs);">
+  <summary style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;
+    list-style:none;padding:var(--space-xs) 0;">
+    <span style="font-weight:var(--fw-semibold);font-size:var(--fs-ui);color:var(--text-primary);">
+      ${esc(j.label)}
+    </span>
+    <span style="font-size:var(--fs-badge);color:var(--text-muted);">${esc(j.desc)}</span>
+  </summary>
+  <div style="margin-top:var(--space-sm);padding-top:var(--space-sm);border-top:1px solid var(--border);">
+    ${jd.gap_addressed ? `<p style="font-size:var(--fs-caption);color:var(--text-secondary);margin-bottom:var(--space-xs);">Gap: ${esc(jd.gap_addressed)}</p>` : ''}
+    ${acts.map(a => `
+      <div style="padding:var(--space-xs) 0;border-bottom:1px solid var(--border);">
+        <div style="font-size:var(--fs-ui);color:var(--text-primary);">${esc(a.id ?? '')} — ${esc(a.deskripsi ?? '')}</div>
+        <div style="font-size:var(--fs-caption);color:var(--text-muted);">Durasi: ${esc(a.durasi_estimasi ?? '-')}</div>
+      </div>`).join('')}
+  </div>
+</details>`;
+        }).join('')
+      : '<p style="font-size:var(--fs-caption);color:var(--text-muted);">Konten belum tersedia.</p>';
+
+    const regenBtn = hasArtifact && !hasCandidate
+      ? `<button class="btn btn-sm" id="rp2-fu-regen" style="font-size:var(--fs-badge);">⟳ Regenerate</button>`
+      : hasCandidate
+      ? `<span style="font-size:var(--fs-badge);color:var(--text-muted);">(batas regen tercapai)</span>`
+      : '';
+
+    body.innerHTML = `
+<div class="rp-block">
+  <div class="rp-block-title">Step 6 — Tindak Lanjut</div>
+</div>
+
+<div class="rp-block" style="margin-bottom:var(--space-sm);">
+  <div style="display:flex;align-items:center;justify-content:space-between;">
+    <span style="font-size:var(--fs-ui);font-weight:var(--fw-semibold);color:var(--text-primary);">Rencana Pertemuan</span>
+    <span style="color:var(--success,#4caf50);font-size:var(--fs-badge);">✓ Selesai</span>
+  </div>
+  <button class="btn btn-sm" id="rp2-fu-back-meet" style="margin-top:var(--space-xs);font-size:var(--fs-badge);">
+    ← Lihat Pertemuan
+  </button>
+</div>
+
+${jalurHtml}
+
+<div class="rp-block" style="margin-top:var(--space-sm);">
+  <div id="rp2-fu-error" class="error-msg" style="display:none;"></div>
+  <div class="rp-action-row" style="flex-wrap:wrap;gap:var(--space-sm);">
+    ${content ? `<button class="btn btn-sm" id="rp2-fu-edit" style="font-size:var(--fs-badge);">✏ Edit Tindak Lanjut</button>` : ''}
+    ${regenBtn}
+    ${usable
+      ? `${btnPrimary('rp2-fu-btn-validate', 'Validasi &amp; Selesaikan RPM →')}`
+      : `<p style="font-size:var(--fs-caption);color:var(--text-muted);">Selesaikan tindak lanjut untuk melanjutkan.</p>`}
+  </div>
+</div>`;
+
+    el('rp2-fu-back-meet')?.addEventListener('click', renderMeetingPipeline);
+    el('rp2-fu-edit')?.addEventListener('click', () => showFollowUpEditor(content ?? {}));
+    el('rp2-fu-regen')?.addEventListener('click', async () => {
+      try {
+        const resp = await SipApi.phase2Followup(phase2cPayloadFu({ action: 'generate_follow_up' }));
+        _phase2cState = resp.result;
+        renderFollowUpPipeline();
+      } catch (e) {
+        showError('rp2-fu-error', e?.message ?? 'Gagal regenerate');
+      }
+    });
+    el('rp2-fu-btn-validate')?.addEventListener('click', enterValidationPipeline);
+  }
+
+  function showFollowUpEditor(currentContent) {
+    const area = el('rp-body');
+    if (!area) return;
+
+    const jsonStr = JSON.stringify(currentContent, null, 2);
+    area.innerHTML = `
+<div class="rp-block">
+  <div class="rp-block-title">Edit Tindak Lanjut</div>
+  <p style="font-size:var(--fs-caption);color:var(--text-muted);">
+    Edit JSON tindak lanjut. Pastikan struktur pengayaan / penguatan / pendampingan tetap ada.
+  </p>
+  <textarea id="rp2-fu-edit-json" style="width:100%;height:320px;font-family:monospace;
+    font-size:var(--fs-caption);padding:var(--space-sm);background:var(--surface-1);
+    color:var(--text-primary);border:1px solid var(--border);border-radius:var(--radius-sm);
+    box-sizing:border-box;">${esc(jsonStr)}</textarea>
+  <div id="rp2-fu-edit-error" class="error-msg" style="display:none;margin-top:var(--space-xs);"></div>
+  <div class="rp-action-row" style="margin-top:var(--space-sm);">
+    <button class="btn btn-sm" id="rp2-fu-edit-cancel">Batal</button>
+    ${btnPrimary('rp2-fu-edit-save', 'Simpan')}
+  </div>
+</div>`;
+
+    el('rp2-fu-edit-cancel')?.addEventListener('click', renderFollowUpPipeline);
+    el('rp2-fu-edit-save')?.addEventListener('click', async () => {
+      const raw = el('rp2-fu-edit-json')?.value ?? '';
+      let parsed;
+      try { parsed = JSON.parse(raw); }
+      catch { showError('rp2-fu-edit-error', 'JSON tidak valid'); return; }
+      try {
+        const resp = await SipApi.phase2Followup(phase2cPayloadFu({
+          action: 'save_follow_up_edit', content: parsed,
+        }));
+        _phase2cState = resp.result;
+        renderFollowUpPipeline();
+      } catch (e) {
+        showError('rp2-fu-edit-error', e?.message ?? 'Gagal simpan');
+      }
+    });
+  }
+
+  // ─── Validation Pipeline ───────────────────────────────────────────────────
+
+  async function enterValidationPipeline() {
+    if (_enteringValidation) return;
+    _enteringValidation = true;
+    try {
+      const body = el('rp-body');
+      if (!body) return;
+      body.innerHTML = `
+<div class="rp-block">
+  <div class="rp-block-title">Validasi RPM</div>
+  <p style="font-size:var(--fs-caption);color:var(--text-muted);">Memvalidasi RPM…</p>
+</div>`;
+      try {
+        const resp = await SipApi.phase2Validator(phase2cPayloadFu({ action: 'run_validation' }));
+        _phase2cState = resp.result;
+        renderValidationResult(resp.validation);
+      } catch (e) {
+        body.innerHTML = `
+<div class="rp-block">
+  <div class="rp-block-title">Validasi RPM</div>
+  <div class="error-msg" style="display:block;">${esc(e?.message ?? 'Gagal validasi')}</div>
+  <div class="rp-action-row" style="margin-top:var(--space-sm);">
+    <button class="btn btn-sm" id="rp2-val-back-fu">← Kembali ke Tindak Lanjut</button>
+    <button class="btn btn-primary" id="rp2-val-retry">Coba Lagi</button>
+  </div>
+</div>`;
+        el('rp2-val-back-fu')?.addEventListener('click', renderFollowUpPipeline);
+        el('rp2-val-retry')?.addEventListener('click', enterValidationPipeline);
+      }
+    } finally {
+      _enteringValidation = false;
+    }
+  }
+
+  function renderValidationResult(validation) {
+    const body = el('rp-body');
+    if (!body) return;
+    const { status, violations = [], warnings = [], rpm_ready_for_class } = validation ?? {};
+
+    const isPass = status === 'pass' || status === 'pass_with_warnings';
+
+    // Violations grouped by scope
+    const scopeMap = {};
+    for (const v of violations) {
+      const s = v.scope ?? 'unknown';
+      if (!scopeMap[s]) scopeMap[s] = [];
+      scopeMap[s].push(v);
+    }
+
+    const repairTarget = (repairScope) => {
+      if (!repairScope) return null;
+      if (repairScope === 'material')    return renderMaterialSpec;
+      if (repairScope === 'follow_up')   return () => showFollowUpEditor(_phase2cState?.follow_up?.content ?? {});
+      const meetMatch = repairScope.match(/^meeting_(\d+)$/);
+      if (meetMatch) {
+        const mNo = Number(meetMatch[1]);
+        return () => {
+          const mp = (_phase2cState?.meeting_plans ?? []).find(m => m.meeting_no === mNo);
+          showMeetingEditor(mNo, mp?.content ?? {});
+        };
+      }
+      return null;
+    };
+
+    const violationsHtml = Object.entries(scopeMap).map(([scope, viols]) => `
+<div style="margin-bottom:var(--space-sm);">
+  <div style="font-size:var(--fs-badge);font-weight:var(--fw-semibold);color:var(--error,#ef4444);
+    text-transform:uppercase;margin-bottom:4px;">${esc(scope)}</div>
+  ${viols.map(v => {
+    const target = repairTarget(v.repair_scope);
+    return `
+<div style="padding:var(--space-xs) var(--space-sm);background:var(--surface-1);
+  border-left:3px solid var(--error,#ef4444);border-radius:var(--radius-sm);margin-bottom:4px;">
+  <div style="font-size:var(--fs-caption);color:var(--text-primary);">
+    <strong>[${esc(v.rule)}]</strong> ${esc(v.message)}
+  </div>
+  ${v.repair_scope ? `<div style="font-size:var(--fs-caption);color:var(--text-muted);">Perbaiki: ${esc(v.repair_scope)}</div>` : ''}
+  ${target ? `<button class="btn btn-sm rp2-val-repair" data-scope="${esc(v.repair_scope)}"
+    style="font-size:var(--fs-badge);margin-top:4px;">✏ Perbaiki</button>` : ''}
+</div>`;
+  }).join('')}
+</div>`).join('');
+
+    const warningsHtml = warnings.length ? `
+<details style="margin-top:var(--space-sm);">
+  <summary style="cursor:pointer;font-size:var(--fs-caption);color:var(--warning,#f59e0b);">
+    ⚠ ${warnings.length} peringatan (klik untuk lihat)
+  </summary>
+  <div style="margin-top:var(--space-xs);">
+    ${warnings.map(w => `
+<div style="padding:var(--space-xs) var(--space-sm);background:var(--surface-1);
+  border-left:3px solid var(--warning,#f59e0b);border-radius:var(--radius-sm);margin-bottom:4px;">
+  <div style="font-size:var(--fs-caption);color:var(--text-primary);">[${esc(w.rule)}] ${esc(w.message)}</div>
+</div>`).join('')}
+  </div>
+</details>` : '';
+
+    body.innerHTML = `
+<div class="rp-block">
+  <div class="rp-block-title">Hasil Validasi RPM</div>
+  ${isPass
+    ? `<div style="display:flex;align-items:center;gap:var(--space-sm);padding:var(--space-sm);
+         background:rgba(76,175,80,0.1);border-radius:var(--radius-sm);border:1px solid var(--success,#4caf50);">
+         <span style="font-size:1.2em;">✓</span>
+         <div>
+           <div style="font-weight:var(--fw-semibold);color:var(--success,#4caf50);">RPM Siap</div>
+           <div style="font-size:var(--fs-caption);color:var(--text-muted);">
+             ${status === 'pass_with_warnings' ? 'Lulus dengan peringatan — tindak lanjut opsional' : 'Semua pemeriksaan lulus'}
+           </div>
+         </div>
+       </div>
+       ${warningsHtml}
+       <div style="margin-top:var(--space-sm);padding:var(--space-sm);
+         background:rgba(76,175,80,0.08);border-radius:var(--radius-sm);">
+         <span style="font-size:var(--fs-caption);color:var(--success,#4caf50);font-weight:var(--fw-semibold);">
+           ✓ rpm_ready_for_class = true
+         </span>
+       </div>`
+    : `<div style="display:flex;align-items:center;gap:var(--space-sm);padding:var(--space-sm);
+         background:rgba(239,68,68,0.1);border-radius:var(--radius-sm);border:1px solid var(--error,#ef4444);">
+         <span style="font-size:1.2em;">✗</span>
+         <div>
+           <div style="font-weight:var(--fw-semibold);color:var(--error,#ef4444);">Perlu Perbaikan</div>
+           <div style="font-size:var(--fs-caption);color:var(--text-muted);">${violations.length} pelanggaran harus diperbaiki</div>
+         </div>
+       </div>
+       <div style="margin-top:var(--space-sm);">${violationsHtml}</div>
+       ${warningsHtml}`}
+</div>
+
+<div class="rp-block" style="margin-top:var(--space-sm);">
+  <div id="rp2-val-error" class="error-msg" style="display:none;"></div>
+  <div class="rp-action-row" style="flex-wrap:wrap;gap:var(--space-sm);">
+    <button class="btn btn-sm" id="rp2-val-back-fu">← Tindak Lanjut</button>
+    ${isPass
+      ? `<button class="btn btn-primary" id="rp2-val-btn-doc">Lihat Dokumen RPM →</button>`
+      : `<button class="btn btn-sm" id="rp2-val-revalidate">↺ Validasi Ulang</button>`}
+  </div>
+</div>`;
+
+    el('rp2-val-back-fu')?.addEventListener('click', renderFollowUpPipeline);
+    el('rp2-val-btn-doc')?.addEventListener('click', () => {
+      // Navigate to Step 7 (dokumen RPM) — placeholder navigasi
+      showError('rp2-val-error', 'Dokumen RPM akan tersedia di Step 7.');
+    });
+    el('rp2-val-revalidate')?.addEventListener('click', enterValidationPipeline);
+
+    // Repair buttons
+    body.querySelectorAll('.rp2-val-repair').forEach(btn => {
+      const scope = btn.dataset.scope;
+      btn.addEventListener('click', () => {
+        const target = repairTarget(scope);
+        if (target) target();
+      });
+    });
+  }
+
+  function renderMeetingContent(meetingNo, content) {
+    if (!content) return '';
+    const c = content;
+
+    const phases = ['opening','understand','apply','reflect','closing'];
+    const phaseLabel = {
+      opening:'Pembuka', understand:'Memahami', apply:'Menerapkan',
+      reflect:'Refleksi', closing:'Penutup',
+    };
+
+    const activitiesByPhase = {};
+    phases.forEach(p => { activitiesByPhase[p] = []; });
+    (c.activities ?? []).forEach(a => {
+      if (activitiesByPhase[a.phase]) activitiesByPhase[a.phase].push(a);
+    });
+
+    const activitiesHtml = phases.map(phase => {
+      const acts = activitiesByPhase[phase];
+      if (!acts.length) return '';
+      return `<details style="border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:4px;">
+        <summary style="padding:var(--space-xs) var(--space-sm);cursor:pointer;font-size:var(--fs-caption);
+          font-weight:var(--fw-semibold);color:var(--text-muted);">
+          ${phaseLabel[phase]} (${acts.reduce((sum,a) => sum+(a.planned_minutes||0),0)} mnt)
+        </summary>
+        <div style="padding:var(--space-xs) var(--space-sm);">
+          ${acts.map(a => `
+            <div style="padding:4px 0;border-bottom:1px solid var(--border);font-size:var(--fs-caption);">
+              <div style="color:var(--text-primary);font-weight:var(--fw-medium);">
+                [${esc(a.step_id)}] ${esc(a.title)} — ${a.planned_minutes} mnt
+                ${a.priority === 'optional'
+                  ? '<span style="color:var(--text-muted);font-size:10px;">(opsional)</span>' : ''}
+              </div>
+              <div style="color:var(--text-secondary);margin-top:2px;">
+                <span style="color:var(--text-muted);">Guru:</span> ${esc(a.teacher_action)}
+              </div>
+              <div style="color:var(--text-secondary);">
+                <span style="color:var(--text-muted);">Siswa:</span> ${esc(a.student_action)}
+              </div>
+              <div style="color:var(--gold);font-size:11px;">✓ ${esc(a.completion_cue)}</div>
+            </div>`).join('')}
+        </div>
+      </details>`;
+    }).join('');
+
+    const fc = c.formative_checkpoint;
+    const formativeHtml = fc ? `
+      <div style="margin-top:var(--space-sm);padding:var(--space-sm);
+        background:var(--surface-1);border-radius:var(--radius-sm);">
+        <div style="font-size:var(--fs-caption);font-weight:var(--fw-semibold);
+          color:var(--text-muted);margin-bottom:var(--space-xs);">Cek Formatif</div>
+        <div style="font-size:var(--fs-caption);color:var(--text-secondary);">
+          ${esc(fc.expected_evidence ?? '')}
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-top:var(--space-xs);">
+          ${['paham','hampir','belum'].map(k => `
+            <div style="padding:4px;background:var(--surface-2);border-radius:4px;font-size:11px;">
+              <div style="font-weight:var(--fw-semibold);color:var(--${k==='paham'?'success,#4caf50':k==='hampir'?'gold':'error,#ef4444'});">
+                ${k.charAt(0).toUpperCase()+k.slice(1)}
+              </div>
+              <div style="color:var(--text-secondary);">${esc(fc.classification_anchor?.[k] ?? '')}</div>
+            </div>`).join('')}
+        </div>
+      </div>` : '';
+
+    const diff = c.differentiation;
+    const diffHtml = diff ? `
+      <div style="margin-top:var(--space-sm);padding:var(--space-sm);
+        background:var(--surface-1);border-radius:var(--radius-sm);">
+        <div style="font-size:var(--fs-caption);font-weight:var(--fw-semibold);
+          color:var(--text-muted);margin-bottom:var(--space-xs);">Diferensiasi</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;">
+          ${['paham','hampir','belum'].map(k => {
+            const d = diff[k] ?? {};
+            return `<div style="padding:var(--space-xs);background:var(--surface-2);
+              border-radius:4px;font-size:11px;">
+              <div style="font-weight:var(--fw-semibold);color:var(--${k==='paham'?'success,#4caf50':k==='hampir'?'gold':'error,#ef4444'});">
+                ${k.charAt(0).toUpperCase()+k.slice(1)}
+              </div>
+              <div style="color:var(--text-secondary);margin-top:2px;">${esc(d.aktivitas ?? '')}</div>
+              <div style="color:var(--text-muted);margin-top:2px;font-style:italic;">
+                Bukti: ${esc(d.bukti_belajar ?? '')}
+              </div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>` : '';
+
+    const ws = c.worksheet;
+    const worksheetHtml = ws?.required ? `
+      <details style="border:1px solid var(--border);border-radius:var(--radius-sm);margin-top:var(--space-sm);">
+        <summary style="padding:var(--space-xs) var(--space-sm);cursor:pointer;font-size:var(--fs-caption);
+          font-weight:var(--fw-semibold);color:var(--text-muted);">
+          LKS — ${esc(ws.title ?? '')}
+        </summary>
+        <div style="padding:var(--space-sm);font-size:var(--fs-caption);">
+          <div style="color:var(--text-secondary);margin-bottom:var(--space-xs);">${esc(ws.instruksi ?? '')}</div>
+          ${(ws.tasks ?? []).map((t, i) => `
+            <div style="padding:var(--space-xs);background:var(--surface-1);
+              border-radius:4px;margin-bottom:4px;">
+              <div style="font-weight:var(--fw-medium);color:var(--text-primary);">
+                ${esc(t.id)} — ${esc(t.deskripsi)}
+              </div>
+              ${t.stimulus ? `<div style="color:var(--text-muted);font-style:italic;">${esc(t.stimulus)}</div>` : ''}
+              <div style="color:var(--gold);">Format: ${esc(t.format_jawaban ?? '')}</div>
+            </div>`).join('')}
+        </div>
+      </details>` : '';
+
+    const objLine = c.meeting_objective
+      ? `<div style="font-size:var(--fs-caption);color:var(--text-secondary);margin-bottom:2px;">
+           <span style="color:var(--text-muted);">Tujuan:</span> ${esc(c.meeting_objective)}
+         </div>` : '';
+    const triggerLine = c.trigger_question
+      ? `<div style="font-size:var(--fs-caption);color:var(--gold);margin-bottom:var(--space-sm);">
+           💡 ${esc(c.trigger_question)}
+         </div>` : '';
+
+    return objLine + triggerLine + activitiesHtml + formativeHtml + diffHtml + worksheetHtml;
+  }
+
+  function showMeetingEditor(meetingNo, content) {
+    const editArea = el(`rp2-meet-edit-area-${meetingNo}`);
+    if (!editArea) return;
+    const json = JSON.stringify(content ?? {}, null, 2);
+    editArea.style.display = 'block';
+    editArea.innerHTML = `
+<div style="margin-top:var(--space-md);">
+  <div style="font-size:var(--fs-caption);color:var(--text-muted);margin-bottom:var(--space-xs);">
+    Edit JSON Meeting Plan Pertemuan ${meetingNo}. Schema harus dipertahankan.
+    Total planned_minutes HARUS persis = durasi alokasi pertemuan ini.
+  </div>
+  <textarea id="rp2-meet-editor-${meetingNo}" rows="30"
+    style="width:100%;font-family:monospace;font-size:11px;padding:var(--space-sm);
+    border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface-1);
+    color:var(--text-primary);resize:vertical;">${esc(json)}</textarea>
+  <div class="rp-action-row" style="margin-top:var(--space-sm);">
+    ${btnSecondary(`rp2-meet-cancel-edit-${meetingNo}`, 'Batal')}
+    ${btnPrimary(`rp2-meet-save-edit-${meetingNo}`, 'Simpan Edit')}
+  </div>
+</div>`;
+    el(`rp2-meet-cancel-edit-${meetingNo}`)?.addEventListener('click', () => {
+      editArea.style.display = 'none'; editArea.innerHTML = '';
+    });
+    el(`rp2-meet-save-edit-${meetingNo}`)?.addEventListener('click', () =>
+      runSaveMeetingEdit(meetingNo));
+  }
+
+  async function runSaveMeetingEdit(meetingNo) {
+    const textarea = el(`rp2-meet-editor-${meetingNo}`);
+    if (!textarea) return;
+    let parsed;
+    try { parsed = JSON.parse(textarea.value); }
+    catch { showError(`rp2-meet-error-${meetingNo}`, 'JSON tidak valid. Perbaiki syntax dulu.'); return; }
+    const btn = el(`rp2-meet-save-edit-${meetingNo}`);
+    if (btn) { btn.disabled = true; btn.textContent = 'Menyimpan…'; }
+    try {
+      const resp = await SipApi.phase2Meeting(phase2cPayloadMeet({
+        action: 'save_meeting_edit', meeting_no: meetingNo, content: parsed,
+      }));
+      _phase2cState = resp.result;
+      saveRpState();
+      renderMeetingPipeline();
+    } catch (e) {
+      if (btn) { btn.disabled = false; btn.textContent = 'Simpan Edit'; }
+      showError(`rp2-meet-error-${meetingNo}`, e.message || 'Simpan gagal.');
+    }
+  }
+
+  async function runRegenerateMeeting(meetingNo) {
+    // Get or generate a stable op ID for this regenerate intent
+    if (!_meetRegenOpIds.has(meetingNo)) {
+      _meetRegenOpIds.set(meetingNo, crypto.randomUUID());
+    }
+    const clientOpId = _meetRegenOpIds.get(meetingNo);
+
+    const errId = `rp2-meet-error-${meetingNo}`;
+    const btn = document.querySelector(`.rp2-meet-regen[data-meeting-no="${meetingNo}"]`);
+    if (btn) { btn.disabled = true; btn.textContent = 'Generating…'; }
+    try {
+      const resp = await SipApi.phase2Meeting(phase2cPayloadMeet({
+        action: 'regenerate_meeting',
+        meeting_no: meetingNo,
+        client_operation_id: clientOpId,
+      }));
+      _phase2cState = resp.result;
+      _meetRegenOpIds.delete(meetingNo); // clear on success
+      saveRpState();
+      renderMeetingPipeline();
+      // Auto-open the accordion so teacher sees the candidate
+      const detail = el(`rp2-meet-detail-${meetingNo}`);
+      if (detail) detail.open = true;
+    } catch (e) {
+      if (btn) { btn.disabled = false; btn.textContent = '⟳ Regenerate'; }
+      showError(errId, e.message || 'Regenerate gagal.');
+    }
+  }
+
+  async function runRetryMeeting(meetingNo) {
+    const btn = document.querySelector(`.rp2-meet-retry-single[data-meeting-no="${meetingNo}"]`);
+    if (btn) { btn.disabled = true; btn.textContent = 'Generating…'; }
+    try {
+      const resp = await SipApi.phase2Meeting(phase2cPayloadMeet({ action: 'generate_all_meetings' }));
+      _phase2cState = resp.result;
+      saveRpState();
+      renderMeetingPipeline();
+    } catch (e) {
+      if (btn) { btn.disabled = false; btn.textContent = `↺ Generate Pertemuan ${meetingNo}`; }
+      showError(`rp2-meet-error-${meetingNo}`, e.message || 'Generate gagal.');
+    }
+  }
+
+  async function runSelectMeetingCandidate(meetingNo, versionId, selectionRevision) {
+    const btn = document.querySelector(
+      `.rp2-meet-select-candidate[data-meeting-no="${meetingNo}"][data-vid="${versionId}"]`
+    );
+    if (btn) { btn.disabled = true; btn.textContent = 'Memilih…'; }
+    try {
+      const resp = await SipApi.phase2Meeting(phase2cPayloadMeet({
+        action: 'select_meeting_candidate',
+        meeting_no: meetingNo, version_id: versionId, selection_revision: selectionRevision,
+      }));
+      _phase2cState = resp.result;
+      saveRpState();
+      renderMeetingPipeline();
+    } catch (e) {
+      if (btn) { btn.disabled = false; btn.textContent = 'Gunakan ini'; }
+      showError(`rp2-meet-error-${meetingNo}`, e.message || 'Pilih kandidat gagal.');
     }
   }
 
@@ -3466,10 +4537,405 @@ ${sec1}${sec2}${sec3}${sec4}${sec5}
     });
   }
 
-  // ── Step 7: Dokumen Tersimpan ──────────────────────────────────
+  // ── Step 7: Document Hub ──────────────────────────────────────
   async function renderStep7() {
+    cleanupAllDropdowns();
     _step = 7;
     renderStepBar();
+
+    // Jika ada planning context yang aktif dan pipeline state, gunakan structured view
+    if (_planningContext?.id && _phase2cState) {
+      await renderStep7Structured();
+    } else {
+      await renderStep7Legacy();
+    }
+  }
+
+  // ── Step 7 Structured: render dari _phase2cState ───────────────────────────
+  async function renderStep7Structured() {
+    const body = el('rp-body');
+    if (!body) return;
+
+    // Reload state dari server jika stale atau kosong
+    let s = _phase2cState;
+    if (!s && _planningContext?.id && _teachingContext?.id) {
+      try {
+        s = await SipApi.getPipelineStateForContext(_cId, _teachingContext.id, _planningContext.id);
+        _phase2cState = s;
+        saveRpState();
+      } catch (_) {}
+    }
+    if (!s) { await renderStep7Legacy(); return; }
+
+    try { _profil = await SipApi.getRancangProfil(); } catch (_) {}
+
+    const idSrc = _profil?.is_locked
+      ? { nama_guru: _profil.nama_guru || '', nip_guru: _profil.nip_guru || '',
+          nama_kepsek: _profil.nama_kepsek || '', nip_kepsek: _profil.nip_kepsek || '',
+          tahun_ajaran: _profil.tahun_ajaran || '',
+          semester: (_profil.semester_list || []).join(', '), kota: _profil.kota || '' }
+      : (_settings || {});
+
+    const tp       = _ans.tp_terpilih;
+    const ctx      = s.context_spec;
+    const asm      = s.assessment_spec;
+    const mat      = s.material_spec;
+    const meetings = s.meeting_plans ?? [];
+    const fu       = s.follow_up;
+
+    const rpmReady = s.rpm_ready_for_class === true;
+    const hasLks   = meetings.some(m => m.content?.worksheet?.required === true);
+
+    // ── Helper: render satu accordion section ─────────────────────────────
+    function acc(id, title, bodyHtml, editLabel, editFn) {
+      const editBtn = editFn
+        ? `<button type="button" class="btn btn-sm rp-s7-edit-btn" data-fn="${id}"
+             style="font-size:var(--fs-badge);margin-left:auto;">${editLabel || '✏ Edit'}</button>`
+        : '';
+      return `
+<details class="rp-block rp-s7-acc" id="rp-s7-${id}" style="padding:0;overflow:hidden;margin-bottom:var(--space-xs);">
+  <summary style="display:flex;align-items:center;gap:var(--space-xs);padding:var(--space-sm) var(--space-md);
+    cursor:pointer;list-style:none;background:var(--surface-2);user-select:none;">
+    <span style="font-weight:var(--fw-semibold);font-size:var(--fs-ui);flex:1;">${esc(title)}</span>
+    ${editBtn}
+  </summary>
+  <div style="padding:var(--space-sm) var(--space-md);">${bodyHtml}</div>
+</details>`;
+    }
+
+    // ── Identitas ─────────────────────────────────────────────────────────
+    const identitasHtml = `
+<div class="rp-block" id="rp-s7-identitas">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-sm);">
+    <div class="rp-block-title" style="margin:0;">Identitas Dokumen</div>
+    <button type="button" class="btn btn-sm" id="rp-s7-edit-identitas"
+      style="font-size:var(--fs-badge);">✏ Edit</button>
+  </div>
+  <div class="rp-readonly-card">
+    ${[
+      ['Nama guru',            idSrc.nama_guru    || '—'],
+      ['NIP guru',             idSrc.nip_guru     || '—'],
+      ['Nama kepala sekolah',  idSrc.nama_kepsek  || '—'],
+      ['NIP kepala sekolah',   idSrc.nip_kepsek   || '—'],
+      ['Tahun ajaran',         idSrc.tahun_ajaran || '—'],
+      ['Semester',             idSrc.semester     || '—'],
+      ['Kota / Kabupaten',     idSrc.kota         || '—'],
+    ].map(([lbl, val]) => `
+    <div class="rp-readonly-row">
+      <span class="rp-readonly-label">${esc(lbl)}</span>
+      <span class="rp-readonly-val">${esc(val)}</span>
+    </div>`).join('')}
+  </div>
+</div>`;
+
+    // ── Status RPM ────────────────────────────────────────────────────────
+    const statusHtml = `
+<div class="rp-block" id="rp-s7-status" style="border-left:3px solid ${rpmReady ? 'var(--success,#4caf50)' : 'var(--warning,#f59e0b)'};">
+  <div style="display:flex;align-items:center;gap:var(--space-sm);">
+    <span style="font-size:1.3em;">${rpmReady ? '✓' : '⚠'}</span>
+    <div>
+      <div style="font-weight:var(--fw-semibold);color:${rpmReady ? 'var(--success,#4caf50)' : 'var(--warning,#f59e0b)'};">
+        ${rpmReady ? 'RPM siap digunakan' : 'RPM belum siap — ada bagian yang perlu dilengkapi'}
+      </div>
+      ${!rpmReady ? `<div style="font-size:var(--fs-caption);color:var(--text-muted);margin-top:2px;">
+        Lengkapi semua section di Step 6 sebelum mengunduh dokumen.</div>` : ''}
+    </div>
+  </div>
+</div>`;
+
+    // ── CP (read-only) ────────────────────────────────────────────────────
+    const cpBodyHtml = _cpElemen.length
+      ? _cpElemen.map(e => `
+<div style="margin-bottom:var(--space-sm);">
+  <div style="font-weight:var(--fw-semibold);font-size:var(--fs-caption);color:var(--gold);margin-bottom:2px;">${esc(e.nama)}</div>
+  <div style="font-size:var(--fs-caption);color:var(--text-secondary);">${esc(e.cp_normatif || '-')}</div>
+</div>`).join('')
+      : `<div style="color:var(--text-muted);font-size:var(--fs-caption);">CP belum di-generate.</div>`;
+
+    // ── ATP & TP Terpilih ─────────────────────────────────────────────────
+    const atpBodyHtml = (() => {
+      if (!_atpList.length) return `<div style="color:var(--text-muted);font-size:var(--fs-caption);">ATP belum tersedia.</div>`;
+      return `<div style="font-size:var(--fs-caption);">
+${_atpList.map((t, i) => {
+  const isSel = t.id && t.id === tp?.id;
+  return `<div style="padding:var(--space-xs) var(--space-sm);margin-bottom:2px;border-radius:var(--radius-sm);
+    background:${isSel ? 'color-mix(in srgb,var(--gold) 12%,transparent)' : 'transparent'};
+    border:1px solid ${isSel ? 'var(--gold)' : 'transparent'};">
+    <span style="color:var(--text-muted);margin-right:4px;">TP ${i + 1}</span>
+    <span style="${isSel ? 'font-weight:var(--fw-semibold);color:var(--gold);' : ''}">${esc(t.judul || '-')}</span>
+    ${isSel ? '<span style="font-size:var(--fs-badge);color:var(--gold);margin-left:4px;">← terpilih</span>' : ''}
+  </div>`;
+}).join('')}
+</div>`;
+    })();
+
+    // ── Context Spec ──────────────────────────────────────────────────────
+    const ctxBodyHtml = (() => {
+      const decisions = ctx?.content?.context_decisions ?? [];
+      if (!decisions.length) return `<div style="color:var(--text-muted);font-size:var(--fs-caption);">Context Spec belum tersedia.</div>`;
+      return decisions.map(d => `
+<div style="margin-bottom:var(--space-sm);padding:var(--space-xs) var(--space-sm);
+  background:var(--surface-1);border-radius:var(--radius-sm);">
+  <div style="font-weight:var(--fw-semibold);font-size:var(--fs-caption);color:var(--text-primary);">${esc(d.aspect || d.key || '')}</div>
+  <div style="font-size:var(--fs-caption);color:var(--text-secondary);margin-top:2px;">${esc(d.decision || d.value || '-')}</div>
+  ${d.rationale ? `<div style="font-size:var(--fs-badge);color:var(--text-muted);margin-top:1px;font-style:italic;">${esc(d.rationale)}</div>` : ''}
+</div>`).join('');
+    })();
+
+    // ── Assessment + KKTP ─────────────────────────────────────────────────
+    const asmBodyHtml = (() => {
+      const content = asm?.content ?? {};
+      const kktpList = content.kktp ?? [];
+      const formative = content.formative_checkpoints ?? [];
+      if (!kktpList.length && !formative.length) {
+        return `<div style="color:var(--text-muted);font-size:var(--fs-caption);">Assessment Spec belum tersedia.</div>`;
+      }
+      const kktpHtml = kktpList.length
+        ? `<div style="font-weight:var(--fw-semibold);font-size:var(--fs-caption);margin-bottom:var(--space-xs);">KKTP</div>
+<div style="overflow-x:auto;margin-bottom:var(--space-sm);">
+<table style="width:100%;border-collapse:collapse;font-size:var(--fs-caption);">
+  <thead>
+    <tr style="background:var(--surface-2);">
+      <th style="padding:4px 8px;text-align:left;border:1px solid var(--border);">Kriteria</th>
+      <th style="padding:4px 8px;text-align:left;border:1px solid var(--border);">Paham</th>
+      <th style="padding:4px 8px;text-align:left;border:1px solid var(--border);">Hampir</th>
+      <th style="padding:4px 8px;text-align:left;border:1px solid var(--border);">Belum</th>
+    </tr>
+  </thead>
+  <tbody>
+    ${kktpList.map(k => `
+    <tr>
+      <td style="padding:4px 8px;border:1px solid var(--border);">${esc(k.kriteria || k.criterion || '-')}</td>
+      <td style="padding:4px 8px;border:1px solid var(--border);color:var(--success,#4caf50);">${esc(k.paham || k.sudah_paham || '-')}</td>
+      <td style="padding:4px 8px;border:1px solid var(--border);color:var(--warning,#f59e0b);">${esc(k.hampir || k.hampir_paham || '-')}</td>
+      <td style="padding:4px 8px;border:1px solid var(--border);color:var(--error,#ef4444);">${esc(k.belum || k.belum_paham || '-')}</td>
+    </tr>`).join('')}
+  </tbody>
+</table>
+</div>`
+        : '';
+      const formativeHtml = formative.length
+        ? `<div style="font-weight:var(--fw-semibold);font-size:var(--fs-caption);margin-bottom:var(--space-xs);">Formative Checkpoints</div>
+${formative.map(f => `<div style="font-size:var(--fs-caption);color:var(--text-secondary);margin-bottom:2px;">• ${esc(f.deskripsi || f.description || f)}</div>`).join('')}`
+        : '';
+      return kktpHtml + formativeHtml;
+    })();
+
+    // ── Materi Pembelajaran ───────────────────────────────────────────────
+    const matBodyHtml = (() => {
+      const content = mat?.content ?? {};
+      const konsep  = content.konsep_inti ?? [];
+      const mis     = content.miskonsepsi ?? [];
+      const konteks = content.konteks_nyata ?? [];
+      if (!konsep.length && !mis.length && !konteks.length) {
+        return `<div style="color:var(--text-muted);font-size:var(--fs-caption);">Material Spec belum tersedia.</div>`;
+      }
+      return `
+${konsep.length ? `<div style="font-weight:var(--fw-semibold);font-size:var(--fs-caption);margin-bottom:var(--space-xs);">Konsep Inti</div>
+${konsep.map(k => `<div style="font-size:var(--fs-caption);margin-bottom:var(--space-xs);padding:var(--space-xs) var(--space-sm);
+  background:var(--surface-1);border-radius:var(--radius-sm);">
+  <span style="font-weight:var(--fw-semibold);">${esc(k.judul || k.nama || '-')}</span>
+  ${k.penjelasan ? `<br><span style="color:var(--text-secondary);">${esc(k.penjelasan)}</span>` : ''}
+  ${k.prasyarat ? `<br><span style="color:var(--text-muted);font-size:var(--fs-badge);">Prasyarat: ${esc(k.prasyarat)}</span>` : ''}
+</div>`).join('')}` : ''}
+${mis.length ? `<div style="font-weight:var(--fw-semibold);font-size:var(--fs-caption);margin:var(--space-sm) 0 var(--space-xs);">Miskonsepsi Umum</div>
+${mis.map(m => `<div style="font-size:var(--fs-caption);color:var(--text-secondary);margin-bottom:2px;">• ${esc(m.deskripsi || m)}</div>`).join('')}` : ''}
+${konteks.length ? `<div style="font-weight:var(--fw-semibold);font-size:var(--fs-caption);margin:var(--space-sm) 0 var(--space-xs);">Konteks Nyata</div>
+${konteks.map(k => `<div style="font-size:var(--fs-caption);color:var(--text-secondary);margin-bottom:2px;">• ${esc(k.deskripsi || k)}</div>`).join('')}` : ''}`;
+    })();
+
+    // ── Per Pertemuan ─────────────────────────────────────────────────────
+    function renderMeetingReadOnly(m) {
+      const c = m.content ?? {};
+      const aktivitas = c.aktivitas ?? c.activities ?? [];
+      const formative = c.formative_checkpoint ?? c.formative ?? null;
+      const dif = c.diferensiasi ?? c.differentiation ?? {};
+      const ws  = c.worksheet ?? null;
+
+      const aktHtml = aktivitas.length
+        ? `<div style="overflow-x:auto;margin-bottom:var(--space-sm);">
+<table style="width:100%;border-collapse:collapse;font-size:var(--fs-caption);">
+  <thead>
+    <tr style="background:var(--surface-2);">
+      <th style="padding:4px 8px;text-align:left;border:1px solid var(--border);width:20%;">Fase</th>
+      <th style="padding:4px 8px;text-align:left;border:1px solid var(--border);width:10%;">Durasi</th>
+      <th style="padding:4px 8px;text-align:left;border:1px solid var(--border);">Aktivitas Guru</th>
+      <th style="padding:4px 8px;text-align:left;border:1px solid var(--border);">Aktivitas Siswa</th>
+    </tr>
+  </thead>
+  <tbody>
+    ${aktivitas.map(a => `
+    <tr>
+      <td style="padding:4px 8px;border:1px solid var(--border);">${esc(a.fase || a.phase || '-')}</td>
+      <td style="padding:4px 8px;border:1px solid var(--border);">${esc(a.durasi_menit ? a.durasi_menit + ' mnt' : a.duration_minutes ? a.duration_minutes + ' mnt' : '-')}</td>
+      <td style="padding:4px 8px;border:1px solid var(--border);">${esc(a.guru || a.teacher || '-')}</td>
+      <td style="padding:4px 8px;border:1px solid var(--border);">${esc(a.siswa || a.student || '-')}</td>
+    </tr>`).join('')}
+  </tbody>
+</table>
+</div>`
+        : '';
+
+      const formHtml = formative
+        ? `<div style="font-size:var(--fs-caption);color:var(--text-secondary);margin-bottom:var(--space-xs);">
+            <span style="font-weight:var(--fw-semibold);">Formative:</span> ${esc(formative.deskripsi || formative.description || String(formative))}</div>`
+        : '';
+
+      const difKeys = ['pengayaan','penguatan','pendampingan'];
+      const difHtml = difKeys.some(k => dif[k])
+        ? `<div style="overflow-x:auto;margin-bottom:var(--space-xs);">
+<table style="width:100%;border-collapse:collapse;font-size:var(--fs-caption);">
+  <thead>
+    <tr style="background:var(--surface-2);">
+      ${difKeys.map(k => `<th style="padding:4px 8px;text-align:left;border:1px solid var(--border);">${k.charAt(0).toUpperCase()+k.slice(1)}</th>`).join('')}
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      ${difKeys.map(k => `<td style="padding:4px 8px;border:1px solid var(--border);">${esc(dif[k] || '-')}</td>`).join('')}
+    </tr>
+  </tbody>
+</table>
+</div>`
+        : '';
+
+      const wsHtml = ws?.required
+        ? `<div style="font-size:var(--fs-caption);margin-top:var(--space-xs);">
+            <span style="color:var(--gold);font-weight:var(--fw-semibold);">LKS:</span> ${esc(ws.judul || ws.title || 'Ada')}
+          </div>`
+        : '';
+
+      return aktHtml + formHtml + difHtml + wsHtml
+        || `<div style="color:var(--text-muted);font-size:var(--fs-caption);">Konten belum tersedia.</div>`;
+    }
+
+    const meetingsHtml = meetings.length
+      ? meetings.map(m => acc(
+          `meet-${m.meeting_no}`,
+          `Pertemuan ${m.meeting_no} — ${m.jp} JP (${m.duration_minutes} menit)`,
+          m.content ? renderMeetingReadOnly(m) : `<div style="color:var(--text-muted);font-size:var(--fs-caption);">Belum di-generate.</div>`,
+          '✏ Edit Pertemuan',
+          m.content ? `goto-meeting-${m.meeting_no}` : null
+        )).join('')
+      : `<div class="rp-block" style="color:var(--text-muted);font-size:var(--fs-caption);">Rencana pertemuan belum di-generate.</div>`;
+
+    // ── Tindak Lanjut ────────────────────────────────────────────────────
+    const fuBodyHtml = (() => {
+      const content = fu?.content ?? {};
+      const jalur = ['pengayaan','penguatan','pendampingan'];
+      if (!jalur.some(k => content[k])) {
+        return `<div style="color:var(--text-muted);font-size:var(--fs-caption);">Tindak lanjut belum di-generate.</div>`;
+      }
+      return `<div style="overflow-x:auto;">
+<table style="width:100%;border-collapse:collapse;font-size:var(--fs-caption);">
+  <thead>
+    <tr style="background:var(--surface-2);">
+      ${jalur.map(k => `<th style="padding:4px 8px;text-align:left;border:1px solid var(--border);">${k.charAt(0).toUpperCase()+k.slice(1)}</th>`).join('')}
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      ${jalur.map(k => `<td style="padding:4px 8px;border:1px solid var(--border);vertical-align:top;">${esc(content[k] || '-')}</td>`).join('')}
+    </tr>
+  </tbody>
+</table>
+</div>`;
+    })();
+
+    // ── Validation status ─────────────────────────────────────────────────
+    const valStatus = s.validation ?? {};
+    const violations = valStatus.violations ?? [];
+    const warnings   = valStatus.warnings ?? [];
+    const valHtml = (violations.length || warnings.length)
+      ? `<div class="rp-block" id="rp-s7-val">
+  <div class="rp-block-title" style="color:var(--error,#ef4444);">Catatan Validasi</div>
+  ${violations.map(v => `<div style="font-size:var(--fs-caption);color:var(--error,#ef4444);margin-bottom:2px;">✗ ${esc(v.message || v)}</div>`).join('')}
+  ${warnings.map(w => `<div style="font-size:var(--fs-caption);color:var(--warning,#f59e0b);margin-bottom:2px;">⚠ ${esc(w.message || w)}</div>`).join('')}
+</div>`
+      : '';
+
+    // ── Download + action row ─────────────────────────────────────────────
+    const actionHtml = `
+<div class="rp-block" id="rp-s7-actions">
+  <div id="rp-s7-error" class="error-msg" style="display:none;margin-bottom:var(--space-sm);"></div>
+  <div style="display:flex;flex-wrap:wrap;gap:var(--space-sm);">
+    <button type="button" class="btn btn-primary" id="rp-btn-download-rpm">↓ Unduh RPM Word</button>
+    ${hasLks ? `<button type="button" class="btn btn-secondary" id="rp-btn-download-lks">↓ Unduh LKS Word</button>` : ''}
+    <button type="button" class="btn btn-sm" id="rp-s7-btn-reset"
+      style="margin-left:auto;color:var(--text-muted);">↺ Mulai dari awal</button>
+  </div>
+</div>`;
+
+    body.innerHTML =
+      identitasHtml +
+      statusHtml +
+      acc('cp',  'Capaian Pembelajaran (CP)', cpBodyHtml, null, null) +
+      acc('atp', 'ATP & TP Terpilih', atpBodyHtml, '✏ Edit ATP', 'goto-step4') +
+      acc('ctx', 'Context Specification', ctxBodyHtml, '✏ Edit', ctx?.confirmed ? 'goto-ctx' : null) +
+      acc('asm', 'Asesmen + KKTP', asmBodyHtml, '✏ Edit', asm?.confirmed ? 'goto-asm' : null) +
+      acc('mat', 'Materi Pembelajaran', matBodyHtml, '✏ Edit', mat?.usable ? 'goto-mat' : null) +
+      meetingsHtml +
+      acc('fu', 'Tindak Lanjut', fuBodyHtml, '✏ Edit', fu?.content ? 'goto-fu' : null) +
+      valHtml +
+      actionHtml +
+      '<div id="rp-s7-runtime-wrap"></div>';
+
+    // Inject runtime readiness section after action row (only if rpm_ready)
+    if (rpmReady) {
+      renderRuntimeReadinessSection(el('rp-s7-runtime-wrap'));
+    }
+
+    // ── Wire edit buttons ──────────────────────────────────────────────────
+    el('rp-s7-edit-identitas')?.addEventListener('click', () => renderStep0());
+
+    body.addEventListener('click', e => {
+      const btn = e.target.closest('.rp-s7-edit-btn');
+      if (!btn) return;
+      const fn = btn.dataset.fn;
+      if (fn === 'goto-step4')     { navigateToStep(4); return; }
+      if (fn === 'goto-ctx')       { renderContextCheckpoint(); return; }
+      if (fn === 'goto-asm')       { renderAssessmentCheckpoint(); return; }
+      if (fn === 'goto-mat')       { renderMaterialSpec(); return; }
+      if (fn === 'goto-fu')        { renderFollowUpPipeline(); return; }
+      if (fn?.startsWith('goto-meeting-')) {
+        const no = parseInt(fn.replace('goto-meeting-', ''), 10);
+        renderMeetingPipeline();
+        // Buka detail meeting yang dituju setelah render
+        requestAnimationFrame(() => {
+          const det = el(`rp2-meet-detail-${no}`);
+          if (det) det.open = true;
+        });
+      }
+    });
+
+    // ── Wire download ─────────────────────────────────────────────────────
+    async function triggerDownload(jenis) {
+      const btnId = jenis === 'RPM' ? 'rp-btn-download-rpm' : 'rp-btn-download-lks';
+      const btn = el(btnId);
+      if (!btn) return;
+      btn.disabled = true;
+      btn.textContent = 'Menyiapkan…';
+      try {
+        await generateDocxFromPipelineState(_phase2cState, _profil || {}, jenis);
+      } catch (err) {
+        console.error('[step7] download gagal:', err);
+        showError('rp-s7-error', 'Gagal generate dokumen: ' + (err?.message ?? ''));
+      } finally {
+        btn.disabled = false;
+        btn.textContent = jenis === 'RPM' ? '↓ Unduh RPM Word' : '↓ Unduh LKS Word';
+      }
+    }
+
+    el('rp-btn-download-rpm')?.addEventListener('click', () => triggerDownload('RPM'));
+    el('rp-btn-download-lks')?.addEventListener('click', () => triggerDownload('LKS'));
+
+    el('rp-s7-btn-reset')?.addEventListener('click', () => {
+      if (confirm('Mulai ulang dari awal? Semua jawaban wizard akan dihapus.')) resetAll();
+    });
+  }
+
+  // ── Step 7 Legacy: berbasis rancang_dokumen (sistem lama) ─────────────────
+  async function renderStep7Legacy() {
     const body = el('rp-body');
     if (!body) return;
 
@@ -3776,6 +5242,7 @@ ${tpList.map((tp, i) => {
   // ─── Reset ──────────────────────────────────────────────────────────────────
 
   function resetAll() {
+    cleanupAllDropdowns();
     if (_cId) { try { localStorage.removeItem('rp_state_' + _cId); } catch (_) {} }
     Object.assign(_ans, { mapel:'', mapelKey:'', bidangKeahlian:null, programKeahlian:null, jenjang:'', fase:'', elemenTerpilih:[], smk:null, niat_guru:{}, preferensi:{}, tp_terpilih:null, konteks_kelas:{} });
     _cpElemen = []; _cpRingkasan = []; _cpLabel = ''; _cpUmum = ''; _atpList = []; _rencana = null;
@@ -3838,7 +5305,13 @@ ${tpList.map((tp, i) => {
     _teachingContext = serverTeachingContext || teachingContext || null;
     _planningContext = serverPlanningContext || planningContext || null;
     _jpPolicy = serverJpPolicy || jpPolicy || null;
-    _phase2cState = phase2cState || null; // cache only — server state wins on resume
+    // Cache only — tandai stale jika step >= 6 agar tidak dirender langsung;
+    // server state akan di-refresh saat enterPhase2CPipeline dipanggil.
+    if (phase2cState && step >= 6) {
+      _phase2cState = { ...phase2cState, _stale: true };
+    } else {
+      _phase2cState = phase2cState || null;
+    }
     _step = (serverDurableAtp && step > 4 && !_ans.tp_terpilih) ? 4 : step;
 
     switch (_step) {
@@ -3865,118 +5338,391 @@ ${tpList.map((tp, i) => {
     return true;
   }
 
-  // ─── Init ───────────────────────────────────────────────────────────────────
+  // ── C1. prepareRuntimePackage ───────────────────────────────────────────────
+  // Compile (or return cached) RuntimePackage for a given meeting_no.
+  // Skips compile if source hash still matches the stored package.
 
-  async function initRancangTab(cId) {
-    _cId = cId;
-    const panel = el('panel-rancang');
-    if (!panel) return;
-    panel.innerHTML = `
-<div class="rp-step-bar" id="rp-step-bar"></div>
-<div id="rp-body"></div>`;
-
-    // Fetch profil (per akun), settings & dokumen paralel
-    try {
-      const [profil, settings, dokumen] = await Promise.all([
-        SipApi.getRancangProfil(),
-        SipApi.getRancangSettings(_cId),
-        SipApi.getRancangDokumen(_cId),
-      ]);
-      _profil   = profil;
-      _settings = settings;
-      _dokumen  = dokumen ?? [];
-
-      // Pre-fill _ans: profil (step 0) diutamakan, fallback ke settings
-      if (_profil?.is_locked) {
-        _ans.jenjang         = _profil.jenjang          || '';
-        _ans.mapelKey        = _profil.mapel_key         || '';
-        _ans.mapel           = _profil.mapel             || '';
-        _ans.fase            = _profil.fase              || '';
-        _ans.bidangKeahlian  = _profil.bidang_keahlian   || null;
-        _ans.programKeahlian = _profil.program_keahlian  || null;
-        _ans.elemenTerpilih  = normalizeArray(_profil.elemen_terpilih);
-        try {
-          _teachingContext = await SipApi.getTeachingContextForClassroom(_cId, _ans.mapelKey);
-          if (_teachingContext?.id) {
-            const latest = await SipApi.phase2aPlanning({ action:'get_latest_atp', classroom_id:_cId,
-              teaching_context_id:_teachingContext.id });
-            if (latest?.tp_list?.length) {
-              _durableAtp = { atp_id:latest.atp_id, atp_revision_id:latest.atp_revision_id };
-              _atpList = latest.tp_list;
-            }
-            const latestPlanning = await SipApi.phase2aPlanning({ action:'get_latest_planning_context', classroom_id:_cId,
-              teaching_context_id:_teachingContext.id });
-            if (latestPlanning?.planning_context) {
-              if (latestPlanning.durable_atp?.tp_list?.length) {
-                _durableAtp = { atp_id:latestPlanning.durable_atp.atp_id, atp_revision_id:latestPlanning.durable_atp.atp_revision_id };
-                _atpList = latestPlanning.durable_atp.tp_list;
-              }
-              _planningContext = latestPlanning.planning_context;
-              _jpPolicy = latestPlanning.jp_policy;
-              const pc = _planningContext;
-              _ans.tp_terpilih = latestPlanning.selected_tp ||
-                _atpList.find(tp => tp.id === pc.tp_id && tp.revision_id === pc.selected_tp_revision_id) || null;
-              _ans.niat_guru = pc.teacher_intent_snapshot || {};
-              _ans.preferensi = pc.preferences_snapshot || {};
-              _ans.konteks_kelas = pc.class_context_snapshot || {};
-              _ans.smk = pc.smk_context_snapshot || null;
-            }
-          }
-        } catch (e) { console.warn('[rancang] durable ATP belum dapat dimuat:', e); }
-      } else if (_settings) {
-        if (_settings.jenjang)          _ans.jenjang          = _settings.jenjang;
-        if (_settings.mapel_key)        _ans.mapelKey         = _settings.mapel_key;
-        if (_settings.mapel)            _ans.mapel            = _settings.mapel;
-        if (_settings.fase)             _ans.fase             = _settings.fase;
-        if (_settings.bidang_keahlian)  _ans.bidangKeahlian   = _settings.bidang_keahlian;
-        if (_settings.program_keahlian) _ans.programKeahlian  = _settings.program_keahlian;
-        if (Array.isArray(_settings.elemen_terpilih) && _settings.elemen_terpilih.length)
-          _ans.elemenTerpilih = _settings.elemen_terpilih;
-      }
-    } catch (_) {
-      _profil   = null;
-      _settings = null;
-      _dokumen  = [];
+  async function prepareRuntimePackage(meetingNo) {
+    if (!window.RuntimeCompiler || !window.RuntimeDb) {
+      throw new Error('runtime-compiler.js / runtime-db.js belum dimuat');
     }
 
-    // Jika step 0 belum diisi → tampilkan step 0, skip restore & auto-fill
-    if (!_profil?.is_locked) {
-      renderStep0();
-      _loaded = true;
+    const planCtxId = _planningContext?.id;
+    if (!planCtxId) throw new Error('Planning context belum tersedia');
+
+    const s       = _phase2cState;
+    const meetPlan = (s?.meeting_plans ?? []).find(m => m.meeting_no === meetingNo);
+    if (!meetPlan?.artifact_id) {
+      throw new Error(`Rencana pertemuan ${meetingNo} belum di-generate`);
+    }
+
+    // Compute a simple hash of the meeting plan content for staleness check
+    const contentStr   = JSON.stringify(meetPlan.content ?? {});
+    const sourceHash   = await _simpleHash(contentStr);
+
+    // Check existing package in IndexedDB
+    const existing = await window.RuntimeDb.packages.getForMeeting(planCtxId, meetingNo);
+    if (existing && existing.source?.meeting_plan_source_hash === sourceHash) {
+      return existing;
+    }
+
+    // Load artifact versions
+    const [mpContent, asmContent, ctxContent] = await Promise.all([
+      meetPlan.content
+        ? Promise.resolve(meetPlan.content)
+        : SipApi.getArtifactContent(meetPlan.version_id).catch(() => null),
+      s?.assessment_spec?.version_id
+        ? SipApi.getArtifactContent(s.assessment_spec.version_id).catch(() => null)
+        : Promise.resolve(s?.assessment_spec?.content ?? null),
+      s?.context_spec?.version_id
+        ? SipApi.getArtifactContent(s.context_spec.version_id).catch(() => null)
+        : Promise.resolve(s?.context_spec?.content ?? null),
+    ]);
+
+    if (!mpContent) throw new Error(`Konten rencana pertemuan ${meetingNo} tidak tersedia`);
+
+    // Load roster snapshot (id + nama only)
+    let rosterSnapshot = [];
+    try {
+      rosterSnapshot = await SipApi.getRosterForRuntime(_cId);
+    } catch (_) {}
+
+    // Find meeting allocation
+    const alloc = (s?.meeting_allocation?.items ?? []).find(a => a.meeting_no === meetingNo)
+      ?? { jp: meetPlan.jp ?? 1, duration_minutes: meetPlan.duration_minutes ?? 45,
+           meeting_allocation_item_id: meetPlan.meeting_allocation_item_id ?? null };
+
+    // TP snapshot
+    const tp = _ans.tp_terpilih;
+    const tpSnapshot = tp
+      ? { judul: tp.judul, deskripsi: tp.deskripsi, elemen_cp: tp.elemen_cp }
+      : {};
+
+    const pkg = await window.RuntimeCompiler.compileRuntimePackage({
+      meetingPlanArtifact: {
+        version_id:  meetPlan.version_id ?? meetPlan.artifact_id,
+        content:     mpContent,
+        source_hash: sourceHash,
+        meeting_no:  meetingNo,
+      },
+      meetingAllocationItem: {
+        jp:                        alloc.jp,
+        duration_minutes:          alloc.duration_minutes,
+        meeting_allocation_item_id: alloc.meeting_allocation_item_id,
+      },
+      assessmentSpecVersion: {
+        version_id:           s?.assessment_spec?.version_id ?? null,
+        content:              asmContent,
+        planning_context_id:  planCtxId,
+      },
+      contextSpecVersion: {
+        version_id:           s?.context_spec?.version_id ?? null,
+        content:              ctxContent,
+        planning_context_id:  planCtxId,
+      },
+      tpSnapshot,
+      rosterSnapshot,
+    });
+
+    // Patch source hash into package before storing
+    pkg.source.meeting_plan_source_hash = sourceHash;
+    pkg.planning_context_id             = planCtxId;
+
+    await window.RuntimeDb.packages.save(pkg);
+    return pkg;
+  }
+
+  async function _simpleHash(str) {
+    try {
+      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+      return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+    } catch (_) {
+      // Fallback: lightweight djb2-style hash if SubtleCrypto unavailable
+      let h = 5381;
+      for (let i = 0; i < str.length; i++) h = ((h << 5) + h) ^ str.charCodeAt(i);
+      return (h >>> 0).toString(16);
+    }
+  }
+
+  // ── C2. getRuntimeReadiness ─────────────────────────────────────────────────
+
+  async function getRuntimeReadiness() {
+    const s        = _phase2cState;
+    const planCtxId = _planningContext?.id;
+    const meetings  = s?.meeting_plans ?? [];
+    const rpmReady  = s?.rpm_ready_for_class === true;
+
+    const packages_ready = {};
+    for (const m of meetings) {
+      let compiled = false;
+      let stale    = false;
+      let pkgId    = null;
+      if (planCtxId && window.RuntimeDb) {
+        try {
+          const pkg = await window.RuntimeDb.packages.getForMeeting(planCtxId, m.meeting_no);
+          if (pkg) {
+            pkgId    = pkg.package_id;
+            compiled = true;
+            // Stale check: content hash mismatch
+            const currentHash = await _simpleHash(JSON.stringify(m.content ?? {}));
+            stale = pkg.source?.meeting_plan_source_hash !== currentHash;
+          }
+        } catch (_) {}
+      }
+      packages_ready[m.meeting_no] = { compiled, stale, package_id: pkgId };
+    }
+
+    const all_compiled = meetings.length > 0
+      && meetings.every(m => packages_ready[m.meeting_no]?.compiled && !packages_ready[m.meeting_no]?.stale);
+
+    return { rpm_ready: rpmReady, packages_ready, all_compiled };
+  }
+
+  // ── C3. Runtime readiness section (injected into Step 7 after download row) ─
+
+  async function renderRuntimeReadinessSection(containerEl) {
+    if (!containerEl) return;
+
+    const rdb = window.RuntimeDb;
+    if (!rdb) {
+      containerEl.innerHTML = `<div class="rp-block" style="color:var(--text-muted);font-size:var(--fs-caption);">
+        Runtime offline tidak tersedia di browser ini.</div>`;
       return;
     }
 
-    const restored = await restoreRpState();
+    const readiness = await getRuntimeReadiness();
+    const meetings  = _phase2cState?.meeting_plans ?? [];
 
-    // Auto-fill dari identitas kelas — SETELAH restore (hanya jika profil tidak ada)
-    if (!_ans.mapel) {
-      if (window._classroomMapelKey) {
-        _ans.mapelKey = window._classroomMapelKey;
-        _ans.mapel    = window._classroomSubject || window._classroomMapelKey;
-        if (!_ans.jenjang         && window._classroomJenjang)  _ans.jenjang         = window._classroomJenjang;
-        if (!_ans.bidangKeahlian  && window._classroomBidang)   _ans.bidangKeahlian  = window._classroomBidang;
-        if (!_ans.programKeahlian && window._classroomProgram)  _ans.programKeahlian = window._classroomProgram;
-      } else if (window._classroomSubject) {
-        const guessedKey = normalizeMapelKey(window._classroomSubject);
-        if (guessedKey) {
-          _ans.mapelKey = guessedKey;
-          _ans.mapel    = window._classroomSubject;
-          const nm = (window._classroomName || '').toLowerCase();
-          if (!_ans.jenjang) {
-            if (nm.includes('smk'))      _ans.jenjang = 'SMK';
-            else if (nm.includes('sma')) _ans.jenjang = 'SMA';
-            else if (nm.includes('smp') || /kelas [789]/.test(nm)) _ans.jenjang = 'SMP';
-            else if (nm.includes('sd')  || /kelas [123456]/.test(nm)) _ans.jenjang = 'SD';
+    const meetingRows = meetings.map(m => {
+      const r       = readiness.packages_ready[m.meeting_no] ?? {};
+      const ready   = r.compiled && !r.stale;
+      const stale   = r.compiled && r.stale;
+      const status  = ready
+        ? `<span style="color:var(--success,#4caf50);">✓ Siap offline</span>`
+        : stale
+        ? `<span style="color:var(--warning,#f59e0b);">⟳ Perlu diperbarui</span>`
+        : `<span style="color:var(--text-muted);">— Belum disiapkan</span>`;
+      const mulaiBtn = ready || stale
+        ? `<button type="button" class="btn btn-sm btn-primary btn-runtime-launch"
+             data-meeting="${m.meeting_no}"
+             style="font-size:var(--fs-badge);">▶ Mulai Kelas</button>`
+        : '';
+      return `
+<div style="display:flex;align-items:center;justify-content:space-between;
+  padding:var(--space-xs) 0;border-bottom:1px solid var(--border);">
+  <span style="font-size:var(--fs-caption);">Pertemuan ${m.meeting_no}
+    (${m.jp} JP / ${m.duration_minutes} mnt)</span>
+  <div style="display:flex;align-items:center;gap:var(--space-sm);flex-wrap:wrap;">
+    <span style="font-size:var(--fs-caption);">${status}</span>
+    <button type="button" class="btn btn-sm btn-runtime-prepare"
+      data-meeting="${m.meeting_no}"
+      style="font-size:var(--fs-badge);">${ready ? '↺ Perbarui' : 'Siapkan'}</button>
+    ${mulaiBtn}
+  </div>
+</div>`;
+    }).join('');
+
+    containerEl.innerHTML = `
+<div class="rp-block" id="rp-s7-runtime" style="margin-top:var(--space-md);">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-sm);">
+    <div class="rp-block-title" style="margin:0;">Siapkan untuk Kelas (Offline)</div>
+    <button type="button" class="btn btn-sm btn-primary" id="rp-btn-prepare-all">
+      Siapkan semua pertemuan
+    </button>
+  </div>
+  <div id="rp-runtime-msg" style="display:none;font-size:var(--fs-caption);margin-bottom:var(--space-xs);"></div>
+  <div id="rp-runtime-rows">${meetingRows || '<div style="color:var(--text-muted);font-size:var(--fs-caption);">Belum ada rencana pertemuan.</div>'}</div>
+</div>`;
+
+    // Wire: prepare single meeting
+    containerEl.querySelectorAll('.btn-runtime-prepare').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const no = parseInt(btn.dataset.meeting, 10);
+        btn.disabled = true;
+        btn.textContent = '…';
+        const msgEl = containerEl.querySelector('#rp-runtime-msg');
+        try {
+          await prepareRuntimePackage(no);
+          if (msgEl) { msgEl.style.display = ''; msgEl.textContent = `✓ Pertemuan ${no} siap offline.`; }
+          await renderRuntimeReadinessSection(containerEl);
+        } catch (err) {
+          if (msgEl) { msgEl.style.display = ''; msgEl.textContent = `✗ Gagal: ${err?.message ?? err}`; }
+          btn.disabled = false;
+          btn.textContent = 'Siapkan';
+        }
+      });
+    });
+
+    // Wire: launch runtime
+    containerEl.querySelectorAll('.btn-runtime-launch').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (!window.RuntimeUI) {
+          alert('runtime-ui.js belum dimuat. Reload halaman.');
+          return;
+        }
+        const no = parseInt(btn.dataset.meeting, 10);
+        btn.disabled = true;
+        const msgEl = containerEl.querySelector('#rp-runtime-msg');
+        try {
+          let pkg = await window.RuntimeDb.packages.getForMeeting(_planningContext?.id, no);
+          if (!pkg) {
+            if (msgEl) { msgEl.style.display = ''; msgEl.textContent = `Menyiapkan pertemuan ${no}…`; }
+            pkg = await prepareRuntimePackage(no);
+          }
+          await window.RuntimeUI.launchRuntime(pkg);
+        } catch (err) {
+          if (msgEl) { msgEl.style.display = ''; msgEl.textContent = `✗ Gagal: ${err?.message ?? err}`; }
+          console.error('[runtime] launch gagal:', err);
+        } finally {
+          btn.disabled = false;
+        }
+      });
+    });
+
+    // Wire: prepare all
+    containerEl.querySelector('#rp-btn-prepare-all')?.addEventListener('click', async () => {
+      const allBtn = containerEl.querySelector('#rp-btn-prepare-all');
+      const msgEl  = containerEl.querySelector('#rp-runtime-msg');
+      if (allBtn) allBtn.disabled = true;
+      let ok = 0; let fail = 0;
+      for (const m of meetings) {
+        try {
+          if (msgEl) { msgEl.style.display = ''; msgEl.textContent = `Menyiapkan pertemuan ${m.meeting_no}…`; }
+          await prepareRuntimePackage(m.meeting_no);
+          ok++;
+        } catch (err) {
+          fail++;
+          console.warn(`[runtime] prepare meeting ${m.meeting_no} gagal:`, err);
+        }
+      }
+      if (msgEl) {
+        msgEl.style.display = '';
+        msgEl.textContent = fail === 0
+          ? `✓ Semua ${ok} pertemuan siap offline.`
+          : `${ok} siap, ${fail} gagal. Cek konsol untuk detail.`;
+      }
+      await renderRuntimeReadinessSection(containerEl);
+    });
+  }
+
+  // ─── Init ───────────────────────────────────────────────────────────────────
+
+  async function initRancangTab(cId) {
+    if (_initializing || _loaded) return;
+    _initializing = true;
+    try {
+      _cId = cId;
+      const panel = el('panel-rancang');
+      if (!panel) return;
+      panel.innerHTML = `
+<div class="rp-step-bar" id="rp-step-bar"></div>
+<div id="rp-body"></div>`;
+
+      // Fetch profil (per akun), settings & dokumen paralel
+      try {
+        const [profil, settings, dokumen] = await Promise.all([
+          SipApi.getRancangProfil(),
+          SipApi.getRancangSettings(_cId),
+          SipApi.getRancangDokumen(_cId),
+        ]);
+        _profil   = profil;
+        _settings = settings;
+        _dokumen  = dokumen ?? [];
+
+        // Pre-fill _ans: profil (step 0) diutamakan, fallback ke settings
+        if (_profil?.is_locked) {
+          _ans.jenjang         = _profil.jenjang          || '';
+          _ans.mapelKey        = _profil.mapel_key         || '';
+          _ans.mapel           = _profil.mapel             || '';
+          _ans.fase            = _profil.fase              || '';
+          _ans.bidangKeahlian  = _profil.bidang_keahlian   || null;
+          _ans.programKeahlian = _profil.program_keahlian  || null;
+          _ans.elemenTerpilih  = normalizeArray(_profil.elemen_terpilih);
+          try {
+            _teachingContext = await SipApi.getTeachingContextForClassroom(_cId, _ans.mapelKey);
+            if (_teachingContext?.id) {
+              const latest = await SipApi.phase2aPlanning({ action:'get_latest_atp', classroom_id:_cId,
+                teaching_context_id:_teachingContext.id });
+              if (latest?.tp_list?.length) {
+                _durableAtp = { atp_id:latest.atp_id, atp_revision_id:latest.atp_revision_id };
+                _atpList = latest.tp_list;
+              }
+              const latestPlanning = await SipApi.phase2aPlanning({ action:'get_latest_planning_context', classroom_id:_cId,
+                teaching_context_id:_teachingContext.id });
+              if (latestPlanning?.planning_context) {
+                if (latestPlanning.durable_atp?.tp_list?.length) {
+                  _durableAtp = { atp_id:latestPlanning.durable_atp.atp_id, atp_revision_id:latestPlanning.durable_atp.atp_revision_id };
+                  _atpList = latestPlanning.durable_atp.tp_list;
+                }
+                _planningContext = latestPlanning.planning_context;
+                _jpPolicy = latestPlanning.jp_policy;
+                const pc = _planningContext;
+                _ans.tp_terpilih = latestPlanning.selected_tp ||
+                  _atpList.find(tp => tp.id === pc.tp_id && tp.revision_id === pc.selected_tp_revision_id) || null;
+                _ans.niat_guru = pc.teacher_intent_snapshot || {};
+                _ans.preferensi = pc.preferences_snapshot || {};
+                _ans.konteks_kelas = pc.class_context_snapshot || {};
+                _ans.smk = pc.smk_context_snapshot || null;
+              }
+            }
+          } catch (e) { console.warn('[rancang] durable ATP belum dapat dimuat:', e); }
+        } else if (_settings) {
+          if (_settings.jenjang)          _ans.jenjang          = _settings.jenjang;
+          if (_settings.mapel_key)        _ans.mapelKey         = _settings.mapel_key;
+          if (_settings.mapel)            _ans.mapel            = _settings.mapel;
+          if (_settings.fase)             _ans.fase             = _settings.fase;
+          if (_settings.bidang_keahlian)  _ans.bidangKeahlian   = _settings.bidang_keahlian;
+          if (_settings.program_keahlian) _ans.programKeahlian  = _settings.program_keahlian;
+          if (Array.isArray(_settings.elemen_terpilih) && _settings.elemen_terpilih.length)
+            _ans.elemenTerpilih = _settings.elemen_terpilih;
+        }
+      } catch (_) {
+        _profil   = null;
+        _settings = null;
+        _dokumen  = [];
+      }
+
+      // Jika step 0 belum diisi → tampilkan step 0, skip restore & auto-fill
+      if (!_profil?.is_locked) {
+        renderStep0();
+        _loaded = true;
+        return;
+      }
+
+      const restored = await restoreRpState();
+
+      // Auto-fill dari identitas kelas — SETELAH restore (hanya jika profil tidak ada)
+      if (!_ans.mapel) {
+        if (window._classroomMapelKey) {
+          _ans.mapelKey = window._classroomMapelKey;
+          _ans.mapel    = window._classroomSubject || window._classroomMapelKey;
+          if (!_ans.jenjang         && window._classroomJenjang)  _ans.jenjang         = window._classroomJenjang;
+          if (!_ans.bidangKeahlian  && window._classroomBidang)   _ans.bidangKeahlian  = window._classroomBidang;
+          if (!_ans.programKeahlian && window._classroomProgram)  _ans.programKeahlian = window._classroomProgram;
+        } else if (window._classroomSubject) {
+          const guessedKey = normalizeMapelKey(window._classroomSubject);
+          if (guessedKey) {
+            _ans.mapelKey = guessedKey;
+            _ans.mapel    = window._classroomSubject;
+            const nm = (window._classroomName || '').toLowerCase();
+            if (!_ans.jenjang) {
+              if (nm.includes('smk'))      _ans.jenjang = 'SMK';
+              else if (nm.includes('sma')) _ans.jenjang = 'SMA';
+              else if (nm.includes('smp') || /kelas [789]/.test(nm)) _ans.jenjang = 'SMP';
+              else if (nm.includes('sd')  || /kelas [123456]/.test(nm)) _ans.jenjang = 'SD';
+            }
           }
         }
       }
-    }
 
-    if (!restored || _step === 1) {
-      if (_planningContext && _ans.tp_terpilih) { _step = 5; renderStep5(); }
-      else renderStep1();
+      if (!restored || _step === 1) {
+        if (_planningContext && _ans.tp_terpilih) { _step = 5; renderStep5(); }
+        else renderStep1();
+      }
+      _loaded = true;
+    } finally {
+      _initializing = false;
     }
-    _loaded = true;
   }
 
   // ─── DOMContentLoaded ───────────────────────────────────────────────────────
@@ -4027,7 +5773,7 @@ ${tpList.map((tp, i) => {
 
       if (!_loaded) {
         if (!cId) return;
-        initRancangTab(cId);
+        await initRancangTab(cId);
       }
     });
 

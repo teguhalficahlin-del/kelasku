@@ -205,7 +205,7 @@ git push origin main                  → urutan TERAKHIR
 ## 12. STATUS PROYEK
 
 **Fase saat ini: DEVELOPMENT AKTIF**
-**HEAD:** `2d0b7a1`
+**HEAD:** `56fcfda`
 
 - [x] Dokumen rancangan selesai (REQUIREMENTS, SCHEMA-v0, ADR-001)
 - [x] Supabase project baru dibuat
@@ -218,9 +218,10 @@ git push origin main                  → urutan TERAKHIR
 - [x] Trial 30 hari + trial gate classroom
 - [x] Hapus akun siswa + ortu (end-to-end)
 - [x] 6 slash commands di `.claude/commands/`
-- [x] Edge Functions deployed: `generate-akun`, `hapus-akun`
+- [x] Edge Functions deployed: `generate-akun`, `hapus-akun`, `phase2-material`, `phase2-meeting`, `phase2-followup`, `phase2-validator`, `runtime-sync`
 - [x] Portal Guru: tab Penilaian — assessment_items + student_grades (sesi 6 Agustus 2026)
 - [x] Portal Guru: Penilaian section Perencanaan selesai — CP/TP/KKTP CRUD, TP collapsed, grid KKTP, custom dropdown semester (sesi 7–8 Agustus 2026)
+- [x] Portal Guru: Tab Rancang Pembelajaran — pipeline Step 6 (Tahap 1–7) selesai, Step 7 Document Hub selesai, Step 8 Runtime selesai (belum di-hardening); Putaran 9 (Hardening) belum dikerjakan
 - [ ] Portal Guru: catatan siswa + sesi pembinaan
 - [x] Portal Guru: jadwal classroom (ADR-004)
 - [x] Portal Guru: absensi classroom (ADR-005)
@@ -321,7 +322,63 @@ Migrations baru:
 20260807000001_assessment-hierarchy.sql
 20260807000002_assessment-kktp-range.sql
 20260808000001_assessment-unique-fix.sql
+20260818000001_phase1_teaching_scope_foundation.sql
+20260818000002_phase1_fk_lifecycle_fix.sql
+20260818000003_phase2a_planning_foundation.sql
+20260818000004_phase2a_allocation_policy_authority.sql
+20260818000005_phase2b_artifact_lifecycle_foundation.sql
+20260818000006_phase2c_generate_gate.sql
+20260818000007_phase2_artifact_kinds.sql
+20260818000008_pipeline_state_gate.sql
+20260818000009_phase2_material_validator.sql
+20260818000010_phase2_meeting_validator.sql
+20260818000011_phase2_followup_validator.sql
+20260818000012_runtime_events.sql
 ```
+
+**File JS baru (untracked, belum commit):**
+```
+guru/js/runtime-compiler.js
+guru/js/runtime-db.js
+guru/js/runtime-session.js
+guru/js/runtime-ui.js
+guru/js/runtime-sync.js
+```
+
+**Catatan hardening:**
+Putaran 9 (Hardening) belum dikerjakan.
+Audit tersedia di:
+- `docs/AUDIT-RANCANG-UI.md`
+- `docs/AUDIT-EF-API.md` (pending)
+
+**Fitur & fix sesi 18 Agustus 2026 — Phase 1 Teaching Foundation + Phase 2A–2C (HEAD 2d0b7a1 → 56fcfda):**
+
+Phase 1 — Teaching Scope Foundation:
+- Migration `20260818000001`: schema `teaching_scope` — tabel CP/scope, fase, mapel, ATP
+- Migration `20260818000002`: FK lifecycle fix
+- Edge Function `teaching-foundation`: inisialisasi scope mengajar guru
+
+Phase 2A — Planning Foundation:
+- Migration `20260818000003`: tabel `planning_allocations`, RLS, fungsi alokasi
+- Migration `20260818000004`: policy authority — harden alokasi per guru
+- Edge Function `phase2a-planning`: generate alokasi mingguan dari ATP
+
+Phase 2B — Artifact Lifecycle Foundation:
+- Migration `20260818000005`: tabel `rancang_artifacts`, `artifact_versions`, status lifecycle
+- Fix: harden usability contract (artifact hanya bisa dipakai jika status `ready`)
+
+Phase 2C — Context Spec + Assessment Spec:
+- Migration `20260818000006`: gate generate — validasi konteks sebelum generate
+- Migration `20260818000007`: artifact kinds tambahan (material, meeting, followup)
+- Migration `20260818000008`: pipeline state gate
+- Migration `20260818000009–000011`: validator per jenis artifact (material, meeting, followup)
+- Migration `20260818000012`: runtime_events — log event sesi runtime
+- Edge Function `phase2c-generate`: multi-tahap generate RPM dengan idempotency
+- Edge Function `phase2-material`, `phase2-meeting`, `phase2-followup`: generator per jenis
+- Edge Function `phase2-validator`: validasi artifact sebelum finalisasi
+- Edge Function `runtime-sync`: sinkronisasi state runtime ke DB
+- JS Runtime: `runtime-compiler.js`, `runtime-db.js`, `runtime-session.js`, `runtime-ui.js`, `runtime-sync.js`
+- Fix: replace `Date.now()` dengan stable client operation ID untuk idempotency regenerate
 
 ---
 

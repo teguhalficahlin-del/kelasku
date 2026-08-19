@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "sip-mandiri",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "8788", "--directory", "D:\\ribuan_pengguna\\CLAUDE\\SIP Mandiri"],
+      "port": 8788
+    }
+  ]
+}
