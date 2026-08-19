@@ -66,11 +66,31 @@ async function callAI(systemPrompt: string, userPrompt: string): Promise<string>
 }
 
 function extractJson(raw: string): unknown {
-  try { return JSON.parse(raw.trim()); } catch (_) {}
-  const fence = raw.match(/```(?:json)?\s*([\s\S]*?)```/s);
-  if (fence) { try { return JSON.parse(fence[1].trim()); } catch (_) {} }
-  const s = raw.indexOf('{'), e = raw.lastIndexOf('}');
-  if (s !== -1 && e > s) { try { return JSON.parse(raw.slice(s, e+1).trim()); } catch (_) {} }
+  let s = raw.trim();
+
+  const fenceMatch = s.match(/```(?:json)?\s*([\s\S]*?)```/s);
+  if (fenceMatch) s = fenceMatch[1].trim();
+
+  try { return JSON.parse(s); } catch (_) {}
+
+  const start = s.indexOf('{');
+  const end = s.lastIndexOf('}');
+  if (start !== -1 && end > start) {
+    try { return JSON.parse(s.slice(start, end + 1)); } catch (_) {}
+  }
+
+  const arrStart = s.indexOf('[');
+  const arrEnd = s.lastIndexOf(']');
+  if (arrStart !== -1 && arrEnd > arrStart) {
+    try { return JSON.parse(s.slice(arrStart, arrEnd + 1)); } catch (_) {}
+  }
+
+  console.error('[extractJson] GAGAL parse. Raw output preview:',
+    JSON.stringify(s.slice(0, 200)),
+    '...TAIL:',
+    JSON.stringify(s.slice(-100))
+  );
+
   throw new Error('Output AI tidak dapat diparsing sebagai JSON');
 }
 
@@ -444,10 +464,12 @@ Deno.serve(async (req) => {
       }
 
       // Call AI
+      console.log('[ctx_spec] Calling AI for planning_context:', planningContextId, 'tp:', tpRevision.id);
       const raw = await callAI(
         'Anda adalah perancang pembelajaran. Hanya keluarkan JSON valid tanpa teks tambahan.',
         buildContextSpecPrompt(authority)
       );
+      console.log('[ctx_spec] AI raw length:', raw?.length ?? 0);
       let content: unknown;
       try { content = extractJson(raw); }
       catch { return reply({ error: 'Output AI tidak valid — coba lagi' }, 409); }
