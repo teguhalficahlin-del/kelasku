@@ -5410,19 +5410,40 @@ ${tpList.map((tp, i) => {
 
   function saveRpState() {
     if (!_cId) return;
+    const payload = {
+      step: _step, ans: _ans, atpList: _atpList,
+      cpElemen: _cpElemen, cpRingkasan: _cpRingkasan,
+      cpLabel: _cpLabel, cpUmum: _cpUmum,
+      rencana: _rencana,
+      durableAtp: _durableAtp,
+      teachingContext: _teachingContext,
+      planningContext: _planningContext,
+      jpPolicy: _jpPolicy,
+      phase2cState: _phase2cState,
+      // Salinan skalar id kritis. Objek di atas sudah memuatnya, tapi salinan
+      // ini bertahan meski bentuk objeknya berubah atau blob besar terpaksa
+      // dibuang saat kuota penuh.
+      planningContextId:     _planningContext?.id ?? null,
+      planningContextStatus: _planningContext?.status ?? null,
+      teachingContextId:     _teachingContext?.id ?? null,
+    };
+    const key = 'rp_state_' + _cId;
     try {
-      localStorage.setItem('rp_state_' + _cId, JSON.stringify({
-        step: _step, ans: _ans, atpList: _atpList,
-        cpElemen: _cpElemen, cpRingkasan: _cpRingkasan,
-        cpLabel: _cpLabel, cpUmum: _cpUmum,
-        rencana: _rencana,
-        durableAtp: _durableAtp,
-        teachingContext: _teachingContext,
-        planningContext: _planningContext,
-        jpPolicy: _jpPolicy,
-        phase2cState: _phase2cState,
-      }));
-    } catch (_) {}
+      localStorage.setItem(key, JSON.stringify(payload));
+    } catch (e) {
+      // Sebelumnya kegagalan di sini ditelan `catch (_) {}` tanpa jejak:
+      // satu QuotaExceededError membuat SELURUH state gagal tersimpan,
+      // termasuk planningContextId, dan tidak ada sinyal apa pun.
+      // phase2cState memuat konten penuh seluruh artifact (puluhan ribu
+      // karakter) sehingga ia tersangka utama. Coba ulang tanpa blob itu —
+      // pipeline state memang selalu di-refresh dari server saat dibutuhkan.
+      console.warn('[rancang] saveRpState gagal, coba lagi tanpa phase2cState:', e);
+      try {
+        localStorage.setItem(key, JSON.stringify({ ...payload, phase2cState: null }));
+      } catch (e2) {
+        console.error('[rancang] saveRpState gagal total — state tidak tersimpan:', e2);
+      }
+    }
   }
 
   async function restoreRpState() {
@@ -5457,6 +5478,19 @@ ${tpList.map((tp, i) => {
     _durableAtp = serverDurableAtp || durableAtp || null;
     _teachingContext = serverTeachingContext || teachingContext || null;
     _planningContext = serverPlanningContext || planningContext || null;
+    // Jaring pengaman: pulihkan id kritis dari salinan skalar bila objeknya
+    // hilang. Hanya mengisi yang kosong — nilai dari server tidak ditimpa,
+    // supaya id basi di localStorage tidak menggeser yang baru.
+    if (saved.planningContextId) {
+      _planningContext = _planningContext || {};
+      if (!_planningContext.id) _planningContext.id = saved.planningContextId;
+      if (!_planningContext.status && saved.planningContextStatus)
+        _planningContext.status = saved.planningContextStatus;
+    }
+    if (saved.teachingContextId) {
+      _teachingContext = _teachingContext || {};
+      if (!_teachingContext.id) _teachingContext.id = saved.teachingContextId;
+    }
     _jpPolicy = serverJpPolicy || jpPolicy || null;
     // Cache only — tandai stale jika step >= 6 agar tidak dirender langsung;
     // server state akan di-refresh saat enterPhase2CPipeline dipanggil.
