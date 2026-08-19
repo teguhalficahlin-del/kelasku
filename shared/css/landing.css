@@ -160,6 +160,22 @@ body {
   border-color: var(--gold);
 }
 
+/* Dua aksi berdampingan di kartu Guru.
+   Tautan pendaftaran sebelumnya hanya ada di footer, di bawah lipatan pada
+   layar HP: guru baru melihat tombol Masuk lebih dulu dan gagal di sana
+   karena belum punya akun. */
+.card-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.card-actions .btn {
+  flex: 1;
+  margin-top: 0;
+  font-size: var(--fs-ui);
+}
+
 /* Footer area */
 .footer {
   margin-top: 2rem;
