@@ -407,6 +407,7 @@
     const fromInput = document.createElement('input');
     fromInput.type = 'date';
     fromInput.id   = 'notes-filter-from';
+    fromInput.className = 'notes-date-input';
     fromInput.style.cssText = 'flex:1;min-width:8rem;max-width:10rem;';
 
     const toLabel = document.createElement('label');
@@ -416,6 +417,7 @@
     const toInput = document.createElement('input');
     toInput.type = 'date';
     toInput.id   = 'notes-filter-to';
+    toInput.className = 'notes-date-input';
     toInput.style.cssText = 'flex:1;min-width:8rem;max-width:10rem;';
 
     wrap.appendChild(visLabel);

@@ -111,6 +111,35 @@ input:focus {
 
 input::placeholder { color: var(--text-muted); }
 
+/* -- Input tanggal & waktu: ikon picker gelap --
+   Hanya color-scheme yang disetel global: ia membuat ikon kalender/jam bawaan
+   dan panel picker ikut gelap. Ukuran dan warna kotak sengaja TIDAK disetel di
+   sini, karena selector atribut akan menimpa kelas ringkas seperti .sch-t dan
+   .sch-input di tabel jadwal. */
+input[type="date"],
+input[type="time"] {
+  color-scheme: dark;
+}
+
+/* Kotak input rentang tanggal: rekap absensi dan filter Riwayat Catatan */
+.rekap-date-input,
+.notes-date-input {
+  background: var(--input-bg);
+  border: 1.5px solid var(--input-border);
+  border-radius: var(--input-r);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: var(--fs-ui);
+  padding: var(--input-py) var(--input-px);
+}
+
+.rekap-date-input:focus,
+.notes-date-input:focus {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px var(--gold-muted);
+}
+
 /* ── Submit button (primary) ── */
 button[type="submit"] {
   display: block;
