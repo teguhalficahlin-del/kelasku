@@ -25,6 +25,7 @@
   let _enteringMeeting      = false;
   let _enteringFollowup     = false;
   let _enteringValidation   = false;
+  let _fuSelectOp           = false;
 
   // wireCustomDropdown AbortController registry
   const _dropdownControllers = new Map();
@@ -3829,11 +3830,27 @@ ${plansHtml}
         }).join('')
       : '<p style="font-size:var(--fs-caption);color:var(--text-muted);">Konten belum tersedia.</p>';
 
-    const regenBtn = hasArtifact && !hasCandidate
+    const showRegenBtn = hasArtifact && !hasCandidate;
+    const regenBtn = showRegenBtn
       ? `<button class="btn btn-sm" id="rp2-fu-regen" style="font-size:var(--fs-badge);">⟳ Regenerate</button>`
       : hasCandidate
       ? `<span style="font-size:var(--fs-badge);color:var(--text-muted);">(batas regen tercapai)</span>`
       : '';
+
+    const candidates = fu?.candidates ?? [];
+    const candidatesHtml = candidates.length ? `
+<div style="margin-top:var(--space-md);padding:var(--space-sm);background:var(--surface-1);border-radius:var(--radius-md);">
+  <div style="font-size:var(--fs-caption);font-weight:var(--fw-semibold);color:var(--text-muted);margin-bottom:var(--space-xs);">
+    Kandidat baru tersedia — pilih untuk menggantikan versi aktif:
+  </div>
+  ${candidates.map(c => `
+    <div style="display:flex;align-items:center;gap:var(--space-sm);padding:var(--space-xs) 0;border-bottom:1px solid var(--border);">
+      <span style="font-size:var(--fs-caption);color:var(--text-secondary);">v${c.version_no}</span>
+      <button class="btn btn-sm rp2-fu-select-candidate" data-vid="${esc(c.version_id)}" style="font-size:var(--fs-badge);">
+        Gunakan kandidat ini
+      </button>
+    </div>`).join('')}
+</div>` : '';
 
     body.innerHTML = `
 <div class="rp-block">
@@ -3851,6 +3868,7 @@ ${plansHtml}
 </div>
 
 ${jalurHtml}
+${candidatesHtml}
 
 <div class="rp-block" style="margin-top:var(--space-sm);">
   <div id="rp2-fu-error" class="error-msg" style="display:none;"></div>
@@ -3875,6 +3893,40 @@ ${jalurHtml}
       }
     });
     el('rp2-fu-btn-validate')?.addEventListener('click', enterValidationPipeline);
+
+    body.querySelectorAll('.rp2-fu-select-candidate').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const vid = btn.dataset.vid;
+        if (!vid) return;
+        btn.disabled = true; btn.textContent = 'Memilih…';
+        runSelectFollowUpCandidate(vid, fu?.selection_revision ?? 0).catch(() => {
+          btn.disabled = false; btn.textContent = 'Gunakan kandidat ini';
+        });
+      });
+    });
+  }
+
+  async function runSelectFollowUpCandidate(versionId, selectionRevision) {
+    if (_fuSelectOp) return;
+    _fuSelectOp = true;
+    try {
+      const res = await SipApi.phase2Followup({
+        action: 'select_follow_up_candidate',
+        classroom_id: _cId,
+        teaching_context_id: _teachingContext?.id,
+        planning_context_id: _planningContext?.id,
+        version_id: versionId,
+        selection_revision: selectionRevision,
+        client_operation_id: crypto.randomUUID(),
+      });
+      _phase2cState = res?.result ?? res;
+      saveRpState();
+      await renderFollowUpPipeline();
+    } catch (e) {
+      showError('rp2-fu-error', 'Gagal memilih kandidat: ' + (e?.message ?? ''));
+    } finally {
+      _fuSelectOp = false;
+    }
   }
 
   function showFollowUpEditor(currentContent) {
@@ -4060,8 +4112,8 @@ ${jalurHtml}
 
     el('rp2-val-back-fu')?.addEventListener('click', renderFollowUpPipeline);
     el('rp2-val-btn-doc')?.addEventListener('click', () => {
-      // Navigate to Step 7 (dokumen RPM) — placeholder navigasi
-      showError('rp2-val-error', 'Dokumen RPM akan tersedia di Step 7.');
+      _step = 7;
+      renderStep7();
     });
     el('rp2-val-revalidate')?.addEventListener('click', enterValidationPipeline);
 
