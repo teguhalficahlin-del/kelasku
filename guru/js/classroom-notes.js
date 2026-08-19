@@ -587,6 +587,31 @@
     return data;
   }
 
+  function wireKomposerBaru(listEl) {
+    const btn = listEl.querySelector('#btn-pesan-baru');
+    const sel = listEl.querySelector('#pesan-baru-sid');
+    const ta  = listEl.querySelector('#pesan-baru-teks');
+    const msg = listEl.querySelector('#pesan-baru-msg');
+    if (!btn) return;
+    btn.addEventListener('click', async () => {
+      const sid  = sel?.value ?? '';
+      const teks = (ta?.value ?? '').trim();
+      if (!sid)  { if (msg) msg.textContent = 'Pilih siswa terlebih dahulu.'; return; }
+      if (!teks) { if (msg) msg.textContent = 'Pesan tidak boleh kosong.'; return; }
+      btn.disabled = true;
+      if (msg) msg.textContent = 'Mengirim…';
+      try {
+        const baru = await balasPesan(sid, null, teks);
+        _pesan.push(baru);
+        renderPesanOrtu();
+      } catch (err) {
+        console.error('[pesan-ortu] gagal mengirim:', err);
+        if (msg) msg.textContent = 'Gagal mengirim: ' + (err.message || 'coba lagi');
+        btn.disabled = false;
+      }
+    });
+  }
+
   function renderPesanOrtu() {
     const listEl = document.getElementById('pesan-ortu-list');
     if (!listEl) return;
@@ -601,19 +626,44 @@
     const belumDibaca = _pesan.filter(m => m.author_role === 'ORTU' && !m.read_at).length;
     const hdr = document.querySelector('#panel-catatan h2[data-panel="pesan-ortu-body"]');
     if (hdr) {
-      const dasar = 'Pesan dari Ortu';
+      const dasar = 'Pesan';
       const teks  = belumDibaca ? `${dasar} (${belumDibaca} baru)` : dasar;
       const arrow = hdr.querySelector('.panel-collapse-arrow');
       hdr.textContent = teks + ' ';
       if (arrow) hdr.appendChild(arrow);
     }
 
+    // Guru harus dapat MEMULAI pesan, bukan sekadar membalas — tanpa ini,
+    // percakapan hanya bisa lahir dari sisi orang tua.
+    const opsiSiswa = _roster
+      .map(r => `<option value="${esc(r.id)}">${esc(r.full_name)}</option>`).join('');
+    const komposerBaru = `
+<div class="note-card" style="margin-bottom:.75rem">
+  <div class="note-card-header"><span class="note-student-name">Kirim pesan baru</span></div>
+  <select id="pesan-baru-sid" style="width:100%;margin-bottom:.4rem">
+    <option value="">— Pilih siswa —</option>${opsiSiswa}
+  </select>
+  <textarea id="pesan-baru-teks" rows="2" maxlength="1000"
+    placeholder="Tulis pesan untuk orang tua…"
+    style="width:100%;box-sizing:border-box;padding:.5rem;border-radius:.4rem;
+    border:1px solid var(--border);background:transparent;color:inherit;
+    font-family:inherit;font-size:.875rem;resize:vertical"></textarea>
+  <div style="display:flex;align-items:center;gap:.5rem;margin-top:.35rem">
+    <button type="button" id="btn-pesan-baru"
+      style="padding:.35rem .9rem;border:none;border-radius:.35rem;background:var(--gold);
+      color:var(--text-on-gold,#000);font-weight:600;cursor:pointer">Kirim</button>
+    <span id="pesan-baru-msg" style="font-size:var(--fs-caption);color:var(--text-muted)"></span>
+  </div>
+</div>`;
+
     if (!idSiswa.length) {
-      listEl.innerHTML = '<p class="empty-state">Belum ada pesan dari orang tua.</p>';
+      listEl.innerHTML = komposerBaru +
+        '<p class="empty-state">Belum ada percakapan dengan orang tua.</p>';
+      wireKomposerBaru(listEl);
       return;
     }
 
-    listEl.innerHTML = idSiswa.map(sid => {
+    listEl.innerHTML = komposerBaru + idSiswa.map(sid => {
       const nama  = rosterName(sid);
       const pesan = perSiswa[sid];
       const baru  = pesan.filter(m => m.author_role === 'ORTU' && !m.read_at).length;
@@ -650,6 +700,8 @@
         </div>
       </div>`;
     }).join('');
+
+    wireKomposerBaru(listEl);
 
     listEl.querySelectorAll('.btn-pesan-balas').forEach(btn => {
       btn.addEventListener('click', async () => {

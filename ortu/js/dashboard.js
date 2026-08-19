@@ -345,7 +345,7 @@ function renderPesanGuruSection(classroom, studentId) {
 
   const title = document.createElement('div');
   title.className = 'sch-section-title';
-  title.textContent = 'Pesan ke Guru';
+  title.textContent = 'Pesan';
   wrap.appendChild(title);
 
   const body = document.createElement('div');
@@ -355,9 +355,8 @@ function renderPesanGuruSection(classroom, studentId) {
   const idKotak = `pesan-${classroom.id}`;
 
   function render(rows) {
-    const mandiri = rows.filter(m => !m.note_id);
-    const daftar  = mandiri.length
-      ? mandiri.map(pesanItemHtml).join('')
+    const daftar = rows.length
+      ? rows.map(pesanItemHtml).join('')
       : '<p class="att-empty">Belum ada pesan. Gunakan kotak di bawah untuk menghubungi guru — misalnya bila anak Anda berhalangan hadir.</p>';
     body.innerHTML = daftar + komposerHtml(idKotak, 'Tulis pesan untuk guru…', 'Kirim');
     wireKomposer(idKotak, async (teks) => {
@@ -386,45 +385,28 @@ function renderChildNotesSection(classroom, linkedStudentId) {
   title.textContent = 'Catatan dari Guru';
   wrap.appendChild(title);
 
+  const hint = document.createElement('div');
+  hint.style.cssText = 'font-size:.8rem;color:var(--color-text-muted);margin-bottom:.35rem';
+  hint.textContent = 'Catatan bersifat satu arah. Untuk menanggapi, gunakan bagian Pesan di bawah.';
+  wrap.appendChild(hint);
+
   const body = document.createElement('div');
   body.innerHTML = '<p class="att-empty">Memuat…</p>';
   wrap.appendChild(body);
 
-  // Catatan dan balasannya dimuat bersamaan agar tiap catatan dapat langsung
-  // menampilkan riwayat percakapannya.
-  Promise.all([
-    getChildNotes(classroom.id, linkedStudentId),
-    getChildMessages(classroom.id, linkedStudentId),
-  ]).then(([rows, pesan]) => {
+  getChildNotes(classroom.id, linkedStudentId).then(rows => {
     if (rows.length === 0) {
       body.innerHTML = '<p class="att-empty">Belum ada catatan untuk anak Anda.</p>';
       return;
     }
-
-    function render() {
-      body.innerHTML = rows.map(n => {
-        const tgl = fmtTgl(n.created_at.slice(0, 10));
-        const vis = n.is_visible_to_student ? '👨‍👩‍👦 Siswa &amp; Ortu' : '👨‍👩‍👧 Ortu saja';
-        const balasan = pesan.filter(m => m.note_id === n.id).map(pesanItemHtml).join('');
-        const idKotak = `balas-${n.id}`;
-        return `<div class="note-item">
-          <div class="note-item-meta">${escHtml(tgl)} · <span style="font-size:.8rem;color:var(--color-text-muted)">${vis}</span></div>
-          <div class="note-item-content">${escHtml(n.content)}</div>
-          <div style="margin-left:.5rem">${balasan}</div>
-          ${komposerHtml(idKotak, 'Tulis balasan untuk guru…', 'Balas')}
-        </div>`;
-      }).join('');
-
-      rows.forEach(n => {
-        wireKomposer(`balas-${n.id}`, async (teks) => {
-          const baru = await kirimPesanOrtu(classroom, linkedStudentId, n.id, teks);
-          pesan.push(baru);
-          render();
-        });
-      });
-    }
-
-    render();
+    body.innerHTML = rows.map(n => {
+      const tgl = fmtTgl(n.created_at.slice(0, 10));
+      const vis = n.is_visible_to_student ? '👨‍👩‍👦 Siswa &amp; Ortu' : '👨‍👩‍👧 Ortu saja';
+      return `<div class="note-item">
+        <div class="note-item-meta">${escHtml(tgl)} · <span style="font-size:.8rem;color:var(--color-text-muted)">${vis}</span></div>
+        <div class="note-item-content">${escHtml(n.content)}</div>
+      </div>`;
+    }).join('');
   }).catch(err => {
     console.error('notes', err);
     body.innerHTML = '<p class="att-empty">Gagal memuat data. Coba muat ulang halaman.</p>';
