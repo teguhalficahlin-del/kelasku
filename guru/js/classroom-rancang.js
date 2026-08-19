@@ -112,6 +112,43 @@
     c.textContent = msg;
     c.style.display = msg ? '' : 'none';
   }
+  // Guard konteks untuk seluruh pipeline entry Step 6.
+  // Mengembalikan true bila teaching_context_id dan planning_context_id ada.
+  // Bila salah satu hilang, Edge Function membalas 400 dan guru hanya melihat
+  // pesan generik. Guard ini menghentikannya lebih awal dengan pesan jelas.
+  //
+  // Sengaja TIDAK memakai showError: elemen error milik tiap pipeline baru
+  // dirender setelah guard ini jalan, dan showError diam-diam no-op bila
+  // elemennya belum ada (lihat `if (!c) return;` di atas) — hasilnya layar
+  // kosong tanpa penjelasan. Blok error ditulis langsung ke rp-body.
+  function requireContexts(label) {
+    const missing = !_teachingContext?.id
+      ? 'Konteks mengajar'
+      : !_planningContext?.id ? 'Konteks perencanaan' : null;
+    if (!missing) return true;
+
+    console.error('[rancang] context hilang saat masuk pipeline:', {
+      pipeline: label,
+      teachingContextId: _teachingContext?.id ?? null,
+      planningContextId: _planningContext?.id ?? null,
+    });
+
+    const body = el('rp-body');
+    if (body) {
+      body.innerHTML = `<div class="rp-block">
+        <div class="rp-block-title" style="color:var(--error);">${esc(missing)} tidak ditemukan</div>
+        <p style="font-size:var(--fs-caption);color:var(--text-secondary);">
+          ${esc(missing)} hilang dari sesi ini sehingga ${esc(label)} tidak dapat
+          dilanjutkan. Muat ulang halaman untuk memulihkannya dari server.
+        </p>
+        <div class="rp-action-row">
+          <button class="btn btn-primary" id="rp-ctx-reload">Muat ulang halaman</button>
+        </div>
+      </div>`;
+      el('rp-ctx-reload')?.addEventListener('click', () => location.reload());
+    }
+    return false;
+  }
 
   function loading(html) {
     return `<div class="rp-loading"><div class="rp-loading-dot"></div>${esc(html)}</div>`;
@@ -2768,6 +2805,7 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
 
   // Entry point after allocation confirmed OR from resume
   async function enterPhase2CPipeline() {
+    if (!requireContexts('pipeline Step 6')) return;
     if (_enteringPipeline) return;
     _enteringPipeline = true;
     try {
@@ -3348,6 +3386,7 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
   }
 
   async function enterMaterialPipeline() {
+    if (!requireContexts('Materi Pembelajaran')) return;
     if (_enteringMaterial) return;
     _enteringMaterial = true;
     try {
@@ -3601,6 +3640,7 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
   // generate_all_meetings memanggil AI berkali-kali dalam satu request dan
   // menembus batas 2 menit Supabase free tier (546). Loop ini memecahnya.
   async function enterMeetingPipeline() {
+    if (!requireContexts('Rencana Pertemuan')) return;
     if (_enteringMeeting) return;
     _enteringMeeting = true;
     try {
@@ -3838,6 +3878,7 @@ ${plansHtml}
   // ─── Follow-Up Pipeline ────────────────────────────────────────────────────
 
   async function enterFollowUpPipeline() {
+    if (!requireContexts('Tindak Lanjut')) return;
     if (_enteringFollowup) return;
     _enteringFollowup = true;
     try {
@@ -4063,6 +4104,7 @@ ${candidatesHtml}
   // ─── Validation Pipeline ───────────────────────────────────────────────────
 
   async function enterValidationPipeline() {
+    if (!requireContexts('Validasi RPM')) return;
     if (_enteringValidation) return;
     _enteringValidation = true;
     try {
