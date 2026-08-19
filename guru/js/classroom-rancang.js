@@ -4774,6 +4774,9 @@ ${sec1}${sec2}${sec3}${sec4}${sec5}
     cleanupAllDropdowns();
     _step = 7;
     renderStepBar();
+    // Persist langkahnya. Tanpa ini localStorage tetap menyimpan step 6,
+    // sehingga setiap refresh di Step 7 memantul kembali ke pipeline Step 6.
+    saveRpState();
 
     // Jika ada planning context yang aktif dan pipeline state, gunakan structured view
     if (_planningContext?.id && _phase2cState) {
@@ -4787,6 +4790,28 @@ ${sec1}${sec2}${sec3}${sec4}${sec5}
   async function renderStep7Structured() {
     const body = el('rp-body');
     if (!body) return;
+
+    // CP adalah data referensi statis yang hanya diambil di alur Step 1 dan tidak
+    // pernah dimuat ulang saat resume — boot sequence memuat teaching context, ATP,
+    // dan planning context, tapi tidak CP. Akibatnya Step 7 menampilkan 'CP belum
+    // di-generate' padahal datanya tinggal diambil. Ambil di sini bila kosong.
+    if (!_cpElemen.length && typeof fetchCpData === 'function') {
+      const mk = _ans.mapelKey || _settings?.mapel_key || '';
+      const fk = _ans.fase || _profil?.fase || _settings?.fase || '';
+      if (mk && fk) {
+        try {
+          const cpFase = await fetchCpData(mk, fk);
+          if (cpFase?.elemen?.length) {
+            _cpElemen = cpFase.elemen;
+            _cpLabel  = _cpLabel || cpFase.label   || '';
+            _cpUmum   = _cpUmum  || cpFase.cp_umum || '';
+            saveRpState();
+          }
+        } catch (e) {
+          console.warn('[rancang] CP tidak dapat dimuat untuk Step 7:', e);
+        }
+      }
+    }
 
     // Reload state dari server jika stale atau kosong
     let s = _phase2cState;
@@ -4905,13 +4930,28 @@ ${_atpList.map((t, i) => {
     const ctxBodyHtml = (() => {
       const decisions = ctx?.content?.context_decisions ?? [];
       if (!decisions.length) return `<div style="color:var(--text-muted);font-size:var(--fs-caption);">Context Spec belum tersedia.</div>`;
-      return decisions.map(d => `
+      // Bentuk nyata context_decisions (diverifikasi dari DB):
+      //   { id, raw, avoid[], prefer[], source, implication, interpretation }
+      // Renderer lama membaca aspect/key/decision/value — tidak satu pun ada,
+      // sehingga judul kosong dan isi selalu jatuh ke '-'. Nama lama tetap
+      // dipertahankan sebagai fallback bila ada konten berbentuk lama.
+      const listOf = v => (Array.isArray(v) ? v.filter(Boolean) : []);
+      return decisions.map((d, i) => {
+        const judul  = d.id || d.aspect || d.key || `CTX-${String(i + 1).padStart(2, '0')}`;
+        const isi    = d.interpretation || d.decision || d.value || '-';
+        const impl   = d.implication || d.rationale || '';
+        const prefer = listOf(d.prefer);
+        const avoid  = listOf(d.avoid);
+        return `
 <div style="margin-bottom:var(--space-sm);padding:var(--space-xs) var(--space-sm);
   background:var(--surface-1);border-radius:var(--radius-sm);">
-  <div style="font-weight:var(--fw-semibold);font-size:var(--fs-caption);color:var(--text-primary);">${esc(d.aspect || d.key || '')}</div>
-  <div style="font-size:var(--fs-caption);color:var(--text-secondary);margin-top:2px;">${esc(d.decision || d.value || '-')}</div>
-  ${d.rationale ? `<div style="font-size:var(--fs-badge);color:var(--text-muted);margin-top:1px;font-style:italic;">${esc(d.rationale)}</div>` : ''}
-</div>`).join('');
+  <div style="font-weight:var(--fw-semibold);font-size:var(--fs-caption);color:var(--gold);">${esc(judul)}${d.source ? ` <span style="color:var(--text-muted);font-weight:var(--fw-regular);">· ${esc(d.source)}</span>` : ''}</div>
+  <div style="font-size:var(--fs-caption);color:var(--text-secondary);margin-top:2px;">${esc(isi)}</div>
+  ${impl ? `<div style="font-size:var(--fs-badge);color:var(--text-muted);margin-top:2px;font-style:italic;">Implikasi: ${esc(impl)}</div>` : ''}
+  ${prefer.length ? `<div style="font-size:var(--fs-badge);color:var(--success,#4caf50);margin-top:2px;">Utamakan: ${esc(prefer.join('; '))}</div>` : ''}
+  ${avoid.length ? `<div style="font-size:var(--fs-badge);color:var(--warning,#f59e0b);margin-top:1px;">Hindari: ${esc(avoid.join('; '))}</div>` : ''}
+</div>`;
+      }).join('');
     })();
 
     // ── Assessment + KKTP ─────────────────────────────────────────────────
@@ -5052,6 +5092,28 @@ ${konteks.map(k => `<div style="font-size:var(--fs-caption);color:var(--text-sec
       : `<div class="rp-block" style="color:var(--text-muted);font-size:var(--fs-caption);">Rencana pertemuan belum di-generate.</div>`;
 
     // ── Tindak Lanjut ────────────────────────────────────────────────────
+    // Tiap jalur tindak lanjut adalah OBJECT { target, gap_addressed, activities[] },
+    // bukan string — persis bentuk yang diwajibkan fn_phase2_validate_follow_up.
+    // esc() atas object menghasilkan '[object Object]', itulah yang tampil sebelumnya.
+    const fuCell = (v) => {
+      if (v == null) return '-';
+      if (typeof v === 'string') return esc(v);
+      if (typeof v !== 'object') return esc(String(v));
+      const target = v.target
+        ? `<div style="font-weight:var(--fw-semibold);color:var(--text-primary);">${esc(v.target)}</div>` : '';
+      const gap = v.gap_addressed
+        ? `<div style="color:var(--text-muted);margin-top:2px;">${esc(v.gap_addressed)}</div>` : '';
+      const acts = Array.isArray(v.activities) ? v.activities : [];
+      const actHtml = acts.length
+        ? `<ul style="margin:4px 0 0;padding-left:1rem;">${acts.map(a => {
+            const teks = (a && typeof a === 'object') ? (a.deskripsi || a.title || '-') : String(a ?? '-');
+            const dur  = (a && typeof a === 'object' && a.durasi_estimasi)
+              ? ` <span style="color:var(--text-muted);">(${esc(a.durasi_estimasi)})</span>` : '';
+            return `<li style="margin-bottom:2px;">${esc(teks)}${dur}</li>`;
+          }).join('')}</ul>` : '';
+      return (target + gap + actHtml) || '-';
+    };
+
     const fuBodyHtml = (() => {
       const content = fu?.content ?? {};
       const jalur = ['pengayaan','penguatan','pendampingan'];
@@ -5067,7 +5129,7 @@ ${konteks.map(k => `<div style="font-size:var(--fs-caption);color:var(--text-sec
   </thead>
   <tbody>
     <tr>
-      ${jalur.map(k => `<td style="padding:4px 8px;border:1px solid var(--border);vertical-align:top;">${esc(content[k] || '-')}</td>`).join('')}
+      ${jalur.map(k => `<td style="padding:4px 8px;border:1px solid var(--border);vertical-align:top;">${fuCell(content[k])}</td>`).join('')}
     </tr>
   </tbody>
 </table>
