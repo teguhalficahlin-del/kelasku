@@ -1,20 +1,35 @@
 /**
  * sw.js — Service Worker untuk Portal Guru SIP Mandiri.
- * Strategy: Cache First untuk aset statis; Network Only untuk Supabase API.
+ *
+ * Strategy:
+ * - Network First untuk kode aplikasi (js/css/html) — versi terbaru selalu
+ *   menang saat online, cache hanya dipakai sebagai cadangan saat offline.
+ * - Cache First untuk aset yang benar-benar statis (font, gambar, ikon).
+ * - Network Only untuk Supabase API.
+ *
+ * PENTING — naikkan CACHE_NAME setiap kali kode aplikasi berubah.
+ * Handler `activate` menghapus semua cache yang namanya berbeda, sehingga
+ * menaikkan angka ini membuang seluruh isi cache versi sebelumnya.
+ * Sebelumnya nama ini dipatok 'sip-guru-v1' dan tidak pernah dinaikkan;
+ * dikombinasikan dengan Cache First, setiap pengguna terkunci selamanya pada
+ * versi JS yang pertama kali mereka muat.
  */
 'use strict';
 
-const CACHE_NAME = 'sip-guru-v1';
+const CACHE_NAME = 'sip-guru-v2';
 
+// URL relatif terhadap lokasi sw.js (/kelasku/guru/), bukan root domain.
+// Sebelumnya ditulis '/guru/...' sehingga selalu 404 di GitHub Pages dan
+// cache.addAll gagal seluruhnya — precache tidak pernah benar-benar jalan.
 const PRECACHE_URLS = [
-  '/guru/classroom.html',
-  '/guru/dashboard.html',
-  '/guru/js/api.js',
-  '/guru/js/classroom.js',
-  '/guru/js/classroom-rancang.js',
-  '/guru/js/classroom-rancang-ai.js',
-  '/guru/js/runtime-compiler.js',
-  '/guru/js/runtime-db.js',
+  'classroom.html',
+  'dashboard.html',
+  'js/api.js',
+  'js/classroom.js',
+  'js/classroom-rancang.js',
+  'js/classroom-rancang-ai.js',
+  'js/runtime-compiler.js',
+  'js/runtime-db.js',
 ];
 
 const SUPABASE_HOSTS = [
@@ -32,10 +47,19 @@ function isSupabaseRequest(url) {
   }
 }
 
+// Kode aplikasi — sering berubah, tidak boleh disajikan dari cache saat online.
+function isAppCode(url) {
+  try {
+    return /\.(js|css|html)$/.test(new URL(url).pathname);
+  } catch (_) {
+    return false;
+  }
+}
+
+// Aset yang isinya tidak berubah tanpa ganti nama file.
 function isStaticAsset(url) {
   try {
-    const path = new URL(url).pathname;
-    return /\.(js|css|html|woff2?|png|svg|ico)$/.test(path);
+    return /\.(woff2?|png|jpe?g|webp|svg|ico)$/.test(new URL(url).pathname);
   } catch (_) {
     return false;
   }
@@ -78,7 +102,26 @@ self.addEventListener('fetch', event => {
   // NETWORK ONLY — Supabase API calls must not be cached
   if (isSupabaseRequest(url)) return;
 
-  // CACHE FIRST — static assets
+  // NETWORK FIRST — kode aplikasi (js/css/html)
+  // Cache diperbarui setiap kali jaringan berhasil, dan hanya dipakai sebagai
+  // cadangan saat offline. Tanpa ini, perbaikan yang sudah di-deploy tidak
+  // pernah sampai ke browser yang sudah punya versi lama di cache.
+  if (isAppCode(url)) {
+    event.respondWith(
+      fetch(request).then(response => {
+        if (response && response.status === 200 && response.type !== 'opaque') {
+          const toCache = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(request, toCache));
+        }
+        return response;
+      }).catch(() =>
+        caches.match(request).then(cached => cached ?? offlineFallback())
+      )
+    );
+    return;
+  }
+
+  // CACHE FIRST — aset statis (font, gambar, ikon)
   if (isStaticAsset(url)) {
     event.respondWith(
       caches.match(request).then(cached => {
