@@ -2845,19 +2845,6 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
     const isConfirmed = ctx?.lifecycle_status === 'CONFIRMED';
     const showRegenBtn = !hasActiveCandidate && !isConfirmed;
 
-    let ctxBodyHtml = '';
-    if (!hasCtx) {
-      ctxBodyHtml = `<div style="color:var(--text-muted);font-size:var(--fs-caption);padding:var(--space-md) 0;">
-        Context Specification belum dibuat. Klik "Generate Context" untuk memulai.
-      </div>`;
-    } else if (!ctxUsable) {
-      ctxBodyHtml = `<div style="color:var(--warning,#f59e0b);font-size:var(--fs-caption);padding:var(--space-md) 0;">
-        Context Specification perlu diperbarui.
-      </div>`;
-    } else {
-      ctxBodyHtml = renderContextDecisions(ctxContent);
-    }
-
     const candidatesHtml = candidates.length ? `
 <div style="margin-top:var(--space-md);padding:var(--space-sm);background:var(--surface-1);border-radius:var(--radius-md);">
   <div style="font-size:var(--fs-caption);font-weight:var(--fw-semibold);color:var(--text-muted);margin-bottom:var(--space-xs);">
@@ -2871,6 +2858,27 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
       </button>
     </div>`).join('')}
 </div>` : '';
+
+    // Kandidat dirender di dalam body saat artifact ada tapi belum usable — guru
+    // langsung memilih versi pengganti, tanpa pesan "perlu diperbarui" yang buntu.
+    const ctxCandidatesInBody = hasCtx && !ctxUsable && candidates.length > 0;
+
+    let ctxBodyHtml = '';
+    if (!hasCtx) {
+      ctxBodyHtml = `
+      <p style="font-size:var(--fs-caption);color:var(--text-muted);">
+        Context Specification belum dibuat. Klik Generate Context untuk memulai.
+      </p>`;
+    } else if (ctxUsable) {
+      ctxBodyHtml = renderContextDecisions(ctxContent);
+    } else if (ctxCandidatesInBody) {
+      ctxBodyHtml = candidatesHtml;
+    } else {
+      ctxBodyHtml = `
+      <p style="color:var(--warning,#ff9800);font-size:var(--fs-caption);margin:var(--space-sm) 0;">
+        Context Specification perlu diperbarui.
+      </p>`;
+    }
 
     body.innerHTML = `
 <div class="rp-block">
@@ -2899,7 +2907,7 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
   </div>
 
   <div id="rp2c-ctx-body">${ctxBodyHtml}</div>
-  ${candidatesHtml}
+  ${ctxCandidatesInBody ? '' : candidatesHtml}
 
   <div id="rp2c-ctx-edit-area" style="display:none;"></div>
   <div id="rp2c-ctx-error" class="error-msg" style="display:none;"></div>
@@ -3082,19 +3090,6 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
     const isConfirmed = asm?.lifecycle_status === 'CONFIRMED';
     const showRegenBtn = !hasActiveCandidate && !isConfirmed;
 
-    let asmBodyHtml = '';
-    if (!hasAsm) {
-      asmBodyHtml = `<div style="color:var(--text-muted);font-size:var(--fs-caption);padding:var(--space-md) 0;">
-        Assessment Specification belum dibuat. Klik "Generate Asesmen + KKTP".
-      </div>`;
-    } else if (!asmUsable) {
-      asmBodyHtml = `<div style="color:var(--warning,#f59e0b);font-size:var(--fs-caption);padding:var(--space-md) 0;">
-        Assessment Specification perlu diperbarui.
-      </div>`;
-    } else {
-      asmBodyHtml = renderAssessmentContent(asm?.content);
-    }
-
     const candidatesHtml = candidates.length ? `
 <div style="margin-top:var(--space-md);padding:var(--space-sm);background:var(--surface-1);border-radius:var(--radius-md);">
   <div style="font-size:var(--fs-caption);font-weight:var(--fw-semibold);color:var(--text-muted);margin-bottom:var(--space-xs);">
@@ -3108,6 +3103,26 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
       </button>
     </div>`).join('')}
 </div>` : '';
+
+    // Sama seperti Checkpoint 1: kandidat masuk ke body saat artifact belum usable.
+    const asmCandidatesInBody = hasAsm && !asmUsable && candidates.length > 0;
+
+    let asmBodyHtml = '';
+    if (!hasAsm) {
+      asmBodyHtml = `
+      <p style="font-size:var(--fs-caption);color:var(--text-muted);">
+        Asesmen + KKTP belum dibuat. Klik Generate untuk memulai.
+      </p>`;
+    } else if (asmUsable) {
+      asmBodyHtml = renderAssessmentContent(asm?.content);
+    } else if (asmCandidatesInBody) {
+      asmBodyHtml = candidatesHtml;
+    } else {
+      asmBodyHtml = `
+      <p style="color:var(--warning,#ff9800);font-size:var(--fs-caption);margin:var(--space-sm) 0;">
+        Asesmen + KKTP perlu diperbarui.
+      </p>`;
+    }
 
     body.innerHTML = `
 <div class="rp-block">
@@ -3140,7 +3155,7 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
   </div>
 
   <div id="rp2c-asm-body">${asmBodyHtml}</div>
-  ${candidatesHtml}
+  ${asmCandidatesInBody ? '' : candidatesHtml}
 
   <div id="rp2c-asm-edit-area" style="display:none;"></div>
   <div id="rp2c-asm-error" class="error-msg" style="display:none;"></div>
