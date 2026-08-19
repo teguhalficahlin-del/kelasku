@@ -295,7 +295,7 @@ async function generateDocxRancang(konten, jenis, judul, identitas) {
 // jenis: 'RPM' | 'LKS'
 // state: _phase2cState object
 // profil: _profil object (identitas guru)
-async function generateDocxFromPipelineState(state, profil, jenis) {
+async function generateDocxFromPipelineState(state, profil, jenis, tp) {
   const {
     Document, Paragraph, TextRun, Table, TableRow, TableCell,
     HeadingLevel, AlignmentType, WidthType, BorderStyle, ShadingType,
@@ -374,9 +374,33 @@ async function generateDocxFromPipelineState(state, profil, jenis) {
 
   function bullet(text) {
     return new Paragraph({
-      children: [new TextRun({ text: '  • ' + String(text || ''), size: 22, font: 'Times New Roman' })],
+      children: [new TextRun({ text: '  • ' + txt(text), size: 22, font: 'Times New Roman' })],
       spacing: { after: 60 },
     });
+  }
+
+  // Konversi nilai apa pun menjadi teks yang aman untuk dokumen.
+  // Jaring pengaman terakhir agar '[object Object]' tidak pernah lagi lolos ke
+  // dokumen jadi: objek/array tak terduga tetap ditampilkan isinya, dan
+  // ketidakcocokan bentuk data dilaporkan ke konsol supaya tidak senyap.
+  function txt(v) {
+    if (v === null || v === undefined) return '';
+    if (typeof v === 'string') return v;
+    if (typeof v === 'number' || typeof v === 'boolean') return String(v);
+    if (Array.isArray(v)) return v.map(txt).filter(Boolean).join('; ');
+    if (typeof v === 'object') {
+      console.warn('[rpm-docx] bentuk data tak terduga saat render:', v);
+      return Object.values(v).map(txt).filter(Boolean).join(' — ');
+    }
+    return String(v);
+  }
+
+  // Laporkan field yang diharapkan renderer tapi tidak ada di artifact.
+  // Tanpa ini, ketidakcocokan nama field hanya berubah jadi '-' di dokumen.
+  function warnMissing(bagian, field, obj) {
+    if (obj && typeof obj === 'object' && !(field in obj)) {
+      console.warn(`[rpm-docx] ${bagian}: field '${field}' tidak ada di artifact`, Object.keys(obj));
+    }
   }
 
   // cols: array of DXA widths summing to PAGE_WIDTH_DXA
@@ -469,9 +493,12 @@ async function generateDocxFromPipelineState(state, profil, jenis) {
     );
 
     // Bagian B — Tujuan Pembelajaran
-    const tpJudul  = (state?.context_spec?.content?.tp_judul) || '';
-    const tpDeskr  = (state?.context_spec?.content?.tp_deskripsi) || '';
-    const tpElemen = (state?.context_spec?.content?.elemen_cp) || '';
+    // TP tidak tersimpan di artifact CONTEXT_SPEC — isinya hanya context_decisions,
+    // constraints, contextual_opportunities, risks, dan irrelevant_context.
+    // Sumber TP yang benar adalah TP terpilih dari planning context (parameter `tp`).
+    const tpJudul  = txt(tp?.judul)     || txt(state?.context_spec?.content?.tp_judul);
+    const tpDeskr  = txt(tp?.deskripsi) || txt(state?.context_spec?.content?.tp_deskripsi);
+    const tpElemen = txt(tp?.elemen_cp) || txt(state?.context_spec?.content?.elemen_cp);
     children.push(heading('B. Tujuan Pembelajaran', 2));
     if (tpJudul) children.push(p(tpJudul, { bold: true, after: 60 }));
     if (tpDeskr) children.push(p(tpDeskr, { after: 120 }));
@@ -482,30 +509,67 @@ async function generateDocxFromPipelineState(state, profil, jenis) {
     // Bagian C — Asesmen + KKTP
     children.push(heading('C. Asesmen dan Kriteria Ketercapaian', 2));
     const kktpList = asmContent.kktp ?? [];
-    const bukti    = asmContent.bukti_ketercapaian ?? '';
-    const diagn    = asmContent.asesmen_diagnostik ?? '';
-    const sumatif  = asmContent.asesmen_sumatif ?? '';
-    if (bukti) { children.push(subheading('Bukti Ketercapaian')); children.push(p(bukti)); }
+    // Nama field mengikuti skema keluaran phase2c-generate:
+    // success_evidence (array), diagnostic {tujuan,instrumen}, summative {jenis,instrumen,rubrik},
+    // formative [{meeting_no, expected_evidence, classification_anchor, response}]
+    const bukti    = asmContent.success_evidence ?? asmContent.bukti_ketercapaian ?? [];
+    const diagn    = asmContent.diagnostic ?? asmContent.asesmen_diagnostik ?? null;
+    const sumatif  = asmContent.summative ?? asmContent.asesmen_sumatif ?? null;
+    warnMissing('assessment_spec', 'success_evidence', asmContent);
+
+    const buktiList = Array.isArray(bukti) ? bukti : (bukti ? [bukti] : []);
+    if (buktiList.length) {
+      children.push(subheading('Bukti Ketercapaian'));
+      buktiList.forEach(b => children.push(bullet(b)));
+      children.push(p(''));
+    }
     if (kktpList.length) {
       children.push(subheading('Kriteria Ketercapaian Tujuan Pembelajaran (KKTP)'));
       children.push(tbl(
         ['Kriteria','Sudah Paham','Hampir Paham','Belum Paham'],
         kktpList.map(k => [
-          k.kriteria || k.criterion || '-',
-          k.paham || k.sudah_paham || '-',
-          k.hampir || k.hampir_paham || '-',
-          k.belum || k.belum_paham || '-',
+          txt(k.deskripsi ?? k.kriteria ?? k.criterion) || '-',
+          txt(k.paham  ?? k.sudah_paham)  || '-',
+          txt(k.hampir ?? k.hampir_paham) || '-',
+          txt(k.belum  ?? k.belum_paham)  || '-',
         ]),
         [Math.floor(PAGE_WIDTH_DXA*0.28), Math.floor(PAGE_WIDTH_DXA*0.24), Math.floor(PAGE_WIDTH_DXA*0.24), Math.floor(PAGE_WIDTH_DXA*0.24)],
       ));
       children.push(p(''));
     }
-    if (diagn) { children.push(subheading('Asesmen Diagnostik')); children.push(p(diagn)); }
-    if (sumatif) { children.push(subheading('Asesmen Sumatif')); children.push(p(sumatif)); }
-    const formativeCheckpoints = asmContent.formative_checkpoints ?? [];
+    if (diagn) {
+      children.push(subheading('Asesmen Diagnostik'));
+      if (diagn.tujuan)    children.push(p('Tujuan: ' + txt(diagn.tujuan), { size: 22 }));
+      if (diagn.instrumen) children.push(p('Instrumen: ' + txt(diagn.instrumen), { size: 22 }));
+      if (!diagn.tujuan && !diagn.instrumen) children.push(p(txt(diagn)));
+      children.push(p(''));
+    }
+    if (sumatif) {
+      children.push(subheading('Asesmen Sumatif'));
+      if (sumatif.jenis)     children.push(p('Jenis: ' + txt(sumatif.jenis), { size: 22 }));
+      if (sumatif.instrumen) children.push(p('Instrumen: ' + txt(sumatif.instrumen), { size: 22 }));
+      if (sumatif.rubrik)    children.push(p('Rubrik: ' + txt(sumatif.rubrik), { size: 22 }));
+      if (!sumatif.jenis && !sumatif.instrumen && !sumatif.rubrik) children.push(p(txt(sumatif)));
+      children.push(p(''));
+    }
+    const formativeCheckpoints = asmContent.formative ?? asmContent.formative_checkpoints ?? [];
     if (formativeCheckpoints.length) {
-      children.push(subheading('Formative Checkpoints'));
-      formativeCheckpoints.forEach(f => children.push(bullet(f.deskripsi || f.description || String(f))));
+      children.push(subheading('Asesmen Formatif per Pertemuan'));
+      children.push(tbl(
+        ['Pertemuan','Bukti yang Diamati','Sudah','Hampir','Belum'],
+        formativeCheckpoints.map(f => {
+          const a = f.classification_anchor ?? {};
+          return [
+            txt(f.meeting_no) || '-',
+            txt(f.expected_evidence ?? f.deskripsi ?? f.description) || '-',
+            txt(a.paham)  || '-',
+            txt(a.hampir) || '-',
+            txt(a.belum)  || '-',
+          ];
+        }),
+        [Math.floor(PAGE_WIDTH_DXA*0.10), Math.floor(PAGE_WIDTH_DXA*0.30),
+         Math.floor(PAGE_WIDTH_DXA*0.20), Math.floor(PAGE_WIDTH_DXA*0.20), Math.floor(PAGE_WIDTH_DXA*0.20)],
+      ));
     }
     children.push(p(''));
 
@@ -518,18 +582,28 @@ async function generateDocxFromPipelineState(state, profil, jenis) {
       children.push(subheading('Konsep Inti'));
       children.push(tbl(
         ['Konsep','Penjelasan','Prasyarat'],
-        konsep.map(k => [k.judul || k.nama || '-', k.penjelasan || '-', k.prasyarat || '-']),
+        konsep.map(k => [txt(k.judul ?? k.nama) || '-', txt(k.penjelasan) || '-', txt(k.prasyarat) || '-']),
         [Math.floor(PAGE_WIDTH_DXA*0.25), Math.floor(PAGE_WIDTH_DXA*0.50), Math.floor(PAGE_WIDTH_DXA*0.25)],
       ));
       children.push(p(''));
     }
     if (mis.length) {
+      // Item miskonsepsi berbentuk {id, miskonsepsi, klarifikasi} — bukan {deskripsi}.
+      warnMissing('material_spec.miskonsepsi', 'miskonsepsi', mis[0]);
       children.push(subheading('Miskonsepsi Umum'));
-      mis.forEach(m => children.push(bullet(m.deskripsi || m)));
+      children.push(tbl(
+        ['Miskonsepsi','Klarifikasi'],
+        mis.map(m => [
+          txt(m.miskonsepsi ?? m.deskripsi ?? m) || '-',
+          txt(m.klarifikasi) || '-',
+        ]),
+        [Math.floor(PAGE_WIDTH_DXA*0.45), Math.floor(PAGE_WIDTH_DXA*0.55)],
+      ));
+      children.push(p(''));
     }
     if (konteks.length) {
       children.push(subheading('Konteks Nyata'));
-      konteks.forEach(k => children.push(bullet(k.deskripsi || k)));
+      konteks.forEach(k => children.push(bullet(k.deskripsi ?? k)));
     }
     children.push(p(''));
 
@@ -544,38 +618,60 @@ async function generateDocxFromPipelineState(state, profil, jenis) {
       if (mc.tujuan_pertemuan || mc.meeting_objective) {
         children.push(p('Tujuan: ' + (mc.tujuan_pertemuan || mc.meeting_objective), { size: 22, color: '333333' }));
       }
-      if (mc.pertanyaan_pemantik || mc.essential_question) {
-        children.push(p('Pertanyaan pemantik: ' + (mc.pertanyaan_pemantik || mc.essential_question), { size: 22, color: '333333', after: 80 }));
+      if (mc.trigger_question || mc.pertanyaan_pemantik || mc.essential_question) {
+        children.push(p('Pertanyaan pemantik: ' + txt(mc.trigger_question ?? mc.pertanyaan_pemantik ?? mc.essential_question), { size: 22, color: '333333', after: 80 }));
       }
-      const persiapan = mc.persiapan_guru ?? mc.teacher_preparation ?? [];
+      const persiapan = mc.teacher_notes ?? mc.persiapan_guru ?? mc.teacher_preparation ?? [];
       if (Array.isArray(persiapan) && persiapan.length) {
-        children.push(p('Yang disiapkan guru:', { bold: true, size: 22, after: 40 }));
-        persiapan.forEach(item => children.push(bullet(item.deskripsi || item.description || item)));
+        children.push(p('Catatan & persiapan guru:', { bold: true, size: 22, after: 40 }));
+        persiapan.forEach(item => children.push(bullet(item.deskripsi ?? item.description ?? item)));
       }
-      const aktivitas = mc.aktivitas ?? mc.activities ?? [];
+      // Activity unit mengikuti kontrak runtime-step granularity Step 6:
+      // {step_id, title, phase, planned_minutes, teacher_action, student_action, completion_cue}
+      const aktivitas = mc.activities ?? mc.aktivitas ?? [];
       if (aktivitas.length) {
+        warnMissing('meeting_plan.activities', 'teacher_action', aktivitas[0]);
         children.push(tbl(
-          ['Fase','Durasi (mnt)','Aktivitas Guru','Aktivitas Siswa'],
+          ['Fase','Langkah','Menit','Aktivitas Guru','Aktivitas Siswa','Tanda Selesai'],
           aktivitas.map(a => [
-            a.fase || a.phase || '-',
-            String(a.durasi_menit ?? a.duration_minutes ?? '-'),
-            a.guru || a.teacher || '-',
-            a.siswa || a.student || '-',
+            txt(a.phase ?? a.fase) || '-',
+            txt(a.title) || '-',
+            txt(a.planned_minutes ?? a.durasi_menit ?? a.duration_minutes) || '-',
+            txt(a.teacher_action ?? a.guru ?? a.teacher) || '-',
+            txt(a.student_action ?? a.siswa ?? a.student) || '-',
+            txt(a.completion_cue) || '-',
           ]),
-          [Math.floor(PAGE_WIDTH_DXA*0.18), Math.floor(PAGE_WIDTH_DXA*0.12), Math.floor(PAGE_WIDTH_DXA*0.35), Math.floor(PAGE_WIDTH_DXA*0.35)],
+          [Math.floor(PAGE_WIDTH_DXA*0.11), Math.floor(PAGE_WIDTH_DXA*0.15), Math.floor(PAGE_WIDTH_DXA*0.07),
+           Math.floor(PAGE_WIDTH_DXA*0.26), Math.floor(PAGE_WIDTH_DXA*0.26), Math.floor(PAGE_WIDTH_DXA*0.15)],
         ));
         children.push(p(''));
       }
+      // formative_checkpoint = {expected_evidence, classification_anchor{paham,hampir,belum}}
       const fc = mc.formative_checkpoint ?? mc.formative;
       if (fc) {
-        children.push(p('Formative: ' + (fc.deskripsi || fc.description || String(fc)), { size: 22, color: '444444', after: 80 }));
+        children.push(p('Asesmen formatif pertemuan ini:', { bold: true, size: 22, after: 40 }));
+        if (fc.expected_evidence) children.push(bullet('Bukti yang diamati: ' + txt(fc.expected_evidence)));
+        const anchor = fc.classification_anchor ?? {};
+        if (anchor.paham)  children.push(bullet('Sudah paham: '  + txt(anchor.paham)));
+        if (anchor.hampir) children.push(bullet('Hampir paham: ' + txt(anchor.hampir)));
+        if (anchor.belum)  children.push(bullet('Belum paham: '  + txt(anchor.belum)));
+        if (!fc.expected_evidence && !anchor.paham) children.push(bullet(fc.deskripsi ?? fc.description ?? fc));
+        children.push(p(''));
       }
-      const dif = mc.diferensiasi ?? mc.differentiation ?? {};
-      if (dif.pengayaan || dif.penguatan || dif.pendampingan) {
+      // differentiation dikunci pada status pemahaman {paham,hampir,belum},
+      // masing-masing {aktivitas, bukti_belajar} — bukan pengayaan/penguatan/pendampingan.
+      const dif = mc.differentiation ?? mc.diferensiasi ?? {};
+      if (dif.paham || dif.hampir || dif.belum || dif.pengayaan) {
+        const difRow = (label, d) => [label, txt(d?.aktivitas) || '-', txt(d?.bukti_belajar) || '-'];
+        children.push(p('Diferensiasi:', { bold: true, size: 22, after: 40 }));
         children.push(tbl(
-          ['Pengayaan','Penguatan','Pendampingan'],
-          [[dif.pengayaan || '-', dif.penguatan || '-', dif.pendampingan || '-']],
-          [Math.floor(PAGE_WIDTH_DXA/3), Math.floor(PAGE_WIDTH_DXA/3), Math.floor(PAGE_WIDTH_DXA/3)],
+          ['Status','Yang Dikerjakan Siswa','Bukti Belajar'],
+          [
+            difRow('Sudah paham',  dif.paham  ?? dif.pengayaan),
+            difRow('Hampir paham', dif.hampir ?? dif.penguatan),
+            difRow('Belum paham',  dif.belum  ?? dif.pendampingan),
+          ],
+          [Math.floor(PAGE_WIDTH_DXA*0.18), Math.floor(PAGE_WIDTH_DXA*0.47), Math.floor(PAGE_WIDTH_DXA*0.35)],
         ));
         children.push(p(''));
       }
@@ -584,14 +680,29 @@ async function generateDocxFromPipelineState(state, profil, jenis) {
     // Bagian F — Tindak Lanjut
     children.push(heading('F. Tindak Lanjut', 2));
     if (fuContent.pengayaan || fuContent.penguatan || fuContent.pendampingan) {
+      // Tiap jalur berbentuk {target, gap_addressed, activities[{deskripsi, durasi_estimasi}]}
+      warnMissing('follow_up.pengayaan', 'activities', fuContent.pengayaan);
+      const fuRow = (label, j) => {
+        if (!j) return [label, '-', '-'];
+        if (typeof j !== 'object') return [label, '-', txt(j)];
+        const acts = (j.activities ?? []).map(a => txt(a.deskripsi ?? a.description ?? a)
+          + (a.durasi_estimasi ? ` (${txt(a.durasi_estimasi)})` : ''));
+        return [
+          label,
+          txt(j.target) || '-',
+          // Digabung inline dengan penomoran: helper tbl merender satu TextRun,
+          // sehingga '\n' tidak akan menjadi baris baru di dokumen Word.
+          acts.length ? acts.map((a, i) => `${i + 1}. ${a}`).join('   ') : (txt(j.gap_addressed) || '-'),
+        ];
+      };
       children.push(tbl(
-        ['Jalur','Uraian'],
+        ['Jalur','Sasaran','Kegiatan'],
         [
-          ['Pengayaan', fuContent.pengayaan || '-'],
-          ['Penguatan', fuContent.penguatan || '-'],
-          ['Pendampingan', fuContent.pendampingan || '-'],
+          fuRow('Pengayaan',    fuContent.pengayaan),
+          fuRow('Penguatan',    fuContent.penguatan),
+          fuRow('Pendampingan', fuContent.pendampingan),
         ],
-        [Math.floor(PAGE_WIDTH_DXA*0.25), Math.floor(PAGE_WIDTH_DXA*0.75)],
+        [Math.floor(PAGE_WIDTH_DXA*0.18), Math.floor(PAGE_WIDTH_DXA*0.27), Math.floor(PAGE_WIDTH_DXA*0.55)],
       ));
     } else {
       children.push(p('Tindak lanjut belum di-generate.', { color: '888888' }));

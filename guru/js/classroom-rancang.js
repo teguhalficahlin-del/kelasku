@@ -5213,7 +5213,9 @@ ${konteks.map(k => `<div style="font-size:var(--fs-caption);color:var(--text-sec
       btn.disabled = true;
       btn.textContent = 'Menyiapkan…';
       try {
-        await generateDocxFromPipelineState(_phase2cState, _profil || {}, jenis);
+        // TP terpilih dikirim eksplisit: artifact CONTEXT_SPEC tidak memuat judul/
+        // deskripsi TP, sehingga bagian "Tujuan Pembelajaran" pada RPM kosong tanpa ini.
+        await generateDocxFromPipelineState(_phase2cState, _profil || {}, jenis, _ans.tp_terpilih);
       } catch (err) {
         console.error('[step7] download gagal:', err);
         showError('rp-s7-error', 'Gagal generate dokumen: ' + (err?.message ?? ''));
