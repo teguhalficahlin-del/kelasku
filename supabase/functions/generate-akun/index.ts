@@ -91,11 +91,25 @@ Deno.serve(async (req) => {
     // Insert profil siswa (skip jika sudah ada)
     let siswaProfileId: string | null = null;
     if (siswaAuth?.user) {
-      const { data: sp } = await admin
+      // Upsert, bukan insert: trigger on_auth_user_created sudah membuat baris
+      // profil begitu auth.users terisi. INSERT biasa akan bentrok dengan unique
+      // (user_id), dan sebelumnya errornya tidak ditangkap sehingga EF membalas
+      // 500 tanpa penjelasan. Upsert sekaligus mengoreksi role/nama/nis pada
+      // baris yang terlanjur dibuat trigger.
+      const { data: sp, error: spErr } = await admin
         .from('profiles')
-        .insert({ user_id: siswaAuth.user.id, full_name: nama, role: 'SISWA', email: siswaEmail, nis })
+        .upsert(
+          { user_id: siswaAuth.user.id, full_name: nama, role: 'SISWA', email: siswaEmail, nis },
+          { onConflict: 'user_id' },
+        )
         .select('id')
         .single();
+      if (spErr) {
+        return Response.json(
+          { success: false, error: 'Profil siswa gagal disimpan: ' + spErr.message },
+          { headers: CORS_HEADERS },
+        );
+      }
       siswaProfileId = sp?.id ?? null;
     } else {
       // Akun sudah ada — ambil profile_id dari profiles
@@ -164,16 +178,26 @@ Deno.serve(async (req) => {
 
         let ortuProfileId: string | null = null;
         if (ortuAuth?.user) {
-          const { data: op } = await admin
+          // Upsert dengan alasan yang sama seperti profil siswa di atas.
+          const { data: op, error: opErr } = await admin
             .from('profiles')
-            .insert({
-              user_id:   ortuAuth.user.id,
-              full_name: `Ortu - ${nama}`,
-              role:      'ORTU',
-              email:     ortuEmail,
-            })
+            .upsert(
+              {
+                user_id:   ortuAuth.user.id,
+                full_name: `Ortu - ${nama}`,
+                role:      'ORTU',
+                email:     ortuEmail,
+              },
+              { onConflict: 'user_id' },
+            )
             .select('id')
             .single();
+          if (opErr) {
+            return Response.json(
+              { success: false, error: 'Profil ortu gagal disimpan: ' + opErr.message },
+              { headers: CORS_HEADERS },
+            );
+          }
           ortuProfileId = op?.id ?? null;
         } else {
           const { data: op } = await admin
