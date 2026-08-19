@@ -452,6 +452,18 @@
     });
   }
 
+  // Penanda siapa yang dapat melihat entri ini di portal. Tanpa penanda, guru
+  // tidak punya cara tahu bahwa entri yang ia buat tersembunyi dari siswa.
+  function visBadgeHtml(tp) {
+    const target = [];
+    if (tp.is_visible_siswa) target.push('Siswa');
+    if (tp.is_visible_ortu)  target.push('Ortu');
+    const label = target.length ? '👁 ' + target.join(' + ') : '🔒 Hanya guru';
+    const color = target.length ? 'var(--gold)' : 'var(--text-muted)';
+    return `<span title="${target.length ? 'Terlihat di portal ' + target.join(' dan ') : 'Tidak tampil di portal siswa/ortu'}"
+      style="flex-shrink:0;font-size:.625rem;color:${color};white-space:nowrap;opacity:.9">${label}</span>`;
+  }
+
   function tpRowHtml(tp) {
     const kids     = _tpList.filter(t => t.parent_id === tp.id);
     const color    = TIPE_COLOR[tp.tipe] ?? '#555';
@@ -485,6 +497,7 @@
     </span>
     <span style="flex:1;font-size:var(--fs-ui);font-weight:var(--fw-medium,500);
         overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${hdTxt}</span>
+    ${visBadgeHtml(tp)}
     <span class="pai-tp-arrow"
         style="font-size:.75rem;color:var(--text-secondary);flex-shrink:0;margin-right:.15rem">▶</span>
     <button type="button" data-action="edit-tp" data-id="${tp.id}"
@@ -594,6 +607,20 @@
       </select>
     </div>
   </div>
+  <div>
+    ${fieldLbl('Tampilkan di portal')}
+    <label style="display:flex;align-items:center;gap:.5rem;font-size:var(--fs-caption);color:var(--text-secondary);margin-bottom:.35rem;cursor:pointer">
+      <input type="checkbox" id="tp-vis-siswa"${item?.is_visible_siswa ? ' checked' : ''}>
+      <span>Tampilkan ke siswa</span>
+    </label>
+    <label style="display:flex;align-items:center;gap:.5rem;font-size:var(--fs-caption);color:var(--text-secondary);cursor:pointer">
+      <input type="checkbox" id="tp-vis-ortu"${item?.is_visible_ortu ? ' checked' : ''}>
+      <span>Tampilkan ke orang tua</span>
+    </label>
+    <div style="font-size:var(--fs-caption);color:var(--text-muted);margin-top:.35rem">
+      Bila tidak dicentang, entri ini hanya terlihat oleh Anda.
+    </div>
+  </div>
   <div style="display:flex;gap:.75rem;justify-content:flex-end;margin-top:.25rem">
     <button data-action="close-modal" style="min-height:var(--btn-h);background:transparent;color:var(--gold);border:1.5px solid var(--gold-border);font-size:var(--fs-ui);padding:0 var(--btn-px);border-radius:var(--btn-r);cursor:pointer">Batal</button>
     <button id="btn-tp-save"
@@ -666,6 +693,11 @@
         academic_year: el('tp-year').value.trim() || DEFAULT_YEAR,
         semester:     selTipe === 'CP' ? null : (parseInt(el('tp-sem').value) || 1),
         mapel: isWali ? selMapel : (_classroomMapelKey || null),
+        // Default kolom ini di DB adalah false, dan sebelumnya tidak ada UI yang
+        // menyetelnya sama sekali — akibatnya bagian "Dokumen Penilaian" di portal
+        // siswa dan ortu dipastikan selalu kosong.
+        is_visible_siswa: !!el('tp-vis-siswa')?.checked,
+        is_visible_ortu:  !!el('tp-vis-ortu')?.checked,
       };
       el('btn-tp-save').disabled = true;
       try {
