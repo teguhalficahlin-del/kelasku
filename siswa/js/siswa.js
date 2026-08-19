@@ -44,13 +44,46 @@
     const password = nis;
 
     try {
+      // ADR-003 K1: login siswa adalah Kode Kelas + Nama + NIS. Sebelumnya nama
+      // dikumpulkan lalu dibuang, sehingga faktor ketiga tidak pernah ditegakkan.
+      // Portal ortu sudah melakukan validasi ini; keduanya kini memakai fungsi
+      // yang sama di server.
+      const { data: hasil, error: rpcError } = await client.rpc('fn_validate_roster_login', {
+        p_classroom_code: kode,
+        p_nis:            nis,
+        p_nama:           nama,
+      });
+
+      if (rpcError) {
+        btn.disabled = false;
+        btn.textContent = 'Masuk';
+        showError('Gagal terhubung ke server. Periksa koneksi internet.');
+        return;
+      }
+
+      if (hasil === 'KELAS_TIDAK_DITEMUKAN') {
+        btn.disabled = false;
+        btn.textContent = 'Masuk';
+        showError('Kode kelas tidak ditemukan. Periksa kembali kode dari guru Anda.');
+        return;
+      }
+
+      if (hasil !== 'OK') {
+        btn.disabled = false;
+        btn.textContent = 'Masuk';
+        showError('Nama atau NIS tidak cocok dengan data kelas ini.');
+        return;
+      }
+
       const { error } = await client.auth.signInWithPassword({ email, password });
 
       btn.disabled = false;
       btn.textContent = 'Masuk';
 
       if (error) {
-        showError('Akun belum dibuat guru, hubungi guru kelas.');
+        // Data roster sudah terbukti cocok di atas, jadi satu-satunya sebab
+        // tersisa adalah akun yang memang belum dibuatkan guru.
+        showError('Akun Anda belum dibuat. Minta guru kelas membuatkan akun terlebih dahulu.');
         return;
       }
 
