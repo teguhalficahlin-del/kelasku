@@ -135,8 +135,8 @@
       case 3: return !!_ans.mapel;
       case 4: return _atpList.length > 0;
       case 5: return !!_ans.tp_terpilih;
-      case 6: return !!_rencana;
-      case 7: return true;
+      case 6: return !!_planningContext?.id && !!_phase2cState;
+      case 7: return !!_planningContext?.id && !!_phase2cState?.rpm_ready_for_class;
       default: return false;
     }
   }
@@ -2840,6 +2840,9 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
 
     // Candidates for selection
     const candidates = ctx?.candidates?.filter(c => c.version_id !== ctx?.selected_version_id) ?? [];
+    const hasActiveCandidate = candidates.length > 0;
+    const isConfirmed = ctx?.lifecycle_status === 'CONFIRMED';
+    const showRegenBtn = !hasActiveCandidate && !isConfirmed;
 
     let ctxBodyHtml = '';
     if (!hasCtx) {
@@ -2903,7 +2906,7 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
   <div class="rp-action-row" style="flex-wrap:wrap;gap:var(--space-sm);">
     ${!hasCtx
       ? `${btnPrimary('rp2c-btn-gen-ctx', 'Generate Context')}`
-      : `${btnSecondary('rp2c-btn-regen-ctx', '⟳ Regenerate')}
+      : `${showRegenBtn ? btnSecondary('rp2c-btn-regen-ctx', '⟳ Regenerate') : ''}
          ${ctxUsable && !el('rp2c-ctx-edit-area')?.style?.display !== 'none'
            ? `${btnSecondary('rp2c-btn-edit-ctx', '✏ Edit')}` : ''}
          ${ctxUsable && ctx?.lifecycle_status !== 'CONFIRMED'
@@ -3068,6 +3071,9 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
     const asmConfirmed = asm?.lifecycle_status === 'CONFIRMED';
 
     const candidates = asm?.candidates?.filter(c => c.version_id !== asm?.selected_version_id) ?? [];
+    const hasActiveCandidate = candidates.length > 0;
+    const isConfirmed = asm?.lifecycle_status === 'CONFIRMED';
+    const showRegenBtn = !hasActiveCandidate && !isConfirmed;
 
     let asmBodyHtml = '';
     if (!hasAsm) {
@@ -3135,7 +3141,7 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
   <div class="rp-action-row" style="flex-wrap:wrap;gap:var(--space-sm);">
     ${!hasAsm
       ? `${btnPrimary('rp2c-btn-gen-asm', 'Generate Asesmen + KKTP')}`
-      : `${btnSecondary('rp2c-btn-regen-asm', '⟳ Regenerate')}
+      : `${showRegenBtn ? btnSecondary('rp2c-btn-regen-asm', '⟳ Regenerate') : ''}
          ${asmUsable ? `${btnSecondary('rp2c-btn-edit-asm', '✏ Edit')}` : ''}
          ${asmUsable && !asmConfirmed ? `${btnPrimary('rp2c-btn-confirm-asm', 'Konfirmasi Checkpoint 2 ✓')}` : ''}
          ${asmConfirmed ? `<div style="padding:var(--space-sm);font-size:var(--fs-caption);color:var(--success,#4caf50);">Checkpoint 2 selesai. Tahap berikutnya (Material, Pertemuan, LKS) akan segera tersedia.</div>` : ''}`
