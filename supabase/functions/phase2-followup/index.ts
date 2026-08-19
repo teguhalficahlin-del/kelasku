@@ -508,7 +508,10 @@ Deno.serve(async (req) => {
           .eq('artifact_id', fuArtifact.id)
           .not('candidate_of_version_id', 'is', null);
         if ((regenCount ?? 0) >= 1)
-          return reply({ error: 'Batas regenerate Follow-Up sudah tercapai. Gunakan edit manual.' }, 409);
+          // Status 200: guru/js/api.js menjalankan `if (error) throw error` sebelum
+          // membaca `data.error`, sehingga 409 sampai ke UI sebagai 'Edge Function
+          // returned a non-2xx status code' dan guru tidak pernah tahu sebabnya.
+          return reply({ error: 'Batas regenerate Follow-Up sudah tercapai. Pilih kandidat yang ada atau gunakan Edit manual.' });
       }
 
       // Regenerate requires client_operation_id to ensure stable idempotency key per intent

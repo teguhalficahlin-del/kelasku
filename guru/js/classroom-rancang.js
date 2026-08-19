@@ -2841,12 +2841,18 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
     const matUsable    = s.material_spec?.usable === true;
     // Any meeting has been generated (has artifact_id) → resume meeting pipeline view
     const anyMeetingGenerated = (s.meeting_plans ?? []).some(m => !!m.artifact_id);
+    // Follow-Up sudah ada → resume langsung ke sana. Tanpa cabang ini, refresh
+    // selalu mendarat di panel Pertemuan, guru menekan 'Lanjut ke Tindak Lanjut',
+    // dan alur itu dulu memicu generate ulang → 409.
+    const hasFollowUp = !!s.follow_up?.artifact_id;
     if (!ctxConfirmed) {
       renderContextCheckpoint();
     } else if (!asmConfirmed) {
       renderAssessmentCheckpoint();
     } else if (!matUsable) {
       enterMaterialPipeline();
+    } else if (hasFollowUp) {
+      renderFollowUpPipeline();
     } else if (anyMeetingGenerated) {
       renderMeetingPipeline();
     } else {
@@ -3881,6 +3887,13 @@ ${plansHtml}
   async function enterFollowUpPipeline() {
     if (!requireContexts('Tindak Lanjut')) return;
     if (_enteringFollowup) return;
+    // Follow-Up sudah pernah dibuat -> TAMPILKAN, jangan generate ulang.
+    // Tombol 'Lanjut ke Tindak Lanjut' di panel Pertemuan memanggil fungsi ini
+    // setiap kali. Tanpa cek ini, setiap kunjungan ulang (mis. setelah refresh)
+    // mem-POST generate_follow_up dan server menolak 409 'Batas regenerate
+    // Follow-Up sudah tercapai' - guru terjebak di layar error padahal Follow-Up
+    // sudah lengkap dan usable.
+    if (_phase2cState?.follow_up?.artifact_id) { renderFollowUpPipeline(); return; }
     _enteringFollowup = true;
     try {
       const body = el('rp-body');
