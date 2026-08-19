@@ -290,13 +290,17 @@ function renderChildNotesSection(classroomId, linkedStudentId) {
   return wrap;
 }
 
+// Skema penilaian v2: assessment_items sudah di-DROP dan digantikan tp_kktp,
+// yang memiliki kolom sama persis. Portal tidak ikut dimigrasikan saat itu,
+// sehingga seksi ini selalu gagal diam-diam.
 async function getChildItems(classroomId) {
-  const { data } = await db.from('assessment_items')
+  const { data, error } = await db.from('tp_kktp')
     .select('id, judul, tipe, konten, urutan, academic_year, semester')
     .eq('classroom_id', classroomId)
     .eq('is_visible_ortu', true)
     .eq('is_active', true)
     .order('urutan', { ascending: true });
+  if (error) { console.error('getChildItems', error); return []; }
   return data || [];
 }
 
@@ -320,15 +324,29 @@ const JENIS_BADGE = {
 };
 const TL_COLOR = { PENGAYAAN: 'var(--success)', PENGUATAN: 'var(--warning)', PENDAMPINGAN: 'var(--danger)' };
 
-async function getChildGrades(classroomId, studentId) {
-  const { data, error } = await db.from('student_grades')
-    .select('id, nilai_angka, deskripsi, tindak_lanjut, assessments!inner(jenis, judul, teknik, tanggal)')
+// Skema penilaian v2: student_grades sudah di-DROP, digantikan assessment_results.
+// Baris dibatasi oleh RLS ke roster anak yang ditautkan ke ortu ini, jadi tidak
+// perlu (dan tidak bisa) memfilter student_id dari sisi klien — ortu tidak punya
+// hak baca ke baris roster anaknya.
+async function getChildGrades(classroomId) {
+  const { data, error } = await db.from('assessment_results')
+    .select('id, nilai, catatan, umpan_balik, tindak_lanjut, assessments!inner(jenis, teknik, tujuan, created_at)')
     .eq('classroom_id', classroomId)
-    .eq('student_id', studentId)
-    .eq('is_published', true)
     .order('created_at', { ascending: false });
   if (error) { console.error('getChildGrades', error); return []; }
-  return data || [];
+  // Dinormalkan ke bentuk lama agar renderer di bawah tidak perlu diubah.
+  return (data || []).map(r => ({
+    id:            r.id,
+    nilai_angka:   r.nilai,
+    deskripsi:     r.umpan_balik || r.catatan || '',
+    tindak_lanjut: r.tindak_lanjut,
+    assessments: {
+      jenis:   r.assessments?.jenis,
+      judul:   r.assessments?.tujuan || 'Penilaian',
+      teknik:  r.assessments?.teknik,
+      tanggal: String(r.assessments?.created_at || '').slice(0, 10),
+    },
+  }));
 }
 
 const TIPE_CLASS = { CP: 'badge-cp', TP: 'badge-tp', KKTP: 'badge-kktp', NILAI: 'badge-nilai', LAINNYA: 'badge-lainnya' };
@@ -346,7 +364,7 @@ function renderChildGradesSection(classroomId, studentId) {
   body.innerHTML = '<p class="att-empty">Memuat…</p>';
   wrap.appendChild(body);
 
-  Promise.all([getChildItems(classroomId), getChildGrades(classroomId, studentId)]).then(([items, grades]) => {
+  Promise.all([getChildItems(classroomId), getChildGrades(classroomId)]).then(([items, grades]) => {
     let html = '';
 
     if (items.length > 0) {
