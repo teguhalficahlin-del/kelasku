@@ -2937,15 +2937,8 @@ ${metodeHtml}${hasilHtml}`;
             '</div>';
           return;
         }
-        if (_ts && _ts.tier === 'TRIAL') {
-          panelPenilaian.innerHTML =
-            '<div class="upgrade-tier-banner">' +
-            '<strong>Fitur Premium</strong>' +
-            '<p>Tab ini tersedia untuk Guru Go dan Guru Pro. Upgrade untuk mengakses fitur lengkap.</p>' +
-            '<button class="btn-upgrade" onclick="alert(\'Hubungi admin untuk upgrade: teguhalficahlin@gmail.com\')">Lihat paket</button>' +
-            '</div>';
-          return;
-        }
+        // Tab Penilaian terbuka untuk semua tier. Hanya tab Rancang yang
+        // dibatasi Guru Pro; gate tier di sini sengaja dihapus.
 
         const { data: { session } } = await client.auth.getSession();
         if (!session) return;

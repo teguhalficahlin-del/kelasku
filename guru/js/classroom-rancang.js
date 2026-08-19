@@ -6113,11 +6113,14 @@ ${tpList.map((tp, i) => {
           '</div>';
         return;
       }
-      if (_ts && _ts.tier === 'TRIAL') {
+      // Tab Rancang khusus Guru Pro. Free tier (TRIAL) boleh memakai seluruh
+      // tab lain; hanya tab ini yang dibatasi. Dituliskan sebagai allowlist
+      // agar tier baru apa pun tertutup secara default, bukan terbuka.
+      if (_ts && _ts.tier !== 'GURU_PRO') {
         panelRancang.innerHTML =
           '<div class="upgrade-tier-banner">' +
-          '<strong>Fitur Premium</strong>' +
-          '<p>Tab ini tersedia untuk Guru Go dan Guru Pro. Upgrade untuk mengakses fitur lengkap.</p>' +
+          '<strong>Fitur Guru Pro</strong>' +
+          '<p>Tab Rancang Pembelajaran tersedia untuk Guru Pro. Tab lainnya tetap dapat Anda gunakan seperti biasa.</p>' +
           '<button class="btn-upgrade" onclick="alert(\'Hubungi admin untuk upgrade: teguhalficahlin@gmail.com\')">Lihat paket</button>' +
           '</div>';
         return;
