@@ -3575,25 +3575,57 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
     };
   }
 
+  // Progress helpers untuk loop generate per pertemuan
+  function showMeetingProgress(meetingNo, total) {
+    const title = el('rp2-meet-title');
+    if (title) title.textContent = `Menyusun Pertemuan ${meetingNo}/${total}…`;
+    const progEl = el(`rp2-meet-prog-${meetingNo}`);
+    if (progEl) {
+      progEl.style.color = 'var(--gold)';
+      progEl.textContent = `Pertemuan ${meetingNo}/${total} — menyusun…`;
+    }
+  }
+
+  function setMeetingProgress(meetingNo, status, errorMsg) {
+    const progEl = el(`rp2-meet-prog-${meetingNo}`);
+    if (!progEl) return;
+    progEl.style.color = status === 'failed'
+      ? 'var(--error,#ef4444)' : 'var(--success,#4caf50)';
+    progEl.textContent = `Pertemuan ${meetingNo} — ${
+      status === 'generated' ? '✓ berhasil' :
+      status === 'skipped'   ? '→ dilewati (sudah siap)' :
+      `✗ gagal: ${errorMsg ?? ''}`}`;
+  }
+
+  // Generate pertemuan SATU PER SATU (satu request per pertemuan).
+  // generate_all_meetings memanggil AI berkali-kali dalam satu request dan
+  // menembus batas 2 menit Supabase free tier (546). Loop ini memecahnya.
   async function enterMeetingPipeline() {
     if (_enteringMeeting) return;
     _enteringMeeting = true;
     try {
       const body = el('rp-body');
       if (!body) return;
-      const totalMeetings = _phase2cState?.meeting_plans?.length ?? 0;
+
+      const items = _phase2cState?.meeting_allocation?.items
+        ?? _phase2cState?.meeting_plans ?? [];
+      const totalMeetings = items.length;
 
       body.innerHTML = `<div class="rp-block">
-        <div class="rp-block-title">Menyusun Rencana Pertemuan…</div>
+        <div class="rp-block-title" id="rp2-meet-title">Menyusun Rencana Pertemuan…</div>
         <div id="rp2-meet-progress" style="margin-top:var(--space-sm);">
           ${totalMeetings > 0
-            ? _phase2cState.meeting_plans.map(m =>
-                `<div id="rp2-meet-prog-${m.meeting_no}" style="font-size:var(--fs-caption);
+            ? items.map(it => {
+                const plan = _phase2cState?.meeting_plans
+                  ?.find(m => m.meeting_no === it.meeting_no);
+                const ready = plan?.usable && !plan?.needs_update;
+                return `<div id="rp2-meet-prog-${it.meeting_no}" style="font-size:var(--fs-caption);
                  color:var(--text-muted);padding:2px 0;">
-                  Pertemuan ${m.meeting_no}/${totalMeetings} — ${
-                    m.usable && !m.needs_update ? '✓ sudah siap, dilewati' : 'menunggu…'
+                  Pertemuan ${it.meeting_no}/${totalMeetings} — ${
+                    ready ? '✓ sudah siap, dilewati' : 'menunggu…'
                   }
-                </div>`).join('')
+                </div>`;
+              }).join('')
             : `<div style="font-size:var(--fs-caption);color:var(--text-muted);">
                  AI sedang menyusun rencana pertemuan satu per satu…
                </div>`}
@@ -3601,23 +3633,31 @@ ${makeCustomDropdown('rp-mapel-sel', opts, _ans.mapelKey || '')}`;
       </div>`;
 
       try {
-        const resp = await SipApi.phase2Meeting(phase2cPayloadMeet({ action: 'generate_all_meetings' }));
-        _phase2cState = resp.result;
-        saveRpState();
+        for (const item of items) {
+          const meetingNo = item.meeting_no;
 
-        // Update progress labels from meeting_results
-        const results = resp.meeting_results ?? [];
-        results.forEach(r => {
-          const progEl = el(`rp2-meet-prog-${r.meeting_no}`);
-          if (progEl) {
-            progEl.style.color = r.status === 'failed'
-              ? 'var(--error,#ef4444)' : 'var(--success,#4caf50)';
-            progEl.textContent = `Pertemuan ${r.meeting_no} — ${
-              r.status === 'generated' ? '✓ berhasil' :
-              r.status === 'skipped'   ? '→ dilewati (sudah siap)' :
-              `✗ gagal: ${r.error ?? ''}`}`;
+          // Skip jika sudah usable dan tidak perlu update
+          const existing = _phase2cState?.meeting_plans
+            ?.find(m => m.meeting_no === meetingNo);
+          if (existing?.usable && !existing?.needs_update) {
+            setMeetingProgress(meetingNo, 'skipped');
+            continue;
           }
-        });
+
+          showMeetingProgress(meetingNo, totalMeetings);
+
+          const resp = await SipApi.phase2Meeting(phase2cPayloadMeet({
+            action: 'generate_single_meeting',
+            meeting_no: meetingNo,
+            client_operation_id: crypto.randomUUID(),
+          }));
+          _phase2cState = resp.result;
+          saveRpState();
+
+          const r = (resp.meeting_results ?? [])
+            .find(x => x.meeting_no === meetingNo);
+          setMeetingProgress(meetingNo, r?.status ?? 'generated', r?.error);
+        }
 
         await new Promise(r => setTimeout(r, 600)); // brief pause so user sees result
         renderMeetingPipeline();
@@ -4379,7 +4419,11 @@ ${candidatesHtml}
     const btn = document.querySelector(`.rp2-meet-retry-single[data-meeting-no="${meetingNo}"]`);
     if (btn) { btn.disabled = true; btn.textContent = 'Generating…'; }
     try {
-      const resp = await SipApi.phase2Meeting(phase2cPayloadMeet({ action: 'generate_all_meetings' }));
+      const resp = await SipApi.phase2Meeting(phase2cPayloadMeet({
+        action: 'generate_single_meeting',
+        meeting_no: meetingNo,
+        client_operation_id: crypto.randomUUID(),
+      }));
       _phase2cState = resp.result;
       saveRpState();
       renderMeetingPipeline();

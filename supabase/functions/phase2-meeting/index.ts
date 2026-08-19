@@ -526,6 +526,145 @@ Deno.serve(async (req) => {
     }
 
     // ────────────────────────────────────────────────────────────────────────
+    // ACTION: generate_single_meeting
+    // Satu pertemuan per request. generate_all_meetings memanggil AI sekali
+    // (hingga dua kali saat retry validasi) per pertemuan dalam SATU request,
+    // sehingga alokasi 2+ pertemuan menembus batas 2 menit di free tier dan
+    // berakhir 546. Action ini memecah beban itu menjadi satu request per
+    // pertemuan; UI yang memanggilnya secara berurutan.
+    //
+    // Idempotency key sengaja IDENTIK dengan generate_all_meetings (sufiks
+    // 'initial', tanpa client_operation_id) supaya kedua jalur konvergen —
+    // pertemuan yang sudah dibuat lewat generate_all_meetings tidak akan
+    // terduplikasi bila kemudian diminta lewat action ini.
+    // ────────────────────────────────────────────────────────────────────────
+    if (action === 'generate_single_meeting') {
+      if (!matUsable)
+        return reply({ error: 'Material Specification belum usable — selesaikan Material dulu' }, 409);
+
+      const meetingNo  = Number(body.meeting_no);
+      const clientOpId = String(body.client_operation_id ?? '');
+      if (!Number.isInteger(meetingNo) || meetingNo < 1)
+        return reply({ error: 'meeting_no harus integer >= 1' }, 400);
+      if (!isValidUuidV4(clientOpId))
+        return reply({ error: 'client_operation_id harus UUID v4 yang valid' }, 400);
+
+      const item = allocItems.find(i => (i.meeting_no as number) === meetingNo);
+      if (!item) return reply({ error: `Pertemuan ${meetingNo} tidak ada dalam alokasi` }, 409);
+
+      const ctxVer = await loadArtifactContent(admin, planningContextId, profile.id, 'CONTEXT_SPEC');
+      const asmVer = await loadArtifactContent(admin, planningContextId, profile.id, 'ASSESSMENT_SPEC');
+      const matVer = await loadArtifactContent(admin, planningContextId, profile.id, 'MATERIAL_SPEC');
+      if (!ctxVer || !asmVer || !matVer)
+        return reply({ error: 'Context / Assessment / Material belum tersedia' }, 409);
+
+      // Skip if this meeting is already usable and current
+      const { data: preState } = await admin.rpc('fn_phase2c_get_pipeline_state', {
+        p_profile_id: profile.id, p_planning_context_id: planningContextId,
+      });
+      const existing = ((preState?.meeting_plans as Array<Record<string,unknown>>) ?? [])
+        .find(m => Number(m.meeting_no) === meetingNo);
+      if (existing?.usable === true && existing?.needs_update === false) {
+        return reply({
+          result: preState,
+          meeting_results: [{ meeting_no: meetingNo, status: 'skipped', error: null }],
+        });
+      }
+
+      const jp     = item.jp as number;
+      const durMin = item.duration_minutes as number;
+      const itemId = item.id as string;
+
+      const sourceHash = await sha256({
+        kind: 'MEETING_PLAN', planning_context_id: planningContextId,
+        meeting_no: meetingNo, meeting_allocation_item_id: itemId,
+        context_version_id: ctxVer.id, assessment_version_id: asmVer.id,
+        material_version_id: matVer.id,
+      });
+      const depHash = await sha256({
+        meeting_allocation_item_id: itemId,
+        context_version_id: ctxVer.id, assessment_version_id: asmVer.id,
+        material_version_id: matVer.id,
+      });
+      const idempotencyKey = await makeIdempotencyKey(
+        'meet_gen', planningContextId, String(meetingNo), sourceHash, 'initial'
+      );
+      const deps = await makeMeetingDeps(itemId, ctxVer.id, asmVer.id, matVer.id);
+
+      let failed = false;
+      let failReason = '';
+      let violationHint: string | undefined;
+
+      for (let attempt = 0; attempt <= 1; attempt++) {
+        try {
+          const raw = await callAI(SYSTEM_PROMPT, buildMeetingPrompt(
+            meetingNo, jp, durMin, authority,
+            ctxVer.content, asmVer.content, matVer.content, violationHint,
+          ));
+          const content = extractJson(raw);
+
+          const { data: validation } = await admin.rpc('fn_phase2_validate_meeting_plan', {
+            p_content: content, p_expected_duration_minutes: durMin,
+          });
+
+          if (validation?.status === 'valid') {
+            const { data: createResult, error: createError } = await admin.rpc(
+              'fn_phase2b_create_version', {
+                p_profile_id: profile.id, p_planning_context_id: planningContextId,
+                p_artifact_kind: 'MEETING_PLAN',
+                p_scope_key: `MEETING_${meetingNo}`,
+                p_meeting_allocation_item_id: itemId,
+                p_parent_version_id: null, p_candidate_of_version_id: null,
+                p_origin: 'AI', p_teacher_edited: false,
+                p_content: content, p_source_snapshot: authority,
+                p_source_hash: sourceHash, p_dependency_hash: depHash,
+                p_prompt_version: PROMPT_VERSION, p_model_version: MODEL,
+                p_dependencies: deps, p_idempotency_key: idempotencyKey,
+              }
+            );
+            if (createError) throw createError;
+
+            if (!createResult.idempotent) {
+              await transitionAndAccept(
+                createResult.version_id, validation, 0, true,
+                'meet_gen_transition', 'meet_validate', 'meet_autoselect'
+              );
+            }
+            failed = false;
+            break;
+          } else {
+            const viols = (validation?.violations as Array<Record<string,unknown>>) ?? [];
+            violationHint = viols
+              .map(v => `[${v.rule}]${v.scope ? ' '+v.scope+':' : ''} ${v.message}`)
+              .join('\n');
+            if (attempt >= 1) {
+              failed = true;
+              failReason = `Validasi gagal setelah retry: ${violationHint}`;
+            }
+          }
+        } catch (e) {
+          if (attempt >= 1) {
+            failed = true;
+            failReason = e instanceof Error ? e.message : 'Error tidak diketahui';
+          }
+        }
+      }
+
+      const { data: state } = await admin.rpc('fn_phase2c_get_pipeline_state', {
+        p_profile_id: profile.id, p_planning_context_id: planningContextId,
+      });
+      return reply({
+        result: state,
+        meeting_results: [{
+          meeting_no: meetingNo,
+          status: failed ? 'failed' : 'generated',
+          error: failed ? failReason : null,
+        }],
+      });
+    }
+
+
+    // ────────────────────────────────────────────────────────────────────────
     // ACTION: regenerate_meeting
     // ────────────────────────────────────────────────────────────────────────
     if (action === 'regenerate_meeting') {
