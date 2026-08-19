@@ -90,24 +90,29 @@ async function callAI(systemPrompt: string, userPrompt: string): Promise<string>
 function extractJson(raw: string): unknown {
   let s = raw.trim();
 
+  // Remove markdown fences
   const fenceMatch = s.match(/```(?:json)?\s*([\s\S]*?)```/s);
   if (fenceMatch) s = fenceMatch[1].trim();
 
+  // Try direct parse
   try { return JSON.parse(s); } catch (_) {}
 
+  // Find JSON object: first { to last }
   const start = s.indexOf('{');
   const end = s.lastIndexOf('}');
   if (start !== -1 && end > start) {
     try { return JSON.parse(s.slice(start, end + 1)); } catch (_) {}
   }
 
+  // Find JSON array: first [ to last ]
   const arrStart = s.indexOf('[');
   const arrEnd = s.lastIndexOf(']');
   if (arrStart !== -1 && arrEnd > arrStart) {
     try { return JSON.parse(s.slice(arrStart, arrEnd + 1)); } catch (_) {}
   }
 
-  console.error('[extractJson] GAGAL parse. Raw output preview:',
+  // Log raw output for debugging
+  console.error('[extractJson] FAILED to parse. Raw preview:',
     JSON.stringify(s.slice(0, 200)),
     '...TAIL:',
     JSON.stringify(s.slice(-100))
