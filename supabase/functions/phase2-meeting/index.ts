@@ -14,6 +14,11 @@ const LOCKED_ROLES = new Set([
 const PROMPT_VERSION = 'phase2-meeting-v1.0';
 const MODEL          = 'claude-sonnet-4-6';
 const AI_TIMEOUT_MS  = 150_000;
+// Split generate (generate_single_meeting): dua panggilan AI dalam satu request.
+// Output per call dibatasi setengah, timeout dipangkas agar 2 call + overhead RPC
+// tetap di bawah wall clock Edge Function (~150s).
+const SPLIT_MAX_TOKENS = 4096;
+const SPLIT_TIMEOUT_MS = 60_000;
 
 const reply = (body: unknown, status = 200) =>
   Response.json(body, { status, headers: CORS });
@@ -34,11 +39,16 @@ async function sha256(v: unknown): Promise<string> {
 }
 
 // ── AI call with per-call timeout ─────────────────────────────────────────────
-async function callAI(systemPrompt: string, userPrompt: string): Promise<string> {
+async function callAI(
+  systemPrompt: string,
+  userPrompt: string,
+  maxTokens = 8192,
+  timeoutMs = AI_TIMEOUT_MS,
+): Promise<string> {
   const apiKey = Deno.env.get('ANTHROPIC_API_KEY');
   if (!apiKey) throw new Error('ANTHROPIC_API_KEY tidak tersedia');
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), AI_TIMEOUT_MS);
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -50,7 +60,7 @@ async function callAI(systemPrompt: string, userPrompt: string): Promise<string>
       },
       body: JSON.stringify({
         model: MODEL,
-        max_tokens: 8192,
+        max_tokens: maxTokens,
         system: systemPrompt,
         messages: [{ role: 'user', content: userPrompt }],
       }),
@@ -327,6 +337,215 @@ BENTUK OUTPUT (isi dengan konten nyata, jangan salin teks contoh):
 
 Output JSON murni — schema wajib sesuai kontrak meeting_plan. Tanpa markdown fence, tanpa teks tambahan.`;
 }
+
+// -----------------------------------------------------------------------------
+// SPLIT GENERATE - dua panggilan AI untuk satu Meeting Plan.
+// Output gabungan Meeting Plan melebihi 8192 token sehingga JSON terpotong di
+// tengah. Beban dipecah dua: Call 1 menulis alur pembelajaran, Call 2 menulis
+// diferensiasi + LKS berdasarkan alur itu. Server menggabungkan keduanya.
+// -----------------------------------------------------------------------------
+
+// CALL 1 - activities + formative_checkpoint (+ objective & trigger question)
+function buildActivitiesPrompt(
+  meetingNo: number,
+  jp: number,
+  durationMinutes: number,
+  authority: Record<string, unknown>,
+  contextContent: Record<string, unknown>,
+  assessmentContent: Record<string, unknown>,
+  materialContent: Record<string, unknown>,
+): string {
+  const cls        = (authority.class_context as Record<string,unknown>) ?? {};
+  const facilities = (cls.fasilitas_tersedia as string[]) ?? [];
+  const forbidden  = (cls.aktivitas_dilarang as string[]) ?? [];
+
+  const kktp          = (assessmentContent.kktp as Array<Record<string,unknown>>) ?? [];
+  const formativeAll  = (assessmentContent.formative as Array<Record<string,unknown>>) ?? [];
+  const formativeThis = formativeAll.find(f => Number(f.meeting_no) === meetingNo);
+
+  const decisions    = (contextContent.context_decisions as Array<Record<string,unknown>>) ?? [];
+  const constraints  = (contextContent.constraints as string[]) ?? [];
+  const konsepInti   = (materialContent.konsep_inti as Array<Record<string,unknown>>) ?? [];
+  const konteksNyata = (materialContent.konteks_nyata as Array<Record<string,unknown>>) ?? [];
+
+  const decisionIds  = decisions.map((_, i) => `CTX-${String(i+1).padStart(2,'0')}`);
+  const decisionText = decisions.map((d, i) =>
+    `${decisionIds[i]}: ${d.interpretation}\n` +
+    `  Prefer: ${(d.prefer as string[])?.join(', ') || '-'}\n` +
+    `  Avoid:  ${(d.avoid  as string[])?.join(', ') || '-'}`
+  ).join('\n');
+
+  return `BAGIAN 1 DARI 2 - ALUR PEMBELAJARAN.
+Diferensiasi dan LKS akan diminta terpisah. JANGAN tulis keduanya di sini.
+
+IDENTITAS PERTEMUAN (KONTEKS INPUT - jangan tulis ulang di output JSON):
+meeting_no: ${meetingNo} | jp: ${jp} | duration_minutes: ${durationMinutes}
+
+TP: ${authority.tp_judul}
+Deskripsi TP: ${authority.tp_deskripsi}
+Jenjang: ${authority.jenjang} | Mapel: ${authority.mapel}
+
+KKTP:
+${kktp.map((k,i) => `${i+1}. ${k.deskripsi}`).join('\n') || '(tidak ada)'}
+
+FORMATIVE CHECKPOINT PERTEMUAN ${meetingNo}:
+${formativeThis
+  ? `Expected evidence: ${formativeThis.expected_evidence}\nClassification anchor: ${JSON.stringify(formativeThis.classification_anchor)}`
+  : '(Tidak ada formative spesifik - rancang sendiri berdasarkan KKTP di atas)'}
+
+CONTEXT DECISIONS:
+${decisionText || '(tidak ada)'}
+Constraints tambahan: ${constraints.join(', ') || 'tidak ada'}
+
+MATERI INTI:
+${konsepInti.map(k => `- [${k.id}] ${k.judul}: ${k.penjelasan}`).join('\n') || '(tidak ada)'}
+
+KONTEKS NYATA:
+${konteksNyata.map(k => `- [${k.id}] ${k.deskripsi} (${k.sumber})`).join('\n') || '(tidak ada)'}
+
+FASILITAS KELAS:
+${facilities.length ? facilities.map(f => `- ${f}`).join('\n') : '- (tidak dispesifikasi)'}
+
+AKTIVITAS YANG DIHINDARI:
+${forbidden.length ? forbidden.map(f => `- ${f}`).join('\n') : '- (tidak ada)'}
+
+INSTRUKSI DURASI (KRITIS):
+Total planned_minutes semua activities HARUS persis = ${durationMinutes} menit.
+Tidak kurang, tidak lebih. Panduan: opening ~10%, understand ~25%, apply ~30%,
+reflect ~15%, closing ~10%. Sesuaikan angka agar totalnya persis ${durationMinutes}.
+
+INSTRUKSI PHASE (WAJIB):
+Lima phase HARUS masing-masing ada minimal 1 activity:
+opening, understand, apply, reflect, closing
+
+INSTRUKSI applied_context_decision_ids:
+Pilih minimal 1 ID dari: ${decisionIds.join(', ') || 'CTX-01'}
+
+JANGAN tulis field berikut - server yang mengisinya:
+meeting_no, jp, duration_minutes, step_id, duration_check, resource_refs,
+recovery_refs, assessment_checkpoint_id, differentiation_ref, teacher_notes.
+JANGAN tulis differentiation maupun worksheet di bagian ini.
+
+SETIAP activity WAJIB punya SEMUA field berikut:
+- title           : string
+- teacher_action  : string - apa yang guru lakukan
+- student_action  : string - apa yang siswa lakukan
+- completion_cue  : string - tanda aktivitas selesai
+- phase           : opening | understand | apply | reflect | closing
+- planned_minutes : integer > 0
+Tulis ringkas, 1-2 kalimat per field. Lebih baik teks pendek di semua field
+daripada ada field yang hilang.
+
+BENTUK OUTPUT (isi dengan konten nyata, jangan salin teks contoh):
+{"meeting_objective":"...","trigger_question":"...",
+ "activities":[{"title":"...","phase":"opening","planned_minutes":15,
+   "teacher_action":"...","student_action":"...","completion_cue":"..."}],
+ "formative_checkpoint":{"expected_evidence":"...",
+   "classification_anchor":{"paham":"...","hampir":"...","belum":"..."}},
+ "applied_context_decision_ids":["CTX-01"]}
+
+Output JSON murni. Tanpa markdown fence, tanpa teks tambahan.`;
+}
+
+// CALL 2 - differentiation + worksheet, berdasarkan hasil Call 1
+function buildDifferentiationPrompt(
+  meetingNo: number,
+  durationMinutes: number,
+  authority: Record<string, unknown>,
+  assessmentContent: Record<string, unknown>,
+  part1: Record<string, unknown>,
+): string {
+  const cls        = (authority.class_context as Record<string,unknown>) ?? {};
+  const facilities = (cls.fasilitas_tersedia as string[]) ?? [];
+  const forbidden  = (cls.aktivitas_dilarang as string[]) ?? [];
+  const kktp       = (assessmentContent.kktp as Array<Record<string,unknown>>) ?? [];
+
+  const acts = Array.isArray(part1.activities)
+    ? part1.activities as Array<Record<string,unknown>> : [];
+  const actSummary = acts.map((a, i) =>
+    `${i+1}. [${a.phase}] ${a.title} (${a.planned_minutes} menit) - siswa: ${a.student_action}`
+  ).join('\n');
+
+  const fc = (part1.formative_checkpoint as Record<string,unknown>) ?? {};
+
+  return `BAGIAN 2 DARI 2 - DIFERENSIASI DAN LKS.
+Alur pembelajaran sudah dirancang di bagian 1. Sekarang rancang diferensiasi
+yang RELEVAN dengan alur itu, plus lembar kerja bila perlu.
+
+TP: ${authority.tp_judul}
+Pertemuan ${meetingNo} - ${durationMinutes} menit
+
+ALUR YANG SUDAH DIRANCANG:
+${actSummary || '(tidak ada activity)'}
+
+FORMATIVE CHECKPOINT:
+Expected evidence: ${fc.expected_evidence ?? '-'}
+Classification anchor: ${JSON.stringify(fc.classification_anchor ?? {})}
+
+KKTP (acuan tingkat penguasaan):
+${kktp.map((k,i) =>
+  `${i+1}. ${k.deskripsi}\n   Paham: ${k.paham} | Hampir: ${k.hampir} | Belum: ${k.belum}`
+).join('\n') || '(tidak ada)'}
+
+FASILITAS KELAS:
+${facilities.length ? facilities.map(f => `- ${f}`).join('\n') : '- (tidak dispesifikasi)'}
+
+AKTIVITAS YANG DIHINDARI:
+${forbidden.length ? forbidden.map(f => `- ${f}`).join('\n') : '- (tidak ada)'}
+
+INSTRUKSI DIFERENSIASI (WAJIB):
+Tiga jalur - paham, hampir, belum. Tiap jalur WAJIB punya:
+- aktivitas     : deskripsi konkret dan spesifik, merujuk pada alur di atas.
+                  BUKAN kalimat generik seperti "beri perhatian lebih".
+- bukti_belajar : output yang dapat diamati guru secara langsung.
+Tidak boleh kosong. Tulis ringkas, 1-2 kalimat per field.
+
+INSTRUKSI LKS:
+Bila worksheet.required=true, tasks tidak boleh kosong dan hanya boleh memakai
+stimulus/resource dari fasilitas kelas di atas. Bila tidak perlu LKS, tulis
+required=false dan tasks array kosong.
+
+JANGAN tulis activities, formative_checkpoint, meeting_no, jp, atau
+duration_minutes di bagian ini - semuanya sudah ada.
+
+BENTUK OUTPUT (isi dengan konten nyata, jangan salin teks contoh):
+{"differentiation":{"paham":{"aktivitas":"...","bukti_belajar":"..."},
+   "hampir":{"aktivitas":"...","bukti_belajar":"..."},
+   "belum":{"aktivitas":"...","bukti_belajar":"..."}},
+ "worksheet":{"required":false,"tasks":[]}}
+
+Output JSON murni. Tanpa markdown fence, tanpa teks tambahan.`;
+}
+
+// Fallback differentiation bila Call 2 gagal - DITURUNKAN dari KKTP yang sudah
+// dikonfirmasi guru di Assessment Spec, bukan dikarang server. Validator
+// mewajibkan aktivitas + bukti_belajar tidak kosong untuk ketiga jalur, jadi
+// default kosong akan selalu ditolak; turunan KKTP inilah yang membuat jalur
+// "jangan abort" benar-benar bisa lolos validasi.
+function fallbackDifferentiation(
+  assessmentContent: Record<string, unknown>,
+): Record<string, unknown> {
+  const kktp  = (assessmentContent.kktp as Array<Record<string,unknown>>) ?? [];
+  const first = kktp[0] ?? {};
+  const desc  = String(first.deskripsi ?? 'kriteria ketuntasan TP ini');
+  const mk = (jalur: 'paham'|'hampir'|'belum', label: string) => {
+    const anchor = String(first[jalur] ?? '').trim();
+    return {
+      aktivitas: anchor
+        ? `${label} sesuai KKTP: ${anchor}`
+        : `${label} pada ${desc} dengan pendampingan guru sesuai kebutuhan.`,
+      bukti_belajar: anchor
+        ? `Guru mengamati bukti: ${anchor}`
+        : `Guru mengamati capaian siswa pada ${desc}.`,
+    };
+  };
+  return {
+    paham:  mk('paham',  'Pengayaan'),
+    hampir: mk('hampir', 'Penguatan'),
+    belum:  mk('belum',  'Pendampingan intensif'),
+  };
+}
+
 
 // ── Load selected artifact version (content + metadata) ───────────────────────
 type ArtifactVersion = {
@@ -710,13 +929,25 @@ Deno.serve(async (req) => {
       // non-2xx sampai ke UI sebagai 'Edge Function returned a non-2xx status
       // code' — pesan yang tidak berguna. Dengan 200 + field `error`, api.js
       // melempar Error(data.error) dan guru melihat penyebab sebenarnya.
-      let content: unknown;
+      // SPLIT GENERATE - dua panggilan AI, masing-masing dibatasi
+      // SPLIT_MAX_TOKENS / SPLIT_TIMEOUT_MS agar total tetap di bawah wall clock.
+      // Call 1 (alur pembelajaran) wajib berhasil; Call 2 (diferensiasi + LKS)
+      // boleh gagal dan jatuh ke fallback turunan KKTP supaya kerja Call 1
+      // tidak terbuang.
+      let part1: Record<string, unknown>;
       try {
-        const raw = await callAI(SYSTEM_PROMPT, buildMeetingPrompt(
-          meetingNo, jp, durMin, authority,
-          ctxVer.content, asmVer.content, matVer.content,
-        ));
-        content = normalizeMeetingContent(extractJson(raw), item, meetingNo);
+        const raw1 = await callAI(
+          SYSTEM_PROMPT,
+          buildActivitiesPrompt(
+            meetingNo, jp, durMin, authority,
+            ctxVer.content, asmVer.content, matVer.content,
+          ),
+          SPLIT_MAX_TOKENS, SPLIT_TIMEOUT_MS,
+        );
+        const parsed1 = extractJson(raw1);
+        if (!parsed1 || typeof parsed1 !== 'object' || Array.isArray(parsed1))
+          throw new Error('Bagian 1 bukan JSON object');
+        part1 = parsed1 as Record<string, unknown>;
       } catch (e) {
         const msg = e instanceof Error ? e.message : 'Error tidak diketahui';
         const { data: stErr } = await admin.rpc('fn_phase2c_get_pipeline_state', {
@@ -724,10 +955,50 @@ Deno.serve(async (req) => {
         });
         return reply({
           result: stErr,
-          error: `Pertemuan ${meetingNo} gagal di-generate: ${msg}`,
+          error: `Pertemuan ${meetingNo} gagal di-generate (bagian 1 - alur pembelajaran): ${msg}`,
           meeting_results: [{ meeting_no: meetingNo, status: 'failed', error: msg }],
         });
       }
+
+      // Call 2 - kegagalan TIDAK membatalkan request; pakai fallback dari KKTP.
+      let part2: Record<string, unknown>;
+      let part2Fallback = false;
+      try {
+        const raw2 = await callAI(
+          SYSTEM_PROMPT,
+          buildDifferentiationPrompt(
+            meetingNo, durMin, authority, asmVer.content, part1,
+          ),
+          SPLIT_MAX_TOKENS, SPLIT_TIMEOUT_MS,
+        );
+        const parsed2 = extractJson(raw2);
+        if (!parsed2 || typeof parsed2 !== 'object' || Array.isArray(parsed2))
+          throw new Error('Bagian 2 bukan JSON object');
+        part2 = parsed2 as Record<string, unknown>;
+      } catch (e) {
+        console.error('[generate_single_meeting] Call 2 gagal, pakai fallback KKTP:',
+          e instanceof Error ? e.message : e);
+        part2 = {};
+        part2Fallback = true;
+      }
+
+      const diffFromAi = part2.differentiation;
+      const diffOk = !!diffFromAi && typeof diffFromAi === 'object' && !Array.isArray(diffFromAi)
+        && ['paham','hampir','belum'].every(j => {
+             const d = (diffFromAi as Record<string,unknown>)[j] as Record<string,unknown> | undefined;
+             return !!d && String(d.aktivitas ?? '').trim() !== ''
+                        && String(d.bukti_belajar ?? '').trim() !== '';
+           });
+      if (!diffOk) part2Fallback = true;
+
+      const merged: Record<string, unknown> = {
+        ...part1,
+        ...part2,
+        differentiation: diffOk ? diffFromAi : fallbackDifferentiation(asmVer.content),
+        worksheet: part2.worksheet ?? { required: false, tasks: [] },
+      };
+
+      const content = normalizeMeetingContent(merged, item, meetingNo);
 
       const { data: validation } = await admin.rpc('fn_phase2_validate_meeting_plan', {
         p_content: content, p_expected_duration_minutes: durMin,
@@ -781,7 +1052,15 @@ Deno.serve(async (req) => {
       });
       return reply({
         result: state,
-        meeting_results: [{ meeting_no: meetingNo, status: 'generated', error: null }],
+        differentiation_fallback: part2Fallback,
+        meeting_results: [{
+          meeting_no: meetingNo,
+          status: 'generated',
+          error: null,
+          note: part2Fallback
+            ? 'Diferensiasi diturunkan otomatis dari KKTP karena bagian 2 gagal - periksa dan sesuaikan bila perlu'
+            : null,
+        }],
       });
     }
 
