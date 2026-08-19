@@ -1,5 +1,7 @@
 const db   = window.supabaseClient;
 const DAYS = ['SENIN','SELASA','RABU','KAMIS','JUMAT','SABTU'];
+// Profil ortu yang sedang login — dibutuhkan saat mengirim pesan ke guru.
+let _ortuProfileId = null;
 
 // ---- Attendance helpers (ortu) ----
 function _todayStr() {
@@ -240,7 +242,8 @@ function renderCard(classroom, guruName, siswaNama, schedules, linkedStudentId) 
     '<div class="card-student">Siswa: ' + escHtml(siswaNama)             + '</div>';
   card.appendChild(renderScheduleSection(schedules));
   if (linkedStudentId) card.appendChild(renderChildAttendanceSection(classroom.id, linkedStudentId, siswaNama));
-  if (linkedStudentId) card.appendChild(renderChildNotesSection(classroom.id, linkedStudentId));
+  if (linkedStudentId) card.appendChild(renderChildNotesSection(classroom, linkedStudentId));
+  if (linkedStudentId) card.appendChild(renderPesanGuruSection(classroom, linkedStudentId));
   if (linkedStudentId) card.appendChild(renderChildGradesSection(classroom.id, linkedStudentId));
   return card;
 }
@@ -256,7 +259,125 @@ async function getChildNotes(classroomId, linkedStudentId) {
   return data || [];
 }
 
-function renderChildNotesSection(classroomId, linkedStudentId) {
+// ---- Pesan ortu <-> guru ----------------------------------------------------
+// Satu tabel menampung dua hal: balasan atas catatan guru (note_id terisi) dan
+// pesan berdiri sendiri (note_id NULL), mis. memberi tahu anak tidak masuk.
+async function getChildMessages(classroomId, studentId) {
+  const { data, error } = await db.from('parent_messages')
+    .select('id, note_id, author_role, content, created_at, read_at')
+    .eq('classroom_id', classroomId)
+    .eq('student_id', studentId)
+    .order('created_at', { ascending: true });
+  if (error) { console.error('getChildMessages', error); return []; }
+  return data || [];
+}
+
+async function kirimPesanOrtu(classroom, studentId, noteId, content) {
+  const { data, error } = await db.from('parent_messages')
+    .insert({
+      classroom_id:      classroom.id,
+      teacher_id:        classroom.teacher_id,
+      student_id:        studentId,
+      note_id:           noteId,
+      author_profile_id: _ortuProfileId,
+      author_role:       'ORTU',
+      content,
+    })
+    .select('id, note_id, author_role, content, created_at, read_at')
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+function pesanItemHtml(m) {
+  const dariGuru = m.author_role === 'GURU';
+  const nama  = dariGuru ? 'Guru' : 'Anda';
+  const warna = dariGuru ? 'var(--gold)' : 'var(--color-text-muted)';
+  const tgl   = fmtTgl(String(m.created_at).slice(0, 10));
+  return `<div class="note-item" style="border-left:2px solid ${warna};padding-left:.6rem;margin-top:.4rem">
+    <div class="note-item-meta"><strong style="color:${warna}">${nama}</strong> · ${escHtml(tgl)}</div>
+    <div class="note-item-content">${escHtml(m.content)}</div>
+  </div>`;
+}
+
+// Kotak tulis pesan. onKirim menerima teks dan mengembalikan Promise.
+function komposerHtml(idKotak, placeholder, labelTombol) {
+  return `<div style="margin-top:.5rem">
+    <textarea id="${idKotak}" rows="2" maxlength="1000" placeholder="${escHtml(placeholder)}"
+      style="width:100%;box-sizing:border-box;padding:.5rem;border-radius:.4rem;
+      border:1px solid var(--color-border,rgba(255,255,255,.15));background:transparent;
+      color:inherit;font-family:inherit;font-size:.9rem;resize:vertical"></textarea>
+    <div style="display:flex;align-items:center;gap:.5rem;margin-top:.35rem">
+      <button type="button" id="${idKotak}-btn"
+        style="padding:.35rem .9rem;border:none;border-radius:.35rem;background:var(--gold);
+        color:var(--text-on-gold,#000);font-weight:600;cursor:pointer">${escHtml(labelTombol)}</button>
+      <span id="${idKotak}-msg" style="font-size:.8rem;color:var(--color-text-muted)"></span>
+    </div>
+  </div>`;
+}
+
+function wireKomposer(idKotak, onKirim) {
+  const ta  = document.getElementById(idKotak);
+  const btn = document.getElementById(idKotak + '-btn');
+  const msg = document.getElementById(idKotak + '-msg');
+  if (!ta || !btn) return;
+  btn.addEventListener('click', async () => {
+    const teks = ta.value.trim();
+    if (!teks) { msg.textContent = 'Pesan tidak boleh kosong.'; return; }
+    btn.disabled = true; msg.textContent = 'Mengirim…';
+    try {
+      await onKirim(teks);
+      ta.value = '';
+      msg.textContent = 'Terkirim.';
+    } catch (err) {
+      console.error('kirim pesan', err);
+      msg.textContent = 'Gagal mengirim. Coba lagi.';
+    } finally {
+      btn.disabled = false;
+    }
+  });
+}
+
+// Seksi pesan mandiri: percakapan yang tidak menempel pada catatan tertentu.
+function renderPesanGuruSection(classroom, studentId) {
+  const wrap = document.createElement('div');
+  wrap.className = 'notes-section';
+
+  const title = document.createElement('div');
+  title.className = 'sch-section-title';
+  title.textContent = 'Pesan ke Guru';
+  wrap.appendChild(title);
+
+  const body = document.createElement('div');
+  body.innerHTML = '<p class="att-empty">Memuat…</p>';
+  wrap.appendChild(body);
+
+  const idKotak = `pesan-${classroom.id}`;
+
+  function render(rows) {
+    const mandiri = rows.filter(m => !m.note_id);
+    const daftar  = mandiri.length
+      ? mandiri.map(pesanItemHtml).join('')
+      : '<p class="att-empty">Belum ada pesan. Gunakan kotak di bawah untuk menghubungi guru — misalnya bila anak Anda berhalangan hadir.</p>';
+    body.innerHTML = daftar + komposerHtml(idKotak, 'Tulis pesan untuk guru…', 'Kirim');
+    wireKomposer(idKotak, async (teks) => {
+      const baru = await kirimPesanOrtu(classroom, studentId, null, teks);
+      rows.push(baru);
+      render(rows);
+    });
+  }
+
+  getChildMessages(classroom.id, studentId)
+    .then(render)
+    .catch(err => {
+      console.error('pesan', err);
+      body.innerHTML = '<p class="att-empty">Gagal memuat pesan. Coba muat ulang halaman.</p>';
+    });
+
+  return wrap;
+}
+
+function renderChildNotesSection(classroom, linkedStudentId) {
   const wrap = document.createElement('div');
   wrap.className = 'notes-section';
 
@@ -269,19 +390,41 @@ function renderChildNotesSection(classroomId, linkedStudentId) {
   body.innerHTML = '<p class="att-empty">Memuat…</p>';
   wrap.appendChild(body);
 
-  getChildNotes(classroomId, linkedStudentId).then(rows => {
+  // Catatan dan balasannya dimuat bersamaan agar tiap catatan dapat langsung
+  // menampilkan riwayat percakapannya.
+  Promise.all([
+    getChildNotes(classroom.id, linkedStudentId),
+    getChildMessages(classroom.id, linkedStudentId),
+  ]).then(([rows, pesan]) => {
     if (rows.length === 0) {
       body.innerHTML = '<p class="att-empty">Belum ada catatan untuk anak Anda.</p>';
       return;
     }
-    body.innerHTML = rows.map(n => {
-      const tgl = fmtTgl(n.created_at.slice(0, 10));
-      const vis = n.is_visible_to_student ? '👨‍👩‍👦 Siswa &amp; Ortu' : '👨‍👩‍👧 Ortu saja';
-      return `<div class="note-item">
-        <div class="note-item-meta">${escHtml(tgl)} · <span style="font-size:.8rem;color:var(--color-text-muted)">${vis}</span></div>
-        <div class="note-item-content">${escHtml(n.content)}</div>
-      </div>`;
-    }).join('');
+
+    function render() {
+      body.innerHTML = rows.map(n => {
+        const tgl = fmtTgl(n.created_at.slice(0, 10));
+        const vis = n.is_visible_to_student ? '👨‍👩‍👦 Siswa &amp; Ortu' : '👨‍👩‍👧 Ortu saja';
+        const balasan = pesan.filter(m => m.note_id === n.id).map(pesanItemHtml).join('');
+        const idKotak = `balas-${n.id}`;
+        return `<div class="note-item">
+          <div class="note-item-meta">${escHtml(tgl)} · <span style="font-size:.8rem;color:var(--color-text-muted)">${vis}</span></div>
+          <div class="note-item-content">${escHtml(n.content)}</div>
+          <div style="margin-left:.5rem">${balasan}</div>
+          ${komposerHtml(idKotak, 'Tulis balasan untuk guru…', 'Balas')}
+        </div>`;
+      }).join('');
+
+      rows.forEach(n => {
+        wireKomposer(`balas-${n.id}`, async (teks) => {
+          const baru = await kirimPesanOrtu(classroom, linkedStudentId, n.id, teks);
+          pesan.push(baru);
+          render();
+        });
+      });
+    }
+
+    render();
   }).catch(err => {
     console.error('notes', err);
     body.innerHTML = '<p class="att-empty">Gagal memuat data. Coba muat ulang halaman.</p>';
@@ -479,6 +622,7 @@ async function init() {
     return;
   }
 
+  _ortuProfileId = profile.id;
   document.getElementById('ortu-name').textContent = session.user.user_metadata?.nama || profile.full_name;
 
   if (profile.role !== 'ORTU') {

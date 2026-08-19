@@ -542,15 +542,149 @@
   }
 
   // ---------------------------------------------------------------------------
+  // Pesan dari Ortu — kanal dua arah ortu <-> guru
+  // ---------------------------------------------------------------------------
+
+  let _pesan = [];
+
+  async function loadPesanOrtu() {
+    const { data, error } = await client
+      .from('parent_messages')
+      .select('id, note_id, student_id, author_role, content, created_at, read_at')
+      .eq('classroom_id', classroomId)
+      .order('created_at', { ascending: true });
+    if (error) { console.error('[pesan-ortu] gagal memuat:', error); _pesan = []; return; }
+    _pesan = data || [];
+  }
+
+  // Tandai seluruh pesan ortu di satu percakapan sebagai sudah dibaca.
+  async function tandaiDibaca(studentId) {
+    const belum = _pesan.filter(m =>
+      m.student_id === studentId && m.author_role === 'ORTU' && !m.read_at);
+    if (!belum.length) return;
+    const { error } = await client.from('parent_messages')
+      .update({ read_at: new Date().toISOString() })
+      .in('id', belum.map(m => m.id));
+    if (error) { console.error('[pesan-ortu] gagal menandai dibaca:', error); return; }
+    const kini = new Date().toISOString();
+    belum.forEach(m => { m.read_at = kini; });
+  }
+
+  async function balasPesan(studentId, noteId, content) {
+    const { data, error } = await client.from('parent_messages')
+      .insert({
+        classroom_id:      classroomId,
+        teacher_id:        teacherId,
+        student_id:        studentId,
+        note_id:           noteId,
+        author_profile_id: teacherId,
+        author_role:       'GURU',
+        content,
+      })
+      .select('id, note_id, student_id, author_role, content, created_at, read_at')
+      .single();
+    if (error) throw error;
+    return data;
+  }
+
+  function renderPesanOrtu() {
+    const listEl = document.getElementById('pesan-ortu-list');
+    if (!listEl) return;
+
+    // Kelompokkan per siswa; satu kartu = satu percakapan
+    const perSiswa = {};
+    _pesan.forEach(m => {
+      (perSiswa[m.student_id] = perSiswa[m.student_id] || []).push(m);
+    });
+    const idSiswa = Object.keys(perSiswa);
+
+    const belumDibaca = _pesan.filter(m => m.author_role === 'ORTU' && !m.read_at).length;
+    const hdr = document.querySelector('#panel-catatan h2[data-panel="pesan-ortu-body"]');
+    if (hdr) {
+      const dasar = 'Pesan dari Ortu';
+      const teks  = belumDibaca ? `${dasar} (${belumDibaca} baru)` : dasar;
+      const arrow = hdr.querySelector('.panel-collapse-arrow');
+      hdr.textContent = teks + ' ';
+      if (arrow) hdr.appendChild(arrow);
+    }
+
+    if (!idSiswa.length) {
+      listEl.innerHTML = '<p class="empty-state">Belum ada pesan dari orang tua.</p>';
+      return;
+    }
+
+    listEl.innerHTML = idSiswa.map(sid => {
+      const nama  = rosterName(sid);
+      const pesan = perSiswa[sid];
+      const baru  = pesan.filter(m => m.author_role === 'ORTU' && !m.read_at).length;
+      const isi   = pesan.map(m => {
+        const dariGuru = m.author_role === 'GURU';
+        const label    = dariGuru ? 'Anda' : 'Ortu';
+        const warna    = dariGuru ? 'var(--text-secondary)' : 'var(--gold)';
+        const tandaBaru = (!dariGuru && !m.read_at) ? ' <span style="color:var(--gold)">•</span>' : '';
+        return `<div style="border-left:2px solid ${warna};padding-left:.6rem;margin:.4rem 0">
+          <div style="font-size:var(--fs-caption);color:var(--text-muted)">
+            <strong style="color:${warna}">${esc(label)}</strong> · ${fmtDate(m.created_at)}${tandaBaru}
+          </div>
+          <div style="font-size:var(--fs-caption);color:var(--text-primary)">${esc(m.content)}</div>
+        </div>`;
+      }).join('');
+
+      return `<div class="note-card" data-sid="${esc(sid)}" style="margin-bottom:.75rem">
+        <div class="note-card-header">
+          <span class="note-student-name">${esc(nama)}</span>
+          ${baru ? `<span style="font-size:var(--fs-caption);color:var(--gold)">${baru} belum dibaca</span>` : ''}
+        </div>
+        ${isi}
+        <textarea class="pesan-balas-input" data-sid="${esc(sid)}" rows="2" maxlength="1000"
+          placeholder="Tulis balasan untuk orang tua…"
+          style="width:100%;box-sizing:border-box;padding:.5rem;margin-top:.4rem;border-radius:.4rem;
+          border:1px solid var(--border);background:transparent;color:inherit;font-family:inherit;
+          font-size:.875rem;resize:vertical"></textarea>
+        <div style="display:flex;align-items:center;gap:.5rem;margin-top:.35rem">
+          <button type="button" class="btn-pesan-balas" data-sid="${esc(sid)}"
+            style="padding:.35rem .9rem;border:none;border-radius:.35rem;background:var(--gold);
+            color:var(--text-on-gold,#000);font-weight:600;cursor:pointer">Balas</button>
+          <span class="pesan-balas-msg" data-sid="${esc(sid)}"
+            style="font-size:var(--fs-caption);color:var(--text-muted)"></span>
+        </div>
+      </div>`;
+    }).join('');
+
+    listEl.querySelectorAll('.btn-pesan-balas').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const sid = btn.dataset.sid;
+        const ta  = listEl.querySelector(`.pesan-balas-input[data-sid="${sid}"]`);
+        const msg = listEl.querySelector(`.pesan-balas-msg[data-sid="${sid}"]`);
+        const teks = (ta?.value ?? '').trim();
+        if (!teks) { if (msg) msg.textContent = 'Balasan tidak boleh kosong.'; return; }
+        btn.disabled = true;
+        if (msg) msg.textContent = 'Mengirim…';
+        try {
+          const baru = await balasPesan(sid, null, teks);
+          _pesan.push(baru);
+          await tandaiDibaca(sid);
+          renderPesanOrtu();
+        } catch (err) {
+          console.error('[pesan-ortu] gagal membalas:', err);
+          if (msg) msg.textContent = 'Gagal mengirim: ' + (err.message || 'coba lagi');
+          btn.disabled = false;
+        }
+      });
+    });
+  }
+
+  // ---------------------------------------------------------------------------
   // Init tab catatan
   // ---------------------------------------------------------------------------
 
   async function initNotes() {
-    await Promise.all([loadRoster(), loadNotes()]);
+    await Promise.all([loadRoster(), loadNotes(), loadPesanOrtu()]);
     initForm();
     initFilter();
     initCollapseSections();
     initExtraFilters();
+    renderPesanOrtu();
   }
 
   // ---------------------------------------------------------------------------
