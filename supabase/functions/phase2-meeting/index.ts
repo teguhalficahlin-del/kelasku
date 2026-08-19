@@ -226,6 +226,13 @@ PENTING: Output harus selesai dalam satu respons. Jika perlu memilih antara deta
 dan kelengkapan, pilih kelengkapan. Potong deskripsi jika perlu, tapi jangan potong
 struktur JSON.
 
+FIELD WAJIB yang HARUS ada di root JSON:
+- meeting_no: ${meetingNo}
+- jp: ${jp}
+- duration_minutes: ${durationMinutes}
+Nilai ketiga field ini sudah ditentukan — jangan ubah, jangan hilangkan, selalu
+tampilkan di output.
+
 Output JSON murni — schema wajib sesuai kontrak meeting_plan. Tanpa markdown fence, tanpa teks tambahan.`;
 }
 
