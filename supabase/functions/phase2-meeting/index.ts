@@ -100,6 +100,42 @@ function extractJson(raw: string): unknown {
   throw new Error('Output AI tidak dapat diparsing sebagai JSON');
 }
 
+// ── Normalisasi konten MEETING_PLAN sebelum validasi ──────────────────────────
+// Dua kelas field yang tidak perlu bergantung pada kepatuhan AI:
+//   1. meeting_no / jp / duration_minutes — server yang otoritatif (dari
+//      rancang_meeting_allocation_items). Prompt pun menyatakan ketiganya tidak
+//      boleh diubah AI, jadi nilai server selalu menang.
+//   2. step_id — deterministik dari urutan activity, diisi otomatis bila hilang.
+// Field lain (title, teacher_action, student_action, completion_cue, phase,
+// planned_minutes) TIDAK diisi otomatis: itu konten nyata yang tidak boleh
+// dikarang server, dan validator tetap menolak bila AI menghilangkannya.
+function normalizeMeetingContent(
+  raw: unknown, meetingNo: number, jp: number, durationMinutes: number,
+): Record<string, unknown> {
+  const c: Record<string, unknown> =
+    (raw && typeof raw === 'object' && !Array.isArray(raw))
+      ? { ...(raw as Record<string, unknown>) }
+      : {};
+
+  c.meeting_no       = meetingNo;
+  c.jp               = jp;
+  c.duration_minutes = durationMinutes;
+
+  if (Array.isArray(c.activities)) {
+    c.activities = (c.activities as unknown[]).map((a, i) => {
+      const act: Record<string, unknown> =
+        (a && typeof a === 'object' && !Array.isArray(a))
+          ? { ...(a as Record<string, unknown>) }
+          : {};
+      const sid = typeof act.step_id === 'string' ? act.step_id.trim() : '';
+      if (!sid) act.step_id = `m${meetingNo}-s${String(i + 1).padStart(2, '0')}`;
+      return act;
+    });
+  }
+  return c;
+}
+
+
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 function isValidUuidV4(s: string): boolean { return UUID_RE.test(s); }
 
@@ -226,12 +262,38 @@ PENTING: Output harus selesai dalam satu respons. Jika perlu memilih antara deta
 dan kelengkapan, pilih kelengkapan. Potong deskripsi jika perlu, tapi jangan potong
 struktur JSON.
 
-FIELD WAJIB yang HARUS ada di root JSON:
-- meeting_no: ${meetingNo}
+FIELD WAJIB di root JSON:
+- meeting_no: ${meetingNo}   (sudah ditentukan — jangan ubah, jangan hilangkan)
 - jp: ${jp}
 - duration_minutes: ${durationMinutes}
-Nilai ketiga field ini sudah ditentukan — jangan ubah, jangan hilangkan, selalu
-tampilkan di output.
+- activities: array, minimal 1 item; tiap phase minimal 1 activity
+- formative_checkpoint: object, wajib punya classification_anchor berisi paham, hampir, belum
+- differentiation: object, wajib punya paham, hampir, belum — masing-masing berisi
+  aktivitas dan bukti_belajar yang tidak boleh kosong
+- applied_context_decision_ids: array, minimal 1 ID
+- worksheet: opsional; bila required=true maka tasks tidak boleh kosong
+
+SETIAP activity WAJIB punya SEMUA field berikut — tidak boleh ada yang hilang:
+- step_id         : string, format m${meetingNo}-s01, m${meetingNo}-s02, dst berurutan
+- title           : string
+- teacher_action  : string — apa yang guru lakukan
+- student_action  : string — apa yang siswa lakukan
+- completion_cue  : string — tanda aktivitas selesai
+- phase           : salah satu dari opening | understand | apply | reflect | closing
+- planned_minutes : integer > 0
+Lebih baik teks pendek di semua field daripada ada field yang hilang.
+
+BENTUK OUTPUT (isi dengan konten nyata, jangan salin teks contoh):
+{"meeting_no":${meetingNo},"jp":${jp},"duration_minutes":${durationMinutes},
+ "activities":[{"step_id":"m${meetingNo}-s01","title":"...","phase":"opening",
+   "planned_minutes":15,"teacher_action":"...","student_action":"...","completion_cue":"..."}],
+ "formative_checkpoint":{"expected_evidence":"...",
+   "classification_anchor":{"paham":"...","hampir":"...","belum":"..."}},
+ "differentiation":{"paham":{"aktivitas":"...","bukti_belajar":"..."},
+   "hampir":{"aktivitas":"...","bukti_belajar":"..."},
+   "belum":{"aktivitas":"...","bukti_belajar":"..."}},
+ "applied_context_decision_ids":["CTX-01"],
+ "worksheet":{"required":false,"tasks":[]}}
 
 Output JSON murni — schema wajib sesuai kontrak meeting_plan. Tanpa markdown fence, tanpa teks tambahan.`;
 }
@@ -361,9 +423,12 @@ Deno.serve(async (req) => {
     const SYSTEM_PROMPT =
       'Anda adalah perancang pembelajaran.\n' +
       'Hanya keluarkan JSON valid tanpa teks tambahan, tanpa markdown fence.\n' +
-      'Buat output yang RINGKAS. Setiap string maksimal 2 kalimat. Hindari ' +
-      'penjelasan panjang. Prioritaskan kelengkapan struktur JSON di atas ' +
-      'detail narasi.';
+      'Tulis isi setiap field secara RINGKAS — 1-2 kalimat sudah cukup.\n' +
+      'Keringkasan berlaku pada PANJANG TEKS, BUKAN pada jumlah field. ' +
+      'JANGAN pernah menghilangkan field apa pun demi menghemat tempat: ' +
+      'field yang hilang membuat seluruh output ditolak, sedangkan teks ' +
+      'pendek tetap diterima. Kelengkapan struktur selalu lebih penting ' +
+      'daripada detail narasi.';
 
     // ── Helper: build standard dependencies array for a meeting item ──────────
     const makeMeetingDeps = async (
@@ -477,7 +542,7 @@ Deno.serve(async (req) => {
               meetingNo, jp, durMin, authority,
               ctxVer.content, asmVer.content, matVer.content, violationHint,
             ));
-            const content = extractJson(raw);
+            const content = normalizeMeetingContent(extractJson(raw), meetingNo, jp, durMin);
 
             const { data: validation } = await admin.rpc('fn_phase2_validate_meeting_plan', {
               p_content: content, p_expected_duration_minutes: durMin,
@@ -621,7 +686,7 @@ Deno.serve(async (req) => {
           meetingNo, jp, durMin, authority,
           ctxVer.content, asmVer.content, matVer.content,
         ));
-        content = extractJson(raw);
+        content = normalizeMeetingContent(extractJson(raw), meetingNo, jp, durMin);
       } catch (e) {
         const msg = e instanceof Error ? e.message : 'Error tidak diketahui';
         const { data: stErr } = await admin.rpc('fn_phase2c_get_pipeline_state', {
@@ -761,7 +826,7 @@ Deno.serve(async (req) => {
         ctxVer.content, asmVer.content, matVer.content,
       ));
       let content: unknown;
-      try { content = extractJson(raw); }
+      try { content = normalizeMeetingContent(extractJson(raw), meetingNo, item.jp as number, durMin); }
       catch { return reply({ error: 'Output AI tidak valid — coba lagi' }, 409); }
 
       const { data: validation } = await admin.rpc('fn_phase2_validate_meeting_plan', {
