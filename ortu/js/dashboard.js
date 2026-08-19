@@ -339,6 +339,35 @@ function wireKomposer(idKotak, onKirim) {
 }
 
 // Seksi pesan mandiri: percakapan yang tidak menempel pada catatan tertentu.
+// Jadikan satu seksi dapat dilipat, default tertutup.
+// Kartu classroom di layar HP jadi ringkas; pembaca membuka bagian yang
+// ingin dilihat saja. Menerima beberapa elemen isi karena sebagian seksi
+// punya baris keterangan di atas badannya.
+function pasangCollapse(title, ...isi) {
+  const arrow = document.createElement('span');
+  arrow.textContent = '▶';
+  arrow.style.cssText = 'float:right;font-size:.8em;opacity:.7';
+  title.appendChild(arrow);
+  title.style.cursor = 'pointer';
+  title.setAttribute('role', 'button');
+  title.setAttribute('tabindex', '0');
+  title.setAttribute('aria-expanded', 'false');
+
+  isi.forEach(el => { if (el) el.style.display = 'none'; });
+
+  function toggle() {
+    const tertutup = isi[0] && isi[0].style.display === 'none';
+    isi.forEach(el => { if (el) el.style.display = tertutup ? '' : 'none'; });
+    arrow.textContent = tertutup ? '▼' : '▶';
+    title.setAttribute('aria-expanded', tertutup ? 'true' : 'false');
+  }
+
+  title.addEventListener('click', toggle);
+  title.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
+  });
+}
+
 function renderPesanGuruSection(classroom, studentId) {
   const wrap = document.createElement('div');
   wrap.className = 'notes-section';
@@ -351,6 +380,8 @@ function renderPesanGuruSection(classroom, studentId) {
   const body = document.createElement('div');
   body.innerHTML = '<p class="att-empty">Memuat…</p>';
   wrap.appendChild(body);
+
+  pasangCollapse(title, body);
 
   const idKotak = `pesan-${classroom.id}`;
 
@@ -393,6 +424,8 @@ function renderChildNotesSection(classroom, linkedStudentId) {
   const body = document.createElement('div');
   body.innerHTML = '<p class="att-empty">Memuat…</p>';
   wrap.appendChild(body);
+
+  pasangCollapse(title, hint, body);
 
   getChildNotes(classroom.id, linkedStudentId).then(rows => {
     if (rows.length === 0) {
@@ -488,6 +521,8 @@ function renderChildGradesSection(classroomId, studentId) {
   const body = document.createElement('div');
   body.innerHTML = '<p class="att-empty">Memuat…</p>';
   wrap.appendChild(body);
+
+  pasangCollapse(title, body);
 
   Promise.all([getChildItems(classroomId), getChildGrades(classroomId)]).then(([items, grades]) => {
     let html = '';
