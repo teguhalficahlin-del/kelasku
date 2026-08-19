@@ -13,7 +13,7 @@ const LOCKED_ROLES = new Set([
 ]);
 const PROMPT_VERSION = 'phase2-meeting-v1.0';
 const MODEL          = 'claude-sonnet-4-6';
-const AI_TIMEOUT_MS  = 55_000;
+const AI_TIMEOUT_MS  = 150_000;
 
 const reply = (body: unknown, status = 200) =>
   Response.json(body, { status, headers: CORS });
