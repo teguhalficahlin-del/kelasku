@@ -17,7 +17,7 @@
  */
 'use strict';
 
-const CACHE_NAME = 'sip-app-v1';
+const CACHE_NAME = 'miclass-v2';
 
 // Relatif terhadap lokasi sw.js, sehingga tidak bergantung pada nama repo.
 const PRECACHE_URLS = [
@@ -29,6 +29,23 @@ const PRECACHE_URLS = [
 ];
 
 const SUPABASE_HOSTS = ['supabase.co', 'supabase.in', 'supabase.com'];
+
+/**
+ * Ambil dari jaringan dengan validasi wajib ke server.
+ *
+ * cache:'no-cache' memaksa browser mengirim permintaan bersyarat
+ * (If-None-Match). GitHub Pages menyetel Cache-Control max-age=600, jadi tanpa
+ * ini browser boleh menyajikan berkas hingga 10 menit lama dari cache HTTP-nya
+ * sendiri — di luar kendali service worker. Dengan ETag, berkas yang tidak
+ * berubah dijawab 304 tanpa badan, sehingga biayanya nyaris nol sementara
+ * kesegarannya dijamin setiap kali.
+ *
+ * Ini yang membuat pembaruan tidak pernah tertahan: bukan hanya melewati cache
+ * service worker, tetapi juga cache HTTP browser.
+ */
+function ambilSegar(request) {
+  return fetch(request.url, { cache: 'no-cache', credentials: 'same-origin' });
+}
 
 function isSupabaseRequest(url) {
   try {
@@ -84,7 +101,7 @@ self.addEventListener('fetch', event => {
   // Navigasi (membuka halaman): network dulu, cache sebagai cadangan offline.
   if (request.mode === 'navigate') {
     event.respondWith(
-      fetch(request)
+      ambilSegar(request)
         .then(response => {
           if (response && response.status === 200) {
             const salinan = response.clone();
@@ -100,7 +117,7 @@ self.addEventListener('fetch', event => {
   // NETWORK FIRST — kode aplikasi
   if (isAppCode(url)) {
     event.respondWith(
-      fetch(request)
+      ambilSegar(request)
         .then(response => {
           if (response && response.status === 200 && response.type !== 'opaque') {
             const salinan = response.clone();
@@ -113,17 +130,21 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // CACHE FIRST — aset statis
+  // STALE-WHILE-REVALIDATE — aset statis (ikon, font, gambar)
+  // Disajikan cepat dari cache, tetapi selalu diperbarui di latar belakang.
+  // Sebelumnya cache-first murni: ikon yang diganti tidak akan pernah tampil
+  // baru selama cache-nya masih ada.
   if (isStaticAsset(url)) {
     event.respondWith(
       caches.match(request).then(cached => {
-        if (cached) return cached;
-        return fetch(request).then(response => {
-          if (!response || response.status !== 200 || response.type === 'opaque') return response;
-          const salinan = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(request, salinan));
+        const jaringan = fetch(request).then(response => {
+          if (response && response.status === 200 && response.type !== 'opaque') {
+            const salinan = response.clone();
+            caches.open(CACHE_NAME).then(cache => cache.put(request, salinan));
+          }
           return response;
-        }).catch(() => Response.error());
+        }).catch(() => cached || Response.error());
+        return cached || jaringan;
       })
     );
     return;

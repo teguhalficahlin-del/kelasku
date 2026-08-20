@@ -18,8 +18,26 @@
 
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function () {
-      navigator.serviceWorker.register(akar + 'sw.js', { scope: akar })
-        .catch(function (e) { console.warn('[pwa] pendaftaran service worker gagal:', e); });
+      // updateViaCache:'none' -> berkas sw.js sendiri tidak pernah diambil dari
+      // cache HTTP. Tanpa ini, perubahan pada service worker bisa tertahan
+      // selama masa berlaku Cache-Control yang disetel GitHub Pages.
+      navigator.serviceWorker.register(akar + 'sw.js', {
+        scope: akar,
+        updateViaCache: 'none',
+      }).then(function (reg) {
+        // Paksa pemeriksaan pembaruan setiap halaman dibuka, bukan menunggu
+        // jadwal pemeriksaan bawaan browser.
+        reg.update();
+
+        // Dan setiap kali pengguna kembali ke tab ini. Guru sering membiarkan
+        // aplikasi terbuka berjam-jam; tanpa ini mereka tetap memegang service
+        // worker lama sampai benar-benar memuat ulang halaman.
+        document.addEventListener('visibilitychange', function () {
+          if (document.visibilityState === 'visible') reg.update();
+        });
+      }).catch(function (e) {
+        console.warn('[pwa] pendaftaran service worker gagal:', e);
+      });
     });
   }
 
