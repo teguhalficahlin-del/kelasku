@@ -797,7 +797,7 @@
 
     if (navigator.share) {
       try {
-        await navigator.share({ title: 'Login SIP Mandiri — ' + row.full_name, text: msg });
+        await navigator.share({ title: 'Login MiClass — ' + row.full_name, text: msg });
       } catch (err) {
         if (err.name !== 'AbortError') { showShareFallback(msg); }
       }
@@ -1031,7 +1031,7 @@
     document.getElementById('cl-name').textContent    = classroom.name;
     document.getElementById('cl-code').textContent    = classroom.classroom_code;
     document.getElementById('cl-subject').textContent = classroom.subject || '';
-    document.title = 'SIP Mandiri — ' + classroom.name;
+    document.title = 'MiClass — ' + classroom.name;
 
     await loadTrialStatus();
     applyTrialGate();
@@ -1048,7 +1048,7 @@
   var HELP_CONTENT = {
     siswa: {
       title: 'Kelola Siswa',
-      intro: 'Tab ini adalah titik awal sebelum siswa bisa menggunakan SIP Mandiri. Daftarkan seluruh siswa terlebih dahulu, generate akun, lalu bagikan kredensial. Siswa yang belum punya akun tidak bisa login ke portal siswa maupun orang tuanya.',
+      intro: 'Tab ini adalah titik awal sebelum siswa bisa menggunakan MiClass. Daftarkan seluruh siswa terlebih dahulu, generate akun, lalu bagikan kredensial. Siswa yang belum punya akun tidak bisa login ke portal siswa maupun orang tuanya.',
       items: [
         { text: 'Tambah Siswa — isi <strong>Nama Lengkap</strong>, <strong>NIS</strong>, dan <strong>Nama Ortu</strong> (opsional), lalu klik Tambah. NIS harus unik per kelas.' },
         { text: 'Upload Daftar Siswa — klik <strong>Download Template Excel</strong> untuk unduh format yang benar. Kolom yang dikenali: <code>nama, nis, nama_ortu</code>. Upload file CSV, XLSX, atau XLS lalu klik Import. Header row di-skip otomatis jika NIS bukan angka. Jika NIS sudah ada, data diperbarui (upsert).' },

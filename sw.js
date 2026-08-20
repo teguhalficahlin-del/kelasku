@@ -1,5 +1,5 @@
 /**
- * sw.js — Service Worker seluruh aplikasi SIP Mandiri.
+ * sw.js — Service Worker seluruh aplikasi MiClass.
  *
  * Diletakkan di root situs (bukan di /guru/) karena dua alasan:
  *   1. Cakupannya harus meliputi start_url manifest agar aplikasi dapat dipasang

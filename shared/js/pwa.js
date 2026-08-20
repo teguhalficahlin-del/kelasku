@@ -75,7 +75,7 @@
     var prompt = e;
 
     var bar = buatBilah(
-      '<span style="flex:1">Install SIP Mandiri untuk membukanya langsung dari layar utama.</span>' +
+      '<span style="flex:1">Install MiClass untuk membukanya langsung dari layar utama.</span>' +
       '<button id="pwa-install" style="padding:.4rem .9rem;border:none;border-radius:.35rem;' +
       'background:#D4AF37;color:#0A0A0F;font-weight:600;cursor:pointer;font-family:inherit">Install</button>' +
       '<button id="pwa-tutup" aria-label="Tutup" style="background:transparent;border:none;' +

@@ -1,4 +1,4 @@
-/* Admin Portal — SIP Mandiri */
+/* Admin Portal — MiClass */
 
 const SUPABASE_URL     = 'https://teccdzetrdjowqemnuuc.supabase.co';
 const SUPABASE_ANON    = 'sb_publishable_7T4Y9_ty5cN6_NIZ4TalXA_ByYNtSwG';
