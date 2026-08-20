@@ -510,9 +510,20 @@ async function init() {
   let profile;
   try {
     profile = await getProfile(session.user.id);
-  } catch {
-    await db.auth.signOut();
-    window.location.href = 'index.html';
+  } catch (err) {
+    // JANGAN signOut di sini. Kegagalan memuat profil hampir selalu masalah
+    // jaringan sesaat — sinyal hilang saat aplikasi dibuka, atau server balas
+    // 5xx. Menghapus sesi karenanya memaksa login ulang padahal sesinya sah,
+    // dan itulah yang selama ini terasa seperti "logout sendiri".
+    console.error('[siswa] gagal memuat profil:', err);
+    document.getElementById('classroom-list').innerHTML =
+      '<div class="error-msg" style="text-align:center">' +
+      '<p>Gagal memuat data. Periksa koneksi internet Anda.</p>' +
+      '<button id="btn-coba-lagi" style="margin-top:.75rem;padding:.5rem 1.25rem;border:none;' +
+      'border-radius:.35rem;background:var(--gold);color:var(--text-on-gold,#000);' +
+      'font-weight:600;cursor:pointer">Coba lagi</button></div>';
+    document.getElementById('btn-coba-lagi')
+      ?.addEventListener('click', function () { window.location.reload(); });
     return;
   }
 

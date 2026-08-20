@@ -681,7 +681,21 @@ window.initCustomSelect = function (nativeEl, onChange) {
       if (!session) { window.location.href = 'index.html'; return; }
 
       const { data: profile, error: profileError } = await api.getProfile(session.user.id);
-      if (profileError || !profile) { window.location.href = 'index.html'; return; }
+      if (profileError || !profile) {
+        // Sesi masih sah — hanya profilnya gagal dimuat. Melempar ke halaman
+        // login di sini menciptakan lingkaran: halaman login melihat sesi masih
+        // ada, lalu melempar balik ke dashboard, dan seterusnya. Tampilkan
+        // kondisi gagal apa adanya dan biarkan pengguna mencoba lagi.
+        console.error('[guru] gagal memuat profil:', profileError);
+        document.getElementById('classroom-list').innerHTML =
+          '<div class="empty-state">' +
+          '<p>Gagal memuat data akun. Periksa koneksi internet Anda.</p>' +
+          '<button class="btn-buat-cl-empty" id="btn-coba-lagi">Coba lagi</button>' +
+          '</div>';
+        document.getElementById('btn-coba-lagi')
+          ?.addEventListener('click', function () { window.location.reload(); });
+        return;
+      }
 
       currentTeacherId = profile.id;
       currentRoleGuru  = profile.role_guru ?? null;

@@ -1005,7 +1005,22 @@
       .select('id, full_name')
       .eq('user_id', session.user.id)
       .single();
-    if (profileError || !profile) { window.location.href = 'index.html'; return; }
+    if (profileError || !profile) {
+      // Sama seperti di dashboard: jangan lempar ke halaman login saat sesi
+      // masih sah, karena halaman login akan melempar balik ke sini.
+      console.error('[classroom] gagal memuat profil:', profileError);
+      document.body.insertAdjacentHTML('afterbegin',
+        '<div style="padding:1rem;margin:1rem;border:1px solid var(--border);' +
+        'border-radius:.5rem;text-align:center">' +
+        '<p>Gagal memuat data akun. Periksa koneksi internet Anda.</p>' +
+        '<button id="btn-coba-lagi" style="margin-top:.75rem;padding:.5rem 1.25rem;' +
+        'border:none;border-radius:.35rem;background:var(--gold);' +
+        'color:var(--text-on-gold,#000);font-weight:600;cursor:pointer">Coba lagi</button>' +
+        '</div>');
+      document.getElementById('btn-coba-lagi')
+        ?.addEventListener('click', function () { window.location.reload(); });
+      return;
+    }
     currentProfile = profile;
     document.getElementById('guru-name-cl').textContent = profile.full_name;
 
