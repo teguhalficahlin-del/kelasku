@@ -504,13 +504,33 @@ const JENIS_BADGE = {
 const TL_COLOR = { PENGAYAAN: 'var(--success)', PENGUATAN: 'var(--warning)', PENDAMPINGAN: 'var(--danger)' };
 
 // Skema penilaian v2: student_grades sudah di-DROP, digantikan assessment_results.
-// Baris dibatasi oleh RLS ke roster anak yang ditautkan ke ortu ini, jadi tidak
-// perlu (dan tidak bisa) memfilter student_id dari sisi klien — ortu tidak punya
-// hak baca ke baris roster anaknya.
+// student_id berisi id baris classroom_roster, bukan id profil, dan ortu tidak
+// punya policy baca apa pun ke classroom_roster. Terjemahannya diambil lewat
+// fn_child_roster_ids() — fungsi SECURITY DEFINER yang sama dengan yang dipakai
+// policy ar_ortu_select, dan sudah di-GRANT EXECUTE ke authenticated.
+// fn_child_profile_ids() sengaja TIDAK dipakai di sini: ia mengembalikan
+// profiles(id), ruang uuid yang berbeda, sehingga tidak akan cocok satu baris pun.
+async function getChildRosterIds() {
+  const { data, error } = await db.rpc('fn_child_roster_ids');
+  if (error) { console.error('getChildRosterIds', error); return []; }
+  return (data || []).map(r => (typeof r === 'string' ? r : r.fn_child_roster_ids));
+}
+
+// Pembatasan sebenarnya tetap di RLS (ar_ortu_select: student_id IN
+// fn_child_roster_ids() + gate is_visible_ortu). Filter .in() di bawah adalah
+// lapis kedua yang eksplisit.
+//
+// Catatan batas: daftar ini memuat roster SEMUA anak yang tertaut, jadi bila dua
+// anak berada di classroom yang sama, nilai keduanya masih tercampur pada kartu
+// masing-masing. Memisahkannya menuntut pemetaan anak -> baris roster yang belum
+// tersedia tanpa migrasi baru.
 async function getChildGrades(classroomId) {
+  const rosterIds = await getChildRosterIds();
+  if (!rosterIds.length) return [];
   const { data, error } = await db.from('assessment_results')
     .select('id, nilai, catatan, umpan_balik, tindak_lanjut, assessments!inner(jenis, teknik, tujuan, created_at)')
     .eq('classroom_id', classroomId)
+    .in('student_id', rosterIds)
     .order('created_at', { ascending: false });
   if (error) { console.error('getChildGrades', error); return []; }
   // Dinormalkan ke bentuk lama agar renderer di bawah tidak perlu diubah.
