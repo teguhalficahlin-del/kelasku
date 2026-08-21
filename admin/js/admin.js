@@ -17,6 +17,18 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON, {
 // Helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
+// Nama guru dan email berasal dari pendaftar, bukan dari sistem. Keduanya
+// disisipkan ke innerHTML di bawah, jadi wajib di-escape — tanpa ini nama
+// berisi markup akan dieksekusi di dalam sesi admin, yang memegang wewenang
+// aktivasi dan penghapusan akun. Sama persis dengan escHtml di modul guru.
+function escHtml(s) {
+  return String(s ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
 function showLoginError(msg) {
   const el = document.getElementById('login-error');
   el.textContent = msg;
@@ -62,20 +74,22 @@ function statusBadge(status) {
     belum_trial: 'badge-belum',
   };
   const cls = map[status] ?? 'badge-belum';
-  return `<span class="status-badge ${cls}">${status}</span>`;
+  return `<span class="status-badge ${cls}">${escHtml(status)}</span>`;
 }
 
 function actionButtons(guru) {
-  const hapusBtn = `<button class="btn-aksi btn-hapus" data-id="${guru.id}" data-nama="${guru.full_name}">Hapus</button>`;
+  const id   = escHtml(guru.id);
+  const nama = escHtml(guru.full_name);
+  const hapusBtn = `<button class="btn-aksi btn-hapus" data-id="${id}" data-nama="${nama}">Hapus</button>`;
   if (guru.status === 'AKTIF') {
     return `
-      <button class="btn-aksi btn-perpanjang" data-id="${guru.id}" data-nama="${guru.full_name}">Perpanjang</button>
-      <button class="btn-aksi btn-nonaktif"   data-id="${guru.id}" data-nama="${guru.full_name}">Nonaktifkan</button>
+      <button class="btn-aksi btn-perpanjang" data-id="${id}" data-nama="${nama}">Perpanjang</button>
+      <button class="btn-aksi btn-nonaktif"   data-id="${id}" data-nama="${nama}">Nonaktifkan</button>
       ${hapusBtn}
     `;
   }
   return `
-    <button class="btn-aksi btn-aktifkan" data-id="${guru.id}" data-nama="${guru.full_name}">Aktifkan</button>
+    <button class="btn-aksi btn-aktifkan" data-id="${id}" data-nama="${nama}">Aktifkan</button>
     ${hapusBtn}
   `;
 }
@@ -125,18 +139,18 @@ async function loadGurus() {
 
     emptyEl.style.display = 'none';
     list.innerHTML = data.map(g => `
-      <div class="guru-card" data-id="${g.id}">
+      <div class="guru-card" data-id="${escHtml(g.id)}">
         <div class="guru-card-header">
-          <span class="guru-nama">${g.full_name || '—'}</span>
+          <span class="guru-nama">${escHtml(g.full_name || '—')}</span>
           ${statusBadge(g.status)}
         </div>
         <div class="guru-meta">
-          <span class="guru-email">${g.username || '—'}</span>
-          <span class="guru-date">Daftar: ${formatDate(g.created_at)}</span>
+          <span class="guru-email">${escHtml(g.username || '—')}</span>
+          <span class="guru-date">Daftar: ${escHtml(formatDate(g.created_at))}</span>
         </div>
         <div class="guru-stats">
-          <span>Sisa: ${g.hari_tersisa > 0 ? g.hari_tersisa + ' hari' : '—'}</span>
-          <span>${g.classroom_count} classroom</span>
+          <span>Sisa: ${g.hari_tersisa > 0 ? escHtml(g.hari_tersisa) + ' hari' : '—'}</span>
+          <span>${escHtml(g.classroom_count)} classroom</span>
         </div>
         <div class="guru-aksi">
           ${actionButtons(g)}
