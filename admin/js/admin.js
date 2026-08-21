@@ -74,23 +74,47 @@ async function callAdmin(_tokenLama, body) {
   });
   const data = await res.json();
   if (!res.ok) {
-    if (res.status === 401) {
-      const err = new Error('Sesi Anda telah berakhir, silakan login kembali.');
+    // HANYA 401 dan 403 yang berarti sesinya memang tidak lagi berlaku:
+    // token kedaluwarsa, atau akun ini bukan admin. Selain itu — 5xx, timeout,
+    // sinyal putus — sesinya masih sah dan tidak boleh disentuh.
+    if (res.status === 401 || res.status === 403) {
+      const err = new Error(res.status === 403
+        ? 'Akun ini tidak memiliki akses admin.'
+        : 'Sesi Anda telah berakhir, silakan login kembali.');
       err.sesiBerakhir = true;
+      err.status = res.status;
       throw err;
     }
-    throw new Error(data.error || 'Permintaan gagal');
+    const err = new Error(data.error || 'Permintaan gagal');
+    err.status = res.status;
+    throw err;
   }
   return data;
 }
 
 // Sesi mati di tengah pekerjaan: kembalikan ke layar login dengan sebab yang
 // jelas, bukan pesan gagal yang membingungkan.
-async function tanganiSesiBerakhir() {
+async function tanganiSesiBerakhir(err) {
   try { await sb.auth.signOut(); } catch (_) {}
   _token = null;
   showLogin();
-  showLoginError('Sesi Anda telah berakhir, silakan login kembali.');
+  showLoginError((err && err.message) || 'Sesi Anda telah berakhir, silakan login kembali.');
+}
+
+// Kegagalan yang BUKAN soal wewenang: tampilkan apa adanya beserta jalan
+// keluarnya, dan biarkan sesinya utuh. Pola yang sama dipakai portal guru,
+// siswa, dan ortu sejak 5c01cb0.
+function tampilkanGagalMuat(err) {
+  console.error('[admin] gagal memuat data:', err);
+  const el = document.getElementById('error-state');
+  el.innerHTML =
+    '<p>Gagal memuat data. Periksa koneksi internet Anda.</p>' +
+    '<button id="btn-coba-lagi" style="margin-top:.75rem;padding:.5rem 1.25rem;border:none;' +
+    'border-radius:.35rem;background:var(--gold);color:var(--text-on-gold,#000);' +
+    'font-weight:600;cursor:pointer;font-family:inherit">Coba lagi</button>';
+  el.style.display = 'block';
+  document.getElementById('btn-coba-lagi')
+    ?.addEventListener('click', function () { loadGurus(); });
 }
 
 function formatDate(iso) {
@@ -194,8 +218,8 @@ async function loadGurus() {
 
   } catch (err) {
     loadEl.style.display = 'none';
-    if (err.sesiBerakhir) { await tanganiSesiBerakhir(); return; }
-    showDashboardError('Gagal memuat data: ' + err.message);
+    if (err.sesiBerakhir) { await tanganiSesiBerakhir(err); return; }
+    tampilkanGagalMuat(err);
   }
 }
 
@@ -217,7 +241,7 @@ document.getElementById('guru-list').addEventListener('click', async (e) => {
       await callAdmin(_token, { action: 'activate_guru', guru_id: guruId });
       await loadGurus();
     } catch (err) {
-      if (err.sesiBerakhir) { await tanganiSesiBerakhir(); return; }
+      if (err.sesiBerakhir) { await tanganiSesiBerakhir(err); return; }
       alert('Gagal aktifkan: ' + err.message);
       await loadGurus();
     }
@@ -231,7 +255,7 @@ document.getElementById('guru-list').addEventListener('click', async (e) => {
       await callAdmin(_token, { action: 'deactivate_guru', guru_id: guruId });
       await loadGurus();
     } catch (err) {
-      if (err.sesiBerakhir) { await tanganiSesiBerakhir(); return; }
+      if (err.sesiBerakhir) { await tanganiSesiBerakhir(err); return; }
       alert('Gagal nonaktifkan: ' + err.message);
       await loadGurus();
     }
@@ -244,7 +268,7 @@ document.getElementById('guru-list').addEventListener('click', async (e) => {
       await callAdmin(_token, { action: 'extend_guru', guru_id: guruId, days: 365 });
       await loadGurus();
     } catch (err) {
-      if (err.sesiBerakhir) { await tanganiSesiBerakhir(); return; }
+      if (err.sesiBerakhir) { await tanganiSesiBerakhir(err); return; }
       alert('Gagal perpanjang: ' + err.message);
       await loadGurus();
     }
@@ -259,7 +283,7 @@ document.getElementById('guru-list').addEventListener('click', async (e) => {
       await callAdmin(_token, { action: 'delete_guru', guru_id: guruId });
       await loadGurus();
     } catch (err) {
-      if (err.sesiBerakhir) { await tanganiSesiBerakhir(); return; }
+      if (err.sesiBerakhir) { await tanganiSesiBerakhir(err); return; }
       alert('Gagal hapus: ' + err.message);
       await loadGurus();
     }
@@ -290,13 +314,22 @@ document.getElementById('form-login').addEventListener('submit', async (e) => {
 
     _token = authData.session.access_token;
 
-    // Verifikasi akses admin via Edge Function — jika 403 berarti bukan admin
+    // Verifikasi akses admin via Edge Function.
     try {
       await callAdmin(_token, { action: 'list_gurus' });
     } catch (err) {
-      await sb.auth.signOut();
-      _token = null;
-      showLoginError('Akun ini tidak memiliki akses admin.');
+      if (err.sesiBerakhir) {
+        // 401/403 — memang tidak berhak. Sesinya dibuang.
+        await sb.auth.signOut();
+        _token = null;
+        showLoginError(err.message);
+      } else {
+        // Jaringan atau server bermasalah. Sebelumnya kasus ini juga dijawab
+        // "Akun ini tidak memiliki akses admin" — tuduhan yang keliru kepada
+        // admin yang sah, sekaligus membuang sesinya.
+        console.error('[admin] verifikasi akses gagal:', err);
+        showLoginError('Gagal terhubung ke server. Periksa koneksi internet Anda, lalu coba lagi.');
+      }
       return;
     }
 
@@ -333,14 +366,30 @@ document.getElementById('btn-refresh').addEventListener('click', () => loadGurus
   const { data: { session } } = await sb.auth.getSession();
   if (!session) return;
 
-  // Validasi session masih admin-valid
+  // Validasi session masih admin-valid.
+  //
+  // Sebelumnya blok catch di sini memanggil signOut() untuk SEMUA jenis galat,
+  // termasuk kegagalan jaringan sesaat. Admin yang membuka dashboard saat
+  // sinyal putus kehilangan sesinya betulan — bukan sekadar gagal memuat — dan
+  // harus login ulang padahal sesinya masih sah. Ini pola yang sudah diperbaiki
+  // untuk guru, siswa, dan ortu di 5c01cb0; portal admin terlewat.
   try {
     _token = session.access_token;
     await callAdmin(_token, { action: 'list_gurus' });
     showDashboard();
     await loadGurus();
-  } catch {
-    await sb.auth.signOut();
-    _token = null;
+  } catch (err) {
+    if (err.sesiBerakhir) {
+      // 401 sesi kedaluwarsa, atau 403 bukan admin — sesinya memang harus pergi.
+      await sb.auth.signOut();
+      _token = null;
+      showLoginError(err.message);
+      return;
+    }
+    // Selain itu sesinya dibiarkan utuh: tampilkan dashboard beserta galat dan
+    // tombol "Coba lagi", supaya admin bisa memuat ulang begitu sinyal kembali.
+    showDashboard();
+    document.getElementById('loading-state').style.display = 'none';
+    tampilkanGagalMuat(err);
   }
 })();
