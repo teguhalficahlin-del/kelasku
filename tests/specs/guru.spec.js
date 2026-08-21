@@ -42,6 +42,18 @@ test.describe('Portal Guru', () => {
       'Kelas uji belum punya jadwal hari ini — panel absensi kosong. ' +
       'Tambahkan jadwal untuk hari ini di kelas uji agar test ini berjalan.');
 
+    // Absensi hanya bisa diisi selama sesi berlangsung dan satu jam sesudahnya
+    // (sessionStatus AKTIF atau KOREKSI di classroom-attendance.js). Di luar
+    // jendela itu tombolnya memang disabled — itu perilaku yang benar, bukan
+    // regresi. Tanpa pemeriksaan ini, test akan merah setiap kali CI kebetulan
+    // jalan di jam yang salah, dan kegagalan palsu lebih buruk daripada tidak
+    // ada test sama sekali.
+    const tombolPertama = kartu.first().locator('.abs-status-btn[data-status="SAKIT"]');
+    test.skip(await tombolPertama.isDisabled(),
+      'Sesi absensi sedang di luar jendela pengisian (bukan AKTIF maupun ' +
+      'KOREKSI). Jalankan saat ada sesi berlangsung, atau sampai satu jam ' +
+      'setelah sesi berakhir.');
+
     const sasaran = Math.min(3, jml);
     for (let i = 0; i < sasaran; i++) {
       await kartu.nth(i).locator('.abs-status-btn[data-status="SAKIT"]').click();
