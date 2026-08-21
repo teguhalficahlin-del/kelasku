@@ -37,9 +37,21 @@ test.describe('Portal Ortu', () => {
     await bagian.locator('textarea').fill(isi);
     await bagian.locator('button', { hasText: 'Kirim' }).click();
 
-    // Konfirmasi pengiriman, lalu pesannya benar-benar muncul di percakapan.
-    await expect(bagian.locator('span', { hasText: 'Terkirim.' })).toBeVisible({ timeout: 20000 });
-    await expect(bagian.locator('.note-item-content', { hasText: isi })).toBeVisible();
+    // Yang diuji adalah pesannya benar-benar masuk ke percakapan — itu yang
+    // dilihat dan dibutuhkan orang tua.
+    //
+    // Keterangan "Terkirim." sengaja TIDAK diuji: pengiriman yang berhasil
+    // memanggil render() yang mengganti seluruh isi seksi, sehingga elemen
+    // status yang dipegang wireKomposer sudah terlepas dari dokumen sebelum
+    // teksnya ditulis. Keterangan itu tidak pernah sampai ke layar, dan
+    // menunggunya berarti menunggu sesuatu yang mustahil. Itu cacat tampilan
+    // tersendiri di ortu/js/dashboard.js, bukan sesuatu yang boleh ditutupi
+    // dengan mengendurkan test ini.
+    await expect(bagian.locator('.note-item-content', { hasText: isi }))
+      .toBeVisible({ timeout: 20000 });
+
+    // Kotak tulis dikosongkan kembali setelah render ulang, siap dipakai lagi.
+    await expect(bagian.locator('textarea')).toHaveValue('');
   });
 
   test('catatan tampil dengan visibilitas yang benar', async ({ page }) => {
