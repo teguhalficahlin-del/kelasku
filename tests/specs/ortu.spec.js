@@ -17,6 +17,7 @@ let _tokenGuru   = null;
 let _kelas       = null;
 let _roster2     = null;
 let _siapNegatif = false;
+let _galatSetup  = null;
 
 /** Buka satu bagian collapse berdasarkan judulnya, lalu kembalikan wadahnya. */
 async function bukaBagian(page, judul) {
@@ -29,14 +30,20 @@ async function bukaBagian(page, judul) {
 }
 
 test.describe('Portal Ortu', () => {
+  // Kegagalan penyiapan ditahan di sini, bukan dilempar keluar — beforeAll yang
+  // melempar menjatuhkan seluruh describe, termasuk test yang tidak berkaitan.
   test.beforeAll(async () => {
     if (envHilang(...WAJIB, ...WAJIB_NEGATIF).length > 0) return;
-    _tokenGuru = await tokenGuru();
-    _kelas     = await kelasUji(_tokenGuru);
-    await bersihkanPenilaianUji(_tokenGuru, _kelas.id);
-    _roster2 = await rosterByNis(_tokenGuru, _kelas.id, process.env.TEST_SISWA2_NIS);
-    await buatPenilaianUji(_tokenGuru, _kelas, _roster2.id);
-    _siapNegatif = true;
+    try {
+      _tokenGuru = await tokenGuru();
+      _kelas     = await kelasUji(_tokenGuru);
+      await bersihkanPenilaianUji(_tokenGuru, _kelas.id);
+      _roster2 = await rosterByNis(_tokenGuru, _kelas.id, process.env.TEST_SISWA2_NIS);
+      await buatPenilaianUji(_tokenGuru, _kelas, _roster2.id);
+      _siapNegatif = true;
+    } catch (err) {
+      _galatSetup = err.message;
+    }
   });
 
   test.afterAll(async () => {
@@ -135,8 +142,12 @@ test.describe('Portal Ortu', () => {
   // dashboard. Kontrolnya memastikan barisnya memang ada dan memang terbaca
   // oleh orang tua anak kedua.
   test('ortu tidak bisa membaca nilai anak orang lain', async ({ page, browser }) => {
-    test.skip(!_siapNegatif,
-      'Penyiapan dilewati — butuh ' + WAJIB_NEGATIF.join(', ') + '.');
+    // Kredensial belum diisi = dilewati. Penyiapan gagal = merah, sebab kalau
+    // dibiarkan lewat, proteksi lintas-anak berhenti diuji tanpa tanda apa pun.
+    test.skip(envHilang(...WAJIB_NEGATIF).length > 0,
+      'Kredensial belum diisi: ' + envHilang(...WAJIB_NEGATIF).join(', '));
+    expect(_galatSetup, 'Penyiapan penilaian uji gagal').toBeNull();
+    expect(_siapNegatif).toBe(true);
 
     // (1) Ortu pertama: harus kosong, dan harus 200 — ditolak RLS berarti baris
     //     tidak terlihat, bukan permintaan yang error.

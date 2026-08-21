@@ -13,22 +13,32 @@ const WAJIB_NEGATIF = [
   'TEST_GURU_EMAIL', 'TEST_GURU_PASSWORD', 'TEST_SISWA2_NAMA', 'TEST_SISWA2_NIS',
 ];
 
-let _tokenGuru = null;
-let _kelas     = null;
-let _roster2   = null;
+let _tokenGuru   = null;
+let _kelas       = null;
+let _roster2     = null;
 let _siapNegatif = false;
+let _galatSetup  = null;
 
 test.describe('Portal Siswa', () => {
+  // Kegagalan penyiapan sengaja ditahan di sini, bukan dilempar keluar.
+  // beforeAll yang melempar menjatuhkan SELURUH describe — pada run #15 satu
+  // NIS yang tidak ketemu membuat 10 test yang sama sekali tidak berkaitan
+  // ikut tidak berjalan. Yang boleh gagal hanyalah test yang benar-benar
+  // bergantung pada penyiapan ini.
   test.beforeAll(async () => {
     if (envHilang(...WAJIB, ...WAJIB_NEGATIF).length > 0) return;
-    _tokenGuru = await tokenGuru();
-    _kelas     = await kelasUji(_tokenGuru);
-    // Sapu sisa run yang mati sebelum sempat membersihkan, supaya penilaian
-    // bertanda uji tidak menumpuk di kelas sungguhan.
-    await bersihkanPenilaianUji(_tokenGuru, _kelas.id);
-    _roster2 = await rosterByNis(_tokenGuru, _kelas.id, process.env.TEST_SISWA2_NIS);
-    await buatPenilaianUji(_tokenGuru, _kelas, _roster2.id);
-    _siapNegatif = true;
+    try {
+      _tokenGuru = await tokenGuru();
+      _kelas     = await kelasUji(_tokenGuru);
+      // Sapu sisa run yang mati sebelum sempat membersihkan, supaya penilaian
+      // bertanda uji tidak menumpuk di kelas sungguhan.
+      await bersihkanPenilaianUji(_tokenGuru, _kelas.id);
+      _roster2 = await rosterByNis(_tokenGuru, _kelas.id, process.env.TEST_SISWA2_NIS);
+      await buatPenilaianUji(_tokenGuru, _kelas, _roster2.id);
+      _siapNegatif = true;
+    } catch (err) {
+      _galatSetup = err.message;
+    }
   });
 
   test.afterAll(async () => {
@@ -125,8 +135,13 @@ test.describe('Portal Siswa', () => {
   // memang terbaca oleh siswa kedua sendiri. Tanpa itu, hasil kosong pada siswa
   // pertama tidak membuktikan apa-apa — bisa saja barisnya tidak pernah ada.
   test('siswa lain tidak bisa membaca nilai siswa kedua', async ({ page, browser }) => {
-    test.skip(!_siapNegatif,
-      'Penyiapan dilewati — butuh ' + WAJIB_NEGATIF.join(', ') + '.');
+    // Kredensial yang belum diisi memang bukan bug aplikasi — itu dilewati.
+    // Tetapi penyiapan yang GAGAL harus merah: kalau dibiarkan lewat sebagai
+    // skip, proteksi lintas-siswa berhenti diuji tanpa satu pun tanda merah.
+    test.skip(envHilang(...WAJIB_NEGATIF).length > 0,
+      'Kredensial belum diisi: ' + envHilang(...WAJIB_NEGATIF).join(', '));
+    expect(_galatSetup, 'Penyiapan penilaian uji gagal').toBeNull();
+    expect(_siapNegatif).toBe(true);
 
     // (1) Siswa pertama: harus kosong, dan harus 200 — ditolak RLS berarti
     //     baris tidak terlihat, bukan permintaan yang error.

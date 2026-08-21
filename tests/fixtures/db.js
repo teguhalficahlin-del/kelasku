@@ -82,13 +82,33 @@ export async function bersihkanJadwalUji(token, classroomId) {
     { token, method: 'DELETE' });
 }
 
-/** Satu baris roster di kelas ini, dicari lewat NIS. */
+/**
+ * Satu baris roster di kelas ini, dicari lewat NIS.
+ *
+ * NIS-nya dipangkas lebih dulu: nilainya datang dari GitHub Secrets, dan spasi
+ * atau baris baru yang ikut terbawa saat menempel tidak terlihat di mana pun —
+ * pencarian gagal tanpa petunjuk apa pun tentang sebabnya.
+ */
 export async function rosterByNis(token, classroomId, nis) {
+  const bersih = String(nis ?? '').trim();
   const rows = await api(
     `/rest/v1/classroom_roster?classroom_id=eq.${classroomId}` +
-    `&nis=eq.${encodeURIComponent(nis)}&select=id,full_name,profile_id`,
+    `&nis=eq.${encodeURIComponent(bersih)}&select=id,full_name,profile_id`,
     { token });
-  if (!rows.length) throw new Error('Roster dengan NIS itu tidak ditemukan: ' + nis);
+  if (!rows.length) {
+    // Sebutkan berapa baris yang ADA di kelas ini. Tanpa itu, kegagalan ini
+    // tidak dapat dibedakan antara "NIS salah" dan "kelasnya salah", dan
+    // nilainya sendiri disensor GitHub sehingga tidak bisa dibaca dari log.
+    const semua = await api(
+      `/rest/v1/classroom_roster?classroom_id=eq.${classroomId}&select=nis`,
+      { token });
+    throw new Error(
+      `Roster dengan NIS itu tidak ditemukan di kelas uji. ` +
+      `Panjang NIS yang dicari: ${bersih.length} karakter. ` +
+      `Kelas ini punya ${semua.length} baris roster. ` +
+      `Periksa nilai TEST_SISWA2_NIS dan pastikan siswa kedua memang ada di ` +
+      `kelas ber-kode TEST_KODE_KELAS.`);
+  }
   return rows[0];
 }
 
