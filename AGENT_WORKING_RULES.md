@@ -56,7 +56,7 @@ Kalau salah satu dari dua verifikasi ini belum dilakukan, JANGAN lanjut ke peker
 - **TIDAK ADA** `git add + commit + push` digabung otomatis dalam satu langkah.
 - **TIDAK ADA** `supabase db push` (real, bukan dry-run) tanpa instruksi eksplisit terpisah setelah hasil dry-run ditinjau — berlaku bahkan kalau prompt sebelumnya sudah menyinggung soal "lanjut deploy".
 - Urutan deploy yang benar: `supabase db push` (setelah dry-run direview) → `supabase functions deploy` (kalau ada edge function berubah) → `git push`. Alasan urutan ini: mencegah jendela waktu di mana kode production yang sudah live memanggil RPC/fungsi yang belum ada di database remote.
-- `supabase functions deploy` dan `supabase functions list` di CLI versi proyek ini **tidak menerima** `--linked` — pakai `--project-ref xovvuuwexoweoqyltepq`. `supabase db push` tetap pakai `--linked`.
+- `supabase functions deploy` dan `supabase functions list` di CLI versi proyek ini **tidak menerima** `--linked` — pakai `--project-ref teccdzetrdjowqemnuuc`. `supabase db push` tetap pakai `--linked`.
 
 ---
 
