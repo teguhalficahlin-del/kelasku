@@ -1,7 +1,17 @@
 import { test, expect } from '@playwright/test';
 import { loginGuru, envHilang } from '../fixtures/auth.js';
+import {
+  tokenGuru, kelasUji, bersihkanJadwalUji, buatJadwalHariIni, hariIniUtc,
+} from '../fixtures/db.js';
 
 const WAJIB = ['TEST_BASE_URL', 'TEST_GURU_EMAIL', 'TEST_GURU_PASSWORD'];
+
+// Diisi beforeAll: id jadwal sepanjang hari yang dibuat khusus untuk test
+// absensi, supaya sesinya selalu AKTIF dan testnya tidak lagi bergantung pada
+// jam berapa CI kebetulan berjalan.
+let _idJadwalUji = null;
+let _tokenUji    = null;
+let _kelasUji    = null;
 
 /**
  * Buka kelas pertama dari dashboard guru.
@@ -54,6 +64,26 @@ async function bukaPanel(page, judul) {
 }
 
 test.describe('Portal Guru', () => {
+  test.beforeAll(async () => {
+    if (envHilang(...WAJIB, 'TEST_KODE_KELAS').length > 0) return;
+    // schedules.day_of_week tidak mengenal AHAD, jadi pada hari Minggu UTC
+    // jadwal uji memang tidak bisa dibuat — satu-satunya hari test absensi
+    // masih melewatkan diri.
+    if (hariIniUtc() === 'AHAD') return;
+
+    _tokenUji = await tokenGuru();
+    _kelasUji = await kelasUji(_tokenUji);
+    // Sapu sisa run sebelumnya lebih dulu: run yang mati sebelum sempat
+    // membersihkan tidak boleh menumpuk menjadi jadwal palsu di layar guru.
+    await bersihkanJadwalUji(_tokenUji, _kelasUji.id);
+    _idJadwalUji = await buatJadwalHariIni(_tokenUji, _kelasUji);
+  });
+
+  test.afterAll(async () => {
+    if (!_tokenUji || !_kelasUji) return;
+    await bersihkanJadwalUji(_tokenUji, _kelasUji.id);
+  });
+
   test.beforeEach(async ({ page }) => {
     const hilang = envHilang(...WAJIB);
     test.skip(hilang.length > 0, 'Kredensial belum diisi: ' + hilang.join(', '));
@@ -87,23 +117,26 @@ test.describe('Portal Guru', () => {
     await page.click('#tab-jadwal');
     await bukaPanel(page, 'Absensi Hari Ini');
 
-    const kartu = page.locator('#absensi-container .abs-card');
-    const jml   = await kartu.count();
-    test.skip(jml === 0,
-      'Kelas uji belum punya jadwal hari ini — panel absensi kosong. ' +
-      'Tambahkan jadwal untuk hari ini di kelas uji agar test ini berjalan.');
+    test.skip(!_idJadwalUji,
+      'Jadwal uji tidak dapat dibuat (hari Minggu UTC — schedules.day_of_week ' +
+      'tidak mengenal AHAD).');
 
-    // Absensi hanya bisa diisi selama sesi berlangsung dan satu jam sesudahnya
-    // (sessionStatus AKTIF atau KOREKSI di classroom-attendance.js). Di luar
-    // jendela itu tombolnya memang disabled — itu perilaku yang benar, bukan
-    // regresi. Tanpa pemeriksaan ini, test akan merah setiap kali CI kebetulan
-    // jalan di jam yang salah, dan kegagalan palsu lebih buruk daripada tidak
-    // ada test sama sekali.
-    const tombolPertama = kartu.first().locator('.abs-status-btn[data-status="SAKIT"]');
-    test.skip(await tombolPertama.isDisabled(),
-      'Sesi absensi sedang di luar jendela pengisian (bukan AKTIF maupun ' +
-      'KOREKSI). Jalankan saat ada sesi berlangsung, atau sampai satu jam ' +
-      'setelah sesi berakhir.');
+    // Sesi buatan test ini saja, dikenali lewat id jadwalnya. Kelas uji juga
+    // punya jadwal sungguhan milik guru, dan mengisi absensi di sesi itu
+    // berarti mengubah data yang bukan urusan test.
+    const sesi = page.locator(`.abs-session[data-schedule-id="${_idJadwalUji}"]`);
+    await expect(sesi).toBeVisible({ timeout: 20000 });
+
+    // Badan sesi tertutup secara bawaan (single expand).
+    const badanSesi = sesi.locator('.abs-session-body');
+    if (!(await badanSesi.isVisible())) {
+      await sesi.locator('.abs-sesi-header').click();
+    }
+    await expect(badanSesi).toBeVisible({ timeout: 10000 });
+
+    const kartu = sesi.locator('.abs-card');
+    const jml   = await kartu.count();
+    expect(jml, 'kelas uji harus punya siswa berakun').toBeGreaterThan(0);
 
     const sasaran = Math.min(3, jml);
     for (let i = 0; i < sasaran; i++) {
