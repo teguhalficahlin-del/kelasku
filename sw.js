@@ -17,7 +17,7 @@
  */
 'use strict';
 
-const CACHE_NAME = 'miclass-v3';
+const CACHE_NAME = 'miclass-v4';
 
 // Relatif terhadap lokasi sw.js, sehingga tidak bergantung pada nama repo.
 //
@@ -48,6 +48,11 @@ const PRECACHE_WAJIB = [
   'guru/js/classroom-schedule.js',
   'guru/js/classroom-attendance.js',
   'guru/js/classroom-notes.js',
+  // Pemulihan password. Tujuan tautan dari email, jadi kerap dibuka di
+  // perangkat dan jaringan yang berbeda dari sesi kerja biasa — justru saat
+  // guru sedang terkunci di luar aplikasi.
+  'guru/reset-password.html',
+  'guru/js/reset-password.js',
 ];
 
 // OPSIONAL — enak kalau ada, tetapi aplikasi tetap jalan tanpanya. Kegagalan
