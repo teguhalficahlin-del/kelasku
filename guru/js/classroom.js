@@ -1255,7 +1255,7 @@
         { text: 'Klik <strong>Isi Nilai</strong> pada setiap entri → isi nilai per siswa: D-NK (deskripsi teks), D-K (Paham Utuh/Sebagian/Tidak Paham), Formatif (teks, gunakan <strong>Salin ke semua yang kosong</strong>), Sumatif Skor (angka 0–100, label muncul otomatis), Sumatif Rubrik (pilih level per kriteria, skor dihitung otomatis).' },
         { text: 'Setelah isi nilai, tentukan <strong>Tindak Lanjut</strong> per siswa: Pengayaan / Penguatan / Pendampingan.' },
         { text: 'Visibilitas diatur lewat dua kotak centang di <strong>form penilaian</strong>, bukan tombol terpisah: <strong>Tampilkan ke siswa</strong> dan <strong>Tampilkan ke ortu</strong>. Buka penilaian → Edit → centang yang diinginkan → Simpan. Mencabut centang menarik nilai itu kembali dari portal kapan saja.' },
-        { text: '<strong>Penting:</strong> penilaian baru dibuat dalam keadaan <strong>tersembunyi</strong> — kedua kotak centang kosong secara default. Selama belum dicentang, siswa dan orang tua tidak melihat nilainya sama sekali. Ini disengaja: hasil diagnostik adalah alat kerja guru, bukan bahan yang perlu dibaca siswa.' }
+        { text: '<strong>Penting:</strong> nilai tersembunyi secara default. Centang checkbox untuk menampilkan ke siswa atau orang tua. Ini berlaku untuk <strong>semua jenis penilaian</strong> — Diagnostik, Formatif, maupun Sumatif: penilaian baru selalu dibuat dengan kedua kotak centang kosong. Selama belum dicentang, siswa dan orang tua tidak melihat nilainya sama sekali.' }
       ]
     }
   };

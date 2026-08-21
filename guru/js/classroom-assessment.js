@@ -814,13 +814,20 @@
 
   // Blok kendali visibilitas hasil penilaian ke portal siswa/ortu.
   // Diletakkan pada penilaian (bukan per nilai) — guru memutuskan sekali untuk
-  // satu penilaian. DIAGNOSTIK default tidak ditampilkan karena ia alat kerja
-  // guru untuk mengelompokkan siswa, bukan bahan bacaan siswa.
-  function visPenilaianHtml(item, jenis) {
+  // satu penilaian.
+  //
+  // Penilaian baru SELALU tersembunyi, apa pun jenisnya. Sebelumnya hanya
+  // DIAGNOSTIK yang tersembunyi sementara Formatif dan Sumatif tercentang
+  // otomatis, sehingga nilai sumatif terbit begitu disimpan — padahal petunjuk
+  // tab menjanjikan sebaliknya, dan default kolomnya di DB juga false.
+  // Menerbitkan nilai kini selalu tindakan sadar, bukan akibat samping menyimpan.
+  //
+  // Parameter jenis sengaja dipertahankan: pemanggilnya sudah mengirimkannya dan
+  // blok ini kemungkinan masih membutuhkannya bila kelak teksnya dibedakan.
+  function visPenilaianHtml(item, jenis) {  // eslint-disable-line no-unused-vars
     const baru   = !item;
-    const defOn  = jenis !== 'DIAGNOSTIK';
-    const cekSis = baru ? defOn : !!item.is_visible_siswa;
-    const cekOrt = baru ? defOn : !!item.is_visible_ortu;
+    const cekSis = baru ? false : !!item.is_visible_siswa;
+    const cekOrt = baru ? false : !!item.is_visible_ortu;
     return `
   <div>
     ${fieldLbl('Tampilkan hasil di portal')}
@@ -833,7 +840,8 @@
       <span>Tampilkan ke orang tua</span>
     </label>
     <div style="font-size:var(--fs-caption);color:var(--text-muted);margin-top:.35rem">
-      Bila tidak dicentang, nilai penilaian ini hanya terlihat oleh Anda.
+      Nilai tersembunyi secara default. Centang kotak di atas untuk menampilkan
+      ke siswa atau orang tua.
     </div>
   </div>`;
   }
