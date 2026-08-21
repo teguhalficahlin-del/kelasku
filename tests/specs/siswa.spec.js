@@ -55,8 +55,15 @@ test.describe('Portal Siswa', () => {
   // Penyadapnya dipasang lebih dulu lalu halaman dimuat ulang, sebab beforeEach
   // sudah selesai login dan permintaan pertamanya lewat sebelum test ini mulai.
   test('nilai hanya menampilkan milik siswa yang login', async ({ page }) => {
+    // Dashboard menanyakan classroom_roster dua kali. Yang pertama milik
+    // getClassrooms() dan memilih 'nama_ortu, classrooms(...)' — barisnya tidak
+    // punya kolom id sama sekali. Yang dicari di sini adalah permintaan kedua,
+    // milik getMyRosterIds(), yang memilih persis kolom id. Tanpa pembeda ini
+    // penyadapnya menangkap yang pertama dan rosterIds berisi [undefined].
     const menungguRoster = page.waitForResponse(
-      r => r.url().includes('/rest/v1/classroom_roster'), { timeout: 20000 });
+      r => r.url().includes('/rest/v1/classroom_roster')
+        && /[?&]select=id(&|$)/.test(decodeURIComponent(r.url())),
+      { timeout: 20000 });
     const menungguNilai = page.waitForRequest(
       r => r.url().includes('/rest/v1/assessment_results'), { timeout: 20000 });
 
