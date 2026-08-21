@@ -692,8 +692,6 @@
         if (!isOpen) {
           h2.classList.add('open');
           body.style.display = '';
-          // Membuka section Pesan berarti guru membacanya.
-          if (h2.dataset.panel === 'pesan-ortu-body') tandaiSemuaDibaca();
         }
       });
     });
@@ -715,22 +713,11 @@
     _pesan = data || [];
   }
 
-  // Tandai SEMUA pesan ortu yang belum dibaca. Dipanggil saat guru membuka
-  // section Pesan — sebelumnya read_at hanya terisi kalau guru membalas,
-  // sehingga badge "N baru" terus menyala meski pesannya sudah dibaca.
-  async function tandaiSemuaDibaca() {
-    const belum = _pesan.filter(m => m.author_role === 'ORTU' && !m.read_at);
-    if (!belum.length) return;
-    const { error } = await client.from('parent_messages')
-      .update({ read_at: new Date().toISOString() })
-      .in('id', belum.map(m => m.id));
-    if (error) { console.error('[pesan-ortu] gagal menandai dibaca:', error); return; }
-    const kini = new Date().toISOString();
-    belum.forEach(m => { m.read_at = kini; });
-    renderPesanOrtu();
-  }
-
   // Tandai seluruh pesan ortu di satu percakapan sebagai sudah dibaca.
+  // Dipanggil saat guru benar-benar MEMBUKA percakapan itu (atau membalasnya).
+  // Sebelumnya seluruh kotak masuk ditandai terbaca begitu section dibuka —
+  // dengan tampilan baru itu keliru, karena membuka section tidak lagi berarti
+  // membaca satu pesan pun.
   async function tandaiDibaca(studentId) {
     const belum = _pesan.filter(m =>
       m.student_id === studentId && m.author_role === 'ORTU' && !m.read_at);
@@ -807,32 +794,40 @@
     });
   }
 
-  function renderPesanOrtu() {
-    const listEl = document.getElementById('pesan-ortu-list');
-    if (!listEl) return;
+  // -- Section Pesan ---------------------------------------------------------
+  // Percakapan tidak lagi ditumpahkan semuanya begitu section dibuka. Guru
+  // menekan "Tampilkan Pesan" lebih dulu, lalu memilih satu siswa dari
+  // dropdown; hanya percakapan itu yang tampil. Dropdown berisi siswa yang
+  // memang punya percakapan -- bukan seluruh roster.
+  let _pesanTampil = false;   // sudah menekan "Tampilkan Pesan"?
+  let _pesanSid    = '';      // siswa yang percakapannya sedang dibuka
 
-    // Kelompokkan per siswa; satu kartu = satu percakapan
-    const perSiswa = {};
+  // Kelompokkan pesan per siswa. Satu entri = satu percakapan.
+  function percakapanPerSiswa() {
+    const peta = {};
     _pesan.forEach(m => {
-      (perSiswa[m.student_id] = perSiswa[m.student_id] || []).push(m);
+      (peta[m.student_id] = peta[m.student_id] || []).push(m);
     });
-    const idSiswa = Object.keys(perSiswa);
+    return peta;
+  }
 
+  function perbaruiBadgePesan() {
     const belumDibaca = _pesan.filter(m => m.author_role === 'ORTU' && !m.read_at).length;
     const hdr = document.querySelector('#panel-catatan h2[data-panel="pesan-ortu-body"]');
-    if (hdr) {
-      const dasar = 'Pesan';
-      const teks  = belumDibaca ? `${dasar} (${belumDibaca} baru)` : dasar;
-      const arrow = hdr.querySelector('.panel-collapse-arrow');
-      hdr.textContent = teks + ' ';
-      if (arrow) hdr.appendChild(arrow);
-    }
+    if (!hdr) return;
+    const teks  = belumDibaca ? `Pesan (${belumDibaca} baru)` : 'Pesan';
+    const arrow = hdr.querySelector('.panel-collapse-arrow');
+    hdr.textContent = teks + ' ';
+    if (arrow) hdr.appendChild(arrow);
+  }
 
-    // Guru harus dapat MEMULAI pesan, bukan sekadar membalas — tanpa ini,
-    // percakapan hanya bisa lahir dari sisi orang tua.
+  // Komposer pesan baru tetap ada dan tetap memakai seluruh roster: memulai
+  // percakapan dengan siswa yang belum pernah berkirim pesan hanya mungkin
+  // lewat sini, karena dropdown di bawah sengaja hanya berisi yang sudah ada.
+  function komposerBaruHtml() {
     const opsiSiswa = _roster
       .map(r => `<option value="${esc(r.id)}">${esc(r.full_name)}</option>`).join('');
-    const komposerBaru = `
+    return `
 <div class="note-card" style="margin-bottom:.75rem">
   <div class="note-card-header"><span class="note-student-name">Kirim pesan baru</span></div>
   <select id="pesan-baru-sid" style="width:100%;margin-bottom:.4rem">
@@ -850,56 +845,123 @@
     <span id="pesan-baru-msg" style="font-size:var(--fs-caption);color:var(--text-muted)"></span>
   </div>
 </div>`;
+  }
 
+  function gelembungPesanHtml(m) {
+    const dariGuru  = m.author_role === 'GURU';
+    const label     = dariGuru ? 'Anda' : 'Ortu';
+    const warna     = dariGuru ? 'var(--text-secondary)' : 'var(--gold)';
+    const tandaBaru = (!dariGuru && !m.read_at) ? ' <span style="color:var(--gold)">•</span>' : '';
+    return `<div style="border-left:2px solid ${warna};padding-left:.6rem;margin:.4rem 0">
+      <div style="font-size:var(--fs-caption);color:var(--text-muted)">
+        <strong style="color:${warna}">${esc(label)}</strong> · ${esc(fmtDate(m.created_at))}${tandaBaru}
+      </div>
+      <div style="font-size:var(--fs-caption);color:var(--text-primary)">${esc(m.content)}</div>
+    </div>`;
+  }
+
+  function percakapanHtml(sid, pesanSiswa) {
+    return `<div class="note-card" data-sid="${esc(sid)}">
+      <div class="note-card-header">
+        <span class="note-student-name">${esc(rosterName(sid))}</span>
+      </div>
+      ${pesanSiswa.map(gelembungPesanHtml).join('')}
+      <textarea class="pesan-balas-input" data-sid="${esc(sid)}" rows="2" maxlength="1000"
+        placeholder="Tulis balasan untuk orang tua…"
+        style="width:100%;box-sizing:border-box;padding:.5rem;margin-top:.4rem;border-radius:.4rem;
+        border:1px solid var(--border);background:transparent;color:inherit;font-family:inherit;
+        font-size:.875rem;resize:vertical"></textarea>
+      <div style="display:flex;align-items:center;gap:.5rem;margin-top:.35rem">
+        <button type="button" class="btn-pesan-balas" data-sid="${esc(sid)}"
+          style="padding:.35rem .9rem;border:none;border-radius:.35rem;background:var(--gold);
+          color:var(--text-on-gold,#000);font-weight:600;cursor:pointer">Balas</button>
+        <span class="pesan-balas-msg" data-sid="${esc(sid)}"
+          style="font-size:var(--fs-caption);color:var(--text-muted)"></span>
+      </div>
+    </div>`;
+  }
+
+  function renderPesanOrtu() {
+    const listEl = document.getElementById('pesan-ortu-list');
+    if (!listEl) return;
+
+    perbaruiBadgePesan();
+
+    const perSiswa = percakapanPerSiswa();
+    // Diurutkan A-Z berdasarkan nama siswa, bukan urutan id dari server.
+    const idSiswa = Object.keys(perSiswa).sort((a, b) =>
+      rosterName(a).localeCompare(rosterName(b), 'id'));
+
+    // Tahap 1 -- belum ditekan: hanya tombol, tidak ada percakapan yang tampil.
+    if (!_pesanTampil) {
+      listEl.innerHTML =
+        komposerRefreshHtml() +
+        komposerBaruHtml() +
+        `<button type="button" id="btn-tampilkan-pesan"
+           style="width:100%;padding:.5rem;border:1px solid var(--border);border-radius:.35rem;
+           background:transparent;color:inherit;cursor:pointer;font-family:inherit">
+           Tampilkan Pesan</button>`;
+      wireKomposerBaru(listEl);
+      wireRefreshPesan(listEl);
+      listEl.querySelector('#btn-tampilkan-pesan')
+        ?.addEventListener('click', () => { _pesanTampil = true; renderPesanOrtu(); });
+      return;
+    }
+
+    // Tahap 2 -- sudah ditekan tetapi belum ada percakapan sama sekali.
+    // Dropdown kosong tidak ditampilkan; tidak ada yang bisa dipilih di sana.
     if (!idSiswa.length) {
-      listEl.innerHTML = komposerRefreshHtml() + komposerBaru +
-        '<p class="empty-state">Belum ada percakapan dengan orang tua.</p>';
+      listEl.innerHTML =
+        komposerRefreshHtml() +
+        komposerBaruHtml() +
+        '<p class="empty-state">Belum ada pesan masuk</p>';
       wireKomposerBaru(listEl);
       wireRefreshPesan(listEl);
       return;
     }
 
-    listEl.innerHTML = komposerRefreshHtml() + komposerBaru + idSiswa.map(sid => {
-      const nama  = rosterName(sid);
-      const pesan = perSiswa[sid];
-      const baru  = pesan.filter(m => m.author_role === 'ORTU' && !m.read_at).length;
-      const isi   = pesan.map(m => {
-        const dariGuru = m.author_role === 'GURU';
-        const label    = dariGuru ? 'Anda' : 'Ortu';
-        const warna    = dariGuru ? 'var(--text-secondary)' : 'var(--gold)';
-        const tandaBaru = (!dariGuru && !m.read_at) ? ' <span style="color:var(--gold)">•</span>' : '';
-        return `<div style="border-left:2px solid ${warna};padding-left:.6rem;margin:.4rem 0">
-          <div style="font-size:var(--fs-caption);color:var(--text-muted)">
-            <strong style="color:${warna}">${esc(label)}</strong> · ${fmtDate(m.created_at)}${tandaBaru}
-          </div>
-          <div style="font-size:var(--fs-caption);color:var(--text-primary)">${esc(m.content)}</div>
-        </div>`;
-      }).join('');
+    // Tahap 3 -- dropdown + percakapan yang dipilih.
+    if (_pesanSid && !perSiswa[_pesanSid]) _pesanSid = '';
 
-      return `<div class="note-card" data-sid="${esc(sid)}" style="margin-bottom:.75rem">
-        <div class="note-card-header">
-          <span class="note-student-name">${esc(nama)}</span>
-          ${baru ? `<span style="font-size:var(--fs-caption);color:var(--gold)">${baru} belum dibaca</span>` : ''}
-        </div>
-        ${isi}
-        <textarea class="pesan-balas-input" data-sid="${esc(sid)}" rows="2" maxlength="1000"
-          placeholder="Tulis balasan untuk orang tua…"
-          style="width:100%;box-sizing:border-box;padding:.5rem;margin-top:.4rem;border-radius:.4rem;
-          border:1px solid var(--border);background:transparent;color:inherit;font-family:inherit;
-          font-size:.875rem;resize:vertical"></textarea>
-        <div style="display:flex;align-items:center;gap:.5rem;margin-top:.35rem">
-          <button type="button" class="btn-pesan-balas" data-sid="${esc(sid)}"
-            style="padding:.35rem .9rem;border:none;border-radius:.35rem;background:var(--gold);
-            color:var(--text-on-gold,#000);font-weight:600;cursor:pointer">Balas</button>
-          <span class="pesan-balas-msg" data-sid="${esc(sid)}"
-            style="font-size:var(--fs-caption);color:var(--text-muted)"></span>
-        </div>
-      </div>`;
+    const opsi = idSiswa.map(sid => {
+      const baru  = perSiswa[sid].filter(m => m.author_role === 'ORTU' && !m.read_at).length;
+      const tanda = baru ? ` (${baru} baru)` : '';
+      return `<option value="${esc(sid)}"${sid === _pesanSid ? ' selected' : ''}>` +
+             `${esc(rosterName(sid))}${tanda}</option>`;
     }).join('');
+
+    listEl.innerHTML =
+      komposerRefreshHtml() +
+      komposerBaruHtml() +
+      `<label style="display:block;font-size:var(--fs-caption);color:var(--text-secondary);
+         margin-bottom:.25rem">Pilih percakapan</label>
+       <select id="pesan-pilih-sid" style="width:100%;margin-bottom:.6rem">
+         <option value="">— Pilih siswa —</option>${opsi}
+       </select>
+       <div id="pesan-percakapan"></div>`;
 
     wireKomposerBaru(listEl);
     wireRefreshPesan(listEl);
 
+    const wadah = listEl.querySelector('#pesan-percakapan');
+    if (_pesanSid) {
+      wadah.innerHTML = percakapanHtml(_pesanSid, perSiswa[_pesanSid]);
+      wireBalas(listEl);
+    } else {
+      wadah.innerHTML = '<p class="empty-state">Pilih siswa untuk melihat percakapan.</p>';
+    }
+
+    // Dropdown tetap di layar, jadi guru berganti siswa tanpa memuat ulang.
+    listEl.querySelector('#pesan-pilih-sid').addEventListener('change', async (e) => {
+      _pesanSid = e.target.value;
+      // Membuka percakapan berarti membacanya -- hanya percakapan ini yang
+      // ditandai, bukan seluruh kotak masuk.
+      if (_pesanSid) await tandaiDibaca(_pesanSid);
+      renderPesanOrtu();
+    });
+  }
+
+  function wireBalas(listEl) {
     listEl.querySelectorAll('.btn-pesan-balas').forEach(btn => {
       btn.addEventListener('click', async () => {
         const sid = btn.dataset.sid;
