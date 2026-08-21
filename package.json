@@ -1,0 +1,14 @@
+{
+  "name": "sip-mandiri-tests",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Test end-to-end SIP Mandiri. Aplikasinya sendiri statis tanpa build step — paket ini hanya untuk Playwright.",
+  "scripts": {
+    "test": "playwright test",
+    "test:report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.40.0"
+  }
+}

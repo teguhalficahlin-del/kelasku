@@ -1,0 +1,47 @@
+name: Playwright Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install chromium --with-deps
+
+      # Test berjalan melawan situs yang sudah live di GitHub Pages, bukan
+      # server lokal — aplikasinya statis dan tidak punya build step.
+      # Spec yang kredensialnya belum diisi akan skip, bukan gagal.
+      - name: Run Playwright tests
+        env:
+          TEST_BASE_URL:       ${{ secrets.TEST_BASE_URL }}
+          TEST_GURU_EMAIL:     ${{ secrets.TEST_GURU_EMAIL }}
+          TEST_GURU_PASSWORD:  ${{ secrets.TEST_GURU_PASSWORD }}
+          TEST_KODE_KELAS:     ${{ secrets.TEST_KODE_KELAS }}
+          TEST_SISWA_NAMA:     ${{ secrets.TEST_SISWA_NAMA }}
+          TEST_SISWA_NIS:      ${{ secrets.TEST_SISWA_NIS }}
+          TEST_ADMIN_EMAIL:    ${{ secrets.TEST_ADMIN_EMAIL }}
+          TEST_ADMIN_PASSWORD: ${{ secrets.TEST_ADMIN_PASSWORD }}
+        run: npx playwright test
+
+      - name: Upload test report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
