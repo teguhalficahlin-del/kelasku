@@ -116,29 +116,43 @@
     btn.disabled    = true;
     btn.textContent = 'Menyimpan…';
 
-    const { error } = await client.auth.updateUser({ password: pw1 });
+    // finally memulihkan tombol pada SEMUA jalan keluar. updateUser() tidak
+    // hanya mengembalikan error — ia melempar kalau jaringan putus di
+    // tengah kirim, dan lemparan itu dulu melewati seluruh pemulihan tombol:
+    // form tinggal diam di "Menyimpan…" selamanya, dan satu-satunya jalan
+    // keluar adalah memuat ulang halaman.
+    try {
+      const { error } = await client.auth.updateUser({ password: pw1 });
 
-    if (error) {
-      // Sesi pemulihan berumur pendek. Kalau habis saat form masih terbuka,
-      // arahkan ke jalan keluarnya, bukan sekadar menampilkan pesan mentah.
-      if (/session|jwt|token|expired/i.test(error.message || '')) {
-        tampilGagal('Sesi reset sudah berakhir. Silakan minta link baru di halaman login.');
+      if (error) {
+        // Sesi pemulihan berumur pendek. Kalau habis saat form masih terbuka,
+        // arahkan ke jalan keluarnya, bukan sekadar menampilkan pesan mentah.
+        if (/session|jwt|token|expired/i.test(error.message || '')) {
+          tampilGagal('Sesi reset sudah berakhir. Silakan minta link baru di halaman login.');
+          return;
+        }
+        showError(error.message || 'Gagal mengganti password.');
         return;
       }
-      showError(error.message || 'Gagal mengganti password.');
+
+      form.style.display = 'none';
+      okMsg.textContent  = 'Password berhasil diganti. Mengalihkan ke halaman login…';
+      okMsg.style.display = 'block';
+
+      // Sesi pemulihan tidak dibawa ke halaman login: guru harus masuk dengan
+      // password barunya, supaya jelas password itu benar-benar berlaku.
+      try { await client.auth.signOut(); } catch (_) {}
+      setTimeout(function () { window.location.replace('index.html'); }, 3000);
+
+    } catch (err) {
+      console.error('updateUser', err);
+      showError('Koneksi terputus. Silakan coba lagi.');
+    } finally {
+      // Aman juga di jalur berhasil: formnya sudah disembunyikan, jadi tombol
+      // yang pulih tidak terlihat lagi oleh siapa pun.
       btn.disabled    = false;
       btn.textContent = 'Ganti Password';
-      return;
     }
-
-    form.style.display = 'none';
-    okMsg.textContent  = 'Password berhasil diganti. Mengalihkan ke halaman login…';
-    okMsg.style.display = 'block';
-
-    // Sesi pemulihan tidak dibawa ke halaman login: guru harus masuk dengan
-    // password barunya, supaya jelas password itu benar-benar berlaku.
-    try { await client.auth.signOut(); } catch (_) {}
-    setTimeout(function () { window.location.replace('index.html'); }, 3000);
   });
 
   siapkanSesi();
