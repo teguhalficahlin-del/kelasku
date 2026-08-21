@@ -771,7 +771,7 @@
     const [defaultFrom, defaultTo] = getPresetRange('bulan');
 
     container.innerHTML =
-      `<small style="font-size:var(--fs-caption);color:var(--text-muted);font-style:italic;margin-top:0.35rem;display:block;">Lakukan export sebelum semester berakhir untuk menyimpan data secara lokal.</small>` +
+      `<small style="font-size:var(--fs-caption);color:var(--text-muted);font-style:italic;margin-top:0.35rem;display:block;">Atur rentang tanggal sesuai kebutuhan sebelum export. Default menampilkan bulan berjalan.</small>` +
       `<div class="rekap-date-range">` +
         `<div class="rekap-date-group">` +
           `<label class="rekap-date-label" for="rekap-from">Dari</label>` +
