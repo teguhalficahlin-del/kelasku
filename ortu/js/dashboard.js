@@ -315,23 +315,39 @@ function komposerHtml(idKotak, placeholder, labelTombol) {
   </div>`;
 }
 
+// Status ditulis lewat pencarian ulang berdasarkan id, bukan lewat referensi
+// yang ditangkap saat pemasangan listener. Alasannya: onKirim yang berhasil
+// memanggil render(), dan render() mengganti seluruh isi seksi — elemen yang
+// tadinya dipegang sudah terlepas dari dokumen. Menulis ke elemen terlepas
+// tidak menghasilkan error apa pun, hanya diam: orang tua menekan Kirim dan
+// tidak pernah melihat satu pun konfirmasi.
+function tulisStatus(idKotak, teks) {
+  const el = document.getElementById(idKotak + '-msg');
+  if (el) el.textContent = teks;
+}
+
 function wireKomposer(idKotak, onKirim) {
   const ta  = document.getElementById(idKotak);
   const btn = document.getElementById(idKotak + '-btn');
-  const msg = document.getElementById(idKotak + '-msg');
   if (!ta || !btn) return;
   btn.addEventListener('click', async () => {
     const teks = ta.value.trim();
-    if (!teks) { msg.textContent = 'Pesan tidak boleh kosong.'; return; }
-    btn.disabled = true; msg.textContent = 'Mengirim…';
+    if (!teks) { tulisStatus(idKotak, 'Pesan tidak boleh kosong.'); return; }
+    btn.disabled = true;
+    tulisStatus(idKotak, 'Mengirim…');
     try {
       await onKirim(teks);
-      ta.value = '';
-      msg.textContent = 'Terkirim.';
+      // Kotak tulis yang baru sudah kosong dengan sendirinya; yang perlu
+      // dipastikan hanyalah konfirmasinya sampai ke layar.
+      tulisStatus(idKotak, 'Terkirim.');
     } catch (err) {
       console.error('kirim pesan', err);
-      msg.textContent = 'Gagal mengirim. Coba lagi.';
+      tulisStatus(idKotak, 'Gagal mengirim. Coba lagi.');
     } finally {
+      // Tombol yang lama mungkin sudah terlepas; yang menerima klik berikutnya
+      // adalah tombol hasil render ulang, dan tombol itu lahir dalam keadaan
+      // aktif. Baris ini tetap dipertahankan untuk jalur gagal, yang tidak
+      // memicu render ulang.
       btn.disabled = false;
     }
   });
