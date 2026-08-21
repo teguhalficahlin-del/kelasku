@@ -5,11 +5,23 @@ import { defineConfig } from '@playwright/test';
 // baseURL menunjuk ke akar aplikasi, termasuk awalan nama repo di GitHub Pages
 // (mis. https://teguhalficahlin-del.github.io/kelasku). Semua spec memakai path
 // relatif tanpa garis miring di depan supaya tetap benar di domain sendiri.
-const baseURL = process.env.TEST_BASE_URL;
+//
+// Garis miring penutup WAJIB, dan ditambahkan di sini supaya tidak bergantung
+// pada cara orang mengisi secret-nya. Tanpa itu, resolusi URL relatif membuang
+// segmen terakhir: 'admin/index.html' terhadap '.../kelasku' menghasilkan
+// '.../admin/index.html' — tanpa nama repo, HTTP 404, dan setiap test gagal
+// dengan gejala menyesatkan ("selector tidak ditemukan") padahal yang salah
+// adalah alamatnya.
+const baseURL = process.env.TEST_BASE_URL
+  ? process.env.TEST_BASE_URL.replace(/\/*$/, '/')
+  : undefined;
 
 export default defineConfig({
   testDir: './tests/specs',
-  timeout: 30000,
+  // Satu test bisa memuat halaman, login, lalu menunggu beberapa panggilan
+  // jaringan; 30 detik terlalu ketat untuk runner CI yang jaringannya lebih
+  // lambat daripada mesin pengembang.
+  timeout: 60000,
   retries: 1,
 
   // Satu worker: seluruh spec berbagi satu classroom uji yang sama, dan test
@@ -19,6 +31,7 @@ export default defineConfig({
 
   use: {
     baseURL,
+    navigationTimeout: 30000,
     headless: true,
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
