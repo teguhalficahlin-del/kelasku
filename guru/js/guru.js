@@ -790,14 +790,13 @@
 
   // Kumpulkan jumlah data yang akan dihapus, supaya angka di modal konfirmasi
   // adalah kondisi nyata akun ini — bukan kalimat umum yang mudah diabaikan.
-  // Angka yang dihitung di sini adalah JUMLAH BARIS attendance — satu baris per
-  // siswa per sesi, bukan jumlah sesi mengajar. Kelas 30 siswa dengan 10 sesi
-  // menghasilkan 300, dan menyebutnya "300 sesi absensi" membuat guru mengira
-  // ia kehilangan jauh lebih banyak daripada yang sebenarnya. Namanya dibetulkan
-  // menjadi kehadiran, sesuai isinya; menghitung sesi yang sebenarnya menuntut
-  // query tambahan tanpa menambah kejelasan bagi guru.
+  // Yang dihitung adalah jumlah SESI MENGAJAR (baris schedules), bukan jumlah
+  // baris attendance. Keduanya jauh berbeda: satu sesi menghasilkan satu baris
+  // absensi per siswa, sehingga kelas 30 siswa dengan 10 sesi punya 300 baris.
+  // Menyebut angka itu "sesi" membuat guru mengira ia kehilangan jauh lebih
+  // banyak daripada yang sebenarnya.
   async function ringkasanDataSemester() {
-    var ringkas = { kelas: 0, kehadiran: 0, catatan: 0, gagal: false };
+    var ringkas = { kelas: 0, sesi: 0, catatan: 0, gagal: false };
     try {
       var db = window.supabaseClient;
       var kelasRes = await db.from('classrooms')
@@ -810,11 +809,11 @@
       if (ids.length === 0) return ringkas;
 
       var hasil = await Promise.all([
-        db.from('attendance').select('*', { count: 'exact', head: true }).in('classroom_id', ids),
+        db.from('schedules').select('*', { count: 'exact', head: true }).in('classroom_id', ids),
         db.from('student_notes').select('*', { count: 'exact', head: true }).in('classroom_id', ids),
       ]);
       if (hasil[0].error || hasil[1].error) throw (hasil[0].error || hasil[1].error);
-      ringkas.kehadiran = hasil[0].count ?? 0;
+      ringkas.sesi    = hasil[0].count ?? 0;
       ringkas.catatan = hasil[1].count ?? 0;
     } catch (_) {
       ringkas.gagal = true;
@@ -845,7 +844,7 @@
         ? 'Jumlah data tidak dapat dihitung (koneksi bermasalah). ' +
           'Seluruh absensi, catatan, jadwal, dan penilaian di semua kelas Anda akan dihapus.'
         : 'Yang akan dihapus permanen dari <strong>' + ringkas.kelas + ' kelas</strong>:' +
-          '<br>• ' + ringkas.kehadiran + ' data kehadiran siswa' +
+          '<br>• ' + ringkas.sesi + ' sesi mengajar beserta absensinya' +
           '<br>• ' + ringkas.catatan + ' catatan siswa' +
           '<br>• seluruh jadwal dan penilaian';
 

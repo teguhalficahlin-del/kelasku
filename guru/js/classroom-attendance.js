@@ -964,7 +964,15 @@
   // oleh renderSession, jadi render ulang di sini aman.
   window.addEventListener('roster-changed', function () {
     if (!_absensiSudahDirender) return;   // panel belum pernah dibuka
-    renderAbsensi();
+    // Penandanya dijatuhkan lebih dulu, lalu dipasang kembali hanya bila render
+    // ini berhasil. Tanpa itu, render yang gagal di sini meninggalkan penanda
+    // tetap true sementara panelnya sudah terlanjur dikosongkan — kunjungan
+    // berikutnya ke tab Jadwal melewati render, dan guru terkurung pada panel
+    // kosong sampai halaman dimuat ulang.
+    _absensiSudahDirender = false;
+    renderAbsensi()
+      .then(function () { _absensiSudahDirender = true; })
+      .catch(function (err) { console.error('renderAbsensi (roster-changed)', err); });
   });
 
 }());
