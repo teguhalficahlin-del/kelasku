@@ -352,6 +352,21 @@ main {
   border-color: var(--danger);
 }
 
+/* Indigo, terpisah dari biru .btn-perpanjang dan merah .btn-hapus: mengirim
+   link reset bukan tindakan merusak, tapi juga bukan aksi rutin — warnanya
+   harus terbaca berbeda sekilas dari keduanya. Pola nilainya mengikuti
+   .btn-perpanjang: latar transparan tipis, teks cerah, batas setengah pekat. */
+.btn-reset-pw {
+  background: rgba(99,102,241,0.12);
+  color: #A5B4FC;
+  border-color: rgba(99,102,241,0.35);
+}
+.btn-reset-pw:hover:not(:disabled) {
+  background: #4F46E5;
+  color: #fff;
+  border-color: #4F46E5;
+}
+
 .btn-hapus {
   background: var(--danger-bg);
   color: var(--danger);
