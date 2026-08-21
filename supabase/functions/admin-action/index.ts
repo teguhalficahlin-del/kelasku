@@ -231,5 +231,37 @@ Deno.serve(async (req) => {
     return json({ success: true });
   }
 
+  // -- reset_password_guru --------------------------------------------------
+  if (action === 'reset_password_guru') {
+    const guru_id = body.guru_id as string;
+    if (!guru_id) return json({ error: 'guru_id wajib' }, 400);
+
+    // Sasaran harus profil GURU di project ini, dan harus punya email. Tanpa
+    // penyaringan role, satu id siswa atau ortu sudah cukup untuk memicu email
+    // pemulihan ke akun yang bukan guru.
+    const { data: guru, error: fetchErr } = await admin
+      .from('profiles')
+      .select('email, is_active')
+      .eq('id', guru_id)
+      .eq('role', 'GURU')
+      .single();
+
+    if (fetchErr || !guru)  return json({ error: 'Guru tidak ditemukan' }, 404);
+    if (!guru.email)        return json({ error: 'Guru ini tidak punya email terdaftar' }, 400);
+    if (!guru.is_active)    return json({ error: 'Guru ini tidak aktif' }, 400);
+
+    // resetPasswordForEmail, bukan generateLink: generateLink hanya MEMBUAT
+    // tautan dan mengembalikannya ke pemanggil — tidak ada email yang terkirim.
+    // Yang diminta di sini adalah emailnya sampai ke guru, dan itu endpoint
+    // recover yang mengirimkannya lewat SMTP project.
+    const redirectTo = (Deno.env.get('RESET_REDIRECT_URL') ??
+      'https://teguhalficahlin-del.github.io/kelasku/guru/reset-password.html');
+
+    const { error } = await admin.auth.resetPasswordForEmail(guru.email, { redirectTo });
+    if (error) return json({ error: error.message }, 500);
+
+    return json({ success: true, email: guru.email });
+  }
+
   return json({ error: 'Action tidak dikenal: ' + action }, 400);
 });

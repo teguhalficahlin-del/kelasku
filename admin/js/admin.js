@@ -138,16 +138,28 @@ function statusBadge(status) {
 function actionButtons(guru) {
   const id   = escHtml(guru.id);
   const nama = escHtml(guru.full_name);
+  const mail = escHtml(guru.username || '');
   const hapusBtn = `<button class="btn-aksi btn-hapus" data-id="${id}" data-nama="${nama}">Hapus</button>`;
+
+  // Reset password hanya masuk akal untuk akun yang masih dipakai — guru
+  // EXPIRED atau belum_trial tidak bisa masuk walau passwordnya diganti, jadi
+  // tombolnya justru menyesatkan. Tanpa email tersimpan, tidak ada tujuan
+  // kirim, jadi tombolnya pun tidak ditampilkan.
+  const resetBtn = (guru.status === 'AKTIF' || guru.status === 'TRIAL') && mail
+    ? `<button class="btn-aksi btn-reset-pw" data-id="${id}" data-nama="${nama}" data-email="${mail}">Reset Password</button>`
+    : '';
+
   if (guru.status === 'AKTIF') {
     return `
       <button class="btn-aksi btn-perpanjang" data-id="${id}" data-nama="${nama}">Perpanjang</button>
       <button class="btn-aksi btn-nonaktif"   data-id="${id}" data-nama="${nama}">Nonaktifkan</button>
+      ${resetBtn}
       ${hapusBtn}
     `;
   }
   return `
     <button class="btn-aksi btn-aktifkan" data-id="${id}" data-nama="${nama}">Aktifkan</button>
+    ${resetBtn}
     ${hapusBtn}
   `;
 }
@@ -271,6 +283,27 @@ document.getElementById('guru-list').addEventListener('click', async (e) => {
       if (err.sesiBerakhir) { await tanganiSesiBerakhir(err); return; }
       alert('Gagal perpanjang: ' + err.message);
       await loadGurus();
+    }
+  }
+
+  if (btn.classList.contains('btn-reset-pw')) {
+    const email = btn.dataset.email;
+    if (!confirm('Kirim link reset password ke ' + guruNama + ' (' + email + ')?')) return;
+    const labelAsli = btn.textContent;
+    btn.disabled    = true;
+    btn.textContent = 'Mengirim…';
+    try {
+      await callAdmin(_token, { action: 'reset_password_guru', guru_id: guruId });
+      alert('Link reset dikirim ke ' + email);
+    } catch (err) {
+      if (err.sesiBerakhir) { await tanganiSesiBerakhir(err); return; }
+      // Di layar admin pesan error ditampilkan apa adanya: yang memakai layar
+      // ini hanya pemilik aplikasi, dan menyamarkan sebab kegagalan di sini
+      // hanya menyulitkan penelusuran.
+      alert('Gagal kirim link reset: ' + err.message);
+    } finally {
+      btn.disabled    = false;
+      btn.textContent = labelAsli;
     }
   }
 

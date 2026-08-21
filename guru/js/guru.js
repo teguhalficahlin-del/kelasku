@@ -48,6 +48,95 @@
 
       window.location.href = 'dashboard.html';
     });
+
+    // -----------------------------------------------------------------------
+    // Lupa password
+    // -----------------------------------------------------------------------
+    // Supabase Auth yang mengirim emailnya (SMTP Brevo), jadi tidak ada Edge
+    // Function di jalur ini — cukup resetPasswordForEmail dari klien.
+    const linkLupa   = document.getElementById('link-lupa');
+    const panelReset = document.getElementById('reset-panel');
+    const formLogin  = document.getElementById('form-login');
+    const formMinta  = document.getElementById('form-reset-minta');
+
+    if (linkLupa && panelReset && formMinta) {
+      const okReset  = document.getElementById('reset-ok');
+      const btnKirim = document.getElementById('btn-kirim-reset');
+      const btnBatal = document.getElementById('btn-batal-reset');
+      const linkDaftar = document.querySelector('.link-daftar');
+      let sisaCooldown = 0;
+      let timerCooldown = null;
+
+      function tampilkanPanelReset(aktif) {
+        formLogin.style.display  = aktif ? 'none' : '';
+        linkLupa.parentElement.style.display = aktif ? 'none' : '';
+        if (linkDaftar) linkDaftar.style.display = aktif ? 'none' : '';
+        panelReset.style.display = aktif ? 'block' : 'none';
+        hideError();
+        if (aktif) document.getElementById('reset-email').focus();
+      }
+
+      // Supabase membatasi pengiriman email pemulihan; hitung mundur ini
+      // menjelaskan penundaan itu, alih-alih membiarkan guru menekan tombol
+      // berkali-kali dan mengira aplikasinya rusak.
+      function mulaiCooldown(detik) {
+        sisaCooldown = detik;
+        btnKirim.disabled = true;
+        clearInterval(timerCooldown);
+        timerCooldown = setInterval(function () {
+          sisaCooldown--;
+          if (sisaCooldown <= 0) {
+            clearInterval(timerCooldown);
+            btnKirim.disabled    = false;
+            btnKirim.textContent = 'Kirim Link Reset';
+            return;
+          }
+          btnKirim.textContent = 'Tunggu ' + sisaCooldown + ' detik';
+        }, 1000);
+        btnKirim.textContent = 'Tunggu ' + sisaCooldown + ' detik';
+      }
+
+      linkLupa.addEventListener('click', function (e) {
+        e.preventDefault();
+        okReset.style.display = 'none';
+        tampilkanPanelReset(true);
+      });
+
+      btnBatal.addEventListener('click', function () {
+        tampilkanPanelReset(false);
+      });
+
+      formMinta.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        hideError();
+        okReset.style.display = 'none';
+
+        const email = document.getElementById('reset-email').value.trim();
+        if (!email) return;
+
+        btnKirim.disabled    = true;
+        btnKirim.textContent = 'Mengirim…';
+
+        // APP_BASE_URL diturunkan dari lokasi berkas, jadi tautan tetap benar
+        // di GitHub Pages maupun domain sendiri tanpa mengubah kode.
+        const akar = (window.SIP_CONFIG && window.SIP_CONFIG.APP_BASE_URL) ||
+                     (window.location.origin + window.location.pathname.replace(/\/guru\/.*$/, ''));
+        const redirectTo = akar + '/guru/reset-password.html';
+
+        const { error } = await client.auth.resetPasswordForEmail(email, { redirectTo });
+
+        // Pesan sukses dan gagal sama-sama tidak menyatakan apakah email itu
+        // terdaftar — kalau berbeda, halaman login berubah menjadi alat
+        // pemeriksa keanggotaan bagi siapa pun yang mencoba.
+        okReset.textContent = error
+          ? 'Jika email ini terdaftar, link reset akan dikirim dalam beberapa menit.'
+          : 'Link reset password sudah dikirim ke ' + email +
+            '. Periksa juga folder spam.';
+        okReset.style.display = 'block';
+
+        mulaiCooldown(60);
+      });
+    }
   }
 
   // =========================================================================

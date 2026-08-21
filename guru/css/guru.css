@@ -177,6 +177,45 @@ button[type="submit"]:disabled { opacity: 0.4; cursor: not-allowed; }
   line-height: var(--lh-normal);
 }
 
+/* ── Pesan berhasil ── */
+.ok-msg {
+  background: var(--gold-muted);
+  border: 1px solid var(--gold);
+  color: var(--gold);
+  border-radius: var(--btn-r);
+  padding: 0.75rem 1rem;
+  font-size: var(--fs-body);
+  margin-bottom: 1rem;
+  line-height: var(--lh-normal);
+}
+
+/* ── Tombol sekunder ── */
+.btn-sekunder {
+  width: 100%;
+  padding: var(--btn-py) var(--btn-px);
+  font-size: var(--fs-body);
+  font-weight: var(--fw-medium);
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--btn-r);
+  cursor: pointer;
+  margin-top: 0.5rem;
+  font-family: inherit;
+  transition: border-color var(--transition), color var(--transition);
+}
+.btn-sekunder:hover:not(:disabled) { border-color: var(--gold); color: var(--gold); }
+.btn-sekunder:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ── Tautan lupa password ── */
+.link-lupa {
+  font-size: var(--fs-ui);
+  text-align: left;
+  margin-top: 0.75rem;
+}
+.link-lupa a { color: var(--text-secondary); text-decoration: none; }
+.link-lupa a:hover { color: var(--gold); text-decoration: underline; }
+
 /* ── Login footer link ── */
 .link-daftar {
   font-size: var(--fs-ui);
