@@ -3175,9 +3175,34 @@ ${metodeHtml}${hasilHtml}`;
     try {
       const wb = XLSX.utils.book_new();
 
+      // ── Filter aktif di layar ─────────────────────────────────────────────
+      // Unduhan mengikuti apa yang sedang ditampilkan, bukan seluruh isi kelas.
+      // Mapel hanya menyaring untuk guru wali kelas SD; guru mapel tidak punya
+      // dropdown itu sehingga _selMapel tetap null dan seluruh baris ikut.
+      const isWali = _roleGuru === 'WALI_KELAS_SD';
+
+      // Sama persis dengan penyaring Section 1: KKTP ikut induknya, dan TP tanpa
+      // mapel dianggap berlaku untuk semua mapel.
+      function tpLolosFilter(tp) {
+        if (!isWali || !_selMapel) return true;
+        const induk = tp.parent_id ? _tpList.find(t => t.id === tp.parent_id) : tp;
+        return !induk || !induk.mapel || induk.mapel === _selMapel;
+      }
+
+      // Sama persis dengan penyaring Section 2: penilaian tanpa TP selalu ikut.
+      function asmtLolosFilter(a) {
+        if (!isWali || !_selMapel) return true;
+        if (!a.tp_kktp_id) return true;
+        const tp = _tpList.find(t => t.id === a.tp_kktp_id);
+        return !tp || !tp.mapel || tp.mapel === _selMapel;
+      }
+
+      const tpTerpilih   = _tpList.filter(tpLolosFilter);
+      const asmtTerpilih = _asmts.filter(asmtLolosFilter);
+
       // ── Sheet 1: TP & KKTP ────────────────────────────────────────────────
       const s1rows = [['Tipe', 'Judul/Konten', 'Semester', 'Tahun Ajaran', 'BB', 'MB', 'BSH', 'SB']];
-      for (const tp of _tpList) {
+      for (const tp of tpTerpilih) {
         if (tp.tipe === 'KKTP') {
           const r = tp.rentang ?? DEFAULT_RENTANG;
           s1rows.push([
@@ -3217,9 +3242,9 @@ ${metodeHtml}${hasilHtml}`;
       }
 
       // ── Sheet 2–3: Diagnostik & Formatif — format melebar ─────────────────
-      const diagAsmts = _asmts.filter(a => a.jenis === 'DIAGNOSTIK');
-      const formAsmts = _asmts.filter(a => a.jenis === 'FORMATIF');
-      const sumAsmts  = _asmts.filter(a => a.jenis === 'SUMATIF');
+      const diagAsmts = asmtTerpilih.filter(a => a.jenis === 'DIAGNOSTIK');
+      const formAsmts = asmtTerpilih.filter(a => a.jenis === 'FORMATIF');
+      const sumAsmts  = asmtTerpilih.filter(a => a.jenis === 'SUMATIF');
 
       function buildWideSheet(asmts) {
         // Siapkan metadata per penilaian
@@ -3277,23 +3302,38 @@ ${metodeHtml}${hasilHtml}`;
 
       // ── Sheet 5: Rekap Semester ───────────────────────────────────────────
       const s5rows = [['Semester', 'Tahun Ajaran', 'TP', 'Nama Siswa', 'Nilai Akhir', 'Predikat', 'KKTP Tercapai']];
-      const years  = [...new Set(_tpList.map(t => t.academic_year).filter(Boolean))];
-      if (!years.length) years.push(DEFAULT_YEAR);
+
+      // Ikuti semester dan tahun ajaran yang sedang dipilih di Section 3. Bila
+      // Rekap belum pernah dibuka, _rcTahun masih null — dalam keadaan itu tidak
+      // ada filter yang bisa diikuti, jadi seluruh kombinasi disapu seperti dulu.
+      const semesters = _rcTahun ? [String(_rcSemester)] : ['1', '2'];
+      const years     = _rcTahun
+        ? [_rcTahun]
+        : (() => {
+            const y = [...new Set(_tpList.map(t => t.academic_year).filter(Boolean))];
+            return y.length ? y : [DEFAULT_YEAR];
+          })();
 
       let hasRecap = false;
-      for (const sem of ['1', '2']) {
+      for (const sem of semesters) {
         for (const yr of years) {
           const rows = await SipApi.getGradeRecap(_cId, sem, yr).catch(() => []);
           for (const r of rows) {
+            const tp = _tpList.find(t => t.id === r.tp_kktp_id);
+            // Rekap milik TP yang tersaring keluar tidak ikut diunduh.
+            if (tp && !tpLolosFilter(tp)) continue;
             hasRecap = true;
-            const tp    = _tpList.find(t => t.id === r.tp_kktp_id);
             const siswa = _roster.find(s => s.id === r.student_id);
+            // Predikat mengikuti rentang KKTP milik TP-nya; DEFAULT_RENTANG hanya
+            // dipakai bila TP itu belum punya KKTP sama sekali.
+            const kktp    = tp ? _tpList.find(t => t.parent_id === tp.id && t.tipe === 'KKTP') : null;
+            const rentang = kktp ? getRentang(kktp) : DEFAULT_RENTANG;
             s5rows.push([
               sem, yr,
               tp ? (tp.judul || tp.konten || '') : '',
               siswa?.nama ?? r.student_id,
               r.nilai_akhir ?? '',
-              r.nilai_akhir != null ? getPredikat(r.nilai_akhir, DEFAULT_RENTANG) : '',
+              r.nilai_akhir != null ? getPredikat(r.nilai_akhir, rentang) : '',
               r.kktp_tercapai === true ? 'Ya' : r.kktp_tercapai === false ? 'Tidak' : '',
             ]);
           }
