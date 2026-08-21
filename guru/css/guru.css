@@ -1418,12 +1418,91 @@ h2.panel-header.open .panel-collapse-arrow {
   font-size: var(--fs-body);
   margin-bottom: .75rem;
 }
+/* Badge status sesi absensi.
+   AKTIF memakai .badge-aktif (hijau) yang sudah ada; dua di bawah melengkapi
+   ketiga keadaan supaya warnanya bicara sendiri tanpa perlu dibaca. */
+.badge-koreksi {
+  display: inline-block;
+  background: var(--warning-bg);
+  color: var(--warning);
+  font-size: var(--fs-caption);
+  font-weight: 700;
+  padding: .25rem .75rem;
+  border-radius: 99px;
+  white-space: nowrap;
+}
+/* BELUM MULAI — sesi terjadwal yang waktunya belum tiba.
+   Sengaja BUKAN biru: biru sudah berarti "Izin" di panel absensi yang sama
+   (.abs-sum-i, .rekap-status-izin), dan satu warna dengan dua makna di satu
+   layar adalah cara termudah membuat guru salah baca. Sengaja bukan gold:
+   terlalu dekat dengan amber MASA KOREKSI di baris yang sama.
+   --text-secondary lebih terang dari --text-muted milik SELESAI (kontras 6.01
+   vs 2.72) — sesi ini masih akan datang, bukan sudah lewat. */
+.badge-belum-mulai {
+  display: inline-block;
+  background: var(--gold-muted);
+  color: var(--text-secondary);
+  font-size: var(--fs-caption);
+  font-weight: 700;
+  padding: .25rem .75rem;
+  border-radius: 99px;
+  white-space: nowrap;
+}
+.badge-selesai {
+  display: inline-block;
+  background: var(--bg-elevated);
+  color: var(--text-muted);
+  font-size: var(--fs-caption);
+  font-weight: 700;
+  padding: .25rem .75rem;
+  border-radius: 99px;
+  white-space: nowrap;
+}
+
+/* Baris ringkas satu sesi — seluruh baris adalah tombolnya. */
+.abs-sesi-header {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  flex-wrap: wrap;
+  padding: .75rem;
+  cursor: pointer;
+  user-select: none;
+}
+.abs-sesi-header:hover { background: var(--bg-elevated); }
+.abs-sesi-tanggal {
+  font-weight: 700;
+  font-size: var(--fs-body);
+  color: var(--text-primary);
+  flex: 1 1 100%;
+}
+.abs-sesi-jam {
+  font-size: var(--fs-caption);
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+.abs-sesi-panah {
+  margin-left: auto;
+  font-size: .8em;
+  color: var(--text-muted);
+  transition: transform .15s ease;
+}
+.abs-sesi-header.open .abs-sesi-panah { transform: rotate(180deg); }
+.abs-session-body { padding: 0 .75rem .75rem; }
+
+/* Layar sangat sempit (320px): jarak dirapatkan supaya jam dan badge tetap
+   muat satu baris di bawah tanggal, tidak saling menindih. */
+@media (max-width: 380px) {
+  .abs-sesi-header { gap: .375rem; padding: .625rem; }
+  .abs-session-body { padding: 0 .625rem .625rem; }
+}
+
 .abs-session {
   border: 1px solid var(--border);
   border-radius: var(--card-r);
-  padding: 1rem;
-  margin-bottom: 1rem;
+  margin-bottom: .625rem;
   background: var(--bg-surface);
+  overflow: hidden;
 }
 .abs-session-header {
   display: flex;

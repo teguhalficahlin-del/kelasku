@@ -299,9 +299,16 @@
 
     const totalPages = Math.max(1, Math.ceil(siswa.length / PAGE_SIZE));
 
+    // Empat keadaan, empat warna, terang-redupnya bercerita sendiri:
+    // amber KOREKSI paling menuntut (waktunya terbatas), hijau AKTIF sedang
+    // berjalan, warm BELUM MULAI hadir tapi belum mendesak, abu-abu SELESAI
+    // paling redup karena sudah lewat. Sebelumnya KOREKSI ikut memakai hijau
+    // AKTIF dan BELUM MULAI memakai merah NONAKTIF — dua salah baca sekaligus.
     const badgeClass = status === 'AKTIF'   ? 'badge-aktif'
-      : status === 'KOREKSI' ? 'badge-aktif'
-      : 'badge-nonaktif';
+      : status === 'KOREKSI'  ? 'badge-koreksi'
+      : status === 'SELESAI'  ? 'badge-selesai'
+      : status === 'NONAKTIF' ? 'badge-nonaktif'
+      : 'badge-belum-mulai';
     const badgeLabel = status === 'AKTIF'   ? 'AKTIF'
       : status === 'KOREKSI'  ? 'MASA KOREKSI'
       : status === 'SELESAI'  ? 'SELESAI'
@@ -314,11 +321,17 @@
 
     const hasSiswa = siswa.length > 0;
 
+    // Baris ringkas: seluruh baris adalah tombolnya. Detail absensi dibungkus
+    // .abs-session-body yang tertutup secara default; membukanya menutup sesi
+    // lain (single expand).
     block.innerHTML =
-      `<div class="abs-session-header">` +
-        `<span class="abs-session-time">${esc(fmtTime(sch.start_time))} – ${esc(fmtTime(sch.end_time))}</span>` +
+      `<div class="abs-sesi-header">` +
+        `<span class="abs-sesi-tanggal">${esc(fmtDisplayDate(tanggal))}</span>` +
+        `<span class="abs-sesi-jam">${esc(fmtTime(sch.start_time))} – ${esc(fmtTime(sch.end_time))}</span>` +
         `<span class="${badgeClass}">${badgeLabel}</span>` +
+        `<span class="abs-sesi-panah">▾</span>` +
       `</div>` +
+      `<div class="abs-session-body" style="display:none">` +
       `<div class="abs-summary"><div class="abs-summary-wrap"></div></div>` +
       (hasSiswa
         ? `<div class="pagination-bar">` +
@@ -349,7 +362,28 @@
             '<strong>Generate Terpilih</strong> untuk mengaktifkan mereka.' +
             `<br><button type="button" class="btn-ke-kelola-siswa">Ke Kelola Siswa</button>` +
           `</p>`
-      );
+      ) +
+      `</div>`;
+
+    // Single expand: membuka satu sesi menutup yang lain, supaya di layar HP
+    // hanya ada satu daftar siswa yang perlu digulir pada satu waktu.
+    const headerEl = block.querySelector('.abs-sesi-header');
+    const bodyEl   = block.querySelector('.abs-session-body');
+    headerEl.addEventListener('click', () => {
+      const sedangTerbuka = bodyEl.style.display !== 'none';
+      const container = document.getElementById('absensi-container');
+      if (container) {
+        container.querySelectorAll('.abs-session').forEach(b => {
+          const h = b.querySelector('.abs-sesi-header');
+          const d = b.querySelector('.abs-session-body');
+          if (h && d) { h.classList.remove('open'); d.style.display = 'none'; }
+        });
+      }
+      if (!sedangTerbuka) {
+        headerEl.classList.add('open');
+        bodyEl.style.display = '';
+      }
+    });
 
     // Pintasan ke tab Kelola Siswa saat roster belum punya akun
     const btnKeSiswa = block.querySelector('.btn-ke-kelola-siswa');
@@ -436,16 +470,14 @@
     _todaySchedules = schedules;
     _loadedDate     = todayStr();
 
+    // Tanggal kini tercetak di setiap baris sesi, jadi judul tanggal terpisah
+    // di atas daftar hanya mengulang hal yang sama.
     container.innerHTML = '';
-    const dayEl = document.createElement('p');
-    dayEl.className   = 'abs-day-header';
-    dayEl.textContent = fmtDisplayDate(tanggal);
-    container.appendChild(dayEl);
 
     if (schedules.length === 0) {
       const msg = document.createElement('p');
       msg.className   = 'empty-state';
-      msg.textContent = 'Tidak ada jadwal hari ini.';
+      msg.textContent = 'Tidak ada sesi mengajar hari ini';
       container.appendChild(msg);
       return;
     }
@@ -460,8 +492,8 @@
 
   // ---- In-place: sesi masuk masa koreksi (masih bisa diisi) ----
   function markKoreksiBlock(block, sch) {
-    const badge = block.querySelector('.badge-aktif');
-    if (badge) badge.textContent = 'MASA KOREKSI';
+    const badge = block.querySelector('.abs-sesi-header .badge-aktif');
+    if (badge) { badge.className = 'badge-koreksi'; badge.textContent = 'MASA KOREKSI'; }
     const msgEl = block.querySelector('.abs-save-msg');
     if (msgEl && !msgEl.textContent) {
       msgEl.textContent = 'Masa koreksi — bisa diisi sampai ' +
@@ -471,8 +503,8 @@
 
   // ---- In-place disable saat masa koreksi habis ----
   function disableSessionBlock(block) {
-    const badge = block.querySelector('.badge-aktif');
-    if (badge) { badge.className = 'badge-nonaktif'; badge.textContent = 'SELESAI'; }
+    const badge = block.querySelector('.abs-sesi-header .badge-aktif, .abs-sesi-header .badge-koreksi');
+    if (badge) { badge.className = 'badge-selesai'; badge.textContent = 'SELESAI'; }
     block.querySelectorAll('.abs-status-btn').forEach(b => { b.disabled = true; });
     const saveRow = block.querySelector('.abs-save-row');
     if (saveRow) {
