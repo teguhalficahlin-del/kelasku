@@ -34,6 +34,11 @@ jobs:
           TEST_KODE_KELAS:     ${{ secrets.TEST_KODE_KELAS }}
           TEST_SISWA_NAMA:     ${{ secrets.TEST_SISWA_NAMA }}
           TEST_SISWA_NIS:      ${{ secrets.TEST_SISWA_NIS }}
+          # Siswa kedua — subjek "siswa lain" pada test negatif RLS penilaian.
+          # Tanpa dua baris ini secret-nya tidak pernah sampai ke runner dan
+          # kedua test itu melewatkan diri tanpa gagal.
+          TEST_SISWA2_NAMA:    ${{ secrets.TEST_SISWA2_NAMA }}
+          TEST_SISWA2_NIS:     ${{ secrets.TEST_SISWA2_NIS }}
           TEST_ADMIN_EMAIL:    ${{ secrets.TEST_ADMIN_EMAIL }}
           TEST_ADMIN_PASSWORD: ${{ secrets.TEST_ADMIN_PASSWORD }}
         run: npx playwright test
