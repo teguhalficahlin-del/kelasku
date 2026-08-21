@@ -477,4 +477,17 @@ main h2 {
   margin-bottom: var(--space-xs);
 }
 .note-item-meta span { color: var(--text-secondary); font-size: var(--fs-caption); }
+/* Penanda pengumuman kelas — catatan yang dikirim ke seluruh kelas sekaligus,
+   bukan ditujukan kepada satu orang. */
+.note-badge-pengumuman {
+  display: inline-block;
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-medium);
+  color: var(--gold);
+  background: var(--gold-muted);
+  border: 1px solid var(--gold);
+  border-radius: var(--radius-sm);
+  padding: 0.1rem 0.45rem;
+  margin-bottom: var(--space-xs);
+}
 .note-item-content { font-size: var(--fs-body); color: var(--text-primary); }

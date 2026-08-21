@@ -249,7 +249,7 @@ function renderCard(classroom, guruName, namaOrtu, schedules, studentId) {
 
 async function getMyNotes(classroomId, studentId) {
   const { data, error } = await db.from('student_notes')
-    .select('id, content, is_visible_to_student, is_visible_to_parent, created_at')
+    .select('id, content, is_visible_to_student, is_visible_to_parent, created_at, announcement_id')
     .eq('classroom_id', classroomId)
     .eq('student_id', studentId)
     .eq('is_visible_to_student', true)
@@ -309,7 +309,13 @@ function renderNotesSection(classroomId, studentId) {
     body.innerHTML = rows.map(n => {
       const tgl = fmtTgl(n.created_at.slice(0, 10));
       const vis = n.is_visible_to_parent ? '👨‍👩‍👦 Siswa &amp; Ortu' : '🎓 Siswa saja';
+      // Pengumuman kelas dikirim ke seluruh kelas sekaligus; tanpa penanda,
+      // isinya terbaca seolah ditujukan kepada satu siswa ini saja.
+      const badge = n.announcement_id
+        ? '<div class="note-badge-pengumuman">📢 Pengumuman Kelas</div>'
+        : '';
       return `<div class="note-item">
+        ${badge}
         <div class="note-item-meta">${escHtml(tgl)} · <span style="font-size:.8rem;color:var(--color-text-muted)">${vis}</span></div>
         <div class="note-item-content">${escHtml(n.content)}</div>
       </div>`;
