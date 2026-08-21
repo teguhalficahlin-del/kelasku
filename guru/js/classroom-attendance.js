@@ -460,10 +460,26 @@
   }
 
   // ---- Render absensi section ----
+  // Nomor urut render. Mengosongkan container saja tidak cukup: pengosongan
+  // terjadi setelah dua await, dan loop penempelan di bawah ber-await juga
+  // (renderSession memuat absensi tersimpan). Dua render yang tumpang tindih
+  // karenanya bisa saling menyela — yang satu mengosongkan tepat setelah yang
+  // lain mengosongkan, lalu keduanya menempel, dan satu jadwal muncul sebagai
+  // dua blok sesi di layar guru.
+  //
+  // Render bersamaan bukan hal langka: initAbsensiRekap dipanggil pada setiap
+  // klik tab Jadwal, dan classroom-schedule.js mengklik tab itu sendiri saat
+  // halaman dimuat bila tab terakhir yang diingat adalah Jadwal.
+  //
+  // Dengan nomor urut ini, render yang sudah disusul render lebih baru berhenti
+  // sebelum menyentuh DOM. Yang terakhir dimulai adalah yang berhak menulis.
+  let _renderSeq = 0;
+
   async function renderAbsensi() {
     const container = document.getElementById('absensi-container');
     if (!container) return;
 
+    const seq = ++_renderSeq;
     container.innerHTML = '<p class="empty-state">Memuat jadwal hari ini…</p>';
 
     // Jam server disegarkan setiap render, bukan sekali saat halaman dibuka —
@@ -472,6 +488,8 @@
 
     const tanggal = todayStr();
     const [schedules, roster] = await Promise.all([loadTodaySchedules(), loadRoster()]);
+
+    if (seq !== _renderSeq) return;   // sudah disusul render yang lebih baru
 
     _todaySchedules = schedules;
     _loadedDate     = todayStr();
@@ -489,7 +507,9 @@
     }
 
     for (const sch of schedules) {
-      container.appendChild(await renderSession(sch, roster, tanggal));
+      const blok = await renderSession(sch, roster, tanggal);
+      if (seq !== _renderSeq) return; // disusul di tengah loop
+      container.appendChild(blok);
     }
 
     // Snapshot status awal setiap sesi untuk deteksi perubahan oleh timer
