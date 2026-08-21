@@ -2880,10 +2880,17 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
               value="${_rcBobots[i] ?? 0}" style="${inputCss('flex:1 1 0;min-width:3.5rem;text-align:center')}"> <span>%</span>
           </div>`).join('')}
           <div style="font-size:var(--fs-caption);color:${bobotValid ? 'var(--success,#2d6a4f)' : '#c0392b'}">
-            Total: ${totalBobot}% ${bobotValid ? '✓' : '(harus 100%)'}
+            ${bobotValid
+              ? `Total bobot: ${totalBobot}% ✓`
+              : `Total bobot harus 100%. Saat ini: ${totalBobot}%`}
           </div></div>` : '';
 
+    // Menghitung DAN menyimpan sama-sama terkunci selama bobotnya belum tepat.
+    // Sebelumnya hanya tombol Hitung yang dikunci, sehingga guru dapat menekan
+    // Hitung saat bobot masih 100%, mengubah salah satu angkanya, lalu tetap
+    // menyimpan rekap yang tidak lagi sesuai dengan bobot di layar.
     const hitungDis = isBobot && !bobotValid;
+    const simpanDis = hitungDis;
     const metodeHtml = `
 <div style="margin-top:.75rem;background:var(--bg-card,#1e1e1e);border-radius:.5rem;
   padding:.75rem;border:1px solid var(--border-subtle,rgba(255,255,255,.12))">
@@ -2944,10 +2951,15 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
     </table>
   </div>
   ${pag2Html}
-  <button id="rc-btn-simpan"
-    style="margin-top:.75rem;min-height:var(--btn-h);background:var(--gold);
-    color:var(--text-on-gold);font-weight:var(--fw-medium);font-size:var(--fs-ui);
-    padding:0 var(--btn-px);border-radius:var(--btn-r);border:none;cursor:pointer;width:100%">
+  ${simpanDis ? `<div style="margin-top:.75rem;font-size:var(--fs-caption);color:#c0392b">
+    Total bobot harus 100%. Saat ini: ${totalBobot}%</div>` : ''}
+  <button id="rc-btn-simpan"${simpanDis ? ' disabled' : ''}
+    style="margin-top:.5rem;min-height:var(--btn-h);
+    background:${simpanDis ? 'var(--border-subtle,rgba(255,255,255,.18))' : 'var(--gold)'};
+    color:${simpanDis ? 'var(--text-secondary)' : 'var(--text-on-gold)'};
+    font-weight:var(--fw-medium);font-size:var(--fs-ui);
+    padding:0 var(--btn-px);border-radius:var(--btn-r);border:none;
+    cursor:${simpanDis ? 'default' : 'pointer'};width:100%">
     Simpan Rekap</button>
 </div>`;
     }
@@ -2984,6 +2996,18 @@ ${metodeHtml}${hasilHtml}`;
           _rcBobots[i] = parseFloat(this.value) || 0;
           _rcHasil = null;
           _renderRecapContent(cc, sumatifs, allResults);
+          // Render ulang mengganti seluruh isi cc, termasuk kotak yang sedang
+          // diketik — fokusnya ikut hilang. Tanpa dikembalikan, ketikan kedua
+          // tidak pernah sampai dan bobot dua digit mustahil dimasukkan.
+          const baru = cc.querySelector(`#rc-bobot-${i}`);
+          if (baru) {
+            baru.focus();
+            // Kursor ditaruh di akhir. input[type=number] menolak
+            // setSelectionRange di sebagian browser, jadi kegagalannya diabaikan
+            // — fokusnya sendiri sudah cukup untuk melanjutkan mengetik.
+            try { baru.setSelectionRange(baru.value.length, baru.value.length); }
+            catch { /* tidak didukung browser ini */ }
+          }
         });
       });
     }
