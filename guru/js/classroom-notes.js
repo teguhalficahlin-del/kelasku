@@ -530,59 +530,90 @@
   // Filter tambahan: visibilitas + rentang waktu
   // ---------------------------------------------------------------------------
 
+  // Rentang default: tanggal 1 sampai akhir bulan yang sedang berjalan.
+  // Dihitung dari jam perangkat setiap kali tab Catatan dibuka, bukan ditulis
+  // tetap — supaya tetap benar di bulan mana pun dan tidak perlu disentuh lagi.
+  function rentangBulanIni() {
+    const kini = new Date();
+    const y = kini.getFullYear();
+    const m = kini.getMonth();
+    const ke = (d) => `${d.getFullYear()}-` +
+                      `${String(d.getMonth() + 1).padStart(2, '0')}-` +
+                      `${String(d.getDate()).padStart(2, '0')}`;
+    // Tanggal 0 bulan berikutnya = hari terakhir bulan ini; benar juga untuk
+    // Februari dan tahun kabisat.
+    return { dari: ke(new Date(y, m, 1)), sampai: ke(new Date(y, m + 1, 0)) };
+  }
+
   function initExtraFilters() {
     const listEl = document.getElementById('notes-list');
     if (!listEl) return;
 
+    // Tersusun vertikal penuh: di layar HP tidak ada dua elemen yang berbagi
+    // satu baris, sehingga input tanggal tidak lagi terhimpit label di sebelah.
     const wrap = document.createElement('div');
     wrap.id = 'notes-extra-filters';
-    wrap.style.cssText = 'display:flex;flex-wrap:wrap;gap:var(--space-xs);align-items:center;margin-bottom:var(--space-sm);';
+    wrap.style.cssText =
+      'display:flex;flex-direction:column;gap:var(--space-xs);' +
+      'margin-bottom:var(--space-sm);';
 
-    const visLabel = document.createElement('label');
-    visLabel.textContent = 'Visibilitas';
-    visLabel.style.cssText = 'font-size:var(--fs-caption);color:var(--text-secondary);margin-bottom:0;flex-shrink:0;text-transform:none;letter-spacing:normal;font-weight:var(--fw-medium);';
+    const gayaLabel =
+      'display:block;font-size:var(--fs-caption);color:var(--text-secondary);' +
+      'margin-bottom:.15rem;text-transform:none;letter-spacing:normal;' +
+      'font-weight:var(--fw-medium);';
+    const gayaKendali = 'width:100%;box-sizing:border-box;';
+
+    function baris(idKendali, teksLabel, kendali) {
+      const blok = document.createElement('div');
+      const lbl  = document.createElement('label');
+      lbl.textContent = teksLabel;
+      lbl.setAttribute('for', idKendali);
+      lbl.style.cssText = gayaLabel;
+      kendali.style.cssText = gayaKendali;
+      blok.appendChild(lbl);
+      blok.appendChild(kendali);
+      return blok;
+    }
 
     const visSel = document.createElement('select');
     visSel.id = 'notes-filter-vis';
-    visSel.style.cssText = 'flex:1;min-width:9rem;max-width:12rem;';
     visSel.innerHTML =
       '<option value="">Semua</option>' +
       '<option value="siswa">Ke Siswa saja</option>' +
       '<option value="ortu">Ke Ortu saja</option>' +
       '<option value="keduanya">Siswa &amp; Ortu</option>';
 
-    const fromLabel = document.createElement('label');
-    fromLabel.textContent = 'Dari';
-    fromLabel.style.cssText = 'font-size:var(--fs-caption);color:var(--text-secondary);margin-bottom:0;flex-shrink:0;text-transform:none;letter-spacing:normal;font-weight:var(--fw-medium);';
+    const { dari, sampai } = rentangBulanIni();
 
     const fromInput = document.createElement('input');
-    fromInput.type = 'date';
-    fromInput.id   = 'notes-filter-from';
+    fromInput.type      = 'date';
+    fromInput.id        = 'notes-filter-from';
     fromInput.className = 'notes-date-input';
-    fromInput.style.cssText = 'flex:1;min-width:8rem;max-width:10rem;';
-
-    const toLabel = document.createElement('label');
-    toLabel.textContent = 'Sampai';
-    toLabel.style.cssText = 'font-size:var(--fs-caption);color:var(--text-secondary);margin-bottom:0;flex-shrink:0;text-transform:none;letter-spacing:normal;font-weight:var(--fw-medium);';
+    fromInput.value     = dari;
 
     const toInput = document.createElement('input');
-    toInput.type = 'date';
-    toInput.id   = 'notes-filter-to';
+    toInput.type      = 'date';
+    toInput.id        = 'notes-filter-to';
     toInput.className = 'notes-date-input';
-    toInput.style.cssText = 'flex:1;min-width:8rem;max-width:10rem;';
+    toInput.value     = sampai;
 
-    wrap.appendChild(visLabel);
-    wrap.appendChild(visSel);
-    wrap.appendChild(fromLabel);
-    wrap.appendChild(fromInput);
-    wrap.appendChild(toLabel);
-    wrap.appendChild(toInput);
+    // Filter langsung aktif dengan rentang default, jadi Riwayat Catatan
+    // membuka pada bulan berjalan tanpa guru perlu mengisi apa pun.
+    _filterFrom = dari;
+    _filterTo   = sampai;
+
+    wrap.appendChild(baris('notes-filter-vis',  'Visibilitas', visSel));
+    wrap.appendChild(baris('notes-filter-from', 'Dari',        fromInput));
+    wrap.appendChild(baris('notes-filter-to',   'Sampai',      toInput));
 
     listEl.insertAdjacentElement('beforebegin', wrap);
 
     visSel.addEventListener('change', () => { _filterVisibilitas = visSel.value; _notesPage = 0; renderNotesList(); });
     fromInput.addEventListener('change', () => { _filterFrom = fromInput.value; _notesPage = 0; renderNotesList(); });
     toInput.addEventListener('change',   () => { _filterTo   = toInput.value;   _notesPage = 0; renderNotesList(); });
+
+    // Terapkan rentang default ke daftar yang sudah dirender oleh loadNotes().
+    renderNotesList();
   }
 
   // ---------------------------------------------------------------------------
@@ -678,7 +709,7 @@
 
         const hint = document.createElement('small');
         hint.style.cssText = 'font-size:var(--fs-caption);color:var(--text-muted);font-style:italic;margin-top:0.35rem;display:block;';
-        hint.textContent   = 'Lakukan export sebelum semester berakhir untuk menyimpan data secara lokal.';
+        hint.textContent   = 'Atur rentang tanggal sesuai kebutuhan sebelum export. Default menampilkan bulan berjalan.';
         body.insertAdjacentElement('afterbegin', hint);
       }
 
