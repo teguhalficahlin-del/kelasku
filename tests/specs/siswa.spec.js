@@ -44,4 +44,37 @@ test.describe('Portal Siswa', () => {
 
     await expect(badge.first()).toContainText('Pengumuman Kelas');
   });
+
+  // Regresi FIX-P1: permintaan nilai wajib membawa penyaring student_id, dan
+  // isinya harus persis baris roster milik siswa yang login.
+  //
+  // Ini menguji BENTUK permintaan, bukan penolakan server. Membuktikan RLS
+  // benar-benar menolak pembacaan nilai siswa lain menuntut siswa kedua di
+  // kelas uji, yang belum ada di fixture — lihat backlog terpisah.
+  //
+  // Penyadapnya dipasang lebih dulu lalu halaman dimuat ulang, sebab beforeEach
+  // sudah selesai login dan permintaan pertamanya lewat sebelum test ini mulai.
+  test('nilai hanya menampilkan milik siswa yang login', async ({ page }) => {
+    const menungguRoster = page.waitForResponse(
+      r => r.url().includes('/rest/v1/classroom_roster'), { timeout: 20000 });
+    const menungguNilai = page.waitForRequest(
+      r => r.url().includes('/rest/v1/assessment_results'), { timeout: 20000 });
+
+    await page.reload();
+
+    const rosterIds = (await (await menungguRoster).json()).map(r => r.id);
+    expect(rosterIds.length).toBeGreaterThan(0);
+
+    const url = decodeURIComponent((await menungguNilai).url());
+    expect(url).toContain('student_id=in.');
+
+    // student_id=in.(uuid,uuid) — tanda kutip dibuang untuk berjaga-jaga bila
+    // PostgREST kelak mengutip nilainya.
+    const cocok = url.match(/student_id=in\.\(([^)]*)\)/);
+    expect(cocok).not.toBeNull();
+    const dipakai = cocok[1].split(',').map(s => s.replace(/^"|"$/g, '').trim()).filter(Boolean);
+
+    expect(dipakai.length).toBeGreaterThan(0);
+    for (const id of dipakai) expect(rosterIds).toContain(id);
+  });
 });

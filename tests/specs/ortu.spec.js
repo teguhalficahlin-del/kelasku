@@ -63,4 +63,39 @@ test.describe('Portal Ortu', () => {
     // "Siswa saja".
     await expect(item.locator('.note-item-meta')).toContainText(/Siswa & Ortu|Ortu saja/);
   });
+
+  // Regresi FIX-P2: permintaan nilai wajib membawa penyaring student_id, dan
+  // isinya harus persis baris roster anak yang ditautkan ke orang tua ini.
+  //
+  // Penyaringnya diambil lewat RPC fn_child_roster_ids, bukan
+  // fn_child_profile_ids: assessment_results.student_id menunjuk
+  // classroom_roster(id) sejak 20260815000003, sedangkan fn_child_profile_ids
+  // mengembalikan profiles(id) — ruang uuid yang berbeda dan tidak akan cocok
+  // satu baris pun. Test ini ikut mengunci pilihan itu.
+  //
+  // Seperti padanannya di portal siswa, yang diuji adalah BENTUK permintaan.
+  // Membuktikan RLS menolak nilai anak orang lain menuntut pasangan ortu-anak
+  // kedua di kelas uji, yang belum ada di fixture — lihat backlog terpisah.
+  test('nilai hanya menampilkan milik anak sendiri', async ({ page }) => {
+    const menungguRpc = page.waitForResponse(
+      r => r.url().includes('/rest/v1/rpc/fn_child_roster_ids'), { timeout: 20000 });
+    const menungguNilai = page.waitForRequest(
+      r => r.url().includes('/rest/v1/assessment_results'), { timeout: 20000 });
+
+    await page.reload();
+
+    const anakIds = await (await menungguRpc).json();
+    expect(Array.isArray(anakIds)).toBe(true);
+    expect(anakIds.length).toBeGreaterThan(0);
+
+    const url = decodeURIComponent((await menungguNilai).url());
+    expect(url).toContain('student_id=in.');
+
+    const cocok = url.match(/student_id=in\.\(([^)]*)\)/);
+    expect(cocok).not.toBeNull();
+    const dipakai = cocok[1].split(',').map(s => s.replace(/^"|"$/g, '').trim()).filter(Boolean);
+
+    expect(dipakai.length).toBeGreaterThan(0);
+    for (const id of dipakai) expect(anakIds).toContain(id);
+  });
 });

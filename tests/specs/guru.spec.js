@@ -244,4 +244,59 @@ test.describe('Portal Guru', () => {
     await expect(page.locator('#gagal-msg')).toContainText('tidak berlaku');
     await expect(page.locator('#state-form')).toBeHidden();
   });
+
+  // Regresi FIX-P6: tombol simpan penilaian harus menunjukkan bahwa proses
+  // sedang berjalan, lalu pulih sendiri ketika gagal.
+  //
+  // Permintaan simpannya ditahan sebentar lalu DIBATALKAN, bukan diteruskan.
+  // Dua alasan: penundaannya membuat keadaan "sedang menyimpan" cukup lama
+  // untuk diperiksa tanpa mengandalkan waktu, dan pembatalannya memastikan
+  // tidak ada penilaian sungguhan yang tertulis ke kelas uji — suite ini
+  // memang menulis ke kelas nyata (lihat tests/fixtures/db.js).
+  test('simpan nilai menampilkan loading state lalu pulih', async ({ page }) => {
+    await bukaKelasPertama(page);
+
+    await page.click('#tab-penilaian');
+    const panel = page.locator('#panel-penilaian');
+    await expect(panel).toBeVisible({ timeout: 20000 });
+
+    // Akun yang tidak aktif mendapat banner tier menggantikan seluruh panel;
+    // itu bukan kegagalan FIX-P6, jadi dilewati dengan alasan yang jelas.
+    if (await panel.locator('.upgrade-tier-banner').count() > 0) {
+      test.skip(true, 'Akun guru uji tidak aktif — tab Penilaian diganti banner tier.');
+    }
+
+    // Tab dimuat lewat jaringan lebih dulu; tombolnya baru ada setelah itu.
+    const tombolTambah = panel.locator('[data-action="add-asmt"]');
+    await expect(tombolTambah).toBeAttached({ timeout: 20000 });
+
+    // Daftar Penilaian tertutup secara bawaan, dan keadaannya diingat
+    // localStorage — buka hanya bila memang masih tertutup.
+    await bukaPanel(page, 'Daftar Penilaian');
+    await expect(tombolTambah).toBeVisible({ timeout: 10000 });
+    await tombolTambah.click();
+
+    const simpan = page.locator('#btn-asmt-save');
+    await expect(simpan).toBeVisible({ timeout: 10000 });
+    const labelAsli = (await simpan.textContent()).trim();
+
+    // Tahan permintaan pembuatan penilaian, lalu batalkan.
+    await page.route('**/rest/v1/assessments*', async route => {
+      if (route.request().method() !== 'POST') return route.fallback();
+      await new Promise(r => setTimeout(r, 3000));
+      await route.abort();
+    });
+
+    await simpan.click();
+
+    // Selama tertahan: penanda proses terlihat dan tombolnya terkunci.
+    await expect(simpan).toHaveText('Menyimpan…', { timeout: 5000 });
+    await expect(simpan).toBeDisabled();
+
+    // Setelah dibatalkan: label semula kembali dan tombol bisa dipakai lagi,
+    // sebab pemulihannya ada di blok finally — bukan hanya di jalur sukses.
+    await expect(simpan).toHaveText(labelAsli, { timeout: 15000 });
+    await expect(simpan).toBeEnabled();
+    await expect(page.locator('#asmt-err')).toBeVisible();
+  });
 });
