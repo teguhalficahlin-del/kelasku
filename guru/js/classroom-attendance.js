@@ -144,26 +144,32 @@
   }
 
   // ---- DB helpers ----
+  // Kedua pemuat di bawah melempar saat query gagal, bukan mengembalikan array
+  // kosong. Sebelumnya error dibuang diam-diam, sehingga jaringan yang putus
+  // tampil persis seperti "belum ada jadwal hari ini" — guru tidak punya cara
+  // membedakan keduanya, dan pemanggilnya menganggap render berhasil.
   async function loadTodaySchedules() {
     const day = todayDayName();
     if (day === 'AHAD') return [];
-    const { data } = await client
+    const { data, error } = await client
       .from('schedules')
       .select('id,day_of_week,start_time,end_time,is_active')
       .eq('classroom_id', classroomId)
       .eq('day_of_week', day)
       .eq('is_active', true)
       .order('start_time');
+    if (error) throw error;
     return data || [];
   }
 
   async function loadRoster() {
-    const { data } = await client
+    const { data, error } = await client
       .from('classroom_roster')
       .select('profile_id,full_name,nis')
       .eq('classroom_id', classroomId)
       .not('profile_id', 'is', null)
       .order('full_name');
+    if (error) throw error;
     return data || [];
   }
 
@@ -889,8 +895,26 @@
     // Perubahan status sesi (mis. AKTIF → SELESAI) tetap ditangani timer
     // 30 detik di bawah, jadi tampilan tidak menjadi basi.
     if (!_absensiSudahDirender) {
-      _absensiSudahDirender = true;
-      await renderAbsensi();
+      // Penanda dipasang SETELAH render berhasil, bukan sebelumnya. Kalau
+      // dipasang lebih dulu dan renderAbsensi() gagal — jaringan putus, RPC
+      // menolak — panel tinggal kosong selamanya: setiap kunjungan berikutnya
+      // ke tab ini melihat penandanya sudah true dan melewati render, sehingga
+      // satu-satunya jalan keluar bagi guru adalah memuat ulang halaman.
+      try {
+        await renderAbsensi();
+        _absensiSudahDirender = true;
+      } catch (err) {
+        // Sengaja dibiarkan false: kunjungan berikutnya ke tab ini mencoba
+        // lagi. Panelnya juga tidak ditinggal menggantung di "Memuat…" —
+        // guru diberi tahu apa yang terjadi dan jalan keluarnya.
+        console.error('renderAbsensi', err);
+        const wadah = document.getElementById('absensi-container');
+        if (wadah) {
+          wadah.innerHTML =
+            '<p class="empty-state">Gagal memuat absensi. Periksa koneksi, ' +
+            'lalu buka kembali tab ini untuk mencoba lagi.</p>';
+        }
+      }
     }
     // Restart timer — clear dulu agar tidak ada interval ganda (leak prevention)
     if (_sessionTimerId) clearInterval(_sessionTimerId);
