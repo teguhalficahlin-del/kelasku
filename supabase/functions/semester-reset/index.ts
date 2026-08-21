@@ -46,61 +46,30 @@ Deno.serve(async (req) => {
   if (profileError || !profile) return json({ error: 'Forbidden' }, 403);
 
   // -------------------------------------------------------------------------
-  // 3. Ambil semua classroom guru
+  // 3. Hapus seluruh data semester dalam SATU transaksi database
   // -------------------------------------------------------------------------
-  const { data: classrooms, error: clError } = await admin
-    .from('classrooms')
-    .select('id')
-    .eq('teacher_id', profile.id);
+  // Sebelumnya bagian ini adalah rangkaian DELETE terpisah — satu request per
+  // tabel per classroom, masing-masing transaksi sendiri. Gagal di tengah
+  // berarti sebagian data sudah lenyap dan sisanya utuh, tanpa jalan pulih.
+  //
+  // Itu bukan risiko teoretis: dua nama tabel di daftar lama (assessment_items,
+  // student_grades) sudah tidak ada sejak migrasi 20260815000001, sehingga
+  // SETIAP reset berhenti tepat setelah attendance, student_notes, dan
+  // schedules terhapus. Guru melihat pesan gagal dan mengira tidak terjadi
+  // apa-apa.
+  //
+  // fn_semester_reset menjalankan seluruh penghapusan beserta pencatatan
+  // last_reset_at di dalam satu transaksi: kegagalan apa pun membatalkan
+  // semuanya. Daftar tabel dan urutannya kini tinggal di satu tempat — di
+  // migrasi, dekat dengan skema yang menentukan urutan itu.
+  const { data: hasil, error: resetError } = await admin
+    .rpc('fn_semester_reset', { p_teacher_id: profile.id });
 
-  if (clError) return json({ error: clError.message }, 500);
-
-  // -------------------------------------------------------------------------
-  // 4. Hapus data per classroom
-  // -------------------------------------------------------------------------
-  for (const cl of (classrooms ?? [])) {
-    const cid = cl.id;
-
-    const { error: e1 } = await admin.from('attendance').delete().eq('classroom_id', cid);
-    if (e1) return json({ error: 'Gagal hapus attendance: ' + e1.message }, 500);
-
-    const { error: e2 } = await admin.from('student_notes').delete().eq('classroom_id', cid);
-    if (e2) return json({ error: 'Gagal hapus student_notes: ' + e2.message }, 500);
-
-    const { error: e3 } = await admin.from('schedules').delete().eq('classroom_id', cid);
-    if (e3) return json({ error: 'Gagal hapus schedules: ' + e3.message }, 500);
-
-    // assessment_items CASCADE ke student_grades via FK
-    const { error: e4 } = await admin.from('assessment_items').delete().eq('classroom_id', cid);
-    if (e4) return json({ error: 'Gagal hapus assessment_items: ' + e4.message }, 500);
-
-    // student_grades yang tersisa (tidak ber-FK ke assessment_items)
-    const { error: e5 } = await admin.from('student_grades').delete().eq('classroom_id', cid);
-    if (e5) return json({ error: 'Gagal hapus student_grades: ' + e5.message }, 500);
-
-    const { error: e6 } = await admin.from('assessment_rubric_results').delete().eq('classroom_id', cid);
-    if (e6) return json({ error: 'Gagal hapus rubric_results: ' + e6.message }, 500);
-
-    const { error: e7 } = await admin.from('assessment_rubric_criteria').delete().eq('classroom_id', cid);
-    if (e7) return json({ error: 'Gagal hapus rubric_criteria: ' + e7.message }, 500);
-
-    const { error: e8 } = await admin.from('assessment_kktp_results').delete().eq('classroom_id', cid);
-    if (e8) return json({ error: 'Gagal hapus kktp_results: ' + e8.message }, 500);
-
-    // assessments (pelaksanaan) jika ada
-    const { error: e9 } = await admin.from('assessments').delete().eq('classroom_id', cid);
-    if (e9) return json({ error: 'Gagal hapus assessments: ' + e9.message }, 500);
+  if (resetError) {
+    return json({
+      error: 'Reset semester gagal, tidak ada data yang terhapus: ' + resetError.message,
+    }, 500);
   }
 
-  // -------------------------------------------------------------------------
-  // 5. Catat waktu reset
-  // -------------------------------------------------------------------------
-  const { error: updateError } = await admin
-    .from('profiles')
-    .update({ last_reset_at: new Date().toISOString() })
-    .eq('id', profile.id);
-
-  if (updateError) return json({ error: updateError.message }, 500);
-
-  return json({ success: true });
+  return json({ success: true, hasil });
 });
