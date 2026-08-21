@@ -14,6 +14,14 @@
   let _roster   = [];  // [{id, nama}] active students in classroom
   let _sGroups  = {};  // { studentId: grup }
   let _roleGuru = null; // role_guru dari profiles (WALI_KELAS_SD | MAPEL | null)
+
+  // Penjaga re-entrancy untuk seluruh jalur simpan penilaian. Tombolnya memang
+  // sudah di-disable sebelum await pertama, dan modal membangun ulang isinya
+  // setiap kali dibuka sehingga listener tidak menumpuk — flag ini lapis kedua
+  // yang tidak bergantung pada keadaan DOM, agar simpan tetap tunggal bila
+  // pemicunya kelak datang dari jalur lain (tombol dipakai ulang, shortcut
+  // keyboard, atau pemanggilan langsung dari kode).
+  let _nilaiSedangDisimpan = false;
   let _selMapel = null; // mapel aktif di Section 1 dropdown (WALI_KELAS_SD only, null = belum diinit)
   let _classroomMapelKey = ''; // window._classroomMapelKey — mapel fix classroom (guru MAPEL)
   let _classroomJenjang  = ''; // window._classroomJenjang  — jenjang classroom
@@ -699,6 +707,8 @@
         is_visible_siswa: !!el('tp-vis-siswa')?.checked,
         is_visible_ortu:  !!el('tp-vis-ortu')?.checked,
       };
+      if (_nilaiSedangDisimpan) return;
+      _nilaiSedangDisimpan = true;
       el('btn-tp-save').disabled = true;
       try {
         if (isEdit) {
@@ -716,6 +726,8 @@
         el('tp-err').textContent = err.message || 'Gagal menyimpan';
         el('tp-err').style.display = '';
         el('btn-tp-save').disabled = false;
+      } finally {
+        _nilaiSedangDisimpan = false;
       }
     });
 
@@ -1286,6 +1298,8 @@
         is_visible_siswa: !!el('asmt-vis-siswa')?.checked,
         is_visible_ortu:  !!el('asmt-vis-ortu')?.checked,
       };
+      if (_nilaiSedangDisimpan) return;
+      _nilaiSedangDisimpan = true;
       el('btn-asmt-save').disabled = true;
       errEl.style.display = 'none';
       try {
@@ -1327,6 +1341,8 @@
         errEl.textContent = err.message || 'Gagal menyimpan';
         errEl.style.display = '';
         el('btn-asmt-save').disabled = false;
+      } finally {
+        _nilaiSedangDisimpan = false;
       }
     });
 
@@ -2465,6 +2481,8 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
         is_visible_siswa: !!el('asmt-vis-siswa')?.checked,
         is_visible_ortu:  !!el('asmt-vis-ortu')?.checked,
       };
+      if (_nilaiSedangDisimpan) return;
+      _nilaiSedangDisimpan = true;
       el('btn-asmt-save').disabled = true;
       errEl.style.display = 'none';
       try {
@@ -2504,6 +2522,8 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
         errEl.textContent = err.message || 'Gagal menyimpan';
         errEl.style.display = '';
         el('btn-asmt-save').disabled = false;
+      } finally {
+        _nilaiSedangDisimpan = false;
       }
     });
 
@@ -2940,6 +2960,8 @@ ${metodeHtml}${hasilHtml}`;
   }
 
   async function _simpanRecap(sumatifs, nilaiGrid) {
+    if (_nilaiSedangDisimpan) return;
+    _nilaiSedangDisimpan = true;
     const btn = el('rc-btn-simpan');
     if (btn) { btn.disabled = true; btn.textContent = 'Menyimpan…'; }
     try {
@@ -2977,6 +2999,7 @@ ${metodeHtml}${hasilHtml}`;
     } catch (err) {
       toast('Gagal menyimpan rekap: ' + (err.message || ''), false);
     } finally {
+      _nilaiSedangDisimpan = false;
       if (btn) { btn.disabled = false; btn.textContent = 'Simpan Rekap'; }
     }
   }
