@@ -17,15 +17,46 @@
  */
 'use strict';
 
-const CACHE_NAME = 'miclass-v2';
+const CACHE_NAME = 'miclass-v3';
 
 // Relatif terhadap lokasi sw.js, sehingga tidak bergantung pada nama repo.
-const PRECACHE_URLS = [
+//
+// WAJIB — tanpa berkas ini aplikasi tidak dapat berjalan sama sekali. Kegagalan
+// menyimpannya membatalkan instalasi service worker: lebih baik service worker
+// lama tetap melayani daripada yang baru aktif dengan cache separuh jadi.
+const PRECACHE_WAJIB = [
   './',
   'index.html',
   'manifest.webmanifest',
+  // Pustaka Supabase — satu-satunya dependensi keras. Sebelumnya diambil dari
+  // CDN jsdelivr, sehingga jaringan sekolah yang memblokir CDN membuat seluruh
+  // halaman gagal total.
+  'shared/js/vendor/supabase-js-2.112.3.umd.js',
+  'shared/js/supabase.js',
+  'shared/js/config.js',
+  'shared/js/custom-select.js',
+  // Portal guru — halaman kerja utama.
+  'guru/classroom.html',
+  'guru/dashboard.html',
+  'guru/index.html',
+  'guru/css/guru.css',
+  'shared/css/design-system.css',
+  'shared/css/components.css',
+  'guru/js/api.js',
+  'guru/js/guru.js',
+  'guru/js/classroom.js',
+  'guru/js/classroom-schedule.js',
+  'guru/js/classroom-attendance.js',
+  'guru/js/classroom-notes.js',
+];
+
+// OPSIONAL — enak kalau ada, tetapi aplikasi tetap jalan tanpanya. Kegagalan
+// menyimpan salah satunya tidak membatalkan instalasi.
+const PRECACHE_OPSIONAL = [
   'icons/icon-192.png',
   'icons/icon-512.png',
+  'shared/js/pwa.js',
+  'shared/js/xlsx.full.min.js',
 ];
 
 const SUPABASE_HOSTS = ['supabase.co', 'supabase.in', 'supabase.com'];
@@ -73,12 +104,23 @@ function isStaticAsset(url) {
 }
 
 self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(PRECACHE_URLS).catch(err =>
-        console.warn('[sw] precache sebagian gagal:', err)))
-      .then(() => self.skipWaiting())
-  );
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE_NAME);
+
+    // Berkas opsional: kegagalan diabaikan, satu per satu supaya satu berkas
+    // yang hilang tidak menjatuhkan sisanya.
+    await Promise.all(PRECACHE_OPSIONAL.map(url =>
+      cache.add(url).catch(err =>
+        console.warn('[sw] precache opsional gagal:', url, err))));
+
+    // Berkas wajib: kegagalan menggagalkan seluruh instalasi. Sebelumnya
+    // kegagalan hanya dicatat console.warn lalu skipWaiting() tetap dijalankan,
+    // sehingga service worker baru aktif dengan cache separuh jadi — dan yang
+    // lama, yang cache-nya utuh, sudah telanjur dibuang oleh handler activate.
+    await cache.addAll(PRECACHE_WAJIB);
+
+    await self.skipWaiting();
+  })());
 });
 
 self.addEventListener('activate', event => {

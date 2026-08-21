@@ -823,7 +823,11 @@
 
   function generateShareLink(siswa) {
     const code = currentClassroom ? currentClassroom.classroom_code : '';
-    const base = window.location.origin + '/kelasku';
+    // Akar aplikasi datang dari shared/js/config.js, yang menurunkannya dari
+    // lokasi berkasnya sendiri. Sebelumnya '/kelasku' ditanam di sini, sehingga
+    // pindah domain akan mematikan semua QR dan link yang sudah dibagikan.
+    const base = (window.SIP_CONFIG && window.SIP_CONFIG.APP_BASE_URL)
+      || (window.location.origin + '/kelasku');
     return {
       siswa: base + '/siswa/?kelas=' + encodeURIComponent(code) + '&nis=' + encodeURIComponent(siswa.nis),
       ortu:  base + '/ortu/?kelas='  + encodeURIComponent(code) + '&nis=' + encodeURIComponent(siswa.nis),
