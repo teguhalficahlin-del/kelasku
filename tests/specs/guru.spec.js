@@ -168,9 +168,21 @@ test.describe('Portal Guru', () => {
 
     await page.fill('#notes-content', isi);
     await page.check('#notes-vis-student');
-    await page.locator('#notes-form button[type=submit]').click();
 
-    await expect(page.locator('#notes-status')).toContainText('Pengumuman terkirim', { timeout: 20000 });
+    // Tunggu insert-nya sendiri, bukan jendela waktu yang ditebak. Satu
+    // pengumuman menjadi satu baris per siswa, dan status di layar baru terisi
+    // setelah seluruh insert kembali — pada percobaan pertama yang "dingin" itu
+    // bisa melewati batas berapa pun yang dipatok, lalu lulus di retry. Test
+    // yang bergantung pada retry untuk hijau tidak membuktikan apa-apa.
+    const [respons] = await Promise.all([
+      page.waitForResponse(r =>
+        r.url().includes('/rest/v1/student_notes') &&
+        r.request().method() === 'POST'),
+      page.locator('#notes-form button[type=submit]').click(),
+    ]);
+    expect(respons.status(), 'insert pengumuman harus diterima server').toBeLessThan(300);
+
+    await expect(page.locator('#notes-status')).toContainText('Pengumuman terkirim');
 
     // Persis satu kartu memuat teks itu, dan kartunya berlabel pengumuman.
     const kartu = page.locator('#notes-list .note-card', { hasText: isi });
