@@ -1,9 +1,40 @@
 import { test, expect } from '@playwright/test';
-import { loginSiswa, envHilang } from '../fixtures/auth.js';
+import { loginSiswa, loginSiswa2, tokenSesi, KUNCI_SESI, envHilang } from '../fixtures/auth.js';
+import {
+  tokenGuru, kelasUji, rosterByNis, bersihkanPenilaianUji, buatPenilaianUji,
+  nilaiRosterMentah,
+} from '../fixtures/db.js';
 
 const WAJIB = ['TEST_BASE_URL', 'TEST_KODE_KELAS', 'TEST_SISWA_NAMA', 'TEST_SISWA_NIS'];
 
+// Tambahan khusus test negatif: butuh siswa kedua sebagai subjek "siswa lain",
+// dan kredensial guru untuk menyiapkan nilai miliknya.
+const WAJIB_NEGATIF = [
+  'TEST_GURU_EMAIL', 'TEST_GURU_PASSWORD', 'TEST_SISWA2_NAMA', 'TEST_SISWA2_NIS',
+];
+
+let _tokenGuru = null;
+let _kelas     = null;
+let _roster2   = null;
+let _siapNegatif = false;
+
 test.describe('Portal Siswa', () => {
+  test.beforeAll(async () => {
+    if (envHilang(...WAJIB, ...WAJIB_NEGATIF).length > 0) return;
+    _tokenGuru = await tokenGuru();
+    _kelas     = await kelasUji(_tokenGuru);
+    // Sapu sisa run yang mati sebelum sempat membersihkan, supaya penilaian
+    // bertanda uji tidak menumpuk di kelas sungguhan.
+    await bersihkanPenilaianUji(_tokenGuru, _kelas.id);
+    _roster2 = await rosterByNis(_tokenGuru, _kelas.id, process.env.TEST_SISWA2_NIS);
+    await buatPenilaianUji(_tokenGuru, _kelas, _roster2.id);
+    _siapNegatif = true;
+  });
+
+  test.afterAll(async () => {
+    if (_tokenGuru && _kelas) await bersihkanPenilaianUji(_tokenGuru, _kelas.id);
+  });
+
   test.beforeEach(async ({ page }) => {
     const hilang = envHilang(...WAJIB);
     test.skip(hilang.length > 0, 'Kredensial belum diisi: ' + hilang.join(', '));
@@ -83,5 +114,43 @@ test.describe('Portal Siswa', () => {
 
     expect(dipakai.length).toBeGreaterThan(0);
     for (const id of dipakai) expect(rosterIds).toContain(id);
+  });
+
+  // Test negatif sejati untuk FIX-P1: yang diuji adalah apa yang SERVER izinkan
+  // dibaca, bukan apa yang klien pilih untuk ditampilkan. Permintaannya
+  // dikirim langsung ke REST API memakai token sesi siswa pertama, sehingga
+  // penyaring .in() di dashboard sama sekali tidak ikut campur.
+  //
+  // Kontrolnya penting: baris nilai milik siswa kedua dipastikan memang ada dan
+  // memang terbaca oleh siswa kedua sendiri. Tanpa itu, hasil kosong pada siswa
+  // pertama tidak membuktikan apa-apa — bisa saja barisnya tidak pernah ada.
+  test('siswa lain tidak bisa membaca nilai siswa kedua', async ({ page, browser }) => {
+    test.skip(!_siapNegatif,
+      'Penyiapan dilewati — butuh ' + WAJIB_NEGATIF.join(', ') + '.');
+
+    // (1) Siswa pertama: harus kosong, dan harus 200 — ditolak RLS berarti
+    //     baris tidak terlihat, bukan permintaan yang error.
+    const tokenSiswa1 = await tokenSesi(page, KUNCI_SESI.siswa);
+    expect(tokenSiswa1).toBeTruthy();
+
+    const dilihatSiswa1 = await nilaiRosterMentah(tokenSiswa1, _kelas.id, _roster2.id);
+    expect(dilihatSiswa1.status).toBe(200);
+    expect(dilihatSiswa1.body).toEqual([]);
+
+    // (2) Siswa kedua atas barisnya sendiri: harus ada. Konteks terpisah supaya
+    //     sesi siswa pertama di atas tidak tertimpa.
+    const konteks2 = await browser.newContext();
+    try {
+      const halaman2 = await konteks2.newPage();
+      await loginSiswa2(halaman2);
+      const tokenSiswa2 = await tokenSesi(halaman2, KUNCI_SESI.siswa);
+      expect(tokenSiswa2).toBeTruthy();
+
+      const dilihatSiswa2 = await nilaiRosterMentah(tokenSiswa2, _kelas.id, _roster2.id);
+      expect(dilihatSiswa2.status).toBe(200);
+      expect(dilihatSiswa2.body.length).toBeGreaterThan(0);
+    } finally {
+      await konteks2.close();
+    }
   });
 });

@@ -23,6 +23,10 @@ const SUPABASE_KEY = 'sb_publishable_7T4Y9_ty5cN6_NIZ4TalXA_ByYNtSwG';
 
 export const PENANDA_JADWAL = 'PLAYWRIGHT_TEST_SCHEDULE';
 
+// Penanda untuk penilaian yang dibuat test. Disimpan di kolom tujuan, yang
+// memang teks bebas dan tampil sebagai judul penilaian di portal.
+export const PENANDA_PENILAIAN = 'PLAYWRIGHT_TEST_ASSESSMENT';
+
 // schedules.day_of_week hanya menerima enam hari kerja; Ahad tidak ada.
 const NAMA_HARI = ['AHAD', 'SENIN', 'SELASA', 'RABU', 'KAMIS', 'JUMAT', 'SABTU'];
 
@@ -76,6 +80,85 @@ export async function bersihkanJadwalUji(token, classroomId) {
   await api(
     `/rest/v1/schedules?classroom_id=eq.${classroomId}&note=eq.${PENANDA_JADWAL}`,
     { token, method: 'DELETE' });
+}
+
+/** Satu baris roster di kelas ini, dicari lewat NIS. */
+export async function rosterByNis(token, classroomId, nis) {
+  const rows = await api(
+    `/rest/v1/classroom_roster?classroom_id=eq.${classroomId}` +
+    `&nis=eq.${encodeURIComponent(nis)}&select=id,full_name,profile_id`,
+    { token });
+  if (!rows.length) throw new Error('Roster dengan NIS itu tidak ditemukan: ' + nis);
+  return rows[0];
+}
+
+/**
+ * Buang semua penilaian bertanda uji di kelas ini — termasuk sisa run
+ * sebelumnya. Baris assessment_results ikut terhapus lewat FK ON DELETE
+ * CASCADE (20260820000005), jadi tidak perlu disapu terpisah.
+ */
+export async function bersihkanPenilaianUji(token, classroomId) {
+  await api(
+    `/rest/v1/assessments?classroom_id=eq.${classroomId}&tujuan=eq.${PENANDA_PENILAIAN}`,
+    { token, method: 'DELETE' });
+}
+
+/**
+ * Satu penilaian bertanda uji, beserta satu baris nilai untuk baris roster
+ * yang ditunjuk.
+ *
+ * Tanpa ini test negatif menjadi hampa: kalau siswa kedua memang belum punya
+ * nilai apa pun, hasil kosong akan muncul juga seandainya RLS dicabut, dan
+ * testnya lulus tanpa membuktikan apa-apa.
+ *
+ * Sengaja dibuat terlihat siswa dan ortu. Kalau tersembunyi, hasil kosong bisa
+ * datang dari gate visibilitas — bukan dari pembatasan per siswa yang justru
+ * ingin diuji.
+ */
+export async function buatPenilaianUji(token, kelas, rosterId) {
+  const asmt = (await api('/rest/v1/assessments', {
+    token,
+    method: 'POST',
+    prefer: 'return=representation',
+    body: {
+      classroom_id:     kelas.id,
+      teacher_id:       kelas.teacher_id,
+      jenis:            'SUMATIF',
+      tujuan:           PENANDA_PENILAIAN,
+      is_visible_siswa: true,
+      is_visible_ortu:  true,
+    },
+  }))[0];
+
+  await api('/rest/v1/assessment_results', {
+    token,
+    method: 'POST',
+    prefer: 'return=representation',
+    body: {
+      assessment_id: asmt.id,
+      classroom_id:  kelas.id,
+      teacher_id:    kelas.teacher_id,
+      student_id:    rosterId,
+      nilai:         88,
+    },
+  });
+
+  return asmt.id;
+}
+
+/**
+ * Baca assessment_results untuk satu baris roster memakai token apa pun.
+ *
+ * Sengaja memanggil REST langsung, bukan lewat halaman: yang diuji adalah apa
+ * yang server izinkan dibaca oleh sebuah sesi, bukan apa yang klien pilih untuk
+ * ditampilkan. Penyaring di klien tidak ikut campur di sini.
+ */
+export async function nilaiRosterMentah(token, classroomId, rosterId) {
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/assessment_results` +
+    `?classroom_id=eq.${classroomId}&student_id=eq.${rosterId}&select=id,nilai`,
+    { headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + token } });
+  return { status: res.status, body: await res.json() };
 }
 
 /**

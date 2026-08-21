@@ -77,6 +77,53 @@ export async function loginOrtu(page) {
 }
 
 // ---------------------------------------------------------------------------
+// Siswa kedua dan ortu kedua — dipakai test negatif RLS penilaian
+//
+// Formnya sama persis dengan siswa/ortu pertama; yang berbeda hanya nama dan
+// NIS yang dibaca dari environment. Storage state-nya disimpan terpisah supaya
+// sesi siswa pertama tidak tertimpa ketika keduanya dipakai di satu test.
+// ---------------------------------------------------------------------------
+export async function loginSiswa2(page) {
+  await page.goto('siswa/index.html');
+  await page.fill('#inp-kode', env('TEST_KODE_KELAS'));
+  await page.fill('#inp-nama', env('TEST_SISWA2_NAMA'));
+  await page.fill('#inp-nis',  env('TEST_SISWA2_NIS'));
+  await page.click('#btn-login');
+  await page.waitForURL(/dashboard\.html/, { timeout: 20000 });
+  await simpanState(page.context(), 'siswa2.json');
+}
+
+export async function loginOrtu2(page) {
+  await page.goto('ortu/index.html');
+  await page.fill('#inp-kode',      env('TEST_KODE_KELAS'));
+  await page.fill('#inp-nama-anak', env('TEST_SISWA2_NAMA'));
+  await page.fill('#inp-nis-anak',  env('TEST_SISWA2_NIS'));
+  await page.click('#btn-login');
+  await page.waitForURL(/dashboard\.html/, { timeout: 20000 });
+  await simpanState(page.context(), 'ortu2.json');
+}
+
+// ---------------------------------------------------------------------------
+// Access token sesi portal yang sedang terbuka
+//
+// Setiap portal memakai storageKey sendiri (lihat siswa/js/supabase.js dan
+// ortu/js/supabase.js), jadi kuncinya tidak bisa ditebak satu untuk semua.
+// ---------------------------------------------------------------------------
+export const KUNCI_SESI = {
+  guru:  'sb-guru-auth',
+  siswa: 'sb-siswa-auth',
+  ortu:  'sb-ortu-auth',
+};
+
+export async function tokenSesi(page, kunci) {
+  return page.evaluate(k => {
+    const mentah = localStorage.getItem(k);
+    if (!mentah) return null;
+    try { return JSON.parse(mentah).access_token ?? null; } catch { return null; }
+  }, kunci);
+}
+
+// ---------------------------------------------------------------------------
 // Admin — satu halaman, login dan dashboard bertukar tampil
 // ---------------------------------------------------------------------------
 export async function loginAdmin(page) {
