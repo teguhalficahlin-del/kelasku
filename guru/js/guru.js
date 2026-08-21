@@ -880,31 +880,26 @@
 
       var overlay = document.createElement('div');
       overlay.className = 'locked-overlay';
-      // Overlay ini harus punya jalan keluar. Sebelumnya satu-satunya tombol
-      // adalah reset yang menghapus segalanya — guru yang belum siap tidak
-      // punya pilihan selain menekannya.
+      // Penguncian keras — disengaja. Overlay ini tidak punya tombol tutup:
+      // semester yang sudah berakhir harus diselesaikan sebelum aplikasi bisa
+      // dipakai lagi, supaya data semester lama tidak bercampur dengan yang
+      // baru. Pagar keamanannya bukan lagi kemampuan menutup overlay,
+      // melainkan konfirmasi berlapis di modalResetSemester(): rincian jumlah
+      // data yang akan hilang, peringatan tidak dapat dipulihkan, dan
+      // keharusan mengetik "RESET SEMESTER". Modal itulah yang bisa dibatalkan
+      // — guru yang belum siap kembali ke layar ini, bukan kehilangan data.
       overlay.innerHTML =
-        '<div class="locked-modal" style="position:relative">' +
-          '<button id="btn-tutup-locked" aria-label="Tutup" style="position:absolute;' +
-            'top:.4rem;right:.6rem;background:transparent;border:none;font-size:1.4rem;' +
-            'line-height:1;cursor:pointer;color:#9A9AA5;padding:0">&times;</button>' +
+        '<div class="locked-modal">' +
           '<h2>Semester Berakhir</h2>' +
-          '<p>Semester ini sudah berakhir. Anda dapat memulai semester baru sekarang, ' +
-          'atau menutup pesan ini dan melakukannya nanti.</p>' +
+          '<p>Semua fitur terkunci hingga Anda memulai semester baru.</p>' +
           '<div class="warning-list">' +
             '<div class="warning-item">Pastikan Anda sudah export data semester ini sebelum melanjutkan.</div>' +
             '<div class="warning-item">Pastikan nama kelas dan daftar siswa diperbarui setelah semester atau kelas baru dimulai.</div>' +
           '</div>' +
           '<button class="btn-semester-baru" id="btn-mulai-semester-overlay">Mulai Semester Baru</button>' +
-          '<button id="btn-nanti-saja" style="margin-top:.5rem;background:transparent;' +
-            'border:none;color:#9A9AA5;cursor:pointer;font-family:inherit;' +
-            'text-decoration:underline">Nanti saja</button>' +
         '</div>';
       document.body.appendChild(overlay);
       document.getElementById('btn-mulai-semester-overlay').addEventListener('click', handleSemesterReset);
-      function tutupLocked() { overlay.remove(); }
-      document.getElementById('btn-tutup-locked').addEventListener('click', tutupLocked);
-      document.getElementById('btn-nanti-saja').addEventListener('click', tutupLocked);
     }
   }
 
