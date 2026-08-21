@@ -912,6 +912,27 @@
     </div>`;
   }
 
+  // Tombol pengalih daftar percakapan. Selalu hadir dalam keadaan apa pun —
+  // sebelumnya ia lenyap setelah diklik, sehingga guru yang sudah membuka
+  // daftar tidak punya cara menutupnya lagi selain memuat ulang halaman.
+  // Rata kiri, selebar isinya sendiri.
+  function tombolAlihPesanHtml() {
+    const label = _pesanTampil ? 'Sembunyikan Pesan' : 'Tampilkan Pesan';
+    return `<div style="margin-bottom:.6rem">
+      <button type="button" id="btn-alih-pesan"
+        style="padding:.45rem 1rem;border:1px solid var(--border);border-radius:.35rem;
+        background:transparent;color:inherit;cursor:pointer;font-family:inherit;
+        font-size:var(--fs-caption)">${label}</button>
+    </div>`;
+  }
+
+  function wireTombolAlihPesan(listEl) {
+    listEl.querySelector('#btn-alih-pesan')?.addEventListener('click', () => {
+      _pesanTampil = !_pesanTampil;
+      renderPesanOrtu();
+    });
+  }
+
   function renderPesanOrtu() {
     const listEl = document.getElementById('pesan-ortu-list');
     if (!listEl) return;
@@ -923,35 +944,30 @@
     const idSiswa = Object.keys(perSiswa).sort((a, b) =>
       rosterName(a).localeCompare(rosterName(b), 'id'));
 
-    // Tahap 1 -- belum ditekan: hanya tombol, tidak ada percakapan yang tampil.
+    // Bagian yang selalu tampil: refresh, komposer pesan baru, dan tombol
+    // pengalih. Yang berubah hanya bagian di bawahnya.
+    const tetap = komposerRefreshHtml() + komposerBaruHtml() + tombolAlihPesanHtml();
+
+    // Tertutup — daftar percakapan dan dropdown disembunyikan, tombol tetap ada.
     if (!_pesanTampil) {
-      listEl.innerHTML =
-        komposerRefreshHtml() +
-        komposerBaruHtml() +
-        `<button type="button" id="btn-tampilkan-pesan"
-           style="width:100%;padding:.5rem;border:1px solid var(--border);border-radius:.35rem;
-           background:transparent;color:inherit;cursor:pointer;font-family:inherit">
-           Tampilkan Pesan</button>`;
+      listEl.innerHTML = tetap;
       wireKomposerBaru(listEl);
       wireRefreshPesan(listEl);
-      listEl.querySelector('#btn-tampilkan-pesan')
-        ?.addEventListener('click', () => { _pesanTampil = true; renderPesanOrtu(); });
+      wireTombolAlihPesan(listEl);
       return;
     }
 
-    // Tahap 2 -- sudah ditekan tetapi belum ada percakapan sama sekali.
-    // Dropdown kosong tidak ditampilkan; tidak ada yang bisa dipilih di sana.
+    // Terbuka tetapi belum ada percakapan sama sekali. Dropdown kosong tidak
+    // ditampilkan; tidak ada yang bisa dipilih di sana.
     if (!idSiswa.length) {
-      listEl.innerHTML =
-        komposerRefreshHtml() +
-        komposerBaruHtml() +
-        '<p class="empty-state">Belum ada pesan masuk</p>';
+      listEl.innerHTML = tetap + '<p class="empty-state">Belum ada pesan masuk</p>';
       wireKomposerBaru(listEl);
       wireRefreshPesan(listEl);
+      wireTombolAlihPesan(listEl);
       return;
     }
 
-    // Tahap 3 -- dropdown + percakapan yang dipilih.
+    // Terbuka — dropdown + percakapan yang dipilih.
     if (_pesanSid && !perSiswa[_pesanSid]) _pesanSid = '';
 
     const opsi = idSiswa.map(sid => {
@@ -961,9 +977,7 @@
              `${esc(rosterName(sid))}${tanda}</option>`;
     }).join('');
 
-    listEl.innerHTML =
-      komposerRefreshHtml() +
-      komposerBaruHtml() +
+    listEl.innerHTML = tetap +
       `<label style="display:block;font-size:var(--fs-caption);color:var(--text-secondary);
          margin-bottom:.25rem">Pilih percakapan</label>
        <select id="pesan-pilih-sid" style="width:100%;margin-bottom:.6rem">
@@ -973,6 +987,7 @@
 
     wireKomposerBaru(listEl);
     wireRefreshPesan(listEl);
+    wireTombolAlihPesan(listEl);
 
     const wadah = listEl.querySelector('#pesan-percakapan');
     if (_pesanSid) {
