@@ -29,6 +29,30 @@ async function bukaKelasPertama(page) {
   await page.waitForURL(/classroom\.html/, { timeout: 20000 });
 }
 
+/**
+ * Buka satu section collapse di dalam tab, berdasarkan judul di h2-nya.
+ *
+ * Panel di tab Jadwal & Absensi dibungkus initCollapseSections (classroom.js):
+ * hanya panel pertama yang terbuka, sisanya display:none. Jadi
+ * "Absensi Hari Ini" tertutup saat tab baru dibuka — wadahnya ada di DOM tapi
+ * hidden, dan menunggunya terlihat tanpa membukanya akan gagal selamanya.
+ */
+async function bukaPanel(page, judul) {
+  const panel = page.locator('.panel', {
+    has: page.locator('h2.panel-header', { hasText: judul }),
+  }).first();
+  await expect(panel).toBeVisible({ timeout: 20000 });
+
+  const badan = panel.locator('.panel-body-collapse');
+  // Mengklik header panel yang sudah terbuka justru menutupnya, dan keadaan
+  // awalnya diingat localStorage — jadi klik hanya bila memang masih tertutup.
+  if (!(await badan.isVisible())) {
+    await panel.locator('h2.panel-header').click();
+  }
+  await expect(badan).toBeVisible({ timeout: 10000 });
+  return panel;
+}
+
 test.describe('Portal Guru', () => {
   test.beforeEach(async ({ page }) => {
     const hilang = envHilang(...WAJIB);
@@ -52,6 +76,8 @@ test.describe('Portal Guru', () => {
 
     await page.click('#tab-jadwal');
     await expect(page.locator('#panel-jadwal')).toBeVisible();
+
+    await bukaPanel(page, 'Absensi Hari Ini');
     await expect(page.locator('#absensi-container')).toBeVisible();
   });
 
@@ -59,6 +85,7 @@ test.describe('Portal Guru', () => {
   test('tanda absensi bertahan setelah pindah tab dan kembali', async ({ page }) => {
     await bukaKelasPertama(page);
     await page.click('#tab-jadwal');
+    await bukaPanel(page, 'Absensi Hari Ini');
 
     const kartu = page.locator('#absensi-container .abs-card');
     const jml   = await kartu.count();
@@ -108,6 +135,7 @@ test.describe('Portal Guru', () => {
     await page.route('**/rest/v1/schedules**', route => route.abort());
 
     await page.click('#tab-jadwal');
+    await bukaPanel(page, 'Absensi Hari Ini');
     await expect(page.locator('#absensi-container'))
       .toContainText('Gagal memuat absensi', { timeout: 20000 });
 
@@ -131,6 +159,13 @@ test.describe('Portal Guru', () => {
     const isi = 'Uji otomatis pengumuman ' + Date.now();
 
     await page.check('#notes-pengumuman');
+    // terapkanModePengumuman() melepas atribut required dari dropdown siswa dan
+    // menonaktifkannya. Tanpa menunggu itu selesai, submit bisa terjadi lebih
+    // dulu dan ditolak validasi bawaan browser pada <select> yang required tapi
+    // kosong — tanpa pesan apa pun, sehingga gejalanya hanya "status tetap
+    // kosong" dan penyebabnya tidak terbaca sama sekali.
+    await expect(page.locator('#notes-student-select')).toBeDisabled({ timeout: 10000 });
+
     await page.fill('#notes-content', isi);
     await page.check('#notes-vis-student');
     await page.locator('#notes-form button[type=submit]').click();
