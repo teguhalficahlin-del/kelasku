@@ -45,11 +45,14 @@ function showDashboardError(msg) {
   el.style.display = 'block';
 }
 
-// Token diambil segar dari klien Supabase setiap kali dipakai. Sebelumnya
-// _token diisi sekali saat login dan tidak pernah diperbarui, padahal klien
-// dikonfigurasi autoRefreshToken: setelah access token kedaluwarsa (~1 jam),
-// setiap aksi admin gagal dengan pesan generik "Permintaan gagal" tanpa
-// petunjuk bahwa yang perlu dilakukan hanyalah login ulang.
+// Token diambil segar dari klien Supabase setiap kali dipakai. Dulu ada
+// variabel modul yang diisi sekali saat login dan tidak pernah diperbarui,
+// padahal klien dikonfigurasi autoRefreshToken: setelah access token
+// kedaluwarsa (~1 jam), setiap aksi admin gagal dengan pesan generik
+// "Permintaan gagal" tanpa petunjuk bahwa yang perlu dilakukan hanyalah login
+// ulang. Variabel itu sudah dibuang — klien Supabase yang memegang sesinya,
+// dan menyimpan salinannya di sini hanya menciptakan sumber kebenaran kedua
+// yang bisa berbeda dari yang sebenarnya berlaku.
 async function tokenSegar() {
   const { data: { session } } = await sb.auth.getSession();
   return session?.access_token ?? null;
@@ -66,7 +69,6 @@ async function callAdmin(body) {
     err.sesiBerakhir = true;
     throw err;
   }
-  _token = token;
 
   const res = await fetch(EDGE_ADMIN, {
     method:  'POST',
@@ -100,7 +102,6 @@ async function callAdmin(body) {
 // jelas, bukan pesan gagal yang membingungkan.
 async function tanganiSesiBerakhir(err) {
   try { await sb.auth.signOut(); } catch (_) {}
-  _token = null;
   showLogin();
   showLoginError((err && err.message) || 'Sesi Anda telah berakhir, silakan login kembali.');
 }
@@ -171,8 +172,6 @@ function actionButtons(guru) {
 // ─────────────────────────────────────────────────────────────────────────────
 // Dashboard
 // ─────────────────────────────────────────────────────────────────────────────
-
-let _token = null;
 
 function showDashboard() {
   document.getElementById('login-view').style.display     = 'none';
@@ -349,8 +348,6 @@ document.getElementById('form-login').addEventListener('submit', async (e) => {
       return;
     }
 
-    _token = authData.session.access_token;
-
     // Verifikasi akses admin via Edge Function.
     try {
       await callAdmin({ action: 'list_gurus' });
@@ -358,7 +355,6 @@ document.getElementById('form-login').addEventListener('submit', async (e) => {
       if (err.sesiBerakhir) {
         // 401/403 — memang tidak berhak. Sesinya dibuang.
         await sb.auth.signOut();
-        _token = null;
         showLoginError(err.message);
       } else {
         // Jaringan atau server bermasalah. Sebelumnya kasus ini juga dijawab
@@ -387,7 +383,6 @@ document.getElementById('form-login').addEventListener('submit', async (e) => {
 
 document.getElementById('btn-logout').addEventListener('click', async () => {
   await sb.auth.signOut();
-  _token = null;
   showLogin();
   document.getElementById('form-login').reset();
   hideLoginError();
@@ -411,7 +406,6 @@ document.getElementById('btn-refresh').addEventListener('click', () => loadGurus
   // harus login ulang padahal sesinya masih sah. Ini pola yang sudah diperbaiki
   // untuk guru, siswa, dan ortu di 5c01cb0; portal admin terlewat.
   try {
-    _token = session.access_token;
     await callAdmin({ action: 'list_gurus' });
     showDashboard();
     await loadGurus();
@@ -419,7 +413,6 @@ document.getElementById('btn-refresh').addEventListener('click', () => loadGurus
     if (err.sesiBerakhir) {
       // 401 sesi kedaluwarsa, atau 403 bukan admin — sesinya memang harus pergi.
       await sb.auth.signOut();
-      _token = null;
       showLoginError(err.message);
       return;
     }
