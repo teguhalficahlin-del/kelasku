@@ -24,6 +24,14 @@ export default defineConfig({
   timeout: 60000,
   retries: 1,
 
+  // Batas seluruh run, dipatok jauh di bawah timeout job (45 menit). Kalau
+  // batas job yang tercapai lebih dulu, runner dimatikan paksa dan afterAll
+  // tidak pernah berjalan — jadwal bertanda uji lalu tertinggal di kelas
+  // sungguhan sampai run berikutnya menyapunya. Dengan batas ini Playwright
+  // yang berhenti lebih dulu, secara tertib, sehingga teardown tetap sempat
+  // membersihkan.
+  globalTimeout: 35 * 60 * 1000,
+
   // Satu worker: seluruh spec berbagi satu classroom uji yang sama, dan test
   // yang menulis (pengumuman, absensi, pesan) akan saling menimpa kalau
   // dijalankan berbarengan.
