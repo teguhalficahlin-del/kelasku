@@ -1321,7 +1321,9 @@
         await SipApi.updateAssessment(editId, payload);
         _asmts = _asmts.map(a => a.id === editId ? { ...a, ...payload } : a);
 
-        const kktpItems = getKktpItems();
+        const kktpItems  = getKktpItems();
+        const gagalNilai = [];
+        const gagalGrup  = [];
         if (selJenis === 'SUMATIF') {
           flushSumActive();
           for (const [sid, vals] of Object.entries(_sumNilai)) {
@@ -1332,7 +1334,8 @@
               const p = vals.nilai != null ? getPredikat(vals.nilai, getRentang(kktp)) : (vals.predikat || null);
               resPayload.kktp_tercapai = p === 'BSH' || p === 'SB';
             }
-            try { await SipApi.upsertAssessmentResult(_cId, _tId, editId, sid, resPayload); } catch {}
+            try { await SipApi.upsertAssessmentResult(_cId, _tId, editId, sid, resPayload); }
+            catch { gagalNilai.push(sid); }
           }
         } else {
           const srows = el('pai-modal-box').querySelectorAll('.pai-srow');
@@ -1343,10 +1346,16 @@
               try {
                 await SipApi.upsertStudentGroup(_cId, sid, resPayload.grup_diferensiasi);
                 _sGroups[sid] = resPayload.grup_diferensiasi;
-              } catch {}
+              } catch { gagalGrup.push(sid); }
             }
-            try { await SipApi.upsertAssessmentResult(_cId, _tId, editId, sid, resPayload); } catch {}
+            try { await SipApi.upsertAssessmentResult(_cId, _tId, editId, sid, resPayload); }
+            catch { gagalNilai.push(sid); }
           }
+        }
+        // Modal sengaja dibiarkan terbuka: nilai yang sudah diketik masih ada di
+        // layar, jadi guru dapat menekan Simpan lagi tanpa mengetik ulang.
+        if (gagalNilai.length || gagalGrup.length) {
+          throw new Error(pesanGagalSimpan(gagalNilai, gagalGrup));
         }
 
         closeModal();
@@ -2088,6 +2097,33 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
   }
 
   // ── buildResultPayload — ekstrak payload per-siswa dari DOM row ──────────────
+  function namaSiswa(sid) {
+    return _roster.find(s => s.id === sid)?.nama || 'siswa tanpa nama';
+  }
+
+  // Ringkasan kegagalan penyimpanan per siswa.
+  //
+  // Sebelumnya kegagalan ini ditelan `catch {}` kosong: guru mengisi nilai satu
+  // kelas, jaringan putus di tengah, lalu tetap melihat toast "berhasil" —
+  // dan baru tahu saat membuka kembali tabnya. Nama siswanya disebut supaya
+  // jelas baris mana yang perlu diulang, dibatasi tiga agar tidak meluber.
+  function pesanGagalSimpan(gagalNilai, gagalGrup) {
+    const bagian = [];
+    if (gagalNilai.length) {
+      const nama   = gagalNilai.map(namaSiswa);
+      const tampil = nama.slice(0, 3).join(', ');
+      const sisa   = nama.length - 3;
+      bagian.push(
+        `Gagal menyimpan nilai untuk ${nama.length} siswa ` +
+        `(${tampil}${sisa > 0 ? `, dan ${sisa} lainnya` : ''}).`);
+    }
+    if (gagalGrup.length) {
+      bagian.push(`Gagal menyimpan grup diferensiasi untuk ${gagalGrup.length} siswa.`);
+    }
+    bagian.push('Penilaiannya sendiri sudah tersimpan. Silakan coba simpan lagi.');
+    return bagian.join(' ');
+  }
+
   function buildResultPayload(srow, jenis, kktpItems) {
     const payload = {};
     if (jenis === 'DIAGNOSTIK') {
@@ -2483,6 +2519,10 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
     if (selJenis === 'SUMATIF') renderSumPage();
 
     // ── Save ─────────────────────────────────────────────────────────────
+    // Penilaian yang sudah terbuat pada percobaan sebelumnya. Modal kini tetap
+    // terbuka bila ada baris nilai yang gagal, sehingga Simpan dapat ditekan
+    // lagi — tanpa penanda ini, percobaan kedua akan membuat penilaian kedua.
+    let _rowTerbuat = null;
     el('btn-asmt-save').addEventListener('click', async () => {
       const errEl     = el('asmt-err');
       const instrBody = collectBodyInstrumen(bodyInstrWrap, selTeknik, selInstrumen);
@@ -2505,9 +2545,15 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
       btnSave.textContent = 'Menyimpan…';
       errEl.style.display = 'none';
       try {
-        const row       = await SipApi.createAssessment(_cId, _tId, payload);
-        const kktpItems = getKktpItems();
-        _asmts.push(row);
+        let row = _rowTerbuat;
+        if (!row) {
+          row = await SipApi.createAssessment(_cId, _tId, payload);
+          _rowTerbuat = row;
+          _asmts.push(row);
+        }
+        const kktpItems  = getKktpItems();
+        const gagalNilai = [];
+        const gagalGrup  = [];
         if (selJenis === 'SUMATIF') {
           flushSumActive();
           for (const [sid, vals] of Object.entries(_sumNilai)) {
@@ -2518,7 +2564,8 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
               const p = vals.nilai != null ? getPredikat(vals.nilai, getRentang(kktp)) : (vals.predikat || null);
               resPayload.kktp_tercapai = p === 'BSH' || p === 'SB';
             }
-            try { await SipApi.upsertAssessmentResult(_cId, _tId, row.id, sid, resPayload); } catch {}
+            try { await SipApi.upsertAssessmentResult(_cId, _tId, row.id, sid, resPayload); }
+            catch { gagalNilai.push(sid); }
           }
         } else {
           const srows = el('pai-modal-box').querySelectorAll('.pai-srow');
@@ -2529,10 +2576,17 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
               try {
                 await SipApi.upsertStudentGroup(_cId, sid, resPayload.grup_diferensiasi);
                 _sGroups[sid] = resPayload.grup_diferensiasi;
-              } catch {}
+              } catch { gagalGrup.push(sid); }
             }
-            try { await SipApi.upsertAssessmentResult(_cId, _tId, row.id, sid, resPayload); } catch {}
+            try { await SipApi.upsertAssessmentResult(_cId, _tId, row.id, sid, resPayload); }
+            catch { gagalNilai.push(sid); }
           }
+        }
+        // Modal dibiarkan terbuka supaya nilai yang sudah diketik tidak hilang.
+        // Penilaiannya sendiri sudah terbuat, jadi menekan Simpan lagi hanya
+        // mengulang baris nilainya — upsert, bukan sisipan ganda.
+        if (gagalNilai.length || gagalGrup.length) {
+          throw new Error(pesanGagalSimpan(gagalNilai, gagalGrup));
         }
         closeModal();
         renderAsmtList();
