@@ -55,7 +55,11 @@ async function tokenSegar() {
   return session?.access_token ?? null;
 }
 
-async function callAdmin(_tokenLama, body) {
+// Argumen pertama dulu adalah token yang sudah dipegang pemanggil. Sejak
+// tokenSegar() ditambahkan, nilai itu tidak pernah dibaca lagi — tiap panggilan
+// mengambil token barunya sendiri. Parameternya dibuang supaya tidak ada yang
+// mengira token yang dikirim pemanggil masih menentukan sesuatu.
+async function callAdmin(body) {
   const token = await tokenSegar();
   if (!token) {
     const err = new Error('Sesi Anda telah berakhir, silakan login kembali.');
@@ -196,7 +200,7 @@ async function loadGurus() {
   tableEl.style.display = 'none';
 
   try {
-    const { data } = await callAdmin(_token, { action: 'list_gurus' });
+    const { data } = await callAdmin({ action: 'list_gurus' });
 
     loadEl.style.display  = 'none';
     tableEl.style.display = 'block';
@@ -250,7 +254,7 @@ document.getElementById('guru-list').addEventListener('click', async (e) => {
     btn.disabled = true;
     btn.textContent = 'Memproses…';
     try {
-      await callAdmin(_token, { action: 'activate_guru', guru_id: guruId });
+      await callAdmin({ action: 'activate_guru', guru_id: guruId });
       await loadGurus();
     } catch (err) {
       if (err.sesiBerakhir) { await tanganiSesiBerakhir(err); return; }
@@ -264,7 +268,7 @@ document.getElementById('guru-list').addEventListener('click', async (e) => {
     btn.disabled = true;
     btn.textContent = 'Memproses…';
     try {
-      await callAdmin(_token, { action: 'deactivate_guru', guru_id: guruId });
+      await callAdmin({ action: 'deactivate_guru', guru_id: guruId });
       await loadGurus();
     } catch (err) {
       if (err.sesiBerakhir) { await tanganiSesiBerakhir(err); return; }
@@ -277,7 +281,7 @@ document.getElementById('guru-list').addEventListener('click', async (e) => {
     btn.disabled = true;
     btn.textContent = 'Memproses…';
     try {
-      await callAdmin(_token, { action: 'extend_guru', guru_id: guruId, days: 365 });
+      await callAdmin({ action: 'extend_guru', guru_id: guruId, days: 365 });
       await loadGurus();
     } catch (err) {
       if (err.sesiBerakhir) { await tanganiSesiBerakhir(err); return; }
@@ -293,7 +297,7 @@ document.getElementById('guru-list').addEventListener('click', async (e) => {
     btn.disabled    = true;
     btn.textContent = 'Mengirim…';
     try {
-      await callAdmin(_token, { action: 'reset_password_guru', guru_id: guruId });
+      await callAdmin({ action: 'reset_password_guru', guru_id: guruId });
       alert('Link reset dikirim ke ' + email);
     } catch (err) {
       if (err.sesiBerakhir) { await tanganiSesiBerakhir(err); return; }
@@ -313,7 +317,7 @@ document.getElementById('guru-list').addEventListener('click', async (e) => {
     btn.disabled = true;
     btn.textContent = 'Menghapus…';
     try {
-      await callAdmin(_token, { action: 'delete_guru', guru_id: guruId });
+      await callAdmin({ action: 'delete_guru', guru_id: guruId });
       await loadGurus();
     } catch (err) {
       if (err.sesiBerakhir) { await tanganiSesiBerakhir(err); return; }
@@ -349,7 +353,7 @@ document.getElementById('form-login').addEventListener('submit', async (e) => {
 
     // Verifikasi akses admin via Edge Function.
     try {
-      await callAdmin(_token, { action: 'list_gurus' });
+      await callAdmin({ action: 'list_gurus' });
     } catch (err) {
       if (err.sesiBerakhir) {
         // 401/403 — memang tidak berhak. Sesinya dibuang.
@@ -408,7 +412,7 @@ document.getElementById('btn-refresh').addEventListener('click', () => loadGurus
   // untuk guru, siswa, dan ortu di 5c01cb0; portal admin terlewat.
   try {
     _token = session.access_token;
-    await callAdmin(_token, { action: 'list_gurus' });
+    await callAdmin({ action: 'list_gurus' });
     showDashboard();
     await loadGurus();
   } catch (err) {
