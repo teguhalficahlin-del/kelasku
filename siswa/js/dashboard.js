@@ -364,13 +364,29 @@ const JENIS_BADGE = {
 const TL_COLOR = { PENGAYAAN: 'var(--success)', PENGUATAN: 'var(--warning)', PENDAMPINGAN: 'var(--danger)' };
 
 // Skema penilaian v2: student_grades sudah di-DROP, digantikan assessment_results.
-// Baris dibatasi oleh RLS ke roster milik siswa yang login, jadi tidak perlu
-// (dan tidak bisa) memfilter student_id dari sisi klien — student_id kini berisi
-// id baris classroom_roster, bukan id profil.
+// student_id berisi id baris classroom_roster, bukan id profil, sehingga penyaring
+// dari sisi klien harus diterjemahkan dulu lewat classroom_roster. Siswa boleh
+// membaca baris roster miliknya sendiri di kelas yang diikutinya
+// (pol_roster_siswa_select), jadi terjemahan itu bisa dilakukan di sini.
+async function getMyRosterIds(classroomId) {
+  const { data, error } = await db.from('classroom_roster')
+    .select('id')
+    .eq('classroom_id', classroomId);
+  if (error) { console.error('getMyRosterIds', error); return []; }
+  return (data || []).map(r => r.id);
+}
+
+// Pembatasan sebenarnya tetap di RLS (ar_siswa_select: student_id IN
+// fn_current_roster_ids() + gate is_visible_siswa). Filter .in() di bawah adalah
+// lapis kedua yang eksplisit — bila daftar roster kosong atau gagal dimuat,
+// permintaan tidak dikirim sama sekali dan seksi nilai tampil kosong.
 async function getMyGrades(classroomId) {
+  const rosterIds = await getMyRosterIds(classroomId);
+  if (!rosterIds.length) return [];
   const { data, error } = await db.from('assessment_results')
     .select('id, nilai, catatan, umpan_balik, tindak_lanjut, assessments!inner(jenis, teknik, tujuan, created_at)')
     .eq('classroom_id', classroomId)
+    .in('student_id', rosterIds)
     .order('created_at', { ascending: false });
   if (error) { console.error('getMyGrades', error); return []; }
   // Dinormalkan ke bentuk lama agar renderer di bawah tidak perlu diubah.
