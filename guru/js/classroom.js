@@ -167,14 +167,11 @@
           alert(err.message || 'Gagal membuat QR code.');
           return;
         }
-        var win = window.open('', '_blank', 'width=400,height=500');
-        win.document.write(
-          '<!DOCTYPE html><html><body style="text-align:center;font-family:sans-serif;">' +
-          '<h3>' + escHtml(row.full_name) + ' (' + escHtml(row.nis) + ')</h3>' +
-          '<img src="' + dataUrl + '" style="max-width:300px"><br>' +
-          '<a href="' + escHtml(generateShareLink(row).siswa) + '">' + escHtml(generateShareLink(row).siswa) + '</a>' +
-          '</body></html>'
-        );
+        // Popup diblokir secara default di banyak browser HP. Sebelumnya
+        // window.open() yang mengembalikan null langsung dipakai, sehingga
+        // tombol QR tampak sekadar tidak berfungsi. Kini QR ditampilkan di
+        // dalam halaman — tidak ada popup yang bisa diblokir.
+        showQrModal(row, dataUrl);
       });
     });
 
@@ -802,6 +799,67 @@
   }
 
   // -------------------------------------------------------------------------
+  // showQrModal — QR di dalam halaman, bukan popup
+  // -------------------------------------------------------------------------
+
+  function showQrModal(siswa, dataUrl) {
+    var url = generateShareLink(siswa).siswa;
+
+    var overlay = document.createElement('div');
+    overlay.className = 'share-overlay';
+
+    var box = document.createElement('div');
+    box.className = 'share-box';
+    box.style.textAlign = 'center';
+
+    var title = document.createElement('p');
+    title.innerHTML = '<strong>' + escHtml(siswa.full_name) + '</strong><br>' +
+                      '<span style="font-size:.875rem">NIS ' + escHtml(siswa.nis) + '</span>';
+
+    var img = document.createElement('img');
+    img.src = dataUrl;
+    img.alt = 'QR login siswa ' + siswa.full_name;
+    img.style.cssText = 'max-width:100%;width:260px;height:auto;align-self:center;' +
+                        'background:#fff;padding:.5rem;border-radius:.5rem;';
+
+    var linkBox = document.createElement('textarea');
+    linkBox.readOnly = true;
+    linkBox.rows     = 2;
+    linkBox.value    = url;
+
+    var rowBtn = document.createElement('div');
+    rowBtn.style.cssText = 'display:flex;gap:.5rem;justify-content:center;margin-top:.25rem;';
+
+    var btnSalin = document.createElement('button');
+    btnSalin.type        = 'button';
+    btnSalin.textContent = 'Salin Link';
+    btnSalin.addEventListener('click', async function () {
+      try { await navigator.clipboard.writeText(url); } catch (_) { fallbackCopy(url); }
+      btnSalin.textContent = 'Disalin ✓';
+      setTimeout(function () { btnSalin.textContent = 'Salin Link'; }, 2000);
+    });
+
+    var btnTutup = document.createElement('button');
+    btnTutup.type        = 'button';
+    btnTutup.textContent = 'Tutup';
+
+    function close() { overlay.remove(); document.removeEventListener('keydown', onEsc); }
+    function onEsc(e) { if (e.key === 'Escape') close(); }
+    document.addEventListener('keydown', onEsc);
+    btnTutup.addEventListener('click', close);
+    overlay.addEventListener('click', function (e) { if (e.target === overlay) close(); });
+
+    rowBtn.appendChild(btnSalin);
+    rowBtn.appendChild(btnTutup);
+    box.appendChild(title);
+    box.appendChild(img);
+    box.appendChild(linkBox);
+    box.appendChild(rowBtn);
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
+  }
+
+  // -------------------------------------------------------------------------
   // generateQRCode
   // -------------------------------------------------------------------------
 
@@ -1155,7 +1213,7 @@
         { text: 'Upload Daftar Siswa — klik <strong>Download Template Excel</strong> untuk unduh format yang benar. Kolom yang dikenali: <code>nama, nis, nama_ortu</code>. Upload file CSV, XLSX, atau XLS lalu klik Import. Header row di-skip otomatis jika NIS bukan angka. Jika NIS sudah ada, data diperbarui (upsert).' },
         { text: 'Generate Terpilih — centang siswa yang belum punya akun → klik <strong>Generate Terpilih</strong>. Sistem membuat akun siswa sekaligus akun orang tua. Jangan refresh selama proses berlangsung — lihat banner kuning sebagai tanda proses aktif.' },
         { text: 'Setelah generate, salin kredensial dari modal yang muncul — kredensial tidak bisa dilihat ulang setelah modal ditutup.' },
-        { text: 'Bagikan ke siswa: klik <strong>Salin Link Siswa</strong> atau tampilkan QR Code. Bagikan ke orang tua: klik <strong>Salin Link Ortu</strong>.' },
+        { text: 'Bagikan ke siswa: klik tombol <strong>Siswa</strong> pada kartu siswa untuk menyalin link, atau <strong>QR</strong> untuk menampilkan QR Code. Bagikan ke orang tua: klik tombol <strong>Ortu</strong> (hanya muncul jika nama ortu sudah diisi).' },
         { text: 'Hapus Terpilih — centang siswa → klik <strong>Hapus Terpilih</strong>. Akun siswa dan orang tua dihapus permanen beserta seluruh datanya.' }
       ]
     },
@@ -1181,7 +1239,7 @@
     },
     penilaian: {
       title: 'Penilaian',
-      intro: 'Tab ini mencakup seluruh siklus penilaian Kurikulum Merdeka — dari perencanaan (CP, TP, KKTP) hingga pelaksanaan dan publikasi hasil. Mulai dari Perencanaan sebelum mengisi nilai. Nilai yang belum dipublikasikan tidak terlihat oleh siswa maupun orang tua.',
+      intro: 'Tab ini mencakup seluruh siklus penilaian Kurikulum Merdeka — dari perencanaan (CP, TP, KKTP) hingga pelaksanaan dan pembagian hasil. Mulai dari Perencanaan sebelum mengisi nilai. Setiap penilaian dibuat tersembunyi; nilainya baru terlihat siswa dan orang tua setelah Anda mencentang visibilitasnya.',
       items: [
         { text: 'Perencanaan — isi <strong>Tahun Ajaran</strong> (contoh: <code>2025/2026</code>) dan pilih <strong>Semester</strong> → klik <strong>Tampilkan</strong>. Tambah CP (Capaian Pembelajaran) — hanya satu per semester. Tambah TP (Tujuan Pembelajaran) sebanyak yang dibutuhkan. Tambah KKTP di bawah setiap TP sebagai kriteria ketercapaian — isi nama, batas bawah, dan batas atas nilai.' },
         {
@@ -1196,7 +1254,8 @@
         { text: 'Untuk Sumatif tipe Rubrik: tambah kriteria dengan nama, bobot (%), dan deskripsi per level — total bobot harus tepat 100%.' },
         { text: 'Klik <strong>Isi Nilai</strong> pada setiap entri → isi nilai per siswa: D-NK (deskripsi teks), D-K (Paham Utuh/Sebagian/Tidak Paham), Formatif (teks, gunakan <strong>Salin ke semua yang kosong</strong>), Sumatif Skor (angka 0–100, label muncul otomatis), Sumatif Rubrik (pilih level per kriteria, skor dihitung otomatis).' },
         { text: 'Setelah isi nilai, tentukan <strong>Tindak Lanjut</strong> per siswa: Pengayaan / Penguatan / Pendampingan.' },
-        { text: 'Klik <strong>Publikasikan</strong> agar nilai muncul di portal siswa dan orang tua. Status berubah menjadi <strong>Dipublikasi</strong>. Klik <strong>Batalkan Publikasi</strong> untuk tarik kembali kapan saja.' }
+        { text: 'Visibilitas diatur lewat dua kotak centang di <strong>form penilaian</strong>, bukan tombol terpisah: <strong>Tampilkan ke siswa</strong> dan <strong>Tampilkan ke ortu</strong>. Buka penilaian → Edit → centang yang diinginkan → Simpan. Mencabut centang menarik nilai itu kembali dari portal kapan saja.' },
+        { text: '<strong>Penting:</strong> penilaian baru dibuat dalam keadaan <strong>tersembunyi</strong> — kedua kotak centang kosong secara default. Selama belum dicentang, siswa dan orang tua tidak melihat nilainya sama sekali. Ini disengaja: hasil diagnostik adalah alat kerja guru, bukan bahan yang perlu dibaca siswa.' }
       ]
     }
   };

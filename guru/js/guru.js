@@ -161,11 +161,24 @@
         return;
       }
 
-      for (const cl of classrooms) {
-        const count    = await api.getRosterCount(cl.id);
-        const schCount = await api.getScheduleCount(cl.id);
-        list.appendChild(renderCard(cl, count, schCount > 0));
-      }
+      // Dimuat paralel. Sebelumnya dua permintaan per kelas dijalankan
+      // berurutan di dalam loop — guru dengan 6 kelas menunggu 12 permintaan
+      // berantai sebelum kartu terakhir muncul.
+      // allSettled, bukan all: satu kelas yang gagal dihitung tidak boleh
+      // menghentikan kelas lain.
+      const hasil = await Promise.allSettled(classrooms.map(cl =>
+        Promise.all([api.getRosterCount(cl.id), api.getScheduleCount(cl.id)])
+          .then(([count, schCount]) => ({ cl, count, schCount }))
+      ));
+
+      hasil.forEach((r, i) => {
+        if (r.status === 'fulfilled') {
+          list.appendChild(renderCard(r.value.cl, r.value.count, r.value.schCount > 0));
+        } else {
+          // Kartu tetap ditampilkan — kelasnya nyata, hanya hitungannya gagal.
+          list.appendChild(renderCard(classrooms[i], '—', false));
+        }
+      });
 
       // Buka card pertama secara default
       const firstCard = list.querySelector('.classroom-card');

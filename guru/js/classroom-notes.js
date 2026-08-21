@@ -11,6 +11,8 @@
   let _filterFrom        = '';
   let _filterTo          = '';
   let _notesLoaded = false;
+  let _notesPage   = 0;
+  const NOTES_PER_HAL = 20;
   let _notesSelInst    = null;
   let _notesFilterInst = null;
 
@@ -75,19 +77,44 @@
     return data;
   }
 
-  async function updateNote(id, content, visStudent, visParent) {
+  // Pengumuman kelas — student_notes.student_id NOT NULL, jadi satu pengumuman
+  // menjadi satu baris per siswa (fan-out). Tidak ada perubahan skema maupun
+  // RLS: portal siswa dan ortu langsung menampilkannya seperti catatan biasa.
+  // Agar Riwayat tidak dibanjiri kartu identik, baris-baris ini dikelompokkan
+  // kembali saat dirender — lihat kelompokkanNotes().
+  async function savePengumuman(content, visStudent, visParent) {
+    if (!_roster.length) throw new Error('Belum ada siswa berakun di kelas ini.');
+    const rows = _roster.map(s => ({
+      classroom_id:          classroomId,
+      teacher_id:            teacherId,
+      student_id:            s.id,
+      content,
+      is_visible_to_student: visStudent,
+      is_visible_to_parent:  visParent,
+    }));
+    const { data, error } = await client
+      .from('student_notes')
+      .insert(rows)
+      .select('id, student_id, content, is_visible_to_student, is_visible_to_parent, created_at, updated_at');
+    if (error) throw error;
+    return data || [];
+  }
+
+  async function updateNote(ids, content, visStudent, visParent) {
+    const daftar = Array.isArray(ids) ? ids : [ids];
     const { error } = await client
       .from('student_notes')
       .update({ content, is_visible_to_student: visStudent, is_visible_to_parent: visParent })
-      .eq('id', id);
+      .in('id', daftar);
     if (error) throw error;
   }
 
-  async function deleteNote(id) {
+  async function deleteNote(ids) {
+    const daftar = Array.isArray(ids) ? ids : [ids];
     const { error } = await client
       .from('student_notes')
       .delete()
-      .eq('id', id);
+      .in('id', daftar);
     if (error) throw error;
   }
 
@@ -132,6 +159,7 @@
         } else {
           _notesFilterInst = window.initCustomSelect(filterSel, function (val) {
             _filterStudentId = val;
+            _notesPage = 0;
             renderNotesList();
           });
           _notesFilterInst.el.style.width = '100%';
@@ -149,10 +177,11 @@
     return s ? s.full_name + (s.nis ? ' · ' + s.nis : '') : '—';
   }
 
-  function renderNotesList() {
-    const el = document.getElementById('notes-list');
-    if (!el) return;
-
+  // Satu sumber kebenaran untuk "catatan mana yang sedang ditampilkan".
+  // Dipakai renderNotesList DAN exportCatatan, supaya export selalu berisi apa
+  // yang guru lihat di layar — sebelumnya export mengabaikan filter dan selalu
+  // mengunduh seluruh catatan sekelas.
+  function notesTersaring() {
     let rows = _filterStudentId
       ? _notes.filter(n => n.student_id === _filterStudentId)
       : [..._notes];
@@ -164,21 +193,63 @@
     if (_filterFrom) rows = rows.filter(n => n.created_at.slice(0, 10) >= _filterFrom);
     if (_filterTo)   rows = rows.filter(n => n.created_at.slice(0, 10) <= _filterTo);
 
-    if (rows.length === 0) {
+    return rows;
+  }
+
+  // Pengumuman kelas tersimpan sebagai satu baris per siswa. Baris yang isinya
+  // sama, visibilitasnya sama, dan dibuat pada detik yang sama berasal dari
+  // satu tindakan guru — dikembalikan menjadi satu kartu di layar.
+  function kelompokkanNotes(rows) {
+    const peta = new Map();
+    rows.forEach(n => {
+      // JSON.stringify, bukan join dengan pemisah: isi catatan adalah teks bebas
+      // dari guru, dan pemisah apa pun yang dipilih bisa muncul di dalamnya —
+      // dua catatan berbeda akan tergabung keliru.
+      const kunci = JSON.stringify([
+        n.content,
+        n.is_visible_to_student ? 1 : 0,
+        n.is_visible_to_parent  ? 1 : 0,
+        String(n.created_at).slice(0, 19),
+      ]);
+      if (!peta.has(kunci)) peta.set(kunci, { contoh: n, ids: [], studentIds: [] });
+      const g = peta.get(kunci);
+      g.ids.push(n.id);
+      g.studentIds.push(n.student_id);
+    });
+    return [...peta.values()];
+  }
+
+  function renderNotesList() {
+    const el = document.getElementById('notes-list');
+    if (!el) return;
+
+    const grup = kelompokkanNotes(notesTersaring());
+
+    if (grup.length === 0) {
       el.innerHTML = '<p class="empty-state">Belum ada catatan.</p>';
       return;
     }
 
-    el.innerHTML = rows.map(n => {
-      const nama = esc(rosterName(n.student_id));
+    const totalHal = Math.max(1, Math.ceil(grup.length / NOTES_PER_HAL));
+    if (_notesPage >= totalHal) _notesPage = totalHal - 1;
+    if (_notesPage < 0) _notesPage = 0;
+    const irisan = grup.slice(_notesPage * NOTES_PER_HAL, (_notesPage + 1) * NOTES_PER_HAL);
+
+    const kartu = irisan.map(g => {
+      const n    = g.contoh;
+      const isPengumuman = g.ids.length > 1;
+      const nama = isPengumuman
+        ? `Pengumuman kelas · ${g.ids.length} siswa`
+        : esc(rosterName(n.student_id));
       const vs   = n.is_visible_to_student;
       const vp   = n.is_visible_to_parent;
       const vis  = vs && vp ? 'Siswa &amp; Ortu'
                  : vs       ? 'Siswa saja'
                  : vp       ? 'Ortu saja'
                  :            'Hanya guru';
+      const idsAttr = esc(g.ids.join(','));
       return `
-      <div class="note-card" data-id="${esc(n.id)}">
+      <div class="note-card" data-ids="${idsAttr}">
         <div class="note-card-header">
           <span class="note-student-name">${nama}</span>
           <span class="note-date">${fmtDate(n.created_at)}</span>
@@ -187,18 +258,35 @@
         <div class="note-footer">
           <span class="note-vis">👁 ${vis}</span>
           <div class="note-actions">
-            <button class="btn-note-edit" data-id="${esc(n.id)}">Edit</button>
-            <button class="btn-note-delete" data-id="${esc(n.id)}">Hapus</button>
+            <button class="btn-note-edit" data-ids="${idsAttr}">Edit</button>
+            <button class="btn-note-delete" data-ids="${idsAttr}">Hapus</button>
           </div>
         </div>
       </div>`;
     }).join('');
 
+    const pagHtml = totalHal > 1
+      ? `<div class="pagination-bar">` +
+          `<button class="btn-notes-prev"${_notesPage === 0 ? ' disabled' : ''}>←</button>` +
+          `<span class="page-label">Halaman ${_notesPage + 1} dari ${totalHal} ` +
+          `(${grup.length} catatan)</span>` +
+          `<button class="btn-notes-next"${_notesPage >= totalHal - 1 ? ' disabled' : ''}>→</button>` +
+        `</div>`
+      : '';
+
+    el.innerHTML = pagHtml + kartu + pagHtml;
+
     el.querySelectorAll('.btn-note-edit').forEach(btn => {
-      btn.addEventListener('click', () => openEditModal(btn.dataset.id));
+      btn.addEventListener('click', () => openEditModal(btn.dataset.ids.split(',')));
     });
     el.querySelectorAll('.btn-note-delete').forEach(btn => {
-      btn.addEventListener('click', () => confirmDelete(btn.dataset.id));
+      btn.addEventListener('click', () => confirmDelete(btn.dataset.ids.split(',')));
+    });
+    el.querySelectorAll('.btn-notes-prev').forEach(b => {
+      b.addEventListener('click', () => { _notesPage--; renderNotesList(); });
+    });
+    el.querySelectorAll('.btn-notes-next').forEach(b => {
+      b.addEventListener('click', () => { _notesPage++; renderNotesList(); });
     });
   }
 
@@ -206,10 +294,33 @@
   // Form tambah catatan
   // ---------------------------------------------------------------------------
 
+  // Saat mode pengumuman aktif, dropdown siswa dimatikan — pilihan siswa
+  // menjadi tidak bermakna, dan atribut required-nya harus dilepas agar
+  // formnya tetap bisa dikirim.
+  function terapkanModePengumuman() {
+    const chk = document.getElementById('notes-pengumuman');
+    const sel = document.getElementById('notes-student-select');
+    if (!chk || !sel) return;
+    const aktif = chk.checked;
+    sel.disabled = aktif;
+    if (aktif) sel.removeAttribute('required');
+    else       sel.setAttribute('required', '');
+    if (_notesSelInst && _notesSelInst.el) {
+      _notesSelInst.el.style.opacity       = aktif ? '.45' : '';
+      _notesSelInst.el.style.pointerEvents = aktif ? 'none' : '';
+    }
+  }
+
   function initForm() {
     const form    = document.getElementById('notes-form');
     const statusEl = document.getElementById('notes-status');
     if (!form) return;
+
+    const chkPengumuman = document.getElementById('notes-pengumuman');
+    if (chkPengumuman) {
+      chkPengumuman.addEventListener('change', terapkanModePengumuman);
+      terapkanModePengumuman();
+    }
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -217,9 +328,16 @@
       const content   = document.getElementById('notes-content').value.trim();
       const visS      = document.getElementById('notes-vis-student').checked;
       const visP      = document.getElementById('notes-vis-parent').checked;
+      const pengumuman = !!document.getElementById('notes-pengumuman')?.checked;
 
-      if (!studentId) {
-        statusEl.textContent = 'Pilih siswa terlebih dahulu.';
+      if (!pengumuman && !studentId) {
+        statusEl.textContent = 'Pilih siswa terlebih dahulu, atau centang "Kirim sebagai pengumuman kelas".';
+        statusEl.className   = 'status-err';
+        statusEl.style.display = 'block';
+        return;
+      }
+      if (pengumuman && !_roster.length) {
+        statusEl.textContent = 'Belum ada siswa berakun di kelas ini.';
         statusEl.className   = 'status-err';
         statusEl.style.display = 'block';
         return;
@@ -237,12 +355,21 @@
       statusEl.style.display = 'none';
 
       try {
-        const note = await saveNote(studentId, content, visS, visP);
-        _notes.unshift(note);
+        if (pengumuman) {
+          const baris = await savePengumuman(content, visS, visP);
+          baris.forEach(b => _notes.unshift(b));
+        } else {
+          const note = await saveNote(studentId, content, visS, visP);
+          _notes.unshift(note);
+        }
+        _notesPage = 0;
         renderNotesList();
         form.reset();
+        terapkanModePengumuman();
         if (_notesSelInst) _notesSelInst.setValue('');
-        statusEl.textContent   = '✓ Catatan berhasil disimpan.';
+        statusEl.textContent   = pengumuman
+          ? '✓ Pengumuman terkirim ke ' + _roster.length + ' siswa.'
+          : '✓ Catatan berhasil disimpan.';
         statusEl.className     = 'status-ok';
         statusEl.style.display = 'block';
         setTimeout(() => { statusEl.style.display = 'none'; }, 3000);
@@ -267,6 +394,7 @@
     if (!filterSel) return;
     filterSel.addEventListener('change', () => {
       _filterStudentId = filterSel.value;
+      _notesPage = 0;
       renderNotesList();
     });
   }
@@ -275,9 +403,11 @@
   // Edit modal
   // ---------------------------------------------------------------------------
 
-  function openEditModal(id) {
-    const note = _notes.find(n => n.id === id);
+  function openEditModal(ids) {
+    const daftar = Array.isArray(ids) ? ids : [ids];
+    const note = _notes.find(n => n.id === daftar[0]);
     if (!note) return;
+    const isPengumuman = daftar.length > 1;
 
     document.getElementById('notes-edit-overlay')?.remove();
 
@@ -289,7 +419,10 @@
     box.className = 'share-box';
 
     const title = document.createElement('p');
-    title.innerHTML = '<strong>Edit Catatan — ' + esc(rosterName(note.student_id)) + '</strong>';
+    title.innerHTML = isPengumuman
+      ? '<strong>Edit Pengumuman Kelas</strong><br>' +
+        '<span style="font-size:.8rem">Perubahan berlaku untuk ' + daftar.length + ' siswa</span>'
+      : '<strong>Edit Catatan — ' + esc(rosterName(note.student_id)) + '</strong>';
 
     const ta = document.createElement('textarea');
     ta.rows  = 5;
@@ -344,11 +477,13 @@
       btnSave.textContent = 'Menyimpan…';
       errEl.textContent   = '';
       try {
-        await updateNote(id, newContent, chkS.checked, chkP.checked);
-        const idx = _notes.findIndex(n => n.id === id);
-        if (idx !== -1) {
-          _notes[idx] = { ..._notes[idx], content: newContent, is_visible_to_student: chkS.checked, is_visible_to_parent: chkP.checked };
-        }
+        await updateNote(daftar, newContent, chkS.checked, chkP.checked);
+        daftar.forEach(satuId => {
+          const idx = _notes.findIndex(n => n.id === satuId);
+          if (idx !== -1) {
+            _notes[idx] = { ..._notes[idx], content: newContent, is_visible_to_student: chkS.checked, is_visible_to_parent: chkP.checked };
+          }
+        });
         renderNotesList();
         close();
       } catch (err) {
@@ -374,11 +509,17 @@
   // Hapus
   // ---------------------------------------------------------------------------
 
-  async function confirmDelete(id) {
-    if (!window.confirm('Hapus catatan ini? Tindakan ini tidak bisa dibatalkan.')) return;
+  async function confirmDelete(ids) {
+    const daftar = Array.isArray(ids) ? ids : [ids];
+    const pesan = daftar.length > 1
+      ? 'Hapus pengumuman ini untuk seluruh ' + daftar.length +
+        ' siswa? Tindakan ini tidak bisa dibatalkan.'
+      : 'Hapus catatan ini? Tindakan ini tidak bisa dibatalkan.';
+    if (!window.confirm(pesan)) return;
     try {
-      await deleteNote(id);
-      _notes = _notes.filter(n => n.id !== id);
+      await deleteNote(daftar);
+      const buang = new Set(daftar);
+      _notes = _notes.filter(n => !buang.has(n.id));
       renderNotesList();
     } catch (err) {
       alert('Gagal hapus: ' + (err.message || 'Error tidak diketahui.'));
@@ -439,9 +580,9 @@
 
     listEl.insertAdjacentElement('beforebegin', wrap);
 
-    visSel.addEventListener('change', () => { _filterVisibilitas = visSel.value; renderNotesList(); });
-    fromInput.addEventListener('change', () => { _filterFrom = fromInput.value; renderNotesList(); });
-    toInput.addEventListener('change',   () => { _filterTo   = toInput.value;   renderNotesList(); });
+    visSel.addEventListener('change', () => { _filterVisibilitas = visSel.value; _notesPage = 0; renderNotesList(); });
+    fromInput.addEventListener('change', () => { _filterFrom = fromInput.value; _notesPage = 0; renderNotesList(); });
+    toInput.addEventListener('change',   () => { _filterTo   = toInput.value;   _notesPage = 0; renderNotesList(); });
   }
 
   // ---------------------------------------------------------------------------
@@ -484,10 +625,13 @@
       ];
     }
 
-    const all      = _notes;
-    const keSiswa  = _notes.filter(n => n.is_visible_to_student);
-    const keOrtu   = _notes.filter(n => n.is_visible_to_parent);
-    const keduanya = _notes.filter(n => n.is_visible_to_student && n.is_visible_to_parent);
+    // Export mengikuti filter yang sedang aktif di layar. Sebelumnya selalu
+    // mengekspor _notes penuh, sehingga guru yang menyaring satu siswa tetap
+    // mengunduh seluruh catatan sekelas.
+    const all      = notesTersaring();
+    const keSiswa  = all.filter(n => n.is_visible_to_student);
+    const keOrtu   = all.filter(n => n.is_visible_to_parent);
+    const keduanya = all.filter(n => n.is_visible_to_student && n.is_visible_to_parent);
 
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([HEADER, ...all.map(noteToRow)]),      'Semua Catatan');
@@ -548,6 +692,8 @@
         if (!isOpen) {
           h2.classList.add('open');
           body.style.display = '';
+          // Membuka section Pesan berarti guru membacanya.
+          if (h2.dataset.panel === 'pesan-ortu-body') tandaiSemuaDibaca();
         }
       });
     });
@@ -567,6 +713,21 @@
       .order('created_at', { ascending: true });
     if (error) { console.error('[pesan-ortu] gagal memuat:', error); _pesan = []; return; }
     _pesan = data || [];
+  }
+
+  // Tandai SEMUA pesan ortu yang belum dibaca. Dipanggil saat guru membuka
+  // section Pesan — sebelumnya read_at hanya terisi kalau guru membalas,
+  // sehingga badge "N baru" terus menyala meski pesannya sudah dibaca.
+  async function tandaiSemuaDibaca() {
+    const belum = _pesan.filter(m => m.author_role === 'ORTU' && !m.read_at);
+    if (!belum.length) return;
+    const { error } = await client.from('parent_messages')
+      .update({ read_at: new Date().toISOString() })
+      .in('id', belum.map(m => m.id));
+    if (error) { console.error('[pesan-ortu] gagal menandai dibaca:', error); return; }
+    const kini = new Date().toISOString();
+    belum.forEach(m => { m.read_at = kini; });
+    renderPesanOrtu();
   }
 
   // Tandai seluruh pesan ortu di satu percakapan sebagai sudah dibaca.
@@ -624,6 +785,29 @@
     });
   }
 
+  // Pesan tidak menyegarkan diri sendiri (tidak ada polling maupun realtime),
+  // jadi guru butuh cara eksplisit untuk mengambil pesan baru tanpa memuat
+  // ulang seluruh halaman.
+  function komposerRefreshHtml() {
+    return `<div style="display:flex;justify-content:flex-end;margin-bottom:.5rem">
+      <button type="button" id="btn-refresh-pesan"
+        style="padding:.3rem .75rem;border:1px solid var(--border);border-radius:.35rem;
+        background:transparent;color:inherit;cursor:pointer;font-family:inherit;
+        font-size:var(--fs-caption)">&#x21bb; Refresh Pesan</button>
+    </div>`;
+  }
+
+  function wireRefreshPesan(listEl) {
+    const btn = listEl.querySelector('#btn-refresh-pesan');
+    if (!btn) return;
+    btn.addEventListener('click', async () => {
+      btn.disabled    = true;
+      btn.textContent = 'Memuat…';
+      await loadPesanOrtu();
+      renderPesanOrtu();
+    });
+  }
+
   function renderPesanOrtu() {
     const listEl = document.getElementById('pesan-ortu-list');
     if (!listEl) return;
@@ -669,13 +853,14 @@
 </div>`;
 
     if (!idSiswa.length) {
-      listEl.innerHTML = komposerBaru +
+      listEl.innerHTML = komposerRefreshHtml() + komposerBaru +
         '<p class="empty-state">Belum ada percakapan dengan orang tua.</p>';
       wireKomposerBaru(listEl);
+      wireRefreshPesan(listEl);
       return;
     }
 
-    listEl.innerHTML = komposerBaru + idSiswa.map(sid => {
+    listEl.innerHTML = komposerRefreshHtml() + komposerBaru + idSiswa.map(sid => {
       const nama  = rosterName(sid);
       const pesan = perSiswa[sid];
       const baru  = pesan.filter(m => m.author_role === 'ORTU' && !m.read_at).length;
@@ -714,6 +899,7 @@
     }).join('');
 
     wireKomposerBaru(listEl);
+    wireRefreshPesan(listEl);
 
     listEl.querySelectorAll('.btn-pesan-balas').forEach(btn => {
       btn.addEventListener('click', async () => {
@@ -751,6 +937,54 @@
     renderPesanOrtu();
   }
 
+  // Panel sebelumnya ditampilkan lebih dulu, lalu initNotes() hanya dipanggil
+  // bila teacherId dan classroomId kebetulan sudah terisi. Keduanya diisi
+  // setelah dua await, jadi guru yang mengklik tab pada jaringan lambat
+  // mendapat panel kosong permanen: tanpa loading, tanpa error, tanpa cara
+  // mencoba lagi selain memuat ulang halaman.
+  let _notesSedangMemuat = false;
+
+  function tampilkanStatusCatatan(html) {
+    const el = document.getElementById('notes-list');
+    if (el) el.innerHTML = html;
+  }
+
+  async function bukaTabCatatan() {
+    if (_notesLoaded || _notesSedangMemuat) return;
+
+    if (!teacherId || !classroomId) {
+      // Auth belum selesai — tunggu, jangan diam.
+      tampilkanStatusCatatan('<p class="empty-state">Menyiapkan…</p>');
+      const mulai = Date.now();
+      while ((!teacherId || !classroomId) && Date.now() - mulai < 15000) {
+        await new Promise(r => setTimeout(r, 200));
+      }
+      if (!teacherId || !classroomId) {
+        tampilkanStatusCatatan(
+          '<p class="empty-state">Gagal memuat data akun. Periksa koneksi internet Anda.' +
+          '<br><button type="button" id="btn-catatan-ulang">Coba lagi</button></p>');
+        document.getElementById('btn-catatan-ulang')
+          ?.addEventListener('click', () => bukaTabCatatan());
+        return;
+      }
+    }
+
+    _notesSedangMemuat = true;
+    tampilkanStatusCatatan('<p class="empty-state">Memuat catatan…</p>');
+    try {
+      await initNotes();
+    } catch (err) {
+      console.error('[catatan] gagal init:', err);
+      tampilkanStatusCatatan(
+        '<p class="empty-state">Gagal memuat catatan.' +
+        '<br><button type="button" id="btn-catatan-ulang">Coba lagi</button></p>');
+      document.getElementById('btn-catatan-ulang')
+        ?.addEventListener('click', () => bukaTabCatatan());
+    } finally {
+      _notesSedangMemuat = false;
+    }
+  }
+
   // ---------------------------------------------------------------------------
   // DOMContentLoaded
   // ---------------------------------------------------------------------------
@@ -775,7 +1009,7 @@
       panelCatatan.style.display = '';
       const _cId = new URLSearchParams(window.location.search).get('id');
       if (_cId) try { localStorage.setItem('sip_tab_' + _cId, 'catatan'); } catch (_) {}
-      if (!_notesLoaded && teacherId && classroomId) await initNotes();
+      await bukaTabCatatan();
     });
 
     // Hide catatan saat tab lain diklik
