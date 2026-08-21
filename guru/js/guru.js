@@ -14,7 +14,27 @@
     function showError(msg) { errorMsg.textContent = msg; errorMsg.style.display = 'block'; }
     function hideError()    { errorMsg.textContent = ''; errorMsg.style.display = 'none'; }
 
+    // Pesan yang dititipkan halaman lain sebelum mengalihkan ke sini — saat ini
+    // hanya reset semester. Dipakai sekali lalu dibuang, supaya tidak muncul
+    // lagi pada kunjungan berikutnya.
+    function tampilkanPesanTitipan() {
+      let sebab = null;
+      try {
+        sebab = sessionStorage.getItem('sip_pesan_login');
+        if (sebab) sessionStorage.removeItem('sip_pesan_login');
+      } catch (_) { return; }
+      if (sebab === 'reset-semester') {
+        const el = document.getElementById('login-info');
+        if (el) {
+          el.textContent = 'Semester berhasil direset. ' +
+            'Silakan masuk kembali untuk memulai semester baru.';
+          el.style.display = 'block';
+        }
+      }
+    }
+
     window.addEventListener('DOMContentLoaded', async () => {
+      tampilkanPesanTitipan();
       const { data: { session } } = await client.auth.getSession();
       if (session) window.location.href = 'dashboard.html';
     });
@@ -937,7 +957,16 @@
       var btnBuat = document.getElementById('btn-buat-classroom');
       if (btnBuat) btnBuat.disabled = false;
 
+      // Seluruh sesi guru sudah dicabut server begitu reset berhasil, jadi
+      // dashboard ini sebenarnya sudah tidak berwenang apa-apa lagi — klik
+      // berikutnya apa pun akan ditolak. Daripada membiarkan guru menemukan
+      // itu sendiri lewat error yang membingungkan, antarkan langsung ke
+      // halaman login beserta alasannya.
       alert('Reset semester berhasil. Selamat memulai semester baru!');
+      try { sessionStorage.setItem('sip_pesan_login', 'reset-semester'); } catch (_) {}
+      try { await window.supabaseClient.auth.signOut(); } catch (_) {}
+      window.location.replace('index.html');
+      return;
 
     } catch (err) {
       alert('Gagal reset: ' + err.message);

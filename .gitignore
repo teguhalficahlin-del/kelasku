@@ -7,6 +7,10 @@ tests/.auth/
 .env
 .env.local
 
+# Sisa "deno check" saat memeriksa Edge Function — versi Deno di CI ditentukan
+# Supabase, bukan berkas ini.
+deno.lock
+
 # Sisa alat bantu OS dan editor
 Thumbs.db
 .DS_Store

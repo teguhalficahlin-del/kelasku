@@ -71,5 +71,29 @@ Deno.serve(async (req) => {
     }, 500);
   }
 
+  // -------------------------------------------------------------------------
+  // 4. Cabut seluruh sesi guru — semua tab, semua perangkat
+  // -------------------------------------------------------------------------
+  // Dijalankan SETELAH reset berhasil, bukan sebelumnya: kalau resetnya gagal,
+  // guru tidak boleh terlempar keluar tanpa apa pun terjadi. Fungsi ini
+  // memakai service role, jadi kemampuannya menjalankan RPC tidak bergantung
+  // pada sesi guru yang baru saja dicabut.
+  //
+  // Alasannya: setelah seluruh data kelas terhapus, tab lain yang masih
+  // terbuka memegang state semester lama — daftar siswa, jadwal, absensi yang
+  // sudah tidak ada — dan tetap bisa menulis ke atasnya.
+  //
+  // scope 'global' mencabut seluruh sesi user ini, bukan hanya yang sedang
+  // dipakai. Hanya sesi GURU: akun siswa dan ortu tidak dihapus oleh reset,
+  // dan memaksa mereka login ulang tidak melindungi apa pun.
+  try {
+    await admin.auth.admin.signOut(jwt, 'global');
+  } catch (err) {
+    // Datanya sudah terhapus dan tidak bisa dikembalikan. Kegagalan mencabut
+    // sesi tidak boleh berubah menjadi pesan gagal yang membuat guru mengira
+    // resetnya batal, lalu menekannya sekali lagi.
+    console.error('force logout gagal', err);
+  }
+
   return json({ success: true, hasil });
 });
