@@ -74,6 +74,32 @@ test.describe('Portal Guru', () => {
     }
   });
 
+  // Regresi FIX-A: penanda "sudah dirender" pernah dipasang sebelum render
+  // selesai, sehingga satu kegagalan memuat mengunci panel absensi kosong
+  // sampai halaman dimuat ulang — pindah tab berapa kali pun tidak menolong.
+  test('panel absensi tidak terkunci setelah gagal memuat', async ({ page }) => {
+    await page.locator('#classroom-list .classroom-card').first().click();
+    await page.waitForURL(/classroom\.html/, { timeout: 20000 });
+
+    // Jatuhkan permintaan jadwal supaya render pertama benar-benar gagal.
+    await page.route('**/rest/v1/schedules**', route => route.abort());
+
+    await page.click('#tab-jadwal');
+    await expect(page.locator('#absensi-container'))
+      .toContainText('Gagal memuat absensi', { timeout: 20000 });
+
+    // Jaringan pulih; guru cukup membuka kembali tab ini.
+    await page.unroute('**/rest/v1/schedules**');
+    await page.click('#tab-catatan');
+    await expect(page.locator('#panel-catatan')).toBeVisible();
+    await page.click('#tab-jadwal');
+
+    // Panel memuat ulang dengan sendirinya: pesan gagalnya hilang, diganti isi
+    // yang sebenarnya — entah kartu sesi, entah keterangan tidak ada jadwal.
+    await expect(page.locator('#absensi-container'))
+      .not.toContainText('Gagal memuat absensi', { timeout: 20000 });
+  });
+
   // Regresi BUG-REG-1: fan-out pengumuman harus kembali menjadi SATU kartu.
   test('pengumuman muncul sebagai satu kartu, bukan satu per siswa', async ({ page }) => {
     await page.locator('#classroom-list .classroom-card').first().click();
