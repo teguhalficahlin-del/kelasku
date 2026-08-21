@@ -1,5 +1,7 @@
 import { defineConfig } from '@playwright/test';
 
+// Last verified: 2026-08-21
+
 // baseURL menunjuk ke akar aplikasi, termasuk awalan nama repo di GitHub Pages
 // (mis. https://teguhalficahlin-del.github.io/kelasku). Semua spec memakai path
 // relatif tanpa garis miring di depan supaya tetap benar di domain sendiri.
