@@ -48,7 +48,7 @@
     if (el) el.innerHTML = '<p class="empty-state">Memuat catatan…</p>';
     const { data, error } = await client
       .from('student_notes')
-      .select('id, student_id, content, is_visible_to_student, is_visible_to_parent, created_at, updated_at')
+      .select('id, student_id, content, is_visible_to_student, is_visible_to_parent, created_at, updated_at, announcement_id')
       .eq('classroom_id', classroomId)
       .order('created_at', { ascending: false });
     if (error) {
@@ -71,19 +71,45 @@
         is_visible_to_student: visStudent,
         is_visible_to_parent:  visParent,
       })
-      .select('id, student_id, content, is_visible_to_student, is_visible_to_parent, created_at, updated_at')
+      .select('id, student_id, content, is_visible_to_student, is_visible_to_parent, created_at, updated_at, announcement_id')
       .single();
     if (error) throw error;
     return data;
   }
 
+  // UUID v4. crypto.randomUUID() hanya tersedia di konteks aman (https /
+  // localhost) dan browser yang cukup baru; guru yang membuka lewat http di
+  // jaringan lokal akan mendapat undefined tanpa fallback ini.
+  function buatUuid() {
+    if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+      return window.crypto.randomUUID();
+    }
+    if (window.crypto && typeof window.crypto.getRandomValues === 'function') {
+      const b = window.crypto.getRandomValues(new Uint8Array(16));
+      b[6] = (b[6] & 0x0f) | 0x40;
+      b[8] = (b[8] & 0x3f) | 0x80;
+      const h = [...b].map(x => x.toString(16).padStart(2, '0')).join('');
+      return h.slice(0, 8) + '-' + h.slice(8, 12) + '-' + h.slice(12, 16) +
+             '-' + h.slice(16, 20) + '-' + h.slice(20);
+    }
+    // Terakhir: Math.random. Bukan kriptografis, tapi nilai ini hanya perlu
+    // unik di dalam satu tabel — bukan rahasia.
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+      const r = Math.random() * 16 | 0;
+      return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+    });
+  }
+
   // Pengumuman kelas — student_notes.student_id NOT NULL, jadi satu pengumuman
-  // menjadi satu baris per siswa (fan-out). Tidak ada perubahan skema maupun
-  // RLS: portal siswa dan ortu langsung menampilkannya seperti catatan biasa.
-  // Agar Riwayat tidak dibanjiri kartu identik, baris-baris ini dikelompokkan
-  // kembali saat dirender — lihat kelompokkanNotes().
+  // menjadi satu baris per siswa (fan-out). Portal siswa dan ortu menampilkan
+  // baris-baris itu seperti catatan biasa.
+  // Seluruh baris satu pengumuman berbagi satu announcement_id, dan itulah
+  // satu-satunya penanda grup — lihat kelompokkanNotes(). Sebelumnya grup
+  // ditebak dari isi + visibilitas + detik pembuatan, sehingga dua catatan
+  // individual yang kebetulan sama persis salah digabung menjadi satu kartu.
   async function savePengumuman(content, visStudent, visParent) {
     if (!_roster.length) throw new Error('Belum ada siswa berakun di kelas ini.');
+    const announcementId = buatUuid();
     const rows = _roster.map(s => ({
       classroom_id:          classroomId,
       teacher_id:            teacherId,
@@ -91,30 +117,36 @@
       content,
       is_visible_to_student: visStudent,
       is_visible_to_parent:  visParent,
+      announcement_id:       announcementId,
     }));
     const { data, error } = await client
       .from('student_notes')
       .insert(rows)
-      .select('id, student_id, content, is_visible_to_student, is_visible_to_parent, created_at, updated_at');
+      .select('id, student_id, content, is_visible_to_student, is_visible_to_parent, created_at, updated_at, announcement_id');
     if (error) throw error;
     return data || [];
   }
 
-  async function updateNote(ids, content, visStudent, visParent) {
-    const daftar = Array.isArray(ids) ? ids : [ids];
-    const { error } = await client
-      .from('student_notes')
-      .update({ content, is_visible_to_student: visStudent, is_visible_to_parent: visParent })
-      .in('id', daftar);
+  // Grup pengumuman ditarget lewat announcement_id, bukan daftar id hasil
+  // pengelompokan di layar: kalau ada baris pengumuman yang belum ikut termuat
+  // (mis. tersaring filter), baris itu tetap ikut berubah/terhapus — kartu di
+  // layar tidak pernah berakhir mewakili sebagian batch saja.
+  async function updateNote(target, content, visStudent, visParent) {
+    const isi = { content, is_visible_to_student: visStudent, is_visible_to_parent: visParent };
+    let q = client.from('student_notes').update(isi).eq('classroom_id', classroomId);
+    q = target.announcementId
+      ? q.eq('announcement_id', target.announcementId)
+      : q.in('id', target.ids);
+    const { error } = await q;
     if (error) throw error;
   }
 
-  async function deleteNote(ids) {
-    const daftar = Array.isArray(ids) ? ids : [ids];
-    const { error } = await client
-      .from('student_notes')
-      .delete()
-      .in('id', daftar);
+  async function deleteNote(target) {
+    let q = client.from('student_notes').delete().eq('classroom_id', classroomId);
+    q = target.announcementId
+      ? q.eq('announcement_id', target.announcementId)
+      : q.in('id', target.ids);
+    const { error } = await q;
     if (error) throw error;
   }
 
@@ -196,27 +228,29 @@
     return rows;
   }
 
-  // Pengumuman kelas tersimpan sebagai satu baris per siswa. Baris yang isinya
-  // sama, visibilitasnya sama, dan dibuat pada detik yang sama berasal dari
-  // satu tindakan guru — dikembalikan menjadi satu kartu di layar.
+  // Pengumuman kelas tersimpan sebagai satu baris per siswa, semuanya berbagi
+  // satu announcement_id. Itu satu-satunya dasar pengelompokan — isi dan waktu
+  // pembuatan tidak lagi dilihat sama sekali. Baris dengan announcement_id NULL
+  // (catatan individual, termasuk seluruh catatan lama sebelum kolom ini ada)
+  // selalu berdiri sendiri.
   function kelompokkanNotes(rows) {
-    const peta = new Map();
+    const peta  = new Map();
+    const hasil = [];
     rows.forEach(n => {
-      // JSON.stringify, bukan join dengan pemisah: isi catatan adalah teks bebas
-      // dari guru, dan pemisah apa pun yang dipilih bisa muncul di dalamnya —
-      // dua catatan berbeda akan tergabung keliru.
-      const kunci = JSON.stringify([
-        n.content,
-        n.is_visible_to_student ? 1 : 0,
-        n.is_visible_to_parent  ? 1 : 0,
-        String(n.created_at).slice(0, 19),
-      ]);
-      if (!peta.has(kunci)) peta.set(kunci, { contoh: n, ids: [], studentIds: [] });
-      const g = peta.get(kunci);
+      if (!n.announcement_id) {
+        hasil.push({ contoh: n, ids: [n.id], studentIds: [n.student_id], announcementId: null });
+        return;
+      }
+      let g = peta.get(n.announcement_id);
+      if (!g) {
+        g = { contoh: n, ids: [], studentIds: [], announcementId: n.announcement_id };
+        peta.set(n.announcement_id, g);
+        hasil.push(g);
+      }
       g.ids.push(n.id);
       g.studentIds.push(n.student_id);
     });
-    return [...peta.values()];
+    return hasil;
   }
 
   function renderNotesList() {
@@ -237,7 +271,9 @@
 
     const kartu = irisan.map(g => {
       const n    = g.contoh;
-      const isPengumuman = g.ids.length > 1;
+      // Penanda pengumuman adalah announcement_id, bukan jumlah baris: kelas
+      // berisi satu siswa pun tetap kartu pengumuman.
+      const isPengumuman = !!g.announcementId;
       const nama = isPengumuman
         ? `Pengumuman kelas · ${g.ids.length} siswa`
         : esc(rosterName(n.student_id));
@@ -248,8 +284,9 @@
                  : vp       ? 'Ortu saja'
                  :            'Hanya guru';
       const idsAttr = esc(g.ids.join(','));
+      const annAttr = esc(g.announcementId || '');
       return `
-      <div class="note-card" data-ids="${idsAttr}">
+      <div class="note-card" data-ids="${idsAttr}" data-ann="${annAttr}">
         <div class="note-card-header">
           <span class="note-student-name">${nama}</span>
           <span class="note-date">${fmtDate(n.created_at)}</span>
@@ -258,8 +295,8 @@
         <div class="note-footer">
           <span class="note-vis">👁 ${vis}</span>
           <div class="note-actions">
-            <button class="btn-note-edit" data-ids="${idsAttr}">Edit</button>
-            <button class="btn-note-delete" data-ids="${idsAttr}">Hapus</button>
+            <button class="btn-note-edit" data-ids="${idsAttr}" data-ann="${annAttr}">Edit</button>
+            <button class="btn-note-delete" data-ids="${idsAttr}" data-ann="${annAttr}">Hapus</button>
           </div>
         </div>
       </div>`;
@@ -277,10 +314,14 @@
     el.innerHTML = pagHtml + kartu + pagHtml;
 
     el.querySelectorAll('.btn-note-edit').forEach(btn => {
-      btn.addEventListener('click', () => openEditModal(btn.dataset.ids.split(',')));
+      btn.addEventListener('click', () => openEditModal({
+        ids: btn.dataset.ids.split(','), announcementId: btn.dataset.ann || null,
+      }));
     });
     el.querySelectorAll('.btn-note-delete').forEach(btn => {
-      btn.addEventListener('click', () => confirmDelete(btn.dataset.ids.split(',')));
+      btn.addEventListener('click', () => confirmDelete({
+        ids: btn.dataset.ids.split(','), announcementId: btn.dataset.ann || null,
+      }));
     });
     el.querySelectorAll('.btn-notes-prev').forEach(b => {
       b.addEventListener('click', () => { _notesPage--; renderNotesList(); });
@@ -403,11 +444,11 @@
   // Edit modal
   // ---------------------------------------------------------------------------
 
-  function openEditModal(ids) {
-    const daftar = Array.isArray(ids) ? ids : [ids];
+  function openEditModal(target) {
+    const daftar = target.ids;
     const note = _notes.find(n => n.id === daftar[0]);
     if (!note) return;
-    const isPengumuman = daftar.length > 1;
+    const isPengumuman = !!target.announcementId;
 
     document.getElementById('notes-edit-overlay')?.remove();
 
@@ -477,13 +518,14 @@
       btnSave.textContent = 'Menyimpan…';
       errEl.textContent   = '';
       try {
-        await updateNote(daftar, newContent, chkS.checked, chkP.checked);
-        daftar.forEach(satuId => {
-          const idx = _notes.findIndex(n => n.id === satuId);
-          if (idx !== -1) {
-            _notes[idx] = { ..._notes[idx], content: newContent, is_visible_to_student: chkS.checked, is_visible_to_parent: chkP.checked };
-          }
-        });
+        await updateNote(target, newContent, chkS.checked, chkP.checked);
+        // Cermin lokal memakai kriteria yang sama dengan query di atas.
+        const kena = target.announcementId
+          ? (n) => n.announcement_id === target.announcementId
+          : (n) => daftar.indexOf(n.id) !== -1;
+        _notes = _notes.map(n => kena(n)
+          ? { ...n, content: newContent, is_visible_to_student: chkS.checked, is_visible_to_parent: chkP.checked }
+          : n);
         renderNotesList();
         close();
       } catch (err) {
@@ -509,17 +551,19 @@
   // Hapus
   // ---------------------------------------------------------------------------
 
-  async function confirmDelete(ids) {
-    const daftar = Array.isArray(ids) ? ids : [ids];
-    const pesan = daftar.length > 1
+  async function confirmDelete(target) {
+    const daftar = target.ids;
+    const pesan = target.announcementId
       ? 'Hapus pengumuman ini untuk seluruh ' + daftar.length +
         ' siswa? Tindakan ini tidak bisa dibatalkan.'
       : 'Hapus catatan ini? Tindakan ini tidak bisa dibatalkan.';
     if (!window.confirm(pesan)) return;
     try {
-      await deleteNote(daftar);
+      await deleteNote(target);
       const buang = new Set(daftar);
-      _notes = _notes.filter(n => !buang.has(n.id));
+      _notes = _notes.filter(n => target.announcementId
+        ? n.announcement_id !== target.announcementId
+        : !buang.has(n.id));
       renderNotesList();
     } catch (err) {
       alert('Gagal hapus: ' + (err.message || 'Error tidak diketahui.'));
