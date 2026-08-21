@@ -9,7 +9,10 @@
 //   1. #access_token=…&type=recovery   — alur implicit, yang dipakai sekarang
 //   2. ?code=…                          — alur PKCE, kalau setelan project berubah
 //   3. #error=…&error_description=…     — tautan kedaluwarsa atau sudah terpakai
-// Ketiganya bermuara pada satu pertanyaan: apakah ada sesi yang bisa dipakai.
+//
+// Tanpa salah satu token di URL, halaman ini menolak — termasuk saat ada sesi
+// tersimpan. Sesi biasa milik guru yang sedang login bukan bukti bahwa
+// pemiliknya datang dari tautan pemulihan.
 
 (function () {
   'use strict';
@@ -66,10 +69,23 @@
       return;
     }
 
+    // Keberadaan token pemulihan di URL diperiksa LEBIH DULU, sebelum sesi
+    // tersimpan disentuh sama sekali. Sebelumnya urutannya terbalik: guru yang
+    // masih login lalu membuka halaman ini tanpa tautan apa pun langsung
+    // mendapat form ganti password, karena getSession() mengembalikan sesi
+    // biasa miliknya. Halaman ini hanya boleh dimasuki lewat tautan dari email
+    // — sesi biasa bukan bukti bahwa pemiliknya sedang memulihkan password.
+    const code  = query.get('code');
+    const punyaTokenPemulihan = !!hash.get('access_token') || !!code;
+
+    if (!punyaTokenPemulihan) {
+      tampilGagal();
+      return;
+    }
+
     // Alur PKCE: token belum ditukar, dan supabase-js tidak menukarnya sendiri
     // kalau flowType-nya implicit. Tukar manual — kalau memang bukan PKCE,
     // panggilan ini gagal dan pemeriksaan sesi di bawah yang menentukan.
-    const code = query.get('code');
     if (code) {
       try { await client.auth.exchangeCodeForSession(code); } catch (_) { /* ditangani di bawah */ }
     }
@@ -80,7 +96,6 @@
     for (let i = 0; i < 20; i++) {
       const { data: { session } } = await client.auth.getSession();
       if (session) { tampil(elForm); return; }
-      if (i === 0 && !hash.get('access_token') && !code) break;
       await new Promise(r => setTimeout(r, 150));
     }
 
