@@ -10,8 +10,19 @@
   const MONTH_ID      = ['Januari','Februari','Maret','April','Mei','Juni',
                          'Juli','Agustus','September','Oktober','November','Desember'];
 
+  // Jendela koreksi: guru masih boleh mengisi absensi sampai 1 jam setelah
+  // sesi berakhir. Sebelumnya form mati tepat di end_time, sehingga guru yang
+  // kehilangan sinyal atau baru sempat mengisi saat istirahat kehilangan data
+  // hari itu untuk selamanya.
+  const GRACE_MENIT = 60;
+
   let teacherId   = null;
   let classroomId = null;
+
+  // Selisih antara jam server dan jam perangkat, dalam milidetik.
+  // Nol sampai fn_server_now() berhasil dipanggil; artinya perilaku terburuk
+  // sama dengan perilaku lama (memakai jam perangkat), bukan lebih buruk.
+  let _driftMs = 0;
 
   // Per-session in-memory state: { siswa: [...], page: 0 }
   const sessionState = {};
@@ -35,8 +46,27 @@
       .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
+  // Instant dari server, diterjemahkan ke waktu dinding lokal perangkat.
+  // Jam perangkat yang salah tidak lagi menggeser jendela sesi; zona waktu
+  // perangkat tetap dihormati.
+  function sekarang() {
+    return new Date(Date.now() + _driftMs);
+  }
+
+  async function sinkronWaktuServer() {
+    try {
+      const { data, error } = await client.rpc('fn_server_now');
+      if (error || !data) return;
+      const serverMs = new Date(data).getTime();
+      if (!Number.isFinite(serverMs)) return;
+      _driftMs = serverMs - Date.now();
+    } catch (_) {
+      // Biarkan _driftMs apa adanya — jatuh kembali ke jam perangkat.
+    }
+  }
+
   function todayStr() {
-    const d = new Date();
+    const d = sekarang();
     return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
   }
 
@@ -53,20 +83,41 @@
   function fmtTime(t) { return t ? String(t).slice(0, 5) : ''; }
 
   function currentTimeStr() {
-    const d = new Date();
+    const d = sekarang();
     return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:00`;
   }
 
-  function todayDayName() { return DAY_NAMES[new Date().getDay()]; }
+  function todayDayName() { return DAY_NAMES[sekarang().getDay()]; }
+
+  // Tambahkan menit ke string jam 'HH:MM:SS'. Dibatasi 23:59:59 supaya sesi
+  // yang berakhir menjelang tengah malam tidak melompat ke hari berikutnya —
+  // absensi selalu dicatat pada tanggal sesi itu sendiri.
+  function tambahMenit(timeStr, menit) {
+    const [h, m, s] = String(timeStr).split(':').map(Number);
+    const total = h * 60 + m + menit;
+    if (total >= 24 * 60) return '23:59:59';
+    return `${String(Math.floor(total / 60)).padStart(2,'0')}:` +
+           `${String(total % 60).padStart(2,'0')}:` +
+           `${String(s || 0).padStart(2,'0')}`;
+  }
 
   function pct(n, total) { return total ? Math.round(n / total * 100) : 0; }
 
+  // AKTIF   → sesi sedang berlangsung
+  // KOREKSI → sesi sudah lewat tetapi masih dalam jendela 1 jam; form tetap
+  //           bisa diisi dan disimpan
+  // SELESAI → jendela koreksi habis, form terkunci
   function sessionStatus(sch) {
     if (!sch.is_active) return 'NONAKTIF';
     const now = currentTimeStr();
     if (now < sch.start_time) return 'BELUM_MULAI';
-    if (now > sch.end_time)   return 'SELESAI';
-    return 'AKTIF';
+    if (now <= sch.end_time)  return 'AKTIF';
+    if (now <= tambahMenit(sch.end_time, GRACE_MENIT)) return 'KOREKSI';
+    return 'SELESAI';
+  }
+
+  function bolehDiisi(status) {
+    return status === 'AKTIF' || status === 'KOREKSI';
   }
 
   function getPresetRange(preset) {
@@ -205,6 +256,7 @@
           btn.addEventListener('click', () => {
             const idx = siswa.findIndex(x => x.profile_id === s.profile_id);
             if (idx >= 0) siswa[idx].status = btn.dataset.status;
+            state.dirty = true;
             toggleEl.querySelectorAll('.abs-status-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             const sw2 = block.querySelector('.abs-summary-wrap');
@@ -219,27 +271,41 @@
   async function renderSession(sch, roster, tanggal) {
     const sid    = sch.id;
     const status = sessionStatus(sch);
-    const done   = status !== 'AKTIF';
+    const done   = !bolehDiisi(status);
 
-    // Build state
+    // Build state. Tanda yang sudah dipasang guru tetapi belum disimpan
+    // dipertahankan — render ulang tidak boleh menghapus pekerjaan yang belum
+    // tersimpan. Status dari server hanya dipakai untuk siswa yang belum
+    // disentuh guru pada sesi ini.
     const existing = await loadExistingAttendance(sid, tanggal);
+    const sebelum  = sessionState[sid];
+    const tersimpanDiLayar = (sebelum && sebelum.dirty)
+      ? sebelum.siswa.reduce((acc, s) => { acc[s.profile_id] = s.status; return acc; }, {})
+      : {};
+
     const siswa = roster.map(r => ({
       profile_id: r.profile_id,
       full_name:  r.full_name,
       nis:        r.nis,
-      status:     existing[r.profile_id] || 'HADIR',
+      status:     tersimpanDiLayar[r.profile_id] || existing[r.profile_id] || 'HADIR',
     }));
-    sessionState[sid] = { siswa, page: 0 };
+    sessionState[sid] = {
+      siswa,
+      page:  sebelum ? sebelum.page : 0,
+      dirty: !!(sebelum && sebelum.dirty),
+    };
     const state = sessionState[sid];
+    if (state.page > Math.ceil(siswa.length / PAGE_SIZE) - 1) state.page = 0;
 
     const totalPages = Math.max(1, Math.ceil(siswa.length / PAGE_SIZE));
 
-    const badgeClass = status === 'AKTIF'      ? 'badge-aktif'
-      : status === 'SELESAI'     ? 'badge-nonaktif'
+    const badgeClass = status === 'AKTIF'   ? 'badge-aktif'
+      : status === 'KOREKSI' ? 'badge-aktif'
       : 'badge-nonaktif';
-    const badgeLabel = status === 'AKTIF'      ? 'AKTIF'
-      : status === 'SELESAI'     ? 'SELESAI'
-      : status === 'NONAKTIF'    ? 'NONAKTIF'
+    const badgeLabel = status === 'AKTIF'   ? 'AKTIF'
+      : status === 'KOREKSI'  ? 'MASA KOREKSI'
+      : status === 'SELESAI'  ? 'SELESAI'
+      : status === 'NONAKTIF' ? 'NONAKTIF'
       : 'BELUM MULAI';
 
     const block = document.createElement('div');
@@ -264,15 +330,34 @@
           (!done
             ? `<div class="abs-save-row">` +
                 `<button class="btn-simpan-absensi">Simpan Absensi</button>` +
-                `<span class="abs-save-msg"></span>` +
+                `<span class="abs-save-msg">` +
+                  (status === 'KOREKSI'
+                    ? `Masa koreksi — bisa diisi sampai ` +
+                      esc(fmtTime(tambahMenit(sch.end_time, GRACE_MENIT)))
+                    : '') +
+                `</span>` +
               `</div>`
             : `<p class="abs-disabled-msg">` +
                 (status === 'SELESAI'
-                  ? 'Sesi telah selesai. Data absensi tidak dapat diubah.'
+                  ? 'Masa koreksi sudah lewat (1 jam setelah sesi berakhir). ' +
+                    'Data absensi tidak dapat diubah lagi.'
                   : 'Sesi belum dimulai.') +
               `</p>`)
-        : `<p class="empty-state">Belum ada siswa aktif di classroom ini.</p>`
+        : `<p class="empty-state">` +
+            'Siswa di kelas ini belum memiliki akun, jadi belum bisa diabsen. ' +
+            'Buka tab <strong>Kelola Siswa</strong> → centang siswa → ' +
+            '<strong>Generate Terpilih</strong> untuk mengaktifkan mereka.' +
+            `<br><button type="button" class="btn-ke-kelola-siswa">Ke Kelola Siswa</button>` +
+          `</p>`
       );
+
+    // Pintasan ke tab Kelola Siswa saat roster belum punya akun
+    const btnKeSiswa = block.querySelector('.btn-ke-kelola-siswa');
+    if (btnKeSiswa) {
+      btnKeSiswa.addEventListener('click', () => {
+        document.getElementById('tab-siswa')?.click();
+      });
+    }
 
     // Initial render of page
     if (hasSiswa) {
@@ -322,6 +407,7 @@
           if (err) {
             if (msgEl) { msgEl.textContent = 'Gagal: ' + err.message; msgEl.className = 'abs-save-msg abs-save-err'; }
           } else {
+            state.dirty = false;
             if (msgEl) { msgEl.textContent = `Tersimpan (${state.siswa.length} siswa)`; msgEl.className = 'abs-save-msg abs-save-ok'; }
           }
           btnSimpan.disabled    = false;
@@ -339,6 +425,10 @@
     if (!container) return;
 
     container.innerHTML = '<p class="empty-state">Memuat jadwal hari ini…</p>';
+
+    // Jam server disegarkan setiap render, bukan sekali saat halaman dibuka —
+    // guru kerap membiarkan aplikasi terbuka berjam-jam.
+    await sinkronWaktuServer();
 
     const tanggal = todayStr();
     const [schedules, roster] = await Promise.all([loadTodaySchedules(), loadRoster()]);
@@ -368,7 +458,18 @@
     _todaySchedules.forEach(s => { s._lastKnownStatus = sessionStatus(s); });
   }
 
-  // ---- In-place disable saat sesi AKTIF → SELESAI ----
+  // ---- In-place: sesi masuk masa koreksi (masih bisa diisi) ----
+  function markKoreksiBlock(block, sch) {
+    const badge = block.querySelector('.badge-aktif');
+    if (badge) badge.textContent = 'MASA KOREKSI';
+    const msgEl = block.querySelector('.abs-save-msg');
+    if (msgEl && !msgEl.textContent) {
+      msgEl.textContent = 'Masa koreksi — bisa diisi sampai ' +
+        fmtTime(tambahMenit(sch.end_time, GRACE_MENIT));
+    }
+  }
+
+  // ---- In-place disable saat masa koreksi habis ----
   function disableSessionBlock(block) {
     const badge = block.querySelector('.badge-aktif');
     if (badge) { badge.className = 'badge-nonaktif'; badge.textContent = 'SELESAI'; }
@@ -377,7 +478,8 @@
     if (saveRow) {
       const msg = document.createElement('p');
       msg.className   = 'abs-disabled-msg';
-      msg.textContent = 'Sesi telah selesai. Data absensi tidak dapat diubah.';
+      msg.textContent = 'Masa koreksi sudah lewat (1 jam setelah sesi berakhir). ' +
+                        'Data absensi tidak dapat diubah lagi.';
       saveRow.replaceWith(msg);
     }
   }
@@ -400,12 +502,17 @@
       const newStatus = sessionStatus(sch);
       if (newStatus === sch._lastKnownStatus) return;
 
+      const block = container.querySelector(`.abs-session[data-schedule-id="${sch.id}"]`);
+
       if (sch._lastKnownStatus === 'BELUM_MULAI' && newStatus === 'AKTIF') {
         // Form sedang disabled — re-render aman, tidak ada data guru yang hilang
         needsRerender = true;
-      } else if (sch._lastKnownStatus === 'AKTIF' && newStatus === 'SELESAI') {
+      } else if (newStatus === 'KOREKSI') {
+        // Sesi berakhir tetapi masih boleh diisi — cukup ganti label, jangan
+        // sentuh tombol maupun state.
+        if (block) markKoreksiBlock(block, sch);
+      } else if (bolehDiisi(sch._lastKnownStatus) && newStatus === 'SELESAI') {
         // Disable in-place agar perubahan status siswa yang belum disimpan tetap terlihat
-        const block = container.querySelector(`.abs-session[data-schedule-id="${sch.id}"]`);
         if (block) disableSessionBlock(block);
       }
       sch._lastKnownStatus = newStatus;
@@ -731,13 +838,28 @@
 
   // ---- Init ----
   let _absensiRekapInited = false;
+  let _absensiSudahDirender = false;
+
+  // Ada tanda absensi yang dipasang guru tetapi belum ditekan Simpan?
+  function adaPerubahanBelumTersimpan() {
+    return Object.keys(sessionState).some(sid => sessionState[sid] && sessionState[sid].dirty);
+  }
 
   async function initAbsensiRekap() {
     if (!_absensiRekapInited) {
       _absensiRekapInited = true;
       renderRekap();
     }
-    await renderAbsensi();
+    // Render hanya sekali. Sebelumnya renderAbsensi() dipanggil pada SETIAP
+    // klik tab Jadwal, sehingga state absensi yang belum disimpan dibangun
+    // ulang dari database — tanda S/I/A yang sudah dipasang guru diam-diam
+    // kembali ke HADIR hanya karena guru mampir ke tab sebelah.
+    // Perubahan status sesi (mis. AKTIF → SELESAI) tetap ditangani timer
+    // 30 detik di bawah, jadi tampilan tidak menjadi basi.
+    if (!_absensiSudahDirender) {
+      _absensiSudahDirender = true;
+      await renderAbsensi();
+    }
     // Restart timer — clear dulu agar tidak ada interval ganda (leak prevention)
     if (_sessionTimerId) clearInterval(_sessionTimerId);
     _sessionTimerId = setInterval(syncSessionStatuses, 30_000);
@@ -756,8 +878,14 @@
     if (!prof) return;
     teacherId = prof.id;
 
-    window.addEventListener('beforeunload', () => {
+    window.addEventListener('beforeunload', (e) => {
       if (_sessionTimerId) clearInterval(_sessionTimerId);
+      // Absensi yang belum disimpan tidak boleh hilang tanpa sepatah kata pun.
+      if (adaPerubahanBelumTersimpan()) {
+        e.preventDefault();
+        e.returnValue = '';
+        return '';
+      }
     });
 
     const tabJadwal = document.getElementById('tab-jadwal');
@@ -772,6 +900,14 @@
   });
 
   window.addEventListener('schedule-changed', function () {
+    renderAbsensi();
+  });
+
+  // Roster berubah (siswa baru di-generate akunnya, atau dihapus) — daftar
+  // absensi ikut disegarkan. Tanda yang belum disimpan tetap dipertahankan
+  // oleh renderSession, jadi render ulang di sini aman.
+  window.addEventListener('roster-changed', function () {
+    if (!_absensiSudahDirender) return;   // panel belum pernah dibuka
     renderAbsensi();
   });
 

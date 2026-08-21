@@ -248,6 +248,11 @@
     var savedPage = parseInt(localStorage.getItem('sip_roster_page_' + currentClassroomId)) || 0;
     var maxPage   = Math.max(0, Math.ceil(currentRows.length / PAGE_SIZE) - 1);
     renderPage(Math.min(savedPage, maxPage));
+
+    // Panel absensi kini hanya dirender sekali (agar tanda yang belum disimpan
+    // tidak hilang), jadi ia perlu diberi tahu saat roster berubah — misalnya
+    // setelah Generate Akun menambah siswa yang bisa diabsen.
+    window.dispatchEvent(new CustomEvent('roster-changed'));
   }
 
   // -------------------------------------------------------------------------
@@ -404,11 +409,19 @@
       return;
     }
 
+    // NIS yang sudah ada akan DITIMPA oleh upsert di bawah. Sebelumnya
+    // peringatan ini hanya ditulis ke resultEl lalu langsung tertimpa pesan
+    // "Import selesai" beberapa milidetik kemudian — guru tidak pernah sempat
+    // membacanya, apalagi membatalkan. Sekarang proses berhenti dan menunggu.
     const nisExisting = new Set(currentRows.map(function(r) { return r.nis; }));
     const duplikat    = rows.filter(function(r) { return nisExisting.has(r.nis); });
     if (duplikat.length > 0) {
-      resultEl.textContent   = 'Peringatan: ' + duplikat.length + ' NIS sudah ada di roster dan akan diperbarui: ' + duplikat.map(function(r) { return r.nis; }).join(', ');
-      resultEl.style.display = 'block';
+      var lanjut = await konfirmasiImportDuplikat(duplikat, rows.length);
+      if (!lanjut) {
+        resultEl.textContent   = 'Import dibatalkan. Tidak ada data yang diubah.';
+        resultEl.style.display = 'block';
+        return;
+      }
     }
 
     const { error } = await client
@@ -646,6 +659,75 @@
     btnHapus.disabled    = true;
 
     await loadRoster();
+  }
+
+  // -------------------------------------------------------------------------
+  // konfirmasiImportDuplikat — hentikan import saat ada NIS yang sudah ada
+  // -------------------------------------------------------------------------
+
+  function konfirmasiImportDuplikat(duplikat, totalBaris) {
+    return new Promise(function (resolve) {
+      var overlay = document.createElement('div');
+      overlay.className = 'share-overlay';
+
+      var box = document.createElement('div');
+      box.className = 'share-box';
+
+      var title = document.createElement('p');
+      title.innerHTML = '<strong>' + duplikat.length + ' NIS sudah ada di roster</strong>';
+
+      var pesan = document.createElement('p');
+      pesan.style.margin = '4px 0 8px';
+      pesan.textContent =
+        'Dari ' + totalBaris + ' baris di file, ' + duplikat.length +
+        ' NIS sudah terdaftar di kelas ini. Jika dilanjutkan, data lama siswa ' +
+        'tersebut (nama dan nama ortu) akan ditimpa oleh isi file. Akun yang ' +
+        'sudah dibuat tidak terhapus.';
+
+      var daftar = document.createElement('textarea');
+      daftar.readOnly = true;
+      daftar.rows     = 4;
+      daftar.value    = duplikat.map(function (r) {
+        return r.nis + ' — ' + r.full_name;
+      }).join('\n');
+
+      var rowBtn = document.createElement('div');
+      rowBtn.style.cssText = 'display:flex;gap:.5rem;justify-content:flex-end;margin-top:.25rem;';
+
+      var btnBatal = document.createElement('button');
+      btnBatal.type        = 'button';
+      btnBatal.textContent = 'Batal';
+
+      var btnOk = document.createElement('button');
+      btnOk.type        = 'button';
+      btnOk.textContent = 'Lanjutkan Import';
+
+      var invoked = false;
+      function done(val) {
+        if (invoked) return;
+        invoked = true;
+        overlay.remove();
+        document.removeEventListener('keydown', onEsc);
+        resolve(val);
+      }
+      function onEsc(e) { if (e.key === 'Escape') { done(false); } }
+      document.addEventListener('keydown', onEsc);
+
+      btnOk.addEventListener('click',    function () { done(true); });
+      btnBatal.addEventListener('click', function () { done(false); });
+      overlay.addEventListener('click',  function (e) { if (e.target === overlay) { done(false); } });
+
+      rowBtn.appendChild(btnBatal);
+      rowBtn.appendChild(btnOk);
+      box.appendChild(title);
+      box.appendChild(pesan);
+      box.appendChild(daftar);
+      box.appendChild(rowBtn);
+      overlay.appendChild(box);
+      document.body.appendChild(overlay);
+
+      btnBatal.focus();
+    });
   }
 
   function konfirmasiKuat(jumlah, withAkun, rosterOnly) {

@@ -390,7 +390,8 @@ window.initCustomSelect = function (nativeEl, onChange) {
         '⚠️ PERINGATAN — Tindakan Tidak Bisa Dibatalkan\n\n' +
         'Anda akan menghapus kelas "' + classroomName + '" beserta SELURUH datanya:\n' +
         '• ' + stats.members  + ' siswa terdaftar\n' +
-        '• ' + stats.sessions + ' sesi absensi tersimpan\n\n' +
+        '• ' + stats.sessions + ' sesi absensi tersimpan\n' +
+        '• ' + stats.notes    + ' catatan siswa\n\n' +
         'Semua data ini akan hilang permanen dan tidak bisa dipulihkan.'
       );
 
@@ -786,8 +787,138 @@ window.initCustomSelect = function (nativeEl, onChange) {
     return null;
   }
 
+  // Kumpulkan jumlah data yang akan dihapus, supaya angka di modal konfirmasi
+  // adalah kondisi nyata akun ini — bukan kalimat umum yang mudah diabaikan.
+  async function ringkasanDataSemester() {
+    var ringkas = { kelas: 0, sesi: 0, catatan: 0, gagal: false };
+    try {
+      var db = window.supabaseClient;
+      var kelasRes = await db.from('classrooms')
+        .select('id', { count: 'exact' })
+        .eq('teacher_id', currentTeacherId);
+      if (kelasRes.error) throw kelasRes.error;
+
+      ringkas.kelas = kelasRes.count ?? (kelasRes.data ? kelasRes.data.length : 0);
+      var ids = (kelasRes.data || []).map(function (c) { return c.id; });
+      if (ids.length === 0) return ringkas;
+
+      var hasil = await Promise.all([
+        db.from('attendance').select('*', { count: 'exact', head: true }).in('classroom_id', ids),
+        db.from('student_notes').select('*', { count: 'exact', head: true }).in('classroom_id', ids),
+      ]);
+      if (hasil[0].error || hasil[1].error) throw (hasil[0].error || hasil[1].error);
+      ringkas.sesi    = hasil[0].count ?? 0;
+      ringkas.catatan = hasil[1].count ?? 0;
+    } catch (_) {
+      ringkas.gagal = true;
+    }
+    return ringkas;
+  }
+
+  // Konfirmasi berlapis untuk operasi paling destruktif di aplikasi ini.
+  // Sebelumnya hanya confirm() biasa — pagar yang lebih rendah daripada
+  // menghapus satu kelas, yang justru mewajibkan guru mengetik nama kelasnya.
+  function modalResetSemester(ringkas) {
+    return new Promise(function (resolve) {
+      var FRASA = 'RESET SEMESTER';
+
+      var overlay = document.createElement('div');
+      overlay.className = 'share-overlay';
+      overlay.id = 'reset-semester-overlay';
+
+      var box = document.createElement('div');
+      box.className = 'share-box';
+
+      var title = document.createElement('p');
+      title.innerHTML = '<strong>Mulai Semester Baru</strong>';
+
+      var rincian = document.createElement('div');
+      rincian.style.cssText = 'font-size:.875rem;line-height:1.7;margin:.25rem 0 .5rem;';
+      rincian.innerHTML = ringkas.gagal
+        ? 'Jumlah data tidak dapat dihitung (koneksi bermasalah). ' +
+          'Seluruh absensi, catatan, jadwal, dan penilaian di semua kelas Anda akan dihapus.'
+        : 'Yang akan dihapus permanen dari <strong>' + ringkas.kelas + ' kelas</strong>:' +
+          '<br>• ' + ringkas.sesi    + ' sesi absensi' +
+          '<br>• ' + ringkas.catatan + ' catatan siswa' +
+          '<br>• seluruh jadwal dan penilaian';
+
+      var peringatan = document.createElement('p');
+      peringatan.style.cssText = 'color:#c0392b;font-weight:600;margin:.25rem 0 .5rem;';
+      peringatan.textContent =
+        'Data tidak dapat dipulihkan. Pastikan Anda sudah meng-export rekap absensi ' +
+        'dan catatan sebelum melanjutkan.';
+
+      var label = document.createElement('p');
+      label.style.cssText = 'font-size:.875rem;margin:0 0 .25rem;';
+      label.innerHTML = 'Ketik <strong>' + FRASA + '</strong> untuk mengaktifkan tombol hapus:';
+
+      var inp = document.createElement('input');
+      inp.type        = 'text';
+      inp.placeholder = FRASA;
+      inp.autocapitalize = 'characters';
+      inp.style.cssText = 'width:100%;box-sizing:border-box;padding:.45rem;border:1px solid #ddd;border-radius:.4rem;font-size:1rem;';
+
+      var rowBtn = document.createElement('div');
+      rowBtn.style.cssText = 'display:flex;gap:.5rem;justify-content:flex-end;margin-top:.5rem;';
+
+      var btnBatal = document.createElement('button');
+      btnBatal.type        = 'button';
+      btnBatal.textContent = 'Batal';
+
+      var btnOk = document.createElement('button');
+      btnOk.type        = 'button';
+      btnOk.textContent = 'Ya, Hapus Semua Data';
+      btnOk.disabled    = true;
+      btnOk.style.background = '#c0392b';
+      btnOk.style.color      = '#fff';
+
+      var btnTutup = document.createElement('button');
+      btnTutup.type        = 'button';
+      btnTutup.setAttribute('aria-label', 'Tutup');
+      btnTutup.innerHTML   = '&times;';
+      btnTutup.style.cssText =
+        'position:absolute;top:.4rem;right:.6rem;background:transparent;border:none;' +
+        'font-size:1.4rem;line-height:1;cursor:pointer;color:#9A9AA5;padding:0;';
+      box.style.position = 'relative';
+
+      var invoked = false;
+      function done(val) {
+        if (invoked) return;
+        invoked = true;
+        overlay.remove();
+        document.removeEventListener('keydown', onEsc);
+        resolve(val);
+      }
+      function onEsc(e) { if (e.key === 'Escape') { done(false); } }
+      document.addEventListener('keydown', onEsc);
+
+      inp.addEventListener('input', function () {
+        btnOk.disabled = inp.value.trim() !== FRASA;
+      });
+      btnOk.addEventListener('click',    function () { done(true); });
+      btnBatal.addEventListener('click', function () { done(false); });
+      btnTutup.addEventListener('click', function () { done(false); });
+      overlay.addEventListener('click',  function (e) { if (e.target === overlay) { done(false); } });
+
+      rowBtn.appendChild(btnBatal);
+      rowBtn.appendChild(btnOk);
+      box.appendChild(btnTutup);
+      box.appendChild(title);
+      box.appendChild(rincian);
+      box.appendChild(peringatan);
+      box.appendChild(label);
+      box.appendChild(inp);
+      box.appendChild(rowBtn);
+      overlay.appendChild(box);
+      document.body.appendChild(overlay);
+
+      inp.focus();
+    });
+  }
+
   async function handleSemesterReset() {
-    var ok = confirm('Tindakan ini akan menghapus semua data absensi, catatan, jadwal, dan penilaian dari seluruh classroom Anda secara permanen. Lanjutkan?');
+    var ringkas = await ringkasanDataSemester();
+    var ok = await modalResetSemester(ringkas);
     if (!ok) return;
 
     var btn = document.getElementById('btn-mulai-semester-overlay') || document.getElementById('btn-mulai-semester');
@@ -857,18 +988,31 @@ window.initCustomSelect = function (nativeEl, onChange) {
 
       var overlay = document.createElement('div');
       overlay.className = 'locked-overlay';
+      // Overlay ini harus punya jalan keluar. Sebelumnya satu-satunya tombol
+      // adalah reset yang menghapus segalanya — guru yang belum siap tidak
+      // punya pilihan selain menekannya.
       overlay.innerHTML =
-        '<div class="locked-modal">' +
+        '<div class="locked-modal" style="position:relative">' +
+          '<button id="btn-tutup-locked" aria-label="Tutup" style="position:absolute;' +
+            'top:.4rem;right:.6rem;background:transparent;border:none;font-size:1.4rem;' +
+            'line-height:1;cursor:pointer;color:#9A9AA5;padding:0">&times;</button>' +
           '<h2>Semester Berakhir</h2>' +
-          '<p>Semua fitur terkunci hingga Anda memulai semester baru.</p>' +
+          '<p>Semester ini sudah berakhir. Anda dapat memulai semester baru sekarang, ' +
+          'atau menutup pesan ini dan melakukannya nanti.</p>' +
           '<div class="warning-list">' +
             '<div class="warning-item">Pastikan Anda sudah export data semester ini sebelum melanjutkan.</div>' +
             '<div class="warning-item">Pastikan nama kelas dan daftar siswa diperbarui setelah semester atau kelas baru dimulai.</div>' +
           '</div>' +
           '<button class="btn-semester-baru" id="btn-mulai-semester-overlay">Mulai Semester Baru</button>' +
+          '<button id="btn-nanti-saja" style="margin-top:.5rem;background:transparent;' +
+            'border:none;color:#9A9AA5;cursor:pointer;font-family:inherit;' +
+            'text-decoration:underline">Nanti saja</button>' +
         '</div>';
       document.body.appendChild(overlay);
       document.getElementById('btn-mulai-semester-overlay').addEventListener('click', handleSemesterReset);
+      function tutupLocked() { overlay.remove(); }
+      document.getElementById('btn-tutup-locked').addEventListener('click', tutupLocked);
+      document.getElementById('btn-nanti-saja').addEventListener('click', tutupLocked);
     }
   }
 

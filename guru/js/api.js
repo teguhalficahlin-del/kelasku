@@ -69,20 +69,29 @@
       return count ?? 0;
     },
 
+    // Jumlah siswa dibaca dari classroom_roster — sumber yang sama dengan kartu
+    // classroom dan header "Daftar Siswa (N)". Sebelumnya dibaca dari
+    // classroom_members, yang hanya berisi siswa yang akunnya sudah di-generate,
+    // sehingga peringatan hapus kerap menulis "0 siswa terdaftar" untuk kelas
+    // yang rosternya penuh — persis pada dialog yang seharusnya membuat guru
+    // berhenti dan berpikir.
     async getClassroomStats(id) {
-      const [memberRes, attendRes] = await Promise.all([
-        client.from('classroom_members')
+      const [rosterRes, attendRes, notesRes] = await Promise.all([
+        client.from('classroom_roster')
           .select('*', { count: 'exact', head: true })
-          .eq('classroom_id', id)
-          .eq('member_role', 'SISWA'),
+          .eq('classroom_id', id),
         client.from('attendance')
+          .select('*', { count: 'exact', head: true })
+          .eq('classroom_id', id),
+        client.from('student_notes')
           .select('*', { count: 'exact', head: true })
           .eq('classroom_id', id),
       ]);
       return {
-        members:  memberRes.count ?? 0,
+        members:  rosterRes.count ?? 0,
         sessions: attendRes.count ?? 0,
-        error:    memberRes.error || attendRes.error || null,
+        notes:    notesRes.count  ?? 0,
+        error:    rosterRes.error || attendRes.error || notesRes.error || null,
       };
     },
 

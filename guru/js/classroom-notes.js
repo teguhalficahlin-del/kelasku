@@ -104,7 +104,17 @@
       `<option value="${esc(s.id)}">${esc(s.full_name)}${s.nis ? ' · ' + esc(s.nis) : ''}</option>`
     ).join('');
 
-    sel.innerHTML = '<option value="">— Pilih siswa —</option>' + opts;
+    // Dropdown hanya berisi siswa yang akunnya sudah di-generate. Tanpa
+    // penjelasan, guru yang rosternya penuh melihat daftar kosong dan mengira
+    // ada yang rusak.
+    const statusEl = document.getElementById('notes-roster-hint');
+    if (statusEl) {
+      statusEl.style.display = _roster.length ? 'none' : 'block';
+    }
+
+    sel.innerHTML = (_roster.length
+      ? '<option value="">— Pilih siswa —</option>'
+      : '<option value="">— Belum ada siswa berakun —</option>') + opts;
     if (filterSel) {
       filterSel.innerHTML = '<option value="">Semua siswa</option>' + opts;
     }
