@@ -14,23 +14,28 @@
     function showError(msg) { errorMsg.textContent = msg; errorMsg.style.display = 'block'; }
     function hideError()    { errorMsg.textContent = ''; errorMsg.style.display = 'none'; }
 
-    // Pesan yang dititipkan halaman lain sebelum mengalihkan ke sini — saat ini
-    // hanya reset semester. Dipakai sekali lalu dibuang, supaya tidak muncul
-    // lagi pada kunjungan berikutnya.
+    // Penanda bahwa halaman sebelumnya baru saja mereset semester. Isinya hanya
+    // '1' — sebuah saklar, bukan pesan.
+    //
+    // sessionStorage dapat diisi apa saja oleh siapa pun yang membuka konsol,
+    // jadi nilainya tidak pernah menjadi teks yang ditampilkan: teksnya
+    // ditanam di sini, dan yang dibaca dari penyimpanan cuma dipakai untuk
+    // memutuskan tampil atau tidak. Penulisan pun lewat textContent, bukan
+    // innerHTML, sehingga isi apa pun tidak akan pernah dieksekusi sebagai
+    // markup. Dipakai sekali lalu dibuang.
     function tampilkanPesanTitipan() {
-      let sebab = null;
+      let aktif = false;
       try {
-        sebab = sessionStorage.getItem('sip_pesan_login');
-        if (sebab) sessionStorage.removeItem('sip_pesan_login');
+        aktif = sessionStorage.getItem('sip_pesan_login') === '1';
+        sessionStorage.removeItem('sip_pesan_login');
       } catch (_) { return; }
-      if (sebab === 'reset-semester') {
-        const el = document.getElementById('login-info');
-        if (el) {
-          el.textContent = 'Semester berhasil direset. ' +
-            'Silakan masuk kembali untuk memulai semester baru.';
-          el.style.display = 'block';
-        }
-      }
+      if (!aktif) return;
+
+      const el = document.getElementById('login-info');
+      if (!el) return;
+      el.textContent = 'Semester berhasil direset. ' +
+        'Silakan masuk kembali untuk memulai semester baru.';
+      el.style.display = 'block';
     }
 
     window.addEventListener('DOMContentLoaded', async () => {
@@ -962,7 +967,7 @@
       // itu sendiri lewat error yang membingungkan, antarkan langsung ke
       // halaman login beserta alasannya.
       alert('Reset semester berhasil. Selamat memulai semester baru!');
-      try { sessionStorage.setItem('sip_pesan_login', 'reset-semester'); } catch (_) {}
+      try { sessionStorage.setItem('sip_pesan_login', '1'); } catch (_) {}
       try { await window.supabaseClient.auth.signOut(); } catch (_) {}
       window.location.replace('index.html');
       return;
