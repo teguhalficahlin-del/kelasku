@@ -45,7 +45,25 @@ function showDashboardError(msg) {
   el.style.display = 'block';
 }
 
-async function callAdmin(token, body) {
+// Token diambil segar dari klien Supabase setiap kali dipakai. Sebelumnya
+// _token diisi sekali saat login dan tidak pernah diperbarui, padahal klien
+// dikonfigurasi autoRefreshToken: setelah access token kedaluwarsa (~1 jam),
+// setiap aksi admin gagal dengan pesan generik "Permintaan gagal" tanpa
+// petunjuk bahwa yang perlu dilakukan hanyalah login ulang.
+async function tokenSegar() {
+  const { data: { session } } = await sb.auth.getSession();
+  return session?.access_token ?? null;
+}
+
+async function callAdmin(_tokenLama, body) {
+  const token = await tokenSegar();
+  if (!token) {
+    const err = new Error('Sesi Anda telah berakhir, silakan login kembali.');
+    err.sesiBerakhir = true;
+    throw err;
+  }
+  _token = token;
+
   const res = await fetch(EDGE_ADMIN, {
     method:  'POST',
     headers: {
@@ -55,8 +73,24 @@ async function callAdmin(token, body) {
     body: JSON.stringify(body),
   });
   const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Permintaan gagal');
+  if (!res.ok) {
+    if (res.status === 401) {
+      const err = new Error('Sesi Anda telah berakhir, silakan login kembali.');
+      err.sesiBerakhir = true;
+      throw err;
+    }
+    throw new Error(data.error || 'Permintaan gagal');
+  }
   return data;
+}
+
+// Sesi mati di tengah pekerjaan: kembalikan ke layar login dengan sebab yang
+// jelas, bukan pesan gagal yang membingungkan.
+async function tanganiSesiBerakhir() {
+  try { await sb.auth.signOut(); } catch (_) {}
+  _token = null;
+  showLogin();
+  showLoginError('Sesi Anda telah berakhir, silakan login kembali.');
 }
 
 function formatDate(iso) {
@@ -160,6 +194,7 @@ async function loadGurus() {
 
   } catch (err) {
     loadEl.style.display = 'none';
+    if (err.sesiBerakhir) { await tanganiSesiBerakhir(); return; }
     showDashboardError('Gagal memuat data: ' + err.message);
   }
 }
@@ -182,6 +217,7 @@ document.getElementById('guru-list').addEventListener('click', async (e) => {
       await callAdmin(_token, { action: 'activate_guru', guru_id: guruId });
       await loadGurus();
     } catch (err) {
+      if (err.sesiBerakhir) { await tanganiSesiBerakhir(); return; }
       alert('Gagal aktifkan: ' + err.message);
       await loadGurus();
     }
@@ -195,6 +231,7 @@ document.getElementById('guru-list').addEventListener('click', async (e) => {
       await callAdmin(_token, { action: 'deactivate_guru', guru_id: guruId });
       await loadGurus();
     } catch (err) {
+      if (err.sesiBerakhir) { await tanganiSesiBerakhir(); return; }
       alert('Gagal nonaktifkan: ' + err.message);
       await loadGurus();
     }
@@ -207,6 +244,7 @@ document.getElementById('guru-list').addEventListener('click', async (e) => {
       await callAdmin(_token, { action: 'extend_guru', guru_id: guruId, days: 365 });
       await loadGurus();
     } catch (err) {
+      if (err.sesiBerakhir) { await tanganiSesiBerakhir(); return; }
       alert('Gagal perpanjang: ' + err.message);
       await loadGurus();
     }
@@ -221,6 +259,7 @@ document.getElementById('guru-list').addEventListener('click', async (e) => {
       await callAdmin(_token, { action: 'delete_guru', guru_id: guruId });
       await loadGurus();
     } catch (err) {
+      if (err.sesiBerakhir) { await tanganiSesiBerakhir(); return; }
       alert('Gagal hapus: ' + err.message);
       await loadGurus();
     }

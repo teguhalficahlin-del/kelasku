@@ -61,8 +61,33 @@ Deno.serve(async (req) => {
       .single();
 
     if (profileError || !callerProfile || callerProfile.role !== 'GURU') {
+      // Gate-nya adalah join inner di atas: guru yang belum punya kelas, atau
+      // yang bukan pemilik classroom_id ini, tidak menghasilkan baris sama
+      // sekali. Yang kurang selama ini bukan proteksinya melainkan pesannya —
+      // "Forbidden" tidak memberi tahu guru apa yang harus dilakukan. Query
+      // tambahan ini hanya berjalan di jalur gagal, jadi tidak membebani jalur
+      // normal.
+      let pesan = 'Anda tidak berhak membuat akun untuk kelas ini.';
+      const { data: profilDasar } = await admin
+        .from('profiles')
+        .select('id, role')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (!profilDasar || profilDasar.role !== 'GURU') {
+        pesan = 'Akun ini bukan akun guru.';
+      } else {
+        const { count } = await admin
+          .from('classrooms')
+          .select('*', { count: 'exact', head: true })
+          .eq('teacher_id', profilDasar.id);
+        pesan = (count ?? 0) === 0
+          ? 'Buat kelas terlebih dahulu sebelum membuat akun siswa.'
+          : 'Kelas ini bukan milik Anda.';
+      }
+
       return Response.json(
-        { success: false, error: 'Forbidden' },
+        { success: false, error: pesan },
         { status: 403, headers: CORS_HEADERS },
       );
     }
