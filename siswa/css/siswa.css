@@ -132,6 +132,21 @@ button[type="submit"]:disabled { opacity: 0.4; cursor: not-allowed; }
   line-height: var(--lh-normal);
 }
 
+/* Coba lagi per kartu — memuat ulang satu kelas yang gagal, bukan seluruh
+   halaman, sehingga kelas lain yang sudah tampil tidak ikut dibongkar. */
+.btn-muat-ulang-kartu {
+  margin-left: 0.5rem;
+  padding: 0.2rem 0.7rem;
+  font-size: var(--fs-caption);
+  font-family: inherit;
+  color: var(--danger);
+  background: transparent;
+  border: 1px solid var(--danger-border);
+  border-radius: var(--btn-r);
+  cursor: pointer;
+}
+.btn-muat-ulang-kartu:hover { background: var(--danger-bg); }
+
 /* ── Konfirmasi ── */
 .konfirmasi {
   background: var(--success-bg);

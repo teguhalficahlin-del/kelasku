@@ -676,16 +676,47 @@ async function init() {
     return;
   }
 
-  for (const row of members) {
+  // Dimuat paralel, mengikuti pola yang sudah dipakai portal guru. Sebelumnya
+  // tiga permintaan per kelas dijalankan berurutan di dalam loop: orang tua
+  // dengan tiga anak menunggu sembilan permintaan berantai sebelum kartu
+  // terakhir muncul.
+  //
+  // Slot kosong dibuat lebih dulu dalam urutan aslinya, lalu diisi begitu
+  // datanya tiba — urutan kartu tidak ikut berubah mengikuti kecepatan jaringan.
+  const baris = members.filter(row => row.classrooms);
+
+  const slot = baris.map(() => {
+    const d = document.createElement('div');
+    d.innerHTML = '<p class="att-empty">Memuat…</p>';
+    list.appendChild(d);
+    return d;
+  });
+
+  async function isiSlot(i) {
+    const row       = baris[i];
     const classroom = row.classrooms;
-    if (!classroom) continue;
-    const [guruName, siswaNama, schedules] = await Promise.all([
-      getProfileName(classroom.teacher_id),
-      getProfileName(row.linked_student_id),
-      getSchedules(classroom.id),
-    ]);
-    list.appendChild(renderCard(classroom, guruName, siswaNama, schedules, row.linked_student_id));
+    slot[i].innerHTML = '<p class="att-empty">Memuat…</p>';
+    try {
+      const [guruName, siswaNama, schedules] = await Promise.all([
+        getProfileName(classroom.teacher_id),
+        getProfileName(row.linked_student_id),
+        getSchedules(classroom.id),
+      ]);
+      slot[i].replaceChildren(
+        renderCard(classroom, guruName, siswaNama, schedules, row.linked_student_id));
+    } catch (err) {
+      // Gagal satu kelas tidak menjatuhkan kelas lain, dan tombol coba lagi
+      // hanya memuat ulang kartu ini — bukan seluruh halaman.
+      console.error('classroom', classroom.id, err);
+      slot[i].innerHTML =
+        '<div class="error-msg">Gagal memuat kelas ' + escHtml(classroom.name || '') + '. ' +
+        '<button type="button" class="btn-muat-ulang-kartu">Coba lagi</button></div>';
+      slot[i].querySelector('.btn-muat-ulang-kartu')
+        .addEventListener('click', function () { isiSlot(i); });
+    }
   }
+
+  await Promise.allSettled(baris.map((_, i) => isiSlot(i)));
 }
 
 document.addEventListener('DOMContentLoaded', () => {

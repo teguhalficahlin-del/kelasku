@@ -555,13 +555,42 @@ async function init() {
     return;
   }
 
-  for (const { classroom, nama_ortu } of classrooms) {
-    const [guruName, schedules] = await Promise.all([
-      getGuruName(classroom.teacher_id),
-      getSchedules(classroom.id),
-    ]);
-    list.appendChild(renderCard(classroom, guruName, nama_ortu, schedules, profile.id));
+  // Dimuat paralel, mengikuti pola yang sudah dipakai portal guru. Sebelumnya
+  // dua permintaan per kelas dijalankan berurutan di dalam loop, sehingga
+  // kartu terakhir baru muncul setelah semua kelas sebelumnya selesai.
+  //
+  // Slot kosong dibuat lebih dulu dalam urutan aslinya, lalu diisi begitu
+  // datanya tiba — urutan kartu tidak ikut berubah mengikuti kecepatan jaringan.
+  const slot = classrooms.map(() => {
+    const d = document.createElement('div');
+    d.innerHTML = '<p class="att-empty">Memuat…</p>';
+    list.appendChild(d);
+    return d;
+  });
+
+  async function isiSlot(i) {
+    const { classroom, nama_ortu } = classrooms[i];
+    slot[i].innerHTML = '<p class="att-empty">Memuat…</p>';
+    try {
+      const [guruName, schedules] = await Promise.all([
+        getGuruName(classroom.teacher_id),
+        getSchedules(classroom.id),
+      ]);
+      slot[i].replaceChildren(
+        renderCard(classroom, guruName, nama_ortu, schedules, profile.id));
+    } catch (err) {
+      // Gagal satu kelas tidak menjatuhkan kelas lain, dan tombol coba lagi
+      // hanya memuat ulang kartu ini — bukan seluruh halaman.
+      console.error('classroom', classroom.id, err);
+      slot[i].innerHTML =
+        '<div class="error-msg">Gagal memuat kelas ' + escHtml(classroom.name || '') + '. ' +
+        '<button type="button" class="btn-muat-ulang-kartu">Coba lagi</button></div>';
+      slot[i].querySelector('.btn-muat-ulang-kartu')
+        .addEventListener('click', function () { isiSlot(i); });
+    }
   }
+
+  await Promise.allSettled(classrooms.map((_, i) => isiSlot(i)));
 }
 
 document.addEventListener('DOMContentLoaded', () => {
