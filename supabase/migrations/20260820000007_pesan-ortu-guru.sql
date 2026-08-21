@@ -6,6 +6,16 @@
 --
 -- Siswa sengaja TIDAK diberi akses: orang tua kerap menulis hal yang tidak
 -- ditujukan untuk dibaca anaknya.
+--
+-- ── SUDAH TIDAK BERLAKU (21 Agustus 2026) ─────────────────────────────────
+-- Kolom note_id beserta FK dan index-nya DIHAPUS oleh migrasi
+-- 20260821000003_hapus-note-id.sql. Keputusan produk: Catatan dan Pesan adalah
+-- dua fitur terpisah penuh — Catatan milik guru dan hanya dibaca siswa/ortu,
+-- Pesan tidak terikat catatan mana pun. Kolom itu ternyata tidak pernah terisi
+-- (0 dari 6 baris) dan tidak pernah dibaca kode mana pun; yang nyata hanyalah
+-- bahayanya, karena FK-nya ON DELETE CASCADE membuat penghapusan satu catatan
+-- ikut menghapus percakapan orang tua.
+-- SQL di bawah sengaja dibiarkan apa adanya sebagai catatan sejarah.
 
 BEGIN;
 

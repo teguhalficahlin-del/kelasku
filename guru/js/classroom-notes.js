@@ -708,7 +708,7 @@
   async function loadPesanOrtu() {
     const { data, error } = await client
       .from('parent_messages')
-      .select('id, note_id, student_id, author_role, content, created_at, read_at')
+      .select('id, student_id, author_role, content, created_at, read_at')
       .eq('classroom_id', classroomId)
       .order('created_at', { ascending: true });
     if (error) { console.error('[pesan-ortu] gagal memuat:', error); _pesan = []; return; }
@@ -743,18 +743,17 @@
     belum.forEach(m => { m.read_at = kini; });
   }
 
-  async function balasPesan(studentId, noteId, content) {
+  async function balasPesan(studentId, content) {
     const { data, error } = await client.from('parent_messages')
       .insert({
         classroom_id:      classroomId,
         teacher_id:        teacherId,
         student_id:        studentId,
-        note_id:           noteId,
         author_profile_id: teacherId,
         author_role:       'GURU',
         content,
       })
-      .select('id, note_id, student_id, author_role, content, created_at, read_at')
+      .select('id, student_id, author_role, content, created_at, read_at')
       .single();
     if (error) throw error;
     return data;
@@ -774,7 +773,7 @@
       btn.disabled = true;
       if (msg) msg.textContent = 'Mengirim…';
       try {
-        const baru = await balasPesan(sid, null, teks);
+        const baru = await balasPesan(sid, teks);
         _pesan.push(baru);
         renderPesanOrtu();
       } catch (err) {
@@ -911,7 +910,7 @@
         btn.disabled = true;
         if (msg) msg.textContent = 'Mengirim…';
         try {
-          const baru = await balasPesan(sid, null, teks);
+          const baru = await balasPesan(sid, teks);
           _pesan.push(baru);
           await tandaiDibaca(sid);
           renderPesanOrtu();

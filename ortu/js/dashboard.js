@@ -260,11 +260,11 @@ async function getChildNotes(classroomId, linkedStudentId) {
 }
 
 // ---- Pesan ortu <-> guru ----------------------------------------------------
-// Satu tabel menampung dua hal: balasan atas catatan guru (note_id terisi) dan
-// pesan berdiri sendiri (note_id NULL), mis. memberi tahu anak tidak masuk.
+// Kanal dua arah yang berdiri sendiri, terpisah penuh dari Catatan. Catatan
+// milik guru dan hanya dibaca; Pesan tidak terikat catatan mana pun.
 async function getChildMessages(classroomId, studentId) {
   const { data, error } = await db.from('parent_messages')
-    .select('id, note_id, author_role, content, created_at, read_at')
+    .select('id, author_role, content, created_at, read_at')
     .eq('classroom_id', classroomId)
     .eq('student_id', studentId)
     .order('created_at', { ascending: true });
@@ -272,18 +272,17 @@ async function getChildMessages(classroomId, studentId) {
   return data || [];
 }
 
-async function kirimPesanOrtu(classroom, studentId, noteId, content) {
+async function kirimPesanOrtu(classroom, studentId, content) {
   const { data, error } = await db.from('parent_messages')
     .insert({
       classroom_id:      classroom.id,
       teacher_id:        classroom.teacher_id,
       student_id:        studentId,
-      note_id:           noteId,
       author_profile_id: _ortuProfileId,
       author_role:       'ORTU',
       content,
     })
-    .select('id, note_id, author_role, content, created_at, read_at')
+    .select('id, author_role, content, created_at, read_at')
     .single();
   if (error) throw error;
   return data;
@@ -391,7 +390,7 @@ function renderPesanGuruSection(classroom, studentId) {
       : '<p class="att-empty">Belum ada pesan. Gunakan kotak di bawah untuk menghubungi guru — misalnya bila anak Anda berhalangan hadir.</p>';
     body.innerHTML = daftar + komposerHtml(idKotak, 'Tulis pesan untuk guru…', 'Kirim');
     wireKomposer(idKotak, async (teks) => {
-      const baru = await kirimPesanOrtu(classroom, studentId, null, teks);
+      const baru = await kirimPesanOrtu(classroom, studentId, teks);
       rows.push(baru);
       render(rows);
     });
