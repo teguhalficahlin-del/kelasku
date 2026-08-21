@@ -3,6 +3,32 @@ import { loginGuru, envHilang } from '../fixtures/auth.js';
 
 const WAJIB = ['TEST_BASE_URL', 'TEST_GURU_EMAIL', 'TEST_GURU_PASSWORD'];
 
+/**
+ * Buka kelas pertama dari dashboard guru.
+ *
+ * Kartu kelas BUKAN tautan: satu-satunya handler padanya adalah accordion yang
+ * membuka dan menutup badan kartu (guru.js, listener pada .card-header).
+ * Tautan ke classroom.html ada di dalam badan itu — dan badannya tersembunyi
+ * secara bawaan. Test yang mengklik kartunya lalu menunggu perpindahan halaman
+ * akan menunggu selamanya, dan itu bukan cacat aplikasi melainkan salah paham
+ * tentang alurnya. Urutan di bawah meniru apa yang benar-benar dilakukan guru.
+ */
+async function bukaKelasPertama(page) {
+  const kartu = page.locator('#classroom-list .classroom-card').first();
+  await expect(kartu).toBeVisible({ timeout: 20000 });
+
+  const badan = kartu.locator('.card-body-collapse');
+  // Kartu pertama dibuka otomatis oleh dashboard; klik hanya bila masih tertutup,
+  // sebab mengklik kartu yang sudah terbuka justru menutupnya.
+  if (!(await badan.isVisible())) {
+    await kartu.locator('.card-header').click();
+  }
+  await expect(badan).toBeVisible({ timeout: 10000 });
+
+  await kartu.locator('a.btn-kelola').click();
+  await page.waitForURL(/classroom\.html/, { timeout: 20000 });
+}
+
 test.describe('Portal Guru', () => {
   test.beforeEach(async ({ page }) => {
     const hilang = envHilang(...WAJIB);
@@ -22,8 +48,7 @@ test.describe('Portal Guru', () => {
   });
 
   test('buka kelas lalu tab Jadwal & Absensi tampil', async ({ page }) => {
-    await page.locator('#classroom-list .classroom-card').first().click();
-    await page.waitForURL(/classroom\.html/, { timeout: 20000 });
+    await bukaKelasPertama(page);
 
     await page.click('#tab-jadwal');
     await expect(page.locator('#panel-jadwal')).toBeVisible();
@@ -32,8 +57,7 @@ test.describe('Portal Guru', () => {
 
   // Regresi: tanda absensi pernah hilang begitu guru berpindah tab dan kembali.
   test('tanda absensi bertahan setelah pindah tab dan kembali', async ({ page }) => {
-    await page.locator('#classroom-list .classroom-card').first().click();
-    await page.waitForURL(/classroom\.html/, { timeout: 20000 });
+    await bukaKelasPertama(page);
     await page.click('#tab-jadwal');
 
     const kartu = page.locator('#absensi-container .abs-card');
@@ -78,8 +102,7 @@ test.describe('Portal Guru', () => {
   // selesai, sehingga satu kegagalan memuat mengunci panel absensi kosong
   // sampai halaman dimuat ulang — pindah tab berapa kali pun tidak menolong.
   test('panel absensi tidak terkunci setelah gagal memuat', async ({ page }) => {
-    await page.locator('#classroom-list .classroom-card').first().click();
-    await page.waitForURL(/classroom\.html/, { timeout: 20000 });
+    await bukaKelasPertama(page);
 
     // Jatuhkan permintaan jadwal supaya render pertama benar-benar gagal.
     await page.route('**/rest/v1/schedules**', route => route.abort());
@@ -102,8 +125,7 @@ test.describe('Portal Guru', () => {
 
   // Regresi BUG-REG-1: fan-out pengumuman harus kembali menjadi SATU kartu.
   test('pengumuman muncul sebagai satu kartu, bukan satu per siswa', async ({ page }) => {
-    await page.locator('#classroom-list .classroom-card').first().click();
-    await page.waitForURL(/classroom\.html/, { timeout: 20000 });
+    await bukaKelasPertama(page);
     await page.click('#tab-catatan');
 
     const isi = 'Uji otomatis pengumuman ' + Date.now();
