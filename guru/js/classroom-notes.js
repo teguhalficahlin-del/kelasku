@@ -15,6 +15,7 @@
   const NOTES_PER_HAL = 20;
   let _notesSelInst    = null;
   let _notesFilterInst = null;
+  let _formInited      = false;
 
   function esc(s) {
     return String(s ?? '')
@@ -356,6 +357,14 @@
     const form    = document.getElementById('notes-form');
     const statusEl = document.getElementById('notes-status');
     if (!form) return;
+
+    // Sekali saja, seperti initFilter(). addEventListener menumpuk, tidak
+    // menggantikan: initNotes() yang terlanjur berjalan dua kali memasang dua
+    // listener submit, dan satu klik Simpan lalu mengirim catatan — atau
+    // pengumuman ke seluruh kelas — sebanyak dua kali. Siswa dan orang tua
+    // menerima dua salinan, dan guru melihat dua kartu tanpa tahu sebabnya.
+    if (_formInited) return;
+    _formInited = true;
 
     const chkPengumuman = document.getElementById('notes-pengumuman');
     if (chkPengumuman) {
@@ -1103,6 +1112,20 @@
   async function bukaTabCatatan() {
     if (_notesLoaded || _notesSedangMemuat) return;
 
+    // Penanda dipasang SEBELUM await pertama. Sebelumnya ia baru dipasang
+    // setelah blok tunggu-auth di bawah, yang menunggu sampai 15 detik —
+    // selama jendela itu pemanggilan kedua ikut lolos penjaga di atas, dan
+    // keduanya menjalankan initNotes(). Dua pemicu yang kerap berbarengan:
+    // pemulihan tab terakhir yang mengklik tab Catatan sendiri, dan klik guru.
+    _notesSedangMemuat = true;
+    try {
+      await siapkanTabCatatan();
+    } finally {
+      _notesSedangMemuat = false;
+    }
+  }
+
+  async function siapkanTabCatatan() {
     if (!teacherId || !classroomId) {
       // Auth belum selesai — tunggu, jangan diam.
       tampilkanStatusCatatan('<p class="empty-state">Menyiapkan…</p>');
@@ -1120,7 +1143,6 @@
       }
     }
 
-    _notesSedangMemuat = true;
     tampilkanStatusCatatan('<p class="empty-state">Memuat catatan…</p>');
     try {
       await initNotes();
@@ -1131,8 +1153,6 @@
         '<br><button type="button" id="btn-catatan-ulang">Coba lagi</button></p>');
       document.getElementById('btn-catatan-ulang')
         ?.addEventListener('click', () => bukaTabCatatan());
-    } finally {
-      _notesSedangMemuat = false;
     }
   }
 
