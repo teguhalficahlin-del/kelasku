@@ -709,7 +709,10 @@
       };
       if (_nilaiSedangDisimpan) return;
       _nilaiSedangDisimpan = true;
-      el('btn-tp-save').disabled = true;
+      const btnSave    = el('btn-tp-save');
+      const labelAsli  = btnSave.textContent;
+      btnSave.disabled    = true;
+      btnSave.textContent = 'Menyimpan…';
       try {
         if (isEdit) {
           await SipApi.updateTpKktp(editId, payload);
@@ -725,9 +728,10 @@
       } catch (err) {
         el('tp-err').textContent = err.message || 'Gagal menyimpan';
         el('tp-err').style.display = '';
-        el('btn-tp-save').disabled = false;
+        btnSave.disabled = false;
       } finally {
         _nilaiSedangDisimpan = false;
+        btnSave.textContent = labelAsli;
       }
     });
 
@@ -1300,7 +1304,10 @@
       };
       if (_nilaiSedangDisimpan) return;
       _nilaiSedangDisimpan = true;
-      el('btn-asmt-save').disabled = true;
+      const btnSave   = el('btn-asmt-save');
+      const labelAsli = btnSave.textContent;
+      btnSave.disabled    = true;
+      btnSave.textContent = 'Menyimpan…';
       errEl.style.display = 'none';
       try {
         await SipApi.updateAssessment(editId, payload);
@@ -1340,9 +1347,10 @@
       } catch (err) {
         errEl.textContent = err.message || 'Gagal menyimpan';
         errEl.style.display = '';
-        el('btn-asmt-save').disabled = false;
+        btnSave.disabled = false;
       } finally {
         _nilaiSedangDisimpan = false;
+        btnSave.textContent = labelAsli;
       }
     });
 
@@ -2483,7 +2491,10 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
       };
       if (_nilaiSedangDisimpan) return;
       _nilaiSedangDisimpan = true;
-      el('btn-asmt-save').disabled = true;
+      const btnSave   = el('btn-asmt-save');
+      const labelAsli = btnSave.textContent;
+      btnSave.disabled    = true;
+      btnSave.textContent = 'Menyimpan…';
       errEl.style.display = 'none';
       try {
         const row       = await SipApi.createAssessment(_cId, _tId, payload);
@@ -2521,9 +2532,10 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
       } catch (err) {
         errEl.textContent = err.message || 'Gagal menyimpan';
         errEl.style.display = '';
-        el('btn-asmt-save').disabled = false;
+        btnSave.disabled = false;
       } finally {
         _nilaiSedangDisimpan = false;
+        btnSave.textContent = labelAsli;
       }
     });
 
