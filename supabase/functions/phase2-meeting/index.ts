@@ -5,7 +5,13 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const CORS = {
-  'Access-Control-Allow-Origin': 'https://teguhalficahlin-del.github.io',
+  // Dibaca dari environment supaya satu `supabase secrets set ALLOWED_ORIGIN=...`
+  // berlaku untuk keempat belas Edge Function sekaligus -- tidak perlu menyunting
+  // dan men-deploy ulang satu per satu saat MiClass pindah domain. Fallback-nya
+  // adalah nilai yang sebelumnya tertanam di sini, jadi env yang belum diset
+  // berarti perilaku lama -- bukan CORS yang rusak.
+  'Access-Control-Allow-Origin':
+    Deno.env.get('ALLOWED_ORIGIN') ?? 'https://teguhalficahlin-del.github.io',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 const LOCKED_ROLES = new Set([
