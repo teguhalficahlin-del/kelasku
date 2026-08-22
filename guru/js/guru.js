@@ -343,7 +343,7 @@
       // Sembunyikan field Mata Pelajaran untuk Wali Kelas SD
       const subjectLabel = document.querySelector('label[for="inp-subject"]');
       const subjectInput = document.getElementById('inp-subject');
-      if (currentRoleGuru === 'WALI_KELAS' || currentRoleGuru === 'WALI_KELAS_SD') {
+      if (currentRoleGuru === 'WALI_KELAS_SD') {
         subjectLabel.style.display = 'none';
         subjectInput.style.display = 'none';
         if (!classroom) subjectInput.value = 'Semua Mata Pelajaran';
@@ -484,7 +484,7 @@
       } else {
         // ── Validasi batasan classroom per role ──
         if (cachedClassrooms.length >= 1) {
-          if (currentRoleGuru === 'WALI_KELAS' || currentRoleGuru === 'WALI_KELAS_SD') {
+          if (currentRoleGuru === 'WALI_KELAS_SD') {
             modalError.textContent = 'Wali Kelas SD hanya dapat memiliki 1 kelas. Hubungi admin jika perlu bantuan.';
             modalError.style.display = 'block';
             btn.disabled = false;
