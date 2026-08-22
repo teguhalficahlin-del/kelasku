@@ -110,8 +110,8 @@ test.describe('Portal Ortu', () => {
   // satu baris pun. Test ini ikut mengunci pilihan itu.
   //
   // Seperti padanannya di portal siswa, yang diuji adalah BENTUK permintaan.
-  // Membuktikan RLS menolak nilai anak orang lain menuntut pasangan ortu-anak
-  // kedua di kelas uji, yang belum ada di fixture — lihat backlog terpisah.
+  // Penolakan servernya diuji terpisah oleh 'ortu tidak bisa membaca nilai anak
+  // orang lain' di bawah, yang memakai fixture anak kedua.
   test('nilai hanya menampilkan milik anak sendiri', async ({ page }) => {
     const menungguRpc = page.waitForResponse(
       r => r.url().includes('/rest/v1/rpc/fn_child_roster_ids'), { timeout: 20000 });

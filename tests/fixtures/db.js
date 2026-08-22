@@ -167,6 +167,62 @@ export async function buatPenilaianUji(token, kelas, rosterId) {
 }
 
 /**
+ * Satu penilaian bertanda uji TANPA baris nilai apa pun.
+ *
+ * Dipakai test constraint rentang nilai, yang perlu menulis beberapa baris
+ * nilai sendiri. buatPenilaianUji() tidak bisa dipakai untuk itu: ia sudah
+ * mengisi satu baris untuk roster yang ditunjuk, dan UNIQUE
+ * (assessment_id, student_id) membuat penulisan berikutnya atas pasangan yang
+ * sama gagal dengan 409 — yang akan terbaca sebagai constraint rentang bekerja
+ * padahal yang menolak adalah constraint yang sama sekali lain.
+ *
+ * Penandanya sama (PENANDA_PENILAIAN), sehingga bersihkanPenilaianUji() ikut
+ * menyapunya tanpa perlu pembersih terpisah. Baris nilai di bawahnya ikut
+ * terhapus lewat CASCADE.
+ */
+export async function buatAssessmentUjiKosong(token, kelas) {
+  const rows = await api('/rest/v1/assessments', {
+    token,
+    method: 'POST',
+    prefer: 'return=representation',
+    body: {
+      classroom_id:     kelas.id,
+      teacher_id:       kelas.teacher_id,
+      jenis:            'SUMATIF',
+      tujuan:           PENANDA_PENILAIAN,
+      is_visible_siswa: false,
+      is_visible_ortu:  false,
+    },
+  });
+  return rows[0].id;
+}
+
+/**
+ * Tulis satu baris assessment_results dan kembalikan status HTTP apa adanya.
+ *
+ * api() tidak dapat dipakai di sini: ia melempar begitu responsnya bukan 2xx,
+ * sedangkan yang justru ingin diperiksa adalah kode penolakannya. Maka fetch
+ * dipanggil langsung, sama seperti nilaiRosterMentah().
+ *
+ * Membedakan 400 dari 403 itu inti test yang memakainya: 400 berarti CHECK
+ * rentang nilai yang menolak, 403 berarti RLS yang menolak lebih dulu sehingga
+ * constraint-nya tidak pernah sempat diuji.
+ */
+export async function simpanNilaiMentah(token, baris) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/assessment_results`, {
+    method: 'POST',
+    headers: {
+      apikey: SUPABASE_KEY,
+      Authorization: 'Bearer ' + token,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(baris),
+  });
+  const teks = await res.text();
+  return { status: res.status, body: teks ? JSON.parse(teks) : null };
+}
+
+/**
  * Baca assessment_results untuk satu baris roster memakai token apa pun.
  *
  * Sengaja memanggil REST langsung, bukan lewat halaman: yang diuji adalah apa
