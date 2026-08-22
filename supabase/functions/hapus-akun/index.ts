@@ -58,6 +58,17 @@ Deno.serve(async (req) => {
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
   );
 
+  // 3b. Verifikasi profile_id ada di roster classroom ini
+  const { data: rosterCheck, error: rosterCheckErr } = await admin
+    .from('classroom_roster')
+    .select('profile_id')
+    .eq('profile_id', profile_id)
+    .eq('classroom_id', classroom_id)
+    .maybeSingle();
+  if (rosterCheckErr || !rosterCheck) {
+    return json({ success: false, error: 'Forbidden', step: 'roster_check' }, 403);
+  }
+
   // 4. Query profil siswa
   const { data: siswa, error: siswaErr } = await admin
     .from('profiles')
