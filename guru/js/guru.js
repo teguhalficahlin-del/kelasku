@@ -801,7 +801,7 @@
   // Menyebut angka itu "sesi" membuat guru mengira ia kehilangan jauh lebih
   // banyak daripada yang sebenarnya.
   async function ringkasanDataSemester() {
-    var ringkas = { kelas: 0, sesi: 0, catatan: 0, gagal: false };
+    var ringkas = { kelas: 0, sesi: 0, catatan: 0, pesan: 0, gagal: false };
     try {
       var db = window.supabaseClient;
       var kelasRes = await db.from('classrooms')
@@ -813,13 +813,25 @@
       var ids = (kelasRes.data || []).map(function (c) { return c.id; });
       if (ids.length === 0) return ringkas;
 
+      // parent_messages disaring per classroom_id, bukan per teacher_id, supaya
+      // angkanya menghitung persis apa yang fn_semester_reset hapus — fungsi itu
+      // menyapu dengan WHERE classroom_id = ANY(...). Menyaring per guru bisa
+      // menghasilkan angka yang berbeda dari yang benar-benar hilang.
       var hasil = await Promise.all([
         db.from('schedules').select('*', { count: 'exact', head: true }).in('classroom_id', ids),
         db.from('student_notes').select('*', { count: 'exact', head: true }).in('classroom_id', ids),
+        db.from('parent_messages').select('*', { count: 'exact', head: true }).in('classroom_id', ids),
       ]);
-      if (hasil[0].error || hasil[1].error) throw (hasil[0].error || hasil[1].error);
+      // Diperiksa dengan menyapu seluruh hasil, bukan menyebut indeksnya satu per
+      // satu. Bentuk lama memeriksa hasil[0] dan hasil[1] saja, sehingga entri
+      // ketiga yang gagal akan lolos diam-diam dan angkanya tampil sebagai 0 —
+      // persis jenis kesalahan yang membuat modal ini berbohong.
+      var galat = hasil.find(function (h) { return h.error; });
+      if (galat) throw galat.error;
+
       ringkas.sesi    = hasil[0].count ?? 0;
       ringkas.catatan = hasil[1].count ?? 0;
+      ringkas.pesan   = hasil[2].count ?? 0;
     } catch (_) {
       ringkas.gagal = true;
     }
@@ -845,19 +857,27 @@
 
       var rincian = document.createElement('div');
       rincian.style.cssText = 'font-size:.875rem;line-height:1.7;margin:.25rem 0 .5rem;';
+      // Pesan orang tua ikut disebut. Sebelumnya tidak, padahal
+      // fn_semester_reset menghapusnya juga — guru bisa kehilangan seluruh
+      // percakapan dengan orang tua tanpa satu pun kalimat yang memberitahunya.
       rincian.innerHTML = ringkas.gagal
         ? 'Jumlah data tidak dapat dihitung (koneksi bermasalah). ' +
-          'Seluruh absensi, catatan, jadwal, dan penilaian di semua kelas Anda akan dihapus.'
+          'Seluruh absensi, catatan, jadwal, penilaian, dan pesan orang tua ' +
+          'di semua kelas Anda akan dihapus.'
         : 'Yang akan dihapus permanen dari <strong>' + ringkas.kelas + ' kelas</strong>:' +
           '<br>• ' + ringkas.sesi + ' sesi mengajar beserta absensinya' +
           '<br>• ' + ringkas.catatan + ' catatan siswa' +
+          '<br>• ' + ringkas.pesan + ' pesan orang tua' +
           '<br>• seluruh jadwal dan penilaian';
 
       var peringatan = document.createElement('p');
       peringatan.style.cssText = 'color:#c0392b;font-weight:600;margin:.25rem 0 .5rem;';
+      // Penilaian ikut disebut karena ia punya export sendiri di tab Penilaian
+      // dan ikut terhapus; menyuruh mengamankan absensi dan catatan saja membuat
+      // guru mengira sisanya aman.
       peringatan.textContent =
-        'Data tidak dapat dipulihkan. Pastikan Anda sudah meng-export rekap absensi ' +
-        'dan catatan sebelum melanjutkan.';
+        'Data tidak dapat dipulihkan. Pastikan Anda sudah meng-export rekap absensi, ' +
+        'catatan, penilaian, dan pesan orang tua sebelum melanjutkan.';
 
       var label = document.createElement('p');
       label.style.cssText = 'font-size:.875rem;margin:0 0 .25rem;';
