@@ -22,8 +22,13 @@ Fitur utama: manajemen classroom, catatan siswa, sesi pembinaan, forum, jadwal.
 - Auth: Supabase Auth (JWT)
 
 **Supabase project ID:** `teccdzetrdjowqemnuuc`
-**Repo GitHub:** `teguhalficahlin-del/MIClass`
+**Repo GitHub:** `teguhalficahlin-del/kelasku`
 **Repo lokal:** `D:\ribuan_pengguna\CLAUDE\MIClass`
+
+> Nama repo dan nama folder lokal memang berbeda — folder tetap `MIClass`,
+> repo GitHub bernama `kelasku`. URL lama `.../MIClass.git` masih di-redirect,
+> tapi jangan diandalkan. Nama `kelasku` juga yang dipakai path GitHub Pages
+> (`shared/js/config.js`), jadi keduanya kini konsisten.
 
 ---
 
