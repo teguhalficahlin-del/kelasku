@@ -229,7 +229,7 @@ async function getProfileName(profileId) {
   return data;
 }
 
-function renderCard(classroom, guruName, siswaNama, schedules, linkedStudentId) {
+function renderCard(classroom, guruName, siswaNama, schedules, linkedStudentId, namaAnakSekelas) {
   const card = document.createElement('div');
   card.className = 'classroom-card';
   card.innerHTML =
@@ -244,7 +244,8 @@ function renderCard(classroom, guruName, siswaNama, schedules, linkedStudentId) 
   if (linkedStudentId) card.appendChild(renderChildAttendanceSection(classroom.id, linkedStudentId, siswaNama));
   if (linkedStudentId) card.appendChild(renderChildNotesSection(classroom, linkedStudentId));
   if (linkedStudentId) card.appendChild(renderPesanGuruSection(classroom, linkedStudentId));
-  if (linkedStudentId) card.appendChild(renderChildGradesSection(classroom.id, linkedStudentId));
+  if (linkedStudentId) card.appendChild(
+    renderChildGradesSection(classroom.id, linkedStudentId, siswaNama, namaAnakSekelas));
   return card;
 }
 
@@ -520,15 +521,17 @@ async function getChildRosterIds() {
 // fn_child_roster_ids() + gate is_visible_ortu). Filter .in() di bawah adalah
 // lapis kedua yang eksplisit.
 //
-// Catatan batas: daftar ini memuat roster SEMUA anak yang tertaut, jadi bila dua
-// anak berada di classroom yang sama, nilai keduanya masih tercampur pada kartu
-// masing-masing. Memisahkannya menuntut pemetaan anak -> baris roster yang belum
-// tersedia tanpa migrasi baru.
+// student_id ikut diambil supaya baris dapat dikelompokkan per anak. Nilainya
+// adalah id baris classroom_roster — bukan id profil — sehingga ia hanya bisa
+// dipakai untuk MEMISAHKAN kelompok, bukan untuk menamainya. Ortu tidak punya
+// policy baca apa pun ke classroom_roster (hanya pol_roster_guru_all dan
+// pol_roster_siswa_select yang ada), jadi terjemahan roster -> profil tidak
+// tersedia di sisi klien. Akibatnya lihat renderChildGradesSection.
 async function getChildGrades(classroomId) {
   const rosterIds = await getChildRosterIds();
   if (!rosterIds.length) return [];
   const { data, error } = await db.from('assessment_results')
-    .select('id, nilai, catatan, umpan_balik, tindak_lanjut, assessments!inner(jenis, teknik, tujuan, created_at)')
+    .select('id, student_id, nilai, catatan, umpan_balik, tindak_lanjut, assessments!inner(jenis, teknik, tujuan, created_at)')
     .eq('classroom_id', classroomId)
     .in('student_id', rosterIds)
     .order('created_at', { ascending: false });
@@ -536,6 +539,7 @@ async function getChildGrades(classroomId) {
   // Dinormalkan ke bentuk lama agar renderer di bawah tidak perlu diubah.
   return (data || []).map(r => ({
     id:            r.id,
+    student_id:    r.student_id,
     nilai_angka:   r.nilai,
     deskripsi:     r.umpan_balik || r.catatan || '',
     tindak_lanjut: r.tindak_lanjut,
@@ -550,7 +554,32 @@ async function getChildGrades(classroomId) {
 
 const TIPE_CLASS = { CP: 'badge-cp', TP: 'badge-tp', KKTP: 'badge-kktp', NILAI: 'badge-nilai', LAINNYA: 'badge-lainnya' };
 
-function renderChildGradesSection(classroomId, studentId) {
+// namaAnak      : nama anak pemilik kartu ini
+// namaAnakSekelas: nama SEMUA anak ortu ini yang berada di classroom yang sama
+//
+// Dua parameter terakhir ada karena satu hal yang tidak dapat diselesaikan di
+// sisi klien: assessment_results.student_id berisi id baris classroom_roster,
+// sedangkan kartu hanya memegang id profil anak (classroom_members
+// .linked_student_id). Ortu tidak boleh membaca classroom_roster, dan
+// fn_child_roster_ids() mengembalikan uuid polos tanpa pasangan profilnya, jadi
+// tidak ada cara menerjemahkan satu ke yang lain dari sini.
+//
+// Selama ortu hanya punya SATU anak di classroom ini — keadaan yang berlaku bagi
+// hampir semua ortu — penyaring .eq('classroom_id') sudah membuat hasilnya
+// persis milik anak itu, dan judulnya dapat menyebut namanya dengan pasti.
+//
+// Bila ada LEBIH DARI SATU anak di classroom yang sama, baris-baris itu memang
+// terbagi menjadi beberapa kelompok student_id, tetapi tidak ada yang dapat
+// memberi tahu kelompok mana milik anak yang mana. Sebelumnya keadaan ini
+// ditampilkan seolah-olah seluruhnya milik anak pemilik kartu — yaitu nilai anak
+// A muncul di bawah nama anak B. Kini justru itu yang dihindari: judulnya
+// menyatakan terus terang bahwa nilainya gabungan dan menyebut kedua namanya,
+// sehingga tidak ada satu angka pun yang dilekatkan pada anak yang keliru.
+function renderChildGradesSection(classroomId, studentId, namaAnak, namaAnakSekelas) {
+  const namaLain  = (namaAnakSekelas || []).filter(Boolean);
+  const gabungan  = namaLain.length > 1;
+  const namaJudul = namaAnak || 'anak Anda';
+
   const wrap = document.createElement('div');
   wrap.className = 'notes-section';
 
@@ -584,7 +613,21 @@ function renderChildGradesSection(classroomId, studentId) {
 
     if (grades.length > 0) {
       if (items.length > 0) html += `<div style="margin-top:.875rem;"></div>`;
-      html += `<div style="font-size:var(--fs-caption);font-weight:var(--fw-semibold);color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:.5rem;">Nilai</div>`;
+
+      // Header nama anak, selalu ada — supaya pembaca tidak perlu menebak nilai
+      // ini milik siapa, termasuk saat ia menggulir kartu demi kartu.
+      const judulNilai = gabungan
+        ? `Nilai — ${namaLain.join(' & ')}`
+        : `Nilai — ${namaJudul}`;
+      html += `<div style="font-size:var(--fs-caption);font-weight:var(--fw-semibold);color:var(--gold);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:.5rem;">${escHtml(judulNilai)}</div>`;
+
+      if (gabungan) {
+        html += `<p style="font-size:var(--fs-caption);color:var(--text-muted);margin:0 0 .5rem;">` +
+          `Anda memiliki lebih dari satu anak di kelas ini. Daftar di bawah memuat nilai mereka ` +
+          `bersama-sama dan belum dapat dipisahkan per anak, jadi jangan menganggap seluruhnya ` +
+          `milik satu orang. Tanyakan kepada guru bila perlu rincian per anak.</p>`;
+      }
+
       html += grades.map(g => {
         const asmt = g.assessments;
         const badge = JENIS_BADGE[asmt.jenis] || { label: asmt.jenis, bg: 'var(--gold-muted)', color: 'var(--gold)' };
@@ -721,6 +764,32 @@ async function init() {
   // datanya tiba — urutan kartu tidak ikut berubah mengikuti kecepatan jaringan.
   const baris = members.filter(row => row.classrooms);
 
+  // Nama setiap anak diambil sekali di muka, bukan sekali per kartu. Selain
+  // menghapus permintaan berulang untuk anak yang sama, ini yang memungkinkan
+  // sebuah kartu mengetahui SIAPA SAJA anak ortu ini yang sekelas dengannya —
+  // pengetahuan yang tidak dimiliki kartu itu sendiri, dan yang dibutuhkan
+  // renderChildGradesSection untuk memberi judul yang jujur.
+  //
+  // allSettled, bukan all: satu nama yang gagal dimuat tidak boleh menjatuhkan
+  // seluruh halaman. Yang gagal jatuh ke '—', sama seperti perilaku
+  // getProfileName sendiri.
+  const idAnak   = [...new Set(baris.map(r => r.linked_student_id).filter(Boolean))];
+  const namaAnak = new Map();
+  (await Promise.allSettled(idAnak.map(id => getProfileName(id))))
+    .forEach((hasil, i) => {
+      namaAnak.set(idAnak[i], hasil.status === 'fulfilled' ? hasil.value : '—');
+    });
+
+  // classroom_id -> daftar nama anak ortu ini di kelas itu. Panjangnya 1 bagi
+  // hampir semua ortu; lebih dari 1 hanya bila dua anak berada di kelas yang
+  // sama, dan justru kasus itulah yang perlu ditandai.
+  const anakPerKelas = new Map();
+  baris.forEach(row => {
+    const kls = row.classrooms.id;
+    if (!anakPerKelas.has(kls)) anakPerKelas.set(kls, []);
+    anakPerKelas.get(kls).push(namaAnak.get(row.linked_student_id) || '—');
+  });
+
   const slot = baris.map(() => {
     const d = document.createElement('div');
     d.innerHTML = '<p class="att-empty">Memuat…</p>';
@@ -733,13 +802,16 @@ async function init() {
     const classroom = row.classrooms;
     slot[i].innerHTML = '<p class="att-empty">Memuat…</p>';
     try {
-      const [guruName, siswaNama, schedules] = await Promise.all([
+      // Nama anak sudah ada di peta yang disiapkan di atas, jadi yang tersisa
+      // per kartu hanya nama guru dan jadwalnya.
+      const [guruName, schedules] = await Promise.all([
         getProfileName(classroom.teacher_id),
-        getProfileName(row.linked_student_id),
         getSchedules(classroom.id),
       ]);
+      const siswaNama = namaAnak.get(row.linked_student_id) || '—';
       slot[i].replaceChildren(
-        renderCard(classroom, guruName, siswaNama, schedules, row.linked_student_id));
+        renderCard(classroom, guruName, siswaNama, schedules, row.linked_student_id,
+                   anakPerKelas.get(classroom.id) || [siswaNama]));
     } catch (err) {
       // Gagal satu kelas tidak menjatuhkan kelas lain, dan tombol coba lagi
       // hanya memuat ulang kartu ini — bukan seluruh halaman.
