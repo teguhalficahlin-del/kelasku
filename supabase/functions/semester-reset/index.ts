@@ -12,6 +12,45 @@ function json(body: unknown, status = 200) {
   });
 }
 
+// ---------------------------------------------------------------------------
+// Jendela waktu reset semester
+// ---------------------------------------------------------------------------
+// Disalin dari SEMESTER_PHASES di guru/js/guru.js, tapi hanya separuhnya: fase
+// 'aktif' sengaja tidak dicantumkan, karena apa pun yang tidak cocok dengan
+// daftar ini otomatis ditolak.
+//
+// Duplikasi ini memang tidak ideal — Edge Function tidak bisa mengimpor berkas
+// portal guru. Kalau tanggalnya berubah, KEDUA tempat harus diperbarui.
+//
+// Alasan validasi ini ada di server: klien menghitung fase dari new Date() di
+// perangkat guru. Guru yang memundurkan jam perangkatnya bisa memunculkan
+// tombol reset kapan saja — atau, lebih mudah lagi, memanggil endpoint ini
+// langsung dengan curl tanpa menyentuh UI sama sekali. fn_semester_reset
+// menjaga SIAPA yang boleh mereset (tier GURU_GO); bagian ini menjaga KAPAN.
+const JENDELA_RESET = [
+  { sem: 2, fase: 'persiapan', mulai: '06-15', selesai: '06-29' },
+  { sem: 2, fase: 'terkunci',  mulai: '06-30', selesai: '06-30' },
+  { sem: 1, fase: 'persiapan', mulai: '12-15', selesai: '12-30' },
+  { sem: 1, fase: 'terkunci',  mulai: '12-31', selesai: '12-31' },
+];
+
+// Deno selalu menjalankan new Date() dalam UTC. WIB adalah UTC+7 tetap dan
+// tidak mengenal DST, jadi menggeser epoch tujuh jam lalu membaca komponen
+// UTC-nya memberi tanggal kalender Indonesia yang tepat — tanpa bergantung
+// pada basis data timezone runtime.
+function tanggalWib(sekarang: Date = new Date()): string {
+  const wib   = new Date(sekarang.getTime() + 7 * 60 * 60 * 1000);
+  const bulan = String(wib.getUTCMonth() + 1).padStart(2, '0');
+  const hari  = String(wib.getUTCDate()).padStart(2, '0');
+  return `${bulan}-${hari}`;
+}
+
+// Perbandingan string 'MM-DD' sah di sini karena tidak ada satu pun jendela
+// yang melintasi pergantian tahun — yang terakhir berhenti tepat di 12-31.
+function faseReset(mmdd: string) {
+  return JENDELA_RESET.find((j) => mmdd >= j.mulai && mmdd <= j.selesai) ?? null;
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: CORS_HEADERS });
@@ -46,7 +85,22 @@ Deno.serve(async (req) => {
   if (profileError || !profile) return json({ error: 'Forbidden' }, 403);
 
   // -------------------------------------------------------------------------
-  // 3. Hapus seluruh data semester dalam SATU transaksi database
+  // 3. Validasi fase semester menurut tanggal SERVER
+  // -------------------------------------------------------------------------
+  // Ditempatkan sesudah verifikasi JWT, bukan sebelumnya: penelepon tanpa token
+  // yang sah tetap menerima 401 dan tidak perlu tahu apa pun tentang jendela
+  // waktu ini.
+  const mmdd = tanggalWib();
+  const fase = faseReset(mmdd);
+
+  if (!fase) {
+    return json({
+      error: 'Reset semester hanya dapat dilakukan pada fase persiapan atau akhir semester',
+    }, 403);
+  }
+
+  // -------------------------------------------------------------------------
+  // 4. Hapus seluruh data semester dalam SATU transaksi database
   // -------------------------------------------------------------------------
   // Sebelumnya bagian ini adalah rangkaian DELETE terpisah — satu request per
   // tabel per classroom, masing-masing transaksi sendiri. Gagal di tengah
@@ -72,7 +126,7 @@ Deno.serve(async (req) => {
   }
 
   // -------------------------------------------------------------------------
-  // 4. Cabut seluruh sesi guru — semua tab, semua perangkat
+  // 5. Cabut seluruh sesi guru — semua tab, semua perangkat
   // -------------------------------------------------------------------------
   // Dijalankan SETELAH reset berhasil, bukan sebelumnya: kalau resetnya gagal,
   // guru tidak boleh terlempar keluar tanpa apa pun terjadi. Fungsi ini
