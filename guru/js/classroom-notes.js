@@ -871,10 +871,31 @@
     const btn = listEl.querySelector('#btn-refresh-pesan');
     if (!btn) return;
     btn.addEventListener('click', async () => {
+      // Label aslinya dibaca, bukan ditulis ulang sebagai literal. Teksnya
+      // memuat glyph ↻ dari komposerRefreshHtml(); mengetiknya ulang di sini
+      // berarti dua tempat yang harus tetap sama, dan yang satu pasti terlupakan.
+      const labelAsli = btn.textContent;
+
       btn.disabled    = true;
       btn.textContent = 'Memuat…';
-      await loadPesanOrtu();
-      renderPesanOrtu();
+      try {
+        await loadPesanOrtu();
+        renderPesanOrtu();
+      } finally {
+        // Pada jalur sukses, renderPesanOrtu() sudah membangun ulang seluruh
+        // daftar termasuk tombol ini, sehingga rujukan di atas menjadi elemen
+        // lepas yang tidak lagi terlihat siapa pun — memulihkannya percuma dan
+        // menyesatkan pembaca kode. isConnected yang membedakan keduanya.
+        //
+        // Yang benar-benar diselamatkan blok ini adalah jalur gagal:
+        // renderPesanOrtu() tidak pernah berjalan, tombolnya masih terpasang,
+        // dan tanpa pemulihan ini ia tersangkut "Memuat…" dalam keadaan
+        // disabled sampai guru memuat ulang halaman.
+        if (btn.isConnected) {
+          btn.disabled    = false;
+          btn.textContent = labelAsli;
+        }
+      }
     });
   }
 
