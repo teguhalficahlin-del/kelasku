@@ -167,6 +167,13 @@
   // =========================================================================
   // Halaman Dashboard (dashboard.html)
   // =========================================================================
+  // Id profil guru yang sedang masuk, disimpan di scope IIFE. `currentTeacherId`
+  // di bawah hidup di dalam blok dashboard dan tidak terlihat dari fungsi-fungsi
+  // semester di bagian bawah berkas ini, sehingga ringkasanDataSemester()
+  // melempar ReferenceError yang ditelan catch — modal konfirmasi reset selalu
+  // menampilkan teks gagal, bukan angka sebenarnya.
+  var guruProfileId = null;
+
   if (document.getElementById('classroom-list')) {
     let currentTeacherId  = null;
     let currentRoleGuru   = null;
@@ -705,6 +712,7 @@
       }
 
       currentTeacherId = profile.id;
+      guruProfileId    = profile.id;
       currentRoleGuru  = profile.role_guru ?? null;
       document.getElementById('guru-name').textContent = profile.full_name;
 
@@ -804,9 +812,13 @@
     var ringkas = { kelas: 0, sesi: 0, catatan: 0, pesan: 0, gagal: false };
     try {
       var db = window.supabaseClient;
+      // Tanpa penjaga ini, id yang kosong berubah menjadi .eq('teacher_id', null):
+      // nol baris, tanpa error, dan modal menampilkan "0 kelas, 0 sesi" dengan
+      // penuh percaya diri. Lebih baik gagal terang-terangan.
+      if (!guruProfileId) throw new Error('id guru belum tersedia');
       var kelasRes = await db.from('classrooms')
         .select('id', { count: 'exact' })
-        .eq('teacher_id', currentTeacherId);
+        .eq('teacher_id', guruProfileId);
       if (kelasRes.error) throw kelasRes.error;
 
       ringkas.kelas = kelasRes.count ?? (kelasRes.data ? kelasRes.data.length : 0);

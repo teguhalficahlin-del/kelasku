@@ -115,3 +115,8 @@ REVOKE ALL ON FUNCTION fn_tahun_ajaran_reset(uuid) FROM PUBLIC;
 REVOKE ALL ON FUNCTION fn_tahun_ajaran_reset(uuid) FROM anon;
 REVOKE ALL ON FUNCTION fn_tahun_ajaran_reset(uuid) FROM authenticated;
 GRANT EXECUTE ON FUNCTION fn_tahun_ajaran_reset(uuid) TO service_role;
+
+-- TODO: Edge Function pemanggil fn_tahun_ajaran_reset belum dibuat.
+-- Akan dikerjakan setelah schema Tab Rancang selesai dan tabel Tab Rancang
+-- ditambahkan ke daftar DELETE di fungsi ini.
+-- Pola yang harus diikuti: supabase/functions/semester-reset/index.ts
