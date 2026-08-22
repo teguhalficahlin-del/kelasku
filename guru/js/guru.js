@@ -721,7 +721,14 @@
       }
 
       // Server selalu authoritative; getTrialStatus menimpa cache browser.
-      const trialStatus = await api.getTrialStatus();
+      // Sinkronisasi waktu dijalankan berbarengan, bukan berurutan: keduanya
+      // saling bebas, jadi ongkos waktunya yang paling lambat di antara
+      // keduanya — bukan jumlah keduanya. Wajib selesai sebelum
+      // applySemesterUI, yang membaca drift itu lewat getCurrentSemesterPhase.
+      const [trialStatus] = await Promise.all([
+        api.getTrialStatus(),
+        sinkronWaktuServerSemester(),
+      ]);
 
       applyTrialUI(trialStatus);
       applySemesterUI(getCurrentSemesterPhase());
@@ -789,8 +796,34 @@
     { sem: 1, fase: 'terkunci',  mmdd_start: '12-31', mmdd_end: '12-31' },
   ];
 
+  // Selisih antara jam server dan jam perangkat, dalam milidetik. Nol sampai
+  // fn_server_now() berhasil dipanggil, jadi perilaku terburuk sama dengan
+  // perilaku lama (jam perangkat) — bukan lebih buruk. Pola dan penamaannya
+  // mengikuti guru/js/classroom-attendance.js, yang sudah memakai RPC yang
+  // sama untuk penguncian sesi absensi.
+  var _semesterDriftMs = 0;
+
+  async function sinkronWaktuServerSemester() {
+    try {
+      var res = await client.rpc('fn_server_now');
+      if (res.error || !res.data) throw res.error || new Error('jawaban kosong');
+      var serverMs = new Date(res.data).getTime();
+      if (!Number.isFinite(serverMs)) throw new Error('format waktu tidak dikenal');
+      _semesterDriftMs = serverMs - Date.now();
+    } catch (err) {
+      // Jatuh kembali ke jam perangkat. Pagar terakhirnya ada di Edge Function
+      // semester-reset, yang menghitung fase dari tanggal server dan menolak
+      // permintaan di luar jendela reset apa pun yang diyakini klien.
+      console.warn('[guru] gagal sinkron waktu server, memakai jam perangkat:', err);
+    }
+  }
+
   function getCurrentSemesterPhase() {
-    var now   = new Date();
+    // Instant dari server, diterjemahkan ke waktu dinding lokal perangkat:
+    // guru yang memundurkan jam HP-nya tidak lagi bisa memunculkan tombol
+    // reset di luar waktunya, sementara guru di WITA dan WIT tetap dinilai
+    // menurut zona waktunya masing-masing.
+    var now   = new Date(Date.now() + _semesterDriftMs);
     var month = String(now.getMonth() + 1).padStart(2, '0');
     var day   = String(now.getDate()).padStart(2, '0');
     var mmdd  = month + '-' + day;
