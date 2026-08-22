@@ -3115,6 +3115,16 @@ ${metodeHtml}${hasilHtml}`;
       .map(id => document.getElementById(id)).filter(Boolean);
 
     tabPenilaian.addEventListener('click', async () => {
+      // Dibaca strip bantuan di classroom.js untuk memutuskan petunjuk mana yang
+      // ditampilkan. Tab ini satu-satunya dari lima yang melewatkannya, sehingga
+      // currentTab mewarisi nilai tab sebelumnya dan guru yang menekan strip
+      // dari sini menerima panduan tab yang salah — lengkap dan meyakinkan,
+      // tentang tab yang bukan sedang ia buka. Entri HELP_CONTENT['penilaian']
+      // sudah ada sejak awal; yang hilang cuma sambungannya.
+      //
+      // Diletakkan sebagai pernyataan pertama, sama seperti keempat tab lain.
+      window.currentTab = 'penilaian';
+
       otherTabs.forEach(t => t.classList.remove('active'));
       tabPenilaian.classList.add('active');
       document.querySelectorAll('[id^="panel-"]').forEach(p => { p.style.display = 'none'; });

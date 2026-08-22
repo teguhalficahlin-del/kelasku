@@ -1290,10 +1290,34 @@
 
   function openHelp(tabKey) {
     var content = HELP_CONTENT[tabKey];
-    if (!content) return;
-    document.getElementById('help-title').textContent = content.title;
-    document.getElementById('help-intro').textContent = content.intro;
-    document.getElementById('help-body').innerHTML = content.items.map(renderHelpItem).join('');
+    var judul, intro, isi;
+
+    if (content) {
+      judul = content.title;
+      intro = content.intro;
+      isi   = content.items.map(renderHelpItem).join('');
+    } else {
+      // Sebelumnya baris ini berbunyi `if (!content) return;` — klik yang diam
+      // total. Strip bantuan tetap terlihat dan tetap bergaya bisa-diklik, jadi
+      // yang guru simpulkan bukan "petunjuknya belum ada" melainkan
+      // "aplikasinya rusak". Tab Rancang Pembelajaran adalah satu-satunya yang
+      // jatuh ke sini hari ini.
+      //
+      // Menjawab dengan modal yang sama, bukan alert() baru: overlay-nya sudah
+      // ada di halaman, sudah punya tombol tutup dan penutupan lewat klik latar,
+      // dan memakainya berarti tidak ada jalur tampilan kedua yang harus dijaga.
+      //
+      // Judulnya diambil dari label tab yang bersangkutan supaya guru tahu
+      // jawabannya memang tentang tab yang sedang ia buka.
+      var tombolTab = tabKey ? document.getElementById('tab-' + tabKey) : null;
+      judul = tombolTab ? tombolTab.textContent : 'Petunjuk';
+      intro = 'Petunjuk untuk tab ini belum tersedia.';
+      isi   = '';
+    }
+
+    document.getElementById('help-title').textContent = judul;
+    document.getElementById('help-intro').textContent = intro;
+    document.getElementById('help-body').innerHTML = isi;
     var overlay = document.getElementById('help-overlay');
     overlay.style.display = 'flex';
     requestAnimationFrame(function () { overlay.classList.add('help-overlay-visible'); });
