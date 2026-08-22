@@ -105,7 +105,7 @@ Kondisi ini membingkai sebagian besar temuan: 35 siswa tanpa akun dan 0 jadwal m
 
 - **Status:** NOT IMPLEMENTED di dashboard; terimplementasi per siswa di halaman Kelola ([classroom.js:743-748](../guru/js/classroom.js)).
 - **Severity:** LOW (sesuai desain ADR-002/ADR-003)
-- **Catatan:** Base path `window.location.origin + '/kelasku'` **benar** — repo GitHub kini `teguhalficahlin-del/MIClass`, tetapi URL GitHub Pages tetap memakai path lama `/kelasku` (sudah di-redirect). Jangan diganti.
+- **Catatan:** Base path `window.location.origin + '/kelasku'` **benar** — repo GitHub adalah `teguhalficahlin-del/kelasku` dan URL GitHub Pages memakai path `/kelasku`, jadi keduanya sudah konsisten. Jangan diganti.
 
 ### Reset Semester
 

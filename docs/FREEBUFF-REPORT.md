@@ -4,7 +4,7 @@ MIClass | 21 August 2026
 ═══════════════════════════════════════════════════════════════
 
 ## SESSION IDENTITY
-Repo     : teguhalficahlin-del/MIClass
+Repo     : teguhalficahlin-del/kelasku
 Supabase : teccdzetrdjowqemnuuc
 HEAD     : 2dbac09
 
