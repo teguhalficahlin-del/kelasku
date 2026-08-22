@@ -221,8 +221,9 @@
       btnSave.disabled    = true;
       btnSave.textContent = 'Memeriksa…';
 
+      // p_teacher_id sengaja tidak dikirim: fungsi ini menentukan gurunya sendiri
+      // lewat fn_current_profile_id(). Lihat migrasi 20260823000007/000008 (SEC-001).
       const { data: conflicts, error: cErr } = await client.rpc('fn_check_schedule_conflict', {
-        p_teacher_id:   teacherId,
         p_classroom_id: classroomId,
         p_day_of_week:  day,
         p_start_time:   start,
