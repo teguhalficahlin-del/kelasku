@@ -998,8 +998,33 @@
     }
   }
 
+  // Tier dibaca dari cache sesi yang baru saja diisi api.getTrialStatus() —
+  // fn_guru_trial_status memang mengembalikan field 'tier' sejak 20260816000003.
+  // Membacanya di sini, bukan lewat getProfile(), karena getProfile tidak
+  // memilih kolom itu dan api.js bukan bagian dari perubahan ini.
+  function getTierGuru() {
+    try {
+      var ts = JSON.parse(sessionStorage.getItem('guru_trial_status') || 'null');
+      return ts && ts.tier ? ts.tier : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
   function applySemesterUI(phase) {
     if (!phase || phase.fase === 'aktif') return;
+
+    // Reset semester adalah hak tier GURU_GO. GURU_PRO mereset per tahun ajaran
+    // (fn_tahun_ajaran_reset), TRIAL tidak boleh mereset sama sekali. Keduanya
+    // tidak boleh melihat banner maupun tombolnya — dan terutama tidak boleh
+    // terkena overlay 'terkunci', yang tidak punya jalan keluar selain tombol
+    // reset yang pasti ditolak database. Tanpa penjaga ini seorang GURU_PRO
+    // tanggal 31 Desember terkunci total dari aplikasinya sendiri.
+    // Tier yang tidak diketahui (cache kosong) dibiarkan berperilaku seperti
+    // sebelumnya: pagar sebenarnya ada di fn_semester_reset, bukan di sini.
+    // TODO: UI reset tahun ajaran untuk GURU_PRO — dikerjakan setelah Tab Rancang selesai
+    var tier = getTierGuru();
+    if (tier && tier !== 'GURU_GO') return;
 
     var trialBanner = document.getElementById('trial-banner');
     var isExpired = trialBanner && trialBanner.classList.contains('trial-expired');
