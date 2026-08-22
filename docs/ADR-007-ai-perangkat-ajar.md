@@ -32,7 +32,7 @@ Decider: Romo (Teguh Riyono)
 
 ## Konteks
 
-Guru SIP Mandiri membutuhkan alat bantu untuk menyusun perangkat ajar yang realistis
+Guru MIClass membutuhkan alat bantu untuk menyusun perangkat ajar yang realistis
 dan langsung bisa dijalankan di kelas — bukan dokumen administrasi formal yang hanya
 memenuhi syarat supervisi.
 
@@ -47,7 +47,7 @@ Filosofi desain: **backward design** — alur dimulai dari Capaian Pembelajaran 
 yang ditetapkan pemerintah, bukan dari template dokumen administrasi.
 Setiap output AI harus bisa langsung digunakan di kelas hari itu juga.
 
-Fitur ini adalah **premium add-on** — tidak termasuk dalam akun dasar SIP Mandiri.
+Fitur ini adalah **premium add-on** — tidak termasuk dalam akun dasar MIClass.
 
 ---
 
@@ -242,14 +242,14 @@ prompt_templates      → template prompt per tipe dokumen
 
 | Tabel SIP SMK | Alasan tidak diadopsi |
 |---------------|-----------------------|
-| `teacher_document_approvals` | Tidak ada Waka di SIP Mandiri |
-| Prota dan Prosem | Di luar scope — SIP Mandiri fokus pada TP dan rencana pertemuan |
-| `teacher_profiles` (terpisah) | Di SIP Mandiri, konteks guru melekat ke `profiles` + classroom |
+| `teacher_document_approvals` | Tidak ada Waka di MIClass |
+| Prota dan Prosem | Di luar scope — MIClass fokus pada TP dan rencana pertemuan |
+| `teacher_profiles` (terpisah) | Di MIClass, konteks guru melekat ke `profiles` + classroom |
 
 **Perbedaan kritis dari SIP SMK:**
 
 Di SIP SMK, `teaching_contexts` dicatat tapi **tidak masuk ke prompt AI**.
-Di SIP Mandiri, **`teaching_contexts` WAJIB masuk ke prompt AI** — ini adalah
+Di MIClass, **`teaching_contexts` WAJIB masuk ke prompt AI** — ini adalah
 inti dari backward design berbasis kondisi nyata kelas.
 
 **Struktur tabel baru:**
@@ -379,6 +379,6 @@ RLS Edge Function memeriksa flag ini sebelum melanjutkan ke model AI.
 **Yang sengaja tidak dibangun:**
 
 - Prota dan Prosem — terlalu administratif, tidak sejalan dengan filosofi backward design
-- Approval workflow — tidak ada Waka di SIP Mandiri
+- Approval workflow — tidak ada Waka di MIClass
 - Sharing dokumen antar guru — isolasi per classroom, guru tidak berbagi dokumen AI
 - Versi multi-model — untuk sekarang cukup satu model, model selection belum prioritas

@@ -1,4 +1,4 @@
-# ADR-003 — Login Tanpa Email + Model Bisnis SIP Mandiri
+# ADR-003 — Login Tanpa Email + Model Bisnis MIClass
 
 Status: ACCEPTED
 Tanggal: 3 Agustus 2026
@@ -8,7 +8,7 @@ Decider: Romo (Teguh Riyono)
 
 ## Konteks
 
-SIP Mandiri adalah produk komersial yang dijual ke guru aktif di sekolah.
+MIClass adalah produk komersial yang dijual ke guru aktif di sekolah.
 Siswa dan ortu adalah pengguna akhir yang tidak boleh dibebani proses
 teknis seperti membuat akun, mengingat email, atau mengingat password.
 Semua akun siswa dan ortu di-generate oleh guru.

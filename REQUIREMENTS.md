@@ -1,4 +1,4 @@
-# REQUIREMENTS — SIP Mandiri
+# REQUIREMENTS — MIClass
 # Spesifikasi Kebutuhan Produk
 
 Versi: 0.1 (Draft)
@@ -9,14 +9,14 @@ Status: REVIEW
 
 ## 1. LATAR BELAKANG
 
-SIP Mandiri adalah varian entry-level dari ekosistem Student Insight Platform,
+MIClass adalah varian entry-level dari ekosistem Student Insight Platform,
 dirancang untuk guru aktif di sekolah yang belum berlangganan SIP SMK versi institusi.
 
-Satu atau beberapa guru dari sekolah yang sama dapat menggunakan SIP Mandiri
+Satu atau beberapa guru dari sekolah yang sama dapat menggunakan MIClass
 secara independen — tanpa koordinasi sistem antar guru, tanpa entitas sekolah
 di dalam platform.
 
-SIP Mandiri bukan untuk kegiatan di luar sekolah (les privat, bimbel).
+MIClass bukan untuk kegiatan di luar sekolah (les privat, bimbel).
 Target pengguna adalah guru aktif yang mengajar di sekolah nyata.
 
 ---

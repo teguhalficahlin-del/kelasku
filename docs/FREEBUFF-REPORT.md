@@ -1,10 +1,10 @@
 ═══════════════════════════════════════════════════════════════
 FREEBUFF FINAL AUDIT — NON-RANCANG
-SIP MANDIRI | 21 August 2026
+MIClass | 21 August 2026
 ═══════════════════════════════════════════════════════════════
 
 ## SESSION IDENTITY
-Repo     : teguhalficahlin-del/sip-mandiri
+Repo     : teguhalficahlin-del/MIClass
 Supabase : teccdzetrdjowqemnuuc
 HEAD     : 2dbac09
 

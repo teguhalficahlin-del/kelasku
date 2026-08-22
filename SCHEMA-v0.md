@@ -1,4 +1,4 @@
-# SCHEMA-v0 — SIP Mandiri
+# SCHEMA-v0 — MIClass
 # Rancangan Database
 
 Versi: 0.1 (Draft)

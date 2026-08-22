@@ -1,5 +1,5 @@
 # ASSESSMENT-WIREFRAME.md
-# Panduan 57 Pola Wireframe Tab Penilaian — SIP Mandiri
+# Panduan 57 Pola Wireframe Tab Penilaian — MIClass
 
 > INSTRUKSI UNTUK CLAUDE CODE:
 > 1. Baca file ini SEBELUM menyentuh classroom-assessment.js

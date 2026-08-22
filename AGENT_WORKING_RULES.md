@@ -1,4 +1,4 @@
-# Aturan Kerja Claude Code — SIP Mandiri
+# Aturan Kerja Claude Code — MIClass
 
 File ini WAJIB dibaca utuh oleh Claude Code sebelum mengerjakan apapun di repo ini — baik saat diminta eksplisit di prompt maupun tidak. Ini bukan opsional tergantung isi prompt yang diterima.
 
@@ -10,7 +10,7 @@ Disusun 27 Juli 2026 dari evaluasi satu sesi kerja penuh (lihat Changelog di akh
 
 Sebelum baris kode/perintah pertama dijalankan:
 
-1. **Verifikasi pwd** — pastikan path mengandung `SIP Mandiri`.
+1. **Verifikasi pwd** — pastikan path mengandung `MIClass`.
 2. **Verifikasi dokumen ini sudah dibaca** — di awal respons, sebutkan eksplisit satu kalimat konfirmasi, contoh: *"Sudah membaca AGENT_WORKING_RULES.md (versi 27 Jul 2026)."* Ini bukti telah dibaca, bukan asumsi.
 3. Jika ada `CLAUDE.md` atau dokumen handoff lain di repo, baca juga sebelum mulai — sebutkan itu juga sudah dibaca.
 
@@ -83,7 +83,7 @@ Kalau salah satu dari dua verifikasi ini belum dilakukan, JANGAN lanjut ke peker
 
 Cantumkan checklist ini (ringkas, boleh dalam bentuk daftar centang) di akhir setiap laporan kerja:
 
-- [ ] pwd terverifikasi mengandung "SIP Mandiri"
+- [ ] pwd terverifikasi mengandung "MIClass"
 - [ ] AGENT_WORKING_RULES.md (dan CLAUDE.md jika ada) sudah dibaca — disebutkan eksplisit di awal
 - [ ] Semua perubahan sesuai `BATASAN KERAS` — tidak ada file di luar daftar yang tersentuh
 - [ ] Diff/output ditampilkan verbatim di badan teks — bukan ringkasan atau placeholder
@@ -94,4 +94,4 @@ Cantumkan checklist ini (ringkas, boleh dalam bentuk daftar centang) di akhir se
 ## Changelog
 
 - **27 Jul 2026** — Dokumen awal dibuat untuk SIP SMK. Hasil evaluasi sesi kerja intensif hari yang sama: Prioritas Tinggi #2, #3, #4 selesai (migrasi 7 portal ke view, revoke privilege 24 fungsi, timeout 57014 recovery), plus audit alur data absensi yang menemukan dan memperbaiki bug `block_group_id` yang berdampak ke 86,8% sesi Juli 2026. Tiga insiden "laporan sukses tanpa bukti verbatim" dan satu kesalahan SQL (`MIN(uuid)`) jadi dasar penyusunan aturan #1, #2, dan #7 di atas.
-- **30 Jul 2026** — Diadaptasi dari SIP SMK ke SIP Mandiri. Semua referensi "SIP SMK" diganti "SIP Mandiri". Aturan teknis (SECURITY DEFINER, RLS, commit workflow) tetap berlaku tanpa perubahan.
+- **30 Jul 2026** — Diadaptasi dari SIP SMK ke MIClass. Semua referensi "SIP SMK" diganti "MIClass". Aturan teknis (SECURITY DEFINER, RLS, commit workflow) tetap berlaku tanpa perubahan.

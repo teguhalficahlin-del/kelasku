@@ -1,4 +1,4 @@
-# ADR-001 — Tenant Isolation SIP Mandiri
+# ADR-001 — Tenant Isolation MIClass
 
 Status: ACCEPTED
 Tanggal: 30 Juli 2026
@@ -8,13 +8,13 @@ Decider: Romo (Teguh Riyono)
 
 ## Konteks
 
-SIP Mandiri digunakan oleh guru dari berbagai sekolah secara independen.
-Satu atau beberapa guru dari sekolah yang sama bisa pakai SIP Mandiri,
+MIClass digunakan oleh guru dari berbagai sekolah secara independen.
+Satu atau beberapa guru dari sekolah yang sama bisa pakai MIClass,
 tapi mereka tidak terhubung satu sama lain di dalam sistem.
 
-Satu siswa bisa diajar oleh lebih dari satu guru pengguna SIP Mandiri —
+Satu siswa bisa diajar oleh lebih dari satu guru pengguna MIClass —
 misalnya Raka diajar Pak Andi (Matematika) dan Bu Sari (Bahasa Inggris),
-keduanya dari sekolah yang sama, keduanya pakai SIP Mandiri secara mandiri.
+keduanya dari sekolah yang sama, keduanya pakai MIClass secara mandiri.
 
 Siswa harus bisa login **satu kali** dan mengakses classroom dari semua guru
 yang mengajarnya — tanpa perlu akun terpisah per guru.
@@ -53,7 +53,7 @@ di dalam USING clause yang dievaluasi per baris.
 
 ### K6 — Supabase Project Baru, Terpisah dari SIP SMK
 
-SIP Mandiri menggunakan Supabase project tersendiri.
+MIClass menggunakan Supabase project tersendiri.
 Schema tidak boleh dicampur dengan SIP SMK meski strukturnya mirip.
 
 ### K7 — Format `classroom_code`: 8 Karakter Alphanumeric Uppercase

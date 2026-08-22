@@ -1,7 +1,7 @@
-# DESIGN-SYSTEM.md — SIP Mandiri
+# DESIGN-SYSTEM.md — MIClass
 # Standar Visual yang Mengikat Semua Portal
 
-Dokumen ini adalah satu-satunya sumber kebenaran untuk desain SIP Mandiri.
+Dokumen ini adalah satu-satunya sumber kebenaran untuk desain MIClass.
 Claude Code WAJIB membaca dokumen ini sebelum menyentuh file CSS atau HTML apapun.
 Setiap deviasi dari dokumen ini harus dilaporkan dan dikonfirmasi sebelum dieksekusi.
 

@@ -44,7 +44,7 @@ File | Baris | Tabel | Verdict | Catatan
 ## Output
 Semua output verbatim. **STOP** — jangan modifikasi file apapun. Laporan ini untuk review, bukan eksekusi otomatis.
 
-## Catatan Konteks SIP Mandiri
+## Catatan Konteks MIClass
 - Tenant anchor: `classroom_id` (bukan `school_id`)
 - Portal yang diaudit: `guru/js/`, `siswa/js/`, `ortu/js/`
 - Fungsi RLS helper: `fn_is_classroom_owner()`, `fn_is_classroom_member()`, `fn_current_profile_id()`

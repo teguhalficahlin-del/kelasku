@@ -2,9 +2,9 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "sip-mandiri",
+      "name": "MIClass",
       "runtimeExecutable": "python",
-      "runtimeArgs": ["-m", "http.server", "8788", "--directory", "D:\\ribuan_pengguna\\CLAUDE\\SIP Mandiri"],
+      "runtimeArgs": ["-m", "http.server", "8788", "--directory", "D:\\ribuan_pengguna\\CLAUDE\\MIClass"],
       "port": 8788
     }
   ]

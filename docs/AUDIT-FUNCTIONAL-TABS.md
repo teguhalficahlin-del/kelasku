@@ -1,4 +1,4 @@
-# Audit Fungsional Seluruh Tab — SIP Mandiri
+# Audit Fungsional Seluruh Tab — MIClass
 
 **Tanggal audit:** 19 Agustus 2026
 **HEAD saat audit:** `5c2bf60`
@@ -105,7 +105,7 @@ Kondisi ini membingkai sebagian besar temuan: 35 siswa tanpa akun dan 0 jadwal m
 
 - **Status:** NOT IMPLEMENTED di dashboard; terimplementasi per siswa di halaman Kelola ([classroom.js:743-748](../guru/js/classroom.js)).
 - **Severity:** LOW (sesuai desain ADR-002/ADR-003)
-- **Catatan:** Base path `window.location.origin + '/kelasku'` **benar** — git remote memang `teguhalficahlin-del/kelasku`. CLAUDE.md yang keliru menyebut repo `sip-mandiri`.
+- **Catatan:** Base path `window.location.origin + '/kelasku'` **benar** — repo GitHub kini `teguhalficahlin-del/MIClass`, tetapi URL GitHub Pages tetap memakai path lama `/kelasku` (sudah di-redirect). Jangan diganti.
 
 ### Reset Semester
 

@@ -1,8 +1,8 @@
-# Student Insight Platform — SIP Mandiri
+# Student Insight Platform — MIClass
 # Konteks untuk Claude Code
 
 > Baca SELURUH dokumen ini sebelum mengerjakan apapun.
-> Dokumen ini adalah satu-satunya sumber kebenaran untuk SIP Mandiri.
+> Dokumen ini adalah satu-satunya sumber kebenaran untuk MIClass.
 > Jangan campur dengan SIP SMK — ini produk dan Supabase project yang berbeda.
 
 ---
@@ -22,14 +22,14 @@ Fitur utama: manajemen classroom, catatan siswa, sesi pembinaan, forum, jadwal.
 - Auth: Supabase Auth (JWT)
 
 **Supabase project ID:** `teccdzetrdjowqemnuuc`
-**Repo GitHub:** `teguhalficahlin-del/sip-mandiri`
-**Repo lokal:** `D:\ribuan_pengguna\CLAUDE\SIP Mandiri`
+**Repo GitHub:** `teguhalficahlin-del/MIClass`
+**Repo lokal:** `D:\ribuan_pengguna\CLAUDE\MIClass`
 
 ---
 
 ## 2. PERBEDAAN KRITIS DARI SIP SMK
 
-| Item | SIP SMK | SIP Mandiri |
+| Item | SIP SMK | MIClass |
 |------|---------|-------------|
 | Tenant anchor | `school_id` | `classroom_id` |
 | Entitas sekolah | Ada (`schools` table) | **Tidak ada** |
@@ -152,7 +152,7 @@ Romo (user) ←→ Claude Chat (architect-consultant)
 ## 10. ATURAN WORKFLOW
 
 ### 10a. Verifikasi pwd — LANGKAH PERTAMA
-Jalankan `pwd` dan pastikan output mengandung `"SIP Mandiri"`.
+Jalankan `pwd` dan pastikan output mengandung `"MIClass"`.
 Jika tidak → STOP, laporkan ke user.
 
 ### 10b. Mode kerja

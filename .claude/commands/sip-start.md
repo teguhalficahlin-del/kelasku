@@ -5,7 +5,7 @@ Jika prompt yang memanggil command ini sudah mendefinisikan instruksi spesifik u
 ---
 
 ## Tujuan
-Verifikasi konteks sesi sebelum mengerjakan apapun. Wajib dijalankan di awal setiap sesi SIP Mandiri.
+Verifikasi konteks sesi sebelum mengerjakan apapun. Wajib dijalankan di awal setiap sesi MIClass.
 
 ## Langkah (jalankan berurutan, tampilkan output verbatim)
 
@@ -13,7 +13,7 @@ Verifikasi konteks sesi sebelum mengerjakan apapun. Wajib dijalankan di awal set
 ```bash
 pwd
 ```
-Output wajib mengandung `"SIP Mandiri"`. Jika tidak → **STOP**, laporkan ke user, jangan lanjut.
+Output wajib mengandung `"MIClass"`. Jika tidak → **STOP**, laporkan ke user, jangan lanjut.
 
 ### 2. Status Git
 ```bash
