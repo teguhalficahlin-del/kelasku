@@ -754,6 +754,37 @@
             alert('Belum ada catatan untuk di-export.');
             return;
           }
+
+          // Angka yang disebut harus angka yang benar-benar diekspor.
+          // Penjaga di atas memakai _notes — seluruh catatan sekelas — sedangkan
+          // exportCatatan() menulis notesTersaring(). Menyebut _notes.length di
+          // dialog akan menjanjikan lebih banyak daripada isi berkasnya, persis
+          // ketidakakuratan yang konfirmasi ini ada untuk mencegah.
+          const jumlah = notesTersaring().length;
+
+          // Mungkin nol meski _notes tidak kosong: filter yang aktif menyisakan
+          // nol baris. Tanpa cabang ini guru menerima berkas Excel berisi empat
+          // sheet yang seluruhnya hanya header.
+          if (jumlah === 0) {
+            alert('Tidak ada catatan yang cocok dengan filter yang sedang aktif.');
+            return;
+          }
+
+          // Nama hanya disebut bila filter per-siswa memang aktif. Saat guru
+          // menyaring per visibilitas atau per tanggal saja, isinya lintas siswa
+          // dan menyebut satu nama akan keliru. rosterName() dipakai apa adanya —
+          // fungsi yang sudah ada di berkas ini — dan bila ia tidak menemukan
+          // siswanya (mengembalikan '—'), namanya dihilangkan daripada
+          // memunculkan "untuk —".
+          let bagianNama = '';
+          if (_filterStudentId) {
+            const nama = rosterName(_filterStudentId);
+            if (nama && nama !== '—') bagianNama = ' untuk ' + nama;
+          }
+
+          const pesan = 'Akan mengekspor ' + jumlah + ' catatan' + bagianNama + '. Lanjutkan?';
+          if (!window.confirm(pesan)) return;
+
           exportCatatan();
         });
         const arrow = h2.querySelector('.panel-collapse-arrow');
