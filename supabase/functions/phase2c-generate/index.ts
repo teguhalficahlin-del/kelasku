@@ -5,7 +5,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const CORS = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': 'https://teguhalficahlin-del.github.io',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 const LOCKED_ROLES = new Set(['WALI_KELAS','GURU_MAPEL_SDSMP_SMA','GURU_MAPEL_UMUM_SMK','GURU_MAPEL_PRODUKTIF_SMK']);

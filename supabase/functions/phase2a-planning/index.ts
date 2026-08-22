@@ -2,7 +2,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { phaseRecord, validateCanonicalFoundation, validateProductiveClassroomDomain, verifyCanonicalBytes, type CpDataset } from '../_shared/canonical-cp.ts';
 
 const CORS = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': 'https://teguhalficahlin-del.github.io',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 const ROLES = new Set(['WALI_KELAS','GURU_MAPEL_SDSMP_SMA','GURU_MAPEL_UMUM_SMK','GURU_MAPEL_PRODUKTIF_SMK']);
