@@ -266,6 +266,24 @@
     const btn       = document.getElementById('btn-tambah');
 
     errorEl.style.display = 'none';
+
+    // NIS wajib angka. Aturan ini sudah berlaku pada jalur unggah CSV/Excel
+    // sejak awal — parseRosterRows() menyaring dengan /^\d+$/ yang sama — tetapi
+    // form manual di sini melewatkannya, sehingga dua jalur yang mengisi tabel
+    // yang sama tidak menerima hal yang sama. Seluruh 37 NIS yang ada di roster
+    // memang angka murni, jadi aturan ini menegaskan yang sudah berlaku dan
+    // bukan memperketat sesuatu yang baru.
+    //
+    // Diperiksa sebelum tombol dinonaktifkan: gagal di sini berarti tidak ada
+    // permintaan yang dikirim, dan tombolnya tidak perlu dipulihkan.
+    if (!/^\d+$/.test(nis)) {
+      errorEl.textContent = nis
+        ? 'NIS hanya boleh berisi angka.'
+        : 'NIS wajib diisi.';
+      errorEl.style.display = 'block';
+      return;
+    }
+
     btn.disabled = true;
     btn.textContent = 'Menyimpan...';
 

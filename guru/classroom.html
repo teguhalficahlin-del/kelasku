@@ -51,7 +51,13 @@
       <form id="form-tambah">
         <div class="inline-form">
           <input type="text" id="inp-nama" placeholder="Nama lengkap" required>
-          <input type="text" id="inp-nis" placeholder="NIS" required>
+          <!-- type tetap text, bukan number: number membuang angka nol di depan,
+               sehingga NIS seperti 0123 akan rusak diam-diam. inputmode memunculkan
+               papan angka di ponsel, pattern memberi penolakan bawaan peramban —
+               keduanya kenyamanan, bukan pengaman. Pemeriksaan yang menentukan ada
+               di classroom.js sebelum insert. -->
+          <input type="text" id="inp-nis" placeholder="NIS" inputmode="numeric"
+                 pattern="[0-9]*" title="NIS hanya boleh berisi angka." required>
           <input type="text" id="inp-nama-ortu" placeholder="Nama ortu (opsional)">
           <button type="submit" id="btn-tambah">Tambah</button>
         </div>
