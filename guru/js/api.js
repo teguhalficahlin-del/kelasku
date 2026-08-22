@@ -148,7 +148,9 @@
 
     async signOut() {
       try { sessionStorage.removeItem('guru_trial_status'); } catch (_) {}
-      return client.auth.signOut();
+      // scope: 'global' mencabut semua sesi di semua perangkat
+      // bukan hanya sesi browser ini — SEC-014
+      return client.auth.signOut({ scope: 'global' });
     },
 
     // ── Rancang Profil (step 0 — per akun guru) ───────────────
