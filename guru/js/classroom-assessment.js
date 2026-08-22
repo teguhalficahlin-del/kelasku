@@ -13,7 +13,7 @@
   let _asmts    = [];  // rows from assessments
   let _roster   = [];  // [{id, nama}] active students in classroom
   let _sGroups  = {};  // { studentId: grup }
-  let _roleGuru = null; // role_guru dari profiles (WALI_KELAS_SD | MAPEL | null)
+  let _roleGuru = null; // role_guru dari profiles (WALI_KELAS | MAPEL | null)
 
   // Penjaga re-entrancy untuk seluruh jalur simpan penilaian. Tombolnya memang
   // sudah di-disable sebelum await pertama, dan modal membangun ulang isinya
@@ -22,7 +22,7 @@
   // pemicunya kelak datang dari jalur lain (tombol dipakai ulang, shortcut
   // keyboard, atau pemanggilan langsung dari kode).
   let _nilaiSedangDisimpan = false;
-  let _selMapel = null; // mapel aktif di Section 1 dropdown (WALI_KELAS_SD only, null = belum diinit)
+  let _selMapel = null; // mapel aktif di Section 1 dropdown (WALI_KELAS only, null = belum diinit)
   let _classroomMapelKey = ''; // window._classroomMapelKey — mapel fix classroom (guru MAPEL)
   let _classroomJenjang  = ''; // window._classroomJenjang  — jenjang classroom
 
@@ -406,7 +406,7 @@
   function renderTpList() {
     const c      = el('pai-tp-list');
     if (!c) return;
-    const isWali = _roleGuru === 'WALI_KELAS_SD';
+    const isWali = _roleGuru === 'WALI_KELAS';
     if (isWali && _selMapel === null) _selMapel = MAPEL_SD[0];
 
     const dropHtml = isWali ? `
@@ -546,7 +546,7 @@
     let selTipe  = item?.tipe ?? 'TP';
     let selMapel = item?.mapel ?? _selMapel ?? _classroomMapelKey ?? MAPEL_SD[0]; // default ke mapel aktif Section 1
 
-    const isWali = _roleGuru === 'WALI_KELAS_SD';
+    const isWali = _roleGuru === 'WALI_KELAS';
     // Filter TP induk by mapel aktif agar guru tidak bisa pilih TP dari mapel yang salah
     const tpOpts = _tpList.filter(t =>
       t.tipe === 'TP' && (!isWali || !t.mapel || t.mapel === selMapel)
@@ -764,7 +764,7 @@
   function renderAsmtList() {
     const c      = el('pai-asmt-list');
     if (!c) return;
-    const isWali = _roleGuru === 'WALI_KELAS_SD';
+    const isWali = _roleGuru === 'WALI_KELAS';
     if (isWali && _selMapel === null) _selMapel = MAPEL_SD[0];
 
     const dropHtml = isWali ? `
@@ -890,7 +890,7 @@
     let selTeknik    = item?.teknik    ?? '';
     let selInstrumen = item?.instrumen ?? '';
 
-    const isWali    = _roleGuru === 'WALI_KELAS_SD';
+    const isWali    = _roleGuru === 'WALI_KELAS';
     const _initTp   = _tpList.find(t => t.id === item?.tp_kktp_id);
     let selMapel    = _initTp?.mapel ?? _selMapel ?? _classroomMapelKey ?? MAPEL_SD[0];
 
@@ -1008,7 +1008,7 @@
     const bodyInstrWrap = el('asmt-body-instr-wrap');
     wireBodyInstrumen(bodyInstrWrap);
 
-    // ── Wire Mapel dropdown (WALI_KELAS_SD only) → cascade filter TP dropdown ──
+    // ── Wire Mapel dropdown (WALI_KELAS only) → cascade filter TP dropdown ──
     if (isWali) {
       el('asmt-mapel-sel')?.addEventListener('change', function () {
         selMapel = this.value;
@@ -2153,7 +2153,7 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
 
   // ── openAsmtCreateModal — modal tambah penilaian (42 pola wireframe) ─────────
   function openAsmtCreateModal() {
-    const isWali = _roleGuru === 'WALI_KELAS_SD';
+    const isWali = _roleGuru === 'WALI_KELAS';
     let selJenis  = 'FORMATIF';
     let selTeknik    = '';
     let selInstrumen = '';
@@ -2272,7 +2272,7 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
     const bodyInstrWrap = el('asmt-body-instr-wrap');
     wireBodyInstrumen(bodyInstrWrap);
 
-    // ── Wire Mapel dropdown (WALI_KELAS_SD only) → cascade filter TP dropdown ──
+    // ── Wire Mapel dropdown (WALI_KELAS only) → cascade filter TP dropdown ──
     if (isWali) {
       el('asmt-mapel-sel')?.addEventListener('change', function () {
         selMapel = this.value;
@@ -2695,7 +2695,7 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
   }
 
   function _renderRecapShell(c) {
-    const isWali = _roleGuru === 'WALI_KELAS_SD';
+    const isWali = _roleGuru === 'WALI_KELAS';
     if (isWali && !_rcMapelUserSet) _rcMapel = _selMapel || MAPEL_SD[0];
 
     const allSumatifs = _asmts.filter(a => a.jenis === 'SUMATIF');
@@ -2721,7 +2721,7 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
           placeholder="${DEFAULT_YEAR}" style="${inputCss('max-width:8rem')}"></div>
     </div>`;
 
-    // Mapel (WALI_KELAS_SD only)
+    // Mapel (WALI_KELAS only)
     if (isWali) {
       html += `<div>${capLbl('Mata Pelajaran')}
         <select id="rc-mapel" style="${inputCss('max-width:18rem')}">
@@ -2795,7 +2795,7 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
   }
 
   function _getFilteredSumatifs() {
-    const isWali = _roleGuru === 'WALI_KELAS_SD';
+    const isWali = _roleGuru === 'WALI_KELAS';
     return _asmts.filter(a => {
       if (a.jenis !== 'SUMATIF') return false;
       if (_rcTeknik && a.teknik !== _rcTeknik) return false;
@@ -3275,7 +3275,7 @@ ${metodeHtml}${hasilHtml}`;
       // Unduhan mengikuti apa yang sedang ditampilkan, bukan seluruh isi kelas.
       // Mapel hanya menyaring untuk guru wali kelas SD; guru mapel tidak punya
       // dropdown itu sehingga _selMapel tetap null dan seluruh baris ikut.
-      const isWali = _roleGuru === 'WALI_KELAS_SD';
+      const isWali = _roleGuru === 'WALI_KELAS';
 
       // Sama persis dengan penyaring Section 1: KKTP ikut induknya, dan TP tanpa
       // mapel dianggap berlaku untuk semua mapel.
