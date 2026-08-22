@@ -1,0 +1,23 @@
+-- 20260823000009_sec001-drop-schedule-conflict-enam-parameter.sql
+-- SEC-001, langkah 3 dari 3: hapus bentuk enam parameter.
+--
+-- Urutan yang ditempuh, dan alasannya:
+--
+--   000007  bentuk enam parameter berhenti membaca p_teacher_id  -> lubang tertutup
+--   000008  bentuk lima parameter ditambahkan berdampingan       -> klien baru siap
+--   (deploy JS ke GitHub Pages, propagasi diverifikasi)
+--   000009  bentuk enam parameter dihapus                        -> parameter mati hilang
+--
+-- DROP dijalankan hanya setelah kedua pemanggil di GitHub Pages terbukti
+-- berhenti mengirim p_teacher_id. Menjalankannya lebih awal berarti jeda ketika
+-- penyimpanan jadwal gagal dengan 404 'function not found'.
+--
+-- Tanpa daftar argumen yang lengkap, DROP akan ambigu: kedua bentuk berbagi
+-- nama yang sama. Daftar di bawah menyebut yang enam parameter secara khusus,
+-- sehingga bentuk lima parameter dari 000008 tidak ikut terhapus.
+--
+-- Sesudah migrasi ini, satu-satunya bentuk yang tersisa adalah
+-- fn_check_schedule_conflict(UUID,TEXT,TIME,TIME,UUID) — tanpa satu pun
+-- parameter identitas yang bisa dipalsukan pemanggil.
+
+DROP FUNCTION IF EXISTS fn_check_schedule_conflict(UUID,UUID,TEXT,TIME,TIME,UUID);
