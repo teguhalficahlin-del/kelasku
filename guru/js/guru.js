@@ -819,13 +819,25 @@
   }
 
   function getCurrentSemesterPhase() {
-    // Instant dari server, diterjemahkan ke waktu dinding lokal perangkat:
-    // guru yang memundurkan jam HP-nya tidak lagi bisa memunculkan tombol
-    // reset di luar waktunya, sementara guru di WITA dan WIT tetap dinilai
-    // menurut zona waktunya masing-masing.
-    var now   = new Date(Date.now() + _semesterDriftMs);
-    var month = String(now.getMonth() + 1).padStart(2, '0');
-    var day   = String(now.getDate()).padStart(2, '0');
+    // Dua penyesuaian berbeda, keduanya di ruang epoch:
+    //
+    //   _semesterDriftMs  jam perangkat  -> instant server. Guru yang
+    //                     memundurkan jam HP-nya tidak bisa memunculkan
+    //                     tombol reset di luar waktunya.
+    //   + 7 jam           instant server -> jam dinding WIB.
+    //
+    // Zona dipatok WIB untuk SEMUA guru, termasuk yang di WITA dan WIT. Itu
+    // keputusan produk: akhir semester mengikuti kalender nasional, bukan
+    // kalender setempat. Sebelumnya bagian ini memakai zona perangkat,
+    // sehingga guru di WIT melihat tombol reset dua jam lebih awal daripada
+    // yang diizinkan server — tombol yang pasti ditolak.
+    //
+    // Harus tetap sama persis dengan tanggalWib() di
+    // supabase/functions/semester-reset/index.ts. Kalau salah satunya
+    // berubah, yang lain ikut.
+    var wib   = new Date(Date.now() + _semesterDriftMs + 7 * 60 * 60 * 1000);
+    var month = String(wib.getUTCMonth() + 1).padStart(2, '0');
+    var day   = String(wib.getUTCDate()).padStart(2, '0');
     var mmdd  = month + '-' + day;
     for (var i = 0; i < SEMESTER_PHASES.length; i++) {
       var p = SEMESTER_PHASES[i];
