@@ -700,8 +700,8 @@
 
       if (adaSeparuh) {
         pesan += '\n\nPERHATIAN: sebagian siswa di atas sudah kehilangan datanya, ' +
-                 'tetapi akun loginnya masih ada. Mengulang hapus dari sini tidak ' +
-                 'menyelesaikannya -- hubungi admin.';
+                 'tetapi akun loginnya masih ada. Coba hapus sekali lagi. Jika tetap ' +
+                 'gagal, hubungi admin.';
       }
 
       window.alert(pesan);

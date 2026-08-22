@@ -18,6 +18,21 @@ function json(body: unknown, status = 200) {
   });
 }
 
+// Akun yang baru dibuat belum tentu yatim. generate-akun membuat akun auth lebih
+// dulu, baru menyisipkan barisnya ke classroom_members beberapa ratus milidetik
+// kemudian (generate-akun/index.ts:175). Tanpa ambang usia ini, akun sehat yang
+// sedang dibuat muncul di daftar yatim -- dan sekali admin menekan "Bersihkan",
+// akun yang benar-benar baik ikut terhapus. Satu jam jauh lebih lama daripada
+// jendela itu, dan jauh lebih pendek daripada rentang yang membuat yatim
+// sungguhan terlewat.
+const ORPHAN_MIN_AGE_MS = 60 * 60 * 1000;
+
+function cukupTua(createdAt: string | null): boolean {
+  if (!createdAt) return false;
+  const ms = new Date(createdAt).getTime();
+  return Number.isFinite(ms) && (Date.now() - ms) > ORPHAN_MIN_AGE_MS;
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: CORS_HEADERS });
@@ -235,6 +250,114 @@ Deno.serve(async (req) => {
     if (deleteErr) return json({ error: deleteErr.message }, 500);
 
     return json({ success: true });
+  }
+
+  // -- list_orphans ---------------------------------------------------------
+  // Akun yatim = profil SISWA/ORTU yang tidak punya satu pun baris di
+  // classroom_members. Bentuk itu lahir ketika hapus-akun gagal di langkah 10:
+  // classroom_members sudah dihapus (langkah 9) tetapi deleteUser belum berhasil,
+  // sehingga akunnya hidup tanpa keterkaitan kelas apa pun.
+  //
+  // Yang membuatnya harus dibersihkan bukan sekadar kerapian: baris
+  // classroom_roster miliknya masih memegang profile_id, dan fn_activate_roster
+  // mensyaratkan profile_id IS NULL. Selama yatimnya dibiarkan, slot siswa itu
+  // tidak akan pernah bisa dibuatkan akun lagi.
+  //
+  // delete_guru pun tidak menjangkau mereka: ia mengenumerasi korbannya lewat
+  // classroom_members, tepat tabel yang sudah kehilangan barisnya. Jadi tanpa
+  // jalur ini, akun yatim bertahan bahkan setelah gurunya dihapus.
+  if (action === 'list_orphans') {
+    // Dua query lalu diselisihkan di sini, bukan satu query dengan embedding.
+    // classroom_members punya DUA foreign key ke profiles (profile_id dan
+    // linked_student_id), jadi PostgREST tidak bisa menebak relasi mana yang
+    // dimaksud tanpa disebut nama constraint-nya -- bentuk yang patah diam-diam
+    // kalau constraint itu suatu saat diganti nama.
+    const { data: kandidat, error: kandidatErr } = await admin
+      .from('profiles')
+      .select('id, user_id, full_name, role, created_at')
+      .in('role', ['SISWA', 'ORTU'])
+      .order('created_at', { ascending: false });
+
+    if (kandidatErr) return json({ error: kandidatErr.message }, 500);
+
+    const { data: anggota, error: anggotaErr } = await admin
+      .from('classroom_members')
+      .select('profile_id');
+
+    if (anggotaErr) return json({ error: anggotaErr.message }, 500);
+
+    const punyaKelas = new Set((anggota ?? []).map((m) => m.profile_id));
+
+    const result = (kandidat ?? [])
+      .filter((p) => !punyaKelas.has(p.id) && cukupTua(p.created_at))
+      .map((p) => ({
+        id:         p.id,
+        user_id:    p.user_id,
+        full_name:  p.full_name,
+        role:       p.role,
+        created_at: p.created_at,
+      }));
+
+    return json({ data: result });
+  }
+
+  // -- delete_orphan --------------------------------------------------------
+  if (action === 'delete_orphan') {
+    const orphan_profile_id = body.orphan_profile_id as string;
+    if (!orphan_profile_id) return json({ error: 'orphan_profile_id wajib' }, 400);
+
+    // 1. Profil harus ada dan berperan SISWA atau ORTU. Guru tidak boleh lewat
+    //    jalur ini: penghapusan guru punya pagar konfirmasinya sendiri, dan
+    //    jalur ini sengaja dibuat ringan karena sasarannya akun tanpa data.
+    const { data: profil, error: profilErr } = await admin
+      .from('profiles')
+      .select('id, user_id, full_name, role, created_at')
+      .eq('id', orphan_profile_id)
+      .in('role', ['SISWA', 'ORTU'])
+      .single();
+
+    if (profilErr || !profil) return json({ error: 'Profil siswa/ortu tidak ditemukan' }, 404);
+
+    // 2. Status yatimnya diperiksa ULANG di server, bukan dipercaya dari daftar
+    //    yang dikirim klien. Daftar itu bisa sudah basi -- profil yang tadi
+    //    yatim mungkin sudah dipulihkan sebelum admin sempat menekan tombolnya.
+    const { count, error: cekErr } = await admin
+      .from('classroom_members')
+      .select('*', { count: 'exact', head: true })
+      .eq('profile_id', orphan_profile_id);
+
+    if (cekErr) return json({ error: cekErr.message }, 500);
+
+    if ((count ?? 0) > 0) {
+      return json({
+        error: 'Profil ini masih terdaftar di classroom, jadi bukan akun yatim. Muat ulang daftarnya.',
+      }, 409);
+    }
+
+    if (!cukupTua(profil.created_at)) {
+      return json({
+        error: 'Profil ini baru dibuat. Akun yang sedang dibuat sesaat tampak yatim -- tunggu sebentar lalu muat ulang.',
+      }, 409);
+    }
+
+    // 3. Bebaskan slot roster LEBIH DULU. FK classroom_roster.profile_id memang
+    //    ON DELETE SET NULL, jadi ini akan terjadi sendiri saat akunnya hilang --
+    //    tetapi melakukannya di sini membuat langkah ini idempoten: kalau
+    //    penghapusan di bawah gagal, mengulang aksi yang sama tetap benar dan
+    //    slotnya sudah terlanjur bebas, bukan terkunci lebih lama.
+    const { data: slots, error: slotErr } = await admin
+      .from('classroom_roster')
+      .update({ profile_id: null })
+      .eq('profile_id', orphan_profile_id)
+      .select('id');
+
+    if (slotErr) return json({ error: slotErr.message }, 500);
+
+    // 4-5. Hapus akun auth. profiles ikut lewat ON DELETE CASCADE dari auth.users.
+    const { error: delErr } = await admin.rpc('delete_auth_user', { uid: profil.user_id });
+    if (delErr) return json({ error: delErr.message, step: 'delete_auth_user' }, 500);
+
+    return json({ success: true, cleaned_slots: slots?.length ?? 0 });
   }
 
   // -- reset_password_guru --------------------------------------------------

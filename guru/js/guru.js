@@ -402,7 +402,7 @@
       window.alert(
         '⚠️ PERINGATAN — Tindakan Tidak Bisa Dibatalkan\n\n' +
         'Anda akan menghapus kelas "' + classroomName + '" beserta SELURUH datanya:\n' +
-        '• ' + stats.members  + ' siswa terdaftar\n' +
+        '• ' + stats.siswa    + ' siswa terdaftar\n' +
         '• ' + stats.sessions + ' sesi absensi tersimpan\n' +
         '• ' + stats.notes    + ' catatan siswa\n\n' +
         'Semua data ini akan hilang permanen dan tidak bisa dipulihkan.'

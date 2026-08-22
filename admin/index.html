@@ -55,6 +55,31 @@
         <div id="guru-list"></div>
         <p id="empty-state" class="empty-state" style="display:none;">Belum ada guru terdaftar.</p>
       </div>
+
+      <!-- ============================================================
+           Akun Yatim — sisa penghapusan yang gagal di tengah jalan.
+           Membersihkannya juga membebaskan slot roster: selama profile_id
+           masih menempel di sana, fn_activate_roster tidak akan pernah bisa
+           membuatkan akun baru untuk siswa itu.
+           ============================================================ -->
+      <div class="table-toolbar">
+        <h2>Akun Yatim</h2>
+        <button id="btn-refresh-yatim" class="btn-refresh">↻ Muat Ulang</button>
+      </div>
+
+      <p class="empty-state" style="text-align:left;">
+        Akun siswa atau orang tua yang kehilangan seluruh keterkaitan kelasnya —
+        biasanya sisa dari penghapusan yang berhenti di tengah jalan. Akun yang
+        baru dibuat tidak ditampilkan di sini.
+      </p>
+
+      <div id="yatim-loading" class="loading-msg" style="display:none;">Memuat akun yatim…</div>
+      <div id="yatim-error" class="error-msg" style="display:none;"></div>
+
+      <div id="yatim-wrap" style="display:none;">
+        <div id="yatim-list"></div>
+        <p id="yatim-empty" class="empty-state" style="display:none;">Tidak ada akun yatim.</p>
+      </div>
     </main>
   </div>
 

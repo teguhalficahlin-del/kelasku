@@ -88,9 +88,7 @@
           .eq('classroom_id', id),
       ]);
       return {
-        // Nama kuncinya warisan dan tidak lagi cocok dengan sumbernya (roster,
-        // lihat catatan di atas). Dibiarkan supaya pemanggil di guru.js utuh.
-        members:  rosterRes.count ?? 0,
+        siswa:    rosterRes.count ?? 0,
         sessions: attendRes.count ?? 0,
         notes:    notesRes.count  ?? 0,
         error:    rosterRes.error || attendRes.error || notesRes.error || null,

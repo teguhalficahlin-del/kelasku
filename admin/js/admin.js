@@ -368,6 +368,7 @@ document.getElementById('form-login').addEventListener('submit', async (e) => {
 
     showDashboard();
     await loadGurus();
+    await loadOrphans();
 
   } catch (err) {
     showLoginError('Terjadi kesalahan: ' + err.message);
@@ -376,6 +377,99 @@ document.getElementById('form-login').addEventListener('submit', async (e) => {
     btnMasuk.textContent = 'Masuk';
   }
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Akun Yatim
+// ─────────────────────────────────────────────────────────────────────────────
+//
+// Yatim = profil SISWA/ORTU tanpa satu pun baris di classroom_members. Bentuk itu
+// lahir ketika hapus-akun berhenti di langkah 10: classroom_members sudah dihapus
+// tetapi akun auth-nya belum. Selama dibiarkan, baris classroom_roster-nya masih
+// memegang profile_id, dan fn_activate_roster mensyaratkan profile_id IS NULL --
+// jadi slot siswa itu tidak bisa dibuatkan akun lagi. Membersihkan yatimnya juga
+// membebaskan slotnya.
+
+async function loadOrphans() {
+  const loadEl  = document.getElementById('yatim-loading');
+  const errEl   = document.getElementById('yatim-error');
+  const wrapEl  = document.getElementById('yatim-wrap');
+  const emptyEl = document.getElementById('yatim-empty');
+  const list    = document.getElementById('yatim-list');
+  if (!list) return;
+
+  loadEl.style.display = 'block';
+  errEl.style.display  = 'none';
+  wrapEl.style.display = 'none';
+
+  try {
+    const { data } = await callAdmin({ action: 'list_orphans' });
+
+    loadEl.style.display = 'none';
+    wrapEl.style.display = 'block';
+
+    if (!data || data.length === 0) {
+      list.innerHTML = '';
+      emptyEl.style.display = 'block';
+      return;
+    }
+
+    emptyEl.style.display = 'none';
+    list.innerHTML = data.map(o => `
+      <div class="guru-card" data-id="${escHtml(o.id)}">
+        <div class="guru-card-header">
+          <span class="guru-nama">${escHtml(o.full_name || '—')}</span>
+          <span class="status-badge badge-belum">${escHtml(o.role)}</span>
+        </div>
+        <div class="guru-meta">
+          <span class="guru-date">Dibuat: ${escHtml(formatDate(o.created_at))}</span>
+        </div>
+        <div class="guru-aksi">
+          <button class="btn-aksi btn-hapus btn-bersihkan"
+                  data-id="${escHtml(o.id)}"
+                  data-nama="${escHtml(o.full_name || '')}">Bersihkan</button>
+        </div>
+      </div>
+    `).join('');
+
+  } catch (err) {
+    loadEl.style.display = 'none';
+    if (err.sesiBerakhir) { await tanganiSesiBerakhir(err); return; }
+    errEl.textContent   = 'Gagal memuat akun yatim: ' + err.message;
+    errEl.style.display = 'block';
+  }
+}
+
+document.getElementById('yatim-list').addEventListener('click', async (e) => {
+  const btn = e.target.closest('.btn-bersihkan');
+  if (!btn) return;
+
+  const id   = btn.dataset.id;
+  const nama = btn.dataset.nama || 'tanpa nama';
+
+  // Tidak perlu mengetik nama seperti pada penghapusan guru: akun yatim sudah
+  // kehilangan seluruh datanya, jadi yang hilang di sini hanyalah baris login
+  // yang tidak bisa dipakai siapa pun.
+  if (!window.confirm('Hapus akun yatim "' + nama + '"?')) return;
+
+  btn.disabled    = true;
+  btn.textContent = 'Membersihkan…';
+
+  try {
+    const hasil = await callAdmin({ action: 'delete_orphan', orphan_profile_id: id });
+    if (hasil && hasil.cleaned_slots > 0) {
+      alert('Akun dibersihkan. ' + hasil.cleaned_slots +
+            ' slot siswa dibebaskan dan kini bisa dibuatkan akun lagi.');
+    }
+  } catch (err) {
+    if (err.sesiBerakhir) { await tanganiSesiBerakhir(err); return; }
+    alert('Gagal membersihkan: ' + err.message);
+  }
+
+  await loadOrphans();
+});
+
+document.getElementById('btn-refresh-yatim')
+  .addEventListener('click', () => loadOrphans());
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Logout & Refresh
@@ -409,6 +503,7 @@ document.getElementById('btn-refresh').addEventListener('click', () => loadGurus
     await callAdmin({ action: 'list_gurus' });
     showDashboard();
     await loadGurus();
+    await loadOrphans();
   } catch (err) {
     if (err.sesiBerakhir) {
       // 401 sesi kedaluwarsa, atau 403 bukan admin — sesinya memang harus pergi.
