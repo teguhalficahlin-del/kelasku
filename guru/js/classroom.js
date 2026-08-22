@@ -519,7 +519,12 @@
     });
 
     const json = await res.json();
-    if (!json.success) return { error: json.error || 'Hapus akun gagal.' };
+    // `step` ikut diteruskan, bukan dibuang. Edge Function menandai di tahap mana
+    // ia berhenti, dan satu tahap punya arti khusus: 'delete_user_siswa' berarti
+    // data siswa SUDAH terhapus tetapi akun loginnya masih ada. Tanpa `step`,
+    // kegagalan itu tampak sama saja dengan penolakan izin di awal -- padahal
+    // yang satu tidak menyentuh apa pun dan yang lain sudah menghapus separuh.
+    if (!json.success) return { error: json.error || 'Hapus akun gagal.', step: json.step };
     return { deleted: json.deleted };
   }
 
@@ -656,19 +661,51 @@
     btnHapus.removeAttribute('disabled');
     if (banner) { banner.style.display = 'block'; }
 
-    var berhasil = 0;
-    var gagal    = 0;
+    var berhasil    = 0;
+    var gagalDetail = [];
+    var adaSeparuh  = false;
     for (var i = 0; i < targets.length; i++) {
       var row = targets[i];
       btnHapus.textContent = 'Menghapus ' + row.full_name + '... (' + (i + 1) + '/' + targets.length + ')';
       var result = row.profile_id ? await hapusAkun(row.profile_id) : await hapusRosterOnly(row);
-      if (result.error) { gagal++; } else { berhasil++; }
+      if (result.error) {
+        // Nama siswanya ikut dicatat. Angka "3 gagal" tidak bisa ditindaklanjuti:
+        // guru tidak tahu siapa yang perlu dicoba ulang, dan daftar di layar sudah
+        // dimuat ulang sehingga yang gagal tampak sama dengan yang tidak dipilih.
+        gagalDetail.push({ nama: row.full_name, pesan: result.error, step: result.step });
+        if (result.step === 'delete_user_siswa' || result.step === 'delete_user_ortu') {
+          adaSeparuh = true;
+        }
+      } else {
+        berhasil++;
+      }
     }
 
     btnHapus.classList.remove('btn-hapus-processing');
     if (banner) { banner.style.display = 'none'; }
 
-    showShareNotif('Selesai: ' + berhasil + ' berhasil dihapus, ' + gagal + ' gagal.');
+    if (gagalDetail.length === 0) {
+      showShareNotif('Selesai: ' + berhasil + ' berhasil dihapus.');
+    } else {
+      // Kegagalan tidak lewat showShareNotif -- notif itu menghilang sendiri dalam
+      // 2,5 detik, dan daftar nama yang perlu ditindaklanjuti hilang bersamanya.
+      // Alert menunggu sampai dibaca.
+      var baris = gagalDetail.map(function (g) {
+        return '• ' + g.nama + ': ' + g.pesan;
+      }).join('\n');
+
+      var pesan =
+        'Selesai: ' + berhasil + ' berhasil dihapus, ' + gagalDetail.length + ' gagal.\n\n' +
+        'Yang gagal:\n' + baris;
+
+      if (adaSeparuh) {
+        pesan += '\n\nPERHATIAN: sebagian siswa di atas sudah kehilangan datanya, ' +
+                 'tetapi akun loginnya masih ada. Mengulang hapus dari sini tidak ' +
+                 'menyelesaikannya -- hubungi admin.';
+      }
+
+      window.alert(pesan);
+    }
 
     btnHapus.textContent = 'Hapus Terpilih (0)';
     btnHapus.disabled    = true;

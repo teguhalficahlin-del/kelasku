@@ -88,6 +88,8 @@
           .eq('classroom_id', id),
       ]);
       return {
+        // Nama kuncinya warisan dan tidak lagi cocok dengan sumbernya (roster,
+        // lihat catatan di atas). Dibiarkan supaya pemanggil di guru.js utuh.
         members:  rosterRes.count ?? 0,
         sessions: attendRes.count ?? 0,
         notes:    notesRes.count  ?? 0,
@@ -95,8 +97,36 @@
       };
     },
 
+    // Delete tanpa .select() tidak pernah memberi tahu berapa baris yang benar
+    // benar terhapus. Penolakan RLS -- kelas milik guru lain, atau id yang sudah
+    // tidak ada -- menghasilkan NOL baris TANPA error. Pemanggilnya di guru.js
+    // hanya memeriksa `error`, jadi ia menghapus kartu kelas dari layar dan guru
+    // mengira kelasnya lenyap. Kartu itu muncul lagi pada muat ulang berikutnya,
+    // tanpa penjelasan apa pun.
+    //
+    // Bentuk kembaliannya sengaja tetap { data, error }: nol baris kini muncul
+    // sebagai error biasa dan mengalir lewat jalur pesan yang sudah ada di
+    // handleDeleteClassroom, tanpa satu baris pun berubah di sana.
     async deleteClassroom(id) {
-      return client.from('classrooms').delete().eq('id', id);
+      const res = await client
+        .from('classrooms')
+        .delete()
+        .eq('id', id)
+        .select('id');
+
+      if (res.error) return res;
+
+      if (!res.data || res.data.length === 0) {
+        return {
+          data:  null,
+          error: {
+            message: 'kelas tidak ditemukan, atau Anda tidak berhak menghapusnya. ' +
+                     'Tidak ada data yang terhapus.',
+          },
+        };
+      }
+
+      return res;
     },
 
     async updateClassroom(id, name, subject, description) {
