@@ -673,6 +673,17 @@
   // Export Catatan (4 sheet)
   // ---------------------------------------------------------------------------
 
+  // Dinaikkan dari dalam exportCatatan() ke lingkup modul supaya export pesan di
+  // bawah memakai format tanggal yang persis sama. Menyalinnya menjadi versi
+  // kedua berarti dua tempat yang harus tetap seragam, dan yang satu pasti
+  // terlupakan. Isinya tidak diubah sama sekali.
+  function fmtExportDate(s) {
+    if (!s) return '';
+    const part = s.slice(0, 10); // 'YYYY-MM-DD' — tidak terpengaruh timezone browser
+    const [y, m, d] = part.split('-');
+    return `${d}/${m}/${y}`;
+  }
+
   function exportCatatan() {
     function slugify(s) {
       return String(s || '').toLowerCase()
@@ -681,13 +692,6 @@
         .replace(/-+/g, '-')
         .replace(/^-|-$/g, '');
     }
-    function fmtExportDate(s) {
-      if (!s) return '';
-      const part = s.slice(0, 10); // 'YYYY-MM-DD' — tidak terpengaruh timezone browser
-      const [y, m, d] = part.split('-');
-      return `${d}/${m}/${y}`;
-    }
-
     const slug     = slugify(window._classroomName || '');
     const today    = new Date().toISOString().slice(0, 10);
     const parts    = ['catatan'];
@@ -722,6 +726,60 @@
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([HEADER, ...keSiswa.map(noteToRow)]),  'Ke Siswa');
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([HEADER, ...keOrtu.map(noteToRow)]),   'Ke Ortu');
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([HEADER, ...keduanya.map(noteToRow)]), 'Siswa & Ortu');
+    XLSX.writeFile(wb, filename);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Export Pesan Orang Tua (1 sheet)
+  // ---------------------------------------------------------------------------
+  //
+  // Percakapan dengan orang tua ikut terhapus saat reset semester —
+  // fn_semester_reset menyapu parent_messages bersama classroom-nya — tetapi
+  // sampai sekarang tidak ada satu pun jalan untuk menyelamatkannya lebih dulu.
+  // Absensi, catatan, dan penilaian masing-masing sudah punya export; pesan
+  // tidak, sehingga ia satu-satunya yang hilang tanpa jalan keluar.
+  //
+  // Seluruh bahannya sudah ada di memori: _pesan diisi loadPesanOrtu(), dan
+  // _roster sudah dipetakan ke ruang profil (id: r.profile_id) sehingga
+  // student_id milik parent_messages — yang menunjuk profiles(id) — langsung
+  // cocok. Tidak ada permintaan baru ke server.
+  function exportPesan() {
+    const slug     = String(window._classroomName || '').toLowerCase()
+      .replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '').replace(/-+/g, '-')
+      .replace(/^-|-$/g, '');
+    const today    = new Date().toISOString().slice(0, 10);
+    const parts    = ['pesan-ortu'];
+    if (slug) parts.push(slug);
+    parts.push(today);
+    const filename = parts.join('-') + '.xlsx';
+
+    const HEADER = ['Nama Siswa', 'NIS', 'Tanggal', 'Pengirim', 'Isi Pesan', 'Sudah Dibaca'];
+
+    const PERAN = { ORTU: 'Orang Tua', GURU: 'Guru' };
+
+    // Nama dan NIS dipisah menjadi dua kolom lewat pencarian sendiri, bukan lewat
+    // rosterName(). rosterName() merangkai keduanya menjadi satu string
+    // "Nama · NIS" untuk dibaca di layar; di lembar kerja itu justru merepotkan,
+    // dan noteToRow() pada export catatan sudah memisahnya. Keduanya kini sama.
+    //
+    // Siswa yang belum dibuatkan akun punya profile_id null, sehingga tidak ada
+    // baris roster yang cocok dan namanya jatuh ke '—'. Itu perilaku yang sudah
+    // berlaku di export catatan.
+    function pesanToRow(m) {
+      const s = _roster.find(r => r.id === m.student_id);
+      return [
+        s ? (s.full_name || '—') : '—',
+        s ? (s.nis || '') : '',
+        fmtExportDate(m.created_at),
+        PERAN[m.author_role] || m.author_role || '',
+        m.content || '',
+        m.read_at ? 'Ya' : 'Belum',
+      ];
+    }
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(
+      wb, XLSX.utils.aoa_to_sheet([HEADER, ..._pesan.map(pesanToRow)]), 'Pesan Orang Tua');
     XLSX.writeFile(wb, filename);
   }
 
@@ -795,6 +853,39 @@
         hint.style.cssText = 'font-size:var(--fs-caption);color:var(--text-muted);font-style:italic;margin-top:0.35rem;display:block;';
         hint.textContent   = 'Atur rentang tanggal sesuai kebutuhan sebelum export. Default menampilkan bulan berjalan.';
         body.insertAdjacentElement('afterbegin', hint);
+      }
+
+      // Tombol Export Excel di header Pesan (idx 2), mengikuti pola idx 1 di atas
+      if (idx === 2) {
+        const exportPesanBtn       = document.createElement('button');
+        exportPesanBtn.id          = 'btn-export-pesan';
+        exportPesanBtn.className   = 'btn-export-header';
+        exportPesanBtn.textContent = 'Export Excel';
+        exportPesanBtn.addEventListener('click', e => {
+          // stopPropagation supaya klik tombol tidak ikut membuka-tutup section,
+          // sama seperti tombol export di idx 1.
+          e.stopPropagation();
+
+          // _pesan baru terisi setelah loadPesanOrtu() berjalan, dan itu terjadi
+          // saat section Pesan dibuka. Guru yang menekan tombol ini sebelum
+          // sempat membuka sectionnya akan menemukan daftar kosong — bukan
+          // karena tidak ada pesan, melainkan karena belum dimuat. Pesannya
+          // dibedakan supaya guru tahu apa yang harus dilakukan.
+          if (!_pesan || _pesan.length === 0) {
+            alert(_pesanTampil
+              ? 'Belum ada pesan untuk di-export.'
+              : 'Buka daftar pesan lebih dulu, lalu coba export lagi.');
+            return;
+          }
+
+          const jumlah = _pesan.length;
+          if (!window.confirm('Akan mengekspor ' + jumlah + ' pesan orang tua. Lanjutkan?')) return;
+
+          exportPesan();
+        });
+        const arrowPesan = h2.querySelector('.panel-collapse-arrow');
+        if (arrowPesan) h2.insertBefore(exportPesanBtn, arrowPesan);
+        else h2.appendChild(exportPesanBtn);
       }
 
       h2.addEventListener('click', () => {
@@ -953,8 +1044,14 @@
     if (!hdr) return;
     const teks  = belumDibaca ? `Pesan (${belumDibaca} baru)` : 'Pesan';
     const arrow = hdr.querySelector('.panel-collapse-arrow');
+    // Tombol export ikut diselamatkan, bukan hanya panahnya. Menyetel
+    // textContent membuang SELURUH anak header, dan fungsi ini dipanggil tepat
+    // ketika guru membuka daftar pesan — tanpa baris ini tombolnya lenyap
+    // persis pada saat ia mulai berguna.
+    const btnExp = hdr.querySelector('#btn-export-pesan');
     hdr.textContent = teks + ' ';
-    if (arrow) hdr.appendChild(arrow);
+    if (btnExp) hdr.appendChild(btnExp);
+    if (arrow)  hdr.appendChild(arrow);
   }
 
   // Komposer pesan baru tetap ada dan tetap memakai seluruh roster: memulai
