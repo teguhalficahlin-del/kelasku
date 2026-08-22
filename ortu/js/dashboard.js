@@ -827,8 +827,53 @@ async function init() {
   await Promise.allSettled(baris.map((_, i) => isiSlot(i)));
 }
 
+// ── Sesi berakhir ──────────────────────────────────────────────────────────
+// autoRefreshToken sudah menyala di ortu/js/supabase.js, jadi perpanjangan token
+// berjalan sendiri selama refresh token-nya masih sah. Yang belum tertangani
+// adalah saat perpanjangan itu GAGAL — refresh token kedaluwarsa atau dicabut.
+// Supabase menjawabnya dengan membuang sesi dan memancarkan SIGNED_OUT, dan
+// sebelum ini tidak ada yang mendengarkan: halaman tetap terbuka seolah masih
+// masuk, sementara setiap permintaan berikutnya ditolak. Karena pengambil data
+// di berkas ini menelan galat menjadi daftar kosong, kegagalan itu tampak
+// seperti "belum ada data" — persis kegagalan diam-diam yang harus dihindari.
+//
+// SIGNED_OUT juga terpancar saat pengguna menekan Keluar. Keduanya harus
+// dibedakan: yang satu hasil keputusan pengguna dan tidak perlu penjelasan apa
+// pun, yang satu lagi terjadi kepada pengguna dan perlu dijelaskan. Penanda di
+// bawah yang membedakannya.
+//
+// Kembarannya ada di siswa/js/dashboard.js. Sengaja disalin, bukan diangkat ke
+// shared/: kedua portal memakai instance Supabase yang berbeda dengan storageKey
+// masing-masing, dan berkas di shared/ kini hanya dimuat portal guru.
+let _keluarSengaja = false;
+
+function tandaiSesiBerakhir() {
+  // Saklar, bukan pesan. Teksnya ditanam di halaman login, mengikuti keputusan
+  // yang sudah dinyatakan di guru/js/guru.js: sessionStorage dapat diisi apa saja
+  // oleh siapa pun yang membuka konsol, jadi isinya tidak pernah menjadi teks
+  // yang dirender — ia hanya menentukan tampil atau tidak.
+  //
+  // Key-nya sengaja BUKAN sip_pesan_login milik portal guru. sessionStorage satu
+  // ruang untuk seluruh origin, sementara key itu sudah berarti "semester baru
+  // saja direset". Memakainya ulang akan membuat halaman login guru mengumumkan
+  // reset semester kepada ortu yang sesinya sekadar kedaluwarsa.
+  try { sessionStorage.setItem('sip_pesan_sesi', '1'); } catch (_) {}
+
+  // replace, bukan href: dashboard yang sudah tidak berwenang tidak perlu
+  // tertinggal di riwayat, supaya tombol Kembali tidak mengantar pengguna balik
+  // ke halaman yang setiap permintaannya pasti ditolak.
+  window.location.replace('index.html');
+}
+
+db.auth.onAuthStateChange(function (event) {
+  if (event !== 'SIGNED_OUT') return;
+  if (_keluarSengaja) return;      // pengguna sendiri yang menekan Keluar
+  tandaiSesiBerakhir();
+});
+
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btn-logout').addEventListener('click', async () => {
+    _keluarSengaja = true;
     await db.auth.signOut();
     window.location.href = 'index.html';
   });

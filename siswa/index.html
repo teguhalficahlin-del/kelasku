@@ -46,6 +46,14 @@
 
       <button type="submit" id="btn-login">Masuk</button>
       <div id="login-error" class="error-msg" style="display:none;"></div>
+      <!-- Dua kelas, bukan salah tulis. .ok-msg adalah nama yang dipakai padanan
+           elemen ini di portal guru, tetapi definisinya hanya ada di
+           guru/css/guru.css — yang tidak dimuat halaman ini. .konfirmasi adalah
+           padanannya di shared/css/components.css, satu berkas dengan .error-msg
+           di atas, sehingga keduanya tampil dengan ukuran dan jarak yang sama dan
+           hanya berbeda warna. Bila .ok-msg kelak dipindah ke shared, ia akan
+           mengambil alih tanpa perlu menyentuh berkas ini lagi. -->
+      <div id="login-info" class="ok-msg konfirmasi" style="display:none;"></div>
     </form>
   </div>
 

@@ -13,7 +13,31 @@
     el.style.display = 'none';
   }
 
+  // Titipan dari dashboard yang sesinya berakhir mendadak. Nilainya hanya '1' —
+  // sebuah saklar, bukan pesan: sessionStorage dapat diisi apa saja oleh siapa
+  // pun yang membuka konsol, jadi teksnya ditanam di sini dan yang dibaca dari
+  // penyimpanan cuma dipakai untuk memutuskan tampil atau tidak. Penulisan lewat
+  // textContent, bukan innerHTML. Dipakai sekali lalu dibuang.
+  function tampilkanPesanSesi() {
+    var aktif = false;
+    try {
+      aktif = sessionStorage.getItem('sip_pesan_sesi') === '1';
+      sessionStorage.removeItem('sip_pesan_sesi');
+    } catch (_) { return; }
+    if (!aktif) return;
+    var el = document.getElementById('login-info');
+    if (!el) return;
+    el.textContent = 'Sesi Anda telah berakhir, silakan masuk kembali.';
+    el.style.display = '';
+  }
+
   document.addEventListener('DOMContentLoaded', async function () {
+    // Dipanggil lebih dulu daripada apa pun. Kalau ditaruh setelah getSession,
+    // titipannya tidak akan pernah terbaca pada kasus yang justru menjadi
+    // alasannya ada — sesi sudah hilang, dan penantian jaringan di bawah hanya
+    // menunda pesan yang seharusnya langsung terlihat.
+    tampilkanPesanSesi();
+
     const { data: { session } } = await db.auth.getSession();
     if (session) { window.location.href = 'dashboard.html'; return; }
 
