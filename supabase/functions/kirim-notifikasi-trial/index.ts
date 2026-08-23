@@ -161,6 +161,39 @@ async function kirimBrevo(
 // Otorisasi
 // ---------------------------------------------------------------------------
 
+// Baca klaim `role` dari sebuah JWT tanpa memverifikasi tanda tangannya.
+//
+// TIDAK MEMVERIFIKASI TANDA TANGAN adalah pernyataan yang disengaja, dan aman
+// HANYA karena fungsi ini berjalan dengan verify_jwt = true: gerbang platform
+// sudah memvalidasi tanda tangan terhadap kunci penanda tangan proyek sebelum
+// permintaan sampai ke sini. Yang tersisa untuk dibaca tinggal isinya.
+//
+// >>> KALAU verify_jwt SUATU SAAT DIMATIKAN UNTUK FUNGSI INI, PEMERIKSAAN DI
+// >>> BAWAH LANGSUNG MENJADI DAPAT DIPALSUKAN: siapa pun bisa menyusun JWT
+// >>> tanpa tanda tangan yang berisi role 'service_role' dan memicu pengiriman
+// >>> email atas nama produk. Mematikan verify_jwt di sini berarti pemeriksaan
+// >>> ini harus diganti verifikasi tanda tangan sungguhan lebih dulu.
+//
+// Dekode memakai TextDecoder, bukan JSON.parse(atob(...)) langsung: atob
+// mengembalikan binary string, dan klaim yang memuat karakter non-ASCII akan
+// rusak sebelum sempat dibaca.
+function klaimRole(token: string): string | null {
+  try {
+    const bagian = token.split('.');
+    if (bagian.length !== 3) return null;
+
+    const b64 = bagian[1].replace(/-/g, '+').replace(/_/g, '/');
+    const padded = b64.padEnd(Math.ceil(b64.length / 4) * 4, '=');
+    const biner = atob(padded);
+    const bytes = Uint8Array.from(biner, (c) => c.charCodeAt(0));
+    const payload = JSON.parse(new TextDecoder().decode(bytes));
+
+    return typeof payload?.role === 'string' ? payload.role : null;
+  } catch {
+    return null;
+  }
+}
+
 // Dua pemanggil yang sah: penjadwal (membawa service role key) dan Romo secara
 // manual (JWT yang emailnya cocok dengan ADMIN_EMAIL). Selain itu ditolak —
 // fungsi ini mengirim email atas nama produk, jadi ia tidak boleh dapat dipicu
@@ -176,7 +209,20 @@ async function otorisasi(
   }
 
   const token = header.slice(7);
+
+  // Jalur cepat: kunci yang persis sama dengan yang dipegang fungsi ini.
   if (token === serviceKey) return { ok: true };
+
+  // Jalur penjadwal. Perbandingan string di atas tidak cukup karena kedua sisi
+  // memakai format kunci yang berbeda: cron mengirim service_role key format
+  // JWT legacy (dari vault), sedangkan Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+  // pada proyek ini berisi kunci format baru. Keduanya sah dan setara
+  // wewenangnya, tetapi tidak akan pernah cocok sebagai teks.
+  //
+  // Yang dibandingkan karena itu wewenangnya, bukan teksnya. Kunci anon —
+  // yang publik dan tertanam di setiap browser — tetap ditolak di sini karena
+  // klaim role-nya 'anon', bukan 'service_role'.
+  if (klaimRole(token) === 'service_role') return { ok: true };
 
   const { data, error } = await admin.auth.getUser(token);
   if (error || !data.user) return { ok: false, status: 401, pesan: 'Unauthorized' };
