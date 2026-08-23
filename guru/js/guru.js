@@ -576,7 +576,6 @@
         // p_teacher_id sengaja tidak dikirim: fungsi ini menentukan gurunya sendiri
         // lewat fn_current_profile_id(). Lihat migrasi 20260823000007/000008 (SEC-001).
         const { data: conflicts, error: cErr } = await supabase.rpc('fn_check_schedule_conflict', {
-          p_classroom_id: createdClassroom.id,
           p_day_of_week:  entry.day,
           p_start_time:   entry.start,
           p_end_time:     entry.end,
