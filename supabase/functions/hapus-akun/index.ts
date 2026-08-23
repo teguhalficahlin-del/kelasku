@@ -113,14 +113,45 @@ Deno.serve(async (req) => {
     }
   }
 
-  // 7. Hapus data siswa yang referensi profiles tanpa ON DELETE — wajib sebelum deleteUser
-  // (student_notes.student_id, guidance_sessions.student_id, forum_comments.author_id
-  //  semua REFERENCES profiles(id) tanpa ON DELETE — akan memblokir cascade jika tidak dihapus)
-  await admin.from('student_notes').delete().eq('student_id', profile_id);
-  await admin.from('guidance_sessions').delete().eq('student_id', profile_id);
-  await admin.from('forum_comments').delete().eq('author_id', profile_id);
+  // 7. CATAT dulu, jangan hapus dulu.
+  //
+  // Urutan lama menghapus data siswa di sini, sebelum akun auth-nya. Kalau
+  // deleteUser di bawah gagal -- jaringan, rate limit, apa pun -- datanya sudah
+  // lenyap sementara akunnya masih hidup. Siswa itu lalu terjebak: barisnya di
+  // classroom_members sudah hilang sehingga ia tidak bisa memakai apa pun, dan
+  // slot roster-nya masih memegang profile_id sehingga fn_activate_roster
+  // menolak membuatkan akun baru. Tidak ada jalan keluar dari portal guru.
+  //
+  // Komentar lama di sini menyatakan ketiga tabel ini "REFERENCES profiles(id)
+  // tanpa ON DELETE" sehingga wajib dihapus lebih dulu. Itu sudah tidak berlaku
+  // sejak 20260804000003 dan 20260804000004. Keadaan FK sekarang:
+  //
+  //   forum_comments.author_id      CASCADE   -> ikut terhapus sendiri
+  //   classroom_members.profile_id  CASCADE   -> ikut terhapus sendiri
+  //   student_notes.student_id      SET NULL  -> baris BERTAHAN, kolomnya jadi NULL
+  //   guidance_sessions.student_id  SET NULL  -> baris BERTAHAN, kolomnya jadi NULL
+  //   classroom_roster.profile_id   SET NULL  -> baris BERTAHAN, dibersihkan manual
+  //
+  // Tidak ada yang memblokir, jadi deleteUser boleh jalan duluan. Tetapi dua
+  // yang SET NULL tidak ikut terhapus: tanpa penanganan, catatan siswa dan
+  // catatan sesi pembinaan tentang anak yang sudah dihapus akan bertahan
+  // selamanya sebagai baris yatim. Untuk guidance_sessions -- yang selalu
+  // private -- itu masalah privasi, bukan sekadar sampah.
+  //
+  // Karena itu id-nya dicatat SEKARANG, selagi student_id masih terisi, lalu
+  // barisnya dihapus berdasarkan id itu SESUDAH akunnya hilang.
+  const { data: catatanRows }  = await admin
+    .from('student_notes')
+    .select('id')
+    .eq('student_id', profile_id);
 
-  // 8. Query NIS dari roster sebelum deleteUser — dibutuhkan untuk delete setelah user hilang
+  const { data: pembinaanRows } = await admin
+    .from('guidance_sessions')
+    .select('id')
+    .eq('student_id', profile_id);
+
+  // NIS dicatat juga: sesudah deleteUser, classroom_roster.profile_id sudah
+  // di-NULL-kan FK, jadi barisnya tidak bisa lagi dicari lewat profile_id.
   const { data: rosterRow } = await admin
     .from('classroom_roster')
     .select('nis')
@@ -128,29 +159,52 @@ Deno.serve(async (req) => {
     .eq('classroom_id', classroom_id)
     .single();
 
-  // 9. Hapus classroom_members siswa
-  await admin
-    .from('classroom_members')
-    .delete()
-    .eq('profile_id', profile_id)
-    .eq('classroom_id', classroom_id);
-
-  // 10. deleteUser siswa — cascade ke profiles (ON DELETE CASCADE dari auth.users → profiles)
-  //     FK classroom_roster.profile_id ON DELETE SET NULL otomatis null-kan kolom
+  // 8. Hapus akun auth siswa — LANGKAH MERUSAK PERTAMA untuk siswa ini.
+  //    Sebelum baris ini, tidak satu pun data siswa tersentuh; kegagalan di sini
+  //    meninggalkan segalanya utuh dan guru bisa mengulang dengan aman.
+  //    Cascade menyapu profiles, classroom_members, dan forum_comments sekaligus.
   const { error: delSiswaErr } = await admin.auth.admin.deleteUser(siswa.user_id);
   if (delSiswaErr) {
     return json({ success: false, error: delSiswaErr.message, step: 'delete_user_siswa' }, 500);
   }
 
-  // 11. Hapus baris classroom_roster sepenuhnya — dilakukan setelah deleteUser
-  //     Gunakan nis (bukan profile_id yang sudah null setelah cascade)
+  // 9. Bersihkan sisa yang tidak ikut cascade.
+  //
+  // Mulai titik ini akunnya sudah hilang dan itu tidak bisa dibatalkan, jadi
+  // kegagalan di bawah TIDAK dilaporkan sebagai gagal: mengatakan "gagal" akan
+  // membuat guru menekan hapus sekali lagi untuk siswa yang sudah tidak ada.
+  // Yang tersisa dilaporkan apa adanya lewat field `sisa`.
+  const sisa: string[] = [];
+
+  const catatanIds  = (catatanRows  ?? []).map((r) => r.id);
+  const pembinaanIds = (pembinaanRows ?? []).map((r) => r.id);
+
+  if (catatanIds.length > 0) {
+    const { error } = await admin.from('student_notes').delete().in('id', catatanIds);
+    if (error) sisa.push('student_notes: ' + error.message);
+  }
+
+  if (pembinaanIds.length > 0) {
+    const { error } = await admin.from('guidance_sessions').delete().in('id', pembinaanIds);
+    if (error) sisa.push('guidance_sessions: ' + error.message);
+  }
+
   if (rosterRow?.nis) {
-    await admin
+    const { error } = await admin
       .from('classroom_roster')
       .delete()
       .eq('classroom_id', classroom_id)
       .eq('nis', rosterRow.nis);
+    if (error) sisa.push('classroom_roster: ' + error.message);
   }
 
-  return json({ success: true, deleted: { siswa: siswa.email, ortu_count } });
+  if (sisa.length > 0) {
+    console.error('hapus-akun: akun terhapus, sisa belum bersih', { profile_id, sisa });
+  }
+
+  return json({
+    success: true,
+    deleted: { siswa: siswa.email, ortu_count },
+    ...(sisa.length > 0 ? { sisa } : {}),
+  });
 });
