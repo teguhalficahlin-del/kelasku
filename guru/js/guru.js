@@ -667,6 +667,60 @@
     // perlu dicari ulang dan disusun kembali.
     var GURU_PRO_DIJUAL = false;
 
+    // Banner EXPIRED sebelumnya hanya kalimat "Hubungi admin untuk aktivasi"
+    // tanpa satu pun jalan untuk menghubunginya. Tombol ini menutup celah itu.
+    //
+    // Nomornya memakai WA_UPGRADE yang sudah ada, bukan literal baru: satu
+    // tempat untuk satu nomor, sesuai alasan konstanta itu dibuat (SEC-038).
+    //
+    // Kelasnya juga memakai .btn-ajukan-upgrade yang sudah ada. Keduanya sama
+    // rupa -- tombol garis tipis di dalam trial-banner -- jadi tidak ada gaya
+    // baru yang perlu ditambahkan ke guru/css/guru.css, berkas yang berada di
+    // luar cakupan perubahan ini.
+    function tambahTombolHubungiAdmin(banner, ts) {
+      var btn = document.createElement('button');
+      btn.type        = 'button';
+      btn.id          = 'btn-hubungi-admin';
+      btn.className   = 'btn-ajukan-upgrade';
+      btn.textContent = 'Hubungi Admin via WhatsApp';
+
+      // Email dipakai admin untuk mengenali akun mana yang meminta -- tanpa itu
+      // pesan yang masuk hanya "mohon perpanjangan" dari nomor tak dikenal.
+      //
+      // ts.email TIDAK ADA. fn_guru_trial_status mengembalikan delapan field:
+      // is_active, trial_started_at, activated_at, expires_at, hari_tersisa,
+      // status, tier, tier_requested -- email bukan salah satunya. Membacanya
+      // dari ts akan selalu menghasilkan '-'. Sesi auth adalah satu-satunya
+      // tempat email guru tersedia di sisi klien, jadi dari sanalah ia diambil.
+      //
+      // Diisi asinkron ke variabel closure, BUKAN dibaca di dalam handler klik:
+      // window.open yang dipanggil setelah await diperlakukan peramban sebagai
+      // popup dan diblokir. Perlombaannya tidak berbahaya -- kalau sesi belum
+      // terbaca saat guru mengklik, pesannya memakai '-', persis perilaku
+      // dasarnya, bukan sesuatu yang lebih buruk.
+      var emailGuru = (ts && ts.email) || '-';
+      api.getSession().then(function (r) {
+        var surel = r && r.data && r.data.session && r.data.session.user
+          ? r.data.session.user.email
+          : null;
+        if (surel) emailGuru = surel;
+      }).catch(function () { /* biarkan '-' */ });
+
+      btn.addEventListener('click', function () {
+        var pesan = 'Halo, masa berlaku akun MiClass saya telah habis. ' +
+                    'Mohon bantuan perpanjangan. Email: ' + emailGuru;
+        // noopener DAN noreferrer, sama seperti tombol upgrade: tab yang
+        // dibuka tidak boleh memegang window.opener ke dashboard guru.
+        window.open(
+          'https://wa.me/' + WA_UPGRADE + '?text=' + encodeURIComponent(pesan),
+          '_blank',
+          'noopener,noreferrer'
+        );
+      });
+
+      banner.appendChild(btn);
+    }
+
     function tambahTombolUpgrade(banner, tier) {
       if (!GURU_PRO_DIJUAL) return;
 
@@ -735,6 +789,10 @@
       }
 
       banner.appendChild(judul);
+      // Hanya EXPIRED yang mendapat tombol ini. TRIAL dan AKTIF masih bisa
+      // memakai aplikasinya; yang butuh jalan menghubungi admin adalah guru
+      // yang sudah terkunci.
+      if (ts.status === 'EXPIRED') tambahTombolHubungiAdmin(banner, ts);
       tambahBarisTier(banner, tier);
       tambahTombolUpgrade(banner, tier);
       banner.style.display = 'block';

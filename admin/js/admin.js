@@ -154,6 +154,22 @@ function actionButtons(guru) {
     ? `<button class="btn-aksi btn-reset-pw" data-id="${id}" data-nama="${nama}" data-email="${mail}">Reset Password</button>`
     : '';
 
+  // Guru EXPIRED sebelumnya hanya punya Aktifkan dan Hapus. Kedua tombol itu
+  // tidak menggantikan Perpanjang: Aktifkan menetapkan masa berlaku 365 hari
+  // dari HARI INI dan menyalakan is_active, sedangkan Perpanjang menambah hari
+  // di atas expires_at yang ada tanpa menyentuh is_active. Maksudnya berbeda,
+  // jadi keduanya perlu tersedia berdampingan.
+  //
+  // belum_trial sengaja tidak diberi tombol ini: akun yang belum pernah
+  // memulai trial tidak punya masa berlaku untuk diperpanjang.
+  //
+  // Kelas dan data-attribute-nya identik dengan tombol Perpanjang pada cabang
+  // AKTIF di bawah, sehingga event delegation yang sudah ada menanganinya
+  // tanpa satu baris pun perubahan di handler.
+  const perpanjangBtn = guru.status === 'EXPIRED'
+    ? `<button class="btn-aksi btn-perpanjang" data-id="${id}" data-nama="${nama}">Perpanjang</button>`
+    : '';
+
   if (guru.status === 'AKTIF') {
     return `
       <button class="btn-aksi btn-perpanjang" data-id="${id}" data-nama="${nama}">Perpanjang</button>
@@ -164,6 +180,7 @@ function actionButtons(guru) {
   }
   return `
     <button class="btn-aksi btn-aktifkan" data-id="${id}" data-nama="${nama}">Aktifkan</button>
+    ${perpanjangBtn}
     ${resetBtn}
     ${hapusBtn}
   `;
