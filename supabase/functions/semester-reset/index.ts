@@ -78,6 +78,25 @@ Deno.serve(async (req) => {
   const { data: { user }, error: authError } = await admin.auth.getUser(jwt);
   if (authError || !user) return json({ error: 'Unauthorized' }, 401);
 
+  // Pembatas laju — SEC-035.
+  //
+  // Batas paling ketat dari ketiga endpoint: reset semester menghapus seluruh
+  // data operasional satu guru. Tiga per jam sudah jauh di atas kebutuhan sah
+  // apa pun -- operasi ini wajar dijalankan dua kali SETAHUN.
+  //
+  // Kegagalan RPC tidak memblokir, sama seperti dua endpoint lainnya.
+  const { data: rlAllowed, error: rlError } = await admin.rpc('fn_check_rate_limit', {
+    p_identifier:     user.id,
+    p_endpoint:       'semester-reset',
+    p_max_requests:   3,
+    p_window_minutes: 60,
+  });
+  if (rlError) {
+    console.error('semester-reset: fn_check_rate_limit gagal', rlError);
+  } else if (rlAllowed === false) {
+    return json({ error: 'Terlalu banyak permintaan reset. Coba lagi dalam satu jam.' }, 429);
+  }
+
   // -------------------------------------------------------------------------
   // 2. Ambil profile guru
   // -------------------------------------------------------------------------

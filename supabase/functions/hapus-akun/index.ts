@@ -64,6 +64,33 @@ Deno.serve(async (req) => {
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
   );
 
+  // 3a. Pembatas laju — SEC-035.
+  //
+  // Kuncinya user.id, bukan IP: X-Forwarded-For dikendalikan klien. Batasnya
+  // paling ketat kedua setelah semester-reset karena setiap panggilan yang
+  // berhasil menghapus akun auth secara permanen -- tidak ada undo.
+  //
+  // Kegagalan RPC tidak memblokir: guru yang sah tetap bisa menghapus siswa
+  // meski pembatas lajunya sendiri bermasalah.
+  const { data: rlAllowed, error: rlError } = await admin.rpc('fn_check_rate_limit', {
+    p_identifier:     user.id,
+    p_endpoint:       'hapus-akun',
+    p_max_requests:   20,
+    p_window_minutes: 60,
+  });
+  if (rlError) {
+    console.error('hapus-akun: fn_check_rate_limit gagal', rlError);
+  } else if (rlAllowed === false) {
+    return json(
+      {
+        success: false,
+        error: 'Terlalu banyak permintaan hapus. Coba lagi dalam satu jam.',
+        step:  'rate_limit',
+      },
+      429,
+    );
+  }
+
   // 3b. Verifikasi profile_id ada di roster classroom ini
   const { data: rosterCheck, error: rosterCheckErr } = await admin
     .from('classroom_roster')

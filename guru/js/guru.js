@@ -630,23 +630,107 @@
 
     // -- Trial UI --
 
+    // Tujuan pengajuan upgrade. Satu tempat, supaya nomornya tidak tersebar
+    // sebagai literal di beberapa pemanggil. -- SEC-038
+    var WA_UPGRADE = '6281276979602';
+
+    // Sumber: docs/TIER-AND-LIFECYCLE.md. Pembeda satu-satunya antar tier
+    // adalah akses Tab Rancang; sisanya soal durasi dan biaya.
+    var TIER_INFO = {
+      TRIAL:    { label: 'Trial',    rancang: false },
+      GURU_GO:  { label: 'Guru Go',  rancang: false },
+      GURU_PRO: { label: 'Guru Pro', rancang: true  },
+    };
+
+    // Dibangun lewat DOM, bukan innerHTML. Tidak ada perakitan string HTML
+    // sama sekali, jadi tidak ada pertanyaan escaping yang perlu dijawab
+    // benar -- termasuk untuk nilai yang datang dari server.
+    function tambahBarisTier(banner, tier) {
+      var info = TIER_INFO[tier];
+      if (!info) return;   // tier tak dikenal: jangan mengarang keterangan
+
+      var baris = document.createElement('div');
+      baris.style.marginTop = '0.35rem';
+      baris.style.fontSize  = '0.9em';
+      baris.textContent = info.rancang
+        ? 'Paket ' + info.label + ' — Tab Rancang tersedia.'
+        : 'Paket ' + info.label + ' — Tab Rancang tidak tersedia di paket ini.';
+      banner.appendChild(baris);
+    }
+
+    function tambahTombolUpgrade(banner, tier) {
+      // GURU_PRO sudah paket teratas: menawarinya upgrade tidak ada artinya.
+      if (tier === 'GURU_PRO') return;
+
+      var btn = document.createElement('button');
+      btn.type        = 'button';
+      btn.id          = 'btn-ajukan-upgrade';
+      btn.textContent = 'Ajukan Upgrade ke Guru Pro';
+      // guru/css/guru.css di luar cakupan perubahan ini, jadi gayanya inline.
+      // Kalau nanti kelasnya dibuat, gaya di bawah tinggal dipindahkan.
+      btn.style.marginTop    = '0.5rem';
+      btn.style.padding      = '0.35rem 0.9rem';
+      btn.style.cursor       = 'pointer';
+      btn.style.borderRadius = '6px';
+      btn.style.border       = '1px solid currentColor';
+      btn.style.background   = 'transparent';
+      btn.style.color        = 'inherit';
+      btn.style.font         = 'inherit';
+
+      btn.addEventListener('click', function () {
+        var pesan = 'Halo Romo, saya ingin upgrade MiClass.';
+        // noopener DAN noreferrer: tab yang dibuka tidak boleh memegang
+        // window.opener ke dashboard guru.
+        window.open(
+          'https://wa.me/' + WA_UPGRADE + '?text=' + encodeURIComponent(pesan),
+          '_blank',
+          'noopener,noreferrer'
+        );
+      });
+
+      banner.appendChild(btn);
+    }
+
     function applyTrialUI(ts) {
       if (!ts) return;
       const banner  = document.getElementById('trial-banner');
       const btnBuat = document.getElementById('btn-buat-classroom');
 
+      // status 'belum_trial': guru belum mulai apa pun — tidak tampilkan banner
+      if (ts.status === 'belum_trial') return;
+
+      var tier = ts.tier || 'TRIAL';
+
+      // Banner dibangun ulang dari nol setiap kali. Sebelumnya isinya diset
+      // lewat textContent yang otomatis membuang isi lama; sekarang ada anak
+      // elemen, jadi pembersihannya harus eksplisit -- tanpa ini, dua kali
+      // pemanggilan menumpuk dua tombol upgrade.
+      banner.textContent = '';
+
+      var judul = document.createElement('div');
+
       if (ts.status === 'TRIAL') {
-        banner.className   = 'trial-banner trial-info';
-        banner.textContent = 'Trial aktif — ' + ts.hari_tersisa + ' hari tersisa.';
-        banner.style.display = 'block';
+        banner.className = 'trial-banner trial-info';
+        judul.textContent = 'Trial aktif — ' + ts.hari_tersisa + ' hari tersisa.';
+      } else if (ts.status === 'AKTIF') {
+        // Cabang baru. Guru berbayar sebelumnya tidak melihat banner apa pun,
+        // sehingga tidak punya cara mengetahui paket dan masa berlakunya.
+        banner.className = 'trial-banner trial-info';
+        judul.textContent = 'Langganan aktif — ' + ts.hari_tersisa + ' hari tersisa.';
       } else if (ts.status === 'EXPIRED') {
-        banner.className   = 'trial-banner trial-expired';
-        banner.textContent = 'Trial habis. Hubungi admin untuk aktivasi.';
-        banner.style.display = 'block';
+        banner.className = 'trial-banner trial-expired';
+        judul.textContent = 'Masa berlaku habis. Hubungi admin untuk aktivasi.';
         btnBuat.disabled = true;
-        btnBuat.title    = 'Trial habis — hubungi admin untuk aktivasi';
+        btnBuat.title    = 'Masa berlaku habis — hubungi admin untuk aktivasi';
+      } else {
+        // Status tak dikenal: diam, jangan menampilkan banner kosong.
+        return;
       }
-      // status 'belum_trial': guru belum buat classroom — tidak tampilkan banner
+
+      banner.appendChild(judul);
+      tambahBarisTier(banner, tier);
+      tambahTombolUpgrade(banner, tier);
+      banner.style.display = 'block';
     }
 
     // -- Modal Pilih Peran --

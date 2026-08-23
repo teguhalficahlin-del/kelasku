@@ -58,6 +58,32 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Pembatas laju — SEC-035.
+    //
+    // Diletakkan setelah identitas diketahui tetapi SEBELUM pekerjaan apa pun
+    // dimulai: kuncinya user.id, bukan IP. X-Forwarded-For dikendalikan klien
+    // dan bisa diganti setiap request, jadi membatasi per-IP hanya membatasi
+    // penyerang yang tidak berusaha.
+    //
+    // Kegagalan RPC-nya sendiri TIDAK memblokir request. Kalau pembatas laju
+    // sedang bermasalah, guru yang sah tetap bisa bekerja -- pilihan sadar:
+    // pada endpoint ini kehilangan akses lebih merugikan daripada satu jendela
+    // tanpa pembatasan.
+    const { data: rlAllowed, error: rlError } = await admin.rpc('fn_check_rate_limit', {
+      p_identifier:     user.id,
+      p_endpoint:       'generate-akun',
+      p_max_requests:   50,
+      p_window_minutes: 60,
+    });
+    if (rlError) {
+      console.error('generate-akun: fn_check_rate_limit gagal', rlError);
+    } else if (rlAllowed === false) {
+      return Response.json(
+        { success: false, error: 'Terlalu banyak permintaan. Coba lagi dalam satu jam.' },
+        { status: 429, headers: { ...CORS_HEADERS, 'Retry-After': '3600' } },
+      );
+    }
+
     // Verifikasi role GURU + ownership classroom dalam satu query atomic
     const { data: callerProfile, error: profileError } = await admin
       .from('profiles')
