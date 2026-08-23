@@ -476,7 +476,8 @@ document.getElementById('btn-refresh-yatim')
 // ─────────────────────────────────────────────────────────────────────────────
 
 document.getElementById('btn-logout').addEventListener('click', async () => {
-  await sb.auth.signOut();
+  // scope: 'global' — SEC-014
+  await sb.auth.signOut({ scope: 'global' });
   showLogin();
   document.getElementById('form-login').reset();
   hideLoginError();

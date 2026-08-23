@@ -874,7 +874,8 @@ db.auth.onAuthStateChange(function (event) {
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btn-logout').addEventListener('click', async () => {
     _keluarSengaja = true;
-    await db.auth.signOut();
+    // scope: 'global' — SEC-014
+    await db.auth.signOut({ scope: 'global' });
     window.location.href = 'index.html';
   });
 
