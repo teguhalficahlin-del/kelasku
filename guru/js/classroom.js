@@ -525,7 +525,11 @@
     // kegagalan itu tampak sama saja dengan penolakan izin di awal -- padahal
     // yang satu tidak menyentuh apa pun dan yang lain sudah menghapus separuh.
     if (!json.success) return { error: json.error || 'Hapus akun gagal.', step: json.step };
-    return { deleted: json.deleted };
+    // `sisa` ikut diteruskan. Edge Function memakainya untuk melaporkan tabel
+    // pendukung yang gagal dibersihkan SETELAH akunnya terhapus -- bukan kegagalan
+    // hapus, tetapi guru tetap perlu tahu. Sebelumnya field ini dibuang di sini
+    // sehingga tidak pernah sampai ke layar. -- DEL-015
+    return { deleted: json.deleted, sisa: json.sisa };
   }
 
   // -------------------------------------------------------------------------
@@ -663,6 +667,7 @@
 
     var berhasil    = 0;
     var gagalDetail = [];
+    var sisaDetail  = [];
     var adaSeparuh  = false;
     for (var i = 0; i < targets.length; i++) {
       var row = targets[i];
@@ -678,14 +683,40 @@
         }
       } else {
         berhasil++;
+        if (result.sisa && result.sisa.length > 0) {
+          sisaDetail.push({ nama: row.full_name, sisa: result.sisa });
+        }
       }
     }
 
     btnHapus.classList.remove('btn-hapus-processing');
     if (banner) { banner.style.display = 'none'; }
 
+    // Sisa pembersihan: akun siswa SUDAH terhapus, tetapi ada tabel pendukung
+    // yang gagal dibersihkan. Karena itu bukan kegagalan hapus, siswa ini tetap
+    // dihitung berhasil dan tidak masuk gagalDetail -- tetapi mendiamkannya
+    // membuat data yatim menumpuk tanpa ada yang tahu.
+    var sisaPesan = '';
+    if (sisaDetail.length > 0) {
+      var sisaBaris = sisaDetail.map(function (s) {
+        return '\u2022 ' + s.nama + ': ' + s.sisa.join('; ');
+      }).join('\n');
+
+      sisaPesan =
+        '\n\nCatatan: data pendukung untuk ' + sisaDetail.length +
+        ' siswa tidak terbersihkan seluruhnya. Akunnya sendiri sudah terhapus, ' +
+        'jadi tidak perlu dihapus ulang.\n' + sisaBaris +
+        '\n\nHubungi admin jika diperlukan.';
+    }
+
     if (gagalDetail.length === 0) {
-      showShareNotif('Selesai: ' + berhasil + ' berhasil dihapus.');
+      if (sisaPesan) {
+        // showShareNotif menghilang sendiri dalam 2,5 detik -- terlalu cepat untuk
+        // catatan yang perlu ditindaklanjuti. Alasan yang sama dipakai cabang gagal.
+        window.alert('Selesai: ' + berhasil + ' berhasil dihapus.' + sisaPesan);
+      } else {
+        showShareNotif('Selesai: ' + berhasil + ' berhasil dihapus.');
+      }
     } else {
       // Kegagalan tidak lewat showShareNotif -- notif itu menghilang sendiri dalam
       // 2,5 detik, dan daftar nama yang perlu ditindaklanjuti hilang bersamanya.
@@ -704,7 +735,7 @@
                  'gagal, hubungi admin.';
       }
 
-      window.alert(pesan);
+      window.alert(pesan + sisaPesan);
     }
 
     btnHapus.textContent = 'Hapus Terpilih (0)';
