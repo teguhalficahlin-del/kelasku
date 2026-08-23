@@ -6091,6 +6091,24 @@ ${tpList.map((tp, i) => {
 
     if (!tabRancang || !panelRancang) return;
 
+    // Sakelar tunggal untuk seluruh penawaran upgrade, sejalan dengan
+    // GURU_PRO_DIJUAL di guru/js/guru.js (commit dc8334f).
+    // docs/TIER-AND-LIFECYCLE.md menyatakan GURU_PRO "Belum dijual --
+    // menunggu Tab Rancang stabil", jadi tombolnya tidak boleh terlihat oleh
+    // siapa pun untuk saat ini. Teks banner "Fitur Guru Pro" tetap tampil
+    // supaya guru tahu kenapa tab ini terkunci.
+    //
+    // Kodenya sengaja dipertahankan utuh, bukan dihapus: saat GURU_PRO siap
+    // dijual, cukup ubah nilai di bawah menjadi true.
+    var GURU_PRO_DIJUAL = false;
+
+    // Jalur kontak upgrade. Sebelumnya alamat email pribadi ditanam di atribut
+    // onclick inline -- alamat itu ikut terbit di GitHub Pages dan gampang
+    // dipanen pengumpul spam. WhatsApp memakai nomor yang memang
+    // dipublikasikan.
+    var WA_UPGRADE_URL =
+      'https://wa.me/6281276979602?text=Halo+Romo,+saya+ingin+upgrade+MiClass';
+
     // Saat tab Rancang diklik — sembunyikan semua panel lain
     tabRancang.addEventListener('click', async () => {
       window.currentTab = 'rancang';
@@ -6121,8 +6139,18 @@ ${tpList.map((tp, i) => {
           '<div class="upgrade-tier-banner">' +
           '<strong>Fitur Guru Pro</strong>' +
           '<p>Tab Rancang Pembelajaran tersedia untuk Guru Pro. Tab lainnya tetap dapat Anda gunakan seperti biasa.</p>' +
-          '<button class="btn-upgrade" onclick="alert(\'Hubungi admin untuk upgrade: teguhalficahlin@gmail.com\')">Lihat paket</button>' +
+          (GURU_PRO_DIJUAL
+            ? '<button type="button" class="btn-upgrade" id="btn-lihat-paket">Lihat paket</button>'
+            : '') +
           '</div>';
+        if (GURU_PRO_DIJUAL) {
+          var btnPaket = panelRancang.querySelector('#btn-lihat-paket');
+          if (btnPaket) {
+            btnPaket.addEventListener('click', function () {
+              window.open(WA_UPGRADE_URL, '_blank', 'noopener,noreferrer');
+            });
+          }
+        }
         return;
       }
 
