@@ -4349,3 +4349,25 @@ h2.panel-header.open .panel-collapse-arrow {
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+/* Tombol ajukan upgrade di trial-banner dashboard guru -- SEC-038.
+   Bukan .btn-upgrade: kelas itu sudah dipakai tombol "Lihat paket" di
+   .upgrade-tier-banner, yang tampil emas solid. Ini varian garis tipis
+   yang menumpang warna banner induknya, jadi kelasnya dibedakan. */
+.btn-ajukan-upgrade {
+  margin-top: 0.5rem;
+  padding: 0.35rem 0.9rem;
+  cursor: pointer;
+  border-radius: var(--r-sm);
+  border: 1px solid currentColor;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  align-self: flex-start;
+}
+
+.btn-ajukan-upgrade:hover {
+  background: var(--gold);
+  color: var(--text-on-gold);
+  border-color: var(--gold);
+}

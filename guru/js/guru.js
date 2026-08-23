@@ -658,24 +658,31 @@
       banner.appendChild(baris);
     }
 
+    // Satu sakelar untuk seluruh penawaran upgrade. docs/TIER-AND-LIFECYCLE.md
+    // menyatakan GURU_PRO "Belum dijual — menunggu Tab Rancang stabil", jadi
+    // tombolnya tidak boleh terlihat oleh siapa pun untuk saat ini.
+    //
+    // Kodenya sengaja dipertahankan utuh, bukan dihapus: saat GURU_PRO siap
+    // dijual, cukup ubah nilai di bawah menjadi true. Tidak ada logika yang
+    // perlu dicari ulang dan disusun kembali.
+    var GURU_PRO_DIJUAL = false;
+
     function tambahTombolUpgrade(banner, tier) {
+      if (!GURU_PRO_DIJUAL) return;
+
       // GURU_PRO sudah paket teratas: menawarinya upgrade tidak ada artinya.
       if (tier === 'GURU_PRO') return;
 
       var btn = document.createElement('button');
       btn.type        = 'button';
       btn.id          = 'btn-ajukan-upgrade';
+      // Nama kelasnya BUKAN .btn-upgrade. Kelas itu sudah dipakai tombol
+      // "Lihat paket" di .upgrade-tier-banner (Penilaian + Rancang), dengan
+      // tampilan emas solid yang berbeda dari tombol ini. Memakai nama yang
+      // sama untuk dua tombol yang berbeda rupa hanya menyiapkan kebingungan
+      // bagi orang yang menyunting salah satunya nanti.
+      btn.className   = 'btn-ajukan-upgrade';
       btn.textContent = 'Ajukan Upgrade ke Guru Pro';
-      // guru/css/guru.css di luar cakupan perubahan ini, jadi gayanya inline.
-      // Kalau nanti kelasnya dibuat, gaya di bawah tinggal dipindahkan.
-      btn.style.marginTop    = '0.5rem';
-      btn.style.padding      = '0.35rem 0.9rem';
-      btn.style.cursor       = 'pointer';
-      btn.style.borderRadius = '6px';
-      btn.style.border       = '1px solid currentColor';
-      btn.style.background   = 'transparent';
-      btn.style.color        = 'inherit';
-      btn.style.font         = 'inherit';
 
       btn.addEventListener('click', function () {
         var pesan = 'Halo Romo, saya ingin upgrade MiClass.';
