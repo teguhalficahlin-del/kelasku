@@ -48,7 +48,14 @@
 
   // ─── Constants ──────────────────────────────────────────────────────────────
   const CY           = new Date().getFullYear();
-  const DEFAULT_YEAR = `${CY - 1}/${CY}`;
+  // Tahun ajaran berganti di bulan Juli, bukan Januari. Sebelum ini nilainya
+  // selalu `${CY-1}/${CY}`, sehingga sepanjang Juli–Desember guru mendapat
+  // tahun ajaran yang sudah lewat sebagai nilai bawaan -- filter Rekap dan
+  // TP baru ikut salah tanpa ada yang terlihat keliru di layar.
+  // getMonth() berbasis nol: 6 = Juli.
+  const DEFAULT_YEAR = new Date().getMonth() >= 6
+    ? `${CY}/${CY + 1}`
+    : `${CY - 1}/${CY}`;
 
   const INSTRUMEN_MAP = {
     OBSERVASI:   ['Lembar Observasi', 'Catatan Anekdot', 'Checklist'],
@@ -2791,20 +2798,20 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
       _renderRecapShell(c);
     });
     c.querySelector('#rc-semester')?.addEventListener('change', function () {
-      _rcSemester = this.value; _rcPage1 = _rcPage2 = 0; _rcHasil = null; _loadRecapContent();
+      _rcSemester = this.value; _rcPage1 = _rcPage2 = _rcPageF = _rcPageD = 0; _rcHasil = null; _loadRecapContent();
     });
     c.querySelector('#rc-tahun')?.addEventListener('change', function () {
-      _rcTahun = this.value.trim() || DEFAULT_YEAR; _rcPage1 = _rcPage2 = 0; _rcHasil = null; _loadRecapContent();
+      _rcTahun = this.value.trim() || DEFAULT_YEAR; _rcPage1 = _rcPage2 = _rcPageF = _rcPageD = 0; _rcHasil = null; _loadRecapContent();
     });
     c.querySelector('#rc-mapel')?.addEventListener('change', function () {
-      _rcMapel = this.value; _rcMapelUserSet = true; _rcPage1 = _rcPage2 = 0; _rcHasil = null; _loadRecapContent();
+      _rcMapel = this.value; _rcMapelUserSet = true; _rcPage1 = _rcPage2 = _rcPageF = _rcPageD = 0; _rcHasil = null; _loadRecapContent();
     });
     c.querySelector('#rc-teknik')?.addEventListener('change', function () {
-      _rcTeknik = this.value || null; _rcInstrumen = null; _rcPage1 = _rcPage2 = 0; _rcHasil = null;
+      _rcTeknik = this.value || null; _rcInstrumen = null; _rcPage1 = _rcPage2 = _rcPageF = _rcPageD = 0; _rcHasil = null;
       _renderRecapShell(c); _loadRecapContent();
     });
     c.querySelector('#rc-instrumen')?.addEventListener('change', function () {
-      _rcInstrumen = this.value || null; _rcPage1 = _rcPage2 = 0; _rcHasil = null; _loadRecapContent();
+      _rcInstrumen = this.value || null; _rcPage1 = _rcPage2 = _rcPageF = _rcPageD = 0; _rcHasil = null; _loadRecapContent();
     });
 
     _loadRecapContent();
@@ -3125,7 +3132,9 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
       const no    = _rcPage1 * RC_PAGE_SIZE + idx + 1;
       const cells = sumatifs.map((_, ci) => {
         const n = nilaiGrid[ci][s.id];
-        return `<td style="${tdSt};text-align:center">${n != null ? n : 0}</td>`;
+        // Sel kosong ditulis '--', bukan 0: siswa yang belum dinilai harus
+        // terbaca berbeda dari siswa yang benar-benar mendapat nilai nol.
+        return `<td style="${tdSt};text-align:center">${n != null ? n : RC_SEL_KOSONG}</td>`;
       }).join('');
       return `<tr>
         <td style="${tdSt};text-align:center;color:var(--text-secondary)">${no}</td>
@@ -3579,7 +3588,11 @@ ${metodeHtml}${hasilHtml}`;
           const r = tp.rentang ?? DEFAULT_RENTANG;
           s1rows.push([
             'KKTP',
-            tp.konten ?? '',
+            // Deskripsi KKTP disimpan di kolom judul, bukan konten: form TP
+            // menulis konten: null untuk tipe KKTP dan melabeli field judul
+            // sebagai 'Deskripsi'. Membaca konten di sini selalu menghasilkan
+            // kolom kosong.
+            tp.judul ?? '',
             '',
             '',
             r.BB ? `${r.BB[0]}–${r.BB[1]}` : '',
@@ -3631,7 +3644,7 @@ ${metodeHtml}${hasilHtml}`;
 
       const diagAsmts = asmtTerpilih.filter(a => a.jenis === 'DIAGNOSTIK' && asmtLolosSemester(a));
       const formAsmts = asmtTerpilih.filter(a => a.jenis === 'FORMATIF'   && asmtLolosSemester(a));
-      const sumAsmts  = asmtTerpilih.filter(a => a.jenis === 'SUMATIF');
+      const sumAsmts  = asmtTerpilih.filter(a => a.jenis === 'SUMATIF'    && asmtLolosSemester(a));
 
       // Kepala kolom tiga baris:
       //   1. kode penilaian — {prefix}{n}-{judul TP}, ringkas, untuk ditunjuk
