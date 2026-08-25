@@ -3274,6 +3274,42 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
     const totalBobot = _rcBobots.reduce((a, b) => a + (parseFloat(b) || 0), 0);
     const bobotValid = Math.abs(totalBobot - 100) < 0.01;
 
+    // Total global 100% belum cukup. Nilai akhir dihitung PER kelompok TP, dan
+    // kelompok yang seluruh bobotnya nol tidak punya pembagi — _hitungNilaiSiswa
+    // mengembalikan 0 untuk semua siswanya, lalu 0 itu tersimpan ke grade_recap
+    // seolah nilai sungguhan. Bobot bisa berjumlah 100 secara global sambil
+    // meninggalkan satu TP kosong: dua TP, 100% ditaruh semua di TP-A.
+    //
+    // Dihitung dari sumatifs + _rcBobots, BUKAN dari _rcHasil. Keduanya sudah
+    // tersedia sebelum tombol Hitung ditekan, sehingga Hitung pun bisa dikunci;
+    // kalau menunggu _rcHasil, Hitung sudah terlanjur berjalan.
+    //
+    // Pengelompokannya sama dengan _hitungNilaiAkhir: kunci tp_kktp_id, sumatif
+    // tanpa TP diabaikan karena memang tidak pernah ikut dihitung.
+    const tpNolBobot = [];
+    if (isBobot) {
+      const grupBobot = {};
+      sumatifs.forEach((a, i) => {
+        if (!a.tp_kktp_id) return;
+        if (!grupBobot[a.tp_kktp_id]) grupBobot[a.tp_kktp_id] = [];
+        grupBobot[a.tp_kktp_id].push(i);
+      });
+      for (const [tpId, idxs] of Object.entries(grupBobot)) {
+        const totalGrup = idxs.reduce((t, i) => t + (parseFloat(_rcBobots[i]) || 0), 0);
+        if (totalGrup <= 0) {
+          const tp = _tpList.find(t => t.id === tpId);
+          tpNolBobot.push(tp ? (tp.judul || tp.konten || '—') : '—');
+        }
+      }
+    }
+    // Dipakai dua kali: di bawah kotak bobot (tempat guru memperbaikinya) dan
+    // di samping tombol Simpan (tempat ia menyadari sesuatu terkunci).
+    const grupNolHtml = tpNolBobot.length ? `
+  <div style="margin-top:.5rem;font-size:var(--fs-caption);color:#c0392b">
+    Seluruh bobot TP berikut masih 0%, sehingga nilai akhirnya akan menjadi 0:
+    ${esc(tpNolBobot.join(', '))}. Beri bobot pada salah satu sumatif TP itu
+    lebih dulu.</div>` : '';
+
     const bobotRowsHtml = isBobot
       ? `<div style="display:flex;flex-direction:column;gap:.35rem;margin:-.25rem 0 .25rem 1.25rem">
           ${sumatifs.map((_, i) => `<div style="display:flex;align-items:center;gap:.5rem;font-size:var(--fs-caption)">
@@ -3285,7 +3321,7 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
             ${bobotValid
               ? `Total bobot: ${totalBobot}% ✓`
               : `Total bobot harus 100%. Saat ini: ${totalBobot}%`}
-          </div></div>` : '';
+          </div>${grupNolHtml}</div>` : '';
 
     // Menghitung DAN menyimpan sama-sama terkunci selama bobotnya belum tepat.
     // Sebelumnya hanya tombol Hitung yang dikunci, sehingga guru dapat menekan
@@ -3295,9 +3331,16 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
     // Keduanya juga terkunci saat ada sumber kritis yang gagal dimuat: nilai
     // akhir dihitung dari grid yang mungkin bolong, dan menyimpannya berarti
     // menulis angka salah ke grade_recap.
-    const bobotDis  = isBobot && !bobotValid;
-    const hitungDis = bobotDis || !!_loadError;
-    const simpanDis = hitungDis;
+    //
+    // Kelompok TP berbobot nol mengunci keduanya juga: angkanya akan 0 dan 0 itu
+    // tak bisa dibedakan dari nilai yang benar-benar nol setelah tersimpan.
+    const bobotDis   = isBobot && !bobotValid;
+    const grupNolDis = tpNolBobot.length > 0;
+    const hitungDis  = bobotDis || grupNolDis || !!_loadError;
+    // Simpan punya satu kunci tambahan: hasil yang sudah dihitung tapi tidak
+    // menyisakan satu kelompok TP pun tidak punya apa-apa untuk disimpan —
+    // _simpanRecap akan berputar nol kali dan melaporkan "0 entri" seolah sukses.
+    const simpanDis  = hitungDis || !!(_rcHasil && _rcHasil.groups.length === 0);
     const metodeHtml = `
 <div style="margin-top:.75rem;background:var(--bg-card,#1e1e1e);border-radius:.5rem;
   padding:.75rem;border:1px solid var(--border-subtle,rgba(255,255,255,.12))">
@@ -3390,6 +3433,7 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
   ${lewatHtml}
   ${bobotDis ? `<div style="margin-top:.75rem;font-size:var(--fs-caption);color:#c0392b">
     Total bobot harus 100%. Saat ini: ${totalBobot}%</div>` : ''}
+  ${grupNolHtml}
   <button id="rc-btn-simpan"${simpanDis ? ' disabled' : ''}
     style="margin-top:.5rem;min-height:var(--btn-h);
     background:${simpanDis ? 'var(--border-subtle,rgba(255,255,255,.18))' : 'var(--gold)'};
@@ -3973,23 +4017,34 @@ ${metodeHtml}${hasilHtml}`;
       // dengan sengaja: aoa_to_sheet tidak menggabung sel, jadi kalau tiga
       // kolom terakhir dikosongkan pembaca kehilangan penanda kelompoknya.
       const SUM_FIELDS = ['Nilai', 'Predikat', 'Tindak Lanjut', 'Refleksi Guru'];
-      const sumRows = [
-        ['No', 'Nama Siswa', ...sumMeta.flatMap(m => SUM_FIELDS.map(() => m.kode))],
-        ['',   '',           ...sumMeta.flatMap(m => SUM_FIELDS.map(() => m.sub))],
-        ['',   '',           ...sumMeta.flatMap(m => SUM_FIELDS.map(() => m.desk))],
-        ['',   '',           ...sumMeta.flatMap(() => SUM_FIELDS)],
-      ];
-      _roster.forEach((siswa, idx) => {
-        const row = [idx + 1, siswa.nama];
-        for (const m of sumMeta) {
-          const r = m.resMap[siswa.id];
-          const nilai = r?.nilai ?? '-';
-          const predikat = (r?.nilai != null && m.kktp0)
-            ? getPredikat(r.nilai, getRentang(m.kktp0)) : '-';
-          row.push(nilai, predikat, r?.tindak_lanjut ?? '-', m.a.refleksi_guru ?? '-');
-        }
-        sumRows.push(row);
-      });
+      // Pola sama dengan buildWideSheet: sheet tanpa satu pun kolom penilaian
+      // tampak seperti bug kalau yang terlihat guru cuma empat baris kepala
+      // kolom kosong. Kalimatnya pun sama supaya ketiga sheet berbunyi seragam.
+      let sumRows;
+      if (!sumAsmts.length) {
+        sumRows = [
+          ['No', 'Nama Siswa'],
+          ['', `Belum ada penilaian ${JENIS_LBL.SUMATIF} untuk filter yang dipilih.`],
+        ];
+      } else {
+        sumRows = [
+          ['No', 'Nama Siswa', ...sumMeta.flatMap(m => SUM_FIELDS.map(() => m.kode))],
+          ['',   '',           ...sumMeta.flatMap(m => SUM_FIELDS.map(() => m.sub))],
+          ['',   '',           ...sumMeta.flatMap(m => SUM_FIELDS.map(() => m.desk))],
+          ['',   '',           ...sumMeta.flatMap(() => SUM_FIELDS)],
+        ];
+        _roster.forEach((siswa, idx) => {
+          const row = [idx + 1, siswa.nama];
+          for (const m of sumMeta) {
+            const r = m.resMap[siswa.id];
+            const nilai = r?.nilai ?? '-';
+            const predikat = (r?.nilai != null && m.kktp0)
+              ? getPredikat(r.nilai, getRentang(m.kktp0)) : '-';
+            row.push(nilai, predikat, r?.tindak_lanjut ?? '-', m.a.refleksi_guru ?? '-');
+          }
+          sumRows.push(row);
+        });
+      }
       XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(sumRows), 'Sumatif');
 
       // ── Sheet 5: Rekap Penilaian ──────────────────────────────────────────
