@@ -35,6 +35,11 @@
   let _rcInstrumen  = null;
   let _rcPage1      = 0;      // DAFTAR NILAI pagination (5 per halaman)
   let _rcPage2      = 0;      // HASIL NILAI pagination (5 per halaman)
+  // Jenis yang sedang ditampilkan di Rekap. Default SUMATIF supaya panel ini
+  // terbuka persis seperti sebelum dropdown jenis ada.
+  let _rcJenis      = 'SUMATIF';
+  let _rcPageF      = 0;      // pagination rekap FORMATIF
+  let _rcPageD      = 0;      // pagination rekap DIAGNOSTIK
   let _rcMetode          = 'rata'; // 'rata' | 'bobot' | 'terbaik'
   let _rcMetodeListener  = null;   // listener delegasi pada cc — di-replace tiap render
   let _rcBobots          = [];
@@ -248,6 +253,9 @@
     _rcInstrumen      = null;
     _rcPage1          = 0;
     _rcPage2          = 0;
+    _rcJenis          = 'SUMATIF';
+    _rcPageF          = 0;
+    _rcPageD          = 0;
     _rcMetode         = 'rata';
     _rcBobots         = [];
     _rcLastSumatifIds = [];
@@ -2698,16 +2706,27 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
     const isWali = _roleGuru === 'WALI_KELAS_SD';
     if (isWali && !_rcMapelUserSet) _rcMapel = _selMapel || MAPEL_SD[0];
 
-    const allSumatifs = _asmts.filter(a => a.jenis === 'SUMATIF');
-    const teknikSet   = [...new Set(allSumatifs.map(a => a.teknik).filter(Boolean))];
-    const instrSet    = _rcTeknik
-      ? [...new Set(allSumatifs.filter(a => a.teknik === _rcTeknik).map(a => a.instrumen).filter(Boolean))]
+    // Daftar teknik dan instrumen mengikuti jenis yang sedang dipilih. Kalau ia
+    // tetap dikunci ke SUMATIF, guru yang membuka rekap Formatif akan disuguhi
+    // pilihan teknik yang tidak satu pun cocok dengan datanya.
+    const allJenis  = _asmts.filter(a => a.jenis === _rcJenis);
+    const teknikSet = [...new Set(allJenis.map(a => a.teknik).filter(Boolean))];
+    const instrSet  = _rcTeknik
+      ? [...new Set(allJenis.filter(a => a.teknik === _rcTeknik).map(a => a.instrumen).filter(Boolean))]
       : [];
 
     const sel = (v, cur) => v === cur ? ' selected' : '';
     const capLbl = t => `<div style="font-size:var(--fs-caption);color:var(--text-secondary);margin-bottom:.3rem">${t}</div>`;
 
     let html = `<div style="display:flex;flex-direction:column;gap:.6rem;margin-bottom:.75rem">`;
+
+    // Jenis penilaian. Ditaruh paling atas karena ia yang menentukan arti
+    // seluruh filter di bawahnya.
+    html += `<div>${capLbl('Jenis penilaian')}
+      <select id="rc-jenis" style="${inputCss('max-width:14rem')}">
+        ${['SUMATIF','FORMATIF','DIAGNOSTIK'].map(j =>
+          `<option value="${j}"${sel(j,_rcJenis)}>${esc(JENIS_LBL[j])}</option>`).join('')}
+      </select></div>`;
 
     // Semester + tahun ajaran
     html += `<div style="display:flex;gap:.75rem;flex-wrap:wrap;align-items:flex-end">
@@ -2749,6 +2768,15 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
     c.innerHTML = html;
 
     // Wire filter events
+    // Ganti jenis membatalkan teknik dan instrumen: keduanya milik jenis lama
+    // dan hampir pasti tidak ada di jenis baru, sehingga kalau dibiarkan
+    // hasilnya kosong tanpa sebab yang terlihat oleh guru.
+    c.querySelector('#rc-jenis')?.addEventListener('change', function () {
+      _rcJenis = this.value;
+      _rcTeknik = null; _rcInstrumen = null;
+      _rcPage1 = _rcPage2 = _rcPageF = _rcPageD = 0; _rcHasil = null;
+      _renderRecapShell(c);
+    });
     c.querySelector('#rc-semester')?.addEventListener('change', function () {
       _rcSemester = this.value; _rcPage1 = _rcPage2 = 0; _rcHasil = null; _loadRecapContent();
     });
@@ -2774,6 +2802,31 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
     if (!cc) return;
     cc.innerHTML = `<div style="color:var(--text-secondary);font-size:var(--fs-caption);padding:.5rem 0">Memuat…</div>`;
 
+    // Percabangan mengikuti bentuk yang sudah dipakai buildResultPayload() dan
+    // studentRowHtml(): dua cabang bernama lalu SUMATIF sebagai cabang terakhir.
+    // Jalur SUMATIF di bawah tidak diubah sedikit pun.
+    if (_rcJenis === 'FORMATIF' || _rcJenis === 'DIAGNOSTIK') {
+      const items = _rcJenis === 'FORMATIF'
+        ? _getFilteredFormatifs()
+        : _getFilteredDiagnostiks();
+      if (!items.length) {
+        cc.innerHTML = `<p style="color:var(--text-secondary);font-size:var(--fs-caption)">
+          Belum ada penilaian ${esc(JENIS_LBL[_rcJenis])} untuk filter yang dipilih.</p>`;
+        return;
+      }
+      if (!_roster.length) {
+        cc.innerHTML = `<p style="color:var(--text-secondary);font-size:var(--fs-caption)">
+          Tidak ada siswa di kelas ini.</p>`;
+        return;
+      }
+      const hasil = await Promise.all(
+        items.map(a => SipApi.getAssessmentResults(a.id).catch(() => []))
+      );
+      if (_rcJenis === 'FORMATIF') _renderRecapFormatif(cc, items, hasil);
+      else                         _renderRecapDiagnostik(cc, items, hasil);
+      return;
+    }
+
     const sumatifs = _getFilteredSumatifs();
     if (!sumatifs.length) {
       cc.innerHTML = `<p style="color:var(--text-secondary);font-size:var(--fs-caption)">
@@ -2794,13 +2847,18 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
     _renderRecapContent(cc, sumatifs, allResults);
   }
 
-  function _getFilteredSumatifs() {
+  // Penyaring bersama untuk ketiga jenis. Isinya sama persis dengan
+  // _getFilteredSumatifs() sebelum perubahan ini; yang dulu tertanam sebagai
+  // literal 'SUMATIF' kini menjadi parameter. Ditulis satu kali supaya aturan
+  // semester/tahun/mapel tidak perlu dirawat di tiga tempat -- berkas ini sudah
+  // punya cukup banyak blok kembar.
+  function _getFilteredJenis(jenis) {
     const isWali = _roleGuru === 'WALI_KELAS_SD';
     return _asmts.filter(a => {
-      if (a.jenis !== 'SUMATIF') return false;
+      if (a.jenis !== jenis) return false;
       if (_rcTeknik && a.teknik !== _rcTeknik) return false;
       if (_rcInstrumen && a.instrumen !== _rcInstrumen) return false;
-      // Sumatif tanpa TP tidak bisa diketahui semesternya — tidak lolos filter.
+      // Penilaian tanpa TP tidak bisa diketahui semesternya — tidak lolos filter.
       if (!a.tp_kktp_id) return false;
       if (a.tp_kktp_id) {
         const tp = _tpList.find(t => t.id === a.tp_kktp_id);
@@ -2811,6 +2869,151 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
         }
       }
       return true;
+    });
+  }
+
+  function _getFilteredSumatifs()    { return _getFilteredJenis('SUMATIF');    }
+  function _getFilteredFormatifs()   { return _getFilteredJenis('FORMATIF');   }
+  function _getFilteredDiagnostiks() { return _getFilteredJenis('DIAGNOSTIK'); }
+
+  // Rangka bersama rekap FORMATIF dan DIAGNOSTIK. Keduanya menampilkan matriks
+  // siswa x penilaian dengan kepala kolom, penomoran, dan paginasi yang sama;
+  // yang berbeda hanya isi selnya. Ditulis sekali lalu dibedakan lewat selHtml()
+  // supaya tidak lahir sepasang blok kembar baru -- berkas ini sudah punya tujuh.
+  //
+  // Di sini TIDAK ADA kotak "Tentukan Nilai Akhir" dan TIDAK ADA tombol Simpan.
+  // Keduanya milik SUMATIF. Metode rata/bobot/terbaik adalah aritmetika, sedang
+  // status Formatif dan Diagnostik hanya kategori berurut -- merata-ratakan
+  // "Berkembang" dengan "Tercapai" tidak punya arti, dan angka apa pun yang
+  // dipakai untuk mewakilinya adalah keputusan pedagogis yang belum diambil
+  // siapa pun. Datanya sendiri sudah tersimpan di assessment_results sejak guru
+  // mengisinya, jadi tidak ada yang perlu disimpan ulang dari panel ini.
+  function _renderRecapMatriks(cc, items, allResults, opts) {
+    const { prefix, judul, page, setPage, selHtml } = opts;
+
+    // grid[i][student_id] = baris hasil milik penilaian ke-i, atau undefined
+    const grid = items.map((_, i) => {
+      const m = {};
+      (allResults[i] ?? []).forEach(r => { m[r.student_id] = r; });
+      return m;
+    });
+
+    // Kepala kolom mengikuti bentuk yang dipakai rekap Sumatif: nomor urut
+    // penilaian, lalu judul TP yang dipendekkan. Bedanya hanya huruf awalnya.
+    const colHeaders = items.map((a, i) => {
+      const tp  = a.tp_kktp_id ? _tpList.find(t => t.id === a.tp_kktp_id) : null;
+      const jud = tp ? (tp.judul || '') : '';
+      const label = jud ? (jud.length > 10 ? jud.slice(0, 10) + '…' : jud) : '—';
+      return `${prefix}${i + 1}-${label}`;
+    });
+
+    const thSt = `padding:.4rem .5rem;border-bottom:2px solid var(--gold);font-size:var(--fs-caption);white-space:nowrap;text-align:left`;
+    const tdSt = `padding:.4rem .5rem;font-size:var(--fs-ui);border-bottom:1px solid var(--border-subtle,rgba(255,255,255,.08));vertical-align:top`;
+
+    const totalPages = Math.ceil(_roster.length / RC_PAGE_SIZE);
+    const cur        = Math.min(page, Math.max(0, totalPages - 1));
+    const pageRoster = _roster.slice(cur * RC_PAGE_SIZE, (cur + 1) * RC_PAGE_SIZE);
+
+    const rows = pageRoster.map((stu, idx) => {
+      const no    = cur * RC_PAGE_SIZE + idx + 1;
+      const cells = items.map((_, ci) =>
+        `<td style="${tdSt}">${selHtml(grid[ci][stu.id])}</td>`).join('');
+      return `<tr>
+        <td style="${tdSt};text-align:center;color:var(--text-secondary)">${no}</td>
+        <td style="${tdSt}">${esc(stu.nama)}</td>${cells}</tr>`;
+    }).join('');
+
+    const headCells = colHeaders.map(h =>
+      `<th style="${thSt};text-align:center" title="${esc(h)}">${esc(h)}</th>`).join('');
+
+    const pagHtml = totalPages > 1
+      ? `<div style="display:flex;align-items:center;justify-content:center;gap:.75rem;margin-top:.5rem;font-size:var(--fs-caption)">
+          <button data-rcm-pag data-dir="-1"${cur === 0 ? ' disabled' : ''} style="padding:.2rem .6rem;cursor:pointer">←</button>
+          <span>Hal. ${cur + 1}/${totalPages}</span>
+          <button data-rcm-pag data-dir="1"${cur === totalPages - 1 ? ' disabled' : ''} style="padding:.2rem .6rem;cursor:pointer">→</button>
+        </div>` : '';
+
+    // Kolomnya memuat status ditambah satu atau dua baris teks bebas, jadi
+    // jatahnya lebih lebar daripada 80px milik kolom angka rekap Sumatif.
+    cc.innerHTML = `
+<div style="margin-bottom:.25rem">
+  <div style="font-size:var(--fs-caption);font-weight:600;color:var(--gold);
+    text-transform:uppercase;letter-spacing:.04em;margin-bottom:.4rem">${esc(judul)}</div>
+  <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
+    <table style="width:100%;border-collapse:collapse;min-width:${130 + items.length * 150}px">
+      <thead><tr>
+        <th style="${thSt};text-align:center;width:2.5rem">No</th>
+        <th style="${thSt}">Nama Siswa</th>${headCells}
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  </div>
+  ${pagHtml}
+</div>`;
+
+    cc.querySelectorAll('[data-rcm-pag]').forEach(btn => {
+      btn.addEventListener('click', function () {
+        if (this.disabled) return;
+        const dir  = parseInt(this.dataset.dir, 10);
+        const next = Math.max(0, Math.min(totalPages - 1, cur + dir));
+        setPage(next);
+        _renderRecapMatriks(cc, items, allResults, { ...opts, page: next });
+      });
+    });
+  }
+
+  // Sel kosong ditulis '—', bukan 0 atau string kosong: siswa yang belum dinilai
+  // harus terbaca berbeda dari siswa yang sudah dinilai.
+  const RC_SEL_KOSONG = `<span style="color:var(--text-secondary)">—</span>`;
+
+  function _rcBarisTeks(teks, label) {
+    if (!teks) return '';
+    return `<div style="font-size:var(--fs-caption);color:var(--text-secondary);margin-top:.2rem">
+      ${label ? `<span style="opacity:.75">${esc(label)}</span> ` : ''}${esc(teks)}</div>`;
+  }
+
+  function _renderRecapFormatif(cc, formatifs, allResults) {
+    _renderRecapMatriks(cc, formatifs, allResults, {
+      prefix: 'F',
+      judul:  'Daftar Capaian Formatif',
+      page:   _rcPageF,
+      setPage: n => { _rcPageF = n; },
+      // Label status dibaca dari STATUS_FORMATIF_LBL yang sudah dipakai
+      // Section 2, bukan ditulis ulang di sini. Nilai tak dikenal ditampilkan
+      // apa adanya supaya tidak muncul sebagai "undefined" di layar.
+      selHtml: r => {
+        if (!r) return RC_SEL_KOSONG;
+        const st = r.status ? (STATUS_FORMATIF_LBL[r.status] ?? r.status) : null;
+        const isi = (st ? `<div style="font-weight:600">${esc(st)}</div>` : '')
+          + _rcBarisTeks(r.umpan_balik,   'Umpan balik:')
+          + _rcBarisTeks(r.tindak_lanjut, 'Tindak lanjut:');
+        return isi || RC_SEL_KOSONG;
+      },
+    });
+  }
+
+  function _renderRecapDiagnostik(cc, diagnostiks, allResults) {
+    _renderRecapMatriks(cc, diagnostiks, allResults, {
+      prefix: 'D',
+      judul:  'Daftar Capaian Diagnostik',
+      page:   _rcPageD,
+      setPage: n => { _rcPageD = n; },
+      // Grup diferensiasi diambil dari baris hasil penilaian itu sendiri, bukan
+      // dari _sGroups: _sGroups menyimpan grup siswa yang berlaku sekarang,
+      // sedangkan kolom di sini mewakili satu penilaian tertentu di masa lalu.
+      selHtml: r => {
+        if (!r) return RC_SEL_KOSONG;
+        const st   = r.status ? (STATUS_LBL[r.status] ?? r.status) : null;
+        const grup = r.grup_diferensiasi || '';
+        const kepala = (st || grup)
+          ? `<div style="display:flex;align-items:center;gap:.35rem;flex-wrap:wrap">
+              ${st ? `<span style="font-weight:600">${esc(st)}</span>` : ''}
+              ${grup ? `<span style="font-size:.65rem;padding:.15rem .45rem;border-radius:.25rem;
+                background:var(--gold);color:var(--text-on-gold,#000);font-weight:700">Grup ${esc(grup)}</span>` : ''}
+            </div>` : '';
+        const isi = kepala + _rcBarisTeks(r.catatan, 'Catatan:');
+        return isi || RC_SEL_KOSONG;
+      },
     });
   }
 
