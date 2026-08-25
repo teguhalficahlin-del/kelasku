@@ -2,8 +2,13 @@
 # Konteks untuk Claude Code
 
 > Baca SELURUH dokumen ini sebelum mengerjakan apapun.
-> Dokumen ini adalah satu-satunya sumber kebenaran untuk MIClass.
-> Jangan campur dengan SIP SMK — ini produk dan Supabase project yang berbeda.
+> Dokumen ini adalah sumber kebenaran untuk **konteks produk** MIClass.
+> Pasangannya, `AGENT_WORKING_RULES.md`, adalah sumber kebenaran untuk **aturan kerja agen**
+> — wajib dibaca juga, dan menang kalau keduanya bertabrakan soal cara kerja.
+>
+> Proyek ini berdiri sendiri: jangan campur dengan proyek pendahulu (SIP SMK) — produk,
+> schema, dan Supabase project-nya berbeda. Penyebutan "SIP SMK" di dokumen ini semuanya
+> **sengaja**, bentuknya kontras/larangan, bukan sisa template yang lupa diganti.
 
 ---
 
@@ -23,6 +28,7 @@ Fitur utama: manajemen classroom, catatan siswa, sesi pembinaan, forum, jadwal.
 
 **Supabase project ID:** `teccdzetrdjowqemnuuc`
 **Repo GitHub:** `teguhalficahlin-del/kelasku`
+**GitHub Pages:** `https://teguhalficahlin-del.github.io/kelasku/`
 **Repo lokal:** `D:\ribuan_pengguna\CLAUDE\MIClass`
 
 > Nama repo dan nama folder lokal memang berbeda — folder tetap `MIClass`,
@@ -32,9 +38,12 @@ Fitur utama: manajemen classroom, catatan siswa, sesi pembinaan, forum, jadwal.
 
 ---
 
-## 2. PERBEDAAN KRITIS DARI SIP SMK
+## 2. PAGAR PEMBATAS — BEDA DARI PROYEK PENDAHULU (SIP SMK)
 
-| Item | SIP SMK | MIClass |
+Tabel ini bukan dokumentasi SIP SMK. Fungsinya satu: menandai pola yang **dilarang**
+ikut tersalin ke sini. Kolom kiri = pola terlarang, kolom kanan = pola yang benar.
+
+| Item | SIP SMK (JANGAN dipakai) | MIClass (yang benar) |
 |------|---------|-------------|
 | Tenant anchor | `school_id` | `classroom_id` |
 | Entitas sekolah | Ada (`schools` table) | **Tidak ada** |
@@ -85,6 +94,10 @@ shared/       → komponen lintas portal
 ```
 
 Setiap portal: `index.html` (login) + `dashboard.html` (main app).
+
+> Direktori `admin/` juga ada di repo (dipakai commit `dc48a6a`), tapi **belum
+> terdokumentasi** di sini — bukan portal pengguna dan bukan role keempat.
+> Perlu keputusan Romo: didokumentasikan sebagai apa? (lihat Temuan sesi 25 Agu 2026)
 
 ---
 
@@ -203,14 +216,17 @@ git push origin main                  → urutan TERAKHIR
 | `day_of_week` | `SENIN, SELASA, RABU, KAMIS, JUMAT, SABTU` |
 | Tenant anchor | `classroom_id` — BUKAN `school_id` |
 | Profile lookup | Selalu via `fn_current_profile_id()` — BUKAN `auth.uid()` langsung |
+| Cek kepemilikan | `fn_is_classroom_owner()` (guru) / `fn_is_classroom_member()` (siswa+ortu) |
 | RLS subquery | Selalu via fungsi SECURITY DEFINER — BUKAN EXISTS mentah |
+| Role valid | `GURU`, `SISWA`, `ORTU` — tidak ada yang lain, jangan tambah |
+| Deploy edge function | `--project-ref teccdzetrdjowqemnuuc` — CLI ini TOLAK `--linked` di sini |
 
 ---
 
 ## 12. STATUS PROYEK
 
 **Fase saat ini: DEVELOPMENT AKTIF**
-**HEAD:** `56fcfda`
+**HEAD:** `a97eb61` (per 25 Agustus 2026)
 
 - [x] Dokumen rancangan selesai (REQUIREMENTS, SCHEMA-v0, ADR-001)
 - [x] Supabase project baru dibuat
@@ -384,6 +400,21 @@ Phase 2C — Context Spec + Assessment Spec:
 - Edge Function `runtime-sync`: sinkronisasi state runtime ke DB
 - JS Runtime: `runtime-compiler.js`, `runtime-db.js`, `runtime-session.js`, `runtime-ui.js`, `runtime-sync.js`
 - Fix: replace `Date.now()` dengan stable client operation ID untuk idempotency regenerate
+
+**Commit setelah `56fcfda` — belum terurai di catatan sesi mana pun (per `git log`):**
+```
+dc8334f fix: sembunyikan tombol upgrade GURU_PRO belum dijual, pindahkan gaya btn-upgrade ke CSS
+51e03d0 fix: ganti email→WhatsApp di classroom-rancang, tambah cron-health-check endpoint — SEC-044
+b2fd8c8 chore: drop fn_lookup_classroom_code (nol pemanggil, SEC-002 followup)
+dc48a6a feat: tombol perpanjang untuk EXPIRED di admin + tombol WA di banner guru
+a97eb61 chore: hapus p_classroom_id ghost param dari fn_check_schedule_conflict
+```
+
+> Konsekuensi yang perlu diingat saat membaca daftar migration di atas:
+> `fn_lookup_classroom_code` (migration `20260803000003`) **sudah di-drop** di `b2fd8c8`,
+> dan `fn_check_schedule_conflict` sudah kehilangan parameter `p_classroom_id` di `a97eb61`.
+> Daftar migration bersifat historis — bukan gambaran state database saat ini.
+> Untuk state sekarang, inspeksi langsung via `pg_get_functiondef(oid)`.
 
 ---
 
