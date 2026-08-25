@@ -2,7 +2,7 @@
 // Structural template: phase2-material/index.ts.
 // Per-meeting: independent generate, validate, persist. Failed meetings do not block others.
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createClient, type SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const CORS = {
   // Dibaca dari environment supaya satu `supabase secrets set ALLOWED_ORIGIN=...`
@@ -206,7 +206,7 @@ async function makeIdempotencyKey(prefix: string, ...parts: unknown[]): Promise<
 
 // Verifikasi bahwa version_id berasal dari planningContextId + profileId + expectedKind yang sudah diotorisasi.
 async function verifyVersionBinding(
-  admin: ReturnType<typeof createClient>,
+  admin: SupabaseClient<any>,
   versionId: string,
   profileId: string,
   planningContextId: string,
@@ -575,7 +575,7 @@ type ArtifactVersion = {
 };
 
 async function loadArtifactContent(
-  admin: ReturnType<typeof createClient>,
+  admin: SupabaseClient<any>,
   planningContextId: string,
   profileId: string,
   kind: string,

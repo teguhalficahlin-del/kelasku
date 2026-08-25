@@ -2,7 +2,7 @@
 // Produces VALIDATION_REPORT artifact with origin='SYSTEM'.
 // Gate: all_meetings_usable AND follow_up usable.
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createClient, type SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const CORS = {
   // Dibaca dari environment supaya satu `supabase secrets set ALLOWED_ORIGIN=...`
@@ -68,7 +68,7 @@ interface Violation {
 
 // ── Load selected artifact version ─────────────────────────────────────────
 async function loadArtifactVersion(
-  admin: ReturnType<typeof createClient>,
+  admin: SupabaseClient<any>,
   planningContextId: string,
   profileId: string,
   kind: string,
@@ -133,7 +133,7 @@ function textContainsKeyword(text: string, keyword: string): boolean {
 
 // ── run_validation — deterministic checks ────────────────────────────────────
 async function runValidation(
-  admin: ReturnType<typeof createClient>,
+  admin: SupabaseClient<any>,
   profileId: string,
   planningContextId: string,
   authority: Record<string,unknown>,

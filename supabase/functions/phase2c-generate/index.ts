@@ -2,7 +2,7 @@
 // All authority comes from server-side JWT + DB lookups.
 // Request body carries only intent/identifiers — never authority.
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createClient, type SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const CORS = {
   // Dibaca dari environment supaya satu `supabase secrets set ALLOWED_ORIGIN=...`
@@ -301,7 +301,7 @@ async function makeRegenKey(
 // Prevents cross-classroom state corruption: confirms version_id belongs to
 // the authorized planningContextId + profileId + expectedKind before any RPC.
 async function verifyVersionBinding(
-  admin: ReturnType<typeof createClient>,
+  admin: SupabaseClient<any>,
   versionId: string,
   profileId: string,
   planningContextId: string,

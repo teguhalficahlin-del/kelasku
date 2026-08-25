@@ -2,7 +2,7 @@
 // Gate: fn_phase2c_all_meetings_usable must be true before any action.
 // Template: phase2-meeting/index.ts structural pattern.
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createClient, type SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const CORS = {
   // Dibaca dari environment supaya satu `supabase secrets set ALLOWED_ORIGIN=...`
@@ -216,7 +216,7 @@ async function makeRegenKey(
 
 // Verifikasi bahwa version_id berasal dari planningContextId + profileId + expectedKind yang sudah diotorisasi.
 async function verifyVersionBinding(
-  admin: ReturnType<typeof createClient>,
+  admin: SupabaseClient<any>,
   versionId: string,
   profileId: string,
   planningContextId: string,
@@ -246,7 +246,7 @@ type ArtifactVersion = {
 };
 
 async function loadArtifactContent(
-  admin: ReturnType<typeof createClient>,
+  admin: SupabaseClient<any>,
   planningContextId: string,
   profileId: string,
   kind: string,
@@ -354,7 +354,7 @@ Output JSON murni — schema wajib sesuai kontrak follow_up. Tanpa markdown fenc
 
 // ── Transition + accept helper ───────────────────────────────────────────────
 async function transitionAndAccept(
-  admin: ReturnType<typeof createClient>,
+  admin: SupabaseClient<any>,
   profileId: string,
   vId: string,
   validation: unknown,
