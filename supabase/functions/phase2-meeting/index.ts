@@ -3,6 +3,7 @@
 // Per-meeting: independent generate, validate, persist. Failed meetings do not block others.
 
 import { createClient, type SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { loadArtifactContent } from '../_shared/artifact-loader.ts';
 
 const CORS = {
   // Dibaca dari environment supaya satu `supabase secrets set ALLOWED_ORIGIN=...`
@@ -569,30 +570,8 @@ function fallbackDifferentiation(
 
 
 // ── Load selected artifact version (content + metadata) ───────────────────────
-type ArtifactVersion = {
-  id: string; content: Record<string,unknown>;
-  artifact_id: string; selection_revision: number;
-};
-
-async function loadArtifactContent(
-  admin: SupabaseClient<any>,
-  planningContextId: string,
-  profileId: string,
-  kind: string,
-): Promise<ArtifactVersion | null> {
-  const { data: a } = await admin.from('rancang_artifacts')
-    .select('id').eq('planning_context_id', planningContextId)
-    .eq('artifact_kind', kind).eq('profile_id', profileId).maybeSingle();
-  if (!a) return null;
-  const { data: sel } = await admin.from('rancang_artifact_selections')
-    .select('selected_version_id,selection_revision').eq('artifact_id', a.id).maybeSingle();
-  if (!sel) return null;
-  const { data: ver } = await admin.from('rancang_artifact_versions')
-    .select('id,content').eq('id', sel.selected_version_id).maybeSingle();
-  if (!ver) return null;
-  return { id: ver.id, content: ver.content as Record<string,unknown>,
-           artifact_id: a.id, selection_revision: sel.selection_revision };
-}
+// Definisinya kini tinggal di _shared/artifact-loader.ts — lihat berkas itu
+// untuk alasan penyeragaman scope_key.
 
 // ── Main handler ──────────────────────────────────────────────────────────────
 Deno.serve(async (req) => {

@@ -3,6 +3,7 @@
 // Template: phase2-meeting/index.ts structural pattern.
 
 import { createClient, type SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { loadArtifactContent } from '../_shared/artifact-loader.ts';
 
 const CORS = {
   // Dibaca dari environment supaya satu `supabase secrets set ALLOWED_ORIGIN=...`
@@ -240,32 +241,8 @@ async function verifyVersionBinding(
 }
 
 // ── Load selected artifact version ─────────────────────────────────────────
-type ArtifactVersion = {
-  id: string; content: Record<string,unknown>;
-  artifact_id: string; selection_revision: number;
-};
-
-async function loadArtifactContent(
-  admin: SupabaseClient<any>,
-  planningContextId: string,
-  profileId: string,
-  kind: string,
-  scopeKey = 'ROOT',
-): Promise<ArtifactVersion | null> {
-  const { data: a } = await admin.from('rancang_artifacts')
-    .select('id').eq('planning_context_id', planningContextId)
-    .eq('artifact_kind', kind).eq('profile_id', profileId)
-    .eq('scope_key', scopeKey).maybeSingle();
-  if (!a) return null;
-  const { data: sel } = await admin.from('rancang_artifact_selections')
-    .select('selected_version_id,selection_revision').eq('artifact_id', a.id).maybeSingle();
-  if (!sel) return null;
-  const { data: ver } = await admin.from('rancang_artifact_versions')
-    .select('id,content').eq('id', sel.selected_version_id).maybeSingle();
-  if (!ver) return null;
-  return { id: ver.id, content: ver.content as Record<string,unknown>,
-           artifact_id: a.id, selection_revision: sel.selection_revision };
-}
+// Definisinya kini tinggal di _shared/artifact-loader.ts — lihat berkas itu
+// untuk alasan penyeragaman scope_key.
 
 // ── Follow-Up prompt ─────────────────────────────────────────────────────────
 function buildFollowUpPrompt(
