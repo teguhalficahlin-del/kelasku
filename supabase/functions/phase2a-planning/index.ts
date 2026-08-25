@@ -11,7 +11,7 @@ const CORS = {
     Deno.env.get('ALLOWED_ORIGIN') ?? 'https://teguhalficahlin-del.github.io',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
-const ROLES = new Set(['WALI_KELAS','GURU_MAPEL_SDSMP_SMA','GURU_MAPEL_UMUM_SMK','GURU_MAPEL_PRODUKTIF_SMK']);
+const ROLES = new Set(['WALI_KELAS_SD','GURU_MAPEL_SDSMP_SMA','GURU_MAPEL_UMUM_SMK','GURU_MAPEL_PRODUKTIF_SMK']);
 // Gate Tab Rancang -- dua syarat dan keduanya wajib: peran mengajar
 // GURU_MAPEL_UMUM_SMK dan tier GURU_PRO. Set peran di atas sengaja dibiarkan
 // utuh; ia disiapkan untuk Rancang V2, dan gate ini syarat tambahan di atasnya,
@@ -75,7 +75,7 @@ Deno.serve(async req=>{
     const {data:binding}=context?await admin.from('teaching_context_classrooms').select('id').eq('teaching_context_id',context.id).eq('classroom_id',classroomId).eq('status','ACTIVE').maybeSingle():{data:null};
     const {data:classroom}=await admin.from('classrooms').select('id,teacher_id,jenjang,mapel_key,bidang_keahlian,program_keahlian').eq('id',classroomId).maybeSingle();
     if(!context||!binding||!classroom||classroom.teacher_id!==profile.id) return reply({error:'Teaching Context/classroom tidak diizinkan'},403);
-    if(profile.role_guru==='WALI_KELAS'){
+    if(profile.role_guru==='WALI_KELAS_SD'){
       const {data:home}=await admin.from('wali_home_classrooms').select('id').eq('profile_id',profile.id).eq('classroom_id',classroomId).eq('status','LOCKED').maybeSingle();
       if(!home) return reply({error:'Target bukan home classroom wali'},403);
     }

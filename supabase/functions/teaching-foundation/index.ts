@@ -17,7 +17,7 @@ const CORS_HEADERS = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 const ROLES = new Set([
-  'WALI_KELAS', 'GURU_MAPEL_SDSMP_SMA',
+  'WALI_KELAS_SD', 'GURU_MAPEL_SDSMP_SMA',
   'GURU_MAPEL_UMUM_SMK', 'GURU_MAPEL_PRODUKTIF_SMK',
 ]);
 // Gate Tab Rancang -- dua syarat dan keduanya wajib: peran mengajar
@@ -114,7 +114,7 @@ Deno.serve(async (req) => {
       .eq('id', classroomId).single();
     if (!classroom || classroom.teacher_id !== profile.id) return reply({ error: 'Classroom bukan milik guru' }, 403);
     if (classroom.jenjang && classroom.jenjang !== jenjang) return reply({ error: 'Jenjang classroom tidak kompatibel' }, 409);
-    if (classroom.mapel_key && profile.role_guru !== 'WALI_KELAS' && classroom.mapel_key !== selectedSubject) {
+    if (classroom.mapel_key && profile.role_guru !== 'WALI_KELAS_SD' && classroom.mapel_key !== selectedSubject) {
       return reply({ error: 'Subject classroom tidak kompatibel dengan scope' }, 409);
     }
     if (profile.role_guru === 'GURU_MAPEL_PRODUKTIF_SMK' &&
@@ -122,7 +122,7 @@ Deno.serve(async (req) => {
          (classroom.program_keahlian && classroom.program_keahlian !== program))) {
       return reply({ error: 'Program classroom tidak kompatibel dengan productive domain' }, 409);
     }
-    if (profile.role_guru === 'WALI_KELAS' && (!['fase_a', 'fase_b', 'fase_c'].includes(phaseKey) || jenjang !== 'SD')) {
+    if (profile.role_guru === 'WALI_KELAS_SD' && (!['fase_a', 'fase_b', 'fase_c'].includes(phaseKey) || jenjang !== 'SD')) {
       return reply({ error: 'Home classroom wali harus berada pada fase A/B/C jenjang SD' }, 409);
     }
 
@@ -146,7 +146,7 @@ Deno.serve(async (req) => {
     const { data, error } = await admin.rpc('fn_server_apply_teaching_foundation', {
       p_profile_id: profile.id,
       p_scope: scope,
-      p_home_classroom_id: profile.role_guru === 'WALI_KELAS' ? classroomId : null,
+      p_home_classroom_id: profile.role_guru === 'WALI_KELAS_SD' ? classroomId : null,
       p_context: context,
       p_target_classroom_id: classroomId,
     });
