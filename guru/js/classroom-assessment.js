@@ -3614,20 +3614,53 @@ ${metodeHtml}${hasilHtml}`;
       }
 
       // ── Sheet 2–3: Diagnostik & Formatif — format melebar ─────────────────
-      const diagAsmts = asmtTerpilih.filter(a => a.jenis === 'DIAGNOSTIK');
-      const formAsmts = asmtTerpilih.filter(a => a.jenis === 'FORMATIF');
+      // Aturan semesternya sama persis dengan _getFilteredJenis() milik Rekap:
+      // semester dan tahun ajaran dibaca dari TP induknya, dan penilaian tanpa TP
+      // tidak bisa diketahui semesternya sehingga tidak lolos.
+      //
+      // Bila Rekap belum pernah dibuka, _rcTahun masih null — dalam keadaan itu
+      // tidak ada filter yang bisa diikuti, jadi seluruh penilaian ikut terunduh.
+      // Ini persis kelonggaran yang sudah dipakai Sheet 5 di bawah.
+      function asmtLolosSemester(a) {
+        if (!_rcTahun) return true;
+        if (!a.tp_kktp_id) return false;
+        const tp = _tpList.find(t => t.id === a.tp_kktp_id);
+        if (!tp) return true;
+        if (tp.semester != null && String(tp.semester) !== String(_rcSemester)) return false;
+        if (tp.academic_year && tp.academic_year !== _rcTahun) return false;
+        return true;
+      }
+
+      const diagAsmts = asmtTerpilih.filter(a => a.jenis === 'DIAGNOSTIK' && asmtLolosSemester(a));
+      const formAsmts = asmtTerpilih.filter(a => a.jenis === 'FORMATIF'   && asmtLolosSemester(a));
       const sumAsmts  = asmtTerpilih.filter(a => a.jenis === 'SUMATIF');
 
-      function buildWideSheet(asmts) {
+      // Kepala kolom dua baris, sebentuk dengan rekap di layar: baris atas kode
+      // penilaian ({prefix}{n}-{judul TP}), baris bawah teknik dan instrumennya.
+      // Tanpa baris kedua, dua penilaian atas TP yang sama tampak sebagai kolom
+      // kembar yang tidak bisa dibedakan guru.
+      //
+      // Bedanya dengan layar hanya pemendekan: di layar judul dipotong 10 huruf
+      // dan instrumen 12 huruf karena kolomnya sempit, di Excel tidak ada batas
+      // itu jadi keduanya ditulis utuh.
+      function buildWideSheet(asmts, prefix) {
         // Siapkan metadata per penilaian
         const meta = asmts.map((a, i) => {
-          const tp = a.tp_kktp_id ? _tpList.find(t => t.id === a.tp_kktp_id) : null;
-          const tpJudul = tp ? (tp.judul || tp.konten || '') : 'Tanpa TP';
-          return { a, tp, tpJudul, konten: parseKonten(a.konten), label: colLabel(i + 1, a, tpJudul) };
+          const tp  = a.tp_kktp_id ? _tpList.find(t => t.id === a.tp_kktp_id) : null;
+          const jud = tp ? (tp.judul || tp.konten || '') : '';
+          const sub = [teknikLbl(a.teknik), a.instrumen].filter(Boolean).join(' | ');
+          return {
+            a,
+            konten: parseKonten(a.konten),
+            kode:   `${prefix}${i + 1}-${jud || '—'}`,
+            sub:    sub || '—',
+          };
         });
 
-        const hdr = ['No', 'Nama Siswa', ...meta.map(m => m.label)];
-        const rows = [hdr];
+        const rows = [
+          ['No', 'Nama Siswa', ...meta.map(m => m.kode)],
+          ['',   '',           ...meta.map(m => m.sub)],
+        ];
         _roster.forEach((siswa, idx) => {
           const row = [idx + 1, siswa.nama];
           for (const m of meta) {
@@ -3638,8 +3671,8 @@ ${metodeHtml}${hasilHtml}`;
         return rows;
       }
 
-      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(buildWideSheet(diagAsmts)), 'Diagnostik');
-      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(buildWideSheet(formAsmts)), 'Formatif');
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(buildWideSheet(diagAsmts, 'D')), 'Diagnostik');
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(buildWideSheet(formAsmts, 'F')), 'Formatif');
 
       // ── Sheet 4: Sumatif — format melebar (3 kolom per penilaian) ─────────
       const sumAllRes = sumAsmts.length
