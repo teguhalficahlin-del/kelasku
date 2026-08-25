@@ -226,7 +226,7 @@ git push origin main                  → urutan TERAKHIR
 ## 12. STATUS PROYEK
 
 **Fase saat ini: DEVELOPMENT AKTIF**
-**HEAD:** `a97eb61` (per 25 Agustus 2026)
+**HEAD:** `46de0aa` (per 25 Agustus 2026)
 
 - [x] Dokumen rancangan selesai (REQUIREMENTS, SCHEMA-v0, ADR-001)
 - [x] Supabase project baru dibuat
@@ -401,20 +401,76 @@ Phase 2C — Context Spec + Assessment Spec:
 - JS Runtime: `runtime-compiler.js`, `runtime-db.js`, `runtime-session.js`, `runtime-ui.js`, `runtime-sync.js`
 - Fix: replace `Date.now()` dengan stable client operation ID untuk idempotency regenerate
 
-**Commit setelah `56fcfda` — belum terurai di catatan sesi mana pun (per `git log`):**
+**Commit setelah `56fcfda` (urut kronologis, terlama → terbaru):**
 ```
 dc8334f fix: sembunyikan tombol upgrade GURU_PRO belum dijual, pindahkan gaya btn-upgrade ke CSS
 51e03d0 fix: ganti email→WhatsApp di classroom-rancang, tambah cron-health-check endpoint — SEC-044
 b2fd8c8 chore: drop fn_lookup_classroom_code (nol pemanggil, SEC-002 followup)
 dc48a6a feat: tombol perpanjang untuk EXPIRED di admin + tombol WA di banner guru
 a97eb61 chore: hapus p_classroom_id ghost param dari fn_check_schedule_conflict
+d5b36d3 docs: adaptasi CLAUDE.md dan AGENT_WORKING_RULES.md untuk MIClass
+5f2222c feat: gate Tab Rancang untuk GURU_MAPEL_UMUM_SMK + GURU_PRO di tiga lapisan
+46de0aa fix: sembunyikan tombol tab Rancang untuk guru tak berhak, jujurkan label tier
 ```
+
+> Lima commit teratas (`dc8334f` … `a97eb61`) masih **belum terurai** di catatan
+> sesi mana pun — isinya hanya diketahui dari judul commit. Tiga terakhir
+> (`d5b36d3`, `5f2222c`, `46de0aa`) diuraikan di catatan sesi 25 Agustus 2026
+> di bawah.
 
 > Konsekuensi yang perlu diingat saat membaca daftar migration di atas:
 > `fn_lookup_classroom_code` (migration `20260803000003`) **sudah di-drop** di `b2fd8c8`,
 > dan `fn_check_schedule_conflict` sudah kehilangan parameter `p_classroom_id` di `a97eb61`.
 > Daftar migration bersifat historis — bukan gambaran state database saat ini.
 > Untuk state sekarang, inspeksi langsung via `pg_get_functiondef(oid)`.
+
+**Fitur & fix sesi 25 Agustus 2026 — gate Tab Rancang (HEAD `d5b36d3` → `46de0aa`):**
+
+Tab Rancang Pembelajaran kini menuntut **dua** syarat sekaligus:
+`role_guru = 'GURU_MAPEL_UMUM_SMK'` **DAN** `tier = 'GURU_PRO'`. Sebelumnya hanya
+tier yang diperiksa, dan hanya di klien — siapa pun yang memegang JWT guru aktif
+bisa melewati klien dan memanggil Edge Function atau menulis lewat PostgREST.
+
+Tiga lapisan penjaga (`5f2222c`):
+
+- **UI** — gate tier existing di `guru/js/classroom-rancang.js` diperluas dengan
+  cek `role_guru` (bukan gate baru terpisah). Dua sebab penolakan dipisahkan
+  pesannya: tier salah vs peran salah. `sip_tab_<id>` dibersihkan saat guru tidak
+  berhak, supaya auto-restore tidak menjebak guru di tab yang tidak bisa dibuka.
+- **Edge Function** — ketujuh EF pipeline (`phase2a-planning`, `phase2c-generate`,
+  `phase2-material`, `phase2-meeting`, `phase2-followup`, `phase2-validator`,
+  `teaching-foundation`) menambahkan `tier` ke `.select()` dan menggabungkan
+  syaratnya ke guard yang sama dengan cek `LOCKED_ROLES` existing → 403 dengan
+  pesan berbeda untuk tier salah vs peran salah.
+  Set `LOCKED_ROLES` / `ROLES` **sengaja TIDAK diubah** — disiapkan untuk Rancang V2.
+- **RLS** — migration `20260825000001_gate-rancang-umum-smk-guru-pro.sql`:
+  `fn_guru_rancang_eligible()` SECURITY DEFINER (GRANT authenticated + REVOKE anon
+  + REVOKE PUBLIC) plus 9 policy RESTRICTIVE (3 tabel × INSERT/UPDATE/DELETE) di
+  `rancang_settings`, `rancang_dokumen`, `rancang_profil`. Policy `trial_guard_*`
+  tidak disunting sama sekali — policy RESTRICTIVE di-AND-kan, jadi tulisan kini
+  harus lolos `trial_guard_*` DAN `rancang_eligible_*`.
+
+Polish UI (`46de0aa`):
+- Tombol tab `#tab-rancang` kini disembunyikan (`display:none`) untuk guru tak
+  berhak, lewat `sinkronkanTampilanTabRancang()` di `DOMContentLoaded` — gate lama
+  hanya hidup di dalam click handler, jadi tabnya selalu terlihat sampai diklik.
+  Banner di dalam panel tetap dipertahankan sebagai lapisan kedua.
+- `TIER_INFO` di `guru/js/guru.js` tidak lagi menjanjikan "Tab Rancang tersedia"
+  untuk semua GURU_PRO — keterangannya kini menyebut "untuk guru mapel umum SMK".
+
+Catatan cakupan yang perlu diingat:
+- `rancang_planning_contexts` dan tabel Phase2B **sengaja tanpa RLS baru** — di sana
+  `authenticated` sudah kehilangan privilege tulis di level tabel dan penulis
+  sebenarnya adalah `service_role` yang bypass RLS. Policy di situ hanya akan
+  terlihat seperti proteksi tanpa menjadi proteksi. Penjaganya ada di Edge Function.
+- Dampak nyata saat deploy: dari 25 guru, hanya **1** yang memenuhi kedua syarat.
+  14 guru `GURU_MAPEL_UMUM_SMK + TRIAL` kehilangan hak tulis Rancang. Data lama
+  tetap terbaca — tidak ada DML, dan policy SELECT tidak diubah.
+- Ketujuh EF masih memakai ejaan lama `'WALI_KELAS'` di `LOCKED_ROLES`, sementara
+  constraint DB sejak `20260822000001` hanya menerima `'WALI_KELAS_SD'`. Cacat
+  pre-existing, dampaknya nol terhadap gate ini.
+- **Belum diuji di browser dengan akun nyata.** Yang terverifikasi baru tabel
+  keputusan gate dan objek DB pasca-`db push`.
 
 ---
 
