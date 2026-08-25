@@ -281,7 +281,7 @@
 <div class="panel">
   <h2 class="panel-header" data-panel="pan-tp-body"
     style="font-size:var(--fs-h3);color:var(--gold)">
-    TP &amp; KKTP <span class="panel-collapse-arrow">▼</span>
+    Perencanaan Penilaian <span class="panel-collapse-arrow">▼</span>
   </h2>
   <div class="panel-body-collapse" id="pan-tp-body">
     <div id="pai-tp-list"></div>
@@ -297,7 +297,7 @@
 <div class="panel">
   <h2 class="panel-header" data-panel="pan-asmt-body"
     style="font-size:var(--fs-h3);color:var(--gold)">
-    Daftar Penilaian <span class="panel-collapse-arrow">▶</span>
+    Pelaksanaan Penilaian <span class="panel-collapse-arrow">▶</span>
   </h2>
   <div class="panel-body-collapse" id="pan-asmt-body" style="display:none">
     <div id="pai-asmt-list"></div>
@@ -313,7 +313,7 @@
 <div class="panel">
   <h2 class="panel-header" data-panel="pan-recap-body"
     style="font-size:var(--fs-h3);color:var(--gold)">
-    Rekap Semester <span class="panel-collapse-arrow">▶</span>
+    Rekap Penilaian <span class="panel-collapse-arrow">▶</span>
   </h2>
   <div class="panel-body-collapse" id="pan-recap-body" style="display:none">
     <div id="pai-recap-wrap"></div>
@@ -400,7 +400,7 @@
   }
 
   // ══════════════════════════════════════════════════════════════════════════════
-  // SECTION 1 — TP & KKTP
+  // SECTION 1 — Perencanaan Penilaian
   // ══════════════════════════════════════════════════════════════════════════════
 
   function renderTpList() {
@@ -758,7 +758,7 @@
   }
 
   // ══════════════════════════════════════════════════════════════════════════════
-  // SECTION 2 — Daftar Penilaian
+  // SECTION 2 — Pelaksanaan Penilaian
   // ══════════════════════════════════════════════════════════════════════════════
 
   function renderAsmtList() {
@@ -2681,7 +2681,7 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
   }
 
   // ══════════════════════════════════════════════════════════════════════════════
-  // SECTION 4 — Rekap Semester
+  // SECTION 4 — Rekap Penilaian
   // ══════════════════════════════════════════════════════════════════════════════
 
   async function renderRecap() {
@@ -3296,7 +3296,7 @@ ${metodeHtml}${hasilHtml}`;
       const tpTerpilih   = _tpList.filter(tpLolosFilter);
       const asmtTerpilih = _asmts.filter(asmtLolosFilter);
 
-      // ── Sheet 1: TP & KKTP ────────────────────────────────────────────────
+      // ── Sheet 1: Perencanaan Penilaian ────────────────────────────────────
       const s1rows = [['Tipe', 'Judul/Konten', 'Semester', 'Tahun Ajaran', 'BB', 'MB', 'BSH', 'SB']];
       for (const tp of tpTerpilih) {
         if (tp.tipe === 'KKTP') {
@@ -3321,7 +3321,7 @@ ${metodeHtml}${hasilHtml}`;
           ]);
         }
       }
-      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(s1rows), 'TP & KKTP');
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(s1rows), 'Perencanaan Penilaian');
 
       // ── Helper: parse konten JSONB ────────────────────────────────────────
       function parseKonten(raw) {
@@ -3396,7 +3396,7 @@ ${metodeHtml}${hasilHtml}`;
       });
       XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(sumRows), 'Sumatif');
 
-      // ── Sheet 5: Rekap Semester ───────────────────────────────────────────
+      // ── Sheet 5: Rekap Penilaian ──────────────────────────────────────────
       const s5rows = [['Semester', 'Tahun Ajaran', 'TP', 'Nama Siswa', 'Nilai Akhir', 'Predikat', 'KKTP Tercapai']];
 
       // Ikuti semester dan tahun ajaran yang sedang dipilih di Section 3. Bila
@@ -3436,7 +3436,7 @@ ${metodeHtml}${hasilHtml}`;
         }
       }
       if (!hasRecap) s5rows.push(['', '', '', 'Belum ada rekap tersimpan', '', '', '']);
-      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(s5rows), 'Rekap Semester');
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(s5rows), 'Rekap Penilaian');
 
       // ── Unduh ─────────────────────────────────────────────────────────────
       const nama  = (window._classroomName || 'Kelas').replace(/[\\/:*?"<>|]/g, '_');
