@@ -3655,7 +3655,7 @@ ${metodeHtml}${hasilHtml}`;
       //
       // Baris 3 ditulis penuh tanpa dipendekkan: di layar kolomnya sempit
       // sehingga judul dipotong 10 huruf, di Excel tidak ada batas itu.
-      function buildWideSheet(asmts, prefix, jenis) {
+      function buildWideSheet(asmts, prefix, jenis, allResults) {
         // Sheet tanpa satu pun kolom penilaian tampak seperti bug: yang terlihat
         // guru cuma No dan Nama Siswa, tanpa petunjuk apa pun. Kalimatnya sama
         // dengan yang dipakai rekap di layar saat filternya tidak menyisakan apa-apa.
@@ -3679,6 +3679,9 @@ ${metodeHtml}${hasilHtml}`;
             // Deskripsi TP. Jatuh kembali ke judul bila TP belum punya konten;
             // kosong bila penilaiannya memang tidak terikat TP mana pun.
             desk:   tp ? (tp.konten || tp.judul || '') : '',
+            // Baris hasil per siswa, dikunci student_id -- idiom yang sama
+            // dengan sumMeta di sheet Sumatif.
+            resMap: Object.fromEntries((allResults?.[i] ?? []).map(r => [r.student_id, r])),
           };
         });
 
@@ -3687,24 +3690,57 @@ ${metodeHtml}${hasilHtml}`;
           ['',   '',           ...meta.map(m => m.sub)],
           ['',   '',           ...meta.map(m => m.desk)],
         ];
+        // Urutannya sama dengan rekap di layar: status dari assessment_results
+        // dibaca LEBIH DULU, konten hanya dipakai kalau status kosong.
+        //
+        // Cadangan ke konten tetap perlu: teknik TES, TES_LISAN, dan OBSERVASI
+        // tidak pernah mengisi kolom status -- hasilnya tinggal di
+        // assessments.konten -- sehingga tanpa cadangan itu sel tampil '-'
+        // untuk penilaian yang sebenarnya sudah lengkap.
+        //
+        // _rcHasilKonten() dipakai apa adanya, bukan ditulis ulang, supaya
+        // Excel dan layar tidak bisa berbeda tafsir soal apa itu 'kosong'.
+        const STATUS_MAP = jenis === 'FORMATIF' ? STATUS_FORMATIF_LBL : STATUS_LBL;
+        function selTeks(m, sid) {
+          const r     = m.resMap[sid];
+          const st    = r?.status ? (STATUS_MAP[r.status] ?? r.status) : null;
+          const utama = st ?? _rcHasilKonten(m.a, sid);
+          // Grup diferensiasi hanya milik Diagnostik. Ia bisa berdiri sendiri
+          // tanpa status, persis seperti di layar.
+          const grup  = jenis === 'DIAGNOSTIK' ? (r?.grup_diferensiasi || '') : '';
+          if (!utama) return grup ? `Grup ${grup}` : '-';
+          return grup ? `${utama} (Grup ${grup})` : utama;
+        }
+
         _roster.forEach((siswa, idx) => {
           const row = [idx + 1, siswa.nama];
           for (const m of meta) {
-            row.push(extractHasilDiagForm(m.konten, m.a.teknik, m.a.instrumen, siswa.id));
+            row.push(selTeks(m, siswa.id));
           }
           rows.push(row);
         });
         return rows;
       }
 
-      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(buildWideSheet(diagAsmts, 'D', 'DIAGNOSTIK')), 'Diagnostik');
-      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(buildWideSheet(formAsmts, 'F', 'FORMATIF')), 'Formatif');
+      // Hasil per siswa untuk ketiga jenis diambil sekali, bersamaan.
+      // Diagnostik dan Formatif sebelumnya tidak diambil sama sekali: selnya
+      // hanya membaca assessments.konten, sehingga penilaian berbasis chip per
+      // siswa -- yang menyimpan hasilnya di assessment_results -- tampil '-'
+      // di Excel padahal terisi di layar.
+      //
+      // Satu Promise.all untuk ketiganya, bukan tiga gelombang berurutan:
+      // jumlah permintaannya sama, tapi tidak saling menunggu. Promise.all([])
+      // menghasilkan [], jadi jenis yang kosong tidak perlu dijaga terpisah.
+      const ambilHasil = list =>
+        Promise.all(list.map(a => SipApi.getAssessmentResults(a.id).catch(() => [])));
+      const [diagAllRes, formAllRes, sumAllRes] = await Promise.all([
+        ambilHasil(diagAsmts), ambilHasil(formAsmts), ambilHasil(sumAsmts),
+      ]);
+
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(buildWideSheet(diagAsmts, 'D', 'DIAGNOSTIK', diagAllRes)), 'Diagnostik');
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(buildWideSheet(formAsmts, 'F', 'FORMATIF', formAllRes)), 'Formatif');
 
       // ── Sheet 4: Sumatif — format melebar (3 kolom per penilaian) ─────────
-      const sumAllRes = sumAsmts.length
-        ? await Promise.all(sumAsmts.map(a => SipApi.getAssessmentResults(a.id).catch(() => [])))
-        : [];
-
       const sumMeta = sumAsmts.map((a, i) => {
         const tp    = a.tp_kktp_id ? _tpList.find(t => t.id === a.tp_kktp_id) : null;
         const kktp0 = tp ? _tpList.find(k => k.parent_id === tp.id && k.tipe === 'KKTP') : null;
