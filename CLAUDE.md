@@ -444,7 +444,7 @@ Migrations baru:
 20260825000001_gate-rancang-umum-smk-guru-pro.sql
 ```
 
-**File JS baru (untracked, belum commit):**
+**File JS Runtime Rancang (sudah ter-commit di `f99b71b`, 19 Agustus 2026):**
 ```
 guru/js/runtime-compiler.js
 guru/js/runtime-db.js
@@ -452,6 +452,11 @@ guru/js/runtime-session.js
 guru/js/runtime-ui.js
 guru/js/runtime-sync.js
 ```
+
+> Label blok ini sebelumnya berbunyi "untracked, belum commit". Itu sudah
+> tidak benar sejak `f99b71b` — kelimanya masuk dalam satu commit dan kini
+> tracked. Daftarnya dipertahankan karena masih berguna: ia menyebutkan
+> berkas mana saja yang menyusun runtime Tab Rancang.
 
 **Catatan hardening:**
 Putaran 9 (Hardening) belum dikerjakan.
