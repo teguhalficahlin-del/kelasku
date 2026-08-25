@@ -235,9 +235,78 @@
     PREDIKAT_ORDER.forEach(p => {
       const low  = box?.querySelector(`.kktp-rentang-low[data-pred="${p}"]`);
       const high = box?.querySelector(`.kktp-rentang-high[data-pred="${p}"]`);
-      r[p] = [parseFloat(low?.value) || 0, parseFloat(high?.value) || 100];
+      // Tanpa `|| 0` dan `|| 100`: kotak kosong kini menghasilkan NaN, bukan
+      // batas yang tampak sah. Dulu KKTP yang batasnya tidak pernah diketik
+      // siapa pun tersimpan sebagai 0–100 dan dipakai getPredikat() apa adanya.
+      // validasiRentang() yang menolaknya sekarang.
+      r[p] = [parseFloat(low?.value), parseFloat(high?.value)];
     });
     return r;
+  }
+
+  // Mengembalikan pesan galat, atau null bila rentangnya sah.
+  //
+  // Batas antar predikat boleh renggang — DEFAULT_RENTANG memang begitu, BB
+  // berakhir di 54 dan MB mulai di 55. Yang dilarang hanya tumpang tindih,
+  // karena di situ satu nilai bisa jatuh ke dua predikat sekaligus dan yang
+  // menang cuma soal urutan pemeriksaan di getPredikat().
+  function validasiRentang(rentang) {
+    for (const p of PREDIKAT_ORDER) {
+      const [lo, hi] = rentang[p] ?? [];
+      if (!Number.isFinite(lo) || !Number.isFinite(hi))
+        return `Batas ${p} harus berupa angka`;
+      if (lo < 0 || hi > 100)
+        return `Batas ${p} harus berada di antara 0 dan 100`;
+      if (lo > hi)
+        return `Batas bawah ${p} (${lo}) tidak boleh melebihi batas atasnya (${hi})`;
+    }
+    for (let i = 0; i < PREDIKAT_ORDER.length - 1; i++) {
+      const a = PREDIKAT_ORDER[i];
+      const b = PREDIKAT_ORDER[i + 1];
+      if (rentang[a][1] > rentang[b][0])
+        return `Rentang ${a} dan ${b} tumpang tindih: ${a} berakhir di `
+          + `${rentang[a][1]}, ${b} mulai di ${rentang[b][0]}`;
+    }
+    return null;
+  }
+
+  // Rekap nilai adalah turunan: ia dihitung dari hasil sumatif lalu disimpan.
+  // Begitu hasil itu berubah atau penilaiannya hilang, angka tersimpan menjadi
+  // klaim tanpa dasar — dan tidak ada apa pun di layar yang menandainya basi.
+  // Menghapusnya lebih jujur daripada membiarkannya: rekap kosong terang-terangan
+  // meminta dihitung ulang, rekap basi diam-diam salah.
+  //
+  // Dicakup ke TP + semester + tahun berjalan, mengikuti kunci grade_recap
+  // (classroom_id, student_id, tp_kktp_id, semester, tahun_ajaran) — rekap TP
+  // lain dan tahun lain tidak ikut terhapus.
+  //
+  // SipApi tidak punya method hapus untuk tabel ini dan api.js di luar cakupan
+  // perubahan, jadi client dipakai langsung. RLS mengizinkannya: gr_guru_delete
+  // (pemilik classroom) di-AND dengan trial_guard_delete (guru aktif).
+  async function hapusRekapTp(tpKktpId) {
+    if (!tpKktpId) return 0;
+    const { data, error } = await client
+      .from('grade_recap')
+      .delete()
+      .eq('classroom_id', _cId)
+      .eq('tp_kktp_id', tpKktpId)
+      .eq('semester', _rcSemester)
+      .eq('tahun_ajaran', _rcTahun)
+      .select('id');
+    if (error) throw error;
+    return (data ?? []).length;
+  }
+
+  // Jumlah rekap milik satu TP, TANPA batasan semester: menghapus TP membuang
+  // seluruh rekapnya, jadi angka yang disebut ke guru harus seluruhnya juga.
+  async function hitungRekapTp(tpKktpId) {
+    const { count, error } = await client
+      .from('grade_recap')
+      .select('id', { count: 'exact', head: true })
+      .eq('classroom_id', _cId)
+      .eq('tp_kktp_id', tpKktpId);
+    if (error) throw error;
+    return count ?? 0;
   }
 
   // ─── Data loading ────────────────────────────────────────────────────────────
@@ -790,12 +859,29 @@ ${errHtml}
         el('tp-err').style.display = '';
         return;
       }
+      // KKTP tanpa TP induk tidak punya arti: predikat dibaca lewat parent_id,
+      // sehingga baris yatim itu tidak akan pernah dipakai rekap mana pun —
+      // tersimpan, tampil di daftar, dan diam-diam tak berfungsi.
+      if (selTipe === 'KKTP' && !el('tp-parent-sel')?.value) {
+        el('tp-err').textContent = 'KKTP harus dikaitkan ke sebuah TP induk';
+        el('tp-err').style.display = '';
+        return;
+      }
+      const rentang = selTipe === 'KKTP' ? collectRentang() : null;
+      if (rentang) {
+        const salahRentang = validasiRentang(rentang);
+        if (salahRentang) {
+          el('tp-err').textContent = salahRentang;
+          el('tp-err').style.display = '';
+          return;
+        }
+      }
       const payload = {
         tipe:         selTipe,
         judul,
         konten:       selTipe !== 'KKTP' ? (el('tp-konten').value.trim() || null) : null,
         parent_id:    selTipe === 'KKTP' ? (el('tp-parent-sel').value || null) : null,
-        rentang:      selTipe === 'KKTP' ? collectRentang() : null,
+        rentang,
         batas_bawah:  null,
         batas_atas:   null,
         academic_year: el('tp-year').value.trim() || DEFAULT_YEAR,
@@ -841,10 +927,27 @@ ${errHtml}
   async function confirmDeleteTp(id) {
     const item = _tpList.find(t => t.id === id);
     if (!item) return;
+
+    // Rekap nilai menunjuk TP lewat grade_recap.tp_kktp_id, jadi menghapus TP
+    // membuang rekapnya juga. Jumlahnya disebutkan supaya guru tahu persis apa
+    // yang hilang — kalimat umum terlalu mudah diklik lewat.
+    let rekapFrasa = '';
+    if (item.tipe === 'TP') {
+      try {
+        const n = await hitungRekapTp(id);
+        rekapFrasa = n > 0 ? ` beserta ${n} rekap nilai tersimpan` : '';
+      } catch (e) {
+        // Jumlahnya tidak terbaca. Peringatannya tetap harus muncul — tanpa
+        // angka, tapi tidak boleh menghilang begitu saja.
+        console.error('gagal menghitung rekap TP', e);
+        rekapFrasa = ' termasuk semua rekap nilai yang tersimpan';
+      }
+    }
+
     const msg = item.tipe === 'CP'
       ? 'Menghapus CP ini akan menghapus entri ini secara permanen.'
       : item.tipe === 'TP'
-        ? 'TP ini akan dihapus. Penilaian yang terkait TP ini akan tetap ada tapi tidak lagi terhubung ke TP manapun.'
+        ? `TP ini akan dihapus${rekapFrasa}. Penilaian tetap ada tapi tidak lagi terhubung ke TP.`
         : 'Menghapus KKTP ini secara permanen.';
     if (!confirm(msg)) return;
     try {
@@ -1478,9 +1581,20 @@ ${errHtml}
           throw new Error(pesanGagalSimpan(gagalNilai, gagalGrup));
         }
 
+        // Hasil sumatif berubah, jadi rekap yang sudah tersimpan untuk TP itu
+        // tidak lagi mencerminkannya. Dihapus supaya guru menghitung ulang.
+        let peringatanRekap = '';
+        if (selJenis === 'SUMATIF' && payload.tp_kktp_id) {
+          try {
+            await hapusRekapTp(payload.tp_kktp_id);
+          } catch (e) {
+            console.error('gagal menghapus rekap basi', e);
+            peringatanRekap = ' Rekap lama gagal dihapus — hitung ulang di Rekap Penilaian.';
+          }
+        }
         closeModal();
         renderAsmtList();
-        toast('Penilaian berhasil diperbarui');
+        toast('Penilaian berhasil diperbarui.' + peringatanRekap);
       } catch (err) {
         errEl.textContent = err.message || 'Gagal menyimpan';
         errEl.style.display = '';
@@ -1500,8 +1614,21 @@ ${errHtml}
     try {
       await SipApi.deleteAssessment(id);
       _asmts = _asmts.filter(a => a.id !== id);
+      // Rekap TP ini dihitung dari hasil penilaian yang barusan hilang.
+      // Membiarkannya berarti menyimpan angka yang sumbernya sudah tidak ada.
+      let peringatan = '';
+      if (item.jenis === 'SUMATIF' && item.tp_kktp_id) {
+        try {
+          await hapusRekapTp(item.tp_kktp_id);
+        } catch (e) {
+          // Penilaiannya sudah terhapus; menyatakan seluruh operasi gagal di
+          // sini akan berbohong. Cukup beri tahu apa yang masih perlu dibereskan.
+          console.error('gagal menghapus rekap basi', e);
+          peringatan = ' Rekap lama gagal dihapus — hitung ulang di Rekap Penilaian.';
+        }
+      }
       renderAsmtList();
-      toast('Penilaian dihapus');
+      toast('Penilaian dihapus.' + peringatan);
     } catch (err) {
       toast('Gagal menghapus: ' + (err.message || ''), false);
     }
@@ -2741,9 +2868,21 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
         if (gagalNilai.length || gagalGrup.length) {
           throw new Error(pesanGagalSimpan(gagalNilai, gagalGrup));
         }
+        // Sama seperti modal edit: menyimpan hasil sumatif membuat rekap lama
+        // untuk TP itu basi. Relevan di sini karena modal ini bisa disimpan dua
+        // kali, dan penilaiannya bisa memakai TP yang sudah punya rekap.
+        let peringatanRekap = '';
+        if (selJenis === 'SUMATIF' && row.tp_kktp_id) {
+          try {
+            await hapusRekapTp(row.tp_kktp_id);
+          } catch (e) {
+            console.error('gagal menghapus rekap basi', e);
+            peringatanRekap = ' Rekap lama gagal dihapus — hitung ulang di Rekap Penilaian.';
+          }
+        }
         closeModal();
         renderAsmtList();
-        toast('Penilaian berhasil dibuat');
+        toast('Penilaian berhasil dibuat.' + peringatanRekap);
       } catch (err) {
         errEl.textContent = err.message || 'Gagal menyimpan';
         errEl.style.display = '';
@@ -3302,6 +3441,25 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
         }
       }
     }
+    // TP tanpa satu pun KKTP tidak bisa menghasilkan predikat: _hitungNilaiAkhir
+    // mengembalikan null, dan _simpanRecap menulis kktp_tercapai null. Yang
+    // tersimpan lalu berupa angka tanpa penilaian ketercapaian sama sekali —
+    // rekap yang secara teknis ada tapi tidak menjawab pertanyaan pokoknya.
+    //
+    // Hanya Simpan yang dikunci, bukan Hitung: melihat angkanya lebih dulu justru
+    // membantu guru memutuskan rentang KKTP yang pantas.
+    const tpTanpaKktp = [];
+    for (const tpId of [...new Set(sumatifs.map(a => a.tp_kktp_id).filter(Boolean))]) {
+      if (_tpList.some(t => t.parent_id === tpId && t.tipe === 'KKTP')) continue;
+      const tp = _tpList.find(t => t.id === tpId);
+      tpTanpaKktp.push(tp ? (tp.judul || tp.konten || '—') : '—');
+    }
+    const tanpaKktpHtml = tpTanpaKktp.length ? `
+  <div style="margin-top:.5rem;font-size:var(--fs-caption);color:#c0392b">
+    TP berikut belum memiliki KKTP: ${esc(tpTanpaKktp.join(', '))}. Tambahkan KKTP
+    lebih dulu sebelum menyimpan rekap — tanpa itu predikat tidak bisa
+    ditentukan.</div>` : '';
+
     // Dipakai dua kali: di bawah kotak bobot (tempat guru memperbaikinya) dan
     // di samping tombol Simpan (tempat ia menyadari sesuatu terkunci).
     const grupNolHtml = tpNolBobot.length ? `
@@ -3340,7 +3498,8 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
     // Simpan punya satu kunci tambahan: hasil yang sudah dihitung tapi tidak
     // menyisakan satu kelompok TP pun tidak punya apa-apa untuk disimpan —
     // _simpanRecap akan berputar nol kali dan melaporkan "0 entri" seolah sukses.
-    const simpanDis  = hitungDis || !!(_rcHasil && _rcHasil.groups.length === 0);
+    const simpanDis  = hitungDis || tpTanpaKktp.length > 0
+      || !!(_rcHasil && _rcHasil.groups.length === 0);
     const metodeHtml = `
 <div style="margin-top:.75rem;background:var(--bg-card,#1e1e1e);border-radius:.5rem;
   padding:.75rem;border:1px solid var(--border-subtle,rgba(255,255,255,.12))">
@@ -3434,6 +3593,7 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
   ${bobotDis ? `<div style="margin-top:.75rem;font-size:var(--fs-caption);color:#c0392b">
     Total bobot harus 100%. Saat ini: ${totalBobot}%</div>` : ''}
   ${grupNolHtml}
+  ${tanpaKktpHtml}
   <button id="rc-btn-simpan"${simpanDis ? ' disabled' : ''}
     style="margin-top:.5rem;min-height:var(--btn-h);
     background:${simpanDis ? 'var(--border-subtle,rgba(255,255,255,.18))' : 'var(--gold)'};
