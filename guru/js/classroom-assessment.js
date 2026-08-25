@@ -48,7 +48,9 @@
   let _rcMetodeListener  = null;   // listener delegasi pada cc — di-replace tiap render
   let _rcBobots          = [];
   let _rcLastSumatifIds  = [];
-  let _rcHasil      = null;   // null | [{id, nama, nilaiAkhir, predikat}]
+  // null | { groups: [{tpId, judul, rows:[{id, nama, nilaiAkhir, predikat}]}],
+  //          skipped: jumlah sumatif tanpa TP yang dibuang }
+  let _rcHasil      = null;
 
   // ─── Constants ──────────────────────────────────────────────────────────────
   const CY           = new Date().getFullYear();
@@ -3224,14 +3226,6 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
       return `S${i + 1}-${label}`;
     });
 
-    // KKTP untuk predikat: ambil dari TP pertama yang punya KKTP child
-    let _kktp = null;
-    for (const a of sumatifs) {
-      if (!a.tp_kktp_id) continue;
-      const k = _tpList.find(t => t.parent_id === a.tp_kktp_id && t.tipe === 'KKTP');
-      if (k) { _kktp = k; break; }
-    }
-
     const thSt = `padding:.4rem .5rem;border-bottom:2px solid var(--gold);font-size:var(--fs-caption);white-space:nowrap;text-align:left`;
     const tdSt = `padding:.4rem .5rem;font-size:var(--fs-ui);border-bottom:1px solid var(--border-subtle,rgba(255,255,255,.08))`;
 
@@ -3314,44 +3308,74 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
     // ── HASIL NILAI AKHIR ────────────────────────────────────────────────────
     let hasilHtml = '';
     if (_rcHasil) {
-      const totalPages2 = Math.ceil(_rcHasil.length / RC_PAGE_SIZE);
-      const pageHasil   = _rcHasil.slice(_rcPage2 * RC_PAGE_SIZE, (_rcPage2 + 1) * RC_PAGE_SIZE);
-      const hasilRows   = pageHasil.map((row, idx) => {
-        const no       = _rcPage2 * RC_PAGE_SIZE + idx + 1;
-        const predColor = (row.predikat === 'BSH' || row.predikat === 'SB')
-          ? 'var(--success,#2d6a4f)' : row.predikat ? '#c0392b' : 'var(--text-secondary)';
-        return `<tr>
-          <td style="${tdSt};text-align:center;color:var(--text-secondary)">${no}</td>
-          <td style="${tdSt}">${esc(row.nama)}</td>
-          <td style="${tdSt};text-align:center;font-weight:600">${row.nilaiAkhir.toFixed(1)}</td>
-          <td style="${tdSt};text-align:center;font-weight:600;color:${predColor}">${esc(row.predikat || '—')}</td>
-        </tr>`;
+      // Setiap blok memuat SELURUH siswa, jadi jumlah halamannya sama untuk semua
+      // blok. Satu indeks halaman dipakai bersama: halaman 1 berarti siswa 1–5 di
+      // semua TP sekaligus, sehingga capaian satu siswa lintas TP terbaca dalam
+      // satu layar. Efek sampingnya menguntungkan — _rcPage2 tetap angka biasa,
+      // jadi sembilan tempat yang menyetel ulangnya tidak perlu disentuh.
+      const totalPages2 = Math.ceil(_roster.length / RC_PAGE_SIZE) || 1;
+      const cur2        = Math.min(_rcPage2, totalPages2 - 1);
+
+      const blokHtml = _rcHasil.groups.map(g => {
+        const pageRows = g.rows.slice(cur2 * RC_PAGE_SIZE, (cur2 + 1) * RC_PAGE_SIZE);
+        const trs = pageRows.map((row, idx) => {
+          const no        = cur2 * RC_PAGE_SIZE + idx + 1;
+          const predColor = (row.predikat === 'BSH' || row.predikat === 'SB')
+            ? 'var(--success,#2d6a4f)' : row.predikat ? '#c0392b' : 'var(--text-secondary)';
+          return `<tr>
+            <td style="${tdSt};text-align:center;color:var(--text-secondary)">${no}</td>
+            <td style="${tdSt}">${esc(row.nama)}</td>
+            <td style="${tdSt};text-align:center;font-weight:600">${row.nilaiAkhir.toFixed(1)}</td>
+            <td style="${tdSt};text-align:center;font-weight:600;color:${predColor}">${esc(row.predikat || '—')}</td>
+          </tr>`;
+        }).join('');
+        return `
+  <div style="margin-bottom:.75rem">
+    <div style="font-size:var(--fs-caption);font-weight:600;color:var(--text-primary);
+      margin-bottom:.35rem">Nilai Akhir TP: ${esc(g.judul || '—')}</div>
+    <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;min-width:280px">
+        <thead><tr>
+          <th style="${thSt};text-align:center">No</th>
+          <th style="${thSt}">Nama Siswa</th>
+          <th style="${thSt};text-align:center">Nilai Akhir</th>
+          <th style="${thSt};text-align:center">Predikat</th>
+        </tr></thead>
+        <tbody>${trs}</tbody>
+      </table>
+    </div>
+  </div>`;
       }).join('');
+
+      // Semua sumatif terpilih ternyata tanpa TP: tidak ada satu pun blok yang
+      // bisa dibangun, dan tidak ada pula yang bisa disimpan.
+      const kosongHtml = _rcHasil.groups.length ? '' : `
+  <div style="font-size:var(--fs-caption);color:var(--text-secondary)">
+    Tidak ada sumatif yang terikat pada TP, jadi nilai akhir tidak bisa dihitung.
+    Kaitkan penilaian ke sebuah TP lebih dulu di Section 2.</div>`;
 
       const pag2Html = totalPages2 > 1
         ? `<div style="display:flex;align-items:center;justify-content:center;gap:.75rem;margin-top:.5rem;font-size:var(--fs-caption)">
-            <button data-rc-pag="2" data-dir="-1"${_rcPage2 === 0 ? ' disabled' : ''} style="padding:.2rem .6rem;cursor:pointer">←</button>
-            <span>Hal. ${_rcPage2 + 1}/${totalPages2}</span>
-            <button data-rc-pag="2" data-dir="1"${_rcPage2 === totalPages2 - 1 ? ' disabled' : ''} style="padding:.2rem .6rem;cursor:pointer">→</button>
+            <button data-rc-pag="2" data-dir="-1"${cur2 === 0 ? ' disabled' : ''} style="padding:.2rem .6rem;cursor:pointer">←</button>
+            <span>Hal. ${cur2 + 1}/${totalPages2} — berlaku untuk semua TP</span>
+            <button data-rc-pag="2" data-dir="1"${cur2 === totalPages2 - 1 ? ' disabled' : ''} style="padding:.2rem .6rem;cursor:pointer">→</button>
           </div>` : '';
+
+      // Jumlah yang dilewati disebut terang-terangan: guru harus tahu ada nilai
+      // yang tidak ikut dihitung, bukan menemukannya sendiri dari selisih angka.
+      const lewatHtml = _rcHasil.skipped > 0 ? `
+  <div style="margin-top:.5rem;font-size:var(--fs-caption);color:var(--text-secondary)">
+    ${_rcHasil.skipped} sumatif tanpa TP dilewati — nilainya tidak ikut dihitung
+    dan tidak akan tersimpan.</div>` : '';
 
       hasilHtml = `
 <div style="margin-top:.75rem;background:var(--bg-card,#1e1e1e);border-radius:.5rem;
   padding:.75rem;border:1px solid var(--border-subtle,rgba(255,255,255,.12))">
   <div style="font-size:var(--fs-caption);font-weight:600;color:var(--gold);
     margin-bottom:.5rem;text-transform:uppercase;letter-spacing:.04em">Hasil Nilai Akhir</div>
-  <div style="overflow-x:auto">
-    <table style="width:100%;border-collapse:collapse;min-width:280px">
-      <thead><tr>
-        <th style="${thSt};text-align:center">No</th>
-        <th style="${thSt}">Nama Siswa</th>
-        <th style="${thSt};text-align:center">Nilai Akhir</th>
-        <th style="${thSt};text-align:center">Predikat</th>
-      </tr></thead>
-      <tbody>${hasilRows}</tbody>
-    </table>
-  </div>
+  ${blokHtml}${kosongHtml}
   ${pag2Html}
+  ${lewatHtml}
   ${bobotDis ? `<div style="margin-top:.75rem;font-size:var(--fs-caption);color:#c0392b">
     Total bobot harus 100%. Saat ini: ${totalBobot}%</div>` : ''}
   <button id="rc-btn-simpan"${simpanDis ? ' disabled' : ''}
@@ -3414,7 +3438,7 @@ ${metodeHtml}${hasilHtml}`;
     }
 
     cc.querySelector('#rc-btn-hitung')?.addEventListener('click', () => {
-      _rcHasil = _hitungNilaiAkhir(sumatifs, nilaiGrid, _kktp);
+      _rcHasil = _hitungNilaiAkhir(sumatifs, nilaiGrid);
       _rcPage2 = 0;
       _renderRecapContent(cc, sumatifs, allResults);
     });
@@ -3425,7 +3449,10 @@ ${metodeHtml}${hasilHtml}`;
         const which = this.dataset.rcPag;
         const dir   = parseInt(this.dataset.dir, 10);
         const max1  = totalPages1 - 1;
-        const max2  = _rcHasil ? Math.ceil(_rcHasil.length / RC_PAGE_SIZE) - 1 : 0;
+        // Setiap blok TP memuat seluruh siswa, jadi batas halamannya diukur dari
+        // panjang roster — bukan dari jumlah baris _rcHasil, yang kini berlipat
+        // sebanyak kelompok TP-nya.
+        const max2  = _rcHasil ? Math.ceil(_roster.length / RC_PAGE_SIZE) - 1 : 0;
         if (which === '1') _rcPage1 = Math.max(0, Math.min(max1, _rcPage1 + dir));
         else               _rcPage2 = Math.max(0, Math.min(max2, _rcPage2 + dir));
         _renderRecapContent(cc, sumatifs, allResults);
@@ -3437,25 +3464,67 @@ ${metodeHtml}${hasilHtml}`;
 
   // Fungsi bersama untuk hitung nilai satu siswa — dipakai tampil DAN simpan agar identik.
   // indices: array indeks sumatifs yang relevan; bobots: array bobot global (_rcBobots).
+  //
+  // Normalisasi bobot sengaja tinggal DI SINI, bukan di pemanggilnya. Layar dan
+  // simpan sama-sama lewat fungsi ini dengan indices per kelompok TP yang sama,
+  // jadi menaruhnya di sini membuat keduanya mustahil berbeda. Kalau ia ditaruh
+  // di _hitungNilaiAkhir saja, angka di layar akan ternormalisasi sementara yang
+  // tersimpan tidak — persis perpecahan yang sedang diperbaiki.
   function _hitungNilaiSiswa(sid, indices, nilaiGrid, metode, bobots) {
     if (metode === 'rata') {
       const vals = indices.map(i => nilaiGrid[i][sid] ?? 0);
       return vals.reduce((a, b) => a + b, 0) / vals.length;
     } else if (metode === 'bobot') {
+      // bobots[] berindeks GLOBAL, sementara indices hanya sebagian — satu
+      // kelompok TP. Bobot subset itu hampir tidak pernah berjumlah 100, jadi
+      // pembaginya adalah jumlah bobot kelompok ini, bukan 100 mati.
+      //
+      // Tanpa itu: 4 sumatif berbobot 25 dibagi ke 2 TP, siswa bernilai 80
+      // semua, tiap TP menghasilkan 40 — bukan 80, dan bukan skala 0–100 lagi.
+      const totalBobotGrup = indices.reduce((t, i) => t + (bobots[i] || 0), 0);
+      // Seluruh bobot kelompok ini nol: tidak ada yang bisa dinormalisasi.
+      // Hasilnya 0, bukan NaN — pembagian nol tidak boleh bocor ke layar.
+      if (!totalBobotGrup) return 0;
       return indices.reduce((sum, i) =>
-        sum + (nilaiGrid[i][sid] ?? 0) * (bobots[i] || 0) / 100, 0);
+        sum + (nilaiGrid[i][sid] ?? 0) * (bobots[i] || 0) / totalBobotGrup, 0);
     } else {
       return Math.max(...indices.map(i => nilaiGrid[i][sid] ?? 0));
     }
   }
 
-  function _hitungNilaiAkhir(sumatifs, nilaiGrid, kktp) {
-    const indices = sumatifs.map((_, i) => i);
-    return _roster.map(s => {
-      const nilaiAkhir = _hitungNilaiSiswa(s.id, indices, nilaiGrid, _rcMetode, _rcBobots);
-      const predikat   = kktp ? getPredikat(nilaiAkhir, getRentang(kktp)) : null;
-      return { id: s.id, nama: s.nama, nilaiAkhir, predikat };
+  // Pengelompokannya PERSIS sama dengan _simpanRecap: kunci tp_kktp_id, sumatif
+  // tanpa TP dibuang, dan KKTP dipilih yang semesternya cocok dengan filter lalu
+  // jatuh ke KKTP pertama.
+  //
+  // Sebelum ini layar menghitung SATU nilai agregat lintas seluruh TP dengan SATU
+  // KKTP — TP pertama yang kebetulan punya anak KKTP, semester diabaikan — sedang
+  // yang tersimpan dihitung per TP dengan KKTP masing-masing. Predikat di layar
+  // karena itu bisa berbeda dari predikat yang masuk ke grade_recap.
+  function _hitungNilaiAkhir(sumatifs, nilaiGrid) {
+    const tpGroups = {};
+    let skipped = 0;
+    sumatifs.forEach((a, i) => {
+      // Sumatif tanpa TP tidak bisa diketahui KKTP-nya, jadi tidak punya predikat
+      // dan tidak akan tersimpan. Dibuang di sini juga supaya layar tidak
+      // menjanjikan angka yang tidak akan pernah masuk DB.
+      if (!a.tp_kktp_id) { skipped++; return; }
+      if (!tpGroups[a.tp_kktp_id]) tpGroups[a.tp_kktp_id] = [];
+      tpGroups[a.tp_kktp_id].push(i);
     });
+
+    const groups = Object.entries(tpGroups).map(([tpId, indices]) => {
+      const tp      = _tpList.find(t => t.id === tpId);
+      const kktpAll = _tpList.filter(t => t.parent_id === tpId && t.tipe === 'KKTP');
+      const kktp    = kktpAll.find(k => String(k.semester) === String(_rcSemester)) ?? kktpAll[0] ?? null;
+      const rows = _roster.map(s => {
+        const nilaiAkhir = _hitungNilaiSiswa(s.id, indices, nilaiGrid, _rcMetode, _rcBobots);
+        const predikat   = kktp ? getPredikat(nilaiAkhir, getRentang(kktp)) : null;
+        return { id: s.id, nama: s.nama, nilaiAkhir, predikat };
+      });
+      return { tpId, judul: tp ? (tp.judul || tp.konten || '') : '', rows };
+    });
+
+    return { groups, skipped };
   }
 
   async function _simpanRecap(sumatifs, nilaiGrid) {
