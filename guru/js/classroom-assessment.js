@@ -2898,16 +2898,24 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
       return m;
     });
 
-    // Kepala kolom mengikuti bentuk yang dipakai rekap Sumatif: nomor urut
-    // penilaian, lalu judul TP yang dipendekkan. Bedanya hanya huruf awalnya.
+    // Kepala kolom dua baris. Baris atas mengikuti bentuk rekap Sumatif -- nomor
+    // urut penilaian lalu judul TP yang dipendekkan. Baris bawah menyebut teknik
+    // dan instrumennya: tanpa itu dua penilaian atas TP yang sama tampak sebagai
+    // kolom kembar yang tidak bisa dibedakan guru.
     const colHeaders = items.map((a, i) => {
       const tp  = a.tp_kktp_id ? _tpList.find(t => t.id === a.tp_kktp_id) : null;
       const jud = tp ? (tp.judul || '') : '';
       const label = jud ? (jud.length > 10 ? jud.slice(0, 10) + '…' : jud) : '—';
-      return `${prefix}${i + 1}-${label}`;
+      const sub = [_rcTeknikSingkat(a.teknik), _rcInstrumenSingkat(a.instrumen)]
+        .filter(Boolean).join(' | ');
+      return { kode: `${prefix}${i + 1}-${label}`, sub: sub || '—' };
     });
 
-    const thSt = `padding:.4rem .5rem;border-bottom:2px solid var(--gold);font-size:var(--fs-caption);white-space:nowrap;text-align:left`;
+    const thBase = `padding:.4rem .5rem;font-size:var(--fs-caption);white-space:nowrap;text-align:left`;
+    const thSt   = `${thBase};border-bottom:2px solid var(--gold)`;
+    // Baris atas tidak diberi garis emas -- garisnya hanya di bawah baris kedua,
+    // supaya kedua baris terbaca sebagai satu kepala kolom, bukan dua.
+    const thTop  = thBase;
     const tdSt = `padding:.4rem .5rem;font-size:var(--fs-ui);border-bottom:1px solid var(--border-subtle,rgba(255,255,255,.08));vertical-align:top`;
 
     const totalPages = Math.ceil(_roster.length / RC_PAGE_SIZE);
@@ -2916,15 +2924,22 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
 
     const rows = pageRoster.map((stu, idx) => {
       const no    = cur * RC_PAGE_SIZE + idx + 1;
-      const cells = items.map((_, ci) =>
-        `<td style="${tdSt}">${selHtml(grid[ci][stu.id])}</td>`).join('');
+      // items[ci] adalah objek penilaiannya sendiri -- termasuk konten, teknik,
+      // dan instrumen. Diteruskan ke selHtml supaya penyaji sel bisa membaca
+      // hasil yang tersimpan di assessments.konten, bukan hanya yang ada di
+      // assessment_results.
+      const cells = items.map((a, ci) =>
+        `<td style="${tdSt}">${selHtml(grid[ci][stu.id], a, stu.id)}</td>`).join('');
       return `<tr>
         <td style="${tdSt};text-align:center;color:var(--text-secondary)">${no}</td>
         <td style="${tdSt}">${esc(stu.nama)}</td>${cells}</tr>`;
     }).join('');
 
-    const headCells = colHeaders.map(h =>
-      `<th style="${thSt};text-align:center" title="${esc(h)}">${esc(h)}</th>`).join('');
+    const headCells1 = colHeaders.map(h =>
+      `<th style="${thTop};text-align:center" title="${esc(h.kode)}">${esc(h.kode)}</th>`).join('');
+    const headCells2 = colHeaders.map(h =>
+      `<th style="${thSt};text-align:center;font-weight:400;color:var(--text-secondary)"
+         title="${esc(h.sub)}">${esc(h.sub)}</th>`).join('');
 
     const pagHtml = totalPages > 1
       ? `<div style="display:flex;align-items:center;justify-content:center;gap:.75rem;margin-top:.5rem;font-size:var(--fs-caption)">
@@ -2941,10 +2956,13 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
     text-transform:uppercase;letter-spacing:.04em;margin-bottom:.4rem">${esc(judul)}</div>
   <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
     <table style="width:100%;border-collapse:collapse;min-width:${130 + items.length * 150}px">
-      <thead><tr>
-        <th style="${thSt};text-align:center;width:2.5rem">No</th>
-        <th style="${thSt}">Nama Siswa</th>${headCells}
-      </tr></thead>
+      <thead>
+        <tr>
+          <th rowspan="2" style="${thSt};text-align:center;width:2.5rem;vertical-align:bottom">No</th>
+          <th rowspan="2" style="${thSt};vertical-align:bottom">Nama Siswa</th>${headCells1}
+        </tr>
+        <tr>${headCells2}</tr>
+      </thead>
       <tbody>${rows}</tbody>
     </table>
   </div>
@@ -2966,6 +2984,27 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
   // harus terbaca berbeda dari siswa yang sudah dinilai.
   const RC_SEL_KOSONG = `<span style="color:var(--text-secondary)">—</span>`;
 
+  // Singkatan khusus baris kedua kepala kolom, yang sempit. Ia sengaja berbeda
+  // dari teknikLbl(): 'Tes Tertulis' dan 'Observasi' terlalu panjang untuk kolom
+  // selebar ini, sementara di dropdown filter keduanya justru harus utuh.
+  // Teknik di luar daftar jatuh kembali ke teknikLbl() -- tidak ada logika
+  // penamaan yang ditulis dua kali di sini.
+  const TEKNIK_SINGKAT = {
+    TES: 'Tes', TES_LISAN: 'Tes Lisan', OBSERVASI: 'Obs', PENUGASAN: 'Penugasan',
+    PROYEK: 'Proyek', PORTOFOLIO: 'Portofolio', UNJUK_KERJA: 'Unjuk Kerja',
+  };
+  function _rcTeknikSingkat(t)   { return t ? (TEKNIK_SINGKAT[t] ?? teknikLbl(t)) : ''; }
+  function _rcInstrumenSingkat(i) { return !i ? '' : (i.length > 12 ? i.slice(0, 12) + '…' : i); }
+
+  // Hasil dari assessments.konten. extractHasilDiagForm() memakai '-' sebagai
+  // penanda "tidak ada", jadi nilai itu diterjemahkan ke null di sini supaya
+  // pemanggilnya cukup memeriksa kebenaran biasa.
+  function _rcHasilKonten(asmt, sid) {
+    if (!asmt) return null;
+    const h = extractHasilDiagForm(asmt.konten, asmt.teknik, asmt.instrumen, sid);
+    return (h && h !== '-') ? h : null;
+  }
+
   function _rcBarisTeks(teks, label) {
     if (!teks) return '';
     return `<div style="font-size:var(--fs-caption);color:var(--text-secondary);margin-top:.2rem">
@@ -2978,15 +3017,20 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
       judul:  'Daftar Capaian Formatif',
       page:   _rcPageF,
       setPage: n => { _rcPageF = n; },
-      // Label status dibaca dari STATUS_FORMATIF_LBL yang sudah dipakai
-      // Section 2, bukan ditulis ulang di sini. Nilai tak dikenal ditampilkan
-      // apa adanya supaya tidak muncul sebagai "undefined" di layar.
-      selHtml: r => {
-        if (!r) return RC_SEL_KOSONG;
-        const st = r.status ? (STATUS_FORMATIF_LBL[r.status] ?? r.status) : null;
-        const isi = (st ? `<div style="font-weight:600">${esc(st)}</div>` : '')
-          + _rcBarisTeks(r.umpan_balik,   'Umpan balik:')
-          + _rcBarisTeks(r.tindak_lanjut, 'Tindak lanjut:');
+      // Baris utama sel diambil dari assessments.konten lewat
+      // extractHasilDiagForm(), bukan dari assessment_results.status. Untuk
+      // teknik TES, TES_LISAN, dan OBSERVASI kolom status memang tidak pernah
+      // terisi -- hasilnya tersimpan di konten -- sehingga tabel ini sebelumnya
+      // menampilkan '—' untuk penilaian yang sebenarnya sudah lengkap.
+      //
+      // Umpan balik dan tindak lanjut tetap dibaca dari assessment_results:
+      // keduanya diisi lewat kotak teks di Section 2 dan memang tinggal di sana.
+      // r bisa undefined untuk penilaian berbasis konten, jadi diakses opsional.
+      selHtml: (r, asmt, sid) => {
+        const hasil = _rcHasilKonten(asmt, sid);
+        const isi = (hasil ? `<div style="font-weight:600">${esc(hasil)}</div>` : '')
+          + _rcBarisTeks(r?.umpan_balik,   'Umpan balik:')
+          + _rcBarisTeks(r?.tindak_lanjut, 'Tindak lanjut:');
         return isi || RC_SEL_KOSONG;
       },
     });
@@ -3001,17 +3045,23 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
       // Grup diferensiasi diambil dari baris hasil penilaian itu sendiri, bukan
       // dari _sGroups: _sGroups menyimpan grup siswa yang berlaku sekarang,
       // sedangkan kolom di sini mewakili satu penilaian tertentu di masa lalu.
-      selHtml: r => {
-        if (!r) return RC_SEL_KOSONG;
-        const st   = r.status ? (STATUS_LBL[r.status] ?? r.status) : null;
-        const grup = r.grup_diferensiasi || '';
-        const kepala = (st || grup)
+      //
+      // Urutannya penting: status dari assessment_results dibaca LEBIH DULU.
+      // Diagnostik berbasis chip per siswa memang mengisi kolom itu, dan
+      // labelnya lebih ringkas daripada rangkuman konten. extractHasilDiagForm()
+      // baru dipakai kalau status memang kosong -- yakni pada teknik yang
+      // menyimpan hasilnya di assessments.konten.
+      selHtml: (r, asmt, sid) => {
+        const st    = r?.status ? (STATUS_LBL[r.status] ?? r.status) : null;
+        const grup  = r?.grup_diferensiasi || '';
+        const utama = st ?? _rcHasilKonten(asmt, sid);
+        const kepala = (utama || grup)
           ? `<div style="display:flex;align-items:center;gap:.35rem;flex-wrap:wrap">
-              ${st ? `<span style="font-weight:600">${esc(st)}</span>` : ''}
+              ${utama ? `<span style="font-weight:600">${esc(utama)}</span>` : ''}
               ${grup ? `<span style="font-size:.65rem;padding:.15rem .45rem;border-radius:.25rem;
                 background:var(--gold);color:var(--text-on-gold,#000);font-weight:700">Grup ${esc(grup)}</span>` : ''}
             </div>` : '';
-        const isi = kepala + _rcBarisTeks(r.catatan, 'Catatan:');
+        const isi = kepala + _rcBarisTeks(r?.catatan, 'Catatan:');
         return isi || RC_SEL_KOSONG;
       },
     });
