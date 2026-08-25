@@ -31,8 +31,12 @@
   let _classroomJenjang  = ''; // window._classroomJenjang  — jenjang classroom
 
   // ── Rekap section state ────────────────────────────────────────────────────
+  // Keduanya ditimpa DEFAULT_SEMESTER/DEFAULT_YEAR di initPenilaian dan sekali
+  // lagi di renderRecap. Nilai literal di sini hanya sempat hidup sebelum init
+  // berjalan; ia tidak bisa memakai kedua konstanta itu karena keduanya const
+  // yang dideklarasikan di bawah (temporal dead zone).
   let _rcSemester   = '1';
-  let _rcTahun      = null;   // diinit ke DEFAULT_YEAR saat pertama renderRecap
+  let _rcTahun      = null;
   let _rcMapel         = null;
   let _rcMapelUserSet  = false; // true setelah user mengubah mapel di Section 3
   let _rcTeknik     = null;
@@ -54,14 +58,22 @@
 
   // ─── Constants ──────────────────────────────────────────────────────────────
   const CY           = new Date().getFullYear();
-  // Tahun ajaran berganti di bulan Juli, bukan Januari. Sebelum ini nilainya
-  // selalu `${CY-1}/${CY}`, sehingga sepanjang Juli–Desember guru mendapat
-  // tahun ajaran yang sudah lewat sebagai nilai bawaan -- filter Rekap dan
-  // TP baru ikut salah tanpa ada yang terlihat keliru di layar.
+  // Tahun ajaran DAN semester sama-sama berganti di bulan Juli, bukan Januari.
+  // Batasnya ditulis sekali di sini supaya keduanya mustahil berselisih.
   // getMonth() berbasis nol: 6 = Juli.
-  const DEFAULT_YEAR = new Date().getMonth() >= 6
-    ? `${CY}/${CY + 1}`
-    : `${CY - 1}/${CY}`;
+  //
+  // Harus tetap sama dengan SEMESTER_PHASES di guru/js/guru.js:
+  //   1 Jan – 30 Jun = semester 2,  1 Jul – 31 Des = semester 1.
+  // Dihitung ulang di sini, bukan diambil dari sana: getCurrentSemesterPhase()
+  // adalah fungsi lokal di dalam IIFE berkas itu dan tidak diekspor ke window,
+  // sedangkan fn_guru_trial_status() tidak membawa field semester sama sekali.
+  //
+  // Keduanya const yang dihitung sekali saat skrip dimuat. Sesi yang dibiarkan
+  // terbuka melewati tengah malam 30 Juni tidak akan ikut berpindah sampai
+  // halamannya dimuat ulang — dapat diterima untuk pemakaian sehari.
+  const _SEM1_BERJALAN   = new Date().getMonth() >= 6;
+  const DEFAULT_YEAR     = _SEM1_BERJALAN ? `${CY}/${CY + 1}` : `${CY - 1}/${CY}`;
+  const DEFAULT_SEMESTER = _SEM1_BERJALAN ? '1' : '2';
 
   const INSTRUMEN_MAP = {
     OBSERVASI:   ['Lembar Observasi', 'Catatan Anekdot', 'Checklist'],
@@ -285,8 +297,8 @@
     _classroomMapelKey = window._classroomMapelKey || '';
     _classroomJenjang  = window._classroomJenjang  || '';
     _selMapel         = null;
-    _rcSemester       = '1';
-    _rcTahun          = null;
+    _rcSemester       = DEFAULT_SEMESTER;
+    _rcTahun          = DEFAULT_YEAR;
     _rcMapel          = null;
     _rcMapelUserSet   = false;
     _rcTeknik         = null;
@@ -2828,7 +2840,11 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
   async function renderRecap() {
     const c = el('pai-recap-wrap');
     if (!c) return;
-    if (!_rcTahun) _rcTahun = DEFAULT_YEAR;
+    // Semester dan tahun ajaran kini turunan kalender, bukan pilihan guru.
+    // Dipatok ulang setiap panel dibuka supaya tidak ada nilai sisa dari
+    // classroom sebelumnya yang bertahan diam-diam.
+    _rcSemester   = DEFAULT_SEMESTER;
+    _rcTahun      = DEFAULT_YEAR;
     _rcHasil      = null;
     _rcPage1      = 0;
     _rcPage2      = 0;
@@ -2861,16 +2877,17 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
           `<option value="${j}"${sel(j,_rcJenis)}>${esc(JENIS_LBL[j])}</option>`).join('')}
       </select></div>`;
 
-    // Semester + tahun ajaran
-    html += `<div style="display:flex;gap:.75rem;flex-wrap:wrap;align-items:flex-end">
-      <div>${capLbl('Semester')}
-        <select id="rc-semester" style="${inputCss('max-width:8rem')}">
-          <option value="1"${sel('1',_rcSemester)}>Semester 1</option>
-          <option value="2"${sel('2',_rcSemester)}>Semester 2</option>
-        </select></div>
-      <div>${capLbl('Tahun Ajaran')}
-        <input type="text" id="rc-tahun" value="${esc(_rcTahun)}"
-          placeholder="${DEFAULT_YEAR}" style="${inputCss('max-width:8rem')}"></div>
+    // Semester + tahun ajaran — label, bukan isian.
+    //
+    // Keduanya turunan kalender dan tidak lagi bisa diubah guru. Sebagai kendali
+    // keduanya menyesatkan: semester selalu terbuka di '1' meski Januari–Juni
+    // seharusnya semester 2, dan tahun ajaran adalah kotak teks bebas yang satu
+    // salah ketik saja membuat rekap kosong tanpa sebab yang terlihat.
+    const nilaiLbl = t => `<div style="font-size:var(--fs-ui);font-weight:600;
+      color:var(--text-primary);padding:.15rem 0;white-space:nowrap">${esc(t)}</div>`;
+    html += `<div style="display:flex;gap:1.5rem;flex-wrap:wrap;align-items:flex-end">
+      <div>${capLbl('Semester')}${nilaiLbl('Semester ' + _rcSemester)}</div>
+      <div>${capLbl('Tahun Ajaran')}${nilaiLbl(_rcTahun)}</div>
     </div>`;
 
     // Mapel (WALI_KELAS_SD only)
@@ -2910,12 +2927,7 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
       _rcPage1 = _rcPage2 = _rcPageF = _rcPageD = 0; _rcHasil = null;
       _renderRecapShell(c);
     });
-    c.querySelector('#rc-semester')?.addEventListener('change', function () {
-      _rcSemester = this.value; _rcPage1 = _rcPage2 = _rcPageF = _rcPageD = 0; _rcHasil = null; _loadRecapContent();
-    });
-    c.querySelector('#rc-tahun')?.addEventListener('change', function () {
-      _rcTahun = this.value.trim() || DEFAULT_YEAR; _rcPage1 = _rcPage2 = _rcPageF = _rcPageD = 0; _rcHasil = null; _loadRecapContent();
-    });
+    // Tidak ada handler untuk semester dan tahun ajaran: keduanya label sekarang.
     c.querySelector('#rc-mapel')?.addEventListener('change', function () {
       _rcMapel = this.value; _rcMapelUserSet = true; _rcPage1 = _rcPage2 = _rcPageF = _rcPageD = 0; _rcHasil = null; _loadRecapContent();
     });
@@ -3821,9 +3833,14 @@ ${metodeHtml}${hasilHtml}`;
       // Diagnostik paling sering kena: asesmen awal lazim dibuat sebelum TP ada,
       // dan kolom tp_kktp_id memang boleh null (lihat form penilaian).
       //
-      // Bila Rekap belum pernah dibuka, _rcTahun masih null — dalam keadaan itu
-      // tidak ada filter yang bisa diikuti, jadi seluruh penilaian ikut terunduh.
-      // Ini persis kelonggaran yang sudah dipakai Sheet 5 di bawah.
+      // Penjaga _rcTahun di bawah kini sisa dari masa ketika semester dan tahun
+      // ajaran adalah pilihan guru dan bisa belum terisi. Sejak keduanya menjadi
+      // turunan kalender, initPenilaian selalu mengisinya lebih dulu, jadi cabang
+      // itu tidak akan pernah tercapai. Dibiarkan sebagai penjaga, bukan jalur.
+      //
+      // Akibatnya unduhan SELALU tersaring ke semester berjalan — termasuk saat
+      // guru mengunduh tanpa pernah membuka panel Rekap. Itu memang bawaan dari
+      // keputusan bahwa hanya ada satu semester berjalan.
       function asmtLolosSemester(a) {
         if (!_rcTahun) return true;
         if (!a.tp_kktp_id) return true;
@@ -3978,9 +3995,10 @@ ${metodeHtml}${hasilHtml}`;
       // ── Sheet 5: Rekap Penilaian ──────────────────────────────────────────
       const s5rows = [['Semester', 'Tahun Ajaran', 'TP', 'Nama Siswa', 'Nilai Akhir', 'Predikat', 'KKTP Tercapai']];
 
-      // Ikuti semester dan tahun ajaran yang sedang dipilih di Section 3. Bila
-      // Rekap belum pernah dibuka, _rcTahun masih null — dalam keadaan itu tidak
-      // ada filter yang bisa diikuti, jadi seluruh kombinasi disapu seperti dulu.
+      // Ikuti semester dan tahun ajaran berjalan. Cabang penyapu di bawah — dulu
+      // dipakai saat _rcTahun masih bisa null karena Rekap belum pernah dibuka —
+      // kini tidak akan pernah tercapai: initPenilaian selalu mengisi keduanya
+      // dari kalender. Dibiarkan sebagai penjaga, bukan jalur yang hidup.
       const semesters = _rcTahun ? [String(_rcSemester)] : ['1', '2'];
       const years     = _rcTahun
         ? [_rcTahun]
