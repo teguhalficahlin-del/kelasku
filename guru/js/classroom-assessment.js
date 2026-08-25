@@ -8,6 +8,10 @@
   let _cId    = null;
   let _tId    = null;
   let _loaded = false;
+  // null bila semua sumber kritis termuat; selain itu daftar nama sumber
+  // yang gagal. Dipakai untuk membedakan "gagal dimuat" dari "memang kosong"
+  // -- keduanya dulu terlihat sama persis di layar.
+  let _loadError = null;
 
   let _tpList   = [];  // rows from tp_kktp
   let _asmts    = [];  // rows from assessments
@@ -223,24 +227,51 @@
   }
 
   // ─── Data loading ────────────────────────────────────────────────────────────
+  // Tiga sumber bersifat KRITIS: TP/KKTP adalah dasar predikat, daftar penilaian
+  // adalah isi Section 2 dan seluruh rekap, daftar siswa adalah kolom pertama
+  // setiap tabel. Kegagalan salah satunya membuat tab ini menyesatkan, bukan
+  // sekadar kurang lengkap. Grup diferensiasi hanya melengkapi rekap Diagnostik,
+  // jadi kegagalannya dicatat ke console tapi tidak memblokir apa pun.
+  //
+  // Sebelum ini keempatnya memakai .catch(() => []), sehingga gagal jaringan
+  // tiba di layar sebagai daftar kosong -- guru tidak punya cara membedakannya
+  // dari kelas yang memang belum diisi.
   async function loadAll() {
+    const gagal = [];
+    const ambil = async (label, promise, kritis) => {
+      try {
+        return await promise;
+      } catch (err) {
+        console.error(`loadAll: ${label} gagal`, err);
+        if (kritis) gagal.push(label);
+        return null;
+      }
+    };
+
     const [tp, asmts, grps, roster] = await Promise.all([
-      SipApi.getTpKktp(_cId, _tId).catch(() => []),
-      SipApi.getAssessments(_cId).catch(() => []),
-      SipApi.getStudentGroups(_cId).catch(() => []),
-      loadRoster(),
+      ambil('Tujuan Pembelajaran & KKTP', SipApi.getTpKktp(_cId, _tId),  true),
+      ambil('Daftar penilaian',           SipApi.getAssessments(_cId),   true),
+      ambil('Grup diferensiasi',          SipApi.getStudentGroups(_cId), false),
+      ambil('Daftar siswa',               loadRoster(),                  true),
     ]);
+
     _tpList  = tp ?? [];
     _asmts   = asmts ?? [];
     _sGroups = Object.fromEntries((grps ?? []).map(g => [g.student_id, g.grup]));
-    _roster  = roster;
+    _roster  = roster ?? [];
+    _loadError = gagal.length ? gagal : null;
   }
 
   async function loadRoster() {
-    const { data } = await client
+    // supabase-js TIDAK melempar pada galat PostgREST; ia mengembalikan
+    // { data: null, error }. Tanpa memeriksa error secara eksplisit, kegagalan
+    // berakhir sebagai daftar kosong -- dan .catch() di pemanggil pun tidak akan
+    // pernah menangkapnya, karena tidak ada yang dilempar.
+    const { data, error } = await client
       .from('classroom_roster').select('id, full_name')
       .eq('classroom_id', _cId)
       .order('full_name');
+    if (error) throw error;
     return (data ?? []).map(r => ({ id: r.id, nama: r.full_name }));
   }
 
@@ -271,7 +302,15 @@
     const panel = el('panel-penilaian');
     if (!panel) return;
     panel.innerHTML = '<div style="padding:1.5rem;color:var(--text-secondary)">Memuat data penilaian…</div>';
-    await loadAll();
+    // loadAll() sudah menangkap kegagalan tiap sumber satu per satu; sampai di
+    // sini berarti ada yang meledak di luar dugaan. Panel tidak boleh tersangkut
+    // di "Memuat data penilaian…" selamanya.
+    try {
+      await loadAll();
+    } catch (err) {
+      console.error('initPenilaian: loadAll gagal', err);
+      _loadError = ['Data penilaian'];
+    }
     _loaded = true;
     renderMain();
   }
@@ -281,17 +320,39 @@
     const panel = el('panel-penilaian');
     if (!panel) return;
 
+    // Panel galat hanya muncul bila sumber KRITIS gagal. Ia menyebut sumber mana
+    // yang gagal, bukan sekadar "terjadi kesalahan": guru perlu tahu apakah yang
+    // hilang itu daftar siswanya atau penilaiannya.
+    const errHtml = _loadError ? `
+<div style="margin-bottom:.75rem;padding:.75rem;border-radius:.5rem;
+  background:rgba(192,57,43,.12);border:1px solid #c0392b">
+  <div style="font-size:var(--fs-ui);font-weight:600;color:#c0392b;margin-bottom:.25rem">
+    Sebagian data gagal dimuat</div>
+  <div style="font-size:var(--fs-caption);color:var(--text-secondary);margin-bottom:.5rem">
+    Gagal dimuat: ${esc(_loadError.join(', '))}. Yang tampil di bawah belum tentu
+    lengkap — bisa jadi datanya ada tapi tidak sampai. Simpan Rekap, Hitung Nilai
+    Akhir, dan Unduh Excel dinonaktifkan dulu supaya tidak ada yang tersimpan atau
+    terunduh setengah jadi.</div>
+  <button type="button" id="pai-btn-muat-ulang"
+    style="font-size:var(--fs-caption);padding:.3rem .9rem;border-radius:.375rem;
+    border:1px solid #c0392b;background:transparent;color:#c0392b;cursor:pointer">
+    ↻ Muat ulang</button>
+</div>` : '';
+
     panel.innerHTML = `
 <div style="display:flex;align-items:center;justify-content:space-between;
   margin-bottom:.5rem;min-height:2rem">
   <span style="font-size:var(--fs-caption);color:var(--text-secondary)">Tab Penilaian</span>
-  <button type="button" id="btn-unduh-excel-penilaian"
+  <button type="button" id="btn-unduh-excel-penilaian"${_loadError ? ' disabled' : ''}
     style="font-size:var(--fs-caption);padding:.25rem .75rem;border-radius:.375rem;
-    border:1px solid var(--gold);background:transparent;color:var(--gold);cursor:pointer;
+    border:1px solid ${_loadError ? 'var(--border-subtle,rgba(255,255,255,.18))' : 'var(--gold)'};
+    background:transparent;color:${_loadError ? 'var(--text-secondary)' : 'var(--gold)'};
+    cursor:${_loadError ? 'default' : 'pointer'};
     display:flex;align-items:center;gap:.375rem;white-space:nowrap">
     ⬇ Unduh Excel
   </button>
 </div>
+${errHtml}
 
 <div class="panel">
   <h2 class="panel-header" data-panel="pan-tp-body"
@@ -348,6 +409,16 @@
     initCollapsePanel();
     panel.addEventListener('click', handleClick);
     el('btn-unduh-excel-penilaian')?.addEventListener('click', downloadPenilaianExcel);
+    el('pai-btn-muat-ulang')?.addEventListener('click', async function () {
+      this.disabled = true; this.textContent = 'Memuat…';
+      try {
+        await loadAll();
+      } catch (err) {
+        console.error('muat ulang: loadAll gagal', err);
+        _loadError = ['Data penilaian'];
+      }
+      renderMain();
+    });
     renderTpList();
     renderAsmtList();
   }
@@ -1101,6 +1172,10 @@
     let _sumPage      = 0;
     let _sumActiveSid = null;
     const _sumNilai   = {};
+    // Siswa yang sudah punya baris di assessment_results. Disemai dari resMap
+    // (hasil getAssessmentResults) lalu tumbuh setiap upsert berhasil, supaya
+    // simpan kedua di modal yang sama tetap tahu barisnya sudah ada.
+    const _rowUpserted = new Set(Object.keys(resMap));
 
     // Initialize _sumNilai from resMap
     {
@@ -1342,15 +1417,31 @@
         if (selJenis === 'SUMATIF') {
           flushSumActive();
           for (const [sid, vals] of Object.entries(_sumNilai)) {
-            if (vals.nilai == null && !vals.predikat) continue;
+            const kosong = vals.nilai == null && !vals.predikat;
+            // Kotak kosong tidak selalu berarti "lewati". Bila siswa itu sudah
+            // punya baris hasil, mengosongkannya adalah perintah hapus dari guru
+            // -- nilai null harus benar-benar terkirim, kalau tidak nilai lama
+            // bertahan di DB dan tak ada cara menghapusnya lewat UI.
+            //
+            // Yang dilewati hanya siswa yang belum punya baris: bagi mereka kosong
+            // berarti "memang belum dinilai", dan menulis baris null cuma menambah
+            // baris kosong yang tidak pernah diminta siapa pun.
+            if (kosong && !_rowUpserted.has(sid)) continue;
             const kktp       = kktpItems[0];
-            const resPayload = { nilai: vals.nilai, tindak_lanjut: vals.tl || null };
-            if (kktp) {
+            const resPayload = { nilai: vals.nilai ?? null, tindak_lanjut: vals.tl || null };
+            if (kosong) {
+              // Nilai dihapus: kktp_tercapai ikut dikosongkan, bukan dijadikan
+              // false. False berarti "sudah dinilai dan belum tercapai" -- klaim
+              // yang tidak lagi punya dasar setelah nilainya dihapus.
+              resPayload.kktp_tercapai = null;
+            } else if (kktp) {
               const p = vals.nilai != null ? getPredikat(vals.nilai, getRentang(kktp)) : (vals.predikat || null);
               resPayload.kktp_tercapai = p === 'BSH' || p === 'SB';
             }
-            try { await SipApi.upsertAssessmentResult(_cId, _tId, editId, sid, resPayload); }
-            catch { gagalNilai.push(sid); }
+            try {
+              await SipApi.upsertAssessmentResult(_cId, _tId, editId, sid, resPayload);
+              _rowUpserted.add(sid);
+            } catch { gagalNilai.push(sid); }
           }
         } else {
           const srows = el('pai-modal-box').querySelectorAll('.pai-srow');
@@ -2356,6 +2447,10 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
     let _sumPage      = 0;
     let _sumActiveSid = null;
     const _sumNilai   = {};
+    // Mulai kosong: penilaiannya belum ada, jadi belum ada baris hasil sama
+    // sekali. Simpan pertama mengisinya; percobaan simpan berikutnya di modal
+    // yang sama (row sudah terbuat) memakainya untuk mengenali baris yang ada.
+    const _rowUpserted = new Set();
 
     function flushSumActive() {
       if (!_sumActiveSid) return;
@@ -2585,15 +2680,31 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
         if (selJenis === 'SUMATIF') {
           flushSumActive();
           for (const [sid, vals] of Object.entries(_sumNilai)) {
-            if (vals.nilai == null && !vals.predikat) continue;
+            const kosong = vals.nilai == null && !vals.predikat;
+            // Kotak kosong tidak selalu berarti "lewati". Bila siswa itu sudah
+            // punya baris hasil, mengosongkannya adalah perintah hapus dari guru
+            // -- nilai null harus benar-benar terkirim, kalau tidak nilai lama
+            // bertahan di DB dan tak ada cara menghapusnya lewat UI.
+            //
+            // Yang dilewati hanya siswa yang belum punya baris: bagi mereka kosong
+            // berarti "memang belum dinilai", dan menulis baris null cuma menambah
+            // baris kosong yang tidak pernah diminta siapa pun.
+            if (kosong && !_rowUpserted.has(sid)) continue;
             const kktp       = kktpItems[0];
-            const resPayload = { nilai: vals.nilai, tindak_lanjut: vals.tl || null };
-            if (kktp) {
+            const resPayload = { nilai: vals.nilai ?? null, tindak_lanjut: vals.tl || null };
+            if (kosong) {
+              // Nilai dihapus: kktp_tercapai ikut dikosongkan, bukan dijadikan
+              // false. False berarti "sudah dinilai dan belum tercapai" -- klaim
+              // yang tidak lagi punya dasar setelah nilainya dihapus.
+              resPayload.kktp_tercapai = null;
+            } else if (kktp) {
               const p = vals.nilai != null ? getPredikat(vals.nilai, getRentang(kktp)) : (vals.predikat || null);
               resPayload.kktp_tercapai = p === 'BSH' || p === 'SB';
             }
-            try { await SipApi.upsertAssessmentResult(_cId, _tId, row.id, sid, resPayload); }
-            catch { gagalNilai.push(sid); }
+            try {
+              await SipApi.upsertAssessmentResult(_cId, _tId, row.id, sid, resPayload);
+              _rowUpserted.add(sid);
+            } catch { gagalNilai.push(sid); }
           }
         } else {
           const srows = el('pai-modal-box').querySelectorAll('.pai-srow');
@@ -3174,7 +3285,12 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
     // Sebelumnya hanya tombol Hitung yang dikunci, sehingga guru dapat menekan
     // Hitung saat bobot masih 100%, mengubah salah satu angkanya, lalu tetap
     // menyimpan rekap yang tidak lagi sesuai dengan bobot di layar.
-    const hitungDis = isBobot && !bobotValid;
+    //
+    // Keduanya juga terkunci saat ada sumber kritis yang gagal dimuat: nilai
+    // akhir dihitung dari grid yang mungkin bolong, dan menyimpannya berarti
+    // menulis angka salah ke grade_recap.
+    const bobotDis  = isBobot && !bobotValid;
+    const hitungDis = bobotDis || !!_loadError;
     const simpanDis = hitungDis;
     const metodeHtml = `
 <div style="margin-top:.75rem;background:var(--bg-card,#1e1e1e);border-radius:.5rem;
@@ -3236,7 +3352,7 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
     </table>
   </div>
   ${pag2Html}
-  ${simpanDis ? `<div style="margin-top:.75rem;font-size:var(--fs-caption);color:#c0392b">
+  ${bobotDis ? `<div style="margin-top:.75rem;font-size:var(--fs-caption);color:#c0392b">
     Total bobot harus 100%. Saat ini: ${totalBobot}%</div>` : ''}
   <button id="rc-btn-simpan"${simpanDis ? ' disabled' : ''}
     style="margin-top:.5rem;min-height:var(--btn-h);
@@ -3549,6 +3665,13 @@ ${metodeHtml}${hasilHtml}`;
   async function downloadPenilaianExcel() {
     const XLSX = window.XLSX;
     if (!XLSX) { alert('Library Excel tidak tersedia.'); return; }
+    // Lapis kedua di belakang tombol yang sudah di-disable: unduhan atas data
+    // yang tidak lengkap menghasilkan berkas yang tampak sah padahal bolong.
+    if (_loadError) {
+      alert('Sebagian data gagal dimuat, jadi isi Excel bisa tidak lengkap. '
+        + 'Muat ulang dulu lewat tombol di atas.');
+      return;
+    }
 
     const btn = el('btn-unduh-excel-penilaian');
     if (btn) { btn.disabled = true; btn.textContent = '⏳ Menyiapkan…'; }
