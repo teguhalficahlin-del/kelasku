@@ -6144,6 +6144,36 @@ ${tpList.map((tp, i) => {
       } catch (_) {}
     }
 
+    // Lapisan pertama gate: tombol tabnya sendiri. Banner di dalam panel tetap
+    // dipertahankan sebagai lapisan kedua — ia yang menjelaskan sebabnya kalau
+    // tab sempat terklik sebelum pemeriksaan ini selesai, dan ia satu-satunya
+    // yang masih jalan kalau elemen tab dimunculkan kembali lewat devtools.
+    //
+    // Pemeriksaannya asinkron, jadi tab baru disembunyikan SETELAH jawabannya
+    // diketahui, bukan disembunyikan lebih dulu lalu dimunculkan. Menyembunyikan
+    // lebih dulu membuat tab berkedip hilang-muncul bagi guru yang berhak, dan
+    // menahannya hilang selamanya kalau salah satu panggilan menggantung.
+    //
+    // display dikembalikan ke '' saat berhak, bukan 'block': tab lain memakai
+    // gaya dari guru/css, dan 'block' akan merusak tata letaknya.
+    //
+    // EXPIRED sengaja TIDAK ikut menyembunyikan tab. Akun kedaluwarsa yang peran
+    // dan tiernya benar tetap melihat tabnya, lalu mendapat banner "Akun Tidak
+    // Aktif" saat mengkliknya — persis perilaku sebelum perubahan ini. Yang
+    // menentukan tampil-tidaknya tombol hanyalah peran dan tier.
+    async function sinkronkanTampilanTabRancang(id) {
+      let _ts = null;
+      try { _ts = await window.api.getTrialStatus(); } catch (_) {}
+      var _role      = await muatRoleGuru();
+      var _tierSalah = !!_ts && _ts.tier !== 'GURU_PRO';
+      var _roleSalah = _role !== RANCANG_ROLE;
+      var _berhak    = !(_tierSalah || _roleSalah);
+
+      tabRancang.style.display = _berhak ? '' : 'none';
+      if (!_berhak) bersihkanTabTersimpan(id);
+      return _berhak;
+    }
+
     // Saat tab Rancang diklik — sembunyikan semua panel lain
     tabRancang.addEventListener('click', async () => {
       window.currentTab = 'rancang';
@@ -6224,6 +6254,13 @@ ${tpList.map((tp, i) => {
 
     // Restore dari localStorage
     const cId = new URLSearchParams(window.location.search).get('id');
+
+    // Dijalankan lebih dulu daripada auto-restore, dan ini urutan yang penting:
+    // kalau guru tidak berhak, fungsi ini menghapus sip_tab_<id>, sehingga
+    // tabRancang.click() di bawah tidak ikut terpicu. Tab yang sudah
+    // disembunyikan tidak boleh tetap membuka dirinya sendiri.
+    await sinkronkanTampilanTabRancang(cId);
+
     if (cId) {
       const savedTab = localStorage.getItem('sip_tab_' + cId);
       if (savedTab === 'rancang') tabRancang.click();

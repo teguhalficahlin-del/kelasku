@@ -633,12 +633,25 @@
     // sebagai literal di beberapa pemanggil. -- SEC-038
     var WA_UPGRADE = '6281276979602';
 
-    // Sumber: docs/TIER-AND-LIFECYCLE.md. Pembeda satu-satunya antar tier
-    // adalah akses Tab Rancang; sisanya soal durasi dan biaya.
+    // Sumber: docs/TIER-AND-LIFECYCLE.md. Pembeda utama antar tier adalah akses
+    // Tab Rancang; sisanya soal durasi dan biaya.
+    //
+    // Tier saja TIDAK menentukan akses Rancang. Sejak commit 5f2222c gatenya dua
+    // syarat -- tier GURU_PRO DAN role_guru GURU_MAPEL_UMUM_SMK -- dan ketiganya
+    // dijaga: di UI, di ketujuh Edge Function pipeline, dan di RLS.
+    //
+    // Baris keterangan ini hanya tahu tier, jadi untuk GURU_PRO ia menyebutkan
+    // syarat keduanya alih-alih menjanjikan akses yang belum tentu ada. Tanpa itu
+    // guru GURU_PRO yang peran mengajarnya lain membaca "Tab Rancang tersedia" di
+    // dashboard, lalu tabnya tidak ada saat ia mencarinya.
+    //
+    // Kalimatnya kini disimpan utuh, bukan sebagai boolean yang dirakit di
+    // tambahBarisTier(): keterangan tiap tier tidak lagi cuma dua kemungkinan
+    // ya/tidak, jadi bentuk boolean sudah tidak sanggup menampungnya.
     var TIER_INFO = {
-      TRIAL:    { label: 'Trial',    rancang: false },
-      GURU_GO:  { label: 'Guru Go',  rancang: false },
-      GURU_PRO: { label: 'Guru Pro', rancang: true  },
+      TRIAL:    { label: 'Trial',    rancang: 'Tab Rancang tidak tersedia di paket ini.' },
+      GURU_GO:  { label: 'Guru Go',  rancang: 'Tab Rancang tidak tersedia di paket ini.' },
+      GURU_PRO: { label: 'Guru Pro', rancang: 'Tab Rancang tersedia untuk guru mapel umum SMK.' },
     };
 
     // Dibangun lewat DOM, bukan innerHTML. Tidak ada perakitan string HTML
@@ -651,9 +664,7 @@
       var baris = document.createElement('div');
       baris.style.marginTop = '0.35rem';
       baris.style.fontSize  = '0.9em';
-      baris.textContent = info.rancang
-        ? 'Paket ' + info.label + ' — Tab Rancang tersedia.'
-        : 'Paket ' + info.label + ' — Tab Rancang tidak tersedia di paket ini.';
+      baris.textContent = 'Paket ' + info.label + ' — ' + info.rancang;
       banner.appendChild(baris);
     }
 
