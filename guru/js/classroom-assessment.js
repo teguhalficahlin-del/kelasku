@@ -1777,6 +1777,19 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
         if (!stu) return;
         picker.querySelector('.pai-sw-chips')
           ?.insertAdjacentHTML('beforeend', chipSiswaHtml(sid, stu.nama));
+        // Eksklusif: TES & TES_LISAN — satu siswa hanya boleh di satu deskriptor/predikat
+        const isEksklusif = picker.closest('.pai-tl-dsk-block, .pai-tl-pred-block');
+        if (isEksklusif) {
+          container.querySelectorAll('.pai-sw-picker').forEach(otherPicker => {
+            if (otherPicker === picker) return;
+            const dupChip = otherPicker.querySelector(`.pai-sw-chip[data-sid="${sid}"]`);
+            if (dupChip) {
+              const dupOpt = otherPicker.querySelector(`.pai-sw-sel option[value="${sid}"]`);
+              if (dupOpt) dupOpt.style.display = '';
+              dupChip.remove();
+            }
+          });
+        }
         const opt = e.target.querySelector(`option[value="${sid}"]`);
         if (opt) opt.style.display = 'none';
         e.target.value = '';
