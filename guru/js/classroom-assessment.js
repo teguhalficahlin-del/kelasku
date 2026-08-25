@@ -3017,17 +3017,27 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
       judul:  'Daftar Capaian Formatif',
       page:   _rcPageF,
       setPage: n => { _rcPageF = n; },
-      // Baris utama sel diambil dari assessments.konten lewat
-      // extractHasilDiagForm(), bukan dari assessment_results.status. Untuk
-      // teknik TES, TES_LISAN, dan OBSERVASI kolom status memang tidak pernah
-      // terisi -- hasilnya tersimpan di konten -- sehingga tabel ini sebelumnya
-      // menampilkan '—' untuk penilaian yang sebenarnya sudah lengkap.
+      // Urutannya sama dengan diagnostik: status dari assessment_results dibaca
+      // LEBIH DULU, konten hanya dipakai kalau status kosong. Formatif berbasis
+      // chip per siswa memang mengisi kolom status, dan "Tercapai" lebih terbaca
+      // daripada rangkuman konten yang panjang.
+      //
+      // Fallback ke konten tetap diperlukan: untuk teknik TES, TES_LISAN, dan
+      // OBSERVASI kolom status tidak pernah terisi -- hasilnya tersimpan di
+      // assessments.konten -- sehingga tanpa fallback itu tabel menampilkan '—'
+      // untuk penilaian yang sebenarnya sudah lengkap.
+      //
+      // Label status dibaca dari STATUS_FORMATIF_LBL yang sudah dipakai
+      // Section 2. Nilai tak dikenal ditampilkan apa adanya supaya tidak muncul
+      // sebagai "undefined" di layar.
       //
       // Umpan balik dan tindak lanjut tetap dibaca dari assessment_results:
       // keduanya diisi lewat kotak teks di Section 2 dan memang tinggal di sana.
       // r bisa undefined untuk penilaian berbasis konten, jadi diakses opsional.
       selHtml: (r, asmt, sid) => {
-        const hasil = _rcHasilKonten(asmt, sid);
+        const hasil = (r?.status
+          ? (STATUS_FORMATIF_LBL[r.status] ?? r.status)
+          : null) ?? _rcHasilKonten(asmt, sid);
         const isi = (hasil ? `<div style="font-weight:600">${esc(hasil)}</div>` : '')
           + _rcBarisTeks(r?.umpan_balik,   'Umpan balik:')
           + _rcBarisTeks(r?.tindak_lanjut, 'Tindak lanjut:');
