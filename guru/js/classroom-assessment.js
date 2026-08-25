@@ -26,6 +26,11 @@
   // pemicunya kelak datang dari jalur lain (tombol dipakai ulang, shortcut
   // keyboard, atau pemanggilan langsung dari kode).
   let _nilaiSedangDisimpan = false;
+  // Nomor urut instance modal, naik setiap kali modal dibuka. Alur simpan yang
+  // berjalan lama menyimpan nomor ini saat mulai lalu menyodorkannya kembali ke
+  // closeModal(): kalau nomornya tidak lagi cocok, yang tampil di layar bukan
+  // modal yang ia buka, dan menutupnya berarti menutup milik orang lain.
+  let _modalId = 0;
   let _selMapel = null; // mapel aktif di Section 1 dropdown (WALI_KELAS_SD only, null = belum diinit)
   let _classroomMapelKey = ''; // window._classroomMapelKey — mapel fix classroom (guru MAPEL)
   let _classroomJenjang  = ''; // window._classroomJenjang  — jenjang classroom
@@ -551,7 +556,12 @@ ${errHtml}
       case 'add-asmt':     openAsmtModal(null);           break;
       case 'edit-asmt':    openAsmtModal(btn.dataset.id); break;
       case 'del-asmt':     confirmDeleteAsmt(btn.dataset.id); break;
-      case 'close-modal':  closeModal();                 break;
+      // Tombol x dan Batal terkunci selama simpan berjalan, sama seperti klik
+      // latar di openModal(). Tanpa ini guru bisa menutup modal sementara
+      // permintaannya masih di jalan, lalu mengira simpannya batal.
+      case 'close-modal':
+        if (!_nilaiSedangDisimpan) closeModal();
+        break;
     }
   }
 
@@ -559,11 +569,26 @@ ${errHtml}
   function openModal() {
     const m = el('pai-modal');
     if (!m) return;
+    _modalId++;
     m.style.display = '';
     m.scrollTop = 0;
-    m.onclick = ev => { if (ev.target === m) closeModal(); };
+    // Klik latar hanya menutup bila tidak ada simpan yang sedang berjalan.
+    // Menutup di tengah simpan membuat guru mengira ia membatalkan, padahal
+    // permintaannya jalan terus sampai selesai.
+    m.onclick = ev => { if (ev.target === m && !_nilaiSedangDisimpan) closeModal(); };
   }
-  function closeModal() {
+
+  // token bersifat opsional dan SENGAJA tidak memeriksa _nilaiSedangDisimpan:
+  // ketiga alur simpan memanggil closeModal() pada jalur suksesnya, dan saat itu
+  // flag masih true karena baru direset di finally. Menolak berdasarkan flag di
+  // sini akan membuat modal tidak pernah tertutup setelah simpan berhasil.
+  // Penjagaan terhadap penutupan oleh pengguna ada di openModal() dan di
+  // handleClick(), bukan di sini.
+  //
+  // Bila token diisi, penutupan hanya terjadi kalau modal yang sekarang tampil
+  // masih instance yang sama dengan saat token itu diambil.
+  function closeModal(token) {
+    if (token != null && token !== _modalId) return;
     const m = el('pai-modal');
     if (m) m.style.display = 'none';
   }
@@ -895,6 +920,7 @@ ${errHtml}
       };
       if (_nilaiSedangDisimpan) return;
       _nilaiSedangDisimpan = true;
+      const modalToken = _modalId;
       const btnSave    = el('btn-tp-save');
       const labelAsli  = btnSave.textContent;
       btnSave.disabled    = true;
@@ -908,7 +934,7 @@ ${errHtml}
           const row = await SipApi.createTpKktp(_cId, _tId, { ...payload, urutan: n + 1 });
           _tpList.push(row);
         }
-        closeModal();
+        closeModal(modalToken);
         renderTpList();
         toast(`TP/KKTP berhasil ${isEdit ? 'diperbarui' : 'ditambahkan'}`);
       } catch (err) {
@@ -1519,6 +1545,7 @@ ${errHtml}
       };
       if (_nilaiSedangDisimpan) return;
       _nilaiSedangDisimpan = true;
+      const modalToken = _modalId;
       const btnSave   = el('btn-asmt-save');
       const labelAsli = btnSave.textContent;
       btnSave.disabled    = true;
@@ -1592,7 +1619,7 @@ ${errHtml}
             peringatanRekap = ' Rekap lama gagal dihapus — hitung ulang di Rekap Penilaian.';
           }
         }
-        closeModal();
+        closeModal(modalToken);
         renderAsmtList();
         toast('Penilaian berhasil diperbarui.' + peringatanRekap);
       } catch (err) {
@@ -2803,6 +2830,7 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
       };
       if (_nilaiSedangDisimpan) return;
       _nilaiSedangDisimpan = true;
+      const modalToken = _modalId;
       const btnSave   = el('btn-asmt-save');
       const labelAsli = btnSave.textContent;
       btnSave.disabled    = true;
@@ -2880,7 +2908,7 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
             peringatanRekap = ' Rekap lama gagal dihapus — hitung ulang di Rekap Penilaian.';
           }
         }
-        closeModal();
+        closeModal(modalToken);
         renderAsmtList();
         toast('Penilaian berhasil dibuat.' + peringatanRekap);
       } catch (err) {
