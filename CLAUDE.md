@@ -315,7 +315,8 @@ Migrations baru:
 - `20260807000002_*` — KKTP batas range (batas_bawah, batas_atas)
 - `20260808000001_*` — unique fix parent_id
 
-**Migrations (urut kronologis):**
+**Migrations (urut kronologis — dibangun ulang dari `supabase/migrations/`,
+25 Agustus 2026):**
 ```
 20260730000001_init-schema.sql
 20260803000001_add-roster.sql
@@ -342,7 +343,38 @@ Migrations baru:
 20260806000006_assessment-revisi.sql
 20260807000001_assessment-hierarchy.sql
 20260807000002_assessment-kktp-range.sql
-20260808000001_assessment-unique-fix.sql
+20260808000001_assessment-items-unique-fix.sql
+20260808000002_assessments_pelaksanaan.sql
+20260808000003_rubrik_sumatif.sql
+20260808000010_fix-asmt-judul-prefix.sql
+20260808000011_assessment-publish.sql
+20260808000012_tindak_lanjut_per_siswa.sql
+20260808000013_assessments_rls_siswa_ortu.sql
+20260809000001_fix_ai_ortu_select.sql
+20260809000002_fix_fk_cascade_siswa.sql
+20260809000003_fn-guru-trial-status-v2.sql
+20260809000004_delete-auth-user-fn.sql
+20260809000005_fix-fk-roster-teacher-cascade.sql
+20260809000006_fix-fk-assessment-items-cascade.sql
+20260809000007_fix-fk-all-teacher-cascade.sql
+20260809000008_add-last-reset-at.sql
+20260813000001_rancang-tables.sql
+20260814000001_classrooms-identitas.sql
+20260814000002_profiles-role-guru.sql
+20260814000003_auto-create-profile.sql
+20260815000001_penilaian-v2-schema.sql
+20260815000002_assessment-add-tujuan-konten.sql
+20260815000003_assessment-fk-roster.sql
+20260815000004_tp-kktp-mapel.sql
+20260815000005_tp-kktp-semester-nullable.sql
+20260815000006_tp-kktp-rentang.sql
+20260815000007_tp-kktp-fix-constraint.sql
+20260815000008_tp-kktp-fix-mapel-inherit.sql
+20260816000001_fix-teknik-check-add-tes-lisan.sql
+20260816000002_grade-recap-fk-roster.sql
+20260816000003_tier-system.sql
+20260816000004_rancang-profil.sql
+20260816000005_rancang-profil-elemen.sql
 20260818000001_phase1_teaching_scope_foundation.sql
 20260818000002_phase1_fk_lifecycle_fix.sql
 20260818000003_phase2a_planning_foundation.sql
@@ -355,6 +387,61 @@ Migrations baru:
 20260818000010_phase2_meeting_validator.sql
 20260818000011_phase2_followup_validator.sql
 20260818000012_runtime_events.sql
+20260818000013_atomic_regenerate_limit.sql
+20260819000001_fix_fn_rpm_ready_for_class.sql
+20260819000002_fix_fn_phase2c_artifact_state_json.sql
+20260819000003_fix_fn_phase2c_all_meetings_usable.sql
+20260819000004_fix_fn_artifact_is_usable_case.sql
+20260820000001_tier-free-pro.sql
+20260820000002_fix-rls-penilaian-siswa-ortu.sql
+20260820000003_fn-validate-roster-login.sql
+20260820000004_fix-trigger-peran-dari-metadata.sql
+20260820000005_fk-assessment-results-assessment.sql
+20260820000006_visibilitas-penilaian.sql
+20260820000007_pesan-ortu-guru.sql
+20260821000001_fix-pm-ortu-kolom.sql
+20260821000002_fn-server-now.sql
+20260821000003_hapus-note-id.sql
+20260821000004_announcement-id.sql
+20260821000005_fn-semester-reset.sql
+20260821000006_fix-pm-policy.sql
+20260821000007_fix-semester-reset-guidance.sql
+20260821000008_fix-grade-recap-policy.sql
+20260821000009_fix-ar-ortu-policy.sql
+20260821000010_check-nilai-range.sql
+20260821000011_drop-rubrik-warisan.sql
+20260821000012_assessment-insert-policy.sql
+20260821000013_grade-recap-visibility.sql
+20260822000001_standardize-role-guru-wali-kelas-sd.sql
+20260822000002_sec1-classroom-ownership-insert-guard.sql
+20260822000003_student-groups-bind-roster.sql
+20260822000004_enforce-wali-kelas-sd-one-classroom.sql
+20260822000005_roster-nis-format-check.sql
+20260822000006_roster-full-name-nonempty-check.sql
+20260823000001_tier-schema-guru-go.sql
+20260823000002_rls-write-enforcement-trial.sql
+20260823000003_notifikasi-trial-idempotency.sql
+20260823000004_cron-notifikasi-trial.sql
+20260823000005_guard-semester-reset-guru-go-only.sql
+20260823000006_fn-tahun-ajaran-reset.sql
+20260823000007_sec001-schedule-conflict-abaikan-teacher-id.sql
+20260823000008_sec001-schedule-conflict-bentuk-lima-parameter.sql
+20260823000009_sec001-drop-schedule-conflict-enam-parameter.sql
+20260823000010_sec-revoke-activate-roster-authenticated.sql
+20260823000011_sec-search-path-security-definer.sql
+20260823000012_sec002-drop-cm-self-insert-policies.sql
+20260823000013_sec-lookup-classroom-code-drop-teacher-id.sql
+20260823000014_sec-cm-teacher-id-integrity-trigger.sql
+20260823000015_sec-fn-lookup-profile-name-restrict.sql
+20260823000016_sec-revoke-lookup-classroom-code-anon.sql
+20260823000017_cron-vault-guard-tolak-placeholder.sql
+20260823000018_item-c-fn-hard-delete-guru.sql
+20260823000019_sec035-rate-limits.sql
+20260823000020_cron-hard-delete-expired-guru.sql
+20260823000021_sec044-fn-cron-health-check.sql
+20260823000022_cleanup-fn-lookup-classroom-code.sql
+20260823000023_cleanup-fn-check-schedule-conflict.sql
+20260825000001_gate-rancang-umum-smk-guru-pro.sql
 ```
 
 **File JS baru (untracked, belum commit):**
