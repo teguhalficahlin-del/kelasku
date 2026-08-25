@@ -4020,6 +4020,25 @@ ${metodeHtml}${hasilHtml}`;
       }
       XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(s1rows), 'Perencanaan Penilaian');
 
+      // ── Helper: pemilihan KKTP untuk predikat ─────────────────────────────
+      // Kedua sheet di bawah dulu memakai find() pertama yang ketemu, sehingga TP
+      // yang punya KKTP di semester 1 DAN 2 bisa mendapat rentang milik semester
+      // yang salah. Predikat di Excel lalu berbeda dari yang di layar dan yang
+      // tersimpan — tanpa satu pun penanda bahwa ketiganya tidak sepakat.
+      //
+      // Aturannya kini sama persis dengan _simpanRecap dan _hitungNilaiAkhir:
+      // KKTP yang semesternya cocok lebih dulu, baru jatuh ke KKTP pertama.
+      //
+      // Parameter semester ada karena Sheet 5 menulis baris yang dicap `sem` dari
+      // loopnya sendiri; predikatnya harus memakai KKTP semester itu, bukan
+      // semester filter. Hari ini keduanya selalu sama nilainya, tapi menyandarkan
+      // kebenaran pada kebetulan itu tidak ada untungnya.
+      function pilihKktp(tpId, semester = _rcSemester) {
+        const kktpAll = _tpList.filter(t => t.parent_id === tpId && t.tipe === 'KKTP');
+        return kktpAll.find(k => String(k.semester) === String(semester))
+          ?? kktpAll[0] ?? null;
+      }
+
       // ── Helper: parse konten JSONB ────────────────────────────────────────
       function parseKonten(raw) {
         if (!raw) return null;
@@ -4156,7 +4175,7 @@ ${metodeHtml}${hasilHtml}`;
       // ── Sheet 4: Sumatif — format melebar (3 kolom per penilaian) ─────────
       const sumMeta = sumAsmts.map((a, i) => {
         const tp    = a.tp_kktp_id ? _tpList.find(t => t.id === a.tp_kktp_id) : null;
-        const kktp0 = tp ? _tpList.find(k => k.parent_id === tp.id && k.tipe === 'KKTP') : null;
+        const kktp0 = tp ? pilihKktp(tp.id) : null;
         const jud   = tp ? (tp.judul || '') : '';
         const sub   = [teknikLbl(a.teknik), a.instrumen].filter(Boolean).join(' | ');
         const resMap = Object.fromEntries((sumAllRes[i] ?? []).map(r => [r.student_id, r]));
@@ -4233,8 +4252,9 @@ ${metodeHtml}${hasilHtml}`;
             hasRecap = true;
             const siswa = _roster.find(s => s.id === r.student_id);
             // Predikat mengikuti rentang KKTP milik TP-nya; DEFAULT_RENTANG hanya
-            // dipakai bila TP itu belum punya KKTP sama sekali.
-            const kktp    = tp ? _tpList.find(t => t.parent_id === tp.id && t.tipe === 'KKTP') : null;
+            // dipakai bila TP itu belum punya KKTP sama sekali. Semester yang
+            // dipakai adalah `sem` milik baris ini, bukan semester filter.
+            const kktp    = tp ? pilihKktp(tp.id, sem) : null;
             const rentang = kktp ? getRentang(kktp) : DEFAULT_RENTANG;
             s5rows.push([
               sem, yr,
