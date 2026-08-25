@@ -6109,6 +6109,41 @@ ${tpList.map((tp, i) => {
     var WA_UPGRADE_URL =
       'https://wa.me/6281276979602?text=Halo+Romo,+saya+ingin+upgrade+MiClass';
 
+    // Syarat kedua Tab Rancang, di samping tier. fn_guru_trial_status() hanya
+    // mengembalikan tier dan tier_requested — role_guru tidak ada di sana —
+    // jadi nilainya diambil terpisah dari profiles lewat api.getProfile().
+    // Diambil sekali lalu disimpan di _roleGuru supaya klik tab berikutnya
+    // tidak memicu panggilan jaringan baru.
+    var RANCANG_ROLE = 'GURU_MAPEL_UMUM_SMK';
+    var _roleGuru = null;   // null = belum diambil / gagal diambil
+
+    async function muatRoleGuru() {
+      if (_roleGuru !== null) return _roleGuru;
+      try {
+        const sesi = await window.api.getSession();
+        const uid  = sesi && sesi.data && sesi.data.session && sesi.data.session.user
+          ? sesi.data.session.user.id : null;
+        if (!uid) return null;
+        const { data: prof } = await window.api.getProfile(uid);
+        _roleGuru = (prof && prof.role_guru) ? prof.role_guru : '';
+      } catch (_) {
+        _roleGuru = null;
+      }
+      return _roleGuru;
+    }
+
+    // Tanpa ini, guru yang kehilangan hak terjebak: sip_tab_<id> masih berisi
+    // 'rancang', sehingga setiap kali classroom dibuka tab ini diklik otomatis
+    // dan yang muncul hanya banner penolakan.
+    function bersihkanTabTersimpan(id) {
+      if (!id) return;
+      try {
+        if (localStorage.getItem('sip_tab_' + id) === 'rancang') {
+          localStorage.removeItem('sip_tab_' + id);
+        }
+      } catch (_) {}
+    }
+
     // Saat tab Rancang diklik — sembunyikan semua panel lain
     tabRancang.addEventListener('click', async () => {
       window.currentTab = 'rancang';
@@ -6131,19 +6166,38 @@ ${tpList.map((tp, i) => {
           '</div>';
         return;
       }
-      // Tab Rancang khusus Guru Pro. Free tier (TRIAL) boleh memakai seluruh
-      // tab lain; hanya tab ini yang dibatasi. Dituliskan sebagai allowlist
-      // agar tier baru apa pun tertutup secara default, bukan terbuka.
-      if (_ts && _ts.tier !== 'GURU_PRO') {
-        panelRancang.innerHTML =
-          '<div class="upgrade-tier-banner">' +
-          '<strong>Fitur Guru Pro</strong>' +
-          '<p>Tab Rancang Pembelajaran tersedia untuk Guru Pro. Tab lainnya tetap dapat Anda gunakan seperti biasa.</p>' +
-          (GURU_PRO_DIJUAL
-            ? '<button type="button" class="btn-upgrade" id="btn-lihat-paket">Lihat paket</button>'
-            : '') +
-          '</div>';
-        if (GURU_PRO_DIJUAL) {
+      // Tab Rancang khusus Guru Pro DAN guru mapel umum SMK. Free tier (TRIAL)
+      // boleh memakai seluruh tab lain; hanya tab ini yang dibatasi. Dituliskan
+      // sebagai allowlist agar tier atau peran baru apa pun tertutup secara
+      // default, bukan terbuka.
+      //
+      // Dua sebab penolakan dipisahkan pesannya, urutannya sama dengan
+      // rancangDenial() di ketujuh Edge Function: tier diperiksa lebih dulu.
+      // Guru Pro yang perannya tidak cocok tidak boleh dibiarkan mengira
+      // langganannya yang bermasalah.
+      //
+      // Gagal mengambil role diperlakukan sebagai tidak berhak — muatRoleGuru()
+      // mengembalikan null saat gagal, dan null !== RANCANG_ROLE, jadi arah
+      // defaultnya menutup. Sama dengan COALESCE(..., false) di
+      // fn_guru_rancang_eligible().
+      var _role      = await muatRoleGuru();
+      var _tierSalah = !!_ts && _ts.tier !== 'GURU_PRO';
+      var _roleSalah = _role !== RANCANG_ROLE;
+      if (_tierSalah || _roleSalah) {
+        bersihkanTabTersimpan(cId);
+        panelRancang.innerHTML = _tierSalah
+          ? '<div class="upgrade-tier-banner">' +
+            '<strong>Fitur Guru Pro</strong>' +
+            '<p>Tab Rancang Pembelajaran tersedia untuk Guru Pro. Tab lainnya tetap dapat Anda gunakan seperti biasa.</p>' +
+            (GURU_PRO_DIJUAL
+              ? '<button type="button" class="btn-upgrade" id="btn-lihat-paket">Lihat paket</button>'
+              : '') +
+            '</div>'
+          : '<div class="upgrade-tier-banner">' +
+            '<strong>Khusus Guru Mapel Umum SMK</strong>' +
+            '<p>Tab Rancang Pembelajaran saat ini hanya tersedia untuk guru mapel umum SMK. Tab lainnya tetap dapat Anda gunakan seperti biasa.</p>' +
+            '</div>';
+        if (_tierSalah && GURU_PRO_DIJUAL) {
           var btnPaket = panelRancang.querySelector('#btn-lihat-paket');
           if (btnPaket) {
             btnPaket.addEventListener('click', function () {

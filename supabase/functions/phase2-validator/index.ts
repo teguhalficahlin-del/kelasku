@@ -17,6 +17,21 @@ const CORS = {
 const LOCKED_ROLES = new Set([
   'WALI_KELAS','GURU_MAPEL_SDSMP_SMA','GURU_MAPEL_UMUM_SMK','GURU_MAPEL_PRODUKTIF_SMK',
 ]);
+// Gate Tab Rancang -- dua syarat dan keduanya wajib: peran mengajar
+// GURU_MAPEL_UMUM_SMK dan tier GURU_PRO. Set peran di atas sengaja dibiarkan
+// utuh; ia disiapkan untuk Rancang V2, dan gate ini syarat tambahan di atasnya,
+// bukan penggantinya.
+const RANCANG_ROLE = 'GURU_MAPEL_UMUM_SMK';
+const RANCANG_TIER = 'GURU_PRO';
+// Pesan dipisah supaya guru tahu mana yang harus ia urus -- membeli paket, atau
+// membetulkan peran mengajar. Satu pesan gabungan membuat guru GURU_PRO yang
+// perannya tidak cocok mengira langganannya yang bermasalah.
+type RancangProfile = { role?: string | null; role_guru?: string | null; role_locked_at?: string | null; tier?: string | null } | null;
+function rancangDenial(p: RancangProfile): string {
+  if (!p || p.role !== 'GURU' || !p.role_locked_at) return 'Locked teacher role diperlukan';
+  if (p.tier !== RANCANG_TIER) return 'Fitur ini hanya tersedia untuk tier Guru Pro';
+  return 'Fitur ini hanya tersedia untuk guru mapel umum SMK';
+}
 
 const reply = (body: unknown, status = 200) =>
   Response.json(body, { status, headers: CORS });
@@ -354,10 +369,11 @@ Deno.serve(async (req) => {
 
   // 2. Verify locked teacher role
   const { data: profile } = await admin.from('profiles')
-    .select('id,role,role_guru,role_locked_at').eq('user_id', user.id).single();
+    .select('id,role,role_guru,role_locked_at,tier').eq('user_id', user.id).single();
   if (!profile || profile.role !== 'GURU' || !profile.role_locked_at
-      || !LOCKED_ROLES.has(profile.role_guru))
-    return reply({ error: 'Locked teacher role diperlukan' }, 403);
+      || !LOCKED_ROLES.has(profile.role_guru)
+      || profile.role_guru !== RANCANG_ROLE || profile.tier !== RANCANG_TIER)
+    return reply({ error: rancangDenial(profile) }, 403);
 
   let body: Record<string, unknown>;
   try { body = await req.json(); }
