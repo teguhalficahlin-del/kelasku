@@ -456,6 +456,21 @@
       if (error) throw error;
     },
 
+    // Versi batch dari upsertAssessmentResult: satu request untuk seluruh
+    // kelas, satu transaksi di sisi DB. Dipakai modal Penilaian, yang dulu
+    // mengirim satu request per siswa dan bisa berhenti separuh jalan.
+    //
+    // teacher_id sengaja tidak dikirim — fungsinya membacanya sendiri dari
+    // classrooms.teacher_id, jadi tidak ada yang bisa dititipkan dari klien.
+    async upsertAssessmentBatch(classroomId, assessmentId, rows) {
+      const { error } = await client.rpc('fn_upsert_assessment_batch', {
+        p_classroom_id:  classroomId,
+        p_assessment_id: assessmentId,
+        p_rows:          rows,
+      });
+      if (error) throw error;
+    },
+
     // ── student_groups ─────────────────────────────────────────────────────
     async getStudentGroups(classroomId) {
       const { data, error } = await client

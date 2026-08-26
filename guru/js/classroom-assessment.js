@@ -1556,8 +1556,9 @@ ${errHtml}
         _asmts = _asmts.map(a => a.id === editId ? { ...a, ...payload } : a);
 
         const kktpItems  = getKktpItems();
-        const gagalNilai = [];
         const gagalGrup  = [];
+        const batchRows  = [];
+        const sidBaris   = [];
         if (selJenis === 'SUMATIF') {
           flushSumActive();
           for (const [sid, vals] of Object.entries(_sumNilai)) {
@@ -1582,10 +1583,8 @@ ${errHtml}
               const p = vals.nilai != null ? getPredikat(vals.nilai, getRentang(kktp)) : (vals.predikat || null);
               resPayload.kktp_tercapai = p === 'BSH' || p === 'SB';
             }
-            try {
-              await SipApi.upsertAssessmentResult(_cId, _tId, editId, sid, resPayload);
-              _rowUpserted.add(sid);
-            } catch { gagalNilai.push(sid); }
+            batchRows.push({ student_id: sid, ...resPayload });
+            sidBaris.push(sid);
           }
         } else {
           const srows = el('pai-modal-box').querySelectorAll('.pai-srow');
@@ -1598,14 +1597,30 @@ ${errHtml}
                 _sGroups[sid] = resPayload.grup_diferensiasi;
               } catch { gagalGrup.push(sid); }
             }
-            try { await SipApi.upsertAssessmentResult(_cId, _tId, editId, sid, resPayload); }
-            catch { gagalNilai.push(sid); }
+            batchRows.push({ student_id: sid, ...resPayload });
+            sidBaris.push(sid);
           }
+        }
+        // Satu request untuk seluruh kelas, bukan satu per siswa. Di sisi DB
+        // semua baris masuk dalam satu transaksi, jadi separuh kelas tidak bisa
+        // lagi tersimpan sementara separuhnya hilang ketika jaringan putus di
+        // tengah: entah semuanya masuk, entah tidak satu pun.
+        //
+        // _rowUpserted baru ditandai setelah batch-nya sukses. Kalau ditandai
+        // lebih dulu lalu batch-nya gagal, tekan-Simpan berikutnya akan mengira
+        // siswa berkotak kosong sudah punya baris di DB dan melewatinya --
+        // nilai lamanya lalu bertahan diam-diam.
+        let gagalBatch = false;
+        if (batchRows.length) {
+          try {
+            await SipApi.upsertAssessmentBatch(_cId, editId, batchRows);
+            for (const sid of sidBaris) _rowUpserted.add(sid);
+          } catch { gagalBatch = true; }
         }
         // Modal sengaja dibiarkan terbuka: nilai yang sudah diketik masih ada di
         // layar, jadi guru dapat menekan Simpan lagi tanpa mengetik ulang.
-        if (gagalNilai.length || gagalGrup.length) {
-          throw new Error(pesanGagalSimpan(gagalNilai, gagalGrup));
+        if (gagalBatch || gagalGrup.length) {
+          throw new Error(pesanGagalSimpan(gagalBatch, gagalGrup));
         }
 
         // Hasil sumatif berubah, jadi rekap yang sudah tersimpan untuk TP itu
@@ -2388,24 +2403,29 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
     return _roster.find(s => s.id === sid)?.nama || 'siswa tanpa nama';
   }
 
-  // Ringkasan kegagalan penyimpanan per siswa.
+  // Ringkasan kegagalan penyimpanan.
   //
   // Sebelumnya kegagalan ini ditelan `catch {}` kosong: guru mengisi nilai satu
   // kelas, jaringan putus di tengah, lalu tetap melihat toast "berhasil" —
-  // dan baru tahu saat membuka kembali tabnya. Nama siswanya disebut supaya
-  // jelas baris mana yang perlu diulang, dibatasi tiga agar tidak meluber.
-  function pesanGagalSimpan(gagalNilai, gagalGrup) {
+  // dan baru tahu saat membuka kembali tabnya.
+  //
+  // Nilai kini dikirim sekali untuk seluruh kelas dalam satu transaksi, jadi
+  // tidak ada lagi keadaan "sebagian siswa gagal": entah semuanya tersimpan
+  // atau tidak satu pun, dan menyebut nama siswa di sini tak lagi berarti.
+  // Grup diferensiasi masih ditulis per siswa, jadi di sanalah namanya tetap
+  // disebut — dibatasi tiga agar tidak meluber.
+  function pesanGagalSimpan(gagalBatch, gagalGrup) {
     const bagian = [];
-    if (gagalNilai.length) {
-      const nama   = gagalNilai.map(namaSiswa);
+    if (gagalBatch) {
+      bagian.push('Gagal menyimpan nilai. Tidak ada satu pun baris nilai yang tersimpan.');
+    }
+    if (gagalGrup.length) {
+      const nama   = gagalGrup.map(namaSiswa);
       const tampil = nama.slice(0, 3).join(', ');
       const sisa   = nama.length - 3;
       bagian.push(
-        `Gagal menyimpan nilai untuk ${nama.length} siswa ` +
+        `Gagal menyimpan grup diferensiasi untuk ${nama.length} siswa ` +
         `(${tampil}${sisa > 0 ? `, dan ${sisa} lainnya` : ''}).`);
-    }
-    if (gagalGrup.length) {
-      bagian.push(`Gagal menyimpan grup diferensiasi untuk ${gagalGrup.length} siswa.`);
     }
     bagian.push('Penilaiannya sendiri sudah tersimpan. Silakan coba simpan lagi.');
     return bagian.join(' ');
@@ -2844,8 +2864,9 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
           _asmts.push(row);
         }
         const kktpItems  = getKktpItems();
-        const gagalNilai = [];
         const gagalGrup  = [];
+        const batchRows  = [];
+        const sidBaris   = [];
         if (selJenis === 'SUMATIF') {
           flushSumActive();
           for (const [sid, vals] of Object.entries(_sumNilai)) {
@@ -2870,10 +2891,8 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
               const p = vals.nilai != null ? getPredikat(vals.nilai, getRentang(kktp)) : (vals.predikat || null);
               resPayload.kktp_tercapai = p === 'BSH' || p === 'SB';
             }
-            try {
-              await SipApi.upsertAssessmentResult(_cId, _tId, row.id, sid, resPayload);
-              _rowUpserted.add(sid);
-            } catch { gagalNilai.push(sid); }
+            batchRows.push({ student_id: sid, ...resPayload });
+            sidBaris.push(sid);
           }
         } else {
           const srows = el('pai-modal-box').querySelectorAll('.pai-srow');
@@ -2886,15 +2905,31 @@ ${addBtnHtml('btn-tambah-item', '+ Tambah item')}`;
                 _sGroups[sid] = resPayload.grup_diferensiasi;
               } catch { gagalGrup.push(sid); }
             }
-            try { await SipApi.upsertAssessmentResult(_cId, _tId, row.id, sid, resPayload); }
-            catch { gagalNilai.push(sid); }
+            batchRows.push({ student_id: sid, ...resPayload });
+            sidBaris.push(sid);
           }
+        }
+        // Satu request untuk seluruh kelas, bukan satu per siswa. Di sisi DB
+        // semua baris masuk dalam satu transaksi, jadi separuh kelas tidak bisa
+        // lagi tersimpan sementara separuhnya hilang ketika jaringan putus di
+        // tengah: entah semuanya masuk, entah tidak satu pun.
+        //
+        // _rowUpserted baru ditandai setelah batch-nya sukses. Kalau ditandai
+        // lebih dulu lalu batch-nya gagal, tekan-Simpan berikutnya akan mengira
+        // siswa berkotak kosong sudah punya baris di DB dan melewatinya --
+        // nilai lamanya lalu bertahan diam-diam.
+        let gagalBatch = false;
+        if (batchRows.length) {
+          try {
+            await SipApi.upsertAssessmentBatch(_cId, row.id, batchRows);
+            for (const sid of sidBaris) _rowUpserted.add(sid);
+          } catch { gagalBatch = true; }
         }
         // Modal dibiarkan terbuka supaya nilai yang sudah diketik tidak hilang.
         // Penilaiannya sendiri sudah terbuat, jadi menekan Simpan lagi hanya
         // mengulang baris nilainya — upsert, bukan sisipan ganda.
-        if (gagalNilai.length || gagalGrup.length) {
-          throw new Error(pesanGagalSimpan(gagalNilai, gagalGrup));
+        if (gagalBatch || gagalGrup.length) {
+          throw new Error(pesanGagalSimpan(gagalBatch, gagalGrup));
         }
         // Sama seperti modal edit: menyimpan hasil sumatif membuat rekap lama
         // untuk TP itu basi. Relevan di sini karena modal ini bisa disimpan dua
