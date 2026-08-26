@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import type { Database, Json } from '../_shared/database.types.ts';
 import {
   asStrings,
   validateCanonicalFoundation,
@@ -39,6 +40,11 @@ function reply(body: unknown, status = 200) {
   return Response.json(body, { status, headers: CORS_HEADERS });
 }
 
+// sqlNull: type-gen Supabase tidak merekam nullability parameter fungsi SQL.
+// Yang penting null tetap null -- `?? undefined` akan membuang key-nya dari
+// JSON dan diam-diam memicu DEFAULT parameter alih-alih NULL.
+const sqlNull = (v: string | null | undefined) => v as unknown as string;
+
 let cpCache: { revision: string; data: CpDataset } | null = null;
 
 async function loadCanonicalCp() {
@@ -67,7 +73,7 @@ Deno.serve(async (req) => {
   const authHeader = req.headers.get('Authorization') ?? '';
   if (!authHeader.startsWith('Bearer ')) return reply({ error: 'Unauthorized' }, 401);
 
-  const admin = createClient(
+  const admin = createClient<Database>(
     Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     { auth: { autoRefreshToken: false, persistSession: false } },
   );
@@ -83,7 +89,7 @@ Deno.serve(async (req) => {
   const { data: profile } = await admin.from('profiles')
     .select('id, role, role_guru, role_locked_at, tier')
     .eq('user_id', user.id).single();
-  if (!profile || profile.role !== 'GURU' || !profile.role_locked_at || !ROLES.has(profile.role_guru)
+  if (!profile || profile.role !== 'GURU' || !profile.role_locked_at || !ROLES.has(profile.role_guru ?? '')
       || profile.role_guru !== RANCANG_ROLE || profile.tier !== RANCANG_TIER) {
     return reply({ error: rancangDenial(profile) }, 403);
   }
@@ -114,14 +120,17 @@ Deno.serve(async (req) => {
       .eq('id', classroomId).single();
     if (!classroom || classroom.teacher_id !== profile.id) return reply({ error: 'Classroom bukan milik guru' }, 403);
     if (classroom.jenjang && classroom.jenjang !== jenjang) return reply({ error: 'Jenjang classroom tidak kompatibel' }, 409);
+    // @ts-expect-error Rancang V2 — cabang ini aktif saat GURU_MAPEL_PRODUKTIF_SMK/WALI_KELAS_SD diizinkan
     if (classroom.mapel_key && profile.role_guru !== 'WALI_KELAS_SD' && classroom.mapel_key !== selectedSubject) {
       return reply({ error: 'Subject classroom tidak kompatibel dengan scope' }, 409);
     }
+    // @ts-expect-error Rancang V2 — cabang ini aktif saat GURU_MAPEL_PRODUKTIF_SMK/WALI_KELAS_SD diizinkan
     if (profile.role_guru === 'GURU_MAPEL_PRODUKTIF_SMK' &&
         ((classroom.bidang_keahlian && classroom.bidang_keahlian !== bidang) ||
          (classroom.program_keahlian && classroom.program_keahlian !== program))) {
       return reply({ error: 'Program classroom tidak kompatibel dengan productive domain' }, 409);
     }
+    // @ts-expect-error Rancang V2 — cabang ini aktif saat GURU_MAPEL_PRODUKTIF_SMK/WALI_KELAS_SD diizinkan
     if (profile.role_guru === 'WALI_KELAS_SD' && (!['fase_a', 'fase_b', 'fase_c'].includes(phaseKey) || jenjang !== 'SD')) {
       return reply({ error: 'Home classroom wali harus berada pada fase A/B/C jenjang SD' }, 409);
     }
@@ -130,7 +139,9 @@ Deno.serve(async (req) => {
       role_guru: profile.role_guru,
       jenjang,
       subject_keys: subjectKeys,
+      // @ts-expect-error Rancang V2 — cabang ini aktif saat GURU_MAPEL_PRODUKTIF_SMK/WALI_KELAS_SD diizinkan
       bidang: profile.role_guru === 'GURU_MAPEL_PRODUKTIF_SMK' ? bidang : null,
+      // @ts-expect-error Rancang V2 — cabang ini aktif saat GURU_MAPEL_PRODUKTIF_SMK/WALI_KELAS_SD diizinkan
       program_keahlian: profile.role_guru === 'GURU_MAPEL_PRODUKTIF_SMK' ? program : null,
       cp_dataset_revision: canonical.revision,
       confirmation_payload: { confirmed_at: new Date().toISOString(), source: 'teacher_declaration' },
@@ -146,7 +157,8 @@ Deno.serve(async (req) => {
     const { data, error } = await admin.rpc('fn_server_apply_teaching_foundation', {
       p_profile_id: profile.id,
       p_scope: scope,
-      p_home_classroom_id: profile.role_guru === 'WALI_KELAS_SD' ? classroomId : null,
+      // @ts-expect-error Rancang V2 — cabang ini aktif saat GURU_MAPEL_PRODUKTIF_SMK/WALI_KELAS_SD diizinkan
+      p_home_classroom_id: sqlNull(profile.role_guru === 'WALI_KELAS_SD' ? classroomId : null),
       p_context: context,
       p_target_classroom_id: classroomId,
     });
@@ -158,7 +170,7 @@ Deno.serve(async (req) => {
           : 'Teaching foundation tidak dapat disimpan',
       }, error.code === '42501' ? 403 : 409);
     }
-    return reply({ success: true, cp_dataset_revision: canonical.revision, ...data });
+    return reply({ success: true, cp_dataset_revision: canonical.revision, ...((data as Record<string, Json> | null) ?? {}) });
   } catch (error) {
     console.error('teaching-foundation:', error);
     return reply({ error: 'Canonical validation tidak tersedia. Coba lagi.' }, 503);
