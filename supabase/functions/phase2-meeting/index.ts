@@ -3,6 +3,7 @@
 // Per-meeting: independent generate, validate, persist. Failed meetings do not block others.
 
 import { createClient, type SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import type { Database, Json } from '../_shared/database.types.ts';
 import { loadArtifactContent } from '../_shared/artifact-loader.ts';
 
 const CORS = {
@@ -44,6 +45,23 @@ const SPLIT_TIMEOUT_MS = 60_000;
 
 const reply = (body: unknown, status = 200) =>
   Response.json(body, { status, headers: CORS });
+
+// ── Jembatan tipe ke type-gen Supabase ───────────────────────────────────────
+// Type-gen menandai setiap parameter fungsi SQL sebagai non-null dan setiap
+// Returns sebagai Json mentah. Dua pembantu di bawah menutup jarak itu tanpa
+// mengubah satu byte pun payload yang dikirim.
+//
+// sqlNull: Postgres menerima NULL di semua parameter ini -- type-gen memang
+// tidak merekam nullability parameter. Yang penting null tetap null: menukarnya
+// dengan undefined akan membuang key-nya dari JSON dan diam-diam memicu DEFAULT
+// parameter alih-alih NULL.
+const sqlNull = (v: string | null | undefined) => v as unknown as string;
+// asJson: nilai-nilai ini sudah JSON-serializable, hanya tipenya yang lebih
+// longgar (unknown / Record<string, unknown>) daripada Json.
+const asJson = (v: unknown) => v as Json;
+
+type ValidationResult = { status?: string; violations?: Json };
+type CreateVersionResult = { version_id: string; idempotent?: boolean };
 
 // ── Canonical JSON + SHA-256 ──────────────────────────────────────────────────
 function canonicalJson(v: unknown): string {
@@ -207,7 +225,7 @@ async function makeIdempotencyKey(prefix: string, ...parts: unknown[]): Promise<
 
 // Verifikasi bahwa version_id berasal dari planningContextId + profileId + expectedKind yang sudah diotorisasi.
 async function verifyVersionBinding(
-  admin: SupabaseClient<any>,
+  admin: SupabaseClient<Database>,
   versionId: string,
   profileId: string,
   planningContextId: string,
@@ -582,7 +600,7 @@ Deno.serve(async (req) => {
   if (!auth.startsWith('Bearer ')) return reply({ error: 'Unauthorized' }, 401);
   const token = auth.slice(7);
 
-  const admin = createClient(
+  const admin = createClient<Database>(
     Deno.env.get('SUPABASE_URL')!,
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     { auth: { autoRefreshToken: false, persistSession: false } }
@@ -596,7 +614,7 @@ Deno.serve(async (req) => {
   const { data: profile } = await admin.from('profiles')
     .select('id,role,role_guru,role_locked_at,tier').eq('user_id', user.id).single();
   if (!profile || profile.role !== 'GURU' || !profile.role_locked_at
-      || !LOCKED_ROLES.has(profile.role_guru)
+      || !LOCKED_ROLES.has(profile.role_guru ?? '')
       || profile.role_guru !== RANCANG_ROLE || profile.tier !== RANCANG_TIER)
     return reply({ error: rancangDenial(profile) }, 403);
 
@@ -709,14 +727,14 @@ Deno.serve(async (req) => {
       await admin.rpc('fn_phase2b_transition_version', {
         p_profile_id: profile.id, p_version_id: vId,
         p_action: 'GENERATED', p_validation_status: 'VALID',
-        p_validation_summary: validation,
+        p_validation_summary: asJson(validation),
         p_reason: 'Meeting Plan succeeded',
         p_idempotency_key: await makeIdempotencyKey(transKey, vId),
       });
       await admin.rpc('fn_phase2b_transition_version', {
         p_profile_id: profile.id, p_version_id: vId,
         p_action: 'VALIDATE', p_validation_status: 'VALID',
-        p_validation_summary: validation, p_reason: null,
+        p_validation_summary: asJson(validation), p_reason: sqlNull(null),
         p_idempotency_key: await makeIdempotencyKey(validateKey, vId),
       });
       if (autoAccept && acceptKey) {
@@ -743,9 +761,10 @@ Deno.serve(async (req) => {
         return reply({ error: 'Context / Assessment / Material belum tersedia' }, 409);
 
       // Current pipeline state — to detect which meetings are already usable
-      const { data: pipelineState } = await admin.rpc('fn_phase2c_get_pipeline_state', {
+      const { data: pipelineStateRaw } = await admin.rpc('fn_phase2c_get_pipeline_state', {
         p_profile_id: profile.id, p_planning_context_id: planningContextId,
       });
+      const pipelineState = pipelineStateRaw as { meeting_plans?: unknown } | null;
       const existingPlans =
         (pipelineState?.meeting_plans as Array<Record<string,unknown>>) ?? [];
 
@@ -794,26 +813,31 @@ Deno.serve(async (req) => {
             ));
             const content = normalizeMeetingContent(extractJson(raw), item, meetingNo);
 
-            const { data: validation } = await admin.rpc('fn_phase2_validate_meeting_plan', {
-              p_content: content, p_expected_duration_minutes: durMin,
+            const { data: validationRaw } = await admin.rpc('fn_phase2_validate_meeting_plan', {
+              p_content: asJson(content), p_expected_duration_minutes: durMin,
             });
+            const validation = validationRaw as ValidationResult | null;
 
             if (validation?.status === 'valid') {
-              const { data: createResult, error: createError } = await admin.rpc(
+              const { data: createResultRaw, error: createError } = await admin.rpc(
                 'fn_phase2b_create_version', {
                   p_profile_id: profile.id, p_planning_context_id: planningContextId,
                   p_artifact_kind: 'MEETING_PLAN',
                   p_scope_key: `MEETING_${meetingNo}`,
                   p_meeting_allocation_item_id: itemId,
-                  p_parent_version_id: null, p_candidate_of_version_id: null,
+                  p_parent_version_id: sqlNull(null), p_candidate_of_version_id: sqlNull(null),
                   p_origin: 'AI', p_teacher_edited: false,
-                  p_content: content, p_source_snapshot: authority,
+                  p_content: asJson(content), p_source_snapshot: asJson(authority),
                   p_source_hash: sourceHash, p_dependency_hash: depHash,
                   p_prompt_version: PROMPT_VERSION, p_model_version: MODEL,
-                  p_dependencies: deps, p_idempotency_key: idempotencyKey,
+                  p_dependencies: asJson(deps), p_idempotency_key: idempotencyKey,
                 }
               );
               if (createError) throw createError;
+              // Sebelumnya properti hasil diakses langsung: kalau RPC mengembalikan NULL,
+              // guru menerima TypeError samar alih-alih kegagalan yang bisa dibaca.
+              const createResult = createResultRaw as CreateVersionResult | null;
+              if (!createResult) throw new Error('fn_phase2b_create_version tidak mengembalikan hasil');
 
               if (!createResult.idempotent) {
                 await transitionAndAccept(
@@ -888,9 +912,10 @@ Deno.serve(async (req) => {
         return reply({ error: 'Context / Assessment / Material belum tersedia' }, 409);
 
       // Skip if this meeting is already usable and current
-      const { data: preState } = await admin.rpc('fn_phase2c_get_pipeline_state', {
+      const { data: preStateRaw } = await admin.rpc('fn_phase2c_get_pipeline_state', {
         p_profile_id: profile.id, p_planning_context_id: planningContextId,
       });
+      const preState = preStateRaw as { meeting_plans?: unknown } | null;
       const existing = ((preState?.meeting_plans as Array<Record<string,unknown>>) ?? [])
         .find(m => Number(m.meeting_no) === meetingNo);
       if (existing?.usable === true && existing?.needs_update === false) {
@@ -1001,9 +1026,10 @@ Deno.serve(async (req) => {
 
       const content = normalizeMeetingContent(merged, item, meetingNo);
 
-      const { data: validation } = await admin.rpc('fn_phase2_validate_meeting_plan', {
-        p_content: content, p_expected_duration_minutes: durMin,
+      const { data: validationRaw } = await admin.rpc('fn_phase2_validate_meeting_plan', {
+        p_content: asJson(content), p_expected_duration_minutes: durMin,
       });
+      const validation = validationRaw as ValidationResult | null;
 
       if (validation?.status !== 'valid') {
         const viols = (validation?.violations as Array<Record<string,unknown>>) ?? [];
@@ -1025,21 +1051,25 @@ Deno.serve(async (req) => {
         });
       }
 
-      const { data: createResult, error: createError } = await admin.rpc(
+      const { data: createResultRaw, error: createError } = await admin.rpc(
         'fn_phase2b_create_version', {
           p_profile_id: profile.id, p_planning_context_id: planningContextId,
           p_artifact_kind: 'MEETING_PLAN',
           p_scope_key: `MEETING_${meetingNo}`,
           p_meeting_allocation_item_id: itemId,
-          p_parent_version_id: null, p_candidate_of_version_id: null,
+          p_parent_version_id: sqlNull(null), p_candidate_of_version_id: sqlNull(null),
           p_origin: 'AI', p_teacher_edited: false,
-          p_content: content, p_source_snapshot: authority,
+          p_content: asJson(content), p_source_snapshot: asJson(authority),
           p_source_hash: sourceHash, p_dependency_hash: depHash,
           p_prompt_version: PROMPT_VERSION, p_model_version: MODEL,
-          p_dependencies: deps, p_idempotency_key: idempotencyKey,
+          p_dependencies: asJson(deps), p_idempotency_key: idempotencyKey,
         }
       );
       if (createError) throw createError;
+      // Sebelumnya properti hasil diakses langsung: kalau RPC mengembalikan NULL,
+      // guru menerima TypeError samar alih-alih kegagalan yang bisa dibaca.
+      const createResult = createResultRaw as CreateVersionResult | null;
+      if (!createResult) throw new Error('fn_phase2b_create_version tidak mengembalikan hasil');
 
       if (!createResult.idempotent) {
         await transitionAndAccept(
@@ -1139,40 +1169,45 @@ Deno.serve(async (req) => {
       try { content = normalizeMeetingContent(extractJson(raw), item, meetingNo); }
       catch { return reply({ error: 'Output AI tidak valid — coba lagi' }, 409); }
 
-      const { data: validation } = await admin.rpc('fn_phase2_validate_meeting_plan', {
-        p_content: content, p_expected_duration_minutes: durMin,
+      const { data: validationRaw } = await admin.rpc('fn_phase2_validate_meeting_plan', {
+        p_content: asJson(content), p_expected_duration_minutes: durMin,
       });
+      const validation = validationRaw as ValidationResult | null;
       if (validation?.status !== 'valid')
         return reply({ error: 'Output AI tidak memenuhi schema — coba lagi', violations: validation?.violations }, 409);
 
-      const { data: createResult, error: createError } = await admin.rpc('fn_phase2b_create_version', {
+      const { data: createResultRaw, error: createError } = await admin.rpc('fn_phase2b_create_version', {
         p_profile_id: profile.id, p_planning_context_id: planningContextId,
         p_artifact_kind: 'MEETING_PLAN',
         p_scope_key: `MEETING_${meetingNo}`,
         p_meeting_allocation_item_id: itemId,
-        p_parent_version_id: null,
-        p_candidate_of_version_id: meetSel?.selected_version_id ?? null,
+        p_parent_version_id: sqlNull(null),
+        p_candidate_of_version_id: sqlNull(meetSel?.selected_version_id ?? null),
         p_origin: 'AI', p_teacher_edited: false,
-        p_content: content, p_source_snapshot: authority,
+        p_content: asJson(content), p_source_snapshot: asJson(authority),
         p_source_hash: sourceHash, p_dependency_hash: depHash,
         p_prompt_version: PROMPT_VERSION, p_model_version: MODEL,
-        p_dependencies: deps, p_idempotency_key: idempotencyKey,
+        p_dependencies: asJson(deps), p_idempotency_key: idempotencyKey,
       });
       if (createError) throw createError;
+      // Sebelumnya properti hasil diakses langsung: kalau RPC mengembalikan NULL,
+      // guru menerima TypeError samar alih-alih kegagalan yang bisa dibaca.
+      const createResult = createResultRaw as CreateVersionResult | null;
+      if (!createResult) throw new Error('fn_phase2b_create_version tidak mengembalikan hasil');
 
       if (!createResult.idempotent) {
         // Leave as candidate — teacher selects explicitly
         await admin.rpc('fn_phase2b_transition_version', {
           p_profile_id: profile.id, p_version_id: createResult.version_id,
           p_action: 'GENERATED', p_validation_status: 'VALID',
-          p_validation_summary: validation,
+          p_validation_summary: asJson(validation),
           p_reason: 'Meeting Plan regenerate succeeded',
           p_idempotency_key: await makeIdempotencyKey('meet_regen_transition', createResult.version_id),
         });
         await admin.rpc('fn_phase2b_transition_version', {
           p_profile_id: profile.id, p_version_id: createResult.version_id,
           p_action: 'VALIDATE', p_validation_status: 'VALID',
-          p_validation_summary: validation, p_reason: null,
+          p_validation_summary: asJson(validation), p_reason: sqlNull(null),
           p_idempotency_key: await makeIdempotencyKey('meet_regen_validate', createResult.version_id),
         });
       }
@@ -1197,9 +1232,10 @@ Deno.serve(async (req) => {
       if (!item) return reply({ error: `Pertemuan ${meetingNo} tidak ada dalam alokasi` }, 409);
 
       const durMin = item.duration_minutes as number;
-      const { data: validation } = await admin.rpc('fn_phase2_validate_meeting_plan', {
-        p_content: editedContent, p_expected_duration_minutes: durMin,
+      const { data: validationRaw } = await admin.rpc('fn_phase2_validate_meeting_plan', {
+        p_content: asJson(editedContent), p_expected_duration_minutes: durMin,
       });
+      const validation = validationRaw as ValidationResult | null;
       if (validation?.status !== 'valid')
         return reply({ error: 'Edit tidak memenuhi schema', violations: validation?.violations }, 400);
 
@@ -1237,20 +1273,24 @@ Deno.serve(async (req) => {
         itemId, ctxVer.id, asmVer.id, matVer.id, sel?.selected_version_id
       );
 
-      const { data: createResult, error: createError } = await admin.rpc('fn_phase2b_create_version', {
+      const { data: createResultRaw, error: createError } = await admin.rpc('fn_phase2b_create_version', {
         p_profile_id: profile.id, p_planning_context_id: planningContextId,
         p_artifact_kind: 'MEETING_PLAN',
         p_scope_key: `MEETING_${meetingNo}`,
         p_meeting_allocation_item_id: itemId,
-        p_parent_version_id: sel?.selected_version_id ?? null,
-        p_candidate_of_version_id: null,
+        p_parent_version_id: sqlNull(sel?.selected_version_id ?? null),
+        p_candidate_of_version_id: sqlNull(null),
         p_origin: 'TEACHER', p_teacher_edited: true,
-        p_content: editedContent, p_source_snapshot: authority,
+        p_content: asJson(editedContent), p_source_snapshot: asJson(authority),
         p_source_hash: sourceHash, p_dependency_hash: depHash,
-        p_prompt_version: null, p_model_version: null,
-        p_dependencies: deps, p_idempotency_key: idempotencyKey,
+        p_prompt_version: sqlNull(null), p_model_version: sqlNull(null),
+        p_dependencies: asJson(deps), p_idempotency_key: idempotencyKey,
       });
       if (createError) throw createError;
+      // Sebelumnya properti hasil diakses langsung: kalau RPC mengembalikan NULL,
+      // guru menerima TypeError samar alih-alih kegagalan yang bisa dibaca.
+      const createResult = createResultRaw as CreateVersionResult | null;
+      if (!createResult) throw new Error('fn_phase2b_create_version tidak mengembalikan hasil');
 
       if (!createResult.idempotent) {
         await transitionAndAccept(

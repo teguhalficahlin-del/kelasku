@@ -3,6 +3,7 @@
 // Gate: all_meetings_usable AND follow_up usable.
 
 import { createClient, type SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import type { Database, Json } from '../_shared/database.types.ts';
 import { loadArtifactContent } from '../_shared/artifact-loader.ts';
 
 const CORS = {
@@ -36,6 +37,23 @@ function rancangDenial(p: RancangProfile): string {
 
 const reply = (body: unknown, status = 200) =>
   Response.json(body, { status, headers: CORS });
+
+// ── Jembatan tipe ke type-gen Supabase ───────────────────────────────────────
+// Type-gen menandai setiap parameter fungsi SQL sebagai non-null dan setiap
+// Returns sebagai Json mentah. Dua pembantu di bawah menutup jarak itu tanpa
+// mengubah satu byte pun payload yang dikirim.
+//
+// sqlNull: Postgres menerima NULL di semua parameter ini -- type-gen memang
+// tidak merekam nullability parameter. Yang penting null tetap null: menukarnya
+// dengan undefined akan membuang key-nya dari JSON dan diam-diam memicu DEFAULT
+// parameter alih-alih NULL.
+const sqlNull = (v: string | null | undefined) => v as unknown as string;
+// asJson: nilai-nilai ini sudah JSON-serializable, hanya tipenya yang lebih
+// longgar (unknown / Record<string, unknown>) daripada Json.
+const asJson = (v: unknown) => v as Json;
+
+type ValidationResult = { status?: string; violations?: Json };
+type CreateVersionResult = { version_id: string; idempotent?: boolean };
 
 // ── Canonical JSON + SHA-256 ──────────────────────────────────────────────────
 function canonicalJson(v: unknown): string {
@@ -115,7 +133,7 @@ function textContainsKeyword(text: string, keyword: string): boolean {
 
 // ── run_validation — deterministic checks ────────────────────────────────────
 async function runValidation(
-  admin: SupabaseClient<any>,
+  admin: SupabaseClient<Database>,
   profileId: string,
   planningContextId: string,
   authority: Record<string,unknown>,
@@ -339,7 +357,7 @@ Deno.serve(async (req) => {
   if (!auth.startsWith('Bearer ')) return reply({ error: 'Unauthorized' }, 401);
   const token = auth.slice(7);
 
-  const admin = createClient(
+  const admin = createClient<Database>(
     Deno.env.get('SUPABASE_URL')!,
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     { auth: { autoRefreshToken: false, persistSession: false } }
@@ -353,7 +371,7 @@ Deno.serve(async (req) => {
   const { data: profile } = await admin.from('profiles')
     .select('id,role,role_guru,role_locked_at,tier').eq('user_id', user.id).single();
   if (!profile || profile.role !== 'GURU' || !profile.role_locked_at
-      || !LOCKED_ROLES.has(profile.role_guru)
+      || !LOCKED_ROLES.has(profile.role_guru ?? '')
       || profile.role_guru !== RANCANG_ROLE || profile.tier !== RANCANG_TIER)
     return reply({ error: rancangDenial(profile) }, 403);
 
@@ -476,34 +494,38 @@ Deno.serve(async (req) => {
             .select('selected_version_id,selection_revision').eq('artifact_id', existingArtifact.id).maybeSingle()
         : { data: null };
 
-      const { data: createResult, error: createError } = await admin.rpc('fn_phase2b_create_version', {
+      const { data: createResultRaw, error: createError } = await admin.rpc('fn_phase2b_create_version', {
         p_profile_id: profile.id, p_planning_context_id: planningContextId,
         p_artifact_kind: 'VALIDATION_REPORT',
         p_scope_key: 'ROOT',
-        p_meeting_allocation_item_id: null,
-        p_parent_version_id: existingSel?.selected_version_id ?? null,
-        p_candidate_of_version_id: null,
+        p_meeting_allocation_item_id: sqlNull(null),
+        p_parent_version_id: sqlNull(existingSel?.selected_version_id ?? null),
+        p_candidate_of_version_id: sqlNull(null),
         p_origin: 'SYSTEM', p_teacher_edited: false,
-        p_content: reportContent, p_source_snapshot: authority,
+        p_content: asJson(reportContent), p_source_snapshot: asJson(authority),
         p_source_hash: sourceHash, p_dependency_hash: depHash,
-        p_prompt_version: null, p_model_version: null,
+        p_prompt_version: sqlNull(null), p_model_version: sqlNull(null),
         p_dependencies: [], p_idempotency_key: idempotencyKey,
       });
       if (createError) throw createError;
+      // Sebelumnya properti hasil diakses langsung: kalau RPC mengembalikan NULL,
+      // guru menerima TypeError samar alih-alih kegagalan yang bisa dibaca.
+      const createResult = createResultRaw as CreateVersionResult | null;
+      if (!createResult) throw new Error('fn_phase2b_create_version tidak mengembalikan hasil');
 
       if (!createResult.idempotent) {
         // Transition: GENERATED → VALIDATE → auto-accept (SYSTEM origin, no teacher decision needed)
         await admin.rpc('fn_phase2b_transition_version', {
           p_profile_id: profile.id, p_version_id: createResult.version_id,
           p_action: 'GENERATED', p_validation_status: 'VALID',
-          p_validation_summary: { status: 'valid' },
+          p_validation_summary: asJson({ status: 'valid' }),
           p_reason: 'Validation report generated by system',
           p_idempotency_key: await makeIdempotencyKey('val_gen_transition', createResult.version_id),
         });
         await admin.rpc('fn_phase2b_transition_version', {
           p_profile_id: profile.id, p_version_id: createResult.version_id,
           p_action: 'VALIDATE', p_validation_status: 'VALID',
-          p_validation_summary: { status: 'valid' }, p_reason: null,
+          p_validation_summary: asJson({ status: 'valid' }), p_reason: sqlNull(null),
           p_idempotency_key: await makeIdempotencyKey('val_gen_validate', createResult.version_id),
         });
         await admin.rpc('fn_phase2b_decide_candidate', {
