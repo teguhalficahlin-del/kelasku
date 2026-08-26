@@ -2909,6 +2909,10 @@ export type Database = {
         Args: { p_planning_context_id: string; p_profile_id: string }
         Returns: undefined
       }
+      fn_upsert_assessment_batch: {
+        Args: { p_assessment_id: string; p_classroom_id: string; p_rows: Json }
+        Returns: undefined
+      }
       fn_upsert_rancang_profil: { Args: { p_payload: Json }; Returns: Json }
       fn_validate_ortu_login: {
         Args: { p_classroom_code: string; p_nama_anak: string; p_nis: string }
