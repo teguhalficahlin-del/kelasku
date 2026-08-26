@@ -3,6 +3,7 @@
 // Request body carries only intent/identifiers — never authority.
 
 import { createClient, type SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import type { Database, Json } from '../_shared/database.types.ts';
 
 const CORS = {
   // Dibaca dari environment supaya satu `supabase secrets set ALLOWED_ORIGIN=...`
@@ -35,6 +36,23 @@ const MODEL = 'claude-sonnet-4-6';
 
 const reply = (body: unknown, status = 200) =>
   Response.json(body, { status, headers: CORS });
+
+// ── Jembatan tipe ke type-gen Supabase ───────────────────────────────────────
+// Type-gen menandai setiap parameter fungsi SQL sebagai non-null dan setiap
+// Returns sebagai Json mentah. Dua pembantu di bawah menutup jarak itu tanpa
+// mengubah satu byte pun payload yang dikirim.
+//
+// sqlNull: Postgres menerima NULL di semua parameter ini -- type-gen memang
+// tidak merekam nullability parameter. Yang penting null tetap null: menukarnya
+// dengan undefined akan membuang key-nya dari JSON dan diam-diam memicu DEFAULT
+// parameter alih-alih NULL.
+const sqlNull = (v: string | null | undefined) => v as unknown as string;
+// asJson: nilai-nilai ini sudah JSON-serializable, hanya tipenya yang lebih
+// longgar (unknown / Record<string, unknown>) daripada Json.
+const asJson = (v: unknown) => v as Json;
+
+type ValidationResult = { status?: string; violations?: Json };
+type CreateVersionResult = { version_id: string; idempotent?: boolean };
 
 // ── Canonical JSON + SHA-256 ──────────────────────────────────────────────────
 function canonicalJson(v: unknown): string {
@@ -301,7 +319,7 @@ async function makeRegenKey(
 // Prevents cross-classroom state corruption: confirms version_id belongs to
 // the authorized planningContextId + profileId + expectedKind before any RPC.
 async function verifyVersionBinding(
-  admin: SupabaseClient<any>,
+  admin: SupabaseClient<Database>,
   versionId: string,
   profileId: string,
   planningContextId: string,
@@ -333,7 +351,7 @@ Deno.serve(async (req) => {
   if (!auth.startsWith('Bearer ')) return reply({ error: 'Unauthorized' }, 401);
   const token = auth.slice(7);
 
-  const admin = createClient(
+  const admin = createClient<Database>(
     Deno.env.get('SUPABASE_URL')!,
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     { auth: { autoRefreshToken: false, persistSession: false } }
@@ -347,7 +365,7 @@ Deno.serve(async (req) => {
   const { data: profile } = await admin.from('profiles')
     .select('id,role,role_guru,role_locked_at,tier')
     .eq('user_id', user.id).single();
-  if (!profile || profile.role !== 'GURU' || !profile.role_locked_at || !LOCKED_ROLES.has(profile.role_guru)
+  if (!profile || profile.role !== 'GURU' || !profile.role_locked_at || !LOCKED_ROLES.has(profile.role_guru ?? '')
       || profile.role_guru !== RANCANG_ROLE || profile.tier !== RANCANG_TIER)
     return reply({ error: rancangDenial(profile) }, 403);
 
@@ -502,9 +520,9 @@ Deno.serve(async (req) => {
       catch { return reply({ error: 'Output AI tidak valid — coba lagi' }, 409); }
 
       // Deterministic validation
-      const { data: validation } = await admin.rpc('fn_phase2c_validate_context_spec', {
-        p_content: content,
-      });
+      const { data: validationRaw } = await admin
+        .rpc('fn_phase2c_validate_context_spec', { p_content: asJson(content) });
+      const validation = validationRaw as ValidationResult | null;
       if (validation?.status !== 'valid') {
         console.error('Context spec validation failed:', validation);
         return reply({ error: 'Output AI tidak memenuhi schema — coba lagi', violations: validation?.violations }, 409);
@@ -517,19 +535,23 @@ Deno.serve(async (req) => {
         { kind: 'MEETING_ALLOCATION', meeting_allocation_id: alloc.id, hash: await sha256({ id: alloc.id }) },
       ];
 
-      const { data: createResult, error: createError } = await admin.rpc('fn_phase2b_create_version', {
+      const { data: createResultRaw, error: createError } = await admin.rpc('fn_phase2b_create_version', {
         p_profile_id: profile.id, p_planning_context_id: planningContextId,
         p_artifact_kind: 'CONTEXT_SPEC', p_scope_key: 'ROOT',
-        p_meeting_allocation_item_id: null,
-        p_parent_version_id: null,
-        p_candidate_of_version_id: candidateOfVersionId,
+        p_meeting_allocation_item_id: sqlNull(null),
+        p_parent_version_id: sqlNull(null),
+        p_candidate_of_version_id: sqlNull(candidateOfVersionId),
         p_origin: 'AI', p_teacher_edited: false,
-        p_content: content, p_source_snapshot: authority,
+        p_content: asJson(content), p_source_snapshot: asJson(authority),
         p_source_hash: sourceHash, p_dependency_hash: depHash,
         p_prompt_version: PROMPT_VERSION, p_model_version: MODEL,
         p_dependencies: dependencies, p_idempotency_key: idempotencyKey,
       });
       if (createError) throw createError;
+      // Sebelumnya properti hasil diakses langsung: kalau RPC mengembalikan NULL,
+      // guru menerima TypeError samar alih-alih kegagalan yang bisa dibaca.
+      const createResult = createResultRaw as CreateVersionResult | null;
+      if (!createResult) throw new Error('fn_phase2b_create_version tidak mengembalikan hasil');
 
       const versionId = createResult.version_id;
 
@@ -546,7 +568,7 @@ Deno.serve(async (req) => {
           p_profile_id: profile.id, p_version_id: versionId,
           p_action: 'VALIDATE', p_validation_status: 'VALID',
           p_validation_summary: validation,
-          p_reason: null, p_idempotency_key: await makeIdempotencyKey('ctx_validate', versionId),
+          p_reason: sqlNull(null), p_idempotency_key: await makeIdempotencyKey('ctx_validate', versionId),
         });
       }
 
@@ -570,9 +592,9 @@ Deno.serve(async (req) => {
       const editedContent = body.content;
       if (!editedContent) return reply({ error: 'Content edit tidak boleh kosong' }, 400);
 
-      const { data: validation } = await admin.rpc('fn_phase2c_validate_context_spec', {
-        p_content: editedContent,
-      });
+      const { data: validationRaw } = await admin
+        .rpc('fn_phase2c_validate_context_spec', { p_content: asJson(editedContent) });
+      const validation = validationRaw as ValidationResult | null;
       if (validation?.status !== 'valid')
         return reply({ error: 'Edit tidak memenuhi schema', violations: validation?.violations }, 400);
 
@@ -596,19 +618,23 @@ Deno.serve(async (req) => {
         ...(sel ? [{ kind: 'ARTIFACT_VERSION', artifact_version_id: sel.selected_version_id, hash: await sha256({ id: sel.selected_version_id }) }] : []),
       ];
 
-      const { data: createResult, error: createError } = await admin.rpc('fn_phase2b_create_version', {
+      const { data: createResultRaw, error: createError } = await admin.rpc('fn_phase2b_create_version', {
         p_profile_id: profile.id, p_planning_context_id: planningContextId,
         p_artifact_kind: 'CONTEXT_SPEC', p_scope_key: 'ROOT',
-        p_meeting_allocation_item_id: null,
-        p_parent_version_id: sel?.selected_version_id ?? null,
-        p_candidate_of_version_id: null,
+        p_meeting_allocation_item_id: sqlNull(null),
+        p_parent_version_id: sqlNull(sel?.selected_version_id ?? null),
+        p_candidate_of_version_id: sqlNull(null),
         p_origin: 'TEACHER', p_teacher_edited: true,
-        p_content: editedContent, p_source_snapshot: authority,
+        p_content: asJson(editedContent), p_source_snapshot: asJson(authority),
         p_source_hash: sourceHash, p_dependency_hash: depHash,
-        p_prompt_version: null, p_model_version: null,
+        p_prompt_version: sqlNull(null), p_model_version: sqlNull(null),
         p_dependencies: dependencies, p_idempotency_key: idempotencyKey,
       });
       if (createError) throw createError;
+      // Sebelumnya properti hasil diakses langsung: kalau RPC mengembalikan NULL,
+      // guru menerima TypeError samar alih-alih kegagalan yang bisa dibaca.
+      const createResult = createResultRaw as CreateVersionResult | null;
+      if (!createResult) throw new Error('fn_phase2b_create_version tidak mengembalikan hasil');
 
       if (!createResult.idempotent) {
         await admin.rpc('fn_phase2b_transition_version', {
@@ -621,7 +647,7 @@ Deno.serve(async (req) => {
         await admin.rpc('fn_phase2b_transition_version', {
           p_profile_id: profile.id, p_version_id: createResult.version_id,
           p_action: 'VALIDATE', p_validation_status: 'VALID',
-          p_validation_summary: validation, p_reason: null,
+          p_validation_summary: validation, p_reason: sqlNull(null),
           p_idempotency_key: await makeIdempotencyKey('ctx_edit_validate', createResult.version_id),
         });
         // Auto-accept teacher edit as selected version
@@ -650,7 +676,7 @@ Deno.serve(async (req) => {
       const idempotencyKey = await makeIdempotencyKey('ctx_confirm', planningContextId, versionId);
       const { data, error } = await admin.rpc('fn_phase2b_transition_version', {
         p_profile_id: profile.id, p_version_id: versionId,
-        p_action: 'CONFIRM', p_validation_status: null, p_validation_summary: null,
+        p_action: 'CONFIRM', p_validation_status: sqlNull(null), p_validation_summary: null,
         p_reason: 'Teacher confirmed Context Specification — Checkpoint 1',
         p_idempotency_key: idempotencyKey,
       });
@@ -794,9 +820,9 @@ Deno.serve(async (req) => {
       try { content = extractJson(raw); }
       catch { return reply({ error: 'Output AI tidak valid — coba lagi' }, 409); }
 
-      const { data: validation } = await admin.rpc('fn_phase2c_validate_assessment_spec', {
-        p_content: content,
-      });
+      const { data: validationRaw } = await admin
+        .rpc('fn_phase2c_validate_assessment_spec', { p_content: asJson(content) });
+      const validation = validationRaw as ValidationResult | null;
       if (validation?.status !== 'valid') {
         console.error('Assessment spec validation failed:', validation);
         return reply({ error: 'Output AI tidak memenuhi schema — coba lagi', violations: validation?.violations }, 409);
@@ -809,19 +835,23 @@ Deno.serve(async (req) => {
         { kind: 'ARTIFACT_VERSION', artifact_version_id: ctxVersion!.id, hash: await sha256({ id: ctxVersion!.id }) },
       ];
 
-      const { data: createResult, error: createError } = await admin.rpc('fn_phase2b_create_version', {
+      const { data: createResultRaw, error: createError } = await admin.rpc('fn_phase2b_create_version', {
         p_profile_id: profile.id, p_planning_context_id: planningContextId,
         p_artifact_kind: 'ASSESSMENT_SPEC', p_scope_key: 'ROOT',
-        p_meeting_allocation_item_id: null,
-        p_parent_version_id: null,
-        p_candidate_of_version_id: candidateOfVersionId,
+        p_meeting_allocation_item_id: sqlNull(null),
+        p_parent_version_id: sqlNull(null),
+        p_candidate_of_version_id: sqlNull(candidateOfVersionId),
         p_origin: 'AI', p_teacher_edited: false,
-        p_content: content, p_source_snapshot: authority,
+        p_content: asJson(content), p_source_snapshot: asJson(authority),
         p_source_hash: sourceHash, p_dependency_hash: depHash,
         p_prompt_version: PROMPT_VERSION, p_model_version: MODEL,
         p_dependencies: dependencies, p_idempotency_key: idempotencyKey,
       });
       if (createError) throw createError;
+      // Sebelumnya properti hasil diakses langsung: kalau RPC mengembalikan NULL,
+      // guru menerima TypeError samar alih-alih kegagalan yang bisa dibaca.
+      const createResult = createResultRaw as CreateVersionResult | null;
+      if (!createResult) throw new Error('fn_phase2b_create_version tidak mengembalikan hasil');
 
       if (!createResult.idempotent) {
         await admin.rpc('fn_phase2b_transition_version', {
@@ -834,7 +864,7 @@ Deno.serve(async (req) => {
         await admin.rpc('fn_phase2b_transition_version', {
           p_profile_id: profile.id, p_version_id: createResult.version_id,
           p_action: 'VALIDATE', p_validation_status: 'VALID',
-          p_validation_summary: validation, p_reason: null,
+          p_validation_summary: validation, p_reason: sqlNull(null),
           p_idempotency_key: await makeIdempotencyKey('asm_validate', createResult.version_id),
         });
       }
@@ -863,9 +893,9 @@ Deno.serve(async (req) => {
       });
       if (!gateOk) return reply({ error: 'Context Specification belum dikonfirmasi' }, 409);
 
-      const { data: validation } = await admin.rpc('fn_phase2c_validate_assessment_spec', {
-        p_content: editedContent,
-      });
+      const { data: validationRaw } = await admin
+        .rpc('fn_phase2c_validate_assessment_spec', { p_content: asJson(editedContent) });
+      const validation = validationRaw as ValidationResult | null;
       if (validation?.status !== 'valid')
         return reply({ error: 'Edit tidak memenuhi schema', violations: validation?.violations }, 400);
 
@@ -896,19 +926,23 @@ Deno.serve(async (req) => {
         ...(sel ? [{ kind: 'ARTIFACT_VERSION', artifact_version_id: sel.selected_version_id, hash: await sha256({ id: sel.selected_version_id }) }] : []),
       ];
 
-      const { data: createResult, error: createError } = await admin.rpc('fn_phase2b_create_version', {
+      const { data: createResultRaw, error: createError } = await admin.rpc('fn_phase2b_create_version', {
         p_profile_id: profile.id, p_planning_context_id: planningContextId,
         p_artifact_kind: 'ASSESSMENT_SPEC', p_scope_key: 'ROOT',
-        p_meeting_allocation_item_id: null,
-        p_parent_version_id: sel?.selected_version_id ?? null,
-        p_candidate_of_version_id: null,
+        p_meeting_allocation_item_id: sqlNull(null),
+        p_parent_version_id: sqlNull(sel?.selected_version_id ?? null),
+        p_candidate_of_version_id: sqlNull(null),
         p_origin: 'TEACHER', p_teacher_edited: true,
-        p_content: editedContent, p_source_snapshot: authority,
+        p_content: asJson(editedContent), p_source_snapshot: asJson(authority),
         p_source_hash: sourceHash, p_dependency_hash: depHash,
-        p_prompt_version: null, p_model_version: null,
+        p_prompt_version: sqlNull(null), p_model_version: sqlNull(null),
         p_dependencies: dependencies, p_idempotency_key: idempotencyKey,
       });
       if (createError) throw createError;
+      // Sebelumnya properti hasil diakses langsung: kalau RPC mengembalikan NULL,
+      // guru menerima TypeError samar alih-alih kegagalan yang bisa dibaca.
+      const createResult = createResultRaw as CreateVersionResult | null;
+      if (!createResult) throw new Error('fn_phase2b_create_version tidak mengembalikan hasil');
 
       if (!createResult.idempotent) {
         await admin.rpc('fn_phase2b_transition_version', {
@@ -921,7 +955,7 @@ Deno.serve(async (req) => {
         await admin.rpc('fn_phase2b_transition_version', {
           p_profile_id: profile.id, p_version_id: createResult.version_id,
           p_action: 'VALIDATE', p_validation_status: 'VALID',
-          p_validation_summary: validation, p_reason: null,
+          p_validation_summary: validation, p_reason: sqlNull(null),
           p_idempotency_key: await makeIdempotencyKey('asm_edit_validate', createResult.version_id),
         });
         await admin.rpc('fn_phase2b_decide_candidate', {
@@ -953,7 +987,7 @@ Deno.serve(async (req) => {
 
       const { data, error } = await admin.rpc('fn_phase2b_transition_version', {
         p_profile_id: profile.id, p_version_id: versionId,
-        p_action: 'CONFIRM', p_validation_status: null, p_validation_summary: null,
+        p_action: 'CONFIRM', p_validation_status: sqlNull(null), p_validation_summary: null,
         p_reason: 'Teacher confirmed Assessment Specification — Checkpoint 2',
         p_idempotency_key: await makeIdempotencyKey('asm_confirm', planningContextId, versionId),
       });
