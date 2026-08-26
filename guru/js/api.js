@@ -441,24 +441,9 @@
       return data ?? [];
     },
 
-    async upsertAssessmentResult(classroomId, teacherId, assessmentId, studentId, payload) {
-      const { error } = await client
-        .from('assessment_results')
-        .upsert(
-          {
-            classroom_id: classroomId, teacher_id: teacherId,
-            assessment_id: assessmentId, student_id: studentId,
-            ...payload,
-            updated_at: new Date().toISOString(),
-          },
-          { onConflict: 'assessment_id,student_id' }
-        );
-      if (error) throw error;
-    },
-
-    // Versi batch dari upsertAssessmentResult: satu request untuk seluruh
-    // kelas, satu transaksi di sisi DB. Dipakai modal Penilaian, yang dulu
-    // mengirim satu request per siswa dan bisa berhenti separuh jalan.
+    // Satu request untuk seluruh kelas, satu transaksi di sisi DB. Dipakai
+    // modal Penilaian, yang dulu mengirim satu request per siswa lewat
+    // .upsert() PostgREST dan bisa berhenti separuh jalan.
     //
     // teacher_id sengaja tidak dikirim — fungsinya membacanya sendiri dari
     // classrooms.teacher_id, jadi tidak ada yang bisa dititipkan dari klien.
