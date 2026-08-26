@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import type { Database, Json } from '../_shared/database.types.ts';
 import { phaseRecord, validateCanonicalFoundation, validateProductiveClassroomDomain, verifyCanonicalBytes, type CpDataset } from '../_shared/canonical-cp.ts';
 
 const CORS = {
@@ -28,6 +29,11 @@ function rancangDenial(p: RancangProfile): string {
   return 'Fitur ini hanya tersedia untuk guru mapel umum SMK';
 }
 const reply = (body: unknown, status=200) => Response.json(body,{status,headers:CORS});
+// sqlNull: type-gen Supabase tidak merekam nullability parameter fungsi SQL.
+// Yang penting null tetap null -- `?? undefined` akan membuang key-nya dari
+// JSON dan diam-diam memicu DEFAULT parameter alih-alih NULL, mengubah payload
+// yang dikirim kode ini sebelum ditipekan.
+const sqlNull = (v: string | null | undefined) => v as unknown as string;
 let cpCache: {revision:string;data:CpDataset}|null=null;
 
 async function canonical() {
@@ -59,12 +65,12 @@ Deno.serve(async req=>{
   if(req.method!=='POST') return reply({error:'Method tidak diizinkan'},405);
   const auth=req.headers.get('Authorization')||'';
   if(!auth.startsWith('Bearer ')) return reply({error:'Unauthorized'},401);
-  const admin=createClient(Deno.env.get('SUPABASE_URL')!,Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+  const admin=createClient<Database>(Deno.env.get('SUPABASE_URL')!,Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     {auth:{autoRefreshToken:false,persistSession:false}});
   const {data:{user}}=await admin.auth.getUser(auth.slice(7));
   if(!user) return reply({error:'Unauthorized'},401);
   const {data:profile}=await admin.from('profiles').select('id,role,role_guru,role_locked_at,tier').eq('user_id',user.id).single();
-  if(!profile||profile.role!=='GURU'||!profile.role_locked_at||!ROLES.has(profile.role_guru)
+  if(!profile||profile.role!=='GURU'||!profile.role_locked_at||!ROLES.has(profile.role_guru ?? '')
      ||profile.role_guru!==RANCANG_ROLE||profile.tier!==RANCANG_TIER) return reply({error:rancangDenial(profile)},403);
   let body:Record<string,unknown>; try{body=await req.json();}catch{return reply({error:'Payload tidak valid'},400);}
   const action=String(body.action||'');
@@ -75,6 +81,7 @@ Deno.serve(async req=>{
     const {data:binding}=context?await admin.from('teaching_context_classrooms').select('id').eq('teaching_context_id',context.id).eq('classroom_id',classroomId).eq('status','ACTIVE').maybeSingle():{data:null};
     const {data:classroom}=await admin.from('classrooms').select('id,teacher_id,jenjang,mapel_key,bidang_keahlian,program_keahlian').eq('id',classroomId).maybeSingle();
     if(!context||!binding||!classroom||classroom.teacher_id!==profile.id) return reply({error:'Teaching Context/classroom tidak diizinkan'},403);
+    // @ts-expect-error Rancang V2 — cabang ini aktif saat GURU_MAPEL_PRODUKTIF_SMK/WALI_KELAS_SD diizinkan
     if(profile.role_guru==='WALI_KELAS_SD'){
       const {data:home}=await admin.from('wali_home_classrooms').select('id').eq('profile_id',profile.id).eq('classroom_id',classroomId).eq('status','LOCKED').maybeSingle();
       if(!home) return reply({error:'Target bukan home classroom wali'},403);
@@ -118,25 +125,26 @@ Deno.serve(async req=>{
     const subject=cp.data[context.subject_key]; const phase=subject&&phaseRecord(subject,context.phase_key);
     const canonicalNames=Array.isArray(phase?.elemen)?(phase!.elemen as Array<Record<string,unknown>>).map(e=>String(e.nama)):[];
     const validateAuthorizedDomain=()=>validateCanonicalFoundation(cp.data,cp.revision,{
-      roleGuru:profile.role_guru,jenjang:context.jenjang,phaseKey:context.phase_key,
+      roleGuru:profile.role_guru!,jenjang:context.jenjang,phaseKey:context.phase_key,
       subjectKeys:[context.subject_key],selectedSubject:context.subject_key,
       bidang:context.bidang??null,program:context.program_keahlian??null,elementRefs:[],
     });
     const validateProductiveClassroom=()=>{
       validateAuthorizedDomain();
-      validateProductiveClassroomDomain({roleGuru:profile.role_guru,subject,
+      validateProductiveClassroomDomain({roleGuru:profile.role_guru!,subject,
         contextBidang:context.bidang,contextProgram:context.program_keahlian,
         classroomBidang:classroom.bidang_keahlian,classroomProgram:classroom.program_keahlian});
     };
     if(action==='persist_generated_atp'||action==='adopt_legacy_atp'){
-      let list=Array.isArray(body.tp_list)?body.tp_list as Array<Record<string,unknown>>:[];
+      let list=Array.isArray(body.tp_list)?body.tp_list as Array<Record<string,Json>>:[];
       let legacyId:string|null=null; let legacyHash:string|null=null; let source='AI';
       if(action==='adopt_legacy_atp'){
         legacyId=String(body.legacy_document_id||'');
         const {data:doc}=await admin.from('rancang_dokumen').select('id,classroom_id,jenis,konten').eq('id',legacyId).eq('classroom_id',classroomId).eq('jenis','TP').maybeSingle();
-        if(!doc||!Array.isArray(doc.konten?.atp)) return reply({error:'Legacy ATP tidak valid'},409);
+        const konten=doc?.konten as {atp?:unknown}|null;
+        if(!doc||!Array.isArray(konten?.atp)) return reply({error:'Legacy ATP tidak valid'},409);
         if(body.confirmed!==true) return reply({error:'Konfirmasi adoption diperlukan'},400);
-        list=doc.konten.atp; legacyHash=await sha(doc.konten); source='LEGACY_IMPORT';
+        list=konten!.atp as Array<Record<string,Json>>; legacyHash=await sha(doc.konten); source='LEGACY_IMPORT';
       }
       if(source!=='LEGACY_IMPORT') validateProductiveClassroom();
       if(!list.length) return reply({error:'ATP kosong'},400);
@@ -146,6 +154,7 @@ Deno.serve(async req=>{
         if(!String(x.judul||'').trim()||![1,2].includes(semester)||!Number.isInteger(jp)||jp<=0) return reply({error:`TP ${i+1} tidak valid`},400);
         const raw=x.elemen_cp; const rawNames=Array.isArray(raw)?raw.map(String):typeof raw==='string'?[raw]:[];
         const exact=[...new Set(rawNames.filter(n=>canonicalNames.includes(n)))];
+        // @ts-expect-error Rancang V2 — cabang ini aktif saat GURU_MAPEL_PRODUKTIF_SMK/WALI_KELAS_SD diizinkan
         if(source!=='LEGACY_IMPORT'&&profile.role_guru==='GURU_MAPEL_PRODUKTIF_SMK'&&exact.length===0)
           return reply({error:`Elemen TP ${i+1} tidak cocok canonical productive domain`},409);
         const element_refs=exact.map(element_name=>({subject_key:context.subject_key,phase_key:context.phase_key,element_name,cp_dataset_revision:cp.revision}));
@@ -154,7 +163,7 @@ Deno.serve(async req=>{
       }
       const atpCore={context_id:context.id,tp_list:normalized.map(x=>({...x,source_hash:undefined})),source};
       const atpSourceHash=await sha(atpCore);
-      let targetAtpId=body.atp_id||null;
+      let targetAtpId=(body.atp_id as string|undefined)||null;
       if(!targetAtpId&&source!=='LEGACY_IMPORT'){
         const {data:existing}=await admin.from('rancang_atp').select('id,rancang_atp_revisions!inner(source_hash)')
           .eq('profile_id',profile.id).eq('teaching_context_id',context.id).eq('status','ACTIVE')
@@ -163,15 +172,16 @@ Deno.serve(async req=>{
       }
       const {data,error}=await admin.rpc('fn_phase2a_persist_atp',{p_profile_id:profile.id,p_teaching_context_id:context.id,
         p_source:source,p_source_hash:atpSourceHash,p_cp_dataset_revision:cp.revision,p_tp_list:normalized,
-        p_atp_id:targetAtpId,p_legacy_document_id:legacyId,p_legacy_payload_hash:legacyHash});
+        p_atp_id:sqlNull(targetAtpId),p_legacy_document_id:sqlNull(legacyId),p_legacy_payload_hash:sqlNull(legacyHash)});
       if(error) throw error; return reply({result:data});
     }
 
     if(action==='save_planning_context'){
       const tpId=String(body.tp_id||''), revisionId=String(body.tp_revision_id||'');
-      const teacherIntent=body.teacher_intent||{}, preferences=body.preferences||{}, classContext=body.class_context||{}, smkContext=body.smk_context||null;
+      const teacherIntent=(body.teacher_intent||{}) as Json, preferences=(body.preferences||{}) as Json,
+            classContext=(body.class_context||{}) as Json, smkContext=(body.smk_context||null) as Json;
       const {data:schedules}=await admin.from('schedules').select('day_of_week,start_time,end_time,is_active').eq('classroom_id',classroomId).eq('is_active',true);
-      const schedule={jp_per_minggu:(preferences as Record<string,unknown>).jp_per_minggu||null,schedules:schedules||[]};
+      const schedule:Json={jp_per_minggu:(preferences as Record<string,Json>).jp_per_minggu||null,schedules:schedules||[]};
       const semester=Number(body.semester), year=String(body.academic_year||'');
       const core={context_id:context.id,classroom_id:classroomId,tp_revision_id:revisionId,academic_year:year,semester,teacherIntent,preferences,classContext,smkContext,schedule};
       const {data,error}=await admin.rpc('fn_phase2a_save_planning_context',{p_profile_id:profile.id,p_teaching_context_id:context.id,p_classroom_id:classroomId,
@@ -184,9 +194,10 @@ Deno.serve(async req=>{
 
     if(action==='revise_tp'){
       validateProductiveClassroom();
-      const current=body.tp as Record<string,unknown>||{}; const title=String(body.judul||'').trim();
+      const current=body.tp as Record<string,Json>||{}; const title=String(body.judul||'').trim();
       const raw=current.elemen_cp; const rawNames=Array.isArray(raw)?raw.map(String):typeof raw==='string'?[raw]:[];
       const exact=[...new Set(rawNames.filter(n=>canonicalNames.includes(n)))];
+      // @ts-expect-error Rancang V2 — cabang ini aktif saat GURU_MAPEL_PRODUKTIF_SMK/WALI_KELAS_SD diizinkan
       if(profile.role_guru==='GURU_MAPEL_PRODUKTIF_SMK'&&exact.length===0) return reply({error:'Elemen TP tidak cocok canonical'},409);
       const refs=exact.map(element_name=>({subject_key:context.subject_key,phase_key:context.phase_key,element_name,cp_dataset_revision:cp.revision}));
       const core={judul:title,deskripsi:String(current.deskripsi||''),semester:Number(current.semester),estimasi_jp:Number(current.estimasi_jp),raw_element:raw??null,refs};
