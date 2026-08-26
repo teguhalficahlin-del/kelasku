@@ -3799,7 +3799,18 @@ ${metodeHtml}${hasilHtml}`;
           const kktp_tercapai = predikat ? (predikat === 'BSH' || predikat === 'SB') : null;
           await SipApi.upsertGradeRecap(
             _cId, s.id, tpId, _rcSemester, _rcTahun,
-            { nilai_akhir: parseFloat(nilaiAkhir.toFixed(2)), kktp_tercapai, deskripsi_capaian: null }
+            {
+              nilai_akhir: parseFloat(nilaiAkhir.toFixed(2)), kktp_tercapai,
+              deskripsi_capaian: null,
+              // Jejak kapan angka ini dihitung. Kolomnya punya DEFAULT now(),
+              // tapi default hanya berlaku saat INSERT — upsert yang mendarat di
+              // UPDATE akan membiarkan nilai lama. Dikirim eksplisit supaya
+              // perhitungan ulang benar-benar memperbarui capnya.
+              //
+              // upsertGradeRecap() menyebar payload apa adanya (...payload), jadi
+              // field ini cukup ditambahkan di sini — api.js tidak perlu disentuh.
+              updated_at: new Date().toISOString(),
+            }
           );
           saved++;
         }

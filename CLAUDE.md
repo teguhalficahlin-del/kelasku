@@ -220,6 +220,18 @@ git push origin main                  → urutan TERAKHIR
 | RLS subquery | Selalu via fungsi SECURITY DEFINER — BUKAN EXISTS mentah |
 | Role valid | `GURU`, `SISWA`, `ORTU` — tidak ada yang lain, jangan tambah |
 | Deploy edge function | `--project-ref teccdzetrdjowqemnuuc` — CLI ini TOLAK `--linked` di sini |
+| `grade_recap` tanpa `teacher_id` | **Disengaja.** Ia satu-satunya tabel penilaian tanpa kolom itu; isolasinya lewat `fn_is_classroom_owner(classroom_id)`. Jangan tambahkan demi keseragaman — lihat catatan di bawah tabel. |
+
+> **Catatan `grade_recap` vs §3.** §3 menyatakan `teacher_id` didenormalisasi ke
+> setiap tabel fitur. `grade_recap` — dan `student_groups` — adalah pengecualian:
+> keduanya tidak pernah punya kolom itu. Isolasi tenant-nya tetap utuh karena
+> seluruh policy-nya berpangkal pada `classroom_id` lewat `fn_is_classroom_owner()`,
+> `fn_is_classroom_member()`, dan `fn_is_my_child_roster_in_classroom()`.
+>
+> Konsekuensi yang perlu diingat: `fn_semester_reset`, `fn_tahun_ajaran_reset`, dan
+> `fn_hard_delete_guru` menyapu tabel ini lewat `classroom_id = ANY(...)`, bukan
+> lewat `teacher_id` langsung. Menambahkan kolomnya sekarang berarti menyunting
+> ketiga fungsi itu tanpa ada yang bertambah aman.
 
 ---
 
