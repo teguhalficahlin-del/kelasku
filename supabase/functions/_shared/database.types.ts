@@ -655,10 +655,11 @@ export type Database = {
           id: string
           kktp_tercapai: boolean | null
           nilai_akhir: number | null
-          semester: string | null
+          semester: string
           student_id: string
-          tahun_ajaran: string | null
+          tahun_ajaran: string
           tp_kktp_id: string
+          updated_at: string
         }
         Insert: {
           classroom_id: string
@@ -666,10 +667,11 @@ export type Database = {
           id?: string
           kktp_tercapai?: boolean | null
           nilai_akhir?: number | null
-          semester?: string | null
+          semester: string
           student_id: string
-          tahun_ajaran?: string | null
+          tahun_ajaran: string
           tp_kktp_id: string
+          updated_at?: string
         }
         Update: {
           classroom_id?: string
@@ -677,10 +679,11 @@ export type Database = {
           id?: string
           kktp_tercapai?: boolean | null
           nilai_akhir?: number | null
-          semester?: string | null
+          semester?: string
           student_id?: string
-          tahun_ajaran?: string | null
+          tahun_ajaran?: string
           tp_kktp_id?: string
+          updated_at?: string
         }
         Relationships: [
           {
