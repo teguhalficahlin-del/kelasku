@@ -25,6 +25,7 @@
 // mengembalikan baris yang keliru, melainkan gagal sama sekali.
 
 import { type SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import type { Database } from './database.types.ts';
 
 export type ArtifactVersion = {
   id: string; content: Record<string,unknown>;
@@ -32,7 +33,7 @@ export type ArtifactVersion = {
 };
 
 export async function loadArtifactContent(
-  admin: SupabaseClient<any>,
+  admin: SupabaseClient<Database>,
   planningContextId: string,
   profileId: string,
   kind: string,
