@@ -196,6 +196,14 @@
   <script src="js/classroom-attendance.js"></script>
   <script src="js/classroom-notes.js"></script>
   <script src="js/classroom-assessment.js"></script>
+  <script>
+    (function () {
+      fetch('../shared/data/cp-data.json')
+        .then(function (r) { return r.json(); })
+        .then(function (d) { window._cpData = d; })
+        .catch(function (e) { console.warn('[MiClass] cp-data gagal dimuat:', e); });
+    }());
+  </script>
   <script src="js/rancang-chat-flow.js?v=chat-20260827"></script>
   <script src="js/rancang-chat-api.js?v=chat-20260827"></script>
   <script src="js/rancang-chat-ui.js?v=chat-20260827"></script>
