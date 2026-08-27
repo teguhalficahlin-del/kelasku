@@ -114,6 +114,55 @@ async function saveAtpPhaseOptimistic(atpId, phase, phaseData, expectedUpdatedAt
   return data;
 }
 
+const GENERATE_ATP_URL = 'https://teccdzetrdjowqemnuuc.supabase.co/functions/v1/generate-atp';
+
+async function callGenerateAtp(atpIndukId, expectedUpdatedAt) {
+  const { data: { session } } = await window.supabaseClient.auth.getSession();
+  const token = session?.access_token ?? '';
+
+  const controller = new AbortController();
+  const tid = setTimeout(() => controller.abort(), 110_000);
+  try {
+    const res = await fetch(GENERATE_ATP_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type':  'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        atp_induk_id:        atpIndukId,
+        expected_updated_at: expectedUpdatedAt || undefined,
+      }),
+      signal: controller.signal,
+    });
+    const responseJson = await res.json();
+    if (!res.ok) {
+      const err = new Error(responseJson.error || 'generate-atp error');
+      err.code    = responseJson.code    || String(res.status);
+      err.missing = responseJson.missing || [];
+      throw err;
+    }
+    return responseJson;
+  } finally {
+    clearTimeout(tid);
+  }
+}
+
+async function acceptAtp(atpIndukId, updatedAt) {
+  const { data, error } = await (updatedAt
+    ? window.supabaseClient.from('atp_induk').update({ status: 'aktif' })
+        .eq('id', atpIndukId).eq('updated_at', updatedAt).select('id, updated_at').maybeSingle()
+    : window.supabaseClient.from('atp_induk').update({ status: 'aktif' })
+        .eq('id', atpIndukId).select('id, updated_at').maybeSingle());
+  if (error) throw error;
+  if (!data) {
+    const conflict = new Error('ATP berubah. Muat ulang halaman dan coba lagi.');
+    conflict.code = 'ATP_WRITE_CONFLICT';
+    throw conflict;
+  }
+  return data;
+}
+
 async function saveAtpAdaptasi(atpIndukId, classroomId, patch) {
   const guruId = await getCurrentGuruId();
   const { data, error } = await window.supabaseClient

@@ -259,7 +259,10 @@
     _chat.session_phase = phase;
     if (phase === 'ATP_GENERATE') {
       await triggerGenerateAtp();
-      return startPhase('ATP_REVIEW');
+      return; // triggerGenerateAtp memanggil startPhase('ATP_REVIEW') sendiri jika sukses
+    }
+    if (phase === 'ATP_REVIEW') {
+      renderAtpDraftPreview(); // tampilkan draf TP sebelum pertanyaan konfirmasi
     }
     if (phase === 'DONE') {
       _chat.active_question_id = null;
@@ -512,6 +515,27 @@
       askQuestion(q);
       return;
     }
+    // Terima ATP: update status='aktif' sebelum advance
+    if (q.id === 'tindakan_review_atp' && value === 'terima') {
+      rcSetComposerDisabled(true);
+      try {
+        const saved = await acceptAtp(_chat.atp_induk_id, _chat.atp_updated_at);
+        _chat.atp_updated_at = saved.updated_at;
+        saveState();
+        const confirmMsg = 'ATP telah diterima. Anda dapat mulai merancang pembelajaran.';
+        rcAppendBubble('ai', confirmMsg);
+        addToHistory('ai', confirmMsg);
+        recordAnswer(q.id, value, 'guru', true);
+        await startPhase('DONE');
+      } catch (err) {
+        const errMsg = err.code === 'ATP_WRITE_CONFLICT'
+          ? err.message : '❌ Gagal menyimpan ATP. Coba lagi.';
+        rcAppendBubble('sistem', errMsg);
+      } finally {
+        rcSetComposerDisabled(false);
+      }
+      return;
+    }
     recordAnswer(q.id, value, 'guru', true);
     if (q.id === 'konfirmasi_konteks' && value === 'sesuai') {
       ['mapel', 'nama_kelas', 'fase', 'jenjang', 'program_keahlian'].forEach(id => {
@@ -741,15 +765,83 @@
     return { status: 'ACCEPT', normalizedAnswer: rawText, message: 'Dicatat.' };
   }
 
-  // ─── Generate ATP (placeholder) ───────────────────────────────────────────
+  // ─── Render draf ATP ──────────────────────────────────────────────────────
+
+  function renderAtpDraftPreview() {
+    if (!_chat.atp_draft?.length) return;
+    const mapel      = answerValue('mapel') || '';
+    const fase       = answerValue('fase')  || 'E';
+    const elemenList = lookupCpElemen(mapel, fase);
+    const elemenMap  = Object.fromEntries(elemenList.map(e => [e.id, e.label]));
+    const total      = _chat.atp_draft.reduce((s, tp) => s + (tp.jp_alokasi || 0), 0);
+    const allElemen  = [...new Set(_chat.atp_draft.flatMap(tp => tp.elemen || []))];
+    const elemenLabels = allElemen.map(id => elemenMap[id] || id);
+
+    let text = `Draf ATP — ${_chat.atp_draft.length} TP, total ${total} JP`;
+    if (elemenLabels.length) text += `\nElemen tercakup: ${elemenLabels.join(', ')}`;
+    text += '\n';
+    for (const tp of _chat.atp_draft) {
+      const el = (tp.elemen || []).map(id => elemenMap[id] || id).join(', ');
+      text += `\nTP ${tp.nomor}. ${tp.judul} (${tp.jp_alokasi} JP)`;
+      if (el) text += `\n   Elemen: ${el}`;
+    }
+    rcAppendBubble('ai', text.trim());
+    addToHistory('ai', `Draf ATP — ${_chat.atp_draft.length} TP, total ${total} JP`);
+  }
+
+  // ─── Generate ATP ─────────────────────────────────────────────────────────
 
   async function triggerGenerateAtp() {
-    rcAppendBubble('ai', '⏳ Membaca CP yang relevan…');
-    rcAppendBubble('ai', '⏳ Menyusun urutan Tujuan Pembelajaran…');
-    // TODO: panggil EF phase2a atau evaluate-answer mode ATP
-    // Untuk sementara tampilkan placeholder
-    rcAppendBubble('ai',
-      'ATP akan disusun setelah Edge Function evaluate-answer terdeploy.');
+    rcAppendBubble('ai', '⏳ Menyusun Alur Tujuan Pembelajaran…');
+    addToHistory('ai', 'Menyusun Alur Tujuan Pembelajaran…');
+    rcShowTyping();
+    try {
+      const result = await callGenerateAtp(_chat.atp_induk_id, _chat.atp_updated_at);
+      rcHideTyping();
+      _chat.atp_draft      = result.progresi_tp;
+      _chat.atp_updated_at = result.updated_at;
+      saveState();
+      const s = result.summary;
+      const elemenInfo = s.elemen_tercakup?.length ? `\nElemen: ${s.elemen_tercakup.join(', ')}.` : '';
+      const msg = `ATP selesai disusun: ${s.jumlah_tp} TP, total ${s.total_jp} JP.${elemenInfo}`;
+      rcAppendBubble('ai', msg);
+      addToHistory('ai', msg);
+      await startPhase('ATP_REVIEW');
+    } catch (err) {
+      rcHideTyping();
+      const code = err.code || '';
+      let msg;
+      let retryable = false;
+      if (code === 'ATP_INPUT_INCOMPLETE') {
+        const list = err.missing?.join(', ') || '';
+        msg = `❌ Data funnel belum lengkap${list ? ': ' + list : ''}.`;
+      } else if (code === 'ATP_GENERATION_CONFLICT') {
+        msg = '❌ Jawaban funnel berubah sejak disimpan. Muat ulang halaman lalu coba lagi.';
+      } else if (['ATP_GENERATION_JP_MISMATCH', 'ATP_GENERATION_INVALID_ELEMENT',
+                  'ATP_GENERATION_INVALID_JSON'].includes(code)) {
+        msg = '❌ AI gagal menghasilkan ATP yang valid. Silakan coba lagi.';
+        retryable = true;
+      } else if (code === 'ATP_GENERATION_TIMEOUT') {
+        msg = '❌ Waktu habis saat menyusun ATP. Silakan coba lagi.';
+        retryable = true;
+      } else if (code === 'RATE_LIMIT') {
+        msg = '❌ Batas generate ATP harian (3×) tercapai. Coba lagi besok.';
+      } else {
+        msg = '❌ Gagal menyusun ATP. Coba lagi.';
+        retryable = true;
+      }
+      rcAppendBubble('sistem', msg);
+      if (retryable) {
+        const btn = document.createElement('button');
+        btn.className = 'rp-chip';
+        btn.textContent = '↺ Coba lagi';
+        btn.addEventListener('click', () => {
+          btn.closest('.rc-bubble')?.remove();
+          triggerGenerateAtp();
+        });
+        rcAppendBubble('sistem', btn);
+      }
+    }
   }
 
   // ─── History helper ───────────────────────────────────────────────────────
