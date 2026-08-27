@@ -371,6 +371,227 @@ const RANCANG_FLOW = {
     },
   ],
 
+  TARGET: [
+    {
+      id: 'target_akhir_fase', kind: 'pilihan',
+      prompt: 'Bagaimana target akhir Fase E ditentukan untuk mapel ini?',
+      options: [
+        { value: 'rekomendasi_sistem', label: 'Minta rekomendasi sistem berdasarkan CP' },
+        { value: 'pilih_dari_cp', label: 'Pilih dari target yang diturunkan sistem dari CP' },
+        { value: 'masukkan_sendiri', label: 'Masukkan target sekolah untuk diperiksa kesesuaiannya' },
+      ],
+      helpText: 'Target ini menjadi arah ATP satu fase penuh.', skippable: false,
+    },
+    {
+      id: 'target_sendiri', kind: 'teks_bebas',
+      prompt: 'Tuliskan target akhir fase yang ingin Anda gunakan. Sistem akan memeriksa kesesuaiannya dengan CP.',
+      helpText: 'Contoh: Siswa mampu berkomunikasi lisan dan tulis dalam konteks dunia kerja sederhana.',
+      skippable: false, condition: { question_id: 'target_akhir_fase', value: 'masukkan_sendiri' },
+    },
+    {
+      id: 'penguatan_elemen', kind: 'pilihan',
+      prompt: 'Elemen atau kompetensi mana yang mendapat penguatan lebih dalam ATP ini?',
+      options: [
+        { value: 'seimbang', label: 'Seimbang pada seluruh elemen' },
+        { value: 'menyimak_berbicara', label: 'Menyimak–Berbicara' },
+        { value: 'membaca_memirsa', label: 'Membaca–Memirsa' },
+        { value: 'menulis_presentasi', label: 'Menulis–Mempresentasikan' },
+        { value: 'per_kemampuan', label: 'Berdasarkan kemampuan awal siswa' },
+        { value: 'rekomendasi', label: 'Minta rekomendasi sistem' },
+      ],
+      helpText: 'Penguatan tidak berarti elemen lain diabaikan — semua elemen CP tetap dicakup.', skippable: false,
+    },
+    {
+      id: 'target_kemandirian', kind: 'pilihan',
+      prompt: 'Tingkat kemandirian apa yang ditargetkan pada akhir fase ini?',
+      options: [
+        { value: 'dengan_panduan', label: 'Dengan contoh dan panduan' },
+        { value: 'bantuan_terbatas', label: 'Dengan bantuan terbatas' },
+        { value: 'mandiri_dikenal', label: 'Mandiri dalam situasi yang dikenal' },
+        { value: 'mandiri_baru', label: 'Mandiri dan mampu menerapkan dalam situasi baru' },
+        { value: 'rekomendasi_cp', label: 'Minta sistem menentukan berdasarkan CP' },
+      ],
+      helpText: 'Tingkat kemandirian memengaruhi gradasi TP dalam ATP.', skippable: false,
+    },
+  ],
+
+  PRIORITAS: [
+    {
+      id: 'target_prioritas', kind: 'pilihan_jamak',
+      prompt: 'Apa target prioritas siswa dalam fase ini? (boleh pilih lebih dari satu)',
+      options: [
+        { value: 'tka', label: 'Lulus Tes Kemampuan Akademik (TKA)' },
+        { value: 'dunia_kerja', label: 'Siap memasuki dunia kerja' },
+        { value: 'pt', label: 'Siap melanjutkan ke perguruan tinggi' },
+        { value: 'sertifikasi', label: 'Siap mengikuti sertifikasi kompetensi' },
+        { value: 'pkl', label: 'Siap PKL' },
+        { value: 'literasi', label: 'Literasi dan numerasi fungsional' },
+      ],
+      helpText: 'Target ini memengaruhi penekanan, konteks, dan distribusi TP dalam ATP.', skippable: false,
+    },
+    {
+      id: 'timeline_tka', kind: 'pilihan',
+      prompt: 'Kapan fondasi kemampuan untuk TKA ini ditargetkan tercapai?',
+      options: [
+        { value: 'akhir_fase', label: 'Akhir fase ini' },
+        { value: 'bertahap', label: 'Dibangun bertahap dan dilanjutkan pada fase berikutnya' },
+        { value: 'lainnya', label: 'Tentukan waktu lain' },
+      ],
+      helpText: 'TKA biasanya dilaksanakan di akhir Fase F — fondasi dibangun di Fase E.',
+      skippable: false, condition: { question_id: 'target_prioritas', value: 'tka' },
+    },
+  ],
+
+  KONTEKS_DUDI: [
+    {
+      id: 'kekuatan_konteks', kind: 'pilihan',
+      prompt: 'Seberapa kuat konteks program keahlian dimasukkan ke dalam ATP?',
+      options: [
+        { value: 'seimbang', label: 'Seimbang — konteks kehidupan, akademik, dan kejuruan digunakan proporsional' },
+        { value: 'dominan', label: 'Dominan kejuruan — sebagian besar penerapan menggunakan konteks program keahlian' },
+        { value: 'terbatas', label: 'Kontekstual terbatas — konteks kejuruan hanya pada TP yang relevan' },
+        { value: 'rekomendasi', label: 'Minta rekomendasi berdasarkan target dan penguatan yang dipilih' },
+      ],
+      helpText: 'Kontekstualisasi tidak mengubah CP — hanya memengaruhi contoh, situasi, dan penekanan.', skippable: false,
+    },
+    {
+      id: 'ranah_dunia_kerja', kind: 'pilihan_jamak',
+      prompt: 'Ranah dunia kerja mana yang ingin diprioritaskan? (pilih maksimal 5)',
+      options: [
+        { value: 'k3', label: 'Keselamatan dan kesehatan kerja' },
+        { value: 'komunikasi_prof', label: 'Komunikasi profesional' },
+        { value: 'kerja_tim', label: 'Kerja sama tim' },
+        { value: 'pelayanan', label: 'Pelayanan pelanggan' },
+        { value: 'dokumentasi', label: 'Dokumentasi dan pelaporan' },
+        { value: 'literasi_digital', label: 'Literasi digital' },
+        { value: 'pemecahan', label: 'Pemecahan masalah' },
+        { value: 'mutu', label: 'Mutu layanan' },
+        { value: 'etika', label: 'Etika kerja' },
+        { value: 'wirausaha', label: 'Kewirausahaan' },
+        { value: 'data', label: 'Penggunaan data' },
+        { value: 'rekomendasi', label: 'Minta rekomendasi sistem' },
+      ],
+      helpText: 'Ranah ini menjadi konteks situasi dan contoh dalam TP.', skippable: false,
+    },
+    {
+      id: 'kebutuhan_bidang', kind: 'pilihan_jamak',
+      prompt: 'Kebutuhan spesifik bidang keahlian apa yang perlu diperhatikan?',
+      options: [
+        { value: 'kosakata_bidang', label: 'Kosakata atau istilah dasar bidang keahlian' },
+        { value: 'dokumen_kerja', label: 'Dokumen kerja sederhana' },
+        { value: 'prosedur', label: 'Prosedur kerja' },
+        { value: 'teknologi', label: 'Perangkat atau teknologi bidang keahlian' },
+        { value: 'komunikasi_klien', label: 'Komunikasi dengan pelanggan atau rekan kerja' },
+        { value: 'etika_data', label: 'Etika dan kerahasiaan informasi' },
+        { value: 'tidak_ada', label: 'Tidak ada kebutuhan khusus' },
+        { value: 'rekomendasi', label: 'Minta rekomendasi sistem' },
+      ],
+      helpText: 'Kebutuhan ini memengaruhi pilihan teks, situasi, dan materi pendukung TP.', skippable: false,
+    },
+  ],
+
+  WAKTU: [
+    {
+      id: 'jp_per_minggu', kind: 'angka', prompt: 'Berapa jam pelajaran (JP) untuk mapel ini per minggu?',
+      helpText: 'Contoh: 2, 3, atau 4 JP. Satu JP biasanya 40–45 menit.', constraints: { min: 1, max: 20 }, skippable: false,
+    },
+    {
+      id: 'durasi_jp', kind: 'pilihan', prompt: 'Berapa durasi satu JP di sekolah Anda?',
+      options: [
+        { value: '45', label: '45 menit' }, { value: '40', label: '40 menit' },
+        { value: '35', label: '35 menit' }, { value: 'lain', label: 'Durasi lainnya' },
+      ],
+      helpText: 'Durasi JP menentukan total waktu pembelajaran dalam fase ini.', skippable: false,
+    },
+    {
+      id: 'durasi_jp_lain', kind: 'angka', prompt: 'Berapa menit satu JP di sekolah Anda?',
+      helpText: 'Tuliskan angka menit, misalnya: 50.', constraints: { min: 30, max: 60 },
+      skippable: false, condition: { question_id: 'durasi_jp', value: 'lain' },
+    },
+    {
+      id: 'minggu_efektif', kind: 'pilihan', prompt: 'Bagaimana Anda ingin menentukan minggu efektif pembelajaran?',
+      options: [
+        { value: 'isi_sendiri', label: 'Isi sendiri (per semester)' },
+        { value: 'pakai_standar', label: 'Gunakan standar 36 minggu (18+18)' },
+        { value: 'cari_kalender', label: 'Bantu cari dari kalender dinas daerah' },
+      ],
+      helpText: 'Minggu efektif menentukan total JP yang tersedia untuk ATP.', skippable: false,
+    },
+    {
+      id: 'minggu_sem1', kind: 'angka', prompt: 'Berapa minggu efektif semester pertama?',
+      helpText: 'Contoh: 18 minggu.', constraints: { min: 10, max: 22 }, skippable: false,
+      condition: { question_id: 'minggu_efektif', value: 'isi_sendiri' },
+    },
+    {
+      id: 'minggu_sem2', kind: 'angka', prompt: 'Berapa minggu efektif semester kedua?',
+      helpText: 'Contoh: 18 minggu.', constraints: { min: 10, max: 22 }, skippable: false,
+      condition: { question_id: 'minggu_efektif', value: 'isi_sendiri' },
+    },
+    {
+      id: 'cadangan_jp', kind: 'pilihan', prompt: 'Apakah perlu cadangan JP untuk libur atau gangguan tak terduga?',
+      options: [
+        { value: 'tidak', label: 'Tidak perlu cadangan' }, { value: '4jp', label: 'Cadangkan 4 JP (1 minggu)' },
+        { value: '8jp', label: 'Cadangkan 8 JP (2 minggu) — direkomendasikan' },
+        { value: '12jp', label: 'Cadangkan 12 JP (3 minggu)' },
+      ],
+      helpText: 'Cadangan JP tidak dibebani TP baru — digunakan untuk penguatan atau remediasi jika tidak terpakai.', skippable: false,
+    },
+    {
+      id: 'pola_jp', kind: 'pilihan', prompt: 'Bagaimana pola JP dalam satu minggu?',
+      options: [
+        { value: 'reguler', label: 'Reguler — JP terpisah setiap pertemuan' },
+        { value: 'blok', label: 'Blok — semua JP dalam satu pertemuan' },
+        { value: 'campuran', label: 'Campuran tergantung minggu' },
+      ],
+      helpText: 'Pola JP memengaruhi bagaimana aktivitas per pertemuan dirancang.', skippable: false,
+    },
+  ],
+
+  PROFIL_SISWA: [
+    {
+      id: 'data_kemampuan_awal', kind: 'pilihan_jamak', prompt: 'Data apa yang tersedia tentang kemampuan awal siswa?',
+      options: [
+        { value: 'rapor', label: 'Nilai atau rapor fase sebelumnya' },
+        { value: 'diagnostik', label: 'Hasil asesmen diagnostik' }, { value: 'observasi', label: 'Observasi guru' },
+        { value: 'info_guru', label: 'Informasi dari guru sebelumnya' }, { value: 'portofolio', label: 'Tugas atau portofolio' },
+        { value: 'belum_ada', label: 'Belum ada data' },
+      ],
+      helpText: 'Data ini digunakan untuk menentukan titik awal dan gradasi TP.', skippable: false,
+    },
+    {
+      id: 'tindak_lanjut_profil', kind: 'pilihan', prompt: 'Bagaimana Anda ingin melanjutkan tanpa data kemampuan awal?',
+      options: [
+        { value: 'lanjut_tanpa', label: 'Lanjutkan — gunakan asumsi dari CP dan fase' },
+        { value: 'isi_profil', label: 'Isi profil kemampuan awal terlebih dahulu' },
+      ],
+      helpText: 'ATP tetap bisa disusun tanpa data — titik awal ditentukan dari tuntutan CP.', skippable: false,
+      condition: { question_id: 'data_kemampuan_awal', value: 'belum_ada' },
+    },
+    {
+      id: 'cara_pemetaan', kind: 'pilihan', prompt: 'Bagaimana Anda ingin memperoleh profil kemampuan awal?',
+      options: [
+        { value: 'diagnostik_umum', label: 'Buat asesmen diagnostik umum' },
+        { value: 'observasi_awal', label: 'Gunakan observasi awal selama pembelajaran' },
+        { value: 'tugas_singkat', label: 'Gunakan tugas pemetaan singkat' },
+        { value: 'perkiraan_guru', label: 'Masukkan perkiraan profesional guru' },
+        { value: 'terpadu', label: 'Gabungkan asesmen, observasi, dan tugas singkat' },
+        { value: 'rekomendasi', label: 'Minta sistem merekomendasikan cara paling efisien' },
+      ],
+      helpText: 'Pemetaan awal memberikan data nyata untuk diferensiasi di Modul Ajar.', skippable: false,
+      condition: { question_id: 'tindak_lanjut_profil', value: 'isi_profil' },
+    },
+    {
+      id: 'penguatan_prasyarat', kind: 'pilihan', prompt: 'Bagaimana penguatan prasyarat dimasukkan ke ATP?',
+      options: [
+        { value: 'awal_fase', label: 'Pada awal fase — sebelum TP pertama' },
+        { value: 'disisipkan', label: 'Disisipkan sebelum TP yang membutuhkan' },
+        { value: 'kombinasi', label: 'Kombinasi: penguatan awal dan terintegrasi' },
+        { value: 'tidak_perlu', label: 'Tidak perlu' }, { value: 'rekomendasi', label: 'Minta rekomendasi sistem' },
+      ],
+      helpText: 'Penguatan prasyarat memastikan siswa siap mengikuti TP pertama.', skippable: false,
+    },
+  ],
+
   // ── BLOK 3 — Konteks Realistis Kelas (9 pertanyaan) ──
   BLOK3: [
     {
@@ -488,7 +709,19 @@ const RANCANG_FLOW = {
 };
 
 // Urutan fase percakapan
-const FASE_URUTAN = ['BLOK1', 'SMK', 'BLOK2', 'ATP_REVIEW', 'BLOK3', 'DONE'];
+const FASE_URUTAN = [
+  'BLOK1',        // Identitas: mapel, fase, JP, rombel
+  'SMK',          // Konteks kejuruan + diagnostik DNK/DK
+  'BLOK2',        // Preferensi pembelajaran
+  'TARGET',       // Target akhir fase + kemandirian
+  'PRIORITAS',    // Target prioritas SMK + timeline
+  'KONTEKS_DUDI', // Kekuatan konteks + ranah dunia kerja + kebutuhan bidang
+  'WAKTU',        // Alokasi JP, durasi, minggu efektif, cadangan, pola
+  'PROFIL_SISWA', // Kemampuan awal + cara pemetaan + penguatan prasyarat
+  'ATP_REVIEW',   // Generate ATP — ditangani rancang-chat.js, bukan flow
+  'BLOK3',        // Konteks Modul Ajar
+  'DONE',
+];
 
 // Helper: ambil pertanyaan berikutnya berdasarkan jawaban terkumpul
 function getNextQuestion(currentPhase, currentQId, collectedAnswers) {
@@ -501,7 +734,11 @@ function getNextQuestion(currentPhase, currentQId, collectedAnswers) {
     const q = questions[i];
     if (!q.condition) return q;
     const depAnswer = collectedAnswers[q.condition.question_id];
-    if (depAnswer === q.condition.value) return q;
+    if (Array.isArray(depAnswer)) {
+      if (depAnswer.includes(q.condition.value)) return q;
+    } else {
+      if (depAnswer === q.condition.value) return q;
+    }
   }
   return null; // fase selesai
 }
