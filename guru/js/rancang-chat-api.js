@@ -5,6 +5,22 @@
 
 const EVAL_URL = 'https://teccdzetrdjowqemnuuc.supabase.co/functions/v1/evaluate-answer';
 
+// Kurangi ukuran payload collected_answers sebelum dikirim ke EF:
+// - Sertakan hanya value + source (buang confirmed_by_teacher)
+// - Buang jawaban dengan value string > 200 karakter
+function trimCollectedAnswers(collected_answers) {
+  const trimmed = {};
+  for (const [key, stored] of Object.entries(collected_answers || {})) {
+    if (stored == null) continue;
+    const isWrapped = typeof stored === 'object' && Object.hasOwn(stored, 'value');
+    const v = isWrapped ? stored.value : stored;
+    if (typeof v === 'string' && v.length > 200) continue;
+    if (Array.isArray(v) && JSON.stringify(v).length > 200) continue;
+    trimmed[key] = isWrapped ? { value: v, source: stored.source } : v;
+  }
+  return trimmed;
+}
+
 async function callEvaluateAnswer(questionId, rawAnswer, questionSpec, context, mode = 'evaluation') {
   const { data: { session } } = await window.supabaseClient.auth.getSession();
   const token = session?.access_token ?? '';
@@ -29,7 +45,7 @@ async function callEvaluateAnswer(questionId, rawAnswer, questionSpec, context, 
       },
       context: {
         session_phase:     context.session_phase,
-        collected_answers: context.collected_answers,
+        collected_answers: trimCollectedAnswers(context.collected_answers),
       },
     }),
   });

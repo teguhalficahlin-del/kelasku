@@ -175,7 +175,7 @@ Deno.serve(async (req) => {
     let aiFailed = false;
     try {
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 10_000);
+      const timeout = setTimeout(() => controller.abort(), 20_000);
       try {
         const res = await fetch('https://api.anthropic.com/v1/messages', {
           method: 'POST',

@@ -143,16 +143,6 @@
     return getCpUmum();
   }
 
-  async function updateAtpTargetFase(atpId, targetText) {
-    try {
-      const { error } = await window.supabaseClient
-        .from('atp_induk')
-        .update({ target_fase: targetText })
-        .eq('id', atpId);
-      if (error) console.warn('[rancang-chat] updateAtpTargetFase gagal:', error.message);
-    } catch (err) { console.warn('[rancang-chat] updateAtpTargetFase exception:', err); }
-  }
-
   // ─── Kesulitan helpers ────────────────────────────────────────────────────
 
   function generateAsumsiKesulitan(mapel, fase) {
@@ -668,7 +658,17 @@
           'Perhatian: alokasi JP untuk rangkaian TP adalah 0. Kurangi pengurangan atau tambah minggu efektif.');
       }
     } else if (phase === 'TARGET_FASE') {
-      await updateAtpTargetFase(_chat.atp_induk_id, resolveTargetFaseText());
+      // Gabung update target_fase dengan optimistic lock menggunakan updated_at terbaru dari saved,
+      // agar _chat.atp_updated_at selalu sinkron dan tidak memicu false conflict di fase berikutnya.
+      const targetText = resolveTargetFaseText();
+      const { data: writtenTarget } = await window.supabaseClient
+        .from('atp_induk')
+        .update({ target_fase: targetText })
+        .eq('id', _chat.atp_induk_id)
+        .eq('updated_at', saved.updated_at)
+        .select('id, updated_at')
+        .maybeSingle();
+      if (writtenTarget) _chat.atp_updated_at = writtenTarget.updated_at;
     } else if (phase === 'PROFIL_SISWA') {
       await saveAtpAdaptasi(_chat.atp_induk_id, _chat.classroom_id, { profil_siswa: phaseData });
     } else if (phase === 'KONTEKS_DUDI') {
