@@ -87,8 +87,15 @@
       if (!panel) return;
 
       // Render shell chat
+      const _namaKelas   = window._classroomName    || '';
+      const _mapelKelas  = window._classroomSubject  || '';
+      const _programKelas = window._classroomProgram || '';
+      const _infoKelas   = [_namaKelas, _mapelKelas, _programKelas]
+        .filter(Boolean).join(' · ');
+
       panel.innerHTML = `
 <div id="rc-container" class="rc-container">
+  ${_infoKelas ? `<div class="rc-kelas-header">${_infoKelas}</div>` : ''}
   <div class="rc-stream" id="rc-stream"></div>
   <div id="rc-composer-wrap"></div>
 </div>`;

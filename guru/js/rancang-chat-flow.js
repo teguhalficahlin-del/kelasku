@@ -63,13 +63,6 @@ const RANCANG_FLOW = {
       constraints: { min: 1, max: 20 },
       skippable: false,
     },
-    {
-      id: 'rombel',
-      kind: 'teks_bebas',
-      prompt: 'Anda mengajar di rombel mana? (nama kelas atau kelompok)',
-      helpText: 'Contoh: XI AKL 1, X TKJ 2. Kalau mengampu lebih dari satu, pilih dulu satu rombel.',
-      skippable: false,
-    },
   ],
 
   // ── SMK — Konteks Kejuruan (10 pertanyaan) ──
