@@ -148,26 +148,26 @@ function rcRenderWelcomeScreen(panel, mapelDisplay, onContinue) {
     <span class="rc-welcome-ctx-atp">0 ATP</span>
   </div>
   <div class="rc-welcome-header">
-    <h2 class="rc-welcome-title">Apa yang ingin Anda siapkan?</h2>
-    <p class="rc-welcome-lead">MiClass menggunakan CP resmi dan data kelas Anda. Setiap rekomendasi sistem baru diterapkan setelah Anda setujui.</p>
+    <h2 class="rc-welcome-title">ATP selesai. Tanpa begadang.</h2>
+    <p class="rc-welcome-lead">Yang biasanya butuh berhari-hari, selesai dalam satu sesi. MiClass mengerjakan bagian beratnya — Anda cukup menjawab beberapa pertanyaan dan mengonfirmasi hasilnya.</p>
   </div>
   <div class="rc-welcome-cards">
     <button type="button" class="rc-welcome-card" data-option="sesuaikan" aria-pressed="true">
       <span class="rc-welcome-card-label">Sesuaikan ATP yang ada</span>
       <span class="rc-welcome-card-badge">Direkomendasikan</span>
-      <span class="rc-welcome-card-desc">Gunakan ATP yang sudah Anda miliki sebagai dasar, lalu sempurnakan bersama AI.</span>
+      <span class="rc-welcome-card-desc">Perbarui ATP lama Anda dalam hitungan menit — tanpa mengulang dari awal.</span>
     </button>
     <button type="button" class="rc-welcome-card" data-option="susun" aria-pressed="false">
       <span class="rc-welcome-card-label">Susun ATP baru</span>
-      <span class="rc-welcome-card-desc">Mulai dari awal bersama AI berdasarkan CP resmi dan konteks kelas Anda.</span>
+      <span class="rc-welcome-card-desc">ATP satu fase penuh, selesai hari ini — bukan bulan depan.</span>
     </button>
     <button type="button" class="rc-welcome-card" data-option="modul" aria-pressed="false" aria-disabled="true">
       <span class="rc-welcome-card-label">Buat Modul Ajar</span>
       <span class="rc-welcome-card-badge rc-welcome-card-badge--soon">Segera hadir</span>
-      <span class="rc-welcome-card-desc">Susun Modul Ajar lengkap dari ATP yang sudah ada.</span>
+      <span class="rc-welcome-card-desc">Dari ATP ke rencana pertemuan siap pakai — langsung bisa dibawa ke kelas.</span>
     </button>
   </div>
-  <p class="rc-welcome-ai-note">MIClass akan membantu memberi rekomendasi dan mendeteksi data yang belum lengkap. Tidak ada keputusan yang diterapkan tanpa persetujuan Anda.</p>
+  <p class="rc-welcome-ai-note">Guru yang sibuk tidak butuh aplikasi yang rumit. MiClass dirancang agar Anda bisa fokus mengajar — bukan mengurus berkas.</p>
   <div class="rc-welcome-footer">
     <button type="button" class="rc-welcome-btn" id="rc-welcome-lanjut">
       ${escHtml(BTN_LABELS['sesuaikan'])}
