@@ -149,11 +149,22 @@
   }
 
   function renderActiveQuestion() {
-    // Temukan pertanyaan aktif dari flow
-    for (const phase of Object.keys(RANCANG_FLOW)) {
-      const q = RANCANG_FLOW[phase]?.find(q => q.id === _chat.active_question_id);
-      if (q) { askQuestion(q); return; }
+    // Cari pertanyaan aktif HANYA di session_phase yang tersimpan
+    const phase = _chat.session_phase;
+    const questions = RANCANG_FLOW[phase] ?? [];
+    const q = questions.find(q => q.id === _chat.active_question_id);
+    if (q) {
+      askQuestion(q);
+      return;
     }
+    // Tidak ketemu — state tidak konsisten, mulai dari awal
+    console.warn('[rancang-chat] active_question_id tidak ditemukan di phase', phase, '— reset ke BLOK1');
+    _chat.session_phase = 'BLOK1';
+    _chat.active_question_id = null;
+    _chat.collected_answers = {};
+    _chat.conversation_history = [];
+    try { localStorage.removeItem(LS_KEY()); } catch (_) {}
+    startPhase('BLOK1');
   }
 
   async function handleGuruInput(rawText) {
