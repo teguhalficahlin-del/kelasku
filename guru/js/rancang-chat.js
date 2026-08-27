@@ -152,38 +152,15 @@
       const panel = document.getElementById('panel-rancang');
       if (!panel) return;
 
-      // Ambil guru_id dari Supabase auth untuk welcome key yang aman multi-user
-      let _guruId = null;
-      try {
-        const sesi = await window.api.getSession();
-        _guruId = sesi?.data?.session?.user?.id ?? null;
-      } catch (_) {}
-
-      const WELCOME_KEY = _guruId ? ('miclass_rancang_welcomed_' + _guruId) : null;
-      let _welcomed = true;
-      if (WELCOME_KEY) {
-        try { _welcomed = localStorage.getItem(WELCOME_KEY) === '1'; } catch (_) { _welcomed = true; }
-      }
-
-      if (!_welcomed) {
-        const mapelDisplay = window._classroomSubject || window._classroomProgram || '—';
-        _loaded = true;
-        rcRenderWelcomeScreen(panel, mapelDisplay, async function () {
-          if (WELCOME_KEY) {
-            try { localStorage.setItem(WELCOME_KEY, '1'); } catch (_) {}
-          }
-          _loaded = false;
-          _initializing = true;
-          try {
-            await initChatShell(cId, panel);
-          } finally {
-            _initializing = false;
-          }
-        });
-        return;
-      }
-
-      await initChatShell(cId, panel);
+      const mapelDisplay = window._classroomSubject || window._classroomProgram || '—';
+      rcRenderWelcomeScreen(panel, mapelDisplay, async function () {
+        _initializing = true;
+        try {
+          await initChatShell(cId, panel);
+        } finally {
+          _initializing = false;
+        }
+      });
     } finally {
       _initializing = false;
     }
