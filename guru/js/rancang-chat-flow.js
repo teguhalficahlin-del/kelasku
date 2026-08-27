@@ -5,45 +5,8 @@
 // constraints (opsional), helpText, skippable
 
 const RANCANG_FLOW = {
-  // ── BLOK 1 — Identitas Konteks (4 pertanyaan) ──
+  // ── BLOK 1 — Identitas Konteks (2 pertanyaan) ──
   BLOK1: [
-    {
-      id: 'mapel',
-      kind: 'pilihan',
-      prompt: 'Mata pelajaran apa yang akan Anda rancang ATP-nya?',
-      options: [
-        { value: 'bahasa_indonesia',              label: 'Bahasa Indonesia' },
-        { value: 'bahasa_inggris',                label: 'Bahasa Inggris' },
-        { value: 'informatika',                   label: 'Informatika' },
-        { value: 'matematika',                    label: 'Matematika' },
-        { value: 'pendidikan_agama',              label: 'Pendidikan Agama & Budi Pekerti' },
-        { value: 'pendidikan_pancasila',          label: 'Pendidikan Pancasila' },
-        { value: 'pjok',                          label: 'PJOK' },
-        { value: 'projek_ipas',                   label: 'Projek IPAS' },
-        { value: 'projek_kreatif_kewirausahaan',  label: 'Projek Kreatif & Kewirausahaan' },
-        { value: 'sejarah',                       label: 'Sejarah' },
-        { value: 'seni_budaya',                   label: 'Seni Budaya' },
-      ],
-      helpText: 'Pilih mapel yang akan Anda rancang ATP-nya.',
-      skippable: false,
-    },
-    {
-      id: 'mapel_agama',
-      kind: 'pilihan',
-      prompt: 'Agama apa yang Anda ampu?',
-      options: [
-        { value: 'pendidikan_agama_islam',                   label: 'Islam' },
-        { value: 'pendidikan_agama_kristen',                 label: 'Kristen' },
-        { value: 'pendidikan_agama_katolik',                 label: 'Katolik' },
-        { value: 'pendidikan_agama_hindu',                   label: 'Hindu' },
-        { value: 'pendidikan_agama_buddha',                  label: 'Buddha' },
-        { value: 'pendidikan_agama_khonghucu',               label: 'Khonghucu' },
-        { value: 'kepercayaan_terhadap_tuhan_yang_maha_esa', label: 'Kepercayaan' },
-      ],
-      helpText: 'Pilih agama yang sesuai dengan mapel Anda.',
-      skippable: false,
-      condition: { question_id: 'mapel', value: 'pendidikan_agama' },
-    },
     {
       id: 'fase',
       kind: 'pilihan',

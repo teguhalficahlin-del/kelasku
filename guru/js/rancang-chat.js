@@ -118,12 +118,42 @@
         // Tampilkan pertanyaan aktif terakhir
         renderActiveQuestion();
       } else {
-        // Mulai dari awal
         _chat.session_phase = 'BLOK1';
         _chat.collected_answers = {};
         _chat.atp_draft = [];
         _chat.selected_tp = null;
-        startPhase('BLOK1');
+
+        // Simpan data otomatis dari classroom
+        _chat.collected_answers['mapel']     = window._classroomSubject || '';
+        _chat.collected_answers['nama_kelas'] = window._classroomName   || '';
+
+        // Konfirmasi identitas
+        const _mapel = _chat.collected_answers['mapel']     || '—';
+        const _kelas = _chat.collected_answers['nama_kelas'] || '—';
+
+        rcAppendBubble('sistem',
+          `Berikut data kelas yang akan digunakan:\n\n${_mapel} · ${_kelas}\n\nApakah sudah sesuai?`
+        );
+
+        rcRenderChips(
+          [
+            { value: 'ya',    label: 'Ya, sudah sesuai' },
+            { value: 'tidak', label: 'Ada yang perlu diperbaiki' },
+          ],
+          (value) => {
+            rcClearChips();
+            if (value === 'ya') {
+              rcAppendBubble('guru', 'Ya, sudah sesuai');
+              saveState();
+              startPhase('BLOK1');
+            } else {
+              rcAppendBubble('guru', 'Ada yang perlu diperbaiki');
+              rcAppendBubble('sistem',
+                'Silakan perbaiki data kelas melalui tombol Edit di halaman utama, lalu kembali ke tab ini.'
+              );
+            }
+          }
+        );
       }
 
       _loaded = true;
