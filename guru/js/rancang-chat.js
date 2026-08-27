@@ -304,10 +304,11 @@
         return { status: 'CLARIFY',
           message: 'Jawaban terlalu singkat. Bisa lebih spesifik?' };
       }
-      // Panggil Edge Function untuk teks bebas
-      // EF belum ada — fallback ACCEPT sementara
-      return { status: 'ACCEPT', normalizedAnswer: rawText,
-        message: `Dicatat.` };
+      return await callEvaluateAnswer(q.id, rawText, q, {
+        classroom_id:      _chat.classroom_id,
+        session_phase:     _chat.session_phase,
+        collected_answers: _chat.collected_answers,
+      });
     }
 
     // Fallback

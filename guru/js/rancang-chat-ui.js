@@ -62,20 +62,32 @@ function rcRenderComposer(containerId, onSubmit) {
   const input = document.getElementById('rc-input');
   const sendBtn = document.getElementById('rc-send');
 
+  function resetHeight() {
+    input.style.height = 'auto';
+    input.style.height = Math.min(input.scrollHeight, 120) + 'px';
+  }
+
+  input?.addEventListener('input', resetHeight);
+
   input?.addEventListener('keydown', e => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       const val = input.value.trim();
-      if (val) { input.value = ''; onSubmit(val); }
+      if (val) {
+        input.value = '';
+        input.style.height = 'auto';
+        onSubmit(val);
+      }
     }
-    // Auto-resize
-    input.style.height = 'auto';
-    input.style.height = Math.min(input.scrollHeight, 120) + 'px';
   });
 
   sendBtn?.addEventListener('click', () => {
     const val = input?.value.trim();
-    if (val) { input.value = ''; onSubmit(val); }
+    if (val) {
+      input.value = '';
+      input.style.height = 'auto';
+      onSubmit(val);
+    }
   });
 }
 
