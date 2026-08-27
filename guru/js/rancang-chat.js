@@ -22,7 +22,7 @@
   };
 
   const HISTORY_CAP = 40;
-  const LS_KEY = () => 'rc_atp_state_' + (_chat.guru_id || 'unknown');
+  const LS_KEY = () => 'rc_atp_state_' + (_chat.guru_id || 'unknown') + '_' + (_chat.classroom_id || 'unknown');
 
   let _loaded = false;
   let _initializing = false;
@@ -248,7 +248,7 @@
     const prasyarat = Number(answerValue('jp_prasyarat') || 0);
     return { jp_per_minggu: jpPerMinggu, minggu_efektif: minggu, jp_kalender: kalender,
       jp_kegiatan_khusus: kegiatan, jp_cadangan: cadangan, jp_pemetaan: pemetaan,
-      jp_prasyarat: prasyarat, jp_operasional: kalender - kegiatan - cadangan - pemetaan - prasyarat };
+      jp_prasyarat: prasyarat, jp_operasional: Math.max(0, kalender - kegiatan - cadangan - pemetaan - prasyarat) };
   }
 
   function formatAllocationSummary() {
@@ -337,6 +337,7 @@
       );
       if (recommendationOption) {
         rcHideTyping();
+        _chat.in_flight = false; // lepas lock — requestAiRecommendation kelola sendiri
         await requestAiRecommendation(q, recommendationOption.label);
         return;
       }
@@ -447,6 +448,9 @@
   }
 
   async function requestAiRecommendation(q, label) {
+    if (_chat.in_flight) return;
+    _chat.in_flight = true;
+    rcSetComposerDisabled(true);
     rcShowTyping();
     try {
       const recommendation = await callRecommendation(q.id, q, {
@@ -480,6 +484,9 @@
       rcHideTyping();
       rcAppendBubble('sistem', 'Rekomendasi belum dapat dimuat. Silakan pilih sendiri.');
       askQuestion(q);
+    } finally {
+      _chat.in_flight = false;
+      rcSetComposerDisabled(false);
     }
   }
 
@@ -512,6 +519,10 @@
 
     if (phase === 'WAKTU') {
       await saveAtpAdaptasi(_chat.atp_induk_id, _chat.classroom_id, { alokasi_waktu: phaseData });
+      if ((phaseData.perhitungan?.jp_operasional ?? 1) <= 0) {
+        rcAppendBubble('ai',
+          'Perhatian: alokasi JP untuk rangkaian TP adalah 0. Kurangi pengurangan atau tambah minggu efektif.');
+      }
     } else if (phase === 'PROFIL_SISWA') {
       await saveAtpAdaptasi(_chat.atp_induk_id, _chat.classroom_id, { profil_siswa: phaseData });
     } else if (phase === 'KONTEKS_DUDI') {

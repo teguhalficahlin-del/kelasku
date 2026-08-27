@@ -81,9 +81,15 @@ Deno.serve(async (req) => {
   if (authError || !user) return json({ error: 'Unauthorized.' }, 401);
 
   // ── 2. RATE LIMIT ─────────────────────────────────────────────────────────
+  // fn_check_rate_limit hanya di-grant ke service_role — gunakan serviceClient
+  // khusus di sini; jangan pakai untuk operasi lain.
 
   try {
-    const { data: allowed, error: rlErr } = await supabase.rpc('fn_check_rate_limit', {
+    const serviceClient = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+    );
+    const { data: allowed, error: rlErr } = await serviceClient.rpc('fn_check_rate_limit', {
       p_user_id: user.id,
       p_action: 'evaluate_answer',
       p_limit: 20,
