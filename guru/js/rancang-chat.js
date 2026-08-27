@@ -515,6 +515,30 @@
       askQuestion(q);
       return;
     }
+    // Buat ulang ATP: panggil generate langsung, jangan rekam jawaban
+    if (q.id === 'tindakan_review_atp' && value === 'ulang') {
+      rcSetComposerDisabled(true);
+      try {
+        await triggerGenerateAtp();
+      } finally {
+        rcSetComposerDisabled(false);
+      }
+      return;
+    }
+    // Placeholder V1: revisi rumusan TP
+    if (q.id === 'tindakan_review_atp' && value === 'rumusan') {
+      rcAppendBubble('ai', 'Fitur revisi rumusan TP per item akan tersedia di versi berikutnya. Saat ini Anda dapat menerima ATP ini atau membuatnya ulang.');
+      addToHistory('ai', 'Fitur revisi rumusan TP belum tersedia.');
+      askQuestion(q);
+      return;
+    }
+    // Placeholder V1: pengurutan TP manual
+    if (q.id === 'tindakan_review_atp' && value === 'urutan') {
+      rcAppendBubble('ai', 'Fitur pengurutan TP manual akan tersedia di versi berikutnya. Saat ini Anda dapat menerima ATP ini atau membuatnya ulang.');
+      addToHistory('ai', 'Fitur pengurutan TP belum tersedia.');
+      askQuestion(q);
+      return;
+    }
     // Terima ATP: update status='aktif' sebelum advance
     if (q.id === 'tindakan_review_atp' && value === 'terima') {
       rcSetComposerDisabled(true);
@@ -693,7 +717,13 @@
         ubah_prasyarat: 'PENGUATAN_PRASYARAT',
       })[value] || 'ATP_SUMMARY';
     }
-    if (questionId === 'tindakan_review_atp' && value !== 'terima') return 'ATP_REVIEW';
+    if (questionId === 'tindakan_review_atp') {
+      return ({
+        waktu:          'WAKTU',
+        ubah_prioritas: 'PRIORITAS',
+        ubah_target:    'TARGET_FASE',
+      })[value] || null; // terima/ulang/rumusan/urutan ditangani di handleChipSelect
+    }
     return null;
   }
 
