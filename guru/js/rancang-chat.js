@@ -270,8 +270,14 @@
     rcRenderChips(chips, async (value, label) => {
       if (value === '__done__') {
         if (!selected.length) return rcAppendBubble('sistem', 'Pilih minimal satu opsi.');
+        const summary = selected.map(v => {
+          const opt = q.options.find(o => o.value === v);
+          return opt?.label || v;
+        }).join(', ');
         delete _chat.pending_multi[q.id];
         rcClearChips();
+        rcAppendBubble('guru', summary);
+        addToHistory('guru', summary);
         recordAnswer(q.id, selected, 'guru', true);
         await advanceToNext(q);
         return;
@@ -390,12 +396,36 @@
     }
   }
 
+  function buildCpRingkasan() {
+    const mapel   = answerValue('mapel')             || '—';
+    const fase    = answerValue('fase')              || '—';
+    const program = answerValue('program_keahlian')  || '';
+    const ELEMEN = {
+      'Bahasa Inggris': ['Menyimak–Berbicara', 'Membaca–Memirsa', 'Menulis–Mempresentasikan'],
+    };
+    const elemen = ELEMEN[mapel];
+    let text = `Mata Pelajaran: ${mapel}\nFase: ${fase}`;
+    if (program) text += `\nProgram Keahlian: ${program}`;
+    text += elemen
+      ? `\n\nElemen CP:\n${elemen.map(e => `• ${e}`).join('\n')}`
+      : '\n\nElemen CP akan dimuat saat ATP mulai disusun.';
+    return text;
+  }
+
   async function handleChipSelect(value, label, q) {
     rcClearChips();
     rcAppendBubble('guru', label);
     addToHistory('guru', label);
     if (value === 'rekomendasi' && q.aiRecommendation) {
       await requestAiRecommendation(q, label);
+      return;
+    }
+    // Tampilkan ringkasan CP tanpa merekam pilihan ini sebagai jawaban final
+    if (q.id === 'konfirmasi_konteks' && value === 'lihat_cp') {
+      const ringkasan = buildCpRingkasan();
+      rcAppendBubble('ai', ringkasan);
+      addToHistory('ai', ringkasan);
+      askQuestion(q);
       return;
     }
     recordAnswer(q.id, value, 'guru', true);
