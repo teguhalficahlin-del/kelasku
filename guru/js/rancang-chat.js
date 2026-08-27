@@ -653,10 +653,6 @@
 
     if (phase === 'WAKTU') {
       await saveAtpAdaptasi(_chat.atp_induk_id, _chat.classroom_id, { alokasi_waktu: phaseData });
-      if ((phaseData.perhitungan?.jp_operasional ?? 1) <= 0) {
-        rcAppendBubble('ai',
-          'Perhatian: alokasi JP untuk rangkaian TP adalah 0. Kurangi pengurangan atau tambah minggu efektif.');
-      }
     } else if (phase === 'TARGET_FASE') {
       // Gabung update target_fase dengan optimistic lock menggunakan updated_at terbaru dari saved,
       // agar _chat.atp_updated_at selalu sinkron dan tidak memicu false conflict di fase berikutnya.
@@ -693,6 +689,13 @@
           ? error.message
           : 'Fase belum tersimpan ke database. Coba lagi sebelum melanjutkan.';
         rcAppendBubble('sistem', message);
+        return;
+      }
+      if (_chat.session_phase === 'WAKTU' && calculateAllocation().jp_operasional <= 0) {
+        rcAppendBubble('sistem',
+          'Alokasi JP tidak valid (0 JP). Pilih cara lain untuk menentukan minggu efektif.');
+        const modeQ = (RANCANG_FLOW['WAKTU'] || []).find(q => q.id === 'minggu_efektif_mode');
+        if (modeQ) askQuestion(modeQ);
         return;
       }
       const revisionPhase = revisionDestination(currentQ.id, answerValue(currentQ.id));

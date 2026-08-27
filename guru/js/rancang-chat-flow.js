@@ -73,7 +73,7 @@ const RANCANG_FLOW = {
       ['2026/2027', '2026/2027'], ['2027/2028', '2027/2028'], ['lainnya', 'Tahun pelajaran lainnya'],
     ]),
     pilihan('minggu_efektif_mode', 'Bagaimana minggu efektif ditentukan?', [
-      ['kalender_sekolah', 'Gunakan kalender sekolah yang tersimpan'], ['isi_sendiri', 'Isi sendiri'],
+      ['isi_sendiri', 'Isi sendiri'],
       ['cari_daerah', 'Cari kalender pendidikan daerah'],
       ['standar_36', 'Gunakan asumsi sementara 36 minggu (18+18)'],
     ], { helpText: 'Data resmi dan asumsi disimpan dengan status berbeda.' }),

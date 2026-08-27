@@ -236,7 +236,13 @@ Deno.serve(async (req) => {
   const waktu = (cd.WAKTU as Record<string, unknown>) || {};
   const perhitungan = (waktu.perhitungan as Record<string, number>) || {};
   const jpOp = Number(perhitungan.jp_operasional ?? 0);
-  if (!jpOp || jpOp <= 0) missing.push('WAKTU.perhitungan.jp_operasional');
+  if (!jpOp || jpOp <= 0) {
+    return json({
+      error: 'Alokasi JP pembelajaran adalah 0. Kembali ke fase Waktu dan isi jumlah minggu efektif secara manual.',
+      code: 'ATP_INPUT_INCOMPLETE',
+      missing: ['WAKTU.minggu_efektif'],
+    }, 422);
+  }
 
   const elemenCp: ElemenCp[] = Array.isArray(atp.elemen_cp)
     ? (atp.elemen_cp as ElemenCp[]).filter(e => e?.id && e?.cp_text)
