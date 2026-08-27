@@ -167,7 +167,7 @@ function rcRenderWelcomeScreen(panel, mapelDisplay, onContinue) {
       <span class="rc-welcome-card-desc">Susun Modul Ajar lengkap dari ATP yang sudah ada.</span>
     </button>
   </div>
-  <p class="rc-welcome-ai-note">AI akan membantu memberi rekomendasi dan mendeteksi data yang belum lengkap. Tidak ada keputusan yang diterapkan tanpa persetujuan Anda.</p>
+  <p class="rc-welcome-ai-note">MIClass akan membantu memberi rekomendasi dan mendeteksi data yang belum lengkap. Tidak ada keputusan yang diterapkan tanpa persetujuan Anda.</p>
   <div class="rc-welcome-footer">
     <button type="button" class="rc-welcome-btn" id="rc-welcome-lanjut">
       ${escHtml(BTN_LABELS['sesuaikan'])}
