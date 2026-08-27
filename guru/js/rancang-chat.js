@@ -103,6 +103,88 @@
       ? stored.value : stored;
   }
 
+  // ─── CP data helpers ──────────────────────────────────────────────────────
+
+  function makeCpElemenId(nama) {
+    return nama.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').trim().replace(/\s+/g, '_');
+  }
+
+  function lookupCpElemen(mapel, fase) {
+    try {
+      const data = window._cpData;
+      if (!data) { console.warn('[rancang-chat] window._cpData tidak tersedia'); return []; }
+      const mapelKey = mapel.toLowerCase().replace(/[^a-z0-9]/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '');
+      const faseKey  = 'fase_' + (fase || 'e').toLowerCase();
+      const elemen   = data[mapelKey]?.[faseKey]?.elemen;
+      if (!Array.isArray(elemen) || !elemen.length) {
+        console.warn('[rancang-chat] CP tidak ditemukan untuk', mapel, fase); return [];
+      }
+      return elemen.map(e => ({ id: makeCpElemenId(e.nama), label: e.nama, cp_text: e.cp_normatif || '' }));
+    } catch (err) { console.warn('[rancang-chat] lookupCpElemen gagal:', err); return []; }
+  }
+
+  function getCpUmum() {
+    try {
+      const data = window._cpData;
+      if (!data) return '';
+      const mapel    = answerValue('mapel') || '';
+      const fase     = answerValue('fase')  || 'E';
+      const mapelKey = mapel.toLowerCase().replace(/[^a-z0-9]/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '');
+      const faseKey  = 'fase_' + fase.toLowerCase();
+      return data[mapelKey]?.[faseKey]?.cp_umum || '';
+    } catch (_) { return ''; }
+  }
+
+  // ─── Target fase helpers ──────────────────────────────────────────────────
+
+  function resolveTargetFaseText() {
+    const mode = answerValue('target_akhir_mode');
+    if (mode === 'target_guru') return answerValue('target_akhir_teks') || '';
+    return getCpUmum();
+  }
+
+  async function updateAtpTargetFase(atpId, targetText) {
+    try {
+      const { error } = await window.supabaseClient
+        .from('atp_induk')
+        .update({ target_fase: targetText })
+        .eq('id', atpId);
+      if (error) console.warn('[rancang-chat] updateAtpTargetFase gagal:', error.message);
+    } catch (err) { console.warn('[rancang-chat] updateAtpTargetFase exception:', err); }
+  }
+
+  // ─── Kesulitan helpers ────────────────────────────────────────────────────
+
+  function generateAsumsiKesulitan(mapel, fase) {
+    const ASUMSI = {
+      'Bahasa Inggris': {
+        E: ['Keterbatasan kosakata akademik dan kontekstual',
+            'Kesulitan menyimak dan memahami teks lisan autentik',
+            'Penulisan teks dengan struktur yang sesuai konteks'],
+        F: ['Pemahaman teks argumentatif dan diskusi yang kompleks',
+            'Penggunaan strategi koreksi diri dalam komunikasi',
+            'Penulisan teks mandiri dengan kesadaran tujuan komunikatif'],
+      },
+    };
+    return ASUMSI[mapel]?.[fase] || ['Kemampuan awal berbeda-beda antar siswa', 'Perlu adaptasi dari fase sebelumnya'];
+  }
+
+  function resolveKesulitanDiantisipasi() {
+    const stored = _chat.collected_answers['kesulitan_mode'];
+    const mode   = stored?.value ?? stored ?? '';
+    const src    = stored?.source ?? 'guru';
+    if (mode === 'belum_diketahui') return { value: [], source: 'belum_diketahui' };
+    if (mode === 'perkiraan_guru') {
+      const raw = answerValue('kesulitan_teks_guru') || '';
+      return { value: raw ? [raw] : [], source: 'guru' };
+    }
+    if (mode === 'asumsi_umum') {
+      const list = generateAsumsiKesulitan(answerValue('mapel') || '', answerValue('fase') || 'E');
+      return { value: list, source: src === 'ai_recommendation' ? 'ai_recommendation' : 'otomatis' };
+    }
+    return { value: [], source: 'otomatis' };
+  }
+
   async function initChatShell(cId, panel) {
     _chat.classroom_id = cId;
     _chat.guru_id = await getCurrentGuruId();
@@ -398,18 +480,19 @@
   }
 
   function buildCpRingkasan() {
-    const mapel   = answerValue('mapel')             || '—';
-    const fase    = answerValue('fase')              || '—';
-    const program = answerValue('program_keahlian')  || '';
-    const ELEMEN = {
-      'Bahasa Inggris': ['Menyimak–Berbicara', 'Membaca–Memirsa', 'Menulis–Mempresentasikan'],
-    };
-    const elemen = ELEMEN[mapel];
+    const mapel   = answerValue('mapel')            || '—';
+    const fase    = answerValue('fase')             || '—';
+    const program = answerValue('program_keahlian') || '';
     let text = `Mata Pelajaran: ${mapel}\nFase: ${fase}`;
     if (program) text += `\nProgram Keahlian: ${program}`;
-    text += elemen
-      ? `\n\nElemen CP:\n${elemen.map(e => `• ${e}`).join('\n')}`
-      : '\n\nElemen CP akan dimuat saat ATP mulai disusun.';
+    const elemen = lookupCpElemen(mapel, fase);
+    if (elemen.length) {
+      text += `\n\nElemen CP:\n${elemen.map(e => `• ${e.label}`).join('\n')}`;
+      const cpUmum = getCpUmum();
+      if (cpUmum) text += `\n\nCapaian Pembelajaran:\n${cpUmum}`;
+    } else {
+      text += '\n\nElemen CP akan dimuat saat ATP mulai disusun.';
+    }
     return text;
   }
 
@@ -492,12 +575,13 @@
 
   async function ensureAtpDraft() {
     if (_chat.atp_induk_id) return;
+    const mapel = answerValue('mapel') || 'Belum ditentukan';
+    const fase  = answerValue('fase')  || 'E';
     const draft = await createAtpIndukDraft({
-      mapel: answerValue('mapel') || 'Belum ditentukan',
-      fase: answerValue('fase') || 'E',
+      mapel,
+      fase,
       jenjang: answerValue('jenjang') || 'SMK',
-      elemen_cp: answerValue('mapel') === 'Bahasa Inggris'
-        ? ['Menyimak–Berbicara', 'Membaca–Memirsa', 'Menulis–Mempresentasikan'] : [],
+      elemen_cp: lookupCpElemen(mapel, fase),
     });
     _chat.atp_induk_id = draft.id;
     _chat.atp_updated_at = draft.updated_at;
@@ -507,11 +591,23 @@
   async function persistCompletedPhase(phase) {
     await ensureAtpDraft();
     const phaseData = phaseAnswerObject(phase);
+
     if (phase === 'KONTEKS_CP') {
       ['mapel', 'nama_kelas', 'fase', 'jenjang', 'program_keahlian'].forEach(id => {
         if (_chat.collected_answers[id]) phaseData[id] = _chat.collected_answers[id];
       });
+    } else if (phase === 'TARGET_FASE') {
+      const targetText = resolveTargetFaseText();
+      const targetAns  = answer(targetText, 'otomatis', true);
+      phaseData.target_fase_resolved          = targetAns;
+      _chat.collected_answers.target_fase_resolved = targetAns;
+    } else if (phase === 'PROFIL_SISWA') {
+      const kesulitan    = resolveKesulitanDiantisipasi();
+      const kesulitanAns = answer(kesulitan.value, kesulitan.source, true);
+      phaseData.kesulitan_diantisipasi                 = kesulitanAns;
+      _chat.collected_answers.kesulitan_diantisipasi   = kesulitanAns;
     }
+
     const saved = await saveAtpPhaseOptimistic(
       _chat.atp_induk_id, phase, phaseData, _chat.atp_updated_at
     );
@@ -523,6 +619,8 @@
         rcAppendBubble('ai',
           'Perhatian: alokasi JP untuk rangkaian TP adalah 0. Kurangi pengurangan atau tambah minggu efektif.');
       }
+    } else if (phase === 'TARGET_FASE') {
+      await updateAtpTargetFase(_chat.atp_induk_id, resolveTargetFaseText());
     } else if (phase === 'PROFIL_SISWA') {
       await saveAtpAdaptasi(_chat.atp_induk_id, _chat.classroom_id, { profil_siswa: phaseData });
     } else if (phase === 'KONTEKS_DUDI') {

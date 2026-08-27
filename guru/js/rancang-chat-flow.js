@@ -141,6 +141,11 @@ const RANCANG_FLOW = {
       ['belum_diketahui', 'Belum diketahui — jangan tetapkan kesulitan khusus'],
       ['rekomendasi', 'Minta rekomendasi MiClass'],
     ], { aiRecommendation: true, helpText: 'Tanpa hasil aktual, kesulitan berstatus asumsi.' }),
+    { id: 'kesulitan_teks_guru', kind: 'teks_bebas',
+      prompt: 'Tuliskan kesulitan yang Anda perkirakan akan dihadapi siswa. Pisahkan dengan koma jika lebih dari satu.',
+      helpText: 'Contoh: siswa kesulitan membaca teks panjang, kosakata terbatas.',
+      skippable: false,
+      condition: { question_id: 'kesulitan_mode', value: 'perkiraan_guru' } },
   ],
 
   TARGET_FASE: [
