@@ -4,21 +4,25 @@
   // ─── State tunggal ───────────────────────────────────────────────────────
 
   const _chat = {
+    guru_id:              null,
     classroom_id:         null,
+    atp_induk_id:         null,
+    atp_updated_at:       null,
     profile:              null,   // rancang_profil
     teaching_context_id:  null,
     planning_context_id:  null,
     active_question_id:   null,
     collected_answers:    {},
     conversation_history: [],     // hanya untuk display, cap 40
-    session_phase:        'BLOK1',
+    session_phase:        'KONTEKS_CP',
     atp_draft:            [],
     selected_tp:          null,
     in_flight:            false,
+    pending_multi:        {},
   };
 
   const HISTORY_CAP = 40;
-  const LS_KEY = () => 'rc_state_' + _chat.classroom_id;
+  const LS_KEY = () => 'rc_atp_state_' + (_chat.guru_id || 'unknown');
 
   let _loaded = false;
   let _initializing = false;
@@ -29,6 +33,8 @@
     if (!_chat.classroom_id) return;
     const payload = {
       active_question_id:  _chat.active_question_id,
+      atp_induk_id:        _chat.atp_induk_id,
+      atp_updated_at:      _chat.atp_updated_at,
       collected_answers:   _chat.collected_answers,
       conversation_history: _chat.conversation_history.slice(-HISTORY_CAP),
       session_phase:       _chat.session_phase,
@@ -63,7 +69,9 @@
         active_question_id:  saved.active_question_id  ?? null,
         collected_answers:   saved.collected_answers   ?? {},
         conversation_history: saved.conversation_history ?? [],
-        session_phase:       saved.session_phase       ?? 'BLOK1',
+        session_phase:       saved.session_phase       ?? 'KONTEKS_CP',
+        atp_induk_id:        saved.atp_induk_id        ?? null,
+        atp_updated_at:      saved.atp_updated_at      ?? null,
         atp_draft:           saved.atp_draft           ?? [],
         selected_tp:         saved.selected_tp         ?? null,
         teaching_context_id: saved.teaching_context_id ?? null,
@@ -78,8 +86,26 @@
 
   // ─── Init ─────────────────────────────────────────────────────────────────
 
+  function inferFaseFromClassroom() {
+    const name = String(window._classroomName || '').toUpperCase();
+    if (/\bXII?\b/.test(name) && !/\bX\b/.test(name)) return 'F';
+    if (/\bXI\b|\bXII\b/.test(name)) return 'F';
+    return 'E';
+  }
+
+  function answer(value, source = 'guru', confirmed = true) {
+    return { value, source, confirmed_by_teacher: confirmed };
+  }
+
+  function answerValue(id) {
+    const stored = _chat.collected_answers[id];
+    return stored && typeof stored === 'object' && Object.hasOwn(stored, 'value')
+      ? stored.value : stored;
+  }
+
   async function initChatShell(cId, panel) {
     _chat.classroom_id = cId;
+    _chat.guru_id = await getCurrentGuruId();
 
     const _namaKelas    = window._classroomName    || '';
     const _mapelKelas   = window._classroomSubject  || '';
@@ -105,40 +131,19 @@
       rcAppendBubble('sistem', 'Melanjutkan sesi sebelumnya…');
       renderActiveQuestion();
     } else {
-      _chat.session_phase = 'BLOK1';
+      _chat.session_phase = 'KONTEKS_CP';
       _chat.collected_answers = {};
       _chat.atp_draft = [];
       _chat.selected_tp = null;
 
-      _chat.collected_answers['mapel']     = window._classroomSubject || '';
-      _chat.collected_answers['nama_kelas'] = window._classroomName   || '';
-
-      const _mapel = _chat.collected_answers['mapel']     || '—';
-      const _kelas = _chat.collected_answers['nama_kelas'] || '—';
-
-      rcAppendBubble('sistem',
-        `Berikut data kelas yang akan digunakan:\n\n${_mapel} · ${_kelas}\n\nApakah sudah sesuai?`
-      );
-
-      rcRenderChips(
-        [
-          { value: 'ya',    label: 'Ya, sudah sesuai' },
-          { value: 'tidak', label: 'Ada yang perlu diperbaiki' },
-        ],
-        (value) => {
-          rcClearChips();
-          if (value === 'ya') {
-            rcAppendBubble('guru', 'Ya, sudah sesuai');
-            saveState();
-            startPhase('BLOK1');
-          } else {
-            rcAppendBubble('guru', 'Ada yang perlu diperbaiki');
-            rcAppendBubble('sistem',
-              'Silakan perbaiki data kelas melalui tombol Edit di halaman utama, lalu kembali ke tab ini.'
-            );
-          }
-        }
-      );
+      _chat.atp_induk_id = null;
+      _chat.atp_updated_at = null;
+      _chat.collected_answers.mapel = answer(window._classroomSubject || '', 'otomatis', false);
+      _chat.collected_answers.nama_kelas = answer(window._classroomName || '', 'otomatis', false);
+      _chat.collected_answers.fase = answer(inferFaseFromClassroom(), 'otomatis', false);
+      _chat.collected_answers.jenjang = answer(window._classroomJenjang || 'SMK', 'otomatis', false);
+      _chat.collected_answers.program_keahlian = answer(window._classroomProgram || '', 'otomatis', false);
+      startPhase('KONTEKS_CP');
     }
 
     _loaded = true;
@@ -168,8 +173,18 @@
 
   // ─── Flow ──────────────────────────────────────────────────────────────────
 
-  function startPhase(phase) {
+  async function startPhase(phase) {
     _chat.session_phase = phase;
+    if (phase === 'ATP_GENERATE') {
+      await triggerGenerateAtp();
+      return startPhase('ATP_REVIEW');
+    }
+    if (phase === 'DONE') {
+      _chat.active_question_id = null;
+      saveState();
+      rcAppendBubble('ai', '✓ ATP telah selesai ditinjau.');
+      return;
+    }
     const questions = RANCANG_FLOW[phase];
     if (!questions?.length) return;
     const first = questions[0];
@@ -180,13 +195,97 @@
     _chat.active_question_id = q.id;
     saveState();
 
-    rcAppendBubble('ai', q.prompt);
+    rcAppendBubble('ai', renderQuestionPrompt(q.prompt));
 
-    if (q.kind === 'pilihan' || q.kind === 'pilihan_jamak') {
+    if (q.kind === 'pilihan_jamak') {
+      renderMultiSelect(q);
+    } else if (q.kind === 'pilihan' || q.kind === 'konfirmasi') {
       rcRenderChips(q.options, (value, label) => {
         handleChipSelect(value, label, q);
       });
     }
+  }
+
+  function renderQuestionPrompt(prompt) {
+    const context = [answerValue('mapel'), answerValue('nama_kelas'),
+      `Fase ${answerValue('fase')}`, answerValue('program_keahlian')].filter(Boolean).join(' · ');
+    return prompt
+      .replace('{{konteks_kelas}}', context)
+      .replace('{{ringkasan_waktu}}', formatAllocationSummary())
+      .replace('{{ringkasan_target}}', formatPhaseAnswers('TARGET_FASE'))
+      .replace('{{ringkasan_dudi}}', formatPhaseAnswers('KONTEKS_DUDI'))
+      .replace('{{atp_summary}}', formatAtpSummary());
+  }
+
+  function phaseAnswerObject(phase) {
+    const result = {};
+    for (const q of RANCANG_FLOW[phase] || []) {
+      if (_chat.collected_answers[q.id] !== undefined) result[q.id] = _chat.collected_answers[q.id];
+    }
+    if (phase === 'WAKTU') result.perhitungan = calculateAllocation();
+    return result;
+  }
+
+  function formatPhaseAnswers(phase) {
+    return Object.entries(phaseAnswerObject(phase))
+      .map(([key, stored]) => `${key}: ${JSON.stringify(unwrapStored(stored))}`).join('\n') || 'Belum lengkap.';
+  }
+
+  function unwrapStored(stored) {
+    return stored && typeof stored === 'object' && Object.hasOwn(stored, 'value')
+      ? stored.value : stored;
+  }
+
+  function calculateAllocation() {
+    const jpPerMinggu = Number(answerValue('jp_per_minggu') || 0);
+    const mode = answerValue('minggu_efektif_mode');
+    const minggu = mode === 'standar_36' ? 36
+      : Number(answerValue('minggu_sem1') || 0) + Number(answerValue('minggu_sem2') || 0);
+    const kalender = jpPerMinggu * minggu;
+    const kegiatan = Number(answerValue('jp_kegiatan_khusus') || 0);
+    const cadangan = Number(answerValue('cadangan_minggu') || 0) * jpPerMinggu;
+    const pemetaan = Number(answerValue('jp_pemetaan') || 0);
+    const prasyarat = Number(answerValue('jp_prasyarat') || 0);
+    return { jp_per_minggu: jpPerMinggu, minggu_efektif: minggu, jp_kalender: kalender,
+      jp_kegiatan_khusus: kegiatan, jp_cadangan: cadangan, jp_pemetaan: pemetaan,
+      jp_prasyarat: prasyarat, jp_operasional: kalender - kegiatan - cadangan - pemetaan - prasyarat };
+  }
+
+  function formatAllocationSummary() {
+    const a = calculateAllocation();
+    return `Alokasi kalender: ${a.jp_kalender} JP\nKegiatan khusus: ${a.jp_kegiatan_khusus} JP` +
+      `\nCadangan: ${a.jp_cadangan} JP\nSisa sementara: ${a.jp_operasional} JP`;
+  }
+
+  function formatAtpSummary() {
+    return FASE_URUTAN_V1.slice(0, FASE_URUTAN_V1.indexOf('ATP_SUMMARY'))
+      .map(phase => `${phase}\n${formatPhaseAnswers(phase)}`).join('\n\n');
+  }
+
+  function renderMultiSelect(q) {
+    const selected = _chat.pending_multi[q.id] || [];
+    const max = q.constraints?.maxSelections || Infinity;
+    const available = q.options.filter(o => !selected.includes(o.value));
+    const chips = [...available, { value: '__done__', label: `Selesai memilih (${selected.length})` }];
+    rcRenderChips(chips, async (value, label) => {
+      if (value === '__done__') {
+        if (!selected.length) return rcAppendBubble('sistem', 'Pilih minimal satu opsi.');
+        delete _chat.pending_multi[q.id];
+        rcClearChips();
+        recordAnswer(q.id, selected, 'guru', true);
+        await advanceToNext(q);
+        return;
+      }
+      if (value === 'rekomendasi' && q.aiRecommendation) {
+        delete _chat.pending_multi[q.id];
+        return requestAiRecommendation(q, label);
+      }
+      const exclusive = q.constraints?.exclusive || [];
+      _chat.pending_multi[q.id] = exclusive.includes(value) ? [value]
+        : [...selected.filter(v => !exclusive.includes(v)), value].slice(0, max);
+      rcAppendBubble('guru', label);
+      renderMultiSelect(q);
+    });
   }
 
   function renderActiveQuestion() {
@@ -199,13 +298,13 @@
       return;
     }
     // Tidak ketemu — state tidak konsisten, mulai dari awal
-    console.warn('[rancang-chat] active_question_id tidak ditemukan di phase', phase, '— reset ke BLOK1');
-    _chat.session_phase = 'BLOK1';
+    console.warn('[rancang-chat] active_question_id tidak ditemukan di phase', phase, '— reset ke KONTEKS_CP');
+    _chat.session_phase = 'KONTEKS_CP';
     _chat.active_question_id = null;
     _chat.collected_answers = {};
     _chat.conversation_history = [];
     try { localStorage.removeItem(LS_KEY()); } catch (_) {}
-    startPhase('BLOK1');
+    startPhase('KONTEKS_CP');
   }
 
   async function handleGuruInput(rawText) {
@@ -226,16 +325,25 @@
     _chat.in_flight = true;
 
     try {
+      const recommendationOption = q.aiRecommendation && q.options?.find(option =>
+        option.value === 'rekomendasi' &&
+        (rawText === option.value || rawText.toLowerCase() === option.label.toLowerCase())
+      );
+      if (recommendationOption) {
+        rcHideTyping();
+        await requestAiRecommendation(q, recommendationOption.label);
+        return;
+      }
       // Validasi deterministik dulu untuk pilihan dan angka
       const evalResult = await evaluateAnswer(q, rawText);
       rcHideTyping();
 
       if (evalResult.status === 'ACCEPT') {
-        _chat.collected_answers[qId] = evalResult.normalizedAnswer;
+        recordAnswer(qId, evalResult.normalizedAnswer, 'guru', true);
         rcAppendBubble('ai', evalResult.message);
         addToHistory('ai', evalResult.message);
         saveState();
-        advanceToNext(q);
+        await advanceToNext(q);
 
       } else if (evalResult.status === 'CLARIFY') {
         rcAppendBubble('ai', evalResult.message);
@@ -250,7 +358,7 @@
         rcAppendBubble('ai', evalResult.message);
         addToHistory('ai', evalResult.message);
         // Ulangi pertanyaan aktif
-        if (q.kind === 'pilihan' || q.kind === 'pilihan_jamak') {
+        if (q.kind === 'pilihan' || q.kind === 'pilihan_jamak' || q.kind === 'konfirmasi') {
           rcRenderChips(q.options, (val, label) => handleChipSelect(val, label, q));
         }
 
@@ -259,7 +367,7 @@
         addToHistory('ai', evalResult.message);
         // Ulangi pertanyaan aktif
         rcAppendBubble('ai', q.prompt);
-        if (q.kind === 'pilihan' || q.kind === 'pilihan_jamak') {
+        if (q.kind === 'pilihan' || q.kind === 'pilihan_jamak' || q.kind === 'konfirmasi') {
           rcRenderChips(q.options, (val, label) => handleChipSelect(val, label, q));
         }
       }
@@ -282,20 +390,104 @@
     }
   }
 
-  function handleChipSelect(value, label, q) {
+  async function handleChipSelect(value, label, q) {
     rcClearChips();
     rcAppendBubble('guru', label);
     addToHistory('guru', label);
-    // Treat chip selection as immediate ACCEPT
-    _chat.collected_answers[q.id] = value;
+    if (value === 'rekomendasi' && q.aiRecommendation) {
+      await requestAiRecommendation(q, label);
+      return;
+    }
+    recordAnswer(q.id, value, 'guru', true);
+    if (q.id === 'konfirmasi_konteks' && value === 'sesuai') {
+      ['mapel', 'nama_kelas', 'fase', 'jenjang', 'program_keahlian'].forEach(id => {
+        if (_chat.collected_answers[id]) _chat.collected_answers[id].confirmed_by_teacher = true;
+      });
+    }
     const confirmMsg = `Dicatat: ${label}.`;
     rcAppendBubble('ai', confirmMsg);
     addToHistory('ai', confirmMsg);
     saveState();
-    advanceToNext(q);
+    await advanceToNext(q);
   }
 
-  function advanceToNext(currentQ) {
+  function recordAnswer(questionId, value, source, confirmed) {
+    _chat.collected_answers[questionId] = answer(value, source, confirmed);
+    saveState();
+  }
+
+  async function requestAiRecommendation(q, label) {
+    rcShowTyping();
+    try {
+      const result = await callEvaluateAnswer(q.id, label, q, {
+        classroom_id: _chat.classroom_id,
+        session_phase: _chat.session_phase,
+        collected_answers: _chat.collected_answers,
+        mode: 'recommendation',
+      });
+      rcHideTyping();
+      rcAppendBubble('ai', result.message || 'Rekomendasi siap ditinjau.');
+      const recommended = result.normalizedAnswer ?? result.recommendation;
+      if (recommended === undefined || recommended === null) {
+        throw new Error('Respons rekomendasi tidak memiliki normalizedAnswer.');
+      }
+      rcRenderChips([
+        { value: '__accept_ai__', label: 'Gunakan rekomendasi' },
+        { value: '__choose_self__', label: 'Pilih sendiri' },
+      ], async value => {
+        rcClearChips();
+        if (value === '__accept_ai__') {
+          recordAnswer(q.id, recommended, 'ai_recommendation', true);
+          await advanceToNext(q);
+        } else {
+          askQuestion(q);
+        }
+      });
+    } catch (_) {
+      rcHideTyping();
+      rcAppendBubble('sistem', 'Rekomendasi belum dapat dimuat. Silakan pilih sendiri.');
+      askQuestion(q);
+    }
+  }
+
+  async function ensureAtpDraft() {
+    if (_chat.atp_induk_id) return;
+    const draft = await createAtpIndukDraft({
+      mapel: answerValue('mapel') || 'Belum ditentukan',
+      fase: answerValue('fase') || 'E',
+      jenjang: answerValue('jenjang') || 'SMK',
+      elemen_cp: answerValue('mapel') === 'Bahasa Inggris'
+        ? ['Menyimak–Berbicara', 'Membaca–Memirsa', 'Menulis–Mempresentasikan'] : [],
+    });
+    _chat.atp_induk_id = draft.id;
+    _chat.atp_updated_at = draft.updated_at;
+    saveState();
+  }
+
+  async function persistCompletedPhase(phase) {
+    await ensureAtpDraft();
+    const phaseData = phaseAnswerObject(phase);
+    if (phase === 'KONTEKS_CP') {
+      ['mapel', 'nama_kelas', 'fase', 'jenjang', 'program_keahlian'].forEach(id => {
+        if (_chat.collected_answers[id]) phaseData[id] = _chat.collected_answers[id];
+      });
+    }
+    const saved = await saveAtpPhaseOptimistic(
+      _chat.atp_induk_id, phase, phaseData, _chat.atp_updated_at
+    );
+    _chat.atp_updated_at = saved.updated_at;
+
+    if (phase === 'WAKTU') {
+      await saveAtpAdaptasi(_chat.atp_induk_id, _chat.classroom_id, { alokasi_waktu: phaseData });
+    } else if (phase === 'PROFIL_SISWA') {
+      await saveAtpAdaptasi(_chat.atp_induk_id, _chat.classroom_id, { profil_siswa: phaseData });
+    } else if (phase === 'KONTEKS_DUDI') {
+      await saveAtpAdaptasi(_chat.atp_induk_id, _chat.classroom_id, { konteks_dudi: phaseData });
+    }
+    saveState();
+  }
+
+  async function advanceToNext(currentQ) {
     const next = getNextQuestion(
       _chat.session_phase,
       currentQ.id,
@@ -304,24 +496,46 @@
     if (next) {
       askQuestion(next);
     } else {
-      // Fase selesai — pindah ke fase berikutnya
-      const nextPhase = getNextPhase(_chat.session_phase);
-      if (nextPhase === 'ATP_REVIEW') {
-        triggerGenerateAtp();
-      } else if (nextPhase === 'DONE') {
-        rcAppendBubble('ai',
-          '✓ Semua informasi terkumpul. ATP dan Modul Ajar siap disusun.');
-      } else if (nextPhase) {
-        startPhase(nextPhase);
+      try {
+        await persistCompletedPhase(_chat.session_phase);
+      } catch (error) {
+        const message = error.code === 'ATP_WRITE_CONFLICT'
+          ? error.message
+          : 'Fase belum tersimpan ke database. Coba lagi sebelum melanjutkan.';
+        rcAppendBubble('sistem', message);
+        return;
       }
+      const revisionPhase = revisionDestination(currentQ.id, answerValue(currentQ.id));
+      if (revisionPhase) {
+        await startPhase(revisionPhase);
+        return;
+      }
+      const nextPhase = getNextPhase(_chat.session_phase);
+      if (nextPhase) await startPhase(nextPhase);
     }
+  }
+
+  function revisionDestination(questionId, value) {
+    if (questionId === 'konfirmasi_konteks' && value !== 'sesuai') return 'KONTEKS_CP';
+    if (questionId === 'konfirmasi_waktu' && value === 'ubah') return 'WAKTU';
+    if (questionId === 'konfirmasi_target' && value === 'ubah') return 'TARGET_FASE';
+    if (questionId === 'konfirmasi_dudi' && value === 'ubah') return 'KONTEKS_DUDI';
+    if (questionId === 'persetujuan_atp_summary' && value !== 'generate') {
+      return ({
+        ubah_prioritas: 'PRIORITAS', ubah_waktu: 'WAKTU', ubah_profil: 'PROFIL_SISWA',
+        ubah_target: 'TARGET_FASE', ubah_konteks: 'KONTEKS_DUDI',
+        ubah_prasyarat: 'PENGUATAN_PRASYARAT',
+      })[value] || 'ATP_SUMMARY';
+    }
+    if (questionId === 'tindakan_review_atp' && value !== 'terima') return 'ATP_REVIEW';
+    return null;
   }
 
   // ─── Validasi ─────────────────────────────────────────────────────────────
 
   async function evaluateAnswer(q, rawText) {
     // Validasi deterministik untuk pilihan dan angka — tanpa memanggil AI
-    if (q.kind === 'pilihan') {
+    if (q.kind === 'pilihan' || q.kind === 'konfirmasi') {
       const matched = q.options?.find(o =>
         o.value === rawText || o.label?.toLowerCase() === rawText.toLowerCase()
       );
@@ -332,8 +546,26 @@
       return {
         status: 'CLARIFY',
         message: 'Pilih salah satu opsi yang tersedia.',
-        suggestions: q.options?.map(o => o.label) ?? [],
+        suggestions: q.options ?? [],
       };
+    }
+
+    if (q.kind === 'pilihan_jamak') {
+      const parts = rawText.split(',').map(value => value.trim().toLowerCase()).filter(Boolean);
+      const matched = q.options.filter(option => parts.some(part =>
+        part === option.value.toLowerCase() || part === option.label.toLowerCase()
+      ));
+      const max = q.constraints?.maxSelections || Infinity;
+      if (!matched.length || matched.length > max) {
+        return { status: 'CLARIFY', message: `Pilih 1 sampai ${max === Infinity ? 'beberapa' : max} opsi.` };
+      }
+      const values = matched.map(option => option.value);
+      const exclusive = q.constraints?.exclusive || [];
+      if (values.some(value => exclusive.includes(value)) && values.length > 1) {
+        return { status: 'CLARIFY', message: 'Pilihan eksklusif tidak dapat digabungkan dengan pilihan lain.' };
+      }
+      return { status: 'ACCEPT', normalizedAnswer: values,
+        message: `Dicatat: ${matched.map(option => option.label).join(', ')}.` };
     }
 
     if (q.kind === 'angka') {
