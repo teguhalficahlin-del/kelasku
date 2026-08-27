@@ -1,11 +1,11 @@
 'use strict';
 
 // Wrapper panggilan ke Edge Function evaluate-answer
-// EF ini belum ada — file ini akan diaktifkan setelah EF terdeploy
+// Mendukung evaluasi jawaban bebas dan rekomendasi opsi funnel.
 
 const EVAL_URL = 'https://teccdzetrdjowqemnuuc.supabase.co/functions/v1/evaluate-answer';
 
-async function callEvaluateAnswer(questionId, rawAnswer, questionSpec, context) {
+async function callEvaluateAnswer(questionId, rawAnswer, questionSpec, context, mode = 'evaluation') {
   const { data: { session } } = await window.supabaseClient.auth.getSession();
   const token = session?.access_token ?? '';
 
@@ -16,21 +16,48 @@ async function callEvaluateAnswer(questionId, rawAnswer, questionSpec, context) 
       'Authorization': `Bearer ${token}`,
     },
     body: JSON.stringify({
+      mode,
       classroom_id:   context.classroom_id,
       question_id:    questionId,
       raw_answer:     rawAnswer,
-      question_spec:  questionSpec,
+      question_spec: {
+        kind:        questionSpec.kind,
+        prompt:      questionSpec.prompt,
+        helpText:    questionSpec.helpText,
+        options:     mode === 'recommendation' ? questionSpec.options : undefined,
+        constraints: mode === 'recommendation' ? questionSpec.constraints : undefined,
+      },
       context: {
         session_phase:     context.session_phase,
         collected_answers: context.collected_answers,
-        mode:              context.mode || 'evaluation',
       },
     }),
   });
 
   const json = await res.json();
   if (!res.ok) throw new Error(json.error || 'evaluate-answer error');
-  return json; // { status, normalizedAnswer, message, ... }
+  if (mode === 'recommendation') {
+    const recommendation = json?.recommendation;
+    if (json.mode !== 'recommendation' || json.status !== 'ACCEPT' ||
+        !recommendation || recommendation.value === undefined ||
+        recommendation.label === undefined || typeof recommendation.reason !== 'string') {
+      throw new Error('Response recommendation tidak valid.');
+    }
+  } else if (json.mode !== undefined && json.mode !== 'evaluation') {
+    throw new Error('Response evaluation tidak valid.');
+  }
+  return json;
+}
+
+async function callRecommendation(questionId, questionSpec, context) {
+  if (!Array.isArray(questionSpec?.options) ||
+      !questionSpec.options.some(option => option.value !== 'rekomendasi')) {
+    throw new Error('Pertanyaan rekomendasi tidak memiliki options yang valid.');
+  }
+  const result = await callEvaluateAnswer(
+    questionId, undefined, questionSpec, context, 'recommendation'
+  );
+  return result.recommendation;
 }
 
 async function getCurrentGuruId() {

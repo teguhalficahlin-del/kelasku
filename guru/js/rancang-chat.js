@@ -419,27 +419,30 @@
   async function requestAiRecommendation(q, label) {
     rcShowTyping();
     try {
-      const result = await callEvaluateAnswer(q.id, label, q, {
+      const recommendation = await callRecommendation(q.id, q, {
         classroom_id: _chat.classroom_id,
         session_phase: _chat.session_phase,
         collected_answers: _chat.collected_answers,
-        mode: 'recommendation',
       });
       rcHideTyping();
-      rcAppendBubble('ai', result.message || 'Rekomendasi siap ditinjau.');
-      const recommended = result.normalizedAnswer ?? result.recommendation;
-      if (recommended === undefined || recommended === null) {
-        throw new Error('Respons rekomendasi tidak memiliki normalizedAnswer.');
-      }
+      const displayLabel = Array.isArray(recommendation.label)
+        ? recommendation.label.join(', ') : recommendation.label;
+      const recommendationMessage = `MiClass merekomendasikan: ${displayLabel}.\n\n${recommendation.reason}`;
+      rcAppendBubble('ai', recommendationMessage);
+      addToHistory('ai', recommendationMessage);
       rcRenderChips([
         { value: '__accept_ai__', label: 'Gunakan rekomendasi' },
         { value: '__choose_self__', label: 'Pilih sendiri' },
-      ], async value => {
+      ], async (value, chipLabel) => {
         rcClearChips();
         if (value === '__accept_ai__') {
-          recordAnswer(q.id, recommended, 'ai_recommendation', true);
+          rcAppendBubble('guru', chipLabel);
+          addToHistory('guru', chipLabel);
+          recordAnswer(q.id, recommendation.value, 'ai_recommendation', true);
           await advanceToNext(q);
         } else {
+          rcAppendBubble('guru', chipLabel);
+          addToHistory('guru', chipLabel);
           askQuestion(q);
         }
       });

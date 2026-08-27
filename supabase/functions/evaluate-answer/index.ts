@@ -12,6 +12,54 @@ function json(body: unknown, status = 200): Response {
   });
 }
 
+type QuestionOption = { value: string; label: string };
+type QuestionSpec = {
+  kind: 'teks_bebas' | 'pilihan' | 'pilihan_jamak';
+  helpText?: string;
+  prompt: string;
+  options?: QuestionOption[];
+  constraints?: { maxSelections?: number; exclusive?: string[] };
+};
+
+function extractAiJson(rawText: string): Record<string, unknown> {
+  const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) throw new Error('No JSON in response');
+  return JSON.parse(jsonMatch[0]);
+}
+
+function validateRecommendation(
+  rawValue: unknown,
+  questionSpec: QuestionSpec,
+  validOptions: QuestionOption[],
+): { value: string | string[]; labels: string | string[]; usedFallback: boolean } {
+  const allowed = new Map(validOptions.map(option => [option.value, option]));
+  const fallback = validOptions[0];
+
+  if (questionSpec.kind === 'pilihan') {
+    const value = typeof rawValue === 'string' && allowed.has(rawValue)
+      ? rawValue : fallback.value;
+    return { value, labels: allowed.get(value)!.label, usedFallback: value !== rawValue };
+  }
+
+  const proposed = Array.isArray(rawValue) ? rawValue : [];
+  const allValid = proposed.length > 0 && proposed.every(value =>
+    typeof value === 'string' && allowed.has(value)
+  );
+  let values = allValid ? [...new Set(proposed as string[])] : [fallback.value];
+  const maxSelections = Math.max(1, questionSpec.constraints?.maxSelections ?? values.length);
+  values = values.slice(0, maxSelections);
+
+  const exclusive = new Set(questionSpec.constraints?.exclusive ?? []);
+  const exclusiveValue = values.find(value => exclusive.has(value));
+  if (exclusiveValue && values.length > 1) values = [exclusiveValue];
+
+  return {
+    value: values,
+    labels: values.map(value => allowed.get(value)!.label),
+    usedFallback: !allValid,
+  };
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { status: 200, headers: CORS_HEADERS });
@@ -52,10 +100,11 @@ Deno.serve(async (req) => {
   // ── 3. REQUEST BODY ───────────────────────────────────────────────────────
 
   let body: {
+    mode?: 'evaluation' | 'recommendation';
     classroom_id?: string;
     question_id?: string;
     raw_answer?: string;
-    question_spec?: { kind: string; helpText?: string; prompt: string };
+    question_spec?: QuestionSpec;
     context?: { session_phase: string; collected_answers: Record<string, unknown> };
   };
 
@@ -66,9 +115,110 @@ Deno.serve(async (req) => {
   }
 
   const { classroom_id, question_id, raw_answer, question_spec, context } = body;
+  const mode = body.mode ?? 'evaluation';
 
-  if (!classroom_id || !question_id || !raw_answer || !question_spec?.kind) {
+  if (!classroom_id || !question_id || !question_spec?.kind ||
+      !['evaluation', 'recommendation'].includes(mode)) {
     return json({ error: 'Request tidak lengkap.' }, 400);
+  }
+
+  if (mode === 'evaluation' && !raw_answer) {
+    return json({ error: 'Request tidak lengkap.' }, 400);
+  }
+
+  if (mode === 'recommendation') {
+    if (!['pilihan', 'pilihan_jamak'].includes(question_spec.kind)) {
+      return json({ error: 'Mode recommendation hanya mendukung pilihan dan pilihan_jamak.' }, 400);
+    }
+
+    const validOptions = (question_spec.options ?? []).filter(option =>
+      option?.value && option?.label && option.value !== 'rekomendasi'
+    );
+    if (!validOptions.length) {
+      return json({ error: 'Mode recommendation memerlukan options yang valid.' }, 400);
+    }
+
+    const apiKey = Deno.env.get('ANTHROPIC_API_KEY');
+    if (!apiKey) return json({ error: 'Konfigurasi server tidak lengkap.' }, 500);
+
+    const maxSelections = question_spec.kind === 'pilihan_jamak'
+      ? Math.max(1, question_spec.constraints?.maxSelections ?? validOptions.length)
+      : 1;
+    const optionText = validOptions
+      .map(option => `- ${option.value}: ${option.label}`)
+      .join('\n');
+    const valueShape = question_spec.kind === 'pilihan_jamak'
+      ? `array value, maksimal ${maxSelections} pilihan`
+      : 'satu value string';
+    const systemPrompt =
+      'Kamu adalah pemberi rekomendasi perancangan pembelajaran untuk guru Indonesia.\n' +
+      'Pilih HANYA value dari daftar opsi yang diberikan. Jangan membuat value baru.\n' +
+      `Field value wajib berupa ${valueShape}.\n` +
+      'Value yang tercantum dalam constraint exclusive tidak boleh digabungkan dengan value lain.\n' +
+      'Berikan alasan singkat dan konkret dalam Bahasa Indonesia.\n' +
+      'Kembalikan HANYA JSON ketat dengan format: ' +
+      '{ "value": string|string[], "reason": string, "message": string }.';
+    const userMessage =
+      `Pertanyaan: ${question_spec.prompt}\n` +
+      `Konteks pertanyaan: ${question_spec.helpText ?? '-'}\n` +
+      `Opsi valid:\n${optionText}\n` +
+      `Constraint exclusive: ${JSON.stringify(question_spec.constraints?.exclusive ?? [])}\n` +
+      `Jawaban funnel sebelumnya: ${JSON.stringify(context?.collected_answers ?? {})}`;
+
+    let aiResult: Record<string, unknown> = {};
+    let aiFailed = false;
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 10_000);
+      try {
+        const res = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': apiKey,
+            'anthropic-version': '2023-06-01',
+          },
+          body: JSON.stringify({
+            model: 'claude-sonnet-4-6',
+            max_tokens: 256,
+            system: systemPrompt,
+            messages: [{ role: 'user', content: userMessage }],
+          }),
+          signal: controller.signal,
+        });
+        if (!res.ok) throw new Error(`Anthropic HTTP ${res.status}`);
+        const anthropicBody = await res.json();
+        aiResult = extractAiJson(anthropicBody?.content?.[0]?.text ?? '');
+      } finally {
+        clearTimeout(timeout);
+      }
+    } catch (e) {
+      aiFailed = true;
+      console.warn('[evaluate-answer] recommendation AI failed; using deterministic fallback:', e);
+    }
+
+    const validated = validateRecommendation(aiResult.value, question_spec, validOptions);
+    if (validated.usedFallback) {
+      console.warn('[evaluate-answer] invalid recommendation value; using first valid option');
+    }
+    const reason = !aiFailed && !validated.usedFallback &&
+        typeof aiResult.reason === 'string' && aiResult.reason.trim()
+      ? aiResult.reason.trim()
+      : 'Pilihan aman pertama digunakan karena rekomendasi AI tidak dapat divalidasi.';
+    const message = !aiFailed && typeof aiResult.message === 'string' && aiResult.message.trim()
+      ? aiResult.message.trim()
+      : 'Rekomendasi tersedia untuk ditinjau.';
+
+    return json({
+      mode: 'recommendation',
+      status: 'ACCEPT',
+      recommendation: {
+        value: validated.value,
+        label: validated.labels,
+        reason,
+      },
+      message,
+    });
   }
 
   // ── 4. EVALUASI (hanya teks_bebas) ────────────────────────────────────────
@@ -132,9 +282,7 @@ Deno.serve(async (req) => {
     const rawText: string = anthropicBody?.content?.[0]?.text ?? '';
 
     // Ekstrak JSON dari respons (model kadang membungkus dengan markdown)
-    const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error('No JSON in response');
-    aiResult = JSON.parse(jsonMatch[0]);
+    aiResult = extractAiJson(rawText) as unknown as typeof aiResult;
 
   } catch (e) {
     console.error('[evaluate-answer] AI call failed:', e);
@@ -144,6 +292,7 @@ Deno.serve(async (req) => {
   // ── 5. RESPONSE ───────────────────────────────────────────────────────────
 
   return json({
+    mode:            'evaluation',
     status:          aiResult.status          ?? 'ACCEPT',
     normalizedAnswer: aiResult.normalizedAnswer ?? raw_answer,
     message:         aiResult.message          ?? 'Dicatat.',
