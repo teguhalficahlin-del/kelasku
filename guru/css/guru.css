@@ -2182,7 +2182,7 @@ h2.panel-header.open .panel-collapse-arrow {
   font-weight: var(--fw-semibold);
 }
 
-/* Upgrade tier banner — tampil di Penilaian + Rancang saat tier = TRIAL */
+/* Upgrade tier banner ï¿½ tampil di Penilaian + Rancang saat tier = TRIAL */
 .upgrade-tier-banner {
   display: flex;
   flex-direction: column;
@@ -3612,7 +3612,7 @@ h2.panel-header.open .panel-collapse-arrow {
   color: var(--gold);
 }
 
-/* -- P2b — Elemen checkbox list -- */
+/* -- P2b ï¿½ Elemen checkbox list -- */
 .rp-elemen-list {
   display: flex;
   flex-direction: column;
@@ -4370,4 +4370,151 @@ h2.panel-header.open .panel-collapse-arrow {
   background: var(--gold);
   color: var(--text-on-gold);
   border-color: var(--gold);
+}
+
+/* ============================================================
+   TAB RANCANG â€” Chat Interface (.rc-*)
+   ============================================================ */
+
+.rc-container {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 120px);
+  min-height: 400px;
+}
+
+.rc-stream {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  scroll-behavior: smooth;
+}
+
+.rc-bubble {
+  max-width: 85%;
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--card-r);
+  font-size: var(--fs-body);
+  line-height: var(--lh-normal);
+  word-break: break-word;
+}
+
+.rc-bubble--ai {
+  align-self: flex-start;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-bottom-left-radius: 4px;
+  color: var(--text-primary);
+}
+
+.rc-bubble--guru {
+  align-self: flex-end;
+  background: var(--gold-muted);
+  border: 1px solid var(--gold-border);
+  border-bottom-right-radius: 4px;
+  color: var(--text-primary);
+}
+
+.rc-bubble--sistem {
+  align-self: center;
+  font-size: var(--fs-caption);
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  padding: var(--space-xs) var(--space-sm);
+  text-align: center;
+}
+
+.rc-typing-indicator {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  padding: 4px 0;
+}
+
+.rc-typing-indicator span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--gold);
+  animation: rc-typing 1.2s ease-in-out infinite;
+}
+
+.rc-typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+.rc-typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes rc-typing {
+  0%, 80%, 100% { opacity: 0.2; transform: scale(0.8); }
+  40%           { opacity: 1;   transform: scale(1.1); }
+}
+
+.rc-composer {
+  border-top: 1px solid var(--border);
+  background: var(--bg-base);
+  padding: var(--space-sm) var(--space-md);
+  flex-shrink: 0;
+}
+
+.rc-composer--disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.rc-composer-inner {
+  display: flex;
+  gap: var(--space-sm);
+  align-items: flex-end;
+}
+
+.rc-composer-input {
+  flex: 1;
+  background: var(--input-bg);
+  border: 1.5px solid var(--input-border);
+  border-radius: var(--input-r);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: var(--fs-body);
+  padding: var(--input-py) var(--input-px);
+  resize: none;
+  min-height: var(--btn-h);
+  max-height: 120px;
+  overflow-y: auto;
+  line-height: var(--lh-normal);
+  transition: border-color var(--transition);
+}
+
+.rc-composer-input:focus {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px var(--gold-muted);
+}
+
+.rc-composer-input::placeholder { color: var(--text-muted); }
+
+.rc-composer-send {
+  background: var(--gold);
+  color: var(--text-on-gold);
+  border: none;
+  border-radius: var(--btn-r);
+  padding: 0 var(--btn-px);
+  min-height: var(--btn-h);
+  font-size: var(--fs-ui);
+  font-weight: var(--fw-medium);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background var(--transition);
+  font-family: inherit;
+}
+
+.rc-composer-send:hover:not(:disabled) { background: var(--gold-hover); }
+.rc-composer-send:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.rc-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  margin-top: var(--space-xs);
 }
