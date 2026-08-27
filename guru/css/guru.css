@@ -4527,3 +4527,160 @@ h2.panel-header.open .panel-collapse-arrow {
   gap: var(--space-xs);
   margin-top: var(--space-xs);
 }
+
+/* ============================================================
+   TAB RANCANG — Welcome Screen (.rc-welcome-*)
+   ============================================================ */
+
+.rc-welcome {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  padding: var(--space-lg) var(--space-md);
+}
+
+.rc-welcome-ctx {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+  padding: var(--space-sm) var(--card-p);
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--card-r);
+  font-size: var(--fs-caption);
+}
+
+.rc-welcome-ctx-mapel {
+  color: var(--gold);
+  font-weight: var(--fw-semibold);
+}
+
+.rc-welcome-ctx-label {
+  color: var(--text-muted);
+}
+
+.rc-welcome-ctx-atp {
+  margin-left: auto;
+  color: var(--text-secondary);
+}
+
+.rc-welcome-header {
+  text-align: center;
+}
+
+.rc-welcome-title {
+  font-size: var(--fs-h2);
+  font-weight: var(--fw-bold);
+  color: var(--text-primary);
+  margin: 0 0 var(--space-sm);
+  line-height: var(--lh-tight);
+  letter-spacing: -0.01em;
+}
+
+.rc-welcome-lead {
+  font-size: var(--fs-ui);
+  color: var(--text-secondary);
+  line-height: var(--lh-normal);
+  margin: 0;
+}
+
+.rc-welcome-cards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.rc-welcome-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  background: var(--bg-surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--card-r);
+  padding: var(--card-p);
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color 150ms, background 150ms, box-shadow 150ms;
+  font-family: inherit;
+}
+
+.rc-welcome-card:hover:not([aria-disabled="true"]) {
+  border-color: var(--gold-border);
+  background: var(--bg-elevated);
+}
+
+.rc-welcome-card[aria-pressed="true"] {
+  border-color: var(--gold);
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow-gold);
+}
+
+.rc-welcome-card[aria-disabled="true"] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.rc-welcome-card-label {
+  font-size: var(--fs-ui);
+  font-weight: var(--fw-semibold);
+  color: var(--text-primary);
+}
+
+.rc-welcome-card-badge {
+  display: inline-flex;
+  align-self: flex-start;
+  border-radius: 99px;
+  font-size: var(--fs-badge);
+  font-weight: var(--fw-medium);
+  padding: 2px 10px;
+  background: var(--gold-muted);
+  color: var(--gold);
+}
+
+.rc-welcome-card-badge--soon {
+  background: rgba(255,255,255,0.06);
+  color: var(--text-secondary);
+}
+
+.rc-welcome-card-desc {
+  font-size: var(--fs-caption);
+  color: var(--text-secondary);
+  line-height: var(--lh-normal);
+}
+
+.rc-welcome-ai-note {
+  font-size: var(--fs-caption);
+  color: var(--text-muted);
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--card-r);
+  padding: var(--space-sm) var(--card-p);
+  line-height: var(--lh-normal);
+}
+
+.rc-welcome-footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.rc-welcome-btn {
+  background: var(--gold);
+  color: var(--text-on-gold);
+  font-weight: var(--fw-medium);
+  font-size: var(--fs-ui);
+  min-height: var(--btn-h);
+  border-radius: var(--btn-r);
+  padding: 0 var(--btn-px);
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 150ms, box-shadow 150ms;
+}
+
+.rc-welcome-btn:hover {
+  background: var(--gold-hover);
+  box-shadow: var(--shadow-gold);
+}

@@ -78,6 +78,72 @@
 
   // ─── Init ─────────────────────────────────────────────────────────────────
 
+  async function initChatShell(cId, panel) {
+    _chat.classroom_id = cId;
+
+    const _namaKelas    = window._classroomName    || '';
+    const _mapelKelas   = window._classroomSubject  || '';
+    const _programKelas = window._classroomProgram  || '';
+    const _infoKelas    = [_namaKelas, _mapelKelas, _programKelas]
+      .filter(Boolean).join(' · ');
+
+    panel.innerHTML = `
+<div id="rc-container" class="rc-container">
+  ${_infoKelas ? `<div class="rc-kelas-header">${_infoKelas}</div>` : ''}
+  <div class="rc-stream" id="rc-stream"></div>
+  <div id="rc-composer-wrap"></div>
+</div>`;
+
+    try {
+      _chat.profile = await window.api.getRancangProfil();
+    } catch (_) { _chat.profile = null; }
+
+    const restored = loadState();
+    rcRenderComposer('rc-composer-wrap', handleGuruInput);
+
+    if (restored && _chat.active_question_id) {
+      rcAppendBubble('sistem', 'Melanjutkan sesi sebelumnya…');
+      renderActiveQuestion();
+    } else {
+      _chat.session_phase = 'BLOK1';
+      _chat.collected_answers = {};
+      _chat.atp_draft = [];
+      _chat.selected_tp = null;
+
+      _chat.collected_answers['mapel']     = window._classroomSubject || '';
+      _chat.collected_answers['nama_kelas'] = window._classroomName   || '';
+
+      const _mapel = _chat.collected_answers['mapel']     || '—';
+      const _kelas = _chat.collected_answers['nama_kelas'] || '—';
+
+      rcAppendBubble('sistem',
+        `Berikut data kelas yang akan digunakan:\n\n${_mapel} · ${_kelas}\n\nApakah sudah sesuai?`
+      );
+
+      rcRenderChips(
+        [
+          { value: 'ya',    label: 'Ya, sudah sesuai' },
+          { value: 'tidak', label: 'Ada yang perlu diperbaiki' },
+        ],
+        (value) => {
+          rcClearChips();
+          if (value === 'ya') {
+            rcAppendBubble('guru', 'Ya, sudah sesuai');
+            saveState();
+            startPhase('BLOK1');
+          } else {
+            rcAppendBubble('guru', 'Ada yang perlu diperbaiki');
+            rcAppendBubble('sistem',
+              'Silakan perbaiki data kelas melalui tombol Edit di halaman utama, lalu kembali ke tab ini.'
+            );
+          }
+        }
+      );
+    }
+
+    _loaded = true;
+  }
+
   async function initRancangChat(cId) {
     if (_initializing || _loaded) return;
     _initializing = true;
@@ -86,77 +152,38 @@
       const panel = document.getElementById('panel-rancang');
       if (!panel) return;
 
-      // Render shell chat
-      const _namaKelas   = window._classroomName    || '';
-      const _mapelKelas  = window._classroomSubject  || '';
-      const _programKelas = window._classroomProgram || '';
-      const _infoKelas   = [_namaKelas, _mapelKelas, _programKelas]
-        .filter(Boolean).join(' · ');
-
-      panel.innerHTML = `
-<div id="rc-container" class="rc-container">
-  ${_infoKelas ? `<div class="rc-kelas-header">${_infoKelas}</div>` : ''}
-  <div class="rc-stream" id="rc-stream"></div>
-  <div id="rc-composer-wrap"></div>
-</div>`;
-
-      // Muat profil guru (rancang_profil, per akun)
+      // Ambil guru_id dari Supabase auth untuk welcome key yang aman multi-user
+      let _guruId = null;
       try {
-        _chat.profile = await window.api.getRancangProfil();
-      } catch (_) { _chat.profile = null; }
+        const sesi = await window.api.getSession();
+        _guruId = sesi?.data?.session?.user?.id ?? null;
+      } catch (_) {}
 
-      // Restore state dari localStorage
-      const restored = loadState();
-
-      // Render composer
-      rcRenderComposer('rc-composer-wrap', handleGuruInput);
-
-      if (restored && _chat.active_question_id) {
-        // Tampilkan ringkasan sesi sebelumnya
-        rcAppendBubble('sistem',
-          'Melanjutkan sesi sebelumnya…');
-        // Tampilkan pertanyaan aktif terakhir
-        renderActiveQuestion();
-      } else {
-        _chat.session_phase = 'BLOK1';
-        _chat.collected_answers = {};
-        _chat.atp_draft = [];
-        _chat.selected_tp = null;
-
-        // Simpan data otomatis dari classroom
-        _chat.collected_answers['mapel']     = window._classroomSubject || '';
-        _chat.collected_answers['nama_kelas'] = window._classroomName   || '';
-
-        // Konfirmasi identitas
-        const _mapel = _chat.collected_answers['mapel']     || '—';
-        const _kelas = _chat.collected_answers['nama_kelas'] || '—';
-
-        rcAppendBubble('sistem',
-          `Berikut data kelas yang akan digunakan:\n\n${_mapel} · ${_kelas}\n\nApakah sudah sesuai?`
-        );
-
-        rcRenderChips(
-          [
-            { value: 'ya',    label: 'Ya, sudah sesuai' },
-            { value: 'tidak', label: 'Ada yang perlu diperbaiki' },
-          ],
-          (value) => {
-            rcClearChips();
-            if (value === 'ya') {
-              rcAppendBubble('guru', 'Ya, sudah sesuai');
-              saveState();
-              startPhase('BLOK1');
-            } else {
-              rcAppendBubble('guru', 'Ada yang perlu diperbaiki');
-              rcAppendBubble('sistem',
-                'Silakan perbaiki data kelas melalui tombol Edit di halaman utama, lalu kembali ke tab ini.'
-              );
-            }
-          }
-        );
+      const WELCOME_KEY = _guruId ? ('miclass_rancang_welcomed_' + _guruId) : null;
+      let _welcomed = true;
+      if (WELCOME_KEY) {
+        try { _welcomed = localStorage.getItem(WELCOME_KEY) === '1'; } catch (_) { _welcomed = true; }
       }
 
-      _loaded = true;
+      if (!_welcomed) {
+        const mapelDisplay = window._classroomSubject || window._classroomProgram || '—';
+        _loaded = true;
+        rcRenderWelcomeScreen(panel, mapelDisplay, async function () {
+          if (WELCOME_KEY) {
+            try { localStorage.setItem(WELCOME_KEY, '1'); } catch (_) {}
+          }
+          _loaded = false;
+          _initializing = true;
+          try {
+            await initChatShell(cId, panel);
+          } finally {
+            _initializing = false;
+          }
+        });
+        return;
+      }
+
+      await initChatShell(cId, panel);
     } finally {
       _initializing = false;
     }

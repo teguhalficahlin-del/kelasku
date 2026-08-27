@@ -121,3 +121,74 @@ function rcSetComposerDisabled(disabled) {
   if (input) input.disabled = disabled;
   if (send) send.disabled = disabled;
 }
+
+// ── Welcome screen (layar pembuka Tab Rancang) ────────────────────────────
+
+function rcRenderWelcomeScreen(panel, mapelDisplay, onContinue) {
+  function escHtml(s) {
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  const BTN_LABELS = {
+    sesuaikan: 'Lanjut: Sesuaikan ATP',
+    susun:     'Lanjut: Susun ATP Baru',
+  };
+
+  let selectedId = 'sesuaikan';
+
+  panel.innerHTML = `
+<div class="rc-welcome" id="rc-welcome">
+  <div class="rc-welcome-ctx">
+    <span class="rc-welcome-ctx-mapel">${escHtml(mapelDisplay)}</span>
+    <span class="rc-welcome-ctx-label">Guru Mapel SMK</span>
+    <span class="rc-welcome-ctx-atp">0 ATP</span>
+  </div>
+  <div class="rc-welcome-header">
+    <h2 class="rc-welcome-title">Apa yang ingin Anda siapkan?</h2>
+    <p class="rc-welcome-lead">MiClass menggunakan CP resmi dan data kelas Anda. Setiap rekomendasi sistem baru diterapkan setelah Anda setujui.</p>
+  </div>
+  <div class="rc-welcome-cards">
+    <button type="button" class="rc-welcome-card" data-option="sesuaikan" aria-pressed="true">
+      <span class="rc-welcome-card-label">Sesuaikan ATP yang ada</span>
+      <span class="rc-welcome-card-badge">Direkomendasikan</span>
+      <span class="rc-welcome-card-desc">Gunakan ATP yang sudah Anda miliki sebagai dasar, lalu sempurnakan bersama AI.</span>
+    </button>
+    <button type="button" class="rc-welcome-card" data-option="susun" aria-pressed="false">
+      <span class="rc-welcome-card-label">Susun ATP baru</span>
+      <span class="rc-welcome-card-desc">Mulai dari awal bersama AI berdasarkan CP resmi dan konteks kelas Anda.</span>
+    </button>
+    <button type="button" class="rc-welcome-card" data-option="modul" aria-pressed="false" aria-disabled="true">
+      <span class="rc-welcome-card-label">Buat Modul Ajar</span>
+      <span class="rc-welcome-card-badge rc-welcome-card-badge--soon">Segera hadir</span>
+      <span class="rc-welcome-card-desc">Susun Modul Ajar lengkap dari ATP yang sudah ada.</span>
+    </button>
+  </div>
+  <p class="rc-welcome-ai-note">AI akan membantu memberi rekomendasi dan mendeteksi data yang belum lengkap. Tidak ada keputusan yang diterapkan tanpa persetujuan Anda.</p>
+  <div class="rc-welcome-footer">
+    <button type="button" class="rc-welcome-btn" id="rc-welcome-lanjut">
+      ${escHtml(BTN_LABELS['sesuaikan'])}
+    </button>
+  </div>
+</div>`;
+
+  panel.querySelectorAll('.rc-welcome-card').forEach(function (card) {
+    card.addEventListener('click', function () {
+      if (card.getAttribute('aria-disabled') === 'true') return;
+      panel.querySelectorAll('.rc-welcome-card').forEach(function (c) {
+        c.setAttribute('aria-pressed', 'false');
+      });
+      card.setAttribute('aria-pressed', 'true');
+      selectedId = card.dataset.option;
+      var btn = document.getElementById('rc-welcome-lanjut');
+      if (btn) btn.textContent = BTN_LABELS[selectedId] || 'Lanjut';
+    });
+  });
+
+  document.getElementById('rc-welcome-lanjut').addEventListener('click', function () {
+    onContinue(selectedId);
+  });
+}
