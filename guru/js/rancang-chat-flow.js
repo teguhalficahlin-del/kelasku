@@ -492,10 +492,6 @@ const RANCANG_FLOW = {
 
   WAKTU: [
     {
-      id: 'jp_per_minggu', kind: 'angka', prompt: 'Berapa jam pelajaran (JP) untuk mapel ini per minggu?',
-      helpText: 'Contoh: 2, 3, atau 4 JP. Satu JP biasanya 40–45 menit.', constraints: { min: 1, max: 20 }, skippable: false,
-    },
-    {
       id: 'durasi_jp', kind: 'pilihan', prompt: 'Berapa durasi satu JP di sekolah Anda?',
       options: [
         { value: '45', label: '45 menit' }, { value: '40', label: '40 menit' },
