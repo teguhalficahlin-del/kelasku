@@ -10,7 +10,7 @@ const RANCANG_FLOW = {
     {
       id: 'mapel',
       kind: 'teks_bebas',
-      prompt: 'Mata pelajaran apa yang akan Anda rancang untuk semester ini?',
+      prompt: 'Mata pelajaran apa yang akan Anda rancang ATP-nya?',
       helpText: 'Tuliskan nama mapel Anda, misalnya: Bahasa Inggris, Matematika, PJOK.',
       skippable: false,
     },
