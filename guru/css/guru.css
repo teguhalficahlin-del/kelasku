@@ -4379,8 +4379,20 @@ h2.panel-header.open .panel-collapse-arrow {
 .rc-container {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 160px); /* +40px untuk .rc-topbar (tombol ← Rancang) */
+  overflow: hidden; /* parent flex butuh ini agar .rc-stream yang scroll,
+                        bukan .rc-container ikut membengkak */
+  height: calc(100vh - 220px); /* fallback: +60px browser chrome mobile
+                                   (address bar/tab bar) yang tidak
+                                   terhitung di vh statis */
   min-height: 400px;
+}
+
+@supports (height: 1dvh) {
+  .rc-container {
+    /* dvh menyusut/mengembang mengikuti browser chrome yang benar-benar
+       tampil saat itu — tidak perlu budget ekstra 60px seperti fallback vh */
+    height: calc(100dvh - 160px);
+  }
 }
 
 .rc-kelas-header {
@@ -4397,6 +4409,7 @@ h2.panel-header.open .panel-collapse-arrow {
   min-height: 0; /* flex item tanpa ini default min-height:auto — tumbuh
                     mengikuti konten alih-alih scroll sendiri */
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch; /* smooth momentum scroll di iOS */
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
