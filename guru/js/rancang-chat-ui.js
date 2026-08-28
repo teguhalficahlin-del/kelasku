@@ -279,8 +279,11 @@ function rcRenderAtpPicker(panel, items, onPick, onDelete) {
         <span class="rc-welcome-card-desc">${escHtml(tp)} · ${escHtml(tanggal(atp.updated_at))}</span>
       </button>
       <button type="button" class="rc-atp-delete-btn" data-atp-id="${escHtml(atp.id)}"
-        aria-label="Hapus ATP ini"
-        style="position:absolute;top:8px;right:8px;background:none;border:none;cursor:pointer;font-size:1rem;opacity:0.7;padding:4px;line-height:1;">🗑</button>
+        aria-label="Hapus ATP ini" title="Hapus ATP ini"
+        style="position:absolute;top:8px;right:8px;display:flex;align-items:center;gap:4px;
+          background:rgba(220,53,69,0.15);color:#ff6b6b;border:1px solid rgba(220,53,69,0.5);
+          border-radius:999px;cursor:pointer;font-size:0.82rem;line-height:1.4;opacity:1;
+          padding:4px 10px;">🗑 Hapus</button>
     </div>`;
   }).join('');
 
