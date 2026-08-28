@@ -29,6 +29,9 @@
   // collected_data ATP yang sedang dibuka lewat picker — dipakai sekali untuk
   // menentukan fase lanjut, lalu tidak diperlukan lagi.
   let _resumeFromPhases = null;
+  // Reentrancy guard konfirmasi "← Rancang" — mencegah bubble/chip konfirmasi
+  // dirender berulang jika tombolnya somehow terpicu lebih dari sekali per klik.
+  let _confirmingKembali = false;
 
   // ─── Persist ─────────────────────────────────────────────────────────────
 
@@ -265,7 +268,8 @@
   <div id="rc-composer-wrap"></div>
 </div>`;
 
-    document.getElementById('rc-back-btn')?.addEventListener('click', handleKembaliRancangClick);
+    attachRcBackBtnListener();
+    _confirmingKembali = false;
 
     try {
       _chat.profile = await window.api.getRancangProfil();
@@ -447,8 +451,12 @@
     initRancangChat(cId);
   }
 
+  // Klik langsung pada elemen tombol lama (sebelum di-clone-replace) atau klik
+  // ganda yang sempat lolos tetap tidak boleh menumpuk bubble/chip konfirmasi —
+  // selama konfirmasi masih terbuka, panggilan susulan diabaikan.
   function handleKembaliRancangClick() {
-    if (_chat.in_flight) return;
+    if (_chat.in_flight || _confirmingKembali) return;
+    _confirmingKembali = true;
     rcClearChips();
     rcSetComposerDisabled(true);
     rcAppendBubble('sistem',
@@ -457,6 +465,7 @@
       { value: 'ya', label: 'Ya, kembali ke layar utama' },
       { value: 'tidak', label: 'Tidak, lanjutkan' },
     ], function (value) {
+      _confirmingKembali = false;
       rcClearChips();
       if (value === 'ya') {
         kembaliKeLayarUtama();
@@ -474,6 +483,17 @@
         rcRenderChips(q.options, function (val, label) { handleChipSelect(val, label, q); });
       }
     });
+  }
+
+  // Klon-ganti elemen tombol sebelum memasang listener: menjamin tepat satu
+  // listener terpasang di simpul yang benar-benar hidup di DOM, apa pun yang
+  // mungkin sudah menempel padanya sebelumnya.
+  function attachRcBackBtnListener() {
+    const btn = document.getElementById('rc-back-btn');
+    if (!btn) return;
+    const freshBtn = btn.cloneNode(true);
+    btn.replaceWith(freshBtn);
+    freshBtn.addEventListener('click', handleKembaliRancangClick);
   }
 
   // Guru menekan ✏ pada jawaban lama (pertanyaan M) di fase yang masih aktif.
