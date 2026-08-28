@@ -43,6 +43,32 @@ function rcHideTyping() {
   document.getElementById('rc-typing')?.remove();
 }
 
+// Tandai satu bubble jawaban guru bisa diedit: tombol "✏" muncul saat bubble
+// di-tap (mobile tidak punya hover). onEdit dipanggil dengan (questionId, phase).
+function rcMakeBubbleEditable(bubble, questionId, phase, onEdit) {
+  if (!bubble || typeof onEdit !== 'function') return;
+  bubble.dataset.questionId = questionId;
+  bubble.dataset.phase = phase;
+  bubble.style.cursor = 'pointer';
+
+  const editBtn = document.createElement('button');
+  editBtn.type = 'button';
+  editBtn.className = 'rc-edit-btn';
+  editBtn.setAttribute('aria-label', 'Ubah jawaban ini');
+  editBtn.textContent = '✏';
+  editBtn.style.cssText =
+    'display:none;margin-left:8px;background:none;border:none;cursor:pointer;font-size:0.85em;opacity:0.8;';
+  editBtn.addEventListener('click', function (e) {
+    e.stopPropagation();
+    onEdit(questionId, phase);
+  });
+  bubble.appendChild(editBtn);
+
+  bubble.addEventListener('click', function () {
+    editBtn.style.display = editBtn.style.display === 'none' ? 'inline-block' : 'none';
+  });
+}
+
 function rcRenderComposer(containerId, onSubmit) {
   const el = document.getElementById(containerId);
   if (!el) return;
@@ -204,7 +230,8 @@ function rcRenderWelcomeScreen(panel, mapelDisplay, onContinue, atpCount) {
 // ── Picker daftar ATP tersimpan (mode 'sesuaikan') ────────────────────────
 // Memakai ulang kelas .rc-welcome-* yang sudah ada supaya tampilannya identik
 // dengan layar pembuka — tidak ada CSS baru yang perlu ditambahkan.
-function rcRenderAtpPicker(panel, items, onPick) {
+// onDelete (opsional) dipanggil dengan (atp) setelah guru mengonfirmasi hapus.
+function rcRenderAtpPicker(panel, items, onPick, onDelete) {
   function escHtml(s) {
     return String(s)
       .replace(/&/g, '&amp;')
@@ -231,12 +258,17 @@ function rcRenderAtpPicker(panel, items, onPick) {
     const jumlah = Array.isArray(atp.progresi_tp) ? atp.progresi_tp.length : 0;
     const tp     = jumlah ? jumlah + ' TP tersusun' : 'Belum ada TP';
     return `
-    <button type="button" class="rc-welcome-card" data-atp-id="${escHtml(atp.id)}"
-      aria-pressed="${atp.id === selectedId ? 'true' : 'false'}">
-      <span class="rc-welcome-card-label">${escHtml(judul)}</span>
-      <span class="rc-welcome-card-badge">${escHtml(STATUS_LABEL[atp.status] || atp.status)}</span>
-      <span class="rc-welcome-card-desc">${escHtml(tp)} · ${escHtml(tanggal(atp.updated_at))}</span>
-    </button>`;
+    <div class="rc-atp-card-wrap" style="position:relative;">
+      <button type="button" class="rc-welcome-card" data-atp-id="${escHtml(atp.id)}"
+        aria-pressed="${atp.id === selectedId ? 'true' : 'false'}">
+        <span class="rc-welcome-card-label">${escHtml(judul)}</span>
+        <span class="rc-welcome-card-badge">${escHtml(STATUS_LABEL[atp.status] || atp.status)}</span>
+        <span class="rc-welcome-card-desc">${escHtml(tp)} · ${escHtml(tanggal(atp.updated_at))}</span>
+      </button>
+      <button type="button" class="rc-atp-delete-btn" data-atp-id="${escHtml(atp.id)}"
+        aria-label="Hapus ATP ini"
+        style="position:absolute;top:8px;right:8px;background:none;border:none;cursor:pointer;font-size:1rem;opacity:0.7;padding:4px;line-height:1;">🗑</button>
+    </div>`;
   }).join('');
 
   panel.innerHTML = `
@@ -266,4 +298,48 @@ function rcRenderAtpPicker(panel, items, onPick) {
     const picked = items.find(function (a) { return a.id === selectedId; });
     if (picked) onPick(picked);
   });
+
+  panel.querySelectorAll('.rc-atp-delete-btn').forEach(function (btn) {
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      const atp = items.find(function (a) { return a.id === btn.dataset.atpId; });
+      if (!atp || typeof onDelete !== 'function') return;
+      rcConfirmHapusAtp(atp, function () { onDelete(atp); });
+    });
+  });
+}
+
+// Konfirmasi hapus ATP inline di dalam area pesan picker — memakai ulang
+// kelas .rp-chip yang sudah ada, tidak menambah CSS baru.
+function rcConfirmHapusAtp(atp, onConfirm) {
+  const pesan = document.getElementById('rc-atp-picker-pesan');
+  if (!pesan) return;
+  const judul = [atp.mapel, 'Fase ' + atp.fase].filter(Boolean).join(' ');
+  pesan.innerHTML = '';
+
+  const teks = document.createElement('span');
+  teks.textContent = `Hapus ATP ${judul}? Tindakan ini tidak dapat dibatalkan. `;
+
+  const btnHapus = document.createElement('button');
+  btnHapus.type = 'button';
+  btnHapus.className = 'rp-chip';
+  btnHapus.style.cssText = 'margin-left:8px;';
+  btnHapus.textContent = 'Hapus';
+  btnHapus.addEventListener('click', function () {
+    pesan.innerHTML = '';
+    onConfirm();
+  });
+
+  const btnBatal = document.createElement('button');
+  btnBatal.type = 'button';
+  btnBatal.className = 'rp-chip';
+  btnBatal.style.cssText = 'margin-left:6px;';
+  btnBatal.textContent = 'Batal';
+  btnBatal.addEventListener('click', function () {
+    pesan.innerHTML = '';
+  });
+
+  pesan.appendChild(teks);
+  pesan.appendChild(btnHapus);
+  pesan.appendChild(btnBatal);
 }

@@ -206,6 +206,17 @@ async function getAtpIndukList() {
   return data || [];
 }
 
+// Hapus ATP induk milik guru sendiri. RLS pol_atp_induk_delete memastikan
+// hanya baris guru_id = fn_current_profile_id() yang bisa dihapus; atp_adaptasi
+// terkait ikut terhapus lewat ON DELETE CASCADE (migration 20260827000001).
+async function deleteAtpInduk(atpId) {
+  const { error } = await window.supabaseClient
+    .from('atp_induk')
+    .delete()
+    .eq('id', atpId);
+  if (error) throw error;
+}
+
 // Arsipkan draft lama yang ditinggalkan saat guru memulai ATP baru. Cakupannya
 // sengaja dipersempit ke kombinasi mapel+fase+jenjang yang sama — draft untuk
 // mapel atau fase lain adalah pekerjaan terpisah yang mungkin masih dilanjutkan.

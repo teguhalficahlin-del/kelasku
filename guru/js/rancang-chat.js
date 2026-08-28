@@ -257,10 +257,15 @@
 
     panel.innerHTML = `
 <div id="rc-container" class="rc-container">
+  <div class="rc-topbar" style="display:flex;align-items:center;padding:4px 8px;">
+    <button type="button" id="rc-back-btn" class="rp-chip" style="padding:2px 10px;font-size:0.78rem;">← Rancang</button>
+  </div>
   ${_infoKelas ? `<div class="rc-kelas-header">${_infoKelas}</div>` : ''}
   <div class="rc-stream" id="rc-stream"></div>
   <div id="rc-composer-wrap"></div>
 </div>`;
+
+    document.getElementById('rc-back-btn')?.addEventListener('click', handleKembaliRancangClick);
 
     try {
       _chat.profile = await window.api.getRancangProfil();
@@ -342,6 +347,65 @@
     });
   }
 
+  // Picker 'sesuaikan' dengan hapus ATP + refresh daftar. Ditarik keluar dari
+  // initRancangChat karena hapus butuh render ulang picker (atau layar pembuka
+  // bila daftar habis) tanpa mengulang query classroom meta.
+  function renderAtpPickerScreen(panel, cId, list, mapelDisplay) {
+    rcRenderAtpPicker(panel, list, async function (picked) {
+      _initializing = true;
+      try {
+        await openAtpAdaptasi(cId, panel, picked);
+      } finally {
+        _initializing = false;
+      }
+    }, async function (atpToDelete) {
+      try {
+        await deleteAtpInduk(atpToDelete.id);
+      } catch (e) {
+        console.warn('[rancang-chat] gagal menghapus ATP:', e);
+        const pesan = document.getElementById('rc-atp-picker-pesan');
+        if (pesan) pesan.textContent = 'Gagal menghapus ATP. Coba lagi.';
+        return;
+      }
+      let refreshed = [];
+      try {
+        refreshed = (await getAtpIndukList()).filter(atp => atp.status !== 'arsip');
+      } catch (e) {
+        console.warn('[rancang-chat] gagal memuat ulang daftar ATP setelah hapus:', e);
+      }
+      if (!refreshed.length) {
+        rcRenderWelcomeScreen(panel, mapelDisplay,
+          makeWelcomeContinueHandler(panel, cId, mapelDisplay, []), 0);
+        return;
+      }
+      renderAtpPickerScreen(panel, cId, refreshed, mapelDisplay);
+    });
+  }
+
+  // atpList: array (jumlah diketahui) atau null (query gagal, jumlah tidak diketahui).
+  function makeWelcomeContinueHandler(panel, cId, mapelDisplay, atpList) {
+    const atpCount = atpList ? atpList.length : null;
+    return async function (mode) {
+      _initializing = true;
+      try {
+        // 'sesuaikan' tanpa satu pun ATP tersimpan tidak punya yang bisa
+        // disesuaikan — alihkan ke ATP baru sambil menjelaskan alasannya.
+        let notice = null;
+        if (mode === 'sesuaikan' && atpCount === 0) {
+          mode = 'susun';
+          notice = 'Belum ada ATP tersimpan untuk disesuaikan — memulai ATP baru.';
+        }
+        if (mode === 'sesuaikan' && atpCount > 0) {
+          renderAtpPickerScreen(panel, cId, atpList, mapelDisplay);
+          return;
+        }
+        await initChatShell(cId, panel, mode, notice);
+      } finally {
+        _initializing = false;
+      }
+    };
+  }
+
   async function initRancangChat(cId) {
     if (_initializing || _loaded) return;
     _initializing = true;
@@ -364,35 +428,74 @@
       }
       const atpCount = atpList ? atpList.length : null;
 
-      rcRenderWelcomeScreen(panel, mapelDisplay, async function (mode) {
-        _initializing = true;
-        try {
-          // 'sesuaikan' tanpa satu pun ATP tersimpan tidak punya yang bisa
-          // disesuaikan — alihkan ke ATP baru sambil menjelaskan alasannya.
-          let notice = null;
-          if (mode === 'sesuaikan' && atpCount === 0) {
-            mode = 'susun';
-            notice = 'Belum ada ATP tersimpan untuk disesuaikan — memulai ATP baru.';
-          }
-          if (mode === 'sesuaikan' && atpCount > 0) {
-            rcRenderAtpPicker(panel, atpList, async function (picked) {
-              _initializing = true;
-              try {
-                await openAtpAdaptasi(cId, panel, picked);
-              } finally {
-                _initializing = false;
-              }
-            });
-            return;
-          }
-          await initChatShell(cId, panel, mode, notice);
-        } finally {
-          _initializing = false;
-        }
-      }, atpCount);
+      rcRenderWelcomeScreen(panel, mapelDisplay,
+        makeWelcomeContinueHandler(panel, cId, mapelDisplay, atpList), atpCount);
     } finally {
       _initializing = false;
     }
+  }
+
+  // ─── Navigasi ke layar utama ────────────────────────────────────────────
+
+  // Sesi saat ini tersimpan otomatis di DB (setiap fase yang tuntas sudah
+  // dipersist lewat persistCompletedPhase) — reset _loaded lalu render ulang
+  // layar pembuka cukup aman, tidak ada progress yang hilang.
+  function kembaliKeLayarUtama() {
+    rcClearChips();
+    const cId = _chat.classroom_id;
+    _loaded = false;
+    initRancangChat(cId);
+  }
+
+  function handleKembaliRancangClick() {
+    if (_chat.in_flight) return;
+    rcClearChips();
+    rcSetComposerDisabled(true);
+    rcAppendBubble('sistem',
+      'Kembali ke layar utama? Sesi saat ini tersimpan otomatis di DB — Anda tidak kehilangan progres.');
+    rcRenderChips([
+      { value: 'ya', label: 'Ya, kembali ke layar utama' },
+      { value: 'tidak', label: 'Tidak, lanjutkan' },
+    ], function (value) {
+      rcClearChips();
+      if (value === 'ya') {
+        kembaliKeLayarUtama();
+        return;
+      }
+      rcSetComposerDisabled(false);
+      const phase = _chat.session_phase;
+      const q = (RANCANG_FLOW[phase] || []).find(function (item) {
+        return item.id === _chat.active_question_id;
+      });
+      if (!q) return;
+      if (q.kind === 'pilihan_jamak') {
+        renderMultiSelect(q);
+      } else if (q.kind === 'pilihan' || q.kind === 'konfirmasi') {
+        rcRenderChips(q.options, function (val, label) { handleChipSelect(val, label, q); });
+      }
+    });
+  }
+
+  // Guru menekan ✏ pada jawaban lama (pertanyaan M) di fase yang masih aktif.
+  // Membuang jawaban pertanyaan SESUDAH M (bukan M sendiri — akan tertimpa
+  // begitu M dijawab ulang) supaya funnel tidak menyimpan kombinasi jawaban
+  // yang tidak pernah benar-benar ditanyakan bersama-sama.
+  function handleEditAnswer(questionId, phase) {
+    if (_chat.in_flight) return;
+    const questions = RANCANG_FLOW[phase] || [];
+    const idx = questions.findIndex(function (q) { return q.id === questionId; });
+    if (idx === -1) return;
+
+    for (let i = idx + 1; i < questions.length; i++) {
+      delete _chat.collected_answers[questions[i].id];
+      delete _chat.pending_multi[questions[i].id];
+    }
+    _chat.session_phase = phase;
+    saveState();
+
+    rcClearChips();
+    rcAppendBubble('sistem', 'Mengubah jawaban sebelumnya — pertanyaan sesudahnya akan diulang.');
+    askQuestion(questions[idx]);
   }
 
   // ─── Flow ──────────────────────────────────────────────────────────────────
@@ -410,6 +513,9 @@
       _chat.active_question_id = null;
       saveState();
       rcAppendBubble('ai', '✓ ATP telah selesai ditinjau.');
+      rcRenderChips([{ value: '__kembali_utama__', label: '← Kembali ke layar utama' }], function () {
+        kembaliKeLayarUtama();
+      });
       return;
     }
     const questions = RANCANG_FLOW[phase];
@@ -510,9 +616,10 @@
         }).join(', ');
         delete _chat.pending_multi[q.id];
         rcClearChips();
-        rcAppendBubble('guru', summary);
+        const guruBubble = rcAppendBubble('guru', summary);
         addToHistory('guru', summary);
         recordAnswer(q.id, selected, 'guru', true);
+        rcMakeBubbleEditable(guruBubble, q.id, _chat.session_phase, handleEditAnswer);
         await advanceToNext(q);
         return;
       }
@@ -568,7 +675,7 @@
     if (!q) return;
 
     // Tampilkan bubble guru
-    rcAppendBubble('guru', rawText);
+    const guruBubble = rcAppendBubble('guru', rawText);
     addToHistory('guru', rawText);
     rcClearChips();
     rcSetComposerDisabled(true);
@@ -592,6 +699,7 @@
 
       if (evalResult.status === 'ACCEPT') {
         recordAnswer(qId, evalResult.normalizedAnswer, 'guru', true);
+        rcMakeBubbleEditable(guruBubble, qId, phase, handleEditAnswer);
         rcAppendBubble('ai', evalResult.message);
         addToHistory('ai', evalResult.message);
         saveState();
@@ -661,8 +769,9 @@
 
   async function handleChipSelect(value, label, q) {
     rcClearChips();
-    rcAppendBubble('guru', label);
+    const guruBubble = rcAppendBubble('guru', label);
     addToHistory('guru', label);
+    const phaseAtAsk = _chat.session_phase;
     if (value === 'rekomendasi' && q.aiRecommendation) {
       await requestAiRecommendation(q, label);
       return;
@@ -710,6 +819,7 @@
         rcAppendBubble('ai', confirmMsg);
         addToHistory('ai', confirmMsg);
         recordAnswer(q.id, value, 'guru', true);
+        rcMakeBubbleEditable(guruBubble, q.id, phaseAtAsk, handleEditAnswer);
         await startPhase('DONE');
       } catch (err) {
         const errMsg = err.code === 'ATP_WRITE_CONFLICT'
@@ -721,6 +831,7 @@
       return;
     }
     recordAnswer(q.id, value, 'guru', true);
+    rcMakeBubbleEditable(guruBubble, q.id, phaseAtAsk, handleEditAnswer);
     if (q.id === 'konfirmasi_konteks' && value === 'sesuai') {
       ['mapel', 'nama_kelas', 'fase', 'jenjang', 'program_keahlian'].forEach(id => {
         if (_chat.collected_answers[id]) _chat.collected_answers[id].confirmed_by_teacher = true;
@@ -761,9 +872,10 @@
       ], async (value, chipLabel) => {
         rcClearChips();
         if (value === '__accept_ai__') {
-          rcAppendBubble('guru', chipLabel);
+          const guruBubble = rcAppendBubble('guru', chipLabel);
           addToHistory('guru', chipLabel);
           recordAnswer(q.id, recommendation.value, 'ai_recommendation', true);
+          rcMakeBubbleEditable(guruBubble, q.id, _chat.session_phase, handleEditAnswer);
           await advanceToNext(q);
         } else {
           rcAppendBubble('guru', chipLabel);
