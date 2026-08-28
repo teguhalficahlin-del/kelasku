@@ -258,15 +258,11 @@
     const _infoKelas    = [_namaKelas, _mapelKelas, _programKelas]
       .filter(Boolean).join(' · ');
 
-    // Inline flex layout — bukan bergantung pada stylesheet eksternal yang
-    // di luar cakupan berkas ini. #rc-topbar ditambahkan belakangan tanpa
-    // tinggi yang diperhitungkan; #rc-container sendiri sebelumnya tidak
-    // punya flex/height wiring apa pun di sini, jadi tinggi total (topbar +
-    // header kelas + stream + composer) bisa melebihi tinggi panel tanpa
-    // #rc-stream tahu ia harus scroll sendiri alih-alih mendorong composer
-    // keluar layar.
+    // Height #rc-container ditangani oleh .rc-container di guru.css
+    // (calc(100vh - 160px)) — jangan set height inline di sini, itu akan
+    // menimpa calc() tersebut dengan spesifisitas inline style.
     panel.innerHTML = `
-<div id="rc-container" class="rc-container" style="display:flex;flex-direction:column;height:100%;min-height:0;">
+<div id="rc-container" class="rc-container">
   <div class="rc-topbar" style="display:flex;align-items:center;padding:4px 8px;flex-shrink:0;">
     <button type="button" id="rc-back-btn" class="rp-chip" style="padding:2px 10px;font-size:0.78rem;">← Rancang</button>
   </div>
