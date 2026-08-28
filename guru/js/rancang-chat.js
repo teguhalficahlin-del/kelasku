@@ -522,6 +522,22 @@
     _chat.session_phase = phase;
     saveState();
 
+    // Bubble jawaban yang diedit ditandai data-question-id oleh
+    // rcMakeBubbleEditable. Ambil kemunculan TERAKHIR (bisa lebih dari satu
+    // kalau pertanyaan yang sama sudah pernah diedit sebelumnya), lalu buang
+    // semua elemen sesudahnya di stream — riwayat percakapan tidak boleh
+    // menampilkan jawaban yang baru saja dibuang dari collected_answers.
+    const stream = document.getElementById('rc-stream');
+    if (stream) {
+      const matches = stream.querySelectorAll('[data-question-id="' + questionId + '"]');
+      const editedBubble = matches[matches.length - 1];
+      if (editedBubble) {
+        while (editedBubble.nextSibling) {
+          stream.removeChild(editedBubble.nextSibling);
+        }
+      }
+    }
+
     rcClearChips();
     rcAppendBubble('sistem', 'Mengubah jawaban sebelumnya — pertanyaan sesudahnya akan diulang.');
     askQuestion(questions[idx]);
