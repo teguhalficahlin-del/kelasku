@@ -148,6 +148,14 @@ function rcSetComposerDisabled(disabled) {
   if (send) send.disabled = disabled;
 }
 
+// rcSetComposerDisabled tidak menyimpan state di _chat — hanya memanipulasi
+// DOM. Dipakai saat sebuah alur (mis. konfirmasi ← Rancang) perlu membaca
+// state disabled saat ini sebelum menimpanya sementara.
+function rcIsComposerDisabled() {
+  const composer = document.getElementById('rc-composer');
+  return !!composer && composer.classList.contains('rc-composer--disabled');
+}
+
 // ── Welcome screen (layar pembuka Tab Rancang) ────────────────────────────
 
 // atpCount: jumlah ATP tersimpan. null/undefined = belum diketahui (query gagal)

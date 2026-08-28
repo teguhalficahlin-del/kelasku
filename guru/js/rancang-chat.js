@@ -457,8 +457,14 @@
   function handleKembaliRancangClick() {
     if (_chat.in_flight || _confirmingKembali) return;
     _confirmingKembali = true;
+    // Chip konfirmasi harus selalu bisa diklik — composer disabled (mis.
+    // sisa dari handleGuruInput/requestAiRecommendation yang sedang in-flight)
+    // membawa #rc-chips ikut nonaktif karena keduanya sama-sama child dari
+    // #rc-composer. Simpan state lalu bebaskan sementara; kembalikan kalau
+    // guru memilih "Tidak, lanjutkan".
+    const wasComposerDisabled = rcIsComposerDisabled();
     rcClearChips();
-    rcSetComposerDisabled(true);
+    rcSetComposerDisabled(false);
     rcAppendBubble('sistem',
       'Kembali ke layar utama? Sesi saat ini tersimpan otomatis di DB — Anda tidak kehilangan progres.');
     rcRenderChips([
@@ -471,7 +477,7 @@
         kembaliKeLayarUtama();
         return;
       }
-      rcSetComposerDisabled(false);
+      rcSetComposerDisabled(wasComposerDisabled);
       const phase = _chat.session_phase;
       const q = (RANCANG_FLOW[phase] || []).find(function (item) {
         return item.id === _chat.active_question_id;
