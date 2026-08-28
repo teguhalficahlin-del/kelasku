@@ -55,9 +55,14 @@ function rcMakeBubbleEditable(bubble, questionId, phase, onEdit) {
   editBtn.type = 'button';
   editBtn.className = 'rc-edit-btn';
   editBtn.setAttribute('aria-label', 'Ubah jawaban ini');
-  editBtn.textContent = '✏';
+  editBtn.title = 'Ubah jawaban ini';
+  editBtn.textContent = '✏ Ubah';
+  // Warna & latar eksplisit — tidak bergantung pada stylesheet eksternal
+  // supaya tetap kontras di dark theme meski .rc-edit-btn belum diberi gaya.
   editBtn.style.cssText =
-    'display:none;margin-left:8px;background:none;border:none;cursor:pointer;font-size:0.85em;opacity:0.8;';
+    'display:none;margin-left:8px;padding:2px 8px;background:rgba(255,255,255,0.12);' +
+    'color:#f2c14e;border:1px solid rgba(242,193,78,0.5);border-radius:999px;' +
+    'cursor:pointer;font-size:0.78rem;line-height:1.4;opacity:1;';
   editBtn.addEventListener('click', function (e) {
     e.stopPropagation();
     onEdit(questionId, phase);
