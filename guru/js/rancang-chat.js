@@ -325,6 +325,23 @@
     await initChatShell(cId, panel, 'adaptasi');
   }
 
+  // classroom.js mengisi window._classroom* sekaligus dalam satu blok, tapi baru
+  // setelah fetch classroom-nya selesai. Tab Rancang bisa terbuka lebih dulu —
+  // auto-restore sip_tab_<id> memicu handler tab sebelum fetch itu tuntas — dan
+  // layar pembuka lalu merender mapel kosong. Tunggu sebentar alih-alih menebak.
+  function waitForClassroomMeta(timeoutMs = 3000) {
+    if (window._classroomName) return Promise.resolve();
+    return new Promise(resolve => {
+      const mulai = Date.now();
+      const timer = setInterval(() => {
+        if (window._classroomName || Date.now() - mulai >= timeoutMs) {
+          clearInterval(timer);
+          resolve();
+        }
+      }, 50);
+    });
+  }
+
   async function initRancangChat(cId) {
     if (_initializing || _loaded) return;
     _initializing = true;
@@ -333,6 +350,7 @@
       const panel = document.getElementById('panel-rancang');
       if (!panel) return;
 
+      await waitForClassroomMeta();
       const mapelDisplay = window._classroomSubject || window._classroomProgram || '—';
 
       // Query daftar ATP tidak boleh menahan layar pembuka. Gagal = jumlah tidak
