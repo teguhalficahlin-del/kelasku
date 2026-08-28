@@ -124,7 +124,9 @@ function rcSetComposerDisabled(disabled) {
 
 // ── Welcome screen (layar pembuka Tab Rancang) ────────────────────────────
 
-function rcRenderWelcomeScreen(panel, mapelDisplay, onContinue) {
+// atpCount: jumlah ATP tersimpan. null/undefined = belum diketahui (query gagal)
+// — badge tidak boleh berbohong "0 ATP" saat jawabannya sebenarnya tidak ada.
+function rcRenderWelcomeScreen(panel, mapelDisplay, onContinue, atpCount) {
   function escHtml(s) {
     return String(s)
       .replace(/&/g, '&amp;')
@@ -140,12 +142,18 @@ function rcRenderWelcomeScreen(panel, mapelDisplay, onContinue) {
 
   let selectedId = 'sesuaikan';
 
+  const atpLabel = typeof atpCount !== 'number'
+    ? '— ATP'
+    : atpCount === 0
+      ? 'Belum ada ATP'
+      : `${atpCount} ATP tersimpan`;
+
   panel.innerHTML = `
 <div class="rc-welcome" id="rc-welcome">
   <div class="rc-welcome-ctx">
     <span class="rc-welcome-ctx-mapel">${escHtml(mapelDisplay)}</span>
     <span class="rc-welcome-ctx-label">Guru Mapel SMK</span>
-    <span class="rc-welcome-ctx-atp">0 ATP</span>
+    <span class="rc-welcome-ctx-atp">${escHtml(atpLabel)}</span>
   </div>
   <div class="rc-welcome-header">
     <h2 class="rc-welcome-title">ATP selesai. Tanpa begadang.</h2>

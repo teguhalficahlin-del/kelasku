@@ -194,7 +194,7 @@
     saveState();
   }
 
-  async function initChatShell(cId, panel, mode) {
+  async function initChatShell(cId, panel, mode, notice) {
     _chat.classroom_id = cId;
     _chat.guru_id = await getCurrentGuruId();
     if (mode === 'susun') resetSessionState();
@@ -218,6 +218,7 @@
 
     const restored = loadState();
     rcRenderComposer('rc-composer-wrap', handleGuruInput);
+    if (notice) rcAppendBubble('sistem', notice);
 
     if (restored && _chat.active_question_id) {
       rcAppendBubble('sistem', 'Melanjutkan sesi sebelumnya…');
@@ -250,14 +251,33 @@
       if (!panel) return;
 
       const mapelDisplay = window._classroomSubject || window._classroomProgram || '—';
+
+      // Query daftar ATP tidak boleh menahan layar pembuka. Gagal = jumlah tidak
+      // diketahui (null), bukan nol — badge menampilkan '— ATP' dan mode
+      // 'sesuaikan' tetap memakai perilaku lama.
+      let atpCount = null;
+      try {
+        const list = await getAtpIndukList();
+        atpCount = list.filter(atp => atp.status !== 'arsip').length;
+      } catch (e) {
+        console.warn('[rancang-chat] getAtpIndukList gagal; jumlah ATP tidak ditampilkan:', e);
+      }
+
       rcRenderWelcomeScreen(panel, mapelDisplay, async function (mode) {
         _initializing = true;
         try {
-          await initChatShell(cId, panel, mode);
+          // 'sesuaikan' tanpa satu pun ATP tersimpan tidak punya yang bisa
+          // disesuaikan — alihkan ke ATP baru sambil menjelaskan alasannya.
+          let notice = null;
+          if (mode === 'sesuaikan' && atpCount === 0) {
+            mode = 'susun';
+            notice = 'Belum ada ATP tersimpan untuk disesuaikan — memulai ATP baru.';
+          }
+          await initChatShell(cId, panel, mode, notice);
         } finally {
           _initializing = false;
         }
-      });
+      }, atpCount);
     } finally {
       _initializing = false;
     }
@@ -653,15 +673,23 @@
     if (_chat.atp_induk_id) return;
     const mapel = answerValue('mapel') || 'Belum ditentukan';
     const fase  = answerValue('fase')  || 'E';
+    const jenjang = answerValue('jenjang') || 'SMK';
     const draft = await createAtpIndukDraft({
       mapel,
       fase,
-      jenjang: answerValue('jenjang') || 'SMK',
+      jenjang,
       elemen_cp: lookupCpElemen(mapel, fase),
     });
     _chat.atp_induk_id = draft.id;
     _chat.atp_updated_at = draft.updated_at;
     saveState();
+
+    // Draft sebelumnya untuk mapel+fase+jenjang yang sama sudah ditinggalkan —
+    // arsipkan supaya tidak menumpuk. Sengaja tanpa await: kegagalan cleanup
+    // tidak boleh menghentikan funnel yang sedang berjalan.
+    cleanupAbandonedDrafts(draft.id, { mapel, fase, jenjang })
+      .then(n => { if (n) console.info(`[rancang-chat] ${n} draft ATP lama diarsipkan.`); })
+      .catch(e => console.warn('[rancang-chat] cleanupAbandonedDrafts gagal:', e));
   }
 
   async function persistCompletedPhase(phase) {

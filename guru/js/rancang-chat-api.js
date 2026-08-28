@@ -194,3 +194,33 @@ async function saveAtpAdaptasi(atpIndukId, classroomId, patch) {
   if (error) throw error;
   return data;
 }
+
+// Daftar ATP induk milik guru yang sedang login. RLS pol_atp_induk_select sudah
+// memfilter guru_id = fn_current_profile_id(), jadi tidak perlu filter di sini.
+async function getAtpIndukList() {
+  const { data, error } = await window.supabaseClient
+    .from('atp_induk')
+    .select('id, mapel, fase, jenjang, status, updated_at, progresi_tp')
+    .order('updated_at', { ascending: false });
+  if (error) throw error;
+  return data || [];
+}
+
+// Arsipkan draft lama yang ditinggalkan saat guru memulai ATP baru. Cakupannya
+// sengaja dipersempit ke kombinasi mapel+fase+jenjang yang sama — draft untuk
+// mapel atau fase lain adalah pekerjaan terpisah yang mungkin masih dilanjutkan.
+// Tidak pernah menghapus baris: status 'arsip' sudah sah menurut CHECK constraint.
+async function cleanupAbandonedDrafts(currentAtpId, scope) {
+  if (!currentAtpId || !scope?.mapel || !scope?.fase || !scope?.jenjang) return 0;
+  const { data, error } = await window.supabaseClient
+    .from('atp_induk')
+    .update({ status: 'arsip' })
+    .eq('status', 'draft')
+    .eq('mapel', scope.mapel)
+    .eq('fase', scope.fase)
+    .eq('jenjang', scope.jenjang)
+    .neq('id', currentAtpId)
+    .select('id');
+  if (error) throw error;
+  return (data || []).length;
+}
