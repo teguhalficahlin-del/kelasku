@@ -175,9 +175,29 @@
     return { value: [], source: 'otomatis' };
   }
 
-  async function initChatShell(cId, panel) {
+  // Buang sesi ATP yang tersimpan supaya funnel mulai dari nol. Wajib dipanggil
+  // setelah guru_id terisi — LS_KEY() bergantung padanya, dan tanpa itu reset
+  // menulis ke kunci 'unknown' sementara sesi lama tetap utuh di kunci aslinya.
+  function resetSessionState() {
+    Object.assign(_chat, {
+      atp_induk_id:         null,
+      atp_updated_at:       null,
+      atp_draft:            [],
+      selected_tp:          null,
+      active_question_id:   null,
+      collected_answers:    {},
+      conversation_history: [],
+      pending_multi:        {},
+      session_phase:        'KONTEKS_CP',
+      planning_context_id:  null,
+    });
+    saveState();
+  }
+
+  async function initChatShell(cId, panel, mode) {
     _chat.classroom_id = cId;
     _chat.guru_id = await getCurrentGuruId();
+    if (mode === 'susun') resetSessionState();
 
     const _namaKelas    = window._classroomName    || '';
     const _mapelKelas   = window._classroomSubject  || '';
@@ -230,10 +250,10 @@
       if (!panel) return;
 
       const mapelDisplay = window._classroomSubject || window._classroomProgram || '—';
-      rcRenderWelcomeScreen(panel, mapelDisplay, async function () {
+      rcRenderWelcomeScreen(panel, mapelDisplay, async function (mode) {
         _initializing = true;
         try {
-          await initChatShell(cId, panel);
+          await initChatShell(cId, panel, mode);
         } finally {
           _initializing = false;
         }
