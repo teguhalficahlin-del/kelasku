@@ -4379,7 +4379,7 @@ h2.panel-header.open .panel-collapse-arrow {
 .rc-container {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 120px);
+  height: calc(100vh - 160px); /* +40px untuk .rc-topbar (tombol ← Rancang) */
   min-height: 400px;
 }
 
@@ -4394,6 +4394,8 @@ h2.panel-header.open .panel-collapse-arrow {
 
 .rc-stream {
   flex: 1;
+  min-height: 0; /* flex item tanpa ini default min-height:auto — tumbuh
+                    mengikuti konten alih-alih scroll sendiri */
   overflow-y: auto;
   display: flex;
   flex-direction: column;
