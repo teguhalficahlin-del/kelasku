@@ -41,7 +41,13 @@ function validateRecommendation(
     return { value, labels: allowed.get(value)!.label, usedFallback: value !== rawValue };
   }
 
-  const proposed = Array.isArray(rawValue) ? rawValue : [];
+  // String valid dinormalisasi jadi array satu elemen — model kadang menjawab
+  // "fondasi_tka" alih-alih ["fondasi_tka"], dan itu bukan alasan untuk fallback.
+  const proposed = Array.isArray(rawValue)
+    ? rawValue
+    : typeof rawValue === 'string' && allowed.has(rawValue)
+      ? [rawValue]
+      : [];
   const allValid = proposed.length > 0 && proposed.every(value =>
     typeof value === 'string' && allowed.has(value)
   );
@@ -156,14 +162,26 @@ Deno.serve(async (req) => {
     const valueShape = question_spec.kind === 'pilihan_jamak'
       ? `array value, maksimal ${maxSelections} pilihan`
       : 'satu value string';
+    // Contoh konkret memakai value opsi pertama yang nyata — schema abstrak
+    // "string|string[]" membuat model memilih string untuk pilihan_jamak.
+    const sampleValue = validOptions[0].value;
+    const exampleValue = question_spec.kind === 'pilihan_jamak'
+      ? JSON.stringify([sampleValue])
+      : JSON.stringify(sampleValue);
     const systemPrompt =
       'Kamu adalah pemberi rekomendasi perancangan pembelajaran untuk guru Indonesia.\n' +
       'Pilih HANYA value dari daftar opsi yang diberikan. Jangan membuat value baru.\n' +
-      `Field value wajib berupa ${valueShape}.\n` +
+      `Field "value" WAJIB berupa ${valueShape}.\n` +
+      (question_spec.kind === 'pilihan_jamak'
+        ? 'Untuk pertanyaan ini "value" WAJIB berupa array, bahkan jika hanya satu pilihan. ' +
+          'JANGAN kembalikan string tunggal.\n'
+        : 'Untuk pertanyaan ini "value" WAJIB berupa satu string, bukan array.\n') +
       'Value yang tercantum dalam constraint exclusive tidak boleh digabungkan dengan value lain.\n' +
       'Berikan alasan singkat dan konkret dalam Bahasa Indonesia.\n' +
       'Kembalikan HANYA JSON ketat dengan format: ' +
-      '{ "value": string|string[], "reason": string, "message": string }.';
+      '{ "value": ..., "reason": string, "message": string }.\n' +
+      `Contoh output: { "value": ${exampleValue}, ` +
+      '"reason": "alasan singkat", "message": "pesan singkat" }.';
     const userMessage =
       `Pertanyaan: ${question_spec.prompt}\n` +
       `Konteks pertanyaan: ${question_spec.helpText ?? '-'}\n` +
