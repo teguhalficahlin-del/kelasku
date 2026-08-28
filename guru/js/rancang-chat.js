@@ -340,11 +340,18 @@
   function renderMultiSelect(q) {
     const selected = _chat.pending_multi[q.id] || [];
     const max = q.constraints?.maxSelections || Infinity;
-    const available = q.options.filter(o => !selected.includes(o.value));
-    const chips = [...available, { value: '__done__', label: `Selesai memilih (${selected.length})` }];
+    // Semua opsi tetap tampil; yang sudah dipilih ditandai '✓' dan bisa diklik
+    // ulang untuk dibatalkan.
+    const chips = [
+      ...q.options.map(o => selected.includes(o.value) ? { ...o, label: `✓ ${o.label}` } : o),
+      { value: '__done__', label: `Selesai memilih (${selected.length})` }
+    ];
     rcRenderChips(chips, async (value, label) => {
       if (value === '__done__') {
-        if (!selected.length) return rcAppendBubble('sistem', 'Pilih minimal satu opsi.');
+        if (!selected.length) {
+          rcAppendBubble('sistem', 'Pilih minimal satu opsi.');
+          return renderMultiSelect(q);
+        }
         const summary = selected.map(v => {
           const opt = q.options.find(o => o.value === v);
           return opt?.label || v;
@@ -361,10 +368,21 @@
         delete _chat.pending_multi[q.id];
         return requestAiRecommendation(q, label);
       }
+      if (selected.includes(value)) {          // klik ulang = batalkan pilihan
+        _chat.pending_multi[q.id] = selected.filter(v => v !== value);
+        return renderMultiSelect(q);
+      }
       const exclusive = q.constraints?.exclusive || [];
-      _chat.pending_multi[q.id] = exclusive.includes(value) ? [value]
-        : [...selected.filter(v => !exclusive.includes(v)), value].slice(0, max);
-      rcAppendBubble('guru', label);
+      if (exclusive.includes(value)) {
+        _chat.pending_multi[q.id] = [value];
+      } else {
+        const kept = selected.filter(v => !exclusive.includes(v));
+        if (kept.length >= max) {
+          rcAppendBubble('sistem', `Maksimal ${max} pilihan. Batalkan salah satu dulu.`);
+          return renderMultiSelect(q);
+        }
+        _chat.pending_multi[q.id] = [...kept, value];
+      }
       renderMultiSelect(q);
     });
   }
