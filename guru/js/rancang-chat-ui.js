@@ -200,3 +200,70 @@ function rcRenderWelcomeScreen(panel, mapelDisplay, onContinue, atpCount) {
     onContinue(selectedId);
   });
 }
+
+// ── Picker daftar ATP tersimpan (mode 'sesuaikan') ────────────────────────
+// Memakai ulang kelas .rc-welcome-* yang sudah ada supaya tampilannya identik
+// dengan layar pembuka — tidak ada CSS baru yang perlu ditambahkan.
+function rcRenderAtpPicker(panel, items, onPick) {
+  function escHtml(s) {
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function tanggal(iso) {
+    if (!iso) return 'tanggal tidak tercatat';
+    const d = new Date(iso);
+    if (isNaN(d)) return 'tanggal tidak tercatat';
+    return 'diperbarui ' + d.toLocaleDateString('id-ID', {
+      day: '2-digit', month: 'short', year: 'numeric',
+    });
+  }
+
+  const STATUS_LABEL = { aktif: 'Aktif', draft: 'Draf' };
+
+  let selectedId = items[0]?.id || null;
+
+  const cards = items.map(function (atp) {
+    const judul  = [atp.mapel, 'Fase ' + atp.fase, atp.jenjang].filter(Boolean).join(' · ');
+    const jumlah = Array.isArray(atp.progresi_tp) ? atp.progresi_tp.length : 0;
+    const tp     = jumlah ? jumlah + ' TP tersusun' : 'Belum ada TP';
+    return `
+    <button type="button" class="rc-welcome-card" data-atp-id="${escHtml(atp.id)}"
+      aria-pressed="${atp.id === selectedId ? 'true' : 'false'}">
+      <span class="rc-welcome-card-label">${escHtml(judul)}</span>
+      <span class="rc-welcome-card-badge">${escHtml(STATUS_LABEL[atp.status] || atp.status)}</span>
+      <span class="rc-welcome-card-desc">${escHtml(tp)} · ${escHtml(tanggal(atp.updated_at))}</span>
+    </button>`;
+  }).join('');
+
+  panel.innerHTML = `
+<div class="rc-welcome" id="rc-atp-picker">
+  <div class="rc-welcome-header">
+    <h2 class="rc-welcome-title">ATP mana yang ingin disesuaikan?</h2>
+    <p class="rc-welcome-lead">Pilih satu ATP tersimpan. Jawaban yang sudah Anda isi sebelumnya akan dimuat kembali.</p>
+  </div>
+  <div class="rc-welcome-cards">${cards}</div>
+  <p class="rc-welcome-ai-note" id="rc-atp-picker-pesan"></p>
+  <div class="rc-welcome-footer">
+    <button type="button" class="rc-welcome-btn" id="rc-atp-picker-lanjut">Buka ATP Ini</button>
+  </div>
+</div>`;
+
+  panel.querySelectorAll('.rc-welcome-card').forEach(function (card) {
+    card.addEventListener('click', function () {
+      panel.querySelectorAll('.rc-welcome-card').forEach(function (c) {
+        c.setAttribute('aria-pressed', 'false');
+      });
+      card.setAttribute('aria-pressed', 'true');
+      selectedId = card.dataset.atpId;
+    });
+  });
+
+  document.getElementById('rc-atp-picker-lanjut').addEventListener('click', function () {
+    const picked = items.find(function (a) { return a.id === selectedId; });
+    if (picked) onPick(picked);
+  });
+}

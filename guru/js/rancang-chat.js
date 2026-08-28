@@ -26,6 +26,9 @@
 
   let _loaded = false;
   let _initializing = false;
+  // collected_data ATP yang sedang dibuka lewat picker — dipakai sekali untuk
+  // menentukan fase lanjut, lalu tidak diperlukan lagi.
+  let _resumeFromPhases = null;
 
   // ─── Persist ─────────────────────────────────────────────────────────────
 
@@ -194,6 +197,53 @@
     saveState();
   }
 
+  // Muat satu ATP tersimpan ke dalam state, menimpa sesi lokal apa pun yang ada.
+  // collected_data di atp_induk adalah sumber kebenaran: setiap fase menulis ke
+  // sana lewat saveAtpPhaseOptimistic, sedangkan atp_adaptasi hanya cermin
+  // per-classroom untuk WAKTU/PROFIL_SISWA/KONTEKS_DUDI.
+  function hydrateFromAtp(atp) {
+    resetSessionState();
+    _chat.atp_induk_id   = atp.id;
+    _chat.atp_updated_at = atp.updated_at;
+    _chat.atp_draft      = Array.isArray(atp.progresi_tp) ? atp.progresi_tp : [];
+    const collected = atp.collected_data || {};
+    for (const phaseData of Object.values(collected)) {
+      if (phaseData && typeof phaseData === 'object') {
+        Object.assign(_chat.collected_answers, phaseData);
+      }
+    }
+    _resumeFromPhases = collected;
+    saveState();
+  }
+
+  // Fase lanjut ditentukan ulang dari isi collected_data — session_phase dan
+  // active_question_id tidak pernah disimpan ke DB, jadi tidak ada yang bisa
+  // dipulihkan begitu saja. Penelusuran memakai getNextPhase() supaya urutan
+  // fase tetap satu sumber, bukan disalin ulang di sini.
+  function resumeAtpFromDb() {
+    if (_chat.atp_draft.length) {
+      rcAppendBubble('sistem', 'Membuka ATP tersimpan — meninjau draf yang sudah ada.');
+      startPhase('ATP_REVIEW');
+      return;
+    }
+    // Kunci fase di collected_data adalah penanda "fase selesai" yang sahih —
+    // ia ditulis oleh persistCompletedPhase. Memeriksa satu per satu pertanyaan
+    // tidak bisa: pertanyaan bersyarat yang dilewati membuat fase yang sudah
+    // tuntas terlihat belum lengkap.
+    const tersimpan = _resumeFromPhases || {};
+    let phase = 'KONTEKS_CP';
+    for (let i = 0; i < 20 && phase && tersimpan[phase]; i++) {
+      phase = getNextPhase(phase);
+    }
+    // Semua fase terjawab tapi belum ada TP: penelusuran habis (null) atau
+    // mendarat di ATP_GENERATE. Keduanya diarahkan ke ATP_SUMMARY — mengulang
+    // dari KONTEKS_CP membuang seluruh jawaban guru, sedangkan langsung
+    // menembak ATP_GENERATE memanggil AI tanpa guru memintanya.
+    if (!phase || phase === 'ATP_GENERATE') phase = 'ATP_SUMMARY';
+    rcAppendBubble('sistem', 'Membuka ATP tersimpan — jawaban sebelumnya dimuat kembali.');
+    startPhase(phase);
+  }
+
   async function initChatShell(cId, panel, mode, notice) {
     _chat.classroom_id = cId;
     _chat.guru_id = await getCurrentGuruId();
@@ -220,7 +270,9 @@
     rcRenderComposer('rc-composer-wrap', handleGuruInput);
     if (notice) rcAppendBubble('sistem', notice);
 
-    if (restored && _chat.active_question_id) {
+    if (mode === 'adaptasi' && _chat.atp_induk_id) {
+      resumeAtpFromDb();
+    } else if (restored && _chat.active_question_id) {
       rcAppendBubble('sistem', 'Melanjutkan sesi sebelumnya…');
       renderActiveQuestion();
     } else {
@@ -242,6 +294,37 @@
     _loaded = true;
   }
 
+  // Buka ATP yang dipilih guru dari picker. collected_data tidak ikut di
+  // getAtpIndukList() (daftar sengaja ramping), jadi diambil di sini. Query
+  // langsung ke supabaseClient mengikuti preseden persistCompletedPhase —
+  // idealnya pindah ke rancang-chat-api.js saat file itu boleh disentuh lagi.
+  async function openAtpAdaptasi(cId, panel, picked) {
+    _chat.classroom_id = cId;
+    _chat.guru_id = await getCurrentGuruId();
+
+    let full = picked;
+    try {
+      const { data, error } = await window.supabaseClient
+        .from('atp_induk')
+        .select('id, mapel, fase, jenjang, status, updated_at, progresi_tp, collected_data')
+        .eq('id', picked.id)
+        .single();
+      if (error) throw error;
+      full = data;
+    } catch (e) {
+      // Picker sengaja dibiarkan di layar supaya guru bisa mencoba lagi tanpa
+      // kehilangan daftarnya. Memuat sebagian isi ATP lebih berbahaya daripada
+      // tidak memuat sama sekali: jawaban yang hilang akan ditimpa diam-diam.
+      console.warn('[rancang-chat] gagal memuat isi ATP terpilih:', e);
+      const pesan = document.getElementById('rc-atp-picker-pesan');
+      if (pesan) pesan.textContent = 'ATP gagal dimuat. Periksa koneksi lalu pilih lagi.';
+      return;
+    }
+
+    hydrateFromAtp(full);
+    await initChatShell(cId, panel, 'adaptasi');
+  }
+
   async function initRancangChat(cId) {
     if (_initializing || _loaded) return;
     _initializing = true;
@@ -255,13 +338,13 @@
       // Query daftar ATP tidak boleh menahan layar pembuka. Gagal = jumlah tidak
       // diketahui (null), bukan nol — badge menampilkan '— ATP' dan mode
       // 'sesuaikan' tetap memakai perilaku lama.
-      let atpCount = null;
+      let atpList = null;
       try {
-        const list = await getAtpIndukList();
-        atpCount = list.filter(atp => atp.status !== 'arsip').length;
+        atpList = (await getAtpIndukList()).filter(atp => atp.status !== 'arsip');
       } catch (e) {
         console.warn('[rancang-chat] getAtpIndukList gagal; jumlah ATP tidak ditampilkan:', e);
       }
+      const atpCount = atpList ? atpList.length : null;
 
       rcRenderWelcomeScreen(panel, mapelDisplay, async function (mode) {
         _initializing = true;
@@ -272,6 +355,17 @@
           if (mode === 'sesuaikan' && atpCount === 0) {
             mode = 'susun';
             notice = 'Belum ada ATP tersimpan untuk disesuaikan — memulai ATP baru.';
+          }
+          if (mode === 'sesuaikan' && atpCount > 0) {
+            rcRenderAtpPicker(panel, atpList, async function (picked) {
+              _initializing = true;
+              try {
+                await openAtpAdaptasi(cId, panel, picked);
+              } finally {
+                _initializing = false;
+              }
+            });
+            return;
           }
           await initChatShell(cId, panel, mode, notice);
         } finally {
