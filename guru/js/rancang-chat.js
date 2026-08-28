@@ -258,14 +258,21 @@
     const _infoKelas    = [_namaKelas, _mapelKelas, _programKelas]
       .filter(Boolean).join(' · ');
 
+    // Inline flex layout — bukan bergantung pada stylesheet eksternal yang
+    // di luar cakupan berkas ini. #rc-topbar ditambahkan belakangan tanpa
+    // tinggi yang diperhitungkan; #rc-container sendiri sebelumnya tidak
+    // punya flex/height wiring apa pun di sini, jadi tinggi total (topbar +
+    // header kelas + stream + composer) bisa melebihi tinggi panel tanpa
+    // #rc-stream tahu ia harus scroll sendiri alih-alih mendorong composer
+    // keluar layar.
     panel.innerHTML = `
-<div id="rc-container" class="rc-container">
-  <div class="rc-topbar" style="display:flex;align-items:center;padding:4px 8px;">
+<div id="rc-container" class="rc-container" style="display:flex;flex-direction:column;height:100%;min-height:0;">
+  <div class="rc-topbar" style="display:flex;align-items:center;padding:4px 8px;flex-shrink:0;">
     <button type="button" id="rc-back-btn" class="rp-chip" style="padding:2px 10px;font-size:0.78rem;">← Rancang</button>
   </div>
-  ${_infoKelas ? `<div class="rc-kelas-header">${_infoKelas}</div>` : ''}
-  <div class="rc-stream" id="rc-stream"></div>
-  <div id="rc-composer-wrap"></div>
+  ${_infoKelas ? `<div class="rc-kelas-header" style="flex-shrink:0;">${_infoKelas}</div>` : ''}
+  <div class="rc-stream" id="rc-stream" style="flex:1;overflow-y:auto;min-height:0;"></div>
+  <div id="rc-composer-wrap" style="flex-shrink:0;"></div>
 </div>`;
 
     attachRcBackBtnListener();
