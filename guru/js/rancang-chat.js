@@ -566,11 +566,7 @@
     }
     if (phase === 'MODUL_GENERATE') {
       rcSetComposerVisible(false);
-      rcAppendBubble('ai', '⏳ Menyusun Modul Ajar…');
-      rcAppendBubble('sistem', 'Fitur generate Modul Ajar akan tersedia di sprint berikutnya.');
-      rcRenderChips([{ value: '__kembali_utama__', label: '← Kembali ke layar utama' }], function () {
-        kembaliKeLayarUtama();
-      });
+      await triggerGenerateModul();
       return;
     }
     if (phase === 'ATP_REVIEW') {
@@ -1302,6 +1298,63 @@
         btn.addEventListener('click', () => {
           btn.closest('.rc-bubble')?.remove();
           triggerGenerateAtp();
+        });
+        rcAppendBubble('sistem', btn);
+      }
+    }
+  }
+
+  async function triggerGenerateModul() {
+    rcAppendBubble('ai', '⏳ Menyusun Modul Ajar…');
+    addToHistory('ai', 'Menyusun Modul Ajar…');
+    rcShowTyping();
+    try {
+      const result = await callGenerateModul(
+        _chat.modul_induk_id,
+        _chat.modul_updated_at,
+      );
+      rcHideTyping();
+      _chat.modul_konten     = result.konten;
+      _chat.modul_updated_at = result.updated_at;
+      saveState();
+      const s = result.summary;
+      const msg =
+        `Modul Ajar selesai disusun: ${s.jumlah_pertemuan} pertemuan, ` +
+        `${s.jp_per_pertemuan} JP per pertemuan.`;
+      rcAppendBubble('ai', msg);
+      addToHistory('ai', msg);
+      await startPhase('MODUL_REVIEW');
+    } catch (err) {
+      rcHideTyping();
+      const code = err.code || '';
+      let msg;
+      let retryable = false;
+      if (code === 'MODUL_INPUT_INCOMPLETE') {
+        msg = '❌ Data modul belum lengkap. Kembali ke ringkasan dan periksa jawaban.';
+      } else if (code === 'MODUL_WRITE_CONFLICT') {
+        msg = '❌ Data modul berubah di tab lain. Muat ulang halaman lalu coba lagi.';
+      } else if (code === 'MODUL_NOT_FOUND') {
+        msg = '❌ Modul tidak ditemukan. Muat ulang halaman.';
+      } else if (['MODUL_GENERATION_INVALID_JSON', 'MODUL_GENERATION_INVALID_SCHEMA'].includes(code)) {
+        msg = '❌ AI gagal menghasilkan Modul yang valid. Silakan coba lagi.';
+        retryable = true;
+      } else if (code === 'MODUL_GENERATION_TIMEOUT') {
+        msg = '❌ Waktu habis saat menyusun Modul. Silakan coba lagi.';
+        retryable = true;
+      } else if (code === 'RATE_LIMIT') {
+        msg = '❌ Batas generate Modul harian (5×) tercapai. Coba lagi besok.';
+      } else {
+        msg = '❌ Gagal menyusun Modul. Coba lagi.';
+        retryable = true;
+      }
+      rcAppendBubble('sistem', msg);
+      if (retryable) {
+        const btn = document.createElement('button');
+        btn.className = 'rp-chip';
+        btn.textContent = '↺ Coba lagi';
+        btn.addEventListener('click', () => {
+          btn.closest('.rc-bubble')?.remove();
+          triggerGenerateModul();
         });
         rcAppendBubble('sistem', btn);
       }

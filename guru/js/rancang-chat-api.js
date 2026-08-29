@@ -164,6 +164,40 @@ async function callGenerateAtp(atpIndukId, expectedUpdatedAt) {
   }
 }
 
+const GENERATE_MODUL_URL = 'https://teccdzetrdjowqemnuuc.supabase.co/functions/v1/generate-modul';
+
+async function callGenerateModul(modulIndukId, expectedUpdatedAt) {
+  const { data: { session } } = await window.supabaseClient.auth.getSession();
+  const token = session?.access_token ?? '';
+
+  const controller = new AbortController();
+  const tid = setTimeout(() => controller.abort(), 110_000);
+  try {
+    const res = await fetch(GENERATE_MODUL_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type':  'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        modul_induk_id:      modulIndukId,
+        expected_updated_at: expectedUpdatedAt || undefined,
+      }),
+      signal: controller.signal,
+    });
+    const responseJson = await res.json();
+    if (!res.ok) {
+      const err = new Error(responseJson.error || 'generate-modul error');
+      err.code      = responseJson.code      || String(res.status);
+      err.retryable = responseJson.retryable ?? false;
+      throw err;
+    }
+    return responseJson;
+  } finally {
+    clearTimeout(tid);
+  }
+}
+
 async function acceptAtp(atpIndukId, updatedAt) {
   const { data, error } = await (updatedAt
     ? window.supabaseClient.from('atp_induk').update({ status: 'aktif' })
