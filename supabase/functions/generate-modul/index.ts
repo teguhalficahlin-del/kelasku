@@ -207,6 +207,16 @@ Deno.serve(async (req) => {
   const { data: { user }, error: authError } = await userClient.auth.getUser();
   if (authError || !user) return json({ error: 'Unauthorized.' }, 401);
 
+  // 1b. ROLE GUARD
+  const { data: isGuru, error: roleError } =
+    await userClient.rpc('fn_is_guru_role');
+  if (roleError) {
+    return json({ error: 'Gagal memverifikasi peran pengguna.', code: 'ROLE_CHECK_FAILED' }, 500);
+  }
+  if (isGuru !== true) {
+    return json({ error: 'Akses khusus guru.', code: 'FORBIDDEN_ROLE' }, 403);
+  }
+
   // 2. RATE LIMIT — service_role, max 5× per hari
   try {
     const svc = createClient(
