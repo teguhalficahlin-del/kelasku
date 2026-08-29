@@ -572,6 +572,32 @@
     if (phase === 'ATP_REVIEW') {
       renderAtpDraftPreview(); // tampilkan draf TP sebelum pertanyaan konfirmasi
     }
+    if (phase === 'MODUL_REVIEW') {
+      _chat.active_question_id = null;
+      saveState();
+      rcSetComposerVisible(false);
+      renderModulPreview();
+      rcRenderChips([
+        { value: '__terima_modul__',   label: '✓ Terima Modul' },
+        { value: '__ulang_generate__', label: '↺ Ulangi Generate' },
+        { value: '__kembali_rancang__', label: '← Rancang' },
+      ], function (value) {
+        rcClearChips();
+        if (value === '__terima_modul__') {
+          acceptModulInduk();
+          return;
+        }
+        if (value === '__ulang_generate__') {
+          startPhase('MODUL_GENERATE');
+          return;
+        }
+        if (value === '__kembali_rancang__') {
+          startPhase('DONE');
+          return;
+        }
+      });
+      return;
+    }
     if (phase === 'DONE') {
       _chat.active_question_id = null;
       saveState();
@@ -1249,6 +1275,36 @@
     addToHistory('ai', `Draf ATP — ${_chat.atp_draft.length} TP, total ${total} JP`);
   }
 
+  function renderModulPreview() {
+    const konten = _chat.modul_konten;
+    if (!konten) {
+      rcAppendBubble('sistem', '⚠ Konten modul tidak ditemukan.');
+      return;
+    }
+    const header =
+      `Modul Ajar — TP ${konten.tp_nomor}: ${konten.tp_judul}\n` +
+      `${konten.jumlah_pertemuan} pertemuan · ${konten.jp_per_pertemuan} JP per pertemuan`;
+    rcAppendBubble('ai', header);
+    addToHistory('ai', header);
+
+    for (const p of konten.pertemuan) {
+      const aktivitasLines = p.aktivitas
+        .map(a => `  [${a.tahap} ${a.durasi_menit}′] ${a.deskripsi}`)
+        .join('\n');
+      const bubble =
+        `Pertemuan ${p.nomor}\n` +
+        `Tujuan: ${p.tujuan_pertemuan}\n` +
+        `Media: ${(p.media_dan_alat || []).join(', ')}\n\n` +
+        `${aktivitasLines}\n\n` +
+        `Asesmen formatif: ${p.asesmen_formatif}` +
+        (p.catatan_guru ? `\nCatatan: ${p.catatan_guru}` : '');
+      rcAppendBubble('ai', bubble);
+    }
+
+    const footer = `Asesmen sumatif: ${konten.asesmen_sumatif}`;
+    rcAppendBubble('ai', footer);
+  }
+
   // ─── Generate ATP ─────────────────────────────────────────────────────────
 
   async function triggerGenerateAtp() {
@@ -1358,6 +1414,35 @@
         });
         rcAppendBubble('sistem', btn);
       }
+    }
+  }
+
+  async function acceptModulInduk() {
+    try {
+      const { data, error } = await window.supabaseClient
+        .from('modul_induk')
+        .update({ status: 'aktif' })
+        .eq('id', _chat.modul_induk_id)
+        .eq('updated_at', _chat.modul_updated_at)
+        .select('id, updated_at')
+        .maybeSingle();
+      if (error) throw error;
+      if (!data) {
+        rcAppendBubble('sistem',
+          '❌ Modul berubah di tab lain. Muat ulang halaman lalu coba lagi.');
+        return;
+      }
+      _chat.modul_updated_at = data.updated_at;
+      saveState();
+      rcAppendBubble('ai', '✓ Modul Ajar diterima dan disimpan.');
+      rcRenderChips([
+        { value: '__kembali_utama__', label: '← Kembali ke layar utama' },
+      ], function () {
+        kembaliKeLayarUtama();
+      });
+    } catch (err) {
+      rcAppendBubble('sistem', '❌ Gagal menerima modul. Coba lagi.');
+      console.error('[acceptModulInduk]', err);
     }
   }
 
