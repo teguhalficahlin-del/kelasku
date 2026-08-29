@@ -1049,6 +1049,11 @@
 
   async function ensureModulDraft() {
     if (_chat.modul_induk_id) return;
+    if (!_chat.atp_induk_id) {
+      const e = new Error('ATP belum dipilih. Kembali dan pilih ATP terlebih dahulu.');
+      e.code = 'ATP_REQUIRED';
+      throw e;
+    }
     const tp = _chat.selected_tp || {};
     let draft;
     try {

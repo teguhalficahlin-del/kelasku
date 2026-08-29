@@ -255,14 +255,18 @@ async function createModulIndukDraft(atpIndukId, nomorTp, tpJudul) {
   const guruId = await getCurrentGuruId();
   const { data, error } = await window.supabaseClient
     .from('modul_induk')
-    .insert({
-      guru_id:      guruId,
-      atp_induk_id: atpIndukId,
-      nomor_tp:     nomorTp,
-      tp_judul:     tpJudul || '',
+    .upsert({
+      guru_id:        guruId,
+      atp_induk_id:   atpIndukId,
+      nomor_tp:       nomorTp,
+      tp_judul:       tpJudul || '',
       collected_data: {},
+      status:         'draft',
+    }, {
+      onConflict:        'guru_id,atp_induk_id,nomor_tp',
+      ignoreDuplicates:  false,
     })
-    .select('id, guru_id, collected_data, updated_at')
+    .select('id, guru_id, collected_data, updated_at, status')
     .single();
   if (error) throw error;
   return data;

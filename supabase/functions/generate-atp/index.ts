@@ -171,15 +171,18 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     );
     const { data: allowed, error: rlErr } = await svc.rpc('fn_check_rate_limit', {
-      p_user_id: user.id,
-      p_action:  'generate_atp',
-      p_limit:   3,
-      p_window_seconds: 86400,
+      p_identifier:    user.id,
+      p_endpoint:      'generate_atp',
+      p_max_requests:  3,
+      p_window_minutes: 1440,
     });
     if (!rlErr && allowed === false) {
       return json({ error: 'Batas generate ATP harian tercapai. Coba lagi besok.', code: 'RATE_LIMIT' }, 429);
     }
-    if (rlErr) console.warn('[generate-atp] rate limit RPC error (ignored):', rlErr.message);
+    if (rlErr) {
+      console.warn('[generate-atp] rate limit RPC error:', rlErr.message);
+      return json({ error: 'Rate limit tidak tersedia. Coba lagi.', code: 'RATE_LIMIT_UNAVAILABLE' }, 503);
+    }
   } catch (e) {
     console.warn('[generate-atp] rate limit exception (ignored):', e);
   }

@@ -214,10 +214,10 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     );
     const { data: allowed, error: rlErr } = await svc.rpc('fn_check_rate_limit', {
-      p_user_id: user.id,
-      p_action: 'generate_modul',
-      p_limit: 5,
-      p_window_seconds: 86400,
+      p_identifier:    user.id,
+      p_endpoint:      'generate_modul',
+      p_max_requests:  5,
+      p_window_minutes: 1440,
     });
     if (!rlErr && allowed === false) {
       return json({
@@ -225,7 +225,10 @@ Deno.serve(async (req) => {
         code: 'RATE_LIMIT',
       }, 429);
     }
-    if (rlErr) console.warn('[generate-modul] rate limit RPC error (ignored):', rlErr.message);
+    if (rlErr) {
+      console.warn('[generate-modul] rate limit RPC error:', rlErr.message);
+      return json({ error: 'Rate limit tidak tersedia. Coba lagi.', code: 'RATE_LIMIT_UNAVAILABLE' }, 503);
+    }
   } catch (e) {
     console.warn('[generate-modul] rate limit exception (ignored):', e);
   }
