@@ -82,6 +82,18 @@ function validateModulOutput(
   if (!obj.asesmen_sumatif || !String(obj.asesmen_sumatif).trim()) {
     errors.push('asesmen_sumatif tidak boleh kosong');
   }
+  if (typeof obj.jumlah_pertemuan !== 'number' ||
+      obj.jumlah_pertemuan !== jumlahPertemuan) {
+    errors.push(
+      `jumlah_pertemuan=${obj.jumlah_pertemuan}, diharapkan ${jumlahPertemuan}`,
+    );
+  }
+  if (typeof obj.jp_per_pertemuan !== 'number' ||
+      obj.jp_per_pertemuan !== jpPerPertemuan) {
+    errors.push(
+      `jp_per_pertemuan=${obj.jp_per_pertemuan}, diharapkan ${jpPerPertemuan}`,
+    );
+  }
   if (!Array.isArray(obj.pertemuan)) {
     return { valid: false, errors: ['pertemuan harus array'], output: null };
   }
@@ -101,6 +113,10 @@ function validateModulOutput(
     }
     if (!Array.isArray(p.media_dan_alat) || (p.media_dan_alat as unknown[]).length === 0) {
       errors.push(`pertemuan ${no}: media_dan_alat harus array non-kosong`);
+    } else if ((p.media_dan_alat as unknown[]).some(
+      (x) => typeof x !== 'string' || !(x as string).trim(),
+    )) {
+      errors.push(`pertemuan ${no}: media_dan_alat mengandung item kosong atau bukan string`);
     }
     if (!p.asesmen_formatif || !String(p.asesmen_formatif).trim()) {
       errors.push(`pertemuan ${no}: asesmen_formatif kosong`);
