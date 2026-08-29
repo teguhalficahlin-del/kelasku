@@ -1031,11 +1031,15 @@
   async function ensureModulDraft() {
     if (_chat.modul_induk_id) return;
     const tp = _chat.selected_tp || {};
-    const draft = await createModulIndukDraft(
-      _chat.atp_induk_id,
-      tp.nomor || 1,
-      tp.judul || ''
-    );
+    let draft;
+    try {
+      draft = await createModulIndukDraft(
+        _chat.atp_induk_id, tp.nomor || 1, tp.judul || '');
+    } catch (_e) {
+      await new Promise(r => setTimeout(r, 2000));
+      draft = await createModulIndukDraft(
+        _chat.atp_induk_id, tp.nomor || 1, tp.judul || '');
+    }
     _chat.modul_induk_id  = draft.id;
     _chat.modul_updated_at = draft.updated_at;
     saveState();
@@ -1144,6 +1148,14 @@
           ? error.message
           : 'Fase belum tersimpan ke database. Coba lagi sebelum melanjutkan.';
         rcAppendBubble('sistem', message);
+        const btn = document.createElement('button');
+        btn.className = 'rp-chip';
+        btn.textContent = '↺ Coba lagi';
+        btn.addEventListener('click', function () {
+          btn.closest('.rc-bubble')?.remove();
+          advanceToNext(currentQ);
+        });
+        rcAppendBubble('sistem', btn);
         return;
       }
       if (_chat.session_phase === 'WAKTU' && calculateAllocation().jp_operasional <= 0) {
