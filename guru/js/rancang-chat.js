@@ -491,6 +491,7 @@
       } else if (q.kind === 'pilihan' || q.kind === 'konfirmasi') {
         rcRenderChips(q.options, function (val, label) { handleChipSelect(val, label, q); });
       }
+      attachRcBackBtnListener();
     });
   }
 
