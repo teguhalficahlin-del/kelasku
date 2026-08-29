@@ -94,7 +94,7 @@ async function createAtpIndukDraft(metadata) {
       elemen_cp: metadata.elemen_cp || [],
       collected_data: {},
     })
-    .select('id, guru_id, collected_data, updated_at')
+    .select('id, guru_id, collected_data, created_at, updated_at')
     .single();
   if (error) throw error;
   return data;
@@ -307,6 +307,10 @@ async function saveModulPhaseOptimistic(modulId, phase, phaseData, expectedUpdat
 // Tidak pernah menghapus baris: status 'arsip' sudah sah menurut CHECK constraint.
 async function cleanupAbandonedDrafts(currentAtpId, scope) {
   if (!currentAtpId || !scope?.mapel || !scope?.fase || !scope?.jenjang) return 0;
+  if (!scope?.createdAt) return 0;
+  const cutoff = new Date(
+    new Date(scope.createdAt).getTime() - 30_000
+  ).toISOString();
   const { data, error } = await window.supabaseClient
     .from('atp_induk')
     .update({ status: 'arsip' })
@@ -315,6 +319,7 @@ async function cleanupAbandonedDrafts(currentAtpId, scope) {
     .eq('fase', scope.fase)
     .eq('jenjang', scope.jenjang)
     .neq('id', currentAtpId)
+    .lt('created_at', cutoff)
     .select('id');
   if (error) throw error;
   return (data || []).length;

@@ -1100,7 +1100,7 @@
     // Draft sebelumnya untuk mapel+fase+jenjang yang sama sudah ditinggalkan —
     // arsipkan supaya tidak menumpuk. Sengaja tanpa await: kegagalan cleanup
     // tidak boleh menghentikan funnel yang sedang berjalan.
-    cleanupAbandonedDrafts(draft.id, { mapel, fase, jenjang })
+    cleanupAbandonedDrafts(draft.id, { mapel, fase, jenjang, createdAt: draft.created_at })
       .then(n => { if (n) console.info(`[rancang-chat] ${n} draft ATP lama diarsipkan.`); })
       .catch(e => console.warn('[rancang-chat] cleanupAbandonedDrafts gagal:', e));
   }
