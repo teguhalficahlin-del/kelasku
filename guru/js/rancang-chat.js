@@ -415,6 +415,16 @@
           renderAtpPickerScreen(panel, cId, atpList, mapelDisplay);
           return;
         }
+        if (mode === 'modul') {
+          const atpAktif = (atpList || []).filter(function (a) { return a.status === 'aktif'; });
+          if (!atpAktif.length) {
+            mode = 'susun';
+            notice = 'Belum ada ATP aktif — susun ATP dulu sebelum membuat Modul Ajar.';
+          } else {
+            renderAtpPickerScreen(panel, cId, atpAktif, mapelDisplay);
+            return;
+          }
+        }
         await initChatShell(cId, panel, mode, notice);
       } finally {
         _initializing = false;

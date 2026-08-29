@@ -182,6 +182,7 @@ function rcRenderWelcomeScreen(panel, mapelDisplay, onContinue, atpCount) {
   const BTN_LABELS = {
     sesuaikan: 'Lanjut: Sesuaikan ATP',
     susun:     'Lanjut: Susun ATP Baru',
+    modul:     'Lanjut: Buat Modul Ajar',
   };
 
   let selectedId = 'sesuaikan';
@@ -213,9 +214,9 @@ function rcRenderWelcomeScreen(panel, mapelDisplay, onContinue, atpCount) {
       <span class="rc-welcome-card-label">Susun ATP baru</span>
       <span class="rc-welcome-card-desc">ATP satu fase penuh, selesai hari ini — bukan bulan depan.</span>
     </button>
-    <button type="button" class="rc-welcome-card" data-option="modul" aria-pressed="false" aria-disabled="true">
+    <button type="button" class="rc-welcome-card" data-option="modul" aria-pressed="false">
       <span class="rc-welcome-card-label">Buat Modul Ajar</span>
-      <span class="rc-welcome-card-badge rc-welcome-card-badge--soon">Segera hadir</span>
+      <span class="rc-welcome-card-badge">Butuh ATP aktif</span>
       <span class="rc-welcome-card-desc">Dari ATP ke rencana pertemuan siap pakai — langsung bisa dibawa ke kelas.</span>
     </button>
   </div>
