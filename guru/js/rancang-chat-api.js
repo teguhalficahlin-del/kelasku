@@ -324,3 +324,15 @@ async function cleanupAbandonedDrafts(currentAtpId, scope) {
   if (error) throw error;
   return (data || []).length;
 }
+
+async function fetchModulAktifByAtpId(atpIndukId) {
+  if (!atpIndukId) return [];
+  const { data, error } = await window.supabaseClient
+    .from('modul_induk')
+    .select('id, atp_induk_id, nomor_tp, tp_judul, konten, status, updated_at')
+    .eq('atp_induk_id', atpIndukId)
+    .eq('status', 'aktif')
+    .order('nomor_tp');
+  if (error) throw error;
+  return data || [];
+}

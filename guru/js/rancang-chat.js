@@ -198,12 +198,13 @@
       selected_tp:          null,
       modul_induk_id:       null,
       modul_updated_at:     null,
-      active_question_id:   null,
-      collected_answers:    {},
-      conversation_history: [],
-      pending_multi:        {},
-      session_phase:        'KONTEKS_CP',
-      planning_context_id:  null,
+      active_question_id:      null,
+      collected_answers:       {},
+      conversation_history:    [],
+      pending_multi:           {},
+      session_phase:           'KONTEKS_CP',
+      planning_context_id:     null,
+      viewing_existing_modul:  false,
     });
     saveState();
   }
@@ -587,9 +588,20 @@
       saveState();
       rcSetComposerVisible(false);
       renderModulPreview();
+      if (_chat.viewing_existing_modul) {
+        rcRenderChips([
+          { value: '__kembali_daftar__', label: '← Kembali ke daftar TP' },
+        ], function () {
+          rcClearChips();
+          _chat.viewing_existing_modul = false;
+          saveState();
+          startPhase('DONE');
+        });
+        return;
+      }
       rcRenderChips([
-        { value: '__terima_modul__',   label: '✓ Terima Modul' },
-        { value: '__ulang_generate__', label: '↺ Ulangi Generate' },
+        { value: '__terima_modul__',    label: '✓ Terima Modul' },
+        { value: '__ulang_generate__',  label: '↺ Ulangi Generate' },
         { value: '__kembali_rancang__', label: '← Rancang' },
       ], function (value) {
         rcClearChips();
@@ -621,27 +633,51 @@
         return;
       }
       rcAppendBubble('ai', 'TP mana yang ingin Anda rancang dulu?');
-      const tpChips = [
-        ...tpList.map(function (tp) {
-          return { value: 'tp_' + tp.nomor, label: 'TP ' + tp.nomor + ': ' + tp.judul };
-        }),
-        { value: '__nanti_saja__', label: 'Nanti saja' },
-      ];
-      rcRenderChips(tpChips, function (value) {
-        rcClearChips();
-        if (value === '__nanti_saja__') {
-          rcRenderChips([{ value: '__kembali_utama__', label: '← Kembali ke layar utama' }], function () {
-            kembaliKeLayarUtama();
-          });
-          return;
-        }
-        const nomorTp = Number(value.replace('tp_', ''));
-        const tp = tpList.find(function (t) { return t.nomor === nomorTp; });
-        _chat.selected_tp    = tp || { nomor: nomorTp, judul: '' };
-        _chat.modul_induk_id  = null;
-        _chat.modul_updated_at = null;
-        saveState();
-        startPhase('PILIH_TP');
+      function renderTpChips(modulByNomor) {
+        const tpChips = [
+          ...tpList.flatMap(function (tp) {
+            const chips = [{ value: 'tp_' + tp.nomor, label: 'TP ' + tp.nomor + ': ' + tp.judul }];
+            if (modulByNomor && modulByNomor[tp.nomor]) {
+              chips.push({ value: 'lihat_modul_' + tp.nomor, label: '📄 Lihat Modul TP ' + tp.nomor });
+            }
+            return chips;
+          }),
+          { value: '__nanti_saja__', label: 'Nanti saja' },
+        ];
+        rcRenderChips(tpChips, function (value) {
+          rcClearChips();
+          if (value === '__nanti_saja__') {
+            rcRenderChips([{ value: '__kembali_utama__', label: '← Kembali ke layar utama' }], function () {
+              kembaliKeLayarUtama();
+            });
+            return;
+          }
+          if (value.startsWith('lihat_modul_')) {
+            const nomorTp = Number(value.replace('lihat_modul_', ''));
+            const m = modulByNomor[nomorTp];
+            _chat.modul_induk_id         = m.id;
+            _chat.modul_updated_at       = m.updated_at;
+            _chat.viewing_existing_modul = true;
+            saveState();
+            startPhase('MODUL_REVIEW');
+            return;
+          }
+          const nomorTp = Number(value.replace('tp_', ''));
+          const tp = tpList.find(function (t) { return t.nomor === nomorTp; });
+          _chat.selected_tp      = tp || { nomor: nomorTp, judul: '' };
+          _chat.modul_induk_id   = null;
+          _chat.modul_updated_at = null;
+          saveState();
+          startPhase('PILIH_TP');
+        });
+      }
+      fetchModulAktifByAtpId(_chat.atp_induk_id).then(function (modulAktif) {
+        const modulByNomor = {};
+        (modulAktif || []).forEach(function (m) { modulByNomor[m.nomor_tp] = m; });
+        renderTpChips(modulByNomor);
+      }).catch(function (err) {
+        console.error('[rancang] fetchModulAktifByAtpId error:', err);
+        renderTpChips(null);
       });
       return;
     }
