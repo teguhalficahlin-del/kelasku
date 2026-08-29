@@ -217,6 +217,52 @@ async function deleteAtpInduk(atpId) {
   if (error) throw error;
 }
 
+async function createModulIndukDraft(atpIndukId, nomorTp, tpJudul) {
+  const guruId = await getCurrentGuruId();
+  const { data, error } = await window.supabaseClient
+    .from('modul_induk')
+    .insert({
+      guru_id:      guruId,
+      atp_induk_id: atpIndukId,
+      nomor_tp:     nomorTp,
+      tp_judul:     tpJudul || '',
+      collected_data: {},
+    })
+    .select('id, guru_id, collected_data, updated_at')
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+async function saveModulPhaseOptimistic(modulId, phase, phaseData, expectedUpdatedAt) {
+  const { data: current, error: readError } = await window.supabaseClient
+    .from('modul_induk')
+    .select('id, collected_data, updated_at')
+    .eq('id', modulId)
+    .single();
+  if (readError) throw readError;
+  if (expectedUpdatedAt && current.updated_at !== expectedUpdatedAt) {
+    const conflict = new Error('Modul berubah di tab lain. Muat ulang sebelum melanjutkan.');
+    conflict.code = 'MODUL_WRITE_CONFLICT';
+    throw conflict;
+  }
+  const merged = { ...(current.collected_data || {}), [phase]: phaseData };
+  const { data, error } = await window.supabaseClient
+    .from('modul_induk')
+    .update({ collected_data: merged })
+    .eq('id', modulId)
+    .eq('updated_at', current.updated_at)
+    .select('id, collected_data, updated_at')
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) {
+    const conflict = new Error('Modul berubah di tab lain. Muat ulang sebelum melanjutkan.');
+    conflict.code = 'MODUL_WRITE_CONFLICT';
+    throw conflict;
+  }
+  return data;
+}
+
 // Arsipkan draft lama yang ditinggalkan saat guru memulai ATP baru. Cakupannya
 // sengaja dipersempit ke kombinasi mapel+fase+jenjang yang sama — draft untuk
 // mapel atau fase lain adalah pekerjaan terpisah yang mungkin masih dilanjutkan.

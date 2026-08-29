@@ -17,6 +17,8 @@
     session_phase:        'KONTEKS_CP',
     atp_draft:            [],
     selected_tp:          null,
+    modul_induk_id:       null,
+    modul_updated_at:     null,
     in_flight:            false,
     pending_multi:        {},
   };
@@ -46,6 +48,8 @@
       session_phase:       _chat.session_phase,
       atp_draft:           _chat.atp_draft,
       selected_tp:         _chat.selected_tp,
+      modul_induk_id:      _chat.modul_induk_id,
+      modul_updated_at:    _chat.modul_updated_at,
       teaching_context_id: _chat.teaching_context_id,
       planning_context_id: _chat.planning_context_id,
     };
@@ -80,6 +84,8 @@
         atp_updated_at:      saved.atp_updated_at      ?? null,
         atp_draft:           saved.atp_draft           ?? [],
         selected_tp:         saved.selected_tp         ?? null,
+        modul_induk_id:      saved.modul_induk_id      ?? null,
+        modul_updated_at:    saved.modul_updated_at    ?? null,
         teaching_context_id: saved.teaching_context_id ?? null,
         planning_context_id: saved.planning_context_id ?? null,
       });
@@ -190,6 +196,8 @@
       atp_updated_at:       null,
       atp_draft:            [],
       selected_tp:          null,
+      modul_induk_id:       null,
+      modul_updated_at:     null,
       active_question_id:   null,
       collected_answers:    {},
       conversation_history: [],
@@ -556,6 +564,15 @@
       await triggerGenerateAtp();
       return; // triggerGenerateAtp memanggil startPhase('ATP_REVIEW') sendiri jika sukses
     }
+    if (phase === 'MODUL_GENERATE') {
+      rcSetComposerVisible(false);
+      rcAppendBubble('ai', '⏳ Menyusun Modul Ajar…');
+      rcAppendBubble('sistem', 'Fitur generate Modul Ajar akan tersedia di sprint berikutnya.');
+      rcRenderChips([{ value: '__kembali_utama__', label: '← Kembali ke layar utama' }], function () {
+        kembaliKeLayarUtama();
+      });
+      return;
+    }
     if (phase === 'ATP_REVIEW') {
       renderAtpDraftPreview(); // tampilkan draf TP sebelum pertanyaan konfirmasi
     }
@@ -564,8 +581,35 @@
       saveState();
       rcSetComposerVisible(false);
       rcAppendBubble('ai', '✓ ATP telah selesai ditinjau.');
-      rcRenderChips([{ value: '__kembali_utama__', label: '← Kembali ke layar utama' }], function () {
-        kembaliKeLayarUtama();
+      const tpList = _chat.atp_draft || [];
+      if (!tpList.length) {
+        rcRenderChips([{ value: '__kembali_utama__', label: '← Kembali ke layar utama' }], function () {
+          kembaliKeLayarUtama();
+        });
+        return;
+      }
+      rcAppendBubble('ai', 'TP mana yang ingin Anda rancang dulu?');
+      const tpChips = [
+        ...tpList.map(function (tp) {
+          return { value: 'tp_' + tp.nomor, label: 'TP ' + tp.nomor + ': ' + tp.judul };
+        }),
+        { value: '__nanti_saja__', label: 'Nanti saja' },
+      ];
+      rcRenderChips(tpChips, function (value) {
+        rcClearChips();
+        if (value === '__nanti_saja__') {
+          rcRenderChips([{ value: '__kembali_utama__', label: '← Kembali ke layar utama' }], function () {
+            kembaliKeLayarUtama();
+          });
+          return;
+        }
+        const nomorTp = Number(value.replace('tp_', ''));
+        const tp = tpList.find(function (t) { return t.nomor === nomorTp; });
+        _chat.selected_tp    = tp || { nomor: nomorTp, judul: '' };
+        _chat.modul_induk_id  = null;
+        _chat.modul_updated_at = null;
+        saveState();
+        startPhase('PILIH_TP');
       });
       return;
     }
@@ -950,6 +994,34 @@
     }
   }
 
+  const FASE_V2 = new Set(['PILIH_TP', 'KONTEKS_MODUL', 'SUMBER_STRATEGI', 'ASESMEN_MODUL', 'MODUL_SUMMARY']);
+
+  async function ensureModulDraft() {
+    if (_chat.modul_induk_id) return;
+    const tp = _chat.selected_tp || {};
+    const draft = await createModulIndukDraft(
+      _chat.atp_induk_id,
+      tp.nomor || 1,
+      tp.judul || ''
+    );
+    _chat.modul_induk_id  = draft.id;
+    _chat.modul_updated_at = draft.updated_at;
+    saveState();
+  }
+
+  async function persistModulPhase(phase) {
+    await ensureModulDraft();
+    const phaseData = phaseAnswerObject(phase);
+    if (phase === 'PILIH_TP') {
+      phaseData.selected_tp = _chat.selected_tp;
+    }
+    const saved = await saveModulPhaseOptimistic(
+      _chat.modul_induk_id, phase, phaseData, _chat.modul_updated_at
+    );
+    _chat.modul_updated_at = saved.updated_at;
+    saveState();
+  }
+
   async function ensureAtpDraft() {
     if (_chat.atp_induk_id) return;
     const mapel = answerValue('mapel') || 'Belum ditentukan';
@@ -974,6 +1046,10 @@
   }
 
   async function persistCompletedPhase(phase) {
+    if (FASE_V2.has(phase)) {
+      await persistModulPhase(phase);
+      return;
+    }
     await ensureAtpDraft();
     const phaseData = phaseAnswerObject(phase);
 
@@ -1073,6 +1149,14 @@
         ubah_prioritas: 'PRIORITAS',
         ubah_target:    'TARGET_FASE',
       })[value] || null; // terima/ulang/rumusan/urutan ditangani di handleChipSelect
+    }
+    if (questionId === 'persetujuan_modul_summary' && value !== 'generate') {
+      return ({
+        ubah_pertemuan: 'PILIH_TP',
+        ubah_konteks:   'KONTEKS_MODUL',
+        ubah_strategi:  'SUMBER_STRATEGI',
+        ubah_asesmen:   'ASESMEN_MODUL',
+      })[value] || 'MODUL_SUMMARY';
     }
     return null;
   }

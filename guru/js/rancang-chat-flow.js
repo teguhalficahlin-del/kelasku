@@ -243,6 +243,79 @@ const RANCANG_FLOW = {
       ['ubah_target',    'Ubah target fase'],
     ], { helpText: 'Tinjau rumusan dan urutan TP tersedia penuh di versi berikutnya.' }),
   ],
+
+  PILIH_TP: [
+    angka('jumlah_pertemuan', 'Berapa pertemuan yang akan digunakan untuk TP ini?', 1, 30,
+      { helpText: 'Pertemuan = satu sesi pembelajaran sesuai jadwal kelas.' }),
+  ],
+
+  KONTEKS_MODUL: [
+    pilihan('kondisi_kelas_modul', 'Bagaimana kondisi kelas untuk modul ini?', [
+      ['reguler',            'Reguler — semua siswa mengikuti bersama'],
+      ['diferensiasi',       'Perlu diferensiasi konten atau proses'],
+      ['inklusif',           'Kelas inklusif'],
+      ['campuran_kemampuan', 'Kemampuan awal sangat beragam'],
+    ]),
+    pilihan('target_kompetensi_modul', 'Target kompetensi utama modul ini?', [
+      ['pemahaman',  'Pemahaman konsep'],
+      ['keterampilan', 'Keterampilan praktis'],
+      ['sikap',      'Pembentukan sikap atau karakter'],
+      ['terpadu',    'Terpadu — pemahaman, keterampilan, dan sikap'],
+      ['rekomendasi', 'Minta rekomendasi MiClass'],
+    ], { aiRecommendation: true }),
+  ],
+
+  SUMBER_STRATEGI: [
+    jamak('jenis_sumber', 'Sumber belajar apa yang digunakan? Pilih semua yang sesuai.', [
+      ['buku_teks',    'Buku teks'],
+      ['modul_digital', 'Modul digital'],
+      ['video',        'Video pembelajaran'],
+      ['artikel',      'Artikel atau bacaan pendek'],
+      ['lingkungan',   'Lingkungan sekitar atau konteks dunia kerja'],
+      ['lainnya',      'Sumber lain'],
+    ], { constraints: { exclusive: [] } }),
+    pilihan('strategi_utama', 'Strategi pembelajaran utama yang digunakan?', [
+      ['ceramah_diskusi', 'Ceramah dan diskusi'],
+      ['pbl',         'Pembelajaran berbasis proyek (PBL)'],
+      ['inquiry',     'Inkuiri dan eksplorasi'],
+      ['kolaboratif', 'Pembelajaran kolaboratif'],
+      ['campuran',    'Campuran beberapa strategi'],
+      ['rekomendasi', 'Minta rekomendasi MiClass'],
+    ], { aiRecommendation: true }),
+  ],
+
+  ASESMEN_MODUL: [
+    jamak('teknik_asesmen', 'Teknik asesmen apa yang digunakan?', [
+      ['tes_tulis',   'Tes tulis'],
+      ['tes_lisan',   'Tes lisan'],
+      ['observasi',   'Observasi proses'],
+      ['portofolio',  'Portofolio'],
+      ['proyek',      'Proyek'],
+      ['unjuk_kerja', 'Unjuk kerja'],
+      ['rekomendasi', 'Minta rekomendasi MiClass'],
+    ], { constraints: { exclusive: ['rekomendasi'] }, aiRecommendation: true }),
+    pilihan('waktu_asesmen', 'Kapan asesmen utama dilakukan?', [
+      ['awal',     'Di awal (diagnostik)'],
+      ['proses',   'Selama proses (formatif)'],
+      ['akhir',    'Di akhir pertemuan (sumatif)'],
+      ['campuran', 'Campuran awal, proses, dan akhir'],
+    ]),
+  ],
+
+  MODUL_SUMMARY: [
+    konfirmasi('persetujuan_modul_summary',
+      'Ringkasan Modul Ajar siap disusun.\n\nApakah data modul sudah sesuai?', [
+        ['generate',      'Ya, buat Modul Ajar'],
+        ['ubah_pertemuan', 'Ubah jumlah pertemuan'],
+        ['ubah_konteks',  'Ubah konteks modul'],
+        ['ubah_strategi', 'Ubah sumber dan strategi'],
+        ['ubah_asesmen',  'Ubah asesmen'],
+      ], { helpText: 'Generate hanya berjalan setelah persetujuan guru.' }),
+  ],
+
+  MODUL_GENERATE: [],
+
+  MODUL_REVIEW: [],
 };
 
 // V1 AKTIF: KONTEKS_CP sampai ATP_REVIEW
@@ -272,7 +345,7 @@ const FASE_URUTAN_V2 = [
   'MODUL_REVIEW',
 ];
 
-const FASE_URUTAN = FASE_URUTAN_V1;
+const FASE_URUTAN = [...FASE_URUTAN_V1, ...FASE_URUTAN_V2];
 
 function unwrapAnswer(answer) {
   return answer && typeof answer === 'object' && Object.hasOwn(answer, 'value')
