@@ -268,7 +268,8 @@
   </div>
   ${_infoKelas ? `<div class="rc-kelas-header" style="flex-shrink:0;">${_infoKelas}</div>` : ''}
   <div class="rc-stream" id="rc-stream" style="flex:1;overflow-y:auto;min-height:0;"></div>
-  <div id="rc-composer-wrap" style="flex-shrink:0;"></div>
+  <div id="rc-chips" style="flex-shrink:0;"></div>
+  <div id="rc-composer-wrap" style="flex-shrink:0;display:none;"></div>
 </div>`;
 
     attachRcBackBtnListener();
@@ -486,6 +487,8 @@
         return item.id === _chat.active_question_id;
       });
       if (!q) return;
+      const needsInput = q.kind === 'teks_bebas' || q.kind === 'angka';
+      rcSetComposerVisible(needsInput);
       if (q.kind === 'pilihan_jamak') {
         renderMultiSelect(q);
       } else if (q.kind === 'pilihan' || q.kind === 'konfirmasi') {
@@ -549,6 +552,7 @@
   async function startPhase(phase) {
     _chat.session_phase = phase;
     if (phase === 'ATP_GENERATE') {
+      rcSetComposerVisible(false);
       await triggerGenerateAtp();
       return; // triggerGenerateAtp memanggil startPhase('ATP_REVIEW') sendiri jika sukses
     }
@@ -558,6 +562,7 @@
     if (phase === 'DONE') {
       _chat.active_question_id = null;
       saveState();
+      rcSetComposerVisible(false);
       rcAppendBubble('ai', '✓ ATP telah selesai ditinjau.');
       rcRenderChips([{ value: '__kembali_utama__', label: '← Kembali ke layar utama' }], function () {
         kembaliKeLayarUtama();
@@ -576,8 +581,11 @@
 
     rcAppendBubble('ai', renderQuestionPrompt(q.prompt));
 
+    const needsInput = q.kind === 'teks_bebas' || q.kind === 'angka';
+    rcSetComposerVisible(needsInput);
+
     if (q.kind === 'pilihan_jamak') {
-      renderMultiSelect(q);
+      renderMultiSelect(q, true);
     } else if (q.kind === 'pilihan' || q.kind === 'konfirmasi') {
       rcRenderChips(q.options, (value, label) => {
         handleChipSelect(value, label, q);
@@ -641,9 +649,12 @@
       .map(phase => `${phase}\n${formatPhaseAnswers(phase)}`).join('\n\n');
   }
 
-  function renderMultiSelect(q) {
+  function renderMultiSelect(q, isFirstRender) {
     const selected = _chat.pending_multi[q.id] || [];
     const max = q.constraints?.maxSelections || Infinity;
+    if (isFirstRender && isFinite(max)) {
+      rcAppendBubble('sistem', `Pilih maksimal ${max} opsi.`);
+    }
     // Semua opsi tetap tampil; yang sudah dipilih ditandai '✓' dan bisa diklik
     // ulang untuk dibatalkan.
     const chips = [

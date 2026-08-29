@@ -86,8 +86,7 @@ function rcRenderComposer(containerId, onSubmit) {
   <textarea class="rc-composer-input" id="rc-input" rows="1"
     placeholder="Ketik jawaban Anda…"></textarea>
   <button type="button" class="rc-composer-send" id="rc-send">Kirim</button>
-</div>
-<div class="rc-chips" id="rc-chips"></div>`;
+</div>`;
   el.appendChild(composer);
 
   const input = document.getElementById('rc-input');
@@ -140,6 +139,12 @@ function rcRenderChips(options, onSelect) {
 function rcClearChips() {
   const chips = document.getElementById('rc-chips');
   if (chips) chips.innerHTML = '';
+}
+
+function rcSetComposerVisible(visible) {
+  const wrap = document.getElementById('rc-composer-wrap');
+  if (!wrap) return;
+  wrap.style.display = visible ? '' : 'none';
 }
 
 function rcSetComposerDisabled(disabled) {
