@@ -645,10 +645,29 @@
       });
       return;
     }
+    if (phase === 'MODUL_SUMMARY') {
+      renderModulSummaryInfo();
+    }
     const questions = RANCANG_FLOW[phase];
     if (!questions?.length) return;
     const first = questions[0];
     askQuestion(first);
+  }
+
+  function renderModulSummaryInfo() {
+    const tp = _chat.selected_tp;
+    if (!tp) return;
+    const jpAlokasi = tp.jp_alokasi;
+    if (!jpAlokasi) return;
+    const jumlah = Number(answerValue('jumlah_pertemuan')) || 0;
+    if (!jumlah) return;
+    const jpPerPertemuan = Math.round(jpAlokasi / jumlah);
+    const jpAktual = jpAlokasi / jumlah;
+    let baris = `TP ${tp.nomor}: ${tp.judul}\n${jumlah} pertemuan · ${jpPerPertemuan} JP per pertemuan\nTotal: ${jpAlokasi} JP`;
+    if (jpAktual !== jpPerPertemuan) {
+      baris += `\n(dibulatkan dari ${jpAktual} JP)`;
+    }
+    rcAppendBubble('ai', baris);
   }
 
   function askQuestion(q) {
