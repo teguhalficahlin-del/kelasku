@@ -693,13 +693,18 @@
           startPhase('PILIH_TP');
         });
       }
+      function renderTpChipsThenScroll(modulByNomor) {
+        renderTpChips(modulByNomor);
+        const stream = document.getElementById('rc-stream');
+        if (stream) stream.scrollTop = 0;
+      }
       fetchModulAktifByAtpId(_chat.atp_induk_id).then(function (modulAktif) {
         const modulByNomor = {};
         (modulAktif || []).forEach(function (m) { modulByNomor[m.nomor_tp] = m; });
-        renderTpChips(modulByNomor);
+        renderTpChipsThenScroll(modulByNomor);
       }).catch(function (err) {
         console.error('[rancang] fetchModulAktifByAtpId error:', err);
-        renderTpChips(null);
+        renderTpChipsThenScroll(null);
       });
       return;
     }
