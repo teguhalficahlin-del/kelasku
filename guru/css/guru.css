@@ -4542,6 +4542,9 @@ h2.panel-header.open .panel-collapse-arrow {
   flex-wrap: wrap;
   gap: var(--space-xs);
   margin-top: var(--space-xs);
+  max-height: 45vh;
+  overflow-y: auto;
+  flex-shrink: 0;
 }
 
 /* ============================================================
