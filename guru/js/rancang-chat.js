@@ -696,12 +696,6 @@
             _chat.collected_answers.jumlah_pertemuan = jumlahAnswer;
             saveState();
 
-            const msg =
-              `TP ${tp.nomor}. ${tp.judul}\n` +
-              `${jp} JP · ${nPertemuan} pertemuan${distribusi}`;
-            rcAppendBubble('ai', msg);
-            addToHistory('ai', msg);
-
             await startPhase('KONTEKS_MODUL');
           });
           list.appendChild(item);
@@ -762,6 +756,16 @@
     if (FASE_V2.has(phase)) {
       rcClearStream();
       rcClearChips();
+    }
+    if (phase === 'KONTEKS_MODUL' && _chat.selected_tp) {
+      const tp       = _chat.selected_tp;
+      const jp       = tp.jp_alokasi || 0;
+      const perm     = Array.isArray(tp.jp_pertemuan) ? tp.jp_pertemuan : [];
+      const nPerm    = perm.length || 1;
+      const dist     = perm.length > 1 ? ` (${perm.join('+')} JP)` : '';
+      const msg      = `TP ${tp.nomor}. ${tp.judul}\n${jp} JP · ${nPerm} pertemuan${dist}`;
+      rcAppendBubble('ai', msg);
+      addToHistory('ai', msg);
     }
     if (phase === 'MODUL_SUMMARY') {
       renderModulSummaryInfo();
