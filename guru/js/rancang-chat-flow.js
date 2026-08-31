@@ -74,13 +74,15 @@ const RANCANG_FLOW = {
     ]),
     pilihan('minggu_efektif_mode', 'Bagaimana minggu efektif ditentukan?', [
       ['isi_sendiri', 'Isi sendiri'],
-      ['cari_daerah', 'Cari kalender pendidikan daerah'],
+      ['cari_daerah', 'Mengacu kalender pendidikan daerah (isi minggu efektif sendiri)'],
       ['standar_36', 'Gunakan asumsi sementara 36 minggu (18+18)'],
     ], { helpText: 'Data resmi dan asumsi disimpan dengan status berbeda.' }),
     angka('minggu_sem1', 'Berapa minggu efektif semester pertama?', 10, 22,
-      { condition: { question_id: 'minggu_efektif_mode', value: 'isi_sendiri' } }),
+      { condition: { question_id: 'minggu_efektif_mode', values: ['isi_sendiri', 'cari_daerah'] },
+        helpText: 'Cek kalender pendidikan dari dinas pendidikan provinsi Anda.' }),
     angka('minggu_sem2', 'Berapa minggu efektif semester kedua?', 10, 22,
-      { condition: { question_id: 'minggu_efektif_mode', value: 'isi_sendiri' } }),
+      { condition: { question_id: 'minggu_efektif_mode', values: ['isi_sendiri', 'cari_daerah'] },
+        helpText: 'Semester 2 biasanya 16–18 minggu efektif.' }),
     pilihan('kegiatan_sudah_dikurangi',
       'Apakah minggu efektif tersebut sudah mengurangi kegiatan khusus sekolah?', [
         ['sudah', 'Sudah — tidak ada pengurangan tambahan'],
