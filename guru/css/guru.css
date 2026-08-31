@@ -4432,6 +4432,7 @@ h2.panel-header.open .panel-collapse-arrow {
   border: 1px solid var(--border);
   border-bottom-left-radius: 4px;
   color: var(--text-primary);
+  white-space: pre-wrap;
 }
 
 .rc-bubble--guru {

@@ -635,8 +635,11 @@
       rcSetComposerVisible(false);
       rcClearStream();
       rcClearChips();
-      rcAppendBubble('ai', '✓ ATP telah selesai ditinjau.');
-      renderAtpDonePreview();
+      const atpPreview = renderAtpDonePreview();
+      const atpBubble  = atpPreview
+        ? `✓ ATP telah selesai ditinjau.\n\n${atpPreview}`
+        : '✓ ATP telah selesai ditinjau.';
+      rcAppendBubble('ai', atpBubble);
       const tpList = _chat.atp_draft || [];
       if (!tpList.length) {
         rcRenderChips([{ value: '__kembali_utama__', label: '← Kembali ke layar utama' }], function () {
@@ -1359,7 +1362,7 @@
   // ─── Render draf ATP ──────────────────────────────────────────────────────
 
   function renderAtpDonePreview() {
-    if (!_chat.atp_draft?.length) return;
+    if (!_chat.atp_draft?.length) return '';
     const mapel  = answerValue('mapel') || '';
     const fase   = answerValue('fase')  || 'E';
     const total  = _chat.atp_draft.reduce(
@@ -1371,8 +1374,8 @@
     text += '\n';
 
     for (const tp of _chat.atp_draft) {
-      const jp        = tp.jp_alokasi || 0;
-      const pertemuan = Array.isArray(tp.jp_pertemuan) ? tp.jp_pertemuan : [];
+      const jp         = tp.jp_alokasi || 0;
+      const pertemuan  = Array.isArray(tp.jp_pertemuan) ? tp.jp_pertemuan : [];
       const nPertemuan = pertemuan.length || 1;
       const distribusi = pertemuan.length > 1
         ? ` (${pertemuan.join('+')} JP)`
@@ -1380,7 +1383,7 @@
       text += `\nTP ${tp.nomor}. ${tp.judul}`;
       text += `\n      ${jp} JP · ${nPertemuan} pertemuan${distribusi}`;
     }
-    rcAppendBubble('ai', text.trim());
+    return text.trim();
   }
 
   function renderAtpDraftPreview() {
