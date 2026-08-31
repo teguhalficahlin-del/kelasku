@@ -633,6 +633,8 @@
       _chat.active_question_id = null;
       saveState();
       rcSetComposerVisible(false);
+      rcClearStream();
+      rcClearChips();
       rcAppendBubble('ai', '✓ ATP telah selesai ditinjau.');
       const tpList = _chat.atp_draft || [];
       if (!tpList.length) {

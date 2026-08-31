@@ -141,6 +141,11 @@ function rcClearChips() {
   if (chips) chips.innerHTML = '';
 }
 
+function rcClearStream() {
+  const stream = document.getElementById('rc-stream');
+  if (stream) stream.innerHTML = '';
+}
+
 function rcSetComposerVisible(visible) {
   const wrap = document.getElementById('rc-composer-wrap');
   if (!wrap) return;
