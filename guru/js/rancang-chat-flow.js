@@ -338,7 +338,6 @@ const FASE_URUTAN_V1 = [
 
 // V2 — jangan render di UI
 const FASE_URUTAN_V2 = [
-  'PILIH_TP',
   'KONTEKS_MODUL',
   'SUMBER_STRATEGI',
   'ASESMEN_MODUL',

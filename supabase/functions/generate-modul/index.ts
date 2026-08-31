@@ -318,10 +318,16 @@ Deno.serve(async (req) => {
   const persetujuan = unwrap(mSum.persetujuan_modul_summary);
   if (persetujuan !== 'generate') missing.push('MODUL_SUMMARY.persetujuan_modul_summary');
 
-  // jumlah_pertemuan dari PILIH_TP
-  const pilihTp = (cd.PILIH_TP as Record<string, unknown>) || {};
-  const jumlahPertemuan = Number(unwrap(pilihTp.jumlah_pertemuan) ?? 0);
-  if (!jumlahPertemuan || jumlahPertemuan < 1) missing.push('PILIH_TP.jumlah_pertemuan');
+  // jumlah_pertemuan dari jp_pertemuan ATP (otomatis, tidak ditanya ke guru)
+  const pilihTp   = (cd.PILIH_TP as Record<string, unknown>) || {};
+  const selectedTp = (pilihTp.selected_tp as Record<string, unknown>) || {};
+  const jpPertemuanArr = Array.isArray(selectedTp.jp_pertemuan)
+    ? (selectedTp.jp_pertemuan as number[]) : [];
+  const jumlahPertemuan = jpPertemuanArr.length > 0
+    ? jpPertemuanArr.length
+    : Number(unwrap(pilihTp.jumlah_pertemuan) ?? 0);
+  if (!jumlahPertemuan || jumlahPertemuan < 1)
+    missing.push('selected_tp.jp_pertemuan (distribusi pertemuan tidak ditemukan di ATP)');
 
   // jp_per_pertemuan: turunkan dari progresi_tp ATP untuk TP ini
   // jp_pertemuan tidak ditanyakan di flow — diturunkan dari jp_alokasi TP ÷ jumlah_pertemuan
@@ -332,7 +338,9 @@ Deno.serve(async (req) => {
     tp => Number(tp.nomor) === Number((modul as Record<string, unknown>).nomor_tp),
   );
   const jpAlokasi = tpEntry ? Number(tpEntry.jp_alokasi ?? 0) : 0;
-  const jpPerPertemuan = jumlahPertemuan > 0 ? Math.round(jpAlokasi / jumlahPertemuan) : 0;
+  const jpPerPertemuan = jpPertemuanArr.length > 0
+    ? Math.round(jpPertemuanArr.reduce((a, b) => a + b, 0) / jpPertemuanArr.length)
+    : (jumlahPertemuan > 0 ? Math.round(jpAlokasi / jumlahPertemuan) : 0);
   if (jpPerPertemuan < 1) missing.push('jp_per_pertemuan (jp_alokasi tidak tersedia di progresi_tp ATP)');
 
   // durasi_jp dari ATP WAKTU phase, fallback 45 menit

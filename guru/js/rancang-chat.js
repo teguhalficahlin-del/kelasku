@@ -677,14 +677,32 @@
 
           item.appendChild(label);
           item.appendChild(meta);
-          item.addEventListener('click', function () {
+          item.addEventListener('click', async function () {
             list.remove();
             rcClearChips();
             _chat.selected_tp      = tp;
             _chat.modul_induk_id   = null;
             _chat.modul_updated_at = null;
+
+            const pertemuan  = Array.isArray(tp.jp_pertemuan) ? tp.jp_pertemuan : [];
+            const nPertemuan = pertemuan.length || 1;
+            const distribusi = pertemuan.length > 1
+              ? ` (${pertemuan.join('+')} JP)` : '';
+            const jp = tp.jp_alokasi || 0;
+
+            const jumlahAnswer = {
+              value: String(nPertemuan), source: 'otomatis', confirmed: true };
+            if (!_chat.collected_answers) _chat.collected_answers = {};
+            _chat.collected_answers.jumlah_pertemuan = jumlahAnswer;
             saveState();
-            startPhase('PILIH_TP');
+
+            const msg =
+              `TP ${tp.nomor}. ${tp.judul}\n` +
+              `${jp} JP · ${nPertemuan} pertemuan${distribusi}`;
+            rcAppendBubble('ai', msg);
+            addToHistory('ai', msg);
+
+            await startPhase('KONTEKS_MODUL');
           });
           list.appendChild(item);
 
