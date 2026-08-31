@@ -655,8 +655,15 @@
           if (value.startsWith('lihat_modul_')) {
             const nomorTp = Number(value.replace('lihat_modul_', ''));
             const m = modulByNomor[nomorTp];
+            if (!m) {
+              rcAppendBubble('sistem', 'Modul tidak ditemukan. Coba muat ulang halaman.');
+              return;
+            }
+            const tp = tpList.find(function (t) { return t.nomor === nomorTp; });
+            _chat.selected_tp            = tp || { nomor: nomorTp, judul: '' };
             _chat.modul_induk_id         = m.id;
             _chat.modul_updated_at       = m.updated_at;
+            _chat.modul_konten           = m.konten;
             _chat.viewing_existing_modul = true;
             saveState();
             startPhase('MODUL_REVIEW');
