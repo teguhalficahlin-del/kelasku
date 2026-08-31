@@ -649,54 +649,87 @@
       }
       rcAppendBubble('ai', 'TP mana yang ingin Anda rancang dulu?');
       function renderTpChips(modulByNomor) {
-        const tpChips = [
-          ...tpList.flatMap(function (tp) {
-            const chips = [{ value: 'tp_' + tp.nomor, label: 'TP ' + tp.nomor + ': ' + tp.judul }];
-            if (modulByNomor && modulByNomor[tp.nomor]) {
-              chips.push({ value: 'lihat_modul_' + tp.nomor, label: '📄 Lihat Modul TP ' + tp.nomor });
-            }
-            return chips;
-          }),
-          { value: '__nanti_saja__', label: 'Nanti saja' },
-        ];
-        rcRenderChips(tpChips, function (value) {
-          rcClearChips();
-          if (value === '__nanti_saja__') {
-            rcRenderChips([{ value: '__kembali_utama__', label: '← Kembali ke layar utama' }], function () {
-              kembaliKeLayarUtama();
-            });
-            return;
-          }
-          if (value.startsWith('lihat_modul_')) {
-            const nomorTp = Number(value.replace('lihat_modul_', ''));
-            const m = modulByNomor[nomorTp];
-            if (!m) {
-              rcAppendBubble('sistem', 'Modul tidak ditemukan. Coba muat ulang halaman.');
-              return;
-            }
-            const tp = tpList.find(function (t) { return t.nomor === nomorTp; });
-            _chat.selected_tp            = tp || { nomor: nomorTp, judul: '' };
-            _chat.modul_induk_id         = m.id;
-            _chat.modul_updated_at       = m.updated_at;
-            _chat.modul_konten           = m.konten;
-            _chat.viewing_existing_modul = true;
+        const stream = document.getElementById('rc-stream');
+        if (!stream) return;
+
+        const list = document.createElement('div');
+        list.className = 'rc-tp-list';
+
+        tpList.forEach(function (tp) {
+          const item = document.createElement('button');
+          item.type = 'button';
+          item.className = 'rc-tp-item';
+          item.dataset.value = 'tp_' + tp.nomor;
+
+          const jp         = tp.jp_alokasi || 0;
+          const pertemuan  = Array.isArray(tp.jp_pertemuan) ? tp.jp_pertemuan : [];
+          const nPertemuan = pertemuan.length || 1;
+          const distribusi = pertemuan.length > 1
+            ? ` (${pertemuan.join('+')} JP)` : '';
+
+          const label = document.createElement('span');
+          label.className = 'rc-tp-item__label';
+          label.textContent = `TP ${tp.nomor}. ${tp.judul}`;
+
+          const meta = document.createElement('span');
+          meta.className = 'rc-tp-item__meta';
+          meta.textContent = `${jp} JP · ${nPertemuan} pertemuan${distribusi}`;
+
+          item.appendChild(label);
+          item.appendChild(meta);
+          item.addEventListener('click', function () {
+            list.remove();
+            rcClearChips();
+            _chat.selected_tp      = tp;
+            _chat.modul_induk_id   = null;
+            _chat.modul_updated_at = null;
             saveState();
-            startPhase('MODUL_REVIEW');
-            return;
+            startPhase('PILIH_TP');
+          });
+          list.appendChild(item);
+
+          if (modulByNomor && modulByNomor[tp.nomor]) {
+            const m = modulByNomor[tp.nomor];
+            const modulBtn = document.createElement('button');
+            modulBtn.type = 'button';
+            modulBtn.className = 'rc-tp-item--modul';
+            modulBtn.textContent = '📄 Lihat Modul TP ' + tp.nomor;
+            modulBtn.addEventListener('click', function (e) {
+              e.stopPropagation();
+              list.remove();
+              rcClearChips();
+              const matchTp = tpList.find(function (t) { return t.nomor === tp.nomor; });
+              _chat.selected_tp            = matchTp || { nomor: tp.nomor, judul: tp.judul };
+              _chat.modul_induk_id         = m.id;
+              _chat.modul_updated_at       = m.updated_at;
+              _chat.modul_konten           = m.konten;
+              _chat.viewing_existing_modul = true;
+              saveState();
+              startPhase('MODUL_REVIEW');
+            });
+            list.appendChild(modulBtn);
           }
-          const nomorTp = Number(value.replace('tp_', ''));
-          const tp = tpList.find(function (t) { return t.nomor === nomorTp; });
-          _chat.selected_tp      = tp || { nomor: nomorTp, judul: '' };
-          _chat.modul_induk_id   = null;
-          _chat.modul_updated_at = null;
-          saveState();
-          startPhase('PILIH_TP');
         });
+
+        const nantiBubble = document.createElement('button');
+        nantiBubble.type = 'button';
+        nantiBubble.className = 'rp-chip';
+        nantiBubble.textContent = 'Nanti saja';
+        nantiBubble.addEventListener('click', function () {
+          list.remove();
+          rcClearChips();
+          rcRenderChips(
+            [{ value: '__kembali_utama__', label: '← Kembali ke layar utama' }],
+            function () { kembaliKeLayarUtama(); }
+          );
+        });
+        list.appendChild(nantiBubble);
+
+        stream.appendChild(list);
+        list.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
       function renderTpChipsThenScroll(modulByNomor) {
         renderTpChips(modulByNomor);
-        const stream = document.getElementById('rc-stream');
-        if (stream) stream.scrollTop = 0;
       }
       fetchModulAktifByAtpId(_chat.atp_induk_id).then(function (modulAktif) {
         const modulByNomor = {};
