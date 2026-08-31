@@ -699,6 +699,10 @@
       });
       return;
     }
+    if (FASE_V2.has(phase)) {
+      rcClearStream();
+      rcClearChips();
+    }
     if (phase === 'MODUL_SUMMARY') {
       renderModulSummaryInfo();
     }
