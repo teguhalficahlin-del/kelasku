@@ -636,6 +636,7 @@
       rcClearStream();
       rcClearChips();
       rcAppendBubble('ai', '✓ ATP telah selesai ditinjau.');
+      renderAtpDonePreview();
       const tpList = _chat.atp_draft || [];
       if (!tpList.length) {
         rcRenderChips([{ value: '__kembali_utama__', label: '← Kembali ke layar utama' }], function () {
@@ -1356,6 +1357,31 @@
   }
 
   // ─── Render draf ATP ──────────────────────────────────────────────────────
+
+  function renderAtpDonePreview() {
+    if (!_chat.atp_draft?.length) return;
+    const mapel  = answerValue('mapel') || '';
+    const fase   = answerValue('fase')  || 'E';
+    const total  = _chat.atp_draft.reduce(
+      function (s, tp) { return s + (tp.jp_alokasi || 0); }, 0);
+
+    let text = mapel && fase
+      ? `${mapel} · Fase ${fase} · ${_chat.atp_draft.length} TP · ${total} JP`
+      : `${_chat.atp_draft.length} TP · ${total} JP`;
+    text += '\n';
+
+    for (const tp of _chat.atp_draft) {
+      const jp        = tp.jp_alokasi || 0;
+      const pertemuan = Array.isArray(tp.jp_pertemuan) ? tp.jp_pertemuan : [];
+      const nPertemuan = pertemuan.length || 1;
+      const distribusi = pertemuan.length > 1
+        ? ` (${pertemuan.join('+')} JP)`
+        : '';
+      text += `\nTP ${tp.nomor}. ${tp.judul}`;
+      text += `\n      ${jp} JP · ${nPertemuan} pertemuan${distribusi}`;
+    }
+    rcAppendBubble('ai', text.trim());
+  }
 
   function renderAtpDraftPreview() {
     if (!_chat.atp_draft?.length) return;
