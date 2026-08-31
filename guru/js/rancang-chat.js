@@ -292,6 +292,15 @@
     rcRenderComposer('rc-composer-wrap', handleGuruInput);
     if (notice) rcAppendBubble('sistem', notice);
 
+    if (mode === 'modul' && _chat.atp_induk_id) {
+      if (_chat.atp_draft?.length) {
+        rcAppendBubble('sistem', 'ATP dimuat — pilih TP yang ingin dirancang.');
+        startPhase('DONE');
+      } else {
+        resumeAtpFromDb();
+      }
+      return;
+    }
     if (mode === 'adaptasi' && _chat.atp_induk_id) {
       resumeAtpFromDb();
     } else if (restored && _chat.active_question_id) {
@@ -320,7 +329,7 @@
   // getAtpIndukList() (daftar sengaja ramping), jadi diambil di sini. Query
   // langsung ke supabaseClient mengikuti preseden persistCompletedPhase —
   // idealnya pindah ke rancang-chat-api.js saat file itu boleh disentuh lagi.
-  async function openAtpAdaptasi(cId, panel, picked) {
+  async function openAtpAdaptasi(cId, panel, picked, skipToModul) {
     _chat.classroom_id = cId;
     _chat.guru_id = await getCurrentGuruId();
 
@@ -344,7 +353,7 @@
     }
 
     hydrateFromAtp(full);
-    await initChatShell(cId, panel, 'adaptasi');
+    await initChatShell(cId, panel, skipToModul ? 'modul' : 'adaptasi');
   }
 
   // classroom.js mengisi window._classroom* sekaligus dalam satu blok, tapi baru
@@ -367,11 +376,11 @@
   // Picker 'sesuaikan' dengan hapus ATP + refresh daftar. Ditarik keluar dari
   // initRancangChat karena hapus butuh render ulang picker (atau layar pembuka
   // bila daftar habis) tanpa mengulang query classroom meta.
-  function renderAtpPickerScreen(panel, cId, list, mapelDisplay) {
+  function renderAtpPickerScreen(panel, cId, list, mapelDisplay, skipToModul) {
     rcRenderAtpPicker(panel, list, async function (picked) {
       _initializing = true;
       try {
-        await openAtpAdaptasi(cId, panel, picked);
+        await openAtpAdaptasi(cId, panel, picked, skipToModul);
       } finally {
         _initializing = false;
       }
@@ -422,7 +431,7 @@
             mode = 'susun';
             notice = 'Belum ada ATP aktif — susun ATP dulu sebelum membuat Modul Ajar.';
           } else {
-            renderAtpPickerScreen(panel, cId, atpAktif, mapelDisplay);
+            renderAtpPickerScreen(panel, cId, atpAktif, mapelDisplay, true);
             return;
           }
         }

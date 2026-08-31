@@ -305,11 +305,11 @@ const RANCANG_FLOW = {
   MODUL_SUMMARY: [
     konfirmasi('persetujuan_modul_summary',
       'Ringkasan Modul Ajar siap disusun.\n\nApakah data modul sudah sesuai?', [
-        ['generate',      'Ya, buat Modul Ajar'],
+        ['generate',       'Ya, buat Modul Ajar'],
         ['ubah_pertemuan', 'Ubah jumlah pertemuan'],
-        ['ubah_konteks',  'Ubah konteks modul'],
-        ['ubah_strategi', 'Ubah sumber dan strategi'],
-        ['ubah_asesmen',  'Ubah asesmen'],
+        ['ubah_konteks',   'Ubah konteks'],
+        ['ubah_strategi',  'Ubah sumber & strategi'],
+        ['ubah_asesmen',   'Ubah asesmen'],
       ], { helpText: 'Generate hanya berjalan setelah persetujuan guru.' }),
   ],
 
