@@ -4537,7 +4537,7 @@ h2.panel-header.open .panel-collapse-arrow {
 .rc-composer-send:hover:not(:disabled) { background: var(--gold-hover); }
 .rc-composer-send:disabled { opacity: 0.4; cursor: not-allowed; }
 
-.rc-chips {
+#rc-chips {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-xs);
