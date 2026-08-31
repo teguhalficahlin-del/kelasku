@@ -696,6 +696,7 @@
             _chat.collected_answers.jumlah_pertemuan = jumlahAnswer;
             saveState();
 
+            await persistModulPhase('PILIH_TP');
             await startPhase('KONTEKS_MODUL');
           });
           list.appendChild(item);
