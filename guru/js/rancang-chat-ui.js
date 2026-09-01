@@ -232,6 +232,7 @@ function rcRenderWelcomeScreen(panel, mapelDisplay, onContinue, atpCount) {
       <span class="rc-welcome-card-badge">Direkomendasikan</span>
       <span class="rc-welcome-card-desc">Perbarui ATP lama Anda dalam hitungan menit — tanpa mengulang dari awal.</span>
     </button>
+    <div id="rc-modul-katalog"></div>
     <button type="button" class="rc-welcome-card" data-option="susun" aria-pressed="false">
       <span class="rc-welcome-card-label">Susun ATP baru</span>
       <span class="rc-welcome-card-desc">ATP satu fase penuh, selesai hari ini — bukan bulan depan.</span>
@@ -243,7 +244,6 @@ function rcRenderWelcomeScreen(panel, mapelDisplay, onContinue, atpCount) {
     </button>
   </div>
   <p class="rc-welcome-ai-note">Guru yang sibuk tidak butuh aplikasi yang rumit. MiClass dirancang agar Anda bisa fokus mengajar — bukan mengurus berkas.</p>
-  <div id="rc-modul-katalog" style="margin-top:20px;"></div>
 </div>`;
 
   panel.querySelectorAll('.rc-welcome-card').forEach(function (card) {
