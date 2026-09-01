@@ -278,6 +278,7 @@
     <button type="button" id="rc-back-btn" class="rp-chip" style="padding:2px 10px;font-size:0.78rem;">← Rancang</button>
   </div>
   ${_infoKelas ? `<div class="rc-kelas-header" style="flex-shrink:0;">${_infoKelas}</div>` : ''}
+  <div id="rc-modul-progress" style="display:none;flex-shrink:0;padding:6px 14px 4px;font-size:0.82rem;color:var(--gold,#f2c14e);border-bottom:1px solid rgba(242,193,78,0.18);background:rgba(242,193,78,0.05);">Modul Ajar · Langkah <span id="rc-prog-step">1</span> dari 4 · <span id="rc-prog-name"></span></div>
   <div class="rc-stream" id="rc-stream" style="flex:1;overflow-y:auto;min-height:0;"></div>
   <div id="rc-chips" style="flex-shrink:0;"></div>
   <div id="rc-composer-wrap" style="flex-shrink:0;display:none;"></div>
