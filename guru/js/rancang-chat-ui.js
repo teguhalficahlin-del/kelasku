@@ -256,6 +256,7 @@ function rcRenderWelcomeScreen(panel, mapelDisplay, onContinue, atpCount) {
       ${escHtml(BTN_LABELS['sesuaikan'])}
     </button>
   </div>
+  <div id="rc-modul-katalog" style="margin-top:20px;"></div>
 </div>`;
 
   panel.querySelectorAll('.rc-welcome-card').forEach(function (card) {
@@ -280,7 +281,7 @@ function rcRenderWelcomeScreen(panel, mapelDisplay, onContinue, atpCount) {
 // Memakai ulang kelas .rc-welcome-* yang sudah ada supaya tampilannya identik
 // dengan layar pembuka — tidak ada CSS baru yang perlu ditambahkan.
 // onDelete (opsional) dipanggil dengan (atp) setelah guru mengonfirmasi hapus.
-function rcRenderAtpPicker(panel, items, onPick, onDelete) {
+function rcRenderAtpPicker(panel, items, onPick, onDelete, onBack) {
   function escHtml(s) {
     return String(s)
       .replace(/&/g, '&amp;')
@@ -331,7 +332,8 @@ function rcRenderAtpPicker(panel, items, onPick, onDelete) {
   </div>
   <div class="rc-welcome-cards">${cards}</div>
   <p class="rc-welcome-ai-note" id="rc-atp-picker-pesan"></p>
-  <div class="rc-welcome-footer">
+  <div class="rc-welcome-footer" style="display:flex;gap:12px;flex-wrap:wrap;">
+    ${onBack ? '<button type="button" class="rc-welcome-btn" id="rc-atp-picker-kembali" style="background:transparent;border:1px solid var(--border,rgba(255,255,255,0.12));color:var(--text-muted,#888);">← Menu Rancang</button>' : ''}
     <button type="button" class="rc-welcome-btn" id="rc-atp-picker-lanjut">Buka ATP Ini</button>
   </div>
 </div>`;
@@ -358,6 +360,65 @@ function rcRenderAtpPicker(panel, items, onPick, onDelete) {
       if (!atp || typeof onDelete !== 'function') return;
       rcConfirmHapusAtp(atp, function () { onDelete(atp); });
     });
+  });
+
+  const kembaliBtn = document.getElementById('rc-atp-picker-kembali');
+  if (kembaliBtn && typeof onBack === 'function') {
+    kembaliBtn.addEventListener('click', onBack);
+  }
+}
+
+// ── Katalog Modul Ajar Aktif di layar pembuka ─────────────────────────────
+// container: elemen DOM (misalnya div#rc-modul-katalog)
+// moduls: array hasil fetchAllModulAktifGuru — termasuk atp_induk.{mapel,fase}
+// onBuka(modul): dipanggil saat guru klik tombol Buka
+function rcRenderModulKatalog(container, moduls, onBuka) {
+  if (!container) return;
+  if (!moduls || !moduls.length) { container.style.display = 'none'; return; }
+
+  function escHtml(s) {
+    return String(s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function tanggal(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    if (isNaN(d)) return '';
+    return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
+
+  container.innerHTML =
+    '<div style="border-top:1px solid var(--border,rgba(255,255,255,0.1));padding-top:16px;">' +
+    '<p style="font-size:0.8rem;color:var(--text-muted,#888);margin:0 0 10px;text-transform:uppercase;letter-spacing:.06em;">Modul Ajar Aktif</p>' +
+    '<div id="rc-katalog-list" style="display:flex;flex-direction:column;gap:8px;"></div>' +
+    '</div>';
+
+  const list = container.querySelector('#rc-katalog-list');
+  moduls.forEach(function (m) {
+    const mapel = m.atp_induk?.mapel || '';
+    const fase  = m.atp_induk?.fase  ? 'Fase ' + m.atp_induk.fase : '';
+    const meta  = [mapel, fase].filter(Boolean).join(' · ');
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:8px;' +
+      'background:rgba(255,255,255,0.04);border:1px solid var(--border,rgba(255,255,255,0.08));' +
+      'border-radius:8px;padding:10px 12px;';
+    row.innerHTML =
+      '<div style="min-width:0;flex:1;">' +
+        '<div style="font-size:0.88rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' +
+          escHtml('TP ' + m.nomor_tp + '. ' + (m.tp_judul || '')) +
+        '</div>' +
+        (meta ? '<div style="font-size:0.78rem;color:var(--text-muted,#888);margin-top:2px;">' + escHtml(meta) + '</div>' : '') +
+        (m.updated_at ? '<div style="font-size:0.75rem;color:var(--text-muted,#888);margin-top:1px;">' + escHtml(tanggal(m.updated_at)) + '</div>' : '') +
+      '</div>';
+    const bukaBtn = document.createElement('button');
+    bukaBtn.type = 'button';
+    bukaBtn.className = 'rp-chip';
+    bukaBtn.textContent = 'Buka';
+    bukaBtn.style.cssText = 'flex-shrink:0;font-size:0.8rem;';
+    bukaBtn.addEventListener('click', function () { if (typeof onBuka === 'function') onBuka(m); });
+    row.appendChild(bukaBtn);
+    list.appendChild(row);
   });
 }
 

@@ -296,6 +296,10 @@
     if (notice) rcAppendBubble('sistem', notice);
 
     if (mode === 'modul' && _chat.atp_induk_id) {
+      if (_chat.viewing_existing_modul && _chat.modul_induk_id) {
+        startPhase('MODUL_REVIEW');
+        return;
+      }
       if (_chat.atp_draft?.length) {
         rcAppendBubble('sistem', 'ATP dimuat — pilih TP yang ingin dirancang.');
         startPhase('DONE');
@@ -408,7 +412,7 @@
         return;
       }
       renderAtpPickerScreen(panel, cId, refreshed, mapelDisplay);
-    });
+    }, kembaliKeLayarUtama);
   }
 
   // atpList: array (jumlah diketahui) atau null (query gagal, jumlah tidak diketahui).
@@ -469,6 +473,50 @@
 
       rcRenderWelcomeScreen(panel, mapelDisplay,
         makeWelcomeContinueHandler(panel, cId, mapelDisplay, atpList), atpCount);
+
+      // ITEM 10: katalog modul aktif — query tanpa menahan render
+      const katalogEl = document.getElementById('rc-modul-katalog');
+      if (katalogEl) {
+        fetchAllModulAktifGuru().then(function (moduls) {
+          rcRenderModulKatalog(katalogEl, moduls, async function (modul) {
+            // Load ATP + modul konten lalu buka MODUL_REVIEW
+            _initializing = true;
+            try {
+              const { data: atpFull, error: atpErr } = await window.supabaseClient
+                .from('atp_induk')
+                .select('id, mapel, fase, jenjang, status, updated_at, progresi_tp, collected_data')
+                .eq('id', modul.atp_induk_id)
+                .single();
+              if (atpErr) throw atpErr;
+              hydrateFromAtp(atpFull);
+              const tp = (atpFull.progresi_tp || []).find(function (t) { return t.nomor === modul.nomor_tp; });
+              _chat.selected_tp = tp || { nomor: modul.nomor_tp, judul: modul.tp_judul };
+              _chat.modul_induk_id = modul.id;
+              _chat.viewing_existing_modul = true;
+              const { data: mFull, error: mErr } = await window.supabaseClient
+                .from('modul_induk')
+                .select('id, konten, updated_at')
+                .eq('id', modul.id)
+                .single();
+              if (!mErr && mFull) {
+                _chat.modul_konten = mFull.konten;
+                _chat.modul_updated_at = mFull.updated_at;
+              }
+              saveState();
+              await initChatShell(cId, panel, 'modul');
+            } catch (e) {
+              console.error('[rancang-chat] gagal membuka modul dari katalog:', e);
+              const katalog2 = document.getElementById('rc-modul-katalog');
+              if (katalog2) katalog2.insertAdjacentHTML('beforeend',
+                '<p style="color:#ff6b6b;font-size:0.82rem;margin-top:6px;">Gagal membuka modul. Periksa koneksi lalu coba lagi.</p>');
+            } finally {
+              _initializing = false;
+            }
+          });
+        }).catch(function (e) {
+          console.warn('[rancang-chat] fetchAllModulAktifGuru gagal:', e);
+        });
+      }
     } finally {
       _initializing = false;
     }
@@ -525,7 +573,7 @@
       } else if (q.kind === 'pilihan' || q.kind === 'konfirmasi') {
         rcRenderChips(q.options, function (val, label) { handleChipSelect(val, label, q); });
       }
-      attachRcBackBtnListener();
+      updateContextualBackBtn(_chat.session_phase);
     });
   }
 
@@ -538,6 +586,53 @@
     const freshBtn = btn.cloneNode(true);
     btn.replaceWith(freshBtn);
     freshBtn.addEventListener('click', handleKembaliRancangClick);
+  }
+
+  // ITEM 6: label + handler tombol rc-back-btn disesuaikan per fase
+  function updateContextualBackBtn(phase) {
+    const btn = document.getElementById('rc-back-btn');
+    if (!btn) return;
+    const BACK = {
+      KONTEKS_MODUL:   { label: '← Pilih TP',          fn: function () { startPhase('DONE'); } },
+      SUMBER_STRATEGI: { label: '← Konteks Modul',      fn: function () { goBackToPhase('KONTEKS_MODUL'); } },
+      ASESMEN_MODUL:   { label: '← Sumber & Strategi',  fn: function () { goBackToPhase('SUMBER_STRATEGI'); } },
+      MODUL_SUMMARY:   { label: '← Asesmen',            fn: function () { goBackToPhase('ASESMEN_MODUL'); } },
+      MODUL_REVIEW:    { label: '← Daftar TP',          fn: function () { rcClearChips(); startPhase('DONE'); } },
+      MODUL_GENERATE:  null, // tombol disembunyikan
+    };
+    const entry = BACK[phase];
+    if (entry === null) {
+      btn.style.display = 'none';
+      return;
+    }
+    btn.style.display = '';
+    if (entry === undefined) {
+      btn.textContent = '← Rancang';
+      const fresh = btn.cloneNode(true);
+      btn.replaceWith(fresh);
+      fresh.addEventListener('click', handleKembaliRancangClick);
+      return;
+    }
+    btn.textContent = entry.label;
+    const fresh = btn.cloneNode(true);
+    btn.replaceWith(fresh);
+    fresh.addEventListener('click', entry.fn);
+  }
+
+  // Kembali ke fase sebelumnya: bersihkan jawaban fase target lalu restart.
+  // Jawaban fase-fase yang lebih maju (sesudah target) tetap tersimpan —
+  // kalau guru tidak mengubah apa-apa, processPhase akan melewatinya otomatis.
+  function goBackToPhase(targetPhase) {
+    const questions = RANCANG_FLOW[targetPhase] || [];
+    questions.forEach(function (q) {
+      delete _chat.collected_answers[q.id];
+      delete _chat.pending_multi[q.id];
+    });
+    _chat.session_phase = targetPhase;
+    saveState();
+    rcClearStream();
+    rcClearChips();
+    startPhase(targetPhase);
   }
 
   // Guru menekan ✏ pada jawaban lama (pertanyaan M) di fase yang masih aktif.
@@ -583,6 +678,7 @@
   async function startPhase(phase) {
     _chat.session_phase = phase;
     if (typeof rcUpdateModulProgress === 'function') rcUpdateModulProgress(phase);
+    updateContextualBackBtn(phase);
     if (phase === 'ATP_GENERATE') {
       rcSetComposerVisible(false);
       await triggerGenerateAtp();
@@ -1928,35 +2024,60 @@
       const code = err.code || '';
       let msg;
       let retryable = false;
+      let needsReload = false;
+      let needsBack = false;
       if (code === 'MODUL_INPUT_INCOMPLETE') {
-        msg = '❌ Data modul belum lengkap. Kembali ke ringkasan dan periksa jawaban.';
+        msg = 'Beberapa data belum lengkap. Kembali ke ringkasan untuk melengkapinya.';
+        needsBack = true;
       } else if (code === 'MODUL_WRITE_CONFLICT' || code === 'MODUL_GENERATION_CONFLICT') {
-        msg = '❌ Data modul berubah di tab lain. Muat ulang halaman lalu coba lagi.';
+        msg = 'Modul ini sedang dibuka di halaman lain. Muat ulang halaman lalu coba lagi.';
+        needsReload = true;
       } else if (code === 'MODUL_NOT_FOUND') {
-        msg = '❌ Modul tidak ditemukan. Muat ulang halaman.';
+        msg = 'Modul tidak ditemukan. Muat ulang halaman.';
+        needsReload = true;
       } else if (['MODUL_GENERATION_INVALID_JSON', 'MODUL_GENERATION_INVALID_SCHEMA', 'MODUL_GENERATION_FAILED'].includes(code)) {
-        msg = '❌ AI gagal menghasilkan Modul yang valid. Silakan coba lagi.';
+        msg = 'MiClass belum berhasil menyusun modul. Jawaban Anda tersimpan. Silakan coba lagi.';
         retryable = true;
       } else if (['MODUL_GENERATION_TIMEOUT', 'MODUL_STREAM_INCOMPLETE', 'MODUL_POLL_TIMEOUT', 'AI_ERROR'].includes(code)) {
-        msg = '❌ Waktu habis saat menyusun Modul. Silakan coba lagi.';
+        msg = 'Terjadi gangguan sementara. Silakan coba lagi dalam beberapa menit.';
         retryable = true;
       } else if (code === 'RATE_LIMIT') {
-        msg = '❌ Batas generate Modul harian (5×) tercapai. Coba lagi besok.';
+        msg = 'Batas generate Modul hari ini (5×) sudah tercapai. Coba lagi besok ya.';
       } else {
-        msg = `❌ Gagal menyusun Modul: ${err.message || 'Error tidak diketahui'}. Coba lagi.`;
+        msg = 'Terjadi gangguan sementara. Silakan coba lagi dalam beberapa menit.';
         retryable = true;
       }
-      rcAppendBubble('sistem', msg);
+      rcAppendBubble('sistem', '⚠ ' + msg);
+      const actionWrap = document.createElement('div');
+      actionWrap.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;';
       if (retryable) {
-        const btn = document.createElement('button');
-        btn.className = 'rp-chip';
-        btn.textContent = '↺ Coba lagi';
-        btn.addEventListener('click', () => {
-          btn.closest('.rc-bubble')?.remove();
+        const btnRetry = document.createElement('button');
+        btnRetry.className = 'rp-chip';
+        btnRetry.textContent = '↺ Coba Lagi';
+        btnRetry.addEventListener('click', function () {
+          actionWrap.closest('.rc-bubble')?.remove();
           triggerGenerateModul();
         });
-        rcAppendBubble('sistem', btn);
+        actionWrap.appendChild(btnRetry);
       }
+      if (needsReload) {
+        const btnReload = document.createElement('button');
+        btnReload.className = 'rp-chip';
+        btnReload.textContent = '🔄 Muat Ulang';
+        btnReload.addEventListener('click', function () { window.location.reload(); });
+        actionWrap.appendChild(btnReload);
+      }
+      if (needsBack) {
+        const btnBack = document.createElement('button');
+        btnBack.className = 'rp-chip';
+        btnBack.textContent = '← Kembali ke Ringkasan';
+        btnBack.addEventListener('click', function () {
+          actionWrap.closest('.rc-bubble')?.remove();
+          startPhase('MODUL_SUMMARY');
+        });
+        actionWrap.appendChild(btnBack);
+      }
+      if (actionWrap.children.length > 0) rcAppendBubble('sistem', actionWrap);
     } finally {
       _chat.modul_generating = false;
       // Re-enable chip jika ada
@@ -2117,7 +2238,8 @@
 
     if (cId) {
       const savedTab = localStorage.getItem('sip_tab_' + cId);
-      if (savedTab === 'rancang') tabRancang.click();
+      const urlTab   = new URLSearchParams(window.location.search).get('tab');
+      if (savedTab === 'rancang' || urlTab === 'rancang') tabRancang.click();
     }
   });
 

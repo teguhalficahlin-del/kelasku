@@ -1343,6 +1343,25 @@
         { text: 'Visibilitas diatur lewat dua kotak centang di <strong>form penilaian</strong>, bukan tombol terpisah: <strong>Tampilkan ke siswa</strong> dan <strong>Tampilkan ke ortu</strong>. Buka penilaian → Edit → centang yang diinginkan → Simpan. Mencabut centang menarik nilai itu kembali dari portal kapan saja.' },
         { text: '<strong>Penting:</strong> nilai tersembunyi secara default. Centang checkbox untuk menampilkan ke siswa atau orang tua. Ini berlaku untuk <strong>semua jenis penilaian</strong> — Diagnostik, Formatif, maupun Sumatif: penilaian baru selalu dibuat dengan kedua kotak centang kosong. Selama belum dicentang, siswa dan orang tua tidak melihat nilainya sama sekali.' }
       ]
+    },
+    rancang: {
+      title: 'Rancang ATP & Modul Ajar',
+      intro: 'Tab ini membantu Anda menyusun ATP (Alur Tujuan Pembelajaran) dan Modul Ajar secara otomatis dengan bantuan AI. MiClass mengerjakan bagian beratnya — Anda cukup menjawab beberapa pertanyaan dan mengonfirmasi hasilnya.',
+      items: [
+        { text: '<strong>Sesuaikan ATP yang ada</strong> — perbarui ATP lama Anda dengan menjawab beberapa pertanyaan. Cocok jika ATP sudah ada tapi perlu direvisi atau disesuaikan dengan semester baru.' },
+        { text: '<strong>Susun ATP Baru</strong> — buat ATP satu fase penuh dari awal. MiClass akan menanyakan mata pelajaran, fase, elemen CP, alokasi JP, dan strategi penilaian.' },
+        { text: '<strong>Buat Modul Ajar</strong> — setelah ATP aktif tersedia, pilih TP mana yang ingin dirancang. MiClass membuat rencana pertemuan lengkap — tujuan, aktivitas, media, dan asesmen — siap dibawa ke kelas.' },
+        { text: 'Progres tersimpan otomatis setiap fase. Anda bisa menutup tab dan melanjutkan kapan saja dari titik yang sama tanpa kehilangan jawaban.' },
+        { text: 'Gunakan tombol <strong>✏</strong> pada jawaban yang sudah terisi untuk mengubahnya; pertanyaan sesudahnya akan diulang, jawaban sebelumnya tetap tersimpan.' },
+        {
+          text: 'Tiga catatan penting:',
+          sub: [
+            { name: 'ATP diperlukan sebelum Modul', desc: 'Pilih "Sesuaikan ATP" atau "Susun ATP Baru" terlebih dahulu — Modul Ajar hanya bisa dibuat setelah ada ATP yang aktif.' },
+            { name: 'Batas generate Modul', desc: '5× per hari per guru. Jika batas tercapai, coba lagi keesokan harinya.' },
+            { name: 'Hapus ATP', desc: 'Klik ikon 🗑 Hapus di layar picker ATP untuk menghapus ATP yang tidak lagi dipakai. Tindakan ini tidak bisa dibatalkan.' }
+          ]
+        }
+      ]
     }
   };
 

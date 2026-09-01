@@ -353,6 +353,17 @@ async function cleanupAbandonedDrafts(currentAtpId, scope) {
   return (data || []).length;
 }
 
+async function fetchAllModulAktifGuru() {
+  const { data, error } = await window.supabaseClient
+    .from('modul_induk')
+    .select('id, atp_induk_id, nomor_tp, tp_judul, updated_at, atp_induk(mapel, fase)')
+    .eq('status', 'aktif')
+    .order('updated_at', { ascending: false })
+    .limit(10);
+  if (error) throw error;
+  return data || [];
+}
+
 async function fetchModulAktifByAtpId(atpIndukId) {
   if (!atpIndukId) return [];
   const { data, error } = await window.supabaseClient
