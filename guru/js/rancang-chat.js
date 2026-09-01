@@ -35,6 +35,10 @@
   // Reentrancy guard konfirmasi "← Rancang" — mencegah bubble/chip konfirmasi
   // dirender berulang jika tombolnya somehow terpicu lebih dari sekali per klik.
   let _confirmingKembali = false;
+  // Data katalog modul aktif — diset saat fetch berhasil agar MODUL_REVIEW
+  // bisa merender ulang picker tanpa fetch ulang.
+  let _katalogModuls = null;
+  let _katalogBukaModul = null;
 
   // ─── Persist ─────────────────────────────────────────────────────────────
 
@@ -492,6 +496,7 @@
               _chat.selected_tp = tp || { nomor: modul.nomor_tp, judul: modul.tp_judul };
               _chat.modul_induk_id = modul.id;
               _chat.viewing_existing_modul = true;
+              _chat.modul_source = 'katalog';
               const { data: mFull, error: mErr } = await window.supabaseClient
                 .from('modul_induk')
                 .select('id, konten, updated_at')
@@ -510,6 +515,8 @@
               _initializing = false;
             }
           }
+          _katalogModuls = moduls;
+          _katalogBukaModul = bukaModul;
           rcRenderModulKatalog(katalogEl, moduls, function () {
             rcRenderModulPicker(panel, moduls, bukaModul, kembaliKeLayarUtama);
           });
@@ -597,7 +604,19 @@
       SUMBER_STRATEGI: { label: '← Konteks Modul',      fn: function () { goBackToPhase('KONTEKS_MODUL'); } },
       ASESMEN_MODUL:   { label: '← Sumber & Strategi',  fn: function () { goBackToPhase('SUMBER_STRATEGI'); } },
       MODUL_SUMMARY:   { label: '← Asesmen',            fn: function () { goBackToPhase('ASESMEN_MODUL'); } },
-      MODUL_REVIEW:    { label: '← Daftar TP',          fn: function () { rcClearChips(); startPhase('DONE'); } },
+      MODUL_REVIEW:    _chat.modul_source === 'katalog'
+        ? { label: '← Modul Ajar Aktif', fn: function () {
+              rcClearChips();
+              _chat.viewing_existing_modul = false;
+              _chat.modul_source = 'flow';
+              const panel = document.getElementById('panel-rancang');
+              if (panel && _katalogModuls && _katalogBukaModul) {
+                rcRenderModulPicker(panel, _katalogModuls, _katalogBukaModul, kembaliKeLayarUtama);
+              } else {
+                kembaliKeLayarUtama();
+              }
+            } }
+        : { label: '← Daftar TP',        fn: function () { rcClearChips(); startPhase('DONE'); } },
       MODUL_GENERATE:  null, // tombol disembunyikan
     };
     const entry = BACK[phase];
@@ -698,13 +717,22 @@
       rcSetComposerVisible(false);
       renderModulPreview();
       if (_chat.viewing_existing_modul) {
+        const fromKatalog = _chat.modul_source === 'katalog';
         rcRenderChips([
-          { value: '__kembali_daftar__', label: '← Kembali ke daftar TP' },
+          { value: '__kembali_daftar__', label: fromKatalog ? '← Modul Ajar Aktif' : '← Kembali ke daftar TP' },
         ], function () {
           rcClearChips();
           _chat.viewing_existing_modul = false;
+          const wasKatalog = _chat.modul_source === 'katalog';
+          _chat.modul_source = 'flow';
           saveState();
-          startPhase('DONE');
+          if (wasKatalog && _katalogModuls && _katalogBukaModul) {
+            const panel = document.getElementById('panel-rancang');
+            if (panel) rcRenderModulPicker(panel, _katalogModuls, _katalogBukaModul, kembaliKeLayarUtama);
+            else kembaliKeLayarUtama();
+          } else {
+            startPhase('DONE');
+          }
         });
         return;
       }
