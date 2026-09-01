@@ -635,9 +635,8 @@ function validateModulOutput(
           if (!k || typeof k !== 'object') {
             errors.push(`g5[${i}].${kartu} harus object`);
           } else {
-            for (const f of ['nama', 'jabatan', 'bagian', 'shift', 'peran'] as const) {
-              if (!nonEmpty(k[f])) errors.push(`g5[${i}].${kartu}.${f} kosong`);
-            }
+            // Hanya peran yang wajib; nama/jabatan/bagian/shift boleh placeholder
+            if (!nonEmpty(k['peran'])) errors.push(`g5[${i}].${kartu}.peran kosong`);
           }
         }
       });
@@ -913,29 +912,46 @@ function buildUserMessageFaseB(params: {
   });
 }
 
+// Fase C: hanya instrumen (G1-G7) — input minimal agar tidak timeout
 function buildUserMessageFaseC(params: {
   faseAOutput: Record<string, unknown>;
   faseBOutput: Record<string, unknown>;
   cd: Record<string, unknown>;
 }): string {
+  const identitas = params.faseAOutput.identitas as Record<string, unknown> ?? {};
+  const pertemuan = (params.faseBOutput as Record<string, unknown>).pertemuan as Array<Record<string, unknown>> ?? [];
   return JSON.stringify({
     fase: 'C',
-    output_instruction: 'Jawab ringkas dan padat. Jangan tambahkan penjelasan atau komentar di luar JSON. Setiap field cukup 1-3 kalimat. Total output harus di bawah 3000 token.',
+    output_instruction: 'Hasilkan HANYA field "instrumen" sesuai schema G1-G7. Tiap sub-field MAKSIMAL 1 kalimat pendek. Total output WAJIB di bawah 2000 token.',
+    // Hanya kirim identitas ringkas (bukan desain_pembelajaran/rencana_asesmen yang besar)
+    identitas_ringkas: {
+      mata_pelajaran: identitas.mata_pelajaran,
+      fase:           identitas.fase,
+      kelas:          identitas.kelas,
+      elemen_cp:      identitas.elemen_cp,
+      tujuan_tp:      identitas.tujuan_tp,
+    },
+    jumlah_pertemuan: pertemuan.length,
+    tujuan_pertemuan_1: pertemuan[0]?.tujuan_pertemuan ?? '',
+    konteks: params.cd.KONTEKS_MODUL   ?? null,
+    asesmen: params.cd.ASESMEN_MODUL   ?? null,
+  });
+}
+
+// Fase D: tindak_lanjut + catatan_guru (ringan, ~500 token)
+function buildUserMessageFaseD(params: {
+  faseAOutput: Record<string, unknown>;
+  faseBOutput: Record<string, unknown>;
+  faseCOutput: Record<string, unknown>;
+  cd: Record<string, unknown>;
+}): string {
+  return JSON.stringify({
+    fase: 'D',
+    output_instruction: 'Hasilkan HANYA field "tindak_lanjut" dan "catatan_guru". Ringkas, maksimal 2-3 kalimat per sub-field. Total output di bawah 800 token.',
     identitas:           params.faseAOutput.identitas,
-    desain_pembelajaran: params.faseAOutput.desain_pembelajaran,
     rencana_asesmen:     params.faseAOutput.rencana_asesmen,
-    pertemuan_ringkas: Array.isArray((params.faseBOutput as Record<string, unknown>).pertemuan)
-      ? ((params.faseBOutput as Record<string, unknown>).pertemuan as Array<Record<string, unknown>>).map(p => ({
-          nomor:            p.nomor,
-          tujuan_pertemuan: p.tujuan_pertemuan,
-          langkah_nama: Array.isArray(p.langkah)
-            ? (p.langkah as Array<Record<string, unknown>>).map(l => l.nama)
-            : [],
-        }))
-      : [],
-    konteks_pembelajaran: params.cd.KONTEKS_MODUL   ?? null,
-    sumber_strategi:      params.cd.SUMBER_STRATEGI ?? null,
-    asesmen:              params.cd.ASESMEN_MODUL   ?? null,
+    instrumen_ringkas:   Object.keys(params.faseCOutput.instrumen as Record<string, unknown> || {}),
+    konteks_pembelajaran: params.cd.KONTEKS_MODUL ?? null,
   });
 }
 // ── EDGE FUNCTION ────────────────────────────────────────────────────────────
@@ -969,38 +985,12 @@ Deno.serve(async (req) => {
     return json({ error: 'Akses khusus guru.', code: 'FORBIDDEN_ROLE' }, 403);
   }
 
-  // 2. RATE LIMIT — service_role, max 5× per hari
-  try {
-    const svc = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
-    );
-    const { data: allowed, error: rlErr } = await svc.rpc('fn_check_rate_limit', {
-      p_identifier:    user.id,
-      p_endpoint:      'generate_modul',
-      p_max_requests:  5,
-      p_window_minutes: 1440,
-    });
-    if (!rlErr && allowed === false) {
-      return json({
-        error: 'Batas generate Modul Ajar harian (5×) tercapai. Coba lagi besok.',
-        code: 'RATE_LIMIT',
-      }, 429);
-    }
-    if (rlErr) {
-      console.warn('[generate-modul] rate limit RPC error:', rlErr.message);
-      return json({ error: 'Rate limit tidak tersedia. Coba lagi.', code: 'RATE_LIMIT_UNAVAILABLE' }, 503);
-    }
-  } catch (e) {
-    console.warn('[generate-modul] rate limit exception (ignored):', e);
-  }
-
-  // 3. REQUEST BODY
+  // 3. REQUEST BODY — baca dulu untuk tahu fase sebelum rate limit check
   let body: {
     modul_induk_id?: string;
     classroom_id?: string;
     expected_updated_at?: string;
-    fase?: 'A' | 'B' | 'C';
+    fase?: 'A' | 'B' | 'C' | 'D';
   };
   try {
     body = await req.json();
@@ -1008,14 +998,39 @@ Deno.serve(async (req) => {
     return json({ error: 'Request tidak valid.' }, 400);
   }
 
-  const { modul_induk_id, classroom_id, expected_updated_at, fase = 'A' } = body;
+  const { modul_induk_id, classroom_id, expected_updated_at, fase = 'A' } = body as { modul_induk_id?: string; classroom_id?: string; expected_updated_at?: string; fase?: 'A' | 'B' | 'C' | 'D' };
   if (!modul_induk_id) return json({ error: 'modul_induk_id wajib diisi.' }, 400);
   if (!classroom_id)   return json({ error: 'classroom_id wajib diisi.' }, 400);
+
+  // 2. RATE LIMIT — hanya Fase A (B dan C adalah lanjutan, bukan generate baru)
+  if (fase === 'A') {
+    try {
+      const svc = createClient(
+        Deno.env.get('SUPABASE_URL')!,
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+      );
+      const { data: allowed, error: rlErr } = await svc.rpc('fn_check_rate_limit', {
+        p_identifier:    user.id,
+        p_endpoint:      'generate_modul',
+        p_max_requests:  5,
+        p_window_minutes: 1440,
+      });
+      if (!rlErr && allowed === false) {
+        return json({ error: 'Batas generate Modul Ajar harian (5×) tercapai. Coba lagi besok.', code: 'RATE_LIMIT' }, 429);
+      }
+      if (rlErr) {
+        console.warn('[generate-modul] rate limit RPC error:', rlErr.message);
+        return json({ error: 'Rate limit tidak tersedia. Coba lagi.', code: 'RATE_LIMIT_UNAVAILABLE' }, 503);
+      }
+    } catch (e) {
+      console.warn('[generate-modul] rate limit exception (ignored):', e);
+    }
+  }
 
   // 4. BACA modul_induk — user JWT, RLS memfilter guru_id = fn_current_profile_id()
   const { data: modul, error: modulErr } = await userClient
     .from('modul_induk')
-    .select('id, guru_id, atp_induk_id, nomor_tp, tp_judul, collected_data, status, updated_at')
+    .select('id, guru_id, atp_induk_id, nomor_tp, tp_judul, collected_data, konten, status, updated_at')
     .eq('id', modul_induk_id)
     .maybeSingle();
 
@@ -1151,6 +1166,7 @@ Deno.serve(async (req) => {
   async function callAI(
     messages: Array<{ role: string; content: string }>,
     timeoutMs: number,
+    maxTokens = 4000,
   ): Promise<string> {
     const ctrl = new AbortController();
     const tid = setTimeout(() => ctrl.abort(), timeoutMs);
@@ -1164,7 +1180,7 @@ Deno.serve(async (req) => {
         },
         body: JSON.stringify({
           model: 'claude-sonnet-4-6',
-          max_tokens: 4000,
+          max_tokens: maxTokens,
           system: SYSTEM_PROMPT,
           messages,
         }),
@@ -1182,10 +1198,11 @@ Deno.serve(async (req) => {
     label: string,
     userMsg: string,
     timeoutMs: number,
+    maxTokens = 4000,
   ): Promise<Record<string, unknown>> {
     let rawText: string;
     try {
-      rawText = await callAI([{ role: 'user', content: userMsg }], timeoutMs);
+      rawText = await callAI([{ role: 'user', content: userMsg }], timeoutMs, maxTokens);
     } catch (e) {
       const isTimeout = e instanceof Error && (e.name === 'AbortError' || String(e).includes('abort'));
       console.error(`[generate-modul] ${label} AI call failed:`, e);
@@ -1203,7 +1220,7 @@ Deno.serve(async (req) => {
           { role: 'user', content: userMsg },
           { role: 'assistant', content: rawText },
           { role: 'user', content: `JSON tidak valid. Hasilkan ulang HANYA JSON object untuk ${label} yang valid.` },
-        ], 60_000);
+        ], 60_000, maxTokens);
         parsed = extractJson(repairText);
       } catch {
         throw Object.assign(new Error(`AI ${label} menghasilkan JSON tidak valid setelah repair.`), {
@@ -1239,9 +1256,15 @@ Deno.serve(async (req) => {
       }, 422);
     }
 
-    const faseAOutput = await callPhase('Fase A',
-      buildUserMessageFaseA({ identitasDB, nomorTp, tpJudul, jumlahPertemuan, jpPerPertemuan, durasiJp, elemenCp, kktpList, cd }),
-      110_000);
+    let faseAOutput: Record<string, unknown>;
+    try {
+      faseAOutput = await callPhase('Fase A',
+        buildUserMessageFaseA({ identitasDB, nomorTp, tpJudul, jumlahPertemuan, jpPerPertemuan, durasiJp, elemenCp, kktpList, cd }),
+        90_000);
+    } catch (e) {
+      const err = e as { message?: string; code?: string; retryable?: boolean };
+      return json({ error: err.message ?? 'Gagal di Fase A', code: err.code ?? 'AI_ERROR', retryable: err.retryable ?? true }, 500);
+    }
 
     // Simpan output Fase A ke konten._draft agar Fase B bisa membacanya
     const draftA = { ...kontenObj, _draft: { fase_a: faseAOutput } };
@@ -1267,9 +1290,15 @@ Deno.serve(async (req) => {
       return json({ error: 'Output Fase A belum ada. Mulai dari Fase A terlebih dahulu.', code: 'MODUL_INPUT_INCOMPLETE', missing: ['draft_fase_a'] }, 422);
     }
 
-    const faseBOutput = await callPhase('Fase B',
-      buildUserMessageFaseB({ faseAOutput, jumlahPertemuan, jpPerPertemuan, durasiJp, cd }),
-      110_000);
+    let faseBOutput: Record<string, unknown>;
+    try {
+      faseBOutput = await callPhase('Fase B',
+        buildUserMessageFaseB({ faseAOutput, jumlahPertemuan, jpPerPertemuan, durasiJp, cd }),
+        90_000);
+    } catch (e) {
+      const err = e as { message?: string; code?: string; retryable?: boolean };
+      return json({ error: err.message ?? 'Gagal di Fase B', code: err.code ?? 'AI_ERROR', retryable: err.retryable ?? true }, 500);
+    }
 
     const draftB = { ...kontenObj, _draft: { ...draft, fase_b: faseBOutput } };
     const writeB = expected_updated_at
@@ -1286,7 +1315,7 @@ Deno.serve(async (req) => {
     return json({ fase: 'B', ok: true, updated_at: (writeB.data as { id: string; updated_at: string }).updated_at });
   }
 
-  // ── FASE C ───────────────────────────────────────────────────────────────────
+  // ── FASE C — instrumen saja (G1-G7) ──────────────────────────────────────────
   if (fase === 'C') {
     const draft = (kontenObj._draft as Record<string, unknown>) || {};
     const faseAOutput = draft.fase_a as Record<string, unknown> | undefined;
@@ -1294,11 +1323,53 @@ Deno.serve(async (req) => {
     if (!faseAOutput) return json({ error: 'Output Fase A belum ada.', code: 'MODUL_INPUT_INCOMPLETE', missing: ['draft_fase_a'] }, 422);
     if (!faseBOutput) return json({ error: 'Output Fase B belum ada.', code: 'MODUL_INPUT_INCOMPLETE', missing: ['draft_fase_b'] }, 422);
 
-    const faseCOutput = await callPhase('Fase C',
-      buildUserMessageFaseC({ faseAOutput, faseBOutput, cd }),
-      110_000);
+    let faseCOutput: Record<string, unknown>;
+    try {
+      faseCOutput = await callPhase('Fase C',
+        buildUserMessageFaseC({ faseAOutput, faseBOutput, cd }),
+        120_000, 4000);
+    } catch (e) {
+      const err = e as { message?: string; code?: string; retryable?: boolean };
+      return json({ error: err.message ?? 'Gagal di Fase C', code: err.code ?? 'AI_ERROR', retryable: err.retryable ?? true }, 500);
+    }
 
-    // Merge tiga fase
+    // Simpan instrumen ke draft agar Fase D bisa membacanya
+    const draftC = { ...kontenObj, _draft: { ...draft, fase_c: faseCOutput } };
+    const writeC = expected_updated_at
+      ? await userClient.from('modul_induk').update({ konten: draftC })
+          .eq('id', modul_induk_id).eq('updated_at', expected_updated_at)
+          .select('id, updated_at').maybeSingle()
+      : await userClient.from('modul_induk').update({ konten: draftC })
+          .eq('id', modul_induk_id)
+          .select('id, updated_at').maybeSingle();
+
+    if (writeC.error) return json({ error: 'Gagal menyimpan output Fase C.', code: 'MODUL_WRITE_ERROR' }, 500);
+    if (!writeC.data) return json({ error: 'Modul berubah saat generate. Muat ulang dan coba lagi.', code: 'MODUL_GENERATION_CONFLICT' }, 409);
+
+    return json({ fase: 'C', ok: true, updated_at: (writeC.data as { id: string; updated_at: string }).updated_at });
+  }
+
+  // ── FASE D — tindak_lanjut + catatan_guru + merge + write final ───────────────
+  if (fase === 'D') {
+    const draft = (kontenObj._draft as Record<string, unknown>) || {};
+    const faseAOutput = draft.fase_a as Record<string, unknown> | undefined;
+    const faseBOutput = draft.fase_b as Record<string, unknown> | undefined;
+    const faseCOutput = draft.fase_c as Record<string, unknown> | undefined;
+    if (!faseAOutput) return json({ error: 'Output Fase A belum ada.', code: 'MODUL_INPUT_INCOMPLETE', missing: ['draft_fase_a'] }, 422);
+    if (!faseBOutput) return json({ error: 'Output Fase B belum ada.', code: 'MODUL_INPUT_INCOMPLETE', missing: ['draft_fase_b'] }, 422);
+    if (!faseCOutput) return json({ error: 'Output Fase C belum ada.', code: 'MODUL_INPUT_INCOMPLETE', missing: ['draft_fase_c'] }, 422);
+
+    let faseDOutput: Record<string, unknown>;
+    try {
+      faseDOutput = await callPhase('Fase D',
+        buildUserMessageFaseD({ faseAOutput, faseBOutput, faseCOutput, cd }),
+        60_000, 2000);
+    } catch (e) {
+      const err = e as { message?: string; code?: string; retryable?: boolean };
+      return json({ error: err.message ?? 'Gagal di Fase D', code: err.code ?? 'AI_ERROR', retryable: err.retryable ?? true }, 500);
+    }
+
+    // Merge semua fase
     let merged: unknown = {
       schema_version:      faseAOutput.schema_version ?? '3.2.0',
       identitas:           faseAOutput.identitas,
@@ -1307,8 +1378,8 @@ Deno.serve(async (req) => {
       rencana_asesmen:     faseAOutput.rencana_asesmen,
       pertemuan:           faseBOutput.pertemuan,
       instrumen:           faseCOutput.instrumen,
-      tindak_lanjut:       faseCOutput.tindak_lanjut,
-      catatan_guru:        faseCOutput.catatan_guru,
+      tindak_lanjut:       faseDOutput.tindak_lanjut,
+      catatan_guru:        faseDOutput.catatan_guru,
     };
 
     let validation = validateModulOutput(merged, nomorTp, jumlahPertemuan, jpPerPertemuan, durasiJp);
@@ -1316,14 +1387,12 @@ Deno.serve(async (req) => {
     if (!validation.valid) {
       const errorList = validation.errors.join('; ');
       console.warn('[generate-modul] validation failed, attempting repair:', errorList);
-
       const hasDurasiError = validation.errors.some(e => e.includes('durasi'));
       const repairMsg = hasDurasiError
         ? buildUserMessageFaseB({ faseAOutput, jumlahPertemuan, jpPerPertemuan, durasiJp, cd }) +
           `\n\nERROR yang harus diperbaiki: ${errorList}. sum(langkah[].durasi_menit) HARUS = ${targetDurasi}.`
         : JSON.stringify(merged) +
           `\n\nERROR yang harus diperbaiki: ${errorList}. Hasilkan JSON object penuh yang sudah benar.`;
-
       try {
         const repairText = await callAI([{ role: 'user', content: repairMsg }], 50_000);
         const repairParsed = extractJson(repairText);
@@ -1333,30 +1402,29 @@ Deno.serve(async (req) => {
       } catch {
         return json({ error: `Repair gagal: ${errorList}`, code: 'MODUL_GENERATION_INVALID_SCHEMA', retryable: true }, 422);
       }
-
       validation = validateModulOutput(merged, nomorTp, jumlahPertemuan, jpPerPertemuan, durasiJp);
       if (!validation.valid) {
         return json({ error: `Validasi gagal setelah repair: ${validation.errors.join('; ')}`, code: 'MODUL_GENERATION_INVALID_SCHEMA', retryable: true }, 422);
       }
     }
 
-    // Write final — service_role agar bisa update status ke 'aktif'
+    // Write final via service_role → status='aktif'
     const kontenFinal = validation.output!;
-    const { data: writtenC, error: writeCErr } = await svcClient
+    const { data: writtenD, error: writeDErr } = await svcClient
       .from('modul_induk')
       .update({ konten: kontenFinal, status: 'aktif' })
       .eq('id', modul_induk_id)
       .select('id, updated_at')
       .maybeSingle();
 
-    if (writeCErr) return json({ error: 'Gagal menyimpan Modul Ajar.', code: 'MODUL_WRITE_ERROR' }, 500);
-    if (!writtenC) return json({ error: 'Modul berubah saat generate. Muat ulang dan coba lagi.', code: 'MODUL_GENERATION_CONFLICT' }, 409);
+    if (writeDErr) return json({ error: 'Gagal menyimpan Modul Ajar.', code: 'MODUL_WRITE_ERROR' }, 500);
+    if (!writtenD) return json({ error: 'Modul berubah saat generate. Muat ulang dan coba lagi.', code: 'MODUL_GENERATION_CONFLICT' }, 409);
 
     return json({
-      fase: 'C',
+      fase: 'D',
       ok: true,
       modul_induk_id,
-      updated_at: (writtenC as { id: string; updated_at: string }).updated_at,
+      updated_at: (writtenD as { id: string; updated_at: string }).updated_at,
       summary: {
         jumlah_pertemuan: jumlahPertemuan,
         jp_per_pertemuan: jpPerPertemuan,

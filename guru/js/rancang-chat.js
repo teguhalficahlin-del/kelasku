@@ -1558,6 +1558,7 @@
       A: '⏳ Menyusun identitas dan rencana asesmen…',
       B: '⏳ Merancang langkah pembelajaran…',
       C: '⏳ Membuat instrumen asesmen…',
+      D: '⏳ Menyusun tindak lanjut dan finalisasi…',
     };
 
     let progressBubble = rcAppendBubble('ai', FASE_LABELS.A);

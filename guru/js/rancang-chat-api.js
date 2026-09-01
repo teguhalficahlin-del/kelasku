@@ -208,16 +208,20 @@ async function callGenerateModul(modulIndukId, classroomId, expectedUpdatedAt, o
   const resB = await _callGenerateModulFase(token, modulIndukId, classroomId, resA.updated_at, 'B');
   if (typeof onProgress === 'function') onProgress({ fase: 'C', elapsed: Date.now() - start });
 
-  // Fase C — instrumen, tindak_lanjut, catatan_guru → tulis konten final + status='aktif'
+  // Fase C — instrumen G1-G7
   const resC = await _callGenerateModulFase(token, modulIndukId, classroomId, resB.updated_at, 'C');
+  if (typeof onProgress === 'function') onProgress({ fase: 'D', elapsed: Date.now() - start });
+
+  // Fase D — tindak_lanjut + catatan_guru + merge + write final + status='aktif'
+  const resD = await _callGenerateModulFase(token, modulIndukId, classroomId, resC.updated_at, 'D');
 
   return {
     status:         'done',
     modul_induk_id: modulIndukId,
-    updated_at:     resC.updated_at,
-    konten:         resC.konten,
-    summary:        resC.summary,
-    validation:     resC.validation,
+    updated_at:     resD.updated_at,
+    konten:         resD.konten,
+    summary:        resD.summary,
+    validation:     resD.validation,
   };
 }
 
