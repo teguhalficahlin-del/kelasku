@@ -166,7 +166,7 @@ async function callGenerateAtp(atpIndukId, expectedUpdatedAt) {
 
 const GENERATE_MODUL_URL = 'https://teccdzetrdjowqemnuuc.supabase.co/functions/v1/generate-modul';
 
-async function callGenerateModul(modulIndukId, expectedUpdatedAt) {
+async function callGenerateModul(modulIndukId, classroomId, expectedUpdatedAt) {
   const { data: { session } } = await window.supabaseClient.auth.getSession();
   const token = session?.access_token ?? '';
 
@@ -181,6 +181,7 @@ async function callGenerateModul(modulIndukId, expectedUpdatedAt) {
       },
       body: JSON.stringify({
         modul_induk_id:      modulIndukId,
+        classroom_id:        classroomId,
         expected_updated_at: expectedUpdatedAt || undefined,
       }),
       signal: controller.signal,

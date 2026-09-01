@@ -1560,6 +1560,7 @@
     try {
       const result = await callGenerateModul(
         _chat.modul_induk_id,
+        _chat.classroom_id,
         _chat.modul_updated_at,
       );
       rcHideTyping();
