@@ -345,14 +345,33 @@ function rcRenderAtpPicker(panel, items, onPick, onDelete, onBack) {
   }
 }
 
-// ── Katalog Modul Ajar Aktif di layar pembuka ─────────────────────────────
-// container: elemen DOM (misalnya div#rc-modul-katalog)
-// moduls: array hasil fetchAllModulAktifGuru — termasuk atp_induk.{mapel,fase}
-// onBuka(modul): dipanggil saat guru klik tombol Buka
-function rcRenderModulKatalog(container, moduls, onBuka) {
+// ── Katalog Modul Ajar Aktif — card tunggal di welcome screen ─────────────
+// container: elemen DOM (div#rc-modul-katalog)
+// moduls: array hasil fetchAllModulAktifGuru
+// onKlik(): dipanggil saat card diklik → tampilkan picker screen
+function rcRenderModulKatalog(container, moduls, onKlik) {
   if (!container) return;
   if (!moduls || !moduls.length) { container.style.display = 'none'; return; }
 
+  const card = document.createElement('button');
+  card.type = 'button';
+  card.className = 'rc-welcome-card';
+  card.style.cssText = 'width:100%;text-align:left;';
+  card.innerHTML =
+    '<span class="rc-welcome-card-label">Modul Ajar Aktif</span>' +
+    '<span class="rc-welcome-card-desc">Buka atau lanjutkan modul ajar yang sudah selesai dirancang.</span>';
+  card.addEventListener('click', function () { if (typeof onKlik === 'function') onKlik(); });
+
+  container.innerHTML = '';
+  container.appendChild(card);
+}
+
+// ── Picker daftar modul aktif — ditampilkan saat card "Modul Ajar Aktif" diklik
+// panel: elemen DOM utama tab rancang (menggantikan seluruh konten)
+// moduls: array fetchAllModulAktifGuru
+// onBuka(modul): langsung execute saat item diklik
+// onBack(): kembali ke welcome screen
+function rcRenderModulPicker(panel, moduls, onBuka, onBack) {
   function escHtml(s) {
     return String(s)
       .replace(/&/g, '&amp;').replace(/</g, '&lt;')
@@ -365,39 +384,43 @@ function rcRenderModulKatalog(container, moduls, onBuka) {
     return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
   }
 
-  container.innerHTML =
-    '<div style="border-top:1px solid var(--border,rgba(255,255,255,0.1));padding-top:16px;">' +
-    '<p style="font-size:0.8rem;color:var(--text-muted,#888);margin:0 0 10px;text-transform:uppercase;letter-spacing:.06em;">Modul Ajar Aktif</p>' +
-    '<div id="rc-katalog-list" style="display:flex;flex-direction:column;gap:8px;"></div>' +
-    '</div>';
-
-  const list = container.querySelector('#rc-katalog-list');
-  moduls.forEach(function (m) {
+  const cards = moduls.map(function (m, idx) {
     const mapel = m.atp_induk?.mapel || '';
     const fase  = m.atp_induk?.fase  ? 'Fase ' + m.atp_induk.fase : '';
     const meta  = [mapel, fase].filter(Boolean).join(' · ');
-    const row = document.createElement('button');
-    row.type = 'button';
-    row.style.cssText = 'display:block;width:100%;text-align:left;cursor:pointer;' +
-      'background:rgba(255,255,255,0.04);border:1px solid var(--border,rgba(255,255,255,0.08));' +
-      'border-radius:8px;padding:10px 12px;transition:background 0.15s,border-color 0.15s;';
-    row.innerHTML =
-      '<div style="font-size:0.88rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' +
-        escHtml('TP ' + m.nomor_tp + '. ' + (m.tp_judul || '')) +
-      '</div>' +
-      (meta ? '<div style="font-size:0.78rem;color:var(--text-muted,#888);margin-top:2px;">' + escHtml(meta) + '</div>' : '') +
-      (m.updated_at ? '<div style="font-size:0.75rem;color:var(--text-muted,#888);margin-top:1px;">' + escHtml(tanggal(m.updated_at)) + '</div>' : '');
-    row.addEventListener('mouseenter', function () {
-      row.style.background = 'rgba(255,255,255,0.08)';
-      row.style.borderColor = 'var(--gold,#d4a843)';
+    const tgl   = tanggal(m.updated_at);
+    return `<button type="button" class="rc-welcome-card" data-idx="${idx}">
+      <span class="rc-welcome-card-label" style="color:var(--text,#fff);">${escHtml('TP ' + m.nomor_tp + '. ' + (m.tp_judul || ''))}</span>
+      <span class="rc-welcome-card-desc">${escHtml([meta, tgl].filter(Boolean).join(' · '))}</span>
+    </button>`;
+  }).join('');
+
+  panel.innerHTML = `
+<div class="rc-welcome" id="rc-modul-picker">
+  <div class="rc-welcome-header">
+    <h2 class="rc-welcome-title">Modul mana yang ingin dibuka?</h2>
+    <p class="rc-welcome-lead">Pilih modul untuk membuka atau melanjutkan rancangannya.</p>
+  </div>
+  <div class="rc-welcome-cards">${cards}</div>
+  <div class="rc-welcome-footer">
+    <button type="button" class="rc-welcome-btn" id="rc-modul-picker-kembali"
+      style="background:transparent;border:1px solid var(--border,rgba(255,255,255,0.12));color:var(--text-muted,#888);">
+      ← Menu Rancang
+    </button>
+  </div>
+</div>`;
+
+  panel.querySelectorAll('.rc-welcome-card').forEach(function (card) {
+    card.addEventListener('click', function () {
+      const idx = parseInt(card.dataset.idx, 10);
+      if (!isNaN(idx) && typeof onBuka === 'function') onBuka(moduls[idx]);
     });
-    row.addEventListener('mouseleave', function () {
-      row.style.background = 'rgba(255,255,255,0.04)';
-      row.style.borderColor = 'var(--border,rgba(255,255,255,0.08))';
-    });
-    row.addEventListener('click', function () { if (typeof onBuka === 'function') onBuka(m); });
-    list.appendChild(row);
   });
+
+  const kembaliBtn = document.getElementById('rc-modul-picker-kembali');
+  if (kembaliBtn && typeof onBack === 'function') {
+    kembaliBtn.addEventListener('click', onBack);
+  }
 }
 
 // Konfirmasi hapus ATP inline di dalam area pesan picker — memakai ulang

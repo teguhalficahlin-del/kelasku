@@ -478,8 +478,7 @@
       const katalogEl = document.getElementById('rc-modul-katalog');
       if (katalogEl) {
         fetchAllModulAktifGuru().then(function (moduls) {
-          rcRenderModulKatalog(katalogEl, moduls, async function (modul) {
-            // Load ATP + modul konten lalu buka MODUL_REVIEW
+          async function bukaModul(modul) {
             _initializing = true;
             try {
               const { data: atpFull, error: atpErr } = await window.supabaseClient
@@ -506,12 +505,13 @@
               await initChatShell(cId, panel, 'modul');
             } catch (e) {
               console.error('[rancang-chat] gagal membuka modul dari katalog:', e);
-              const katalog2 = document.getElementById('rc-modul-katalog');
-              if (katalog2) katalog2.insertAdjacentHTML('beforeend',
-                '<p style="color:#ff6b6b;font-size:0.82rem;margin-top:6px;">Gagal membuka modul. Periksa koneksi lalu coba lagi.</p>');
+              kembaliKeLayarUtama();
             } finally {
               _initializing = false;
             }
+          }
+          rcRenderModulKatalog(katalogEl, moduls, function () {
+            rcRenderModulPicker(panel, moduls, bukaModul, kembaliKeLayarUtama);
           });
         }).catch(function (e) {
           console.warn('[rancang-chat] fetchAllModulAktifGuru gagal:', e);
