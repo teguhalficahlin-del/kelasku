@@ -1554,23 +1554,21 @@
   }
 
   async function triggerGenerateModul() {
-    let progressBubble = rcAppendBubble('ai', '⏳ Menyusun identitas dan rencana asesmen…');
+    const FASE_LABELS = {
+      A: '⏳ Menyusun identitas dan rencana asesmen…',
+      B: '⏳ Merancang langkah pembelajaran…',
+      C: '⏳ Membuat instrumen asesmen…',
+    };
+
+    let progressBubble = rcAppendBubble('ai', FASE_LABELS.A);
     addToHistory('ai', 'Menyusun Modul Ajar…');
     rcShowTyping();
 
-    function onProgress(chunk) {
-      const faseLabel = {
-        A: '⏳ Menyusun identitas dan rencana asesmen…',
-        B: '⏳ Merancang langkah pembelajaran…',
-        C: '⏳ Membuat instrumen asesmen…',
-      };
-      if (chunk.status === 'selesai' && faseLabel[chunk.fase]) {
-        const nextFases = { A: 'B', B: 'C' };
-        const next = nextFases[chunk.fase];
-        if (next && faseLabel[next] && progressBubble) {
-          progressBubble.textContent = faseLabel[next];
-        }
-      }
+    const generateStart = Date.now();
+
+    function onProgress({ fase }) {
+      if (!progressBubble || !FASE_LABELS[fase]) return;
+      progressBubble.textContent = FASE_LABELS[fase];
     }
 
     try {
@@ -1586,9 +1584,10 @@
       _chat.modul_updated_at = result.updated_at;
       saveState();
       const s = result.summary;
+      const durasi = Math.round((Date.now() - generateStart) / 1000);
       const msg =
         `✅ Modul Ajar selesai! ${s.jumlah_pertemuan} pertemuan, ` +
-        `${s.jp_per_pertemuan} JP per pertemuan.`;
+        `${s.jp_per_pertemuan} JP per pertemuan. (${durasi}s)`;
       rcAppendBubble('ai', msg);
       addToHistory('ai', msg);
       await startPhase('MODUL_REVIEW');
@@ -1604,16 +1603,16 @@
         msg = '❌ Data modul berubah di tab lain. Muat ulang halaman lalu coba lagi.';
       } else if (code === 'MODUL_NOT_FOUND') {
         msg = '❌ Modul tidak ditemukan. Muat ulang halaman.';
-      } else if (['MODUL_GENERATION_INVALID_JSON', 'MODUL_GENERATION_INVALID_SCHEMA'].includes(code)) {
+      } else if (['MODUL_GENERATION_INVALID_JSON', 'MODUL_GENERATION_INVALID_SCHEMA', 'MODUL_GENERATION_FAILED'].includes(code)) {
         msg = '❌ AI gagal menghasilkan Modul yang valid. Silakan coba lagi.';
         retryable = true;
-      } else if (code === 'MODUL_GENERATION_TIMEOUT' || code === 'MODUL_STREAM_INCOMPLETE') {
+      } else if (['MODUL_GENERATION_TIMEOUT', 'MODUL_STREAM_INCOMPLETE', 'MODUL_POLL_TIMEOUT'].includes(code)) {
         msg = '❌ Waktu habis saat menyusun Modul. Silakan coba lagi.';
         retryable = true;
       } else if (code === 'RATE_LIMIT') {
         msg = '❌ Batas generate Modul harian (5×) tercapai. Coba lagi besok.';
       } else {
-        msg = '❌ Gagal menyusun Modul. Coba lagi.';
+        msg = `❌ Gagal menyusun Modul: ${err.message || 'Error tidak diketahui'}. Coba lagi.`;
         retryable = true;
       }
       rcAppendBubble('sistem', msg);

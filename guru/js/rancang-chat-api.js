@@ -166,10 +166,7 @@ async function callGenerateAtp(atpIndukId, expectedUpdatedAt) {
 
 const GENERATE_MODUL_URL = 'https://teccdzetrdjowqemnuuc.supabase.co/functions/v1/generate-modul';
 
-async function callGenerateModul(modulIndukId, classroomId, expectedUpdatedAt, onProgress) {
-  const { data: { session } } = await window.supabaseClient.auth.getSession();
-  const token = session?.access_token ?? '';
-
+async function _callGenerateModulFase(token, modulIndukId, classroomId, expectedUpdatedAt, fase) {
   const res = await fetch(GENERATE_MODUL_URL, {
     method: 'POST',
     headers: {
@@ -180,48 +177,48 @@ async function callGenerateModul(modulIndukId, classroomId, expectedUpdatedAt, o
       modul_induk_id:      modulIndukId,
       classroom_id:        classroomId,
       expected_updated_at: expectedUpdatedAt || undefined,
+      fase,
     }),
   });
 
-  if (!res.ok || !res.body) {
-    let errJson = {};
-    try { errJson = await res.json(); } catch { /* ignore */ }
-    const err = new Error(errJson.error || `generate-modul HTTP ${res.status}`);
-    err.code      = errJson.code      || String(res.status);
-    err.retryable = errJson.retryable ?? false;
+  let resJson = {};
+  try { resJson = await res.json(); } catch { /* ignore */ }
+
+  if (!res.ok) {
+    const err = new Error(resJson.error || `generate-modul Fase ${fase} HTTP ${res.status}`);
+    err.code      = resJson.code      || String(res.status);
+    err.retryable = resJson.retryable ?? false;
     throw err;
   }
+  return resJson;
+}
 
-  const reader  = res.body.getReader();
-  const decoder = new TextDecoder();
-  let   buf     = '';
+async function callGenerateModul(modulIndukId, classroomId, expectedUpdatedAt, onProgress) {
+  const { data: { session } } = await window.supabaseClient.auth.getSession();
+  const token = session?.access_token ?? '';
+  const start = Date.now();
 
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    buf += decoder.decode(value, { stream: true });
+  if (typeof onProgress === 'function') onProgress({ fase: 'A', elapsed: 0 });
 
-    // Parse SSE lines: "data: {...}\n\n"
-    const parts = buf.split('\n\n');
-    buf = parts.pop() ?? '';
+  // Fase A — identitas, identifikasi, desain, asesmen
+  const resA = await _callGenerateModulFase(token, modulIndukId, classroomId, expectedUpdatedAt, 'A');
+  if (typeof onProgress === 'function') onProgress({ fase: 'B', elapsed: Date.now() - start });
 
-    for (const part of parts) {
-      const line = part.trim();
-      if (!line.startsWith('data:')) continue;
-      let chunk;
-      try { chunk = JSON.parse(line.slice(5).trim()); } catch { continue; }
+  // Fase B — pertemuan[]
+  const resB = await _callGenerateModulFase(token, modulIndukId, classroomId, resA.updated_at, 'B');
+  if (typeof onProgress === 'function') onProgress({ fase: 'C', elapsed: Date.now() - start });
 
-      if (chunk.status === 'error') {
-        const err = new Error(chunk.error || 'generate-modul error');
-        err.code      = chunk.code      || 'MODUL_ERROR';
-        err.retryable = chunk.retryable ?? true;
-        throw err;
-      }
-      if (typeof onProgress === 'function') onProgress(chunk);
-      if (chunk.status === 'done') return chunk;
-    }
-  }
-  throw Object.assign(new Error('Stream berakhir tanpa hasil.'), { code: 'MODUL_STREAM_INCOMPLETE', retryable: true });
+  // Fase C — instrumen, tindak_lanjut, catatan_guru → tulis konten final + status='aktif'
+  const resC = await _callGenerateModulFase(token, modulIndukId, classroomId, resB.updated_at, 'C');
+
+  return {
+    status:         'done',
+    modul_induk_id: modulIndukId,
+    updated_at:     resC.updated_at,
+    konten:         resC.konten,
+    summary:        resC.summary,
+    validation:     resC.validation,
+  };
 }
 
 async function acceptAtp(atpIndukId, updatedAt) {

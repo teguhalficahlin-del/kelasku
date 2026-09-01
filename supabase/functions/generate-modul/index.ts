@@ -996,14 +996,19 @@ Deno.serve(async (req) => {
   }
 
   // 3. REQUEST BODY
-  let body: { modul_induk_id?: string; classroom_id?: string; expected_updated_at?: string };
+  let body: {
+    modul_induk_id?: string;
+    classroom_id?: string;
+    expected_updated_at?: string;
+    fase?: 'A' | 'B' | 'C';
+  };
   try {
     body = await req.json();
   } catch {
     return json({ error: 'Request tidak valid.' }, 400);
   }
 
-  const { modul_induk_id, classroom_id, expected_updated_at } = body;
+  const { modul_induk_id, classroom_id, expected_updated_at, fase = 'A' } = body;
   if (!modul_induk_id) return json({ error: 'modul_induk_id wajib diisi.' }, 400);
   if (!classroom_id)   return json({ error: 'classroom_id wajib diisi.' }, 400);
 
@@ -1066,13 +1071,10 @@ Deno.serve(async (req) => {
   // kktpList boleh kosong — EF lanjut, AI generate KKTP dari CP tanpa referensi eksplisit
 
   // 6. VALIDASI INPUT
-  if ((modul as Record<string, unknown>).status !== 'draft') {
-    return json({
-      error: `Status Modul harus 'draft', saat ini: '${(modul as Record<string, unknown>).status}'.`,
-      code: 'MODUL_INPUT_INCOMPLETE',
-      missing: ['status'],
-    }, 422);
-  }
+  // Fase A: modul harus 'draft' atau 'error' (retry); 'aktif' dan 'arsip' ditolak
+  // Fase B / C: cek draft intermediat di konten._draft — tidak cek status (bisa 'draft')
+  const modulStatus = (modul as Record<string, unknown>).status as string;
+  const kontenObj = ((modul as Record<string, unknown>).konten as Record<string, unknown>) || {};
 
   const missing: string[] = [];
   const cd = ((modul as Record<string, unknown>).collected_data as Record<string, unknown>) || {};
@@ -1196,13 +1198,12 @@ Deno.serve(async (req) => {
     try {
       parsed = extractJson(rawText);
     } catch {
-      const budget = Math.max(8_000, 90_000 - (Date.now() - startTime));
       try {
         const repairText = await callAI([
           { role: 'user', content: userMsg },
           { role: 'assistant', content: rawText },
           { role: 'user', content: `JSON tidak valid. Hasilkan ulang HANYA JSON object untuk ${label} yang valid.` },
-        ], budget);
+        ], 60_000);
         parsed = extractJson(repairText);
       } catch {
         throw Object.assign(new Error(`AI ${label} menghasilkan JSON tidak valid setelah repair.`), {
@@ -1213,160 +1214,158 @@ Deno.serve(async (req) => {
     return parsed as Record<string, unknown>;
   }
 
-  // 10. STREAMING SSE — tiga fase generate
-  const enc = new TextEncoder();
+  // Service client untuk write final (Fase C meng-update status='aktif')
+  const svcClient = createClient(
+    Deno.env.get('SUPABASE_URL')!,
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+  );
 
-  function sseChunk(obj: unknown): Uint8Array {
-    return enc.encode(`data: ${JSON.stringify(obj)}\n\n`);
+  // ── ROUTING MULTI-FASE ────────────────────────────────────────────────────────
+  // Setiap fase dipanggil terpisah oleh klien; hasil intermediat disimpan di
+  // modul_induk.konten._draft.{fase_a, fase_b} agar tidak melampaui batas
+  // wall-clock 150 detik per EF invocation.
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  // ── FASE A ───────────────────────────────────────────────────────────────────
+  if (fase === 'A') {
+    // Validasi status — hanya Fase A yang cek status
+    if (!['draft', 'error'].includes(modulStatus)) {
+      return json({
+        error: modulStatus === 'generating'
+          ? 'Modul sedang dalam proses generate. Tunggu sebentar.'
+          : `Status Modul harus 'draft', saat ini: '${modulStatus}'.`,
+        code: 'MODUL_INPUT_INCOMPLETE',
+        missing: ['status'],
+      }, 422);
+    }
+
+    const faseAOutput = await callPhase('Fase A',
+      buildUserMessageFaseA({ identitasDB, nomorTp, tpJudul, jumlahPertemuan, jpPerPertemuan, durasiJp, elemenCp, kktpList, cd }),
+      110_000);
+
+    // Simpan output Fase A ke konten._draft agar Fase B bisa membacanya
+    const draftA = { ...kontenObj, _draft: { fase_a: faseAOutput } };
+    const writeA = expected_updated_at
+      ? await userClient.from('modul_induk').update({ konten: draftA })
+          .eq('id', modul_induk_id).eq('updated_at', expected_updated_at)
+          .select('id, updated_at').maybeSingle()
+      : await userClient.from('modul_induk').update({ konten: draftA })
+          .eq('id', modul_induk_id)
+          .select('id, updated_at').maybeSingle();
+
+    if (writeA.error) return json({ error: 'Gagal menyimpan output Fase A.', code: 'MODUL_WRITE_ERROR' }, 500);
+    if (!writeA.data) return json({ error: 'Modul berubah saat generate. Muat ulang dan coba lagi.', code: 'MODUL_GENERATION_CONFLICT' }, 409);
+
+    return json({ fase: 'A', ok: true, updated_at: (writeA.data as { id: string; updated_at: string }).updated_at });
   }
 
-  const stream = new ReadableStream({
-    async start(ctrl) {
-      // Helper: kirim heartbeat setiap 10 detik agar idle clock tidak mencapai 150s
-      let heartbeatFase = '';
-      const heartbeatId = setInterval(() => {
-        try { ctrl.enqueue(sseChunk({ status: 'generating', fase: heartbeatFase })); } catch { /* stream closed */ }
-      }, 10_000);
+  // ── FASE B ───────────────────────────────────────────────────────────────────
+  if (fase === 'B') {
+    const draft = (kontenObj._draft as Record<string, unknown>) || {};
+    const faseAOutput = draft.fase_a as Record<string, unknown> | undefined;
+    if (!faseAOutput) {
+      return json({ error: 'Output Fase A belum ada. Mulai dari Fase A terlebih dahulu.', code: 'MODUL_INPUT_INCOMPLETE', missing: ['draft_fase_a'] }, 422);
+    }
 
-      async function runPhase(
-        label: string,
-        userMsg: string,
-      ): Promise<Record<string, unknown> | null> {
-        heartbeatFase = label;
-        try {
-          const output = await callPhase(label, userMsg, 120_000);
-          ctrl.enqueue(sseChunk({ fase: label.replace('Fase ', ''), status: 'selesai' }));
-          return output;
-        } catch (e: unknown) {
-          const err = e as { message: string; code?: string; retryable?: boolean };
-          ctrl.enqueue(sseChunk({ status: 'error', error: err.message, code: err.code, retryable: err.retryable ?? true }));
-          clearInterval(heartbeatId);
-          ctrl.close();
-          return null;
-        }
-      }
+    const faseBOutput = await callPhase('Fase B',
+      buildUserMessageFaseB({ faseAOutput, jumlahPertemuan, jpPerPertemuan, durasiJp, cd }),
+      110_000);
 
-      // Fase A
-      const faseAOutput = await runPhase('Fase A',
-        buildUserMessageFaseA({ identitasDB, nomorTp, tpJudul, jumlahPertemuan, jpPerPertemuan, durasiJp, elemenCp, kktpList, cd }));
-      if (!faseAOutput) return;
-
-      // Fase B
-      const faseBOutput = await runPhase('Fase B',
-        buildUserMessageFaseB({ faseAOutput, jumlahPertemuan, jpPerPertemuan, durasiJp, cd }));
-      if (!faseBOutput) return;
-
-      // Fase C
-      const faseCOutput = await runPhase('Fase C',
-        buildUserMessageFaseC({ faseAOutput, faseBOutput, cd }));
-      if (!faseCOutput) return;
-
-      clearInterval(heartbeatId);
-
-      // 11. MERGE + VALIDASI
-      let merged: unknown = {
-        schema_version:      faseAOutput.schema_version ?? '3.2.0',
-        identitas:           faseAOutput.identitas,
-        identifikasi:        faseAOutput.identifikasi,
-        desain_pembelajaran: faseAOutput.desain_pembelajaran,
-        rencana_asesmen:     faseAOutput.rencana_asesmen,
-        pertemuan:           faseBOutput.pertemuan,
-        instrumen:           faseCOutput.instrumen,
-        tindak_lanjut:       faseCOutput.tindak_lanjut,
-        catatan_guru:        faseCOutput.catatan_guru,
-      };
-
-      let validation = validateModulOutput(merged, nomorTp, jumlahPertemuan, jpPerPertemuan, durasiJp);
-
-      if (!validation.valid) {
-        const budget = Math.max(10_000, 90_000 - (Date.now() - startTime));
-        const errorList = validation.errors.join('; ');
-        console.warn('[generate-modul] validation failed, attempting repair:', errorList);
-        ctrl.enqueue(sseChunk({ status: 'repairing', errors: validation.errors }));
-
-        const hasDurasiError = validation.errors.some(e => e.includes('durasi'));
-        const repairMsg = hasDurasiError
-          ? buildUserMessageFaseB({ faseAOutput, jumlahPertemuan, jpPerPertemuan, durasiJp, cd }) +
-            `\n\nERROR yang harus diperbaiki: ${errorList}. sum(langkah[].durasi_menit) HARUS = ${targetDurasi}.`
-          : JSON.stringify(merged) +
-            `\n\nERROR yang harus diperbaiki: ${errorList}. Hasilkan JSON object penuh yang sudah benar.`;
-
-        let repairParsed: unknown;
-        try {
-          const repairText = await callAI([{ role: 'user', content: repairMsg }], budget);
-          repairParsed = extractJson(repairText);
-          if (hasDurasiError) {
-            repairParsed = { ...merged, pertemuan: (repairParsed as Record<string, unknown>).pertemuan };
-          }
-        } catch {
-          ctrl.enqueue(sseChunk({ status: 'error', error: `Repair gagal: ${errorList}`, code: 'MODUL_GENERATION_INVALID_SCHEMA', retryable: true }));
-          ctrl.close();
-          return;
-        }
-
-        validation = validateModulOutput(repairParsed, nomorTp, jumlahPertemuan, jpPerPertemuan, durasiJp);
-        if (!validation.valid) {
-          ctrl.enqueue(sseChunk({ status: 'error', error: `Validasi gagal setelah repair: ${validation.errors.join('; ')}`, code: 'MODUL_GENERATION_INVALID_SCHEMA', retryable: true }));
-          ctrl.close();
-          return;
-        }
-        merged = repairParsed;
-      }
-
-      // 12. WRITE ATOMIK
-      const konten = validation.output!;
-      type WriteRow = { id: string; updated_at: string } | null;
-      let written: WriteRow;
-      let writeErr: unknown;
-
-      if (expected_updated_at) {
-        const r = await userClient.from('modul_induk').update({ konten })
+    const draftB = { ...kontenObj, _draft: { ...draft, fase_b: faseBOutput } };
+    const writeB = expected_updated_at
+      ? await userClient.from('modul_induk').update({ konten: draftB })
           .eq('id', modul_induk_id).eq('updated_at', expected_updated_at)
+          .select('id, updated_at').maybeSingle()
+      : await userClient.from('modul_induk').update({ konten: draftB })
+          .eq('id', modul_induk_id)
           .select('id, updated_at').maybeSingle();
-        written = r.data as WriteRow; writeErr = r.error;
-      } else {
-        const r = await userClient.from('modul_induk').update({ konten })
-          .eq('id', modul_induk_id).select('id, updated_at').maybeSingle();
-        written = r.data as WriteRow; writeErr = r.error;
+
+    if (writeB.error) return json({ error: 'Gagal menyimpan output Fase B.', code: 'MODUL_WRITE_ERROR' }, 500);
+    if (!writeB.data) return json({ error: 'Modul berubah saat generate. Muat ulang dan coba lagi.', code: 'MODUL_GENERATION_CONFLICT' }, 409);
+
+    return json({ fase: 'B', ok: true, updated_at: (writeB.data as { id: string; updated_at: string }).updated_at });
+  }
+
+  // ── FASE C ───────────────────────────────────────────────────────────────────
+  if (fase === 'C') {
+    const draft = (kontenObj._draft as Record<string, unknown>) || {};
+    const faseAOutput = draft.fase_a as Record<string, unknown> | undefined;
+    const faseBOutput = draft.fase_b as Record<string, unknown> | undefined;
+    if (!faseAOutput) return json({ error: 'Output Fase A belum ada.', code: 'MODUL_INPUT_INCOMPLETE', missing: ['draft_fase_a'] }, 422);
+    if (!faseBOutput) return json({ error: 'Output Fase B belum ada.', code: 'MODUL_INPUT_INCOMPLETE', missing: ['draft_fase_b'] }, 422);
+
+    const faseCOutput = await callPhase('Fase C',
+      buildUserMessageFaseC({ faseAOutput, faseBOutput, cd }),
+      110_000);
+
+    // Merge tiga fase
+    let merged: unknown = {
+      schema_version:      faseAOutput.schema_version ?? '3.2.0',
+      identitas:           faseAOutput.identitas,
+      identifikasi:        faseAOutput.identifikasi,
+      desain_pembelajaran: faseAOutput.desain_pembelajaran,
+      rencana_asesmen:     faseAOutput.rencana_asesmen,
+      pertemuan:           faseBOutput.pertemuan,
+      instrumen:           faseCOutput.instrumen,
+      tindak_lanjut:       faseCOutput.tindak_lanjut,
+      catatan_guru:        faseCOutput.catatan_guru,
+    };
+
+    let validation = validateModulOutput(merged, nomorTp, jumlahPertemuan, jpPerPertemuan, durasiJp);
+
+    if (!validation.valid) {
+      const errorList = validation.errors.join('; ');
+      console.warn('[generate-modul] validation failed, attempting repair:', errorList);
+
+      const hasDurasiError = validation.errors.some(e => e.includes('durasi'));
+      const repairMsg = hasDurasiError
+        ? buildUserMessageFaseB({ faseAOutput, jumlahPertemuan, jpPerPertemuan, durasiJp, cd }) +
+          `\n\nERROR yang harus diperbaiki: ${errorList}. sum(langkah[].durasi_menit) HARUS = ${targetDurasi}.`
+        : JSON.stringify(merged) +
+          `\n\nERROR yang harus diperbaiki: ${errorList}. Hasilkan JSON object penuh yang sudah benar.`;
+
+      try {
+        const repairText = await callAI([{ role: 'user', content: repairMsg }], 50_000);
+        const repairParsed = extractJson(repairText);
+        merged = hasDurasiError
+          ? { ...merged as Record<string, unknown>, pertemuan: (repairParsed as Record<string, unknown>).pertemuan }
+          : repairParsed;
+      } catch {
+        return json({ error: `Repair gagal: ${errorList}`, code: 'MODUL_GENERATION_INVALID_SCHEMA', retryable: true }, 422);
       }
 
-      if (writeErr) {
-        console.error('[generate-modul] write error:', writeErr);
-        ctrl.enqueue(sseChunk({ status: 'error', error: 'Gagal menyimpan Modul Ajar ke database.', code: 'MODUL_WRITE_ERROR' }));
-        ctrl.close();
-        return;
+      validation = validateModulOutput(merged, nomorTp, jumlahPertemuan, jpPerPertemuan, durasiJp);
+      if (!validation.valid) {
+        return json({ error: `Validasi gagal setelah repair: ${validation.errors.join('; ')}`, code: 'MODUL_GENERATION_INVALID_SCHEMA', retryable: true }, 422);
       }
-      if (!written) {
-        ctrl.enqueue(sseChunk({ status: 'error', error: 'Modul Ajar berubah saat sedang digenerate. Muat ulang halaman dan coba lagi.', code: 'MODUL_GENERATION_CONFLICT' }));
-        ctrl.close();
-        return;
-      }
+    }
 
-      // 13. DONE
-      ctrl.enqueue(sseChunk({
-        status: 'done',
-        modul_induk_id,
-        generated_at: new Date().toISOString(),
-        updated_at: (written as { id: string; updated_at: string }).updated_at,
-        summary: {
-          jumlah_pertemuan: jumlahPertemuan,
-          jp_per_pertemuan: jpPerPertemuan,
-          total_jp: jumlahPertemuan * jpPerPertemuan,
-        },
-        konten,
-        validation: { valid: validation.valid, errors: validation.errors },
-      }));
-      ctrl.close();
-    },
-  });
+    // Write final — service_role agar bisa update status ke 'aktif'
+    const kontenFinal = validation.output!;
+    const { data: writtenC, error: writeCErr } = await svcClient
+      .from('modul_induk')
+      .update({ konten: kontenFinal, status: 'aktif' })
+      .eq('id', modul_induk_id)
+      .select('id, updated_at')
+      .maybeSingle();
 
-  return new Response(stream, {
-    headers: {
-      'Content-Type':                'text/event-stream',
-      'Cache-Control':               'no-cache',
-      'Connection':                  'keep-alive',
-      'X-Accel-Buffering':           'no',
-      'Access-Control-Allow-Origin': req.headers.get('origin') ?? '*',
-    },
-  });
+    if (writeCErr) return json({ error: 'Gagal menyimpan Modul Ajar.', code: 'MODUL_WRITE_ERROR' }, 500);
+    if (!writtenC) return json({ error: 'Modul berubah saat generate. Muat ulang dan coba lagi.', code: 'MODUL_GENERATION_CONFLICT' }, 409);
+
+    return json({
+      fase: 'C',
+      ok: true,
+      modul_induk_id,
+      updated_at: (writtenC as { id: string; updated_at: string }).updated_at,
+      summary: {
+        jumlah_pertemuan: jumlahPertemuan,
+        jp_per_pertemuan: jpPerPertemuan,
+        total_jp: jumlahPertemuan * jpPerPertemuan,
+      },
+      konten: kontenFinal,
+      validation: { valid: validation.valid, errors: validation.errors },
+    });
+  }
+
+  return json({ error: `Fase tidak dikenal: ${fase}` }, 400);
 });
