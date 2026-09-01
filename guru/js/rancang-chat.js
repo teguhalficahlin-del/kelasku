@@ -21,6 +21,7 @@
     modul_updated_at:     null,
     in_flight:            false,
     pending_multi:        {},
+    modul_generating:     false,  // guard double-trigger generate-modul
   };
 
   const HISTORY_CAP = 40;
@@ -1554,12 +1555,23 @@
   }
 
   async function triggerGenerateModul() {
+    // Guard double-trigger — satu pipeline dalam satu waktu
+    if (_chat.modul_generating) return;
+    _chat.modul_generating = true;
+
     const FASE_LABELS = {
       A: '⏳ Menyusun identitas dan rencana asesmen…',
       B: '⏳ Merancang langkah pembelajaran…',
       C: '⏳ Membuat instrumen asesmen…',
       D: '⏳ Menyusun tindak lanjut dan finalisasi…',
     };
+
+    // Disable chip "Ulangi Generate" jika ada di DOM
+    document.querySelectorAll('.rp-chip').forEach(el => {
+      if (el.textContent.includes('Generate') || el.textContent.includes('Ulangi')) {
+        el.disabled = true;
+      }
+    });
 
     let progressBubble = rcAppendBubble('ai', FASE_LABELS.A);
     addToHistory('ai', 'Menyusun Modul Ajar…');
@@ -1600,14 +1612,14 @@
       let retryable = false;
       if (code === 'MODUL_INPUT_INCOMPLETE') {
         msg = '❌ Data modul belum lengkap. Kembali ke ringkasan dan periksa jawaban.';
-      } else if (code === 'MODUL_WRITE_CONFLICT') {
+      } else if (code === 'MODUL_WRITE_CONFLICT' || code === 'MODUL_GENERATION_CONFLICT') {
         msg = '❌ Data modul berubah di tab lain. Muat ulang halaman lalu coba lagi.';
       } else if (code === 'MODUL_NOT_FOUND') {
         msg = '❌ Modul tidak ditemukan. Muat ulang halaman.';
       } else if (['MODUL_GENERATION_INVALID_JSON', 'MODUL_GENERATION_INVALID_SCHEMA', 'MODUL_GENERATION_FAILED'].includes(code)) {
         msg = '❌ AI gagal menghasilkan Modul yang valid. Silakan coba lagi.';
         retryable = true;
-      } else if (['MODUL_GENERATION_TIMEOUT', 'MODUL_STREAM_INCOMPLETE', 'MODUL_POLL_TIMEOUT'].includes(code)) {
+      } else if (['MODUL_GENERATION_TIMEOUT', 'MODUL_STREAM_INCOMPLETE', 'MODUL_POLL_TIMEOUT', 'AI_ERROR'].includes(code)) {
         msg = '❌ Waktu habis saat menyusun Modul. Silakan coba lagi.';
         retryable = true;
       } else if (code === 'RATE_LIMIT') {
@@ -1627,6 +1639,14 @@
         });
         rcAppendBubble('sistem', btn);
       }
+    } finally {
+      _chat.modul_generating = false;
+      // Re-enable chip jika ada
+      document.querySelectorAll('.rp-chip').forEach(el => {
+        if (el.textContent.includes('Generate') || el.textContent.includes('Ulangi')) {
+          el.disabled = false;
+        }
+      });
     }
   }
 

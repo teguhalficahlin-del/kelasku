@@ -1409,13 +1409,16 @@ Deno.serve(async (req) => {
     }
 
     // Write final via service_role → status='aktif'
+    // Optimistic lock: expected_updated_at dari respons Fase C wajib cocok
     const kontenFinal = validation.output!;
-    const { data: writtenD, error: writeDErr } = await svcClient
+    const writeQuery = svcClient
       .from('modul_induk')
       .update({ konten: kontenFinal, status: 'aktif' })
-      .eq('id', modul_induk_id)
-      .select('id, updated_at')
-      .maybeSingle();
+      .eq('id', modul_induk_id);
+    const { data: writtenD, error: writeDErr } = await (expected_updated_at
+      ? writeQuery.eq('updated_at', expected_updated_at)
+      : writeQuery
+    ).select('id, updated_at').maybeSingle();
 
     if (writeDErr) return json({ error: 'Gagal menyimpan Modul Ajar.', code: 'MODUL_WRITE_ERROR' }, 500);
     if (!writtenD) return json({ error: 'Modul berubah saat generate. Muat ulang dan coba lagi.', code: 'MODUL_GENERATION_CONFLICT' }, 409);
