@@ -209,14 +209,6 @@ function rcRenderWelcomeScreen(panel, mapelDisplay, onContinue, atpCount) {
       .replace(/"/g, '&quot;');
   }
 
-  const BTN_LABELS = {
-    sesuaikan: 'Lanjut: Sesuaikan ATP',
-    susun:     'Lanjut: Susun ATP Baru',
-    modul:     'Lanjut: Buat Modul Ajar',
-  };
-
-  let selectedId = 'sesuaikan';
-
   const atpLabel = typeof atpCount !== 'number'
     ? '— ATP'
     : atpCount === 0
@@ -251,29 +243,14 @@ function rcRenderWelcomeScreen(panel, mapelDisplay, onContinue, atpCount) {
     </button>
   </div>
   <p class="rc-welcome-ai-note">Guru yang sibuk tidak butuh aplikasi yang rumit. MiClass dirancang agar Anda bisa fokus mengajar — bukan mengurus berkas.</p>
-  <div class="rc-welcome-footer">
-    <button type="button" class="rc-welcome-btn" id="rc-welcome-lanjut">
-      ${escHtml(BTN_LABELS['sesuaikan'])}
-    </button>
-  </div>
   <div id="rc-modul-katalog" style="margin-top:20px;"></div>
 </div>`;
 
   panel.querySelectorAll('.rc-welcome-card').forEach(function (card) {
     card.addEventListener('click', function () {
       if (card.getAttribute('aria-disabled') === 'true') return;
-      panel.querySelectorAll('.rc-welcome-card').forEach(function (c) {
-        c.setAttribute('aria-pressed', 'false');
-      });
-      card.setAttribute('aria-pressed', 'true');
-      selectedId = card.dataset.option;
-      var btn = document.getElementById('rc-welcome-lanjut');
-      if (btn) btn.textContent = BTN_LABELS[selectedId] || 'Lanjut';
+      onContinue(card.dataset.option);
     });
-  });
-
-  document.getElementById('rc-welcome-lanjut').addEventListener('click', function () {
-    onContinue(selectedId);
   });
 }
 
@@ -399,25 +376,26 @@ function rcRenderModulKatalog(container, moduls, onBuka) {
     const mapel = m.atp_induk?.mapel || '';
     const fase  = m.atp_induk?.fase  ? 'Fase ' + m.atp_induk.fase : '';
     const meta  = [mapel, fase].filter(Boolean).join(' · ');
-    const row = document.createElement('div');
-    row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:8px;' +
+    const row = document.createElement('button');
+    row.type = 'button';
+    row.style.cssText = 'display:block;width:100%;text-align:left;cursor:pointer;' +
       'background:rgba(255,255,255,0.04);border:1px solid var(--border,rgba(255,255,255,0.08));' +
-      'border-radius:8px;padding:10px 12px;';
+      'border-radius:8px;padding:10px 12px;transition:background 0.15s,border-color 0.15s;';
     row.innerHTML =
-      '<div style="min-width:0;flex:1;">' +
-        '<div style="font-size:0.88rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' +
-          escHtml('TP ' + m.nomor_tp + '. ' + (m.tp_judul || '')) +
-        '</div>' +
-        (meta ? '<div style="font-size:0.78rem;color:var(--text-muted,#888);margin-top:2px;">' + escHtml(meta) + '</div>' : '') +
-        (m.updated_at ? '<div style="font-size:0.75rem;color:var(--text-muted,#888);margin-top:1px;">' + escHtml(tanggal(m.updated_at)) + '</div>' : '') +
-      '</div>';
-    const bukaBtn = document.createElement('button');
-    bukaBtn.type = 'button';
-    bukaBtn.className = 'rp-chip';
-    bukaBtn.textContent = 'Buka';
-    bukaBtn.style.cssText = 'flex-shrink:0;font-size:0.8rem;';
-    bukaBtn.addEventListener('click', function () { if (typeof onBuka === 'function') onBuka(m); });
-    row.appendChild(bukaBtn);
+      '<div style="font-size:0.88rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' +
+        escHtml('TP ' + m.nomor_tp + '. ' + (m.tp_judul || '')) +
+      '</div>' +
+      (meta ? '<div style="font-size:0.78rem;color:var(--text-muted,#888);margin-top:2px;">' + escHtml(meta) + '</div>' : '') +
+      (m.updated_at ? '<div style="font-size:0.75rem;color:var(--text-muted,#888);margin-top:1px;">' + escHtml(tanggal(m.updated_at)) + '</div>' : '');
+    row.addEventListener('mouseenter', function () {
+      row.style.background = 'rgba(255,255,255,0.08)';
+      row.style.borderColor = 'var(--gold,#d4a843)';
+    });
+    row.addEventListener('mouseleave', function () {
+      row.style.background = 'rgba(255,255,255,0.04)';
+      row.style.borderColor = 'var(--border,rgba(255,255,255,0.08))';
+    });
+    row.addEventListener('click', function () { if (typeof onBuka === 'function') onBuka(m); });
     list.appendChild(row);
   });
 }
