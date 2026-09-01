@@ -166,9 +166,10 @@ async function callGenerateAtp(atpIndukId, expectedUpdatedAt) {
 
 const GENERATE_MODUL_URL = 'https://teccdzetrdjowqemnuuc.supabase.co/functions/v1/generate-modul';
 
-async function _callGenerateModulFase(token, modulIndukId, classroomId, expectedUpdatedAt, fase) {
+async function _callGenerateModulFase(token, modulIndukId, classroomId, expectedUpdatedAt, fase, signal) {
   const res = await fetch(GENERATE_MODUL_URL, {
     method: 'POST',
+    signal,
     headers: {
       'Content-Type':  'application/json',
       'Authorization': `Bearer ${token}`,
@@ -193,7 +194,7 @@ async function _callGenerateModulFase(token, modulIndukId, classroomId, expected
   return resJson;
 }
 
-async function callGenerateModul(modulIndukId, classroomId, expectedUpdatedAt, onProgress) {
+async function callGenerateModul(modulIndukId, classroomId, expectedUpdatedAt, onProgress, signal) {
   const { data: { session } } = await window.supabaseClient.auth.getSession();
   const token = session?.access_token ?? '';
   const start = Date.now();
@@ -201,19 +202,19 @@ async function callGenerateModul(modulIndukId, classroomId, expectedUpdatedAt, o
   if (typeof onProgress === 'function') onProgress({ fase: 'A', elapsed: 0 });
 
   // Fase A — identitas, identifikasi, desain, asesmen
-  const resA = await _callGenerateModulFase(token, modulIndukId, classroomId, expectedUpdatedAt, 'A');
+  const resA = await _callGenerateModulFase(token, modulIndukId, classroomId, expectedUpdatedAt, 'A', signal);
   if (typeof onProgress === 'function') onProgress({ fase: 'B', elapsed: Date.now() - start });
 
   // Fase B — pertemuan[]
-  const resB = await _callGenerateModulFase(token, modulIndukId, classroomId, resA.updated_at, 'B');
+  const resB = await _callGenerateModulFase(token, modulIndukId, classroomId, resA.updated_at, 'B', signal);
   if (typeof onProgress === 'function') onProgress({ fase: 'C', elapsed: Date.now() - start });
 
   // Fase C — instrumen G1-G7
-  const resC = await _callGenerateModulFase(token, modulIndukId, classroomId, resB.updated_at, 'C');
+  const resC = await _callGenerateModulFase(token, modulIndukId, classroomId, resB.updated_at, 'C', signal);
   if (typeof onProgress === 'function') onProgress({ fase: 'D', elapsed: Date.now() - start });
 
   // Fase D — tindak_lanjut + catatan_guru + merge + write final + status='aktif'
-  const resD = await _callGenerateModulFase(token, modulIndukId, classroomId, resC.updated_at, 'D');
+  const resD = await _callGenerateModulFase(token, modulIndukId, classroomId, resC.updated_at, 'D', signal);
 
   return {
     status:         'done',

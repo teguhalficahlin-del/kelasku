@@ -127,6 +127,7 @@
       const data = window._cpData;
       if (!data) { console.warn('[rancang-chat] window._cpData tidak tersedia'); return []; }
       const mapelKey = mapel.toLowerCase().replace(/[^a-z0-9]/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '');
+      if (!mapelKey) return [];
       const faseKey  = 'fase_' + (fase || 'e').toLowerCase();
       const elemen   = data[mapelKey]?.[faseKey]?.elemen;
       if (!Array.isArray(elemen) || !elemen.length) {
@@ -580,6 +581,7 @@
 
   async function startPhase(phase) {
     _chat.session_phase = phase;
+    if (typeof rcUpdateModulProgress === 'function') rcUpdateModulProgress(phase);
     if (phase === 'ATP_GENERATE') {
       rcSetComposerVisible(false);
       await triggerGenerateAtp();
@@ -610,20 +612,21 @@
         return;
       }
       rcRenderChips([
-        { value: '__terima_modul__',    label: '✓ Terima Modul' },
-        { value: '__ulang_generate__',  label: '↺ Ulangi Generate' },
-        { value: '__kembali_rancang__', label: '← Rancang' },
+        { value: '__buka_modul__',       label: '📄 Buka Modul Ajar' },
+        { value: '__ulang_generate__',   label: '↺ Buat Ulang' },
+        { value: '__kembali_daftar_tp__', label: '← Kembali ke daftar TP' },
       ], function (value) {
         rcClearChips();
-        if (value === '__terima_modul__') {
-          acceptModulInduk();
+        if (value === '__buka_modul__') {
+          rcAppendBubble('ai', '✓ Modul Ajar sudah aktif dan siap digunakan.');
+          startPhase('DONE');
           return;
         }
         if (value === '__ulang_generate__') {
           startPhase('MODUL_GENERATE');
           return;
         }
-        if (value === '__kembali_rancang__') {
+        if (value === '__kembali_daftar_tp__') {
           startPhase('DONE');
           return;
         }
@@ -798,6 +801,7 @@
     saveState();
 
     rcAppendBubble('ai', renderQuestionPrompt(q.prompt));
+    if (q.helpText) rcAppendBubble('sistem', '💡 ' + q.helpText);
 
     const needsInput = q.kind === 'teks_bebas' || q.kind === 'angka';
     rcSetComposerVisible(needsInput);
@@ -1851,8 +1855,25 @@
       }
     });
 
+    const _abort = new AbortController();
+    _chat._abortGenerate = _abort;
+
     let progressBubble = rcAppendBubble('ai', FASE_LABELS.A);
     addToHistory('ai', 'Menyusun Modul Ajar…');
+
+    // Tombol "Batalkan" — muncul selama generate berlangsung
+    const cancelBtn = document.createElement('button');
+    cancelBtn.type = 'button';
+    cancelBtn.className = 'rp-chip';
+    cancelBtn.textContent = '✕ Batalkan';
+    cancelBtn.style.cssText = 'background:rgba(220,53,69,0.15);color:#ff6b6b;border-color:rgba(220,53,69,0.4);';
+    cancelBtn.addEventListener('click', () => {
+      _abort.abort();
+      cancelBtn.disabled = true;
+      cancelBtn.textContent = 'Membatalkan…';
+    });
+    const cancelBubble = rcAppendBubble('sistem', cancelBtn);
+
     rcShowTyping();
 
     const generateStart = Date.now();
@@ -1868,8 +1889,10 @@
         _chat.classroom_id,
         _chat.modul_updated_at,
         onProgress,
+        _abort.signal,
       );
       rcHideTyping();
+      if (cancelBubble) cancelBubble.remove();
       if (progressBubble) progressBubble.remove();
       _chat.modul_konten     = result.konten;
       _chat.modul_updated_at = result.updated_at;
@@ -1884,7 +1907,18 @@
       await startPhase('MODUL_REVIEW');
     } catch (err) {
       rcHideTyping();
+      if (cancelBubble) cancelBubble.remove();
       if (progressBubble) { progressBubble.remove(); progressBubble = null; }
+      if (err.name === 'AbortError') {
+        rcAppendBubble('sistem', '⚠ Generate dibatalkan. Progres parsial dihapus — Anda bisa mulai ulang kapan saja.');
+        try {
+          await window.supabaseClient
+            .from('modul_induk')
+            .update({ konten: {}, status: 'draft' })
+            .eq('id', _chat.modul_induk_id);
+        } catch (_) { /* biarkan — status sudah draft sebelum Fase D */ }
+        return;
+      }
       const code = err.code || '';
       let msg;
       let retryable = false;

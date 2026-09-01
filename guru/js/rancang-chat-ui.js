@@ -6,7 +6,32 @@
 function rcRenderStream(containerId) {
   const el = document.getElementById(containerId);
   if (!el) return;
-  el.innerHTML = '<div class="rc-stream" id="rc-stream"></div>';
+  el.innerHTML =
+    '<div id="rc-modul-progress" style="display:none;padding:6px 14px 4px;' +
+    'font-size:0.82rem;color:var(--gold,#f2c14e);border-bottom:1px solid rgba(242,193,78,0.18);' +
+    'background:rgba(242,193,78,0.05);">' +
+    'Modul Ajar · Langkah <span id="rc-prog-step">1</span> dari 4 · ' +
+    '<span id="rc-prog-name"></span></div>' +
+    '<div class="rc-stream" id="rc-stream"></div>';
+}
+
+const _MODUL_PROGRESS_MAP = {
+  KONTEKS_MODUL:   { step: 1, name: 'Konteks' },
+  SUMBER_STRATEGI: { step: 2, name: 'Sumber & Strategi' },
+  ASESMEN_MODUL:   { step: 3, name: 'Asesmen' },
+  MODUL_SUMMARY:   { step: 4, name: 'Konfirmasi' },
+};
+
+function rcUpdateModulProgress(phase) {
+  const bar = document.getElementById('rc-modul-progress');
+  if (!bar) return;
+  const info = _MODUL_PROGRESS_MAP[phase];
+  if (!info) { bar.style.display = 'none'; return; }
+  bar.style.display = '';
+  const stepEl = document.getElementById('rc-prog-step');
+  const nameEl = document.getElementById('rc-prog-name');
+  if (stepEl) stepEl.textContent = info.step;
+  if (nameEl) nameEl.textContent = info.name;
 }
 
 function rcAppendBubble(role, text, opts = {}) {
