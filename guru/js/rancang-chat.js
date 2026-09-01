@@ -619,7 +619,7 @@
       ], function (value) {
         rcClearChips();
         if (value === '__buka_modul__') {
-          rcAppendBubble('ai', '✓ Modul Ajar sudah aktif dan siap digunakan.');
+          _chat._modul_just_active = true;
           startPhase('DONE');
           return;
         }
@@ -640,6 +640,11 @@
       rcSetComposerVisible(false);
       rcClearStream();
       rcClearChips();
+      if (_chat._modul_just_active) {
+        rcAppendBubble('ai', '✓ Modul Ajar sudah aktif dan siap digunakan.');
+        _chat._modul_just_active = false;
+        saveState();
+      }
       const atpPreview = renderAtpDonePreview();
       const atpBubble  = atpPreview
         ? `✓ ATP telah selesai ditinjau.\n\n${atpPreview}`
