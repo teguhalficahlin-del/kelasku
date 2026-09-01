@@ -865,6 +865,7 @@ function buildUserMessageFaseA(params: {
 }): string {
   return JSON.stringify({
     fase: 'A',
+    output_instruction: 'Jawab ringkas dan padat. Jangan tambahkan penjelasan atau komentar di luar JSON. Setiap field cukup 1-3 kalimat. Total output harus di bawah 3000 token.',
     identitas_db:      params.identitasDB,
     tp_nomor:          params.nomorTp,
     tp_judul:          params.tpJudul,
@@ -896,6 +897,7 @@ function buildUserMessageFaseB(params: {
   const targetDurasi = params.jpPerPertemuan * params.durasiJp;
   return JSON.stringify({
     fase: 'B',
+    output_instruction: 'Jawab ringkas dan padat. Jangan tambahkan penjelasan atau komentar di luar JSON. Setiap field cukup 1-3 kalimat. Total output harus di bawah 3000 token.',
     instruksi_durasi:
       `sum(langkah[].durasi_menit) per pertemuan HARUS = ${targetDurasi} ` +
       `(${params.jpPerPertemuan} JP x ${params.durasiJp} menit). Syarat mutlak.`,
@@ -918,6 +920,7 @@ function buildUserMessageFaseC(params: {
 }): string {
   return JSON.stringify({
     fase: 'C',
+    output_instruction: 'Jawab ringkas dan padat. Jangan tambahkan penjelasan atau komentar di luar JSON. Setiap field cukup 1-3 kalimat. Total output harus di bawah 3000 token.',
     identitas:           params.faseAOutput.identitas,
     desain_pembelajaran: params.faseAOutput.desain_pembelajaran,
     rencana_asesmen:     params.faseAOutput.rencana_asesmen,
@@ -1159,7 +1162,7 @@ Deno.serve(async (req) => {
         },
         body: JSON.stringify({
           model: 'claude-sonnet-4-6',
-          max_tokens: 16000,
+          max_tokens: 4000,
           system: SYSTEM_PROMPT,
           messages,
         }),
@@ -1210,149 +1213,160 @@ Deno.serve(async (req) => {
     return parsed as Record<string, unknown>;
   }
 
-  // 10. TIGA FASE GENERATE
-  let faseAOutput: Record<string, unknown>;
-  let faseBOutput: Record<string, unknown>;
-  let faseCOutput: Record<string, unknown>;
+  // 10. STREAMING SSE — tiga fase generate
+  const enc = new TextEncoder();
 
-  try {
-    faseAOutput = await callPhase(
-      'Fase A',
-      buildUserMessageFaseA({ identitasDB, nomorTp, tpJudul, jumlahPertemuan, jpPerPertemuan, durasiJp, elemenCp, kktpList, cd }),
-      75_000,
-    );
-  } catch (e: unknown) {
-    const err = e as { message: string; code?: string; retryable?: boolean };
-    return json({ error: err.message, code: err.code, retryable: err.retryable ?? true }, 504);
+  function sseChunk(obj: unknown): Uint8Array {
+    return enc.encode(`data: ${JSON.stringify(obj)}\n\n`);
   }
 
-  try {
-    faseBOutput = await callPhase(
-      'Fase B',
-      buildUserMessageFaseB({ faseAOutput, jumlahPertemuan, jpPerPertemuan, durasiJp, cd }),
-      75_000,
-    );
-  } catch (e: unknown) {
-    const err = e as { message: string; code?: string; retryable?: boolean };
-    return json({ error: err.message, code: err.code, retryable: err.retryable ?? true }, 504);
-  }
+  const stream = new ReadableStream({
+    async start(ctrl) {
+      // Helper: kirim heartbeat setiap 10 detik agar idle clock tidak mencapai 150s
+      let heartbeatFase = '';
+      const heartbeatId = setInterval(() => {
+        try { ctrl.enqueue(sseChunk({ status: 'generating', fase: heartbeatFase })); } catch { /* stream closed */ }
+      }, 10_000);
 
-  try {
-    faseCOutput = await callPhase(
-      'Fase C',
-      buildUserMessageFaseC({ faseAOutput, faseBOutput, cd }),
-      75_000,
-    );
-  } catch (e: unknown) {
-    const err = e as { message: string; code?: string; retryable?: boolean };
-    return json({ error: err.message, code: err.code, retryable: err.retryable ?? true }, 504);
-  }
-
-  // 11. MERGE TIGA FASE + VALIDASI
-  const merged: unknown = {
-    schema_version:      faseAOutput.schema_version ?? '3.2.0',
-    identitas:           faseAOutput.identitas,
-    identifikasi:        faseAOutput.identifikasi,
-    desain_pembelajaran: faseAOutput.desain_pembelajaran,
-    rencana_asesmen:     faseAOutput.rencana_asesmen,
-    pertemuan:           faseBOutput.pertemuan,
-    instrumen:           faseCOutput.instrumen,
-    tindak_lanjut:       faseCOutput.tindak_lanjut,
-    catatan_guru:        faseCOutput.catatan_guru,
-  };
-
-  let validation = validateModulOutput(merged, nomorTp, jumlahPertemuan, jpPerPertemuan, durasiJp);
-
-  if (!validation.valid) {
-    const budget = Math.max(10_000, 90_000 - (Date.now() - startTime));
-    const errorList = validation.errors.join('; ');
-    console.warn('[generate-modul] validation failed, attempting repair:', errorList);
-
-    // Repair hanya Fase B jika error durasi, repair full merged jika error lain
-    const hasDurasiError = validation.errors.some(e => e.includes('durasi'));
-    const repairMsg = hasDurasiError
-      ? buildUserMessageFaseB({ faseAOutput, jumlahPertemuan, jpPerPertemuan, durasiJp, cd }) +
-        `\n\nERROR yang harus diperbaiki: ${errorList}. sum(langkah[].durasi_menit) HARUS = ${targetDurasi}.`
-      : JSON.stringify(merged) +
-        `\n\nERROR yang harus diperbaiki: ${errorList}. Hasilkan JSON object penuh yang sudah benar.`;
-
-    let repairParsed: unknown;
-    try {
-      const repairText = await callAI([{ role: 'user', content: repairMsg }], budget);
-      repairParsed = extractJson(repairText);
-      if (hasDurasiError) {
-        (repairParsed as Record<string, unknown>).pertemuan = (repairParsed as Record<string, unknown>).pertemuan;
-        repairParsed = { ...merged, pertemuan: (repairParsed as Record<string, unknown>).pertemuan };
+      async function runPhase(
+        label: string,
+        userMsg: string,
+      ): Promise<Record<string, unknown> | null> {
+        heartbeatFase = label;
+        try {
+          const output = await callPhase(label, userMsg, 120_000);
+          ctrl.enqueue(sseChunk({ fase: label.replace('Fase ', ''), status: 'selesai' }));
+          return output;
+        } catch (e: unknown) {
+          const err = e as { message: string; code?: string; retryable?: boolean };
+          ctrl.enqueue(sseChunk({ status: 'error', error: err.message, code: err.code, retryable: err.retryable ?? true }));
+          clearInterval(heartbeatId);
+          ctrl.close();
+          return null;
+        }
       }
-    } catch {
-      return json({
-        error: `Repair gagal: ${errorList}`,
-        code: 'MODUL_GENERATION_INVALID_SCHEMA',
-        retryable: true,
-      }, 502);
-    }
 
-    validation = validateModulOutput(repairParsed, nomorTp, jumlahPertemuan, jpPerPertemuan, durasiJp);
-    if (!validation.valid) {
-      return json({
-        error: `Validasi gagal setelah repair: ${validation.errors.join('; ')}`,
-        code: 'MODUL_GENERATION_INVALID_SCHEMA',
-        retryable: true,
-      }, 502);
-    }
-  }
+      // Fase A
+      const faseAOutput = await runPhase('Fase A',
+        buildUserMessageFaseA({ identitasDB, nomorTp, tpJudul, jumlahPertemuan, jpPerPertemuan, durasiJp, elemenCp, kktpList, cd }));
+      if (!faseAOutput) return;
 
-  // 12. WRITE ATOMIK — optimistic lock via expected_updated_at
-  // status tetap 'draft'; guru harus eksplisit 'terima' di MODUL_REVIEW
-  const konten = validation.output!;
+      // Fase B
+      const faseBOutput = await runPhase('Fase B',
+        buildUserMessageFaseB({ faseAOutput, jumlahPertemuan, jpPerPertemuan, durasiJp, cd }));
+      if (!faseBOutput) return;
 
-  type WriteRow = { id: string; updated_at: string } | null;
-  let written: WriteRow;
-  let writeErr: unknown;
+      // Fase C
+      const faseCOutput = await runPhase('Fase C',
+        buildUserMessageFaseC({ faseAOutput, faseBOutput, cd }));
+      if (!faseCOutput) return;
 
-  if (expected_updated_at) {
-    const r = await userClient
-      .from('modul_induk')
-      .update({ konten })
-      .eq('id', modul_induk_id)
-      .eq('updated_at', expected_updated_at)
-      .select('id, updated_at')
-      .maybeSingle();
-    written = r.data as WriteRow;
-    writeErr = r.error;
-  } else {
-    const r = await userClient
-      .from('modul_induk')
-      .update({ konten })
-      .eq('id', modul_induk_id)
-      .select('id, updated_at')
-      .maybeSingle();
-    written = r.data as WriteRow;
-    writeErr = r.error;
-  }
+      clearInterval(heartbeatId);
 
-  if (writeErr) {
-    console.error('[generate-modul] write error:', writeErr);
-    return json({ error: 'Gagal menyimpan Modul Ajar ke database.', detail: String(writeErr) }, 500);
-  }
-  if (!written) {
-    return json({
-      error: 'Modul Ajar berubah saat sedang digenerate. Muat ulang halaman dan coba lagi.',
-      code: 'MODUL_GENERATION_CONFLICT',
-    }, 409);
-  }
+      // 11. MERGE + VALIDASI
+      let merged: unknown = {
+        schema_version:      faseAOutput.schema_version ?? '3.2.0',
+        identitas:           faseAOutput.identitas,
+        identifikasi:        faseAOutput.identifikasi,
+        desain_pembelajaran: faseAOutput.desain_pembelajaran,
+        rencana_asesmen:     faseAOutput.rencana_asesmen,
+        pertemuan:           faseBOutput.pertemuan,
+        instrumen:           faseCOutput.instrumen,
+        tindak_lanjut:       faseCOutput.tindak_lanjut,
+        catatan_guru:        faseCOutput.catatan_guru,
+      };
 
-  // 13. RESPONSE
-  return json({
-    status: 'success',
-    modul_induk_id,
-    generated_at: new Date().toISOString(),
-    updated_at: (written as { id: string; updated_at: string }).updated_at,
-    summary: {
-      jumlah_pertemuan: jumlahPertemuan,
-      jp_per_pertemuan: jpPerPertemuan,
-      total_jp: jumlahPertemuan * jpPerPertemuan,
+      let validation = validateModulOutput(merged, nomorTp, jumlahPertemuan, jpPerPertemuan, durasiJp);
+
+      if (!validation.valid) {
+        const budget = Math.max(10_000, 90_000 - (Date.now() - startTime));
+        const errorList = validation.errors.join('; ');
+        console.warn('[generate-modul] validation failed, attempting repair:', errorList);
+        ctrl.enqueue(sseChunk({ status: 'repairing', errors: validation.errors }));
+
+        const hasDurasiError = validation.errors.some(e => e.includes('durasi'));
+        const repairMsg = hasDurasiError
+          ? buildUserMessageFaseB({ faseAOutput, jumlahPertemuan, jpPerPertemuan, durasiJp, cd }) +
+            `\n\nERROR yang harus diperbaiki: ${errorList}. sum(langkah[].durasi_menit) HARUS = ${targetDurasi}.`
+          : JSON.stringify(merged) +
+            `\n\nERROR yang harus diperbaiki: ${errorList}. Hasilkan JSON object penuh yang sudah benar.`;
+
+        let repairParsed: unknown;
+        try {
+          const repairText = await callAI([{ role: 'user', content: repairMsg }], budget);
+          repairParsed = extractJson(repairText);
+          if (hasDurasiError) {
+            repairParsed = { ...merged, pertemuan: (repairParsed as Record<string, unknown>).pertemuan };
+          }
+        } catch {
+          ctrl.enqueue(sseChunk({ status: 'error', error: `Repair gagal: ${errorList}`, code: 'MODUL_GENERATION_INVALID_SCHEMA', retryable: true }));
+          ctrl.close();
+          return;
+        }
+
+        validation = validateModulOutput(repairParsed, nomorTp, jumlahPertemuan, jpPerPertemuan, durasiJp);
+        if (!validation.valid) {
+          ctrl.enqueue(sseChunk({ status: 'error', error: `Validasi gagal setelah repair: ${validation.errors.join('; ')}`, code: 'MODUL_GENERATION_INVALID_SCHEMA', retryable: true }));
+          ctrl.close();
+          return;
+        }
+        merged = repairParsed;
+      }
+
+      // 12. WRITE ATOMIK
+      const konten = validation.output!;
+      type WriteRow = { id: string; updated_at: string } | null;
+      let written: WriteRow;
+      let writeErr: unknown;
+
+      if (expected_updated_at) {
+        const r = await userClient.from('modul_induk').update({ konten })
+          .eq('id', modul_induk_id).eq('updated_at', expected_updated_at)
+          .select('id, updated_at').maybeSingle();
+        written = r.data as WriteRow; writeErr = r.error;
+      } else {
+        const r = await userClient.from('modul_induk').update({ konten })
+          .eq('id', modul_induk_id).select('id, updated_at').maybeSingle();
+        written = r.data as WriteRow; writeErr = r.error;
+      }
+
+      if (writeErr) {
+        console.error('[generate-modul] write error:', writeErr);
+        ctrl.enqueue(sseChunk({ status: 'error', error: 'Gagal menyimpan Modul Ajar ke database.', code: 'MODUL_WRITE_ERROR' }));
+        ctrl.close();
+        return;
+      }
+      if (!written) {
+        ctrl.enqueue(sseChunk({ status: 'error', error: 'Modul Ajar berubah saat sedang digenerate. Muat ulang halaman dan coba lagi.', code: 'MODUL_GENERATION_CONFLICT' }));
+        ctrl.close();
+        return;
+      }
+
+      // 13. DONE
+      ctrl.enqueue(sseChunk({
+        status: 'done',
+        modul_induk_id,
+        generated_at: new Date().toISOString(),
+        updated_at: (written as { id: string; updated_at: string }).updated_at,
+        summary: {
+          jumlah_pertemuan: jumlahPertemuan,
+          jp_per_pertemuan: jpPerPertemuan,
+          total_jp: jumlahPertemuan * jpPerPertemuan,
+        },
+        konten,
+        validation: { valid: validation.valid, errors: validation.errors },
+      }));
+      ctrl.close();
     },
-    konten,
+  });
+
+  return new Response(stream, {
+    headers: {
+      'Content-Type':                'text/event-stream',
+      'Cache-Control':               'no-cache',
+      'Connection':                  'keep-alive',
+      'X-Accel-Buffering':           'no',
+      'Access-Control-Allow-Origin': req.headers.get('origin') ?? '*',
+    },
   });
 });

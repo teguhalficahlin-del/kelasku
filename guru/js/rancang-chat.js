@@ -1554,28 +1554,47 @@
   }
 
   async function triggerGenerateModul() {
-    rcAppendBubble('ai', '⏳ Menyusun Modul Ajar…');
+    let progressBubble = rcAppendBubble('ai', '⏳ Menyusun identitas dan rencana asesmen…');
     addToHistory('ai', 'Menyusun Modul Ajar…');
     rcShowTyping();
+
+    function onProgress(chunk) {
+      const faseLabel = {
+        A: '⏳ Menyusun identitas dan rencana asesmen…',
+        B: '⏳ Merancang langkah pembelajaran…',
+        C: '⏳ Membuat instrumen asesmen…',
+      };
+      if (chunk.status === 'selesai' && faseLabel[chunk.fase]) {
+        const nextFases = { A: 'B', B: 'C' };
+        const next = nextFases[chunk.fase];
+        if (next && faseLabel[next] && progressBubble) {
+          progressBubble.textContent = faseLabel[next];
+        }
+      }
+    }
+
     try {
       const result = await callGenerateModul(
         _chat.modul_induk_id,
         _chat.classroom_id,
         _chat.modul_updated_at,
+        onProgress,
       );
       rcHideTyping();
+      if (progressBubble) progressBubble.remove();
       _chat.modul_konten     = result.konten;
       _chat.modul_updated_at = result.updated_at;
       saveState();
       const s = result.summary;
       const msg =
-        `Modul Ajar selesai disusun: ${s.jumlah_pertemuan} pertemuan, ` +
+        `✅ Modul Ajar selesai! ${s.jumlah_pertemuan} pertemuan, ` +
         `${s.jp_per_pertemuan} JP per pertemuan.`;
       rcAppendBubble('ai', msg);
       addToHistory('ai', msg);
       await startPhase('MODUL_REVIEW');
     } catch (err) {
       rcHideTyping();
+      if (progressBubble) { progressBubble.remove(); progressBubble = null; }
       const code = err.code || '';
       let msg;
       let retryable = false;
@@ -1588,7 +1607,7 @@
       } else if (['MODUL_GENERATION_INVALID_JSON', 'MODUL_GENERATION_INVALID_SCHEMA'].includes(code)) {
         msg = '❌ AI gagal menghasilkan Modul yang valid. Silakan coba lagi.';
         retryable = true;
-      } else if (code === 'MODUL_GENERATION_TIMEOUT') {
+      } else if (code === 'MODUL_GENERATION_TIMEOUT' || code === 'MODUL_STREAM_INCOMPLETE') {
         msg = '❌ Waktu habis saat menyusun Modul. Silakan coba lagi.';
         retryable = true;
       } else if (code === 'RATE_LIMIT') {

@@ -166,37 +166,62 @@ async function callGenerateAtp(atpIndukId, expectedUpdatedAt) {
 
 const GENERATE_MODUL_URL = 'https://teccdzetrdjowqemnuuc.supabase.co/functions/v1/generate-modul';
 
-async function callGenerateModul(modulIndukId, classroomId, expectedUpdatedAt) {
+async function callGenerateModul(modulIndukId, classroomId, expectedUpdatedAt, onProgress) {
   const { data: { session } } = await window.supabaseClient.auth.getSession();
   const token = session?.access_token ?? '';
 
-  const controller = new AbortController();
-  const tid = setTimeout(() => controller.abort(), 110_000);
-  try {
-    const res = await fetch(GENERATE_MODUL_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type':  'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        modul_induk_id:      modulIndukId,
-        classroom_id:        classroomId,
-        expected_updated_at: expectedUpdatedAt || undefined,
-      }),
-      signal: controller.signal,
-    });
-    const responseJson = await res.json();
-    if (!res.ok) {
-      const err = new Error(responseJson.error || 'generate-modul error');
-      err.code      = responseJson.code      || String(res.status);
-      err.retryable = responseJson.retryable ?? false;
-      throw err;
-    }
-    return responseJson;
-  } finally {
-    clearTimeout(tid);
+  const res = await fetch(GENERATE_MODUL_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type':  'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      modul_induk_id:      modulIndukId,
+      classroom_id:        classroomId,
+      expected_updated_at: expectedUpdatedAt || undefined,
+    }),
+  });
+
+  if (!res.ok || !res.body) {
+    let errJson = {};
+    try { errJson = await res.json(); } catch { /* ignore */ }
+    const err = new Error(errJson.error || `generate-modul HTTP ${res.status}`);
+    err.code      = errJson.code      || String(res.status);
+    err.retryable = errJson.retryable ?? false;
+    throw err;
   }
+
+  const reader  = res.body.getReader();
+  const decoder = new TextDecoder();
+  let   buf     = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buf += decoder.decode(value, { stream: true });
+
+    // Parse SSE lines: "data: {...}\n\n"
+    const parts = buf.split('\n\n');
+    buf = parts.pop() ?? '';
+
+    for (const part of parts) {
+      const line = part.trim();
+      if (!line.startsWith('data:')) continue;
+      let chunk;
+      try { chunk = JSON.parse(line.slice(5).trim()); } catch { continue; }
+
+      if (chunk.status === 'error') {
+        const err = new Error(chunk.error || 'generate-modul error');
+        err.code      = chunk.code      || 'MODUL_ERROR';
+        err.retryable = chunk.retryable ?? true;
+        throw err;
+      }
+      if (typeof onProgress === 'function') onProgress(chunk);
+      if (chunk.status === 'done') return chunk;
+    }
+  }
+  throw Object.assign(new Error('Stream berakhir tanpa hasil.'), { code: 'MODUL_STREAM_INCOMPLETE', retryable: true });
 }
 
 async function acceptAtp(atpIndukId, updatedAt) {
