@@ -1472,31 +1472,292 @@
   function renderModulPreview() {
     const konten = _chat.modul_konten;
     if (!konten) {
-      rcAppendBubble('sistem', '⚠ Konten modul tidak ditemukan.');
+      rcAppendBubble('sistem', '⚠ Konten modul tidak ditemukan. Coba generate ulang.');
       return;
     }
+    try {
+      if (konten.schema_version === '3.2.0') {
+        _renderModulPreviewV320(konten);
+      } else {
+        _renderModulPreviewLama(konten);
+      }
+    } catch (err) {
+      console.error('[renderModulPreview] error saat render:', err);
+      rcAppendBubble('sistem',
+        '⚠ Modul berhasil dibuat tapi terjadi error saat menampilkannya. ' +
+        'Data sudah tersimpan — klik "Lihat Modul" untuk mengecek konten.');
+    }
+  }
+
+  // ── Render schema lama (sebelum V3.2.0) ──────────────────────────────────
+  function _renderModulPreviewLama(konten) {
     const header =
-      `Modul Ajar — TP ${konten.tp_nomor}: ${konten.tp_judul}\n` +
-      `${konten.jumlah_pertemuan} pertemuan · ${konten.jp_per_pertemuan} JP per pertemuan`;
+      `Modul Ajar — TP ${konten.tp_nomor ?? '?'}: ${konten.tp_judul ?? '-'}\n` +
+      `${konten.jumlah_pertemuan ?? '?'} pertemuan · ${konten.jp_per_pertemuan ?? '?'} JP per pertemuan`;
     rcAppendBubble('ai', header);
     addToHistory('ai', header);
-
-    for (const p of konten.pertemuan) {
-      const aktivitasLines = p.aktivitas
-        .map(a => `  [${a.tahap} ${a.durasi_menit}′] ${a.deskripsi}`)
-        .join('\n');
+    const pertemuanArr = Array.isArray(konten.pertemuan) ? konten.pertemuan : [];
+    for (const p of pertemuanArr) {
+      const aktivitasLines = Array.isArray(p.aktivitas)
+        ? p.aktivitas.map(a => `  [${a.tahap} ${a.durasi_menit}′] ${a.deskripsi}`).join('\n')
+        : '';
       const bubble =
-        `Pertemuan ${p.nomor}\n` +
-        `Tujuan: ${p.tujuan_pertemuan}\n` +
+        `Pertemuan ${p.nomor ?? '?'}\n` +
+        `Tujuan: ${p.tujuan_pertemuan ?? '-'}\n` +
         `Media: ${(p.media_dan_alat || []).join(', ')}\n\n` +
         `${aktivitasLines}\n\n` +
-        `Asesmen formatif: ${p.asesmen_formatif}` +
+        (p.asesmen_formatif ? `Asesmen formatif: ${p.asesmen_formatif}` : '') +
         (p.catatan_guru ? `\nCatatan: ${p.catatan_guru}` : '');
       rcAppendBubble('ai', bubble);
     }
+    if (konten.asesmen_sumatif) {
+      rcAppendBubble('ai', `Asesmen sumatif: ${konten.asesmen_sumatif}`);
+    }
+  }
 
-    const footer = `Asesmen sumatif: ${konten.asesmen_sumatif}`;
-    rcAppendBubble('ai', footer);
+  // ── Render schema V3.2.0 ─────────────────────────────────────────────────
+  function _renderModulPreviewV320(konten) {
+    const id  = konten.identitas           ?? {};
+    const ident = konten.identifikasi      ?? {};
+    const dp  = konten.desain_pembelajaran ?? {};
+    const ra  = konten.rencana_asesmen     ?? {};
+    const ins = konten.instrumen           ?? {};
+
+    // ── 1. HEADER IDENTITAS ─────────────────────────────────────────────────
+    const elemenCp = Array.isArray(id.elemen_cp) ? id.elemen_cp.join(', ') : '-';
+    const headerLines = [
+      `📋 Modul Ajar V3.2.0`,
+      `Mata Pelajaran   : ${id.mata_pelajaran   ?? '-'}`,
+      `Jenjang / Fase   : ${id.jenjang ?? '-'} / Fase ${id.fase ?? '-'}`,
+      `Nomor TP         : ${id.nomor_tp ?? '-'}`,
+      `Pertemuan        : ${id.jumlah_pertemuan ?? '-'} × ${id.jp_per_pertemuan ?? '-'} JP (${id.durasi_jp_menit ?? '-'} mnt/JP)`,
+      `Total alokasi    : ${id.alokasi_waktu_total_menit ?? '-'} menit`,
+      `Elemen CP        : ${elemenCp}`,
+      `Jenis Dokumen    : ${id.jenis_dokumen ?? '-'}`,
+    ];
+    rcAppendBubble('ai', headerLines.join('\n'));
+    addToHistory('ai', headerLines[0]);
+
+    // ── 2. TUJUAN PEMBELAJARAN ──────────────────────────────────────────────
+    if (id.tujuan_pembelajaran || id.dasar_cp) {
+      const tpLines = ['🎯 Tujuan Pembelajaran'];
+      if (id.tujuan_pembelajaran) tpLines.push(id.tujuan_pembelajaran);
+      if (id.dasar_cp) tpLines.push(`\nDasar CP:\n${id.dasar_cp}`);
+      rcAppendBubble('ai', tpLines.join('\n'));
+    }
+    const lingkupArr = Array.isArray(id.lingkup_materi) ? id.lingkup_materi : [];
+    if (lingkupArr.length) {
+      rcAppendBubble('ai',
+        `Lingkup Materi\n${lingkupArr.map((m, i) => `${i + 1}. ${m}`).join('\n')}`);
+    }
+    const kosakataArr = Array.isArray(id.kosakata_inti) ? id.kosakata_inti : [];
+    if (kosakataArr.length) {
+      rcAppendBubble('ai',
+        `Kosakata Inti (${kosakataArr.length})\n${kosakataArr.map((k, i) => `${i + 1}. ${k}`).join('\n')}`);
+    }
+
+    // ── 3. IDENTIFIKASI ─────────────────────────────────────────────────────
+    const dplArr = Array.isArray(ident.dimensi_profil_lulusan) ? ident.dimensi_profil_lulusan : [];
+    if (dplArr.length) {
+      const dplLines = dplArr.map((d, i) =>
+        `${i + 1}. ${d.dimensi ?? '-'}\n   Alasan: ${d.alasan ?? '-'}\n   Indikator: ${d.indikator ?? '-'}`
+      );
+      rcAppendBubble('ai', `🧑‍🎓 Identifikasi — Dimensi Profil Lulusan\n\n${dplLines.join('\n\n')}`);
+    }
+    const km = ident.karakteristik_materi ?? {};
+    if (km.faktual || km.konseptual || km.prosedural) {
+      rcAppendBubble('ai',
+        `Karakteristik Materi\n` +
+        `Faktual    : ${km.faktual ?? '-'}\n` +
+        `Konseptual : ${km.konseptual ?? '-'}\n` +
+        `Prosedural : ${km.prosedural ?? '-'}`);
+    }
+    if (ident.kesiapan_murid || ident.lingkungan_pembelajaran || ident.kemitraan_dan_keamanan) {
+      rcAppendBubble('ai',
+        `Kesiapan Murid        : ${ident.kesiapan_murid ?? '-'}\n` +
+        `Lingkungan Pembelajaran: ${ident.lingkungan_pembelajaran ?? '-'}\n` +
+        `Kemitraan & Keamanan  : ${ident.kemitraan_dan_keamanan ?? '-'}`);
+    }
+
+    // ── 4. DESAIN PEMBELAJARAN ──────────────────────────────────────────────
+    const kktpArr = Array.isArray(dp.kktp) ? dp.kktp : [];
+    if (kktpArr.length) {
+      const kktpLines = kktpArr.map(k =>
+        `${k.id_kktp ?? '?'}: ${k.kriteria ?? '-'}\n  Bukti: ${k.bukti ?? '-'}`
+      );
+      rcAppendBubble('ai', `📐 KKTP\n\n${kktpLines.join('\n\n')}`);
+    }
+    const sbArr = Array.isArray(dp.sumber_belajar) ? dp.sumber_belajar : [];
+    const sbLines = sbArr.map(s => `• ${s.sumber ?? '-'} [${s.kategori ?? '-'}] — ${s.fungsi ?? '-'}`).join('\n');
+    if (dp.strategi_pedagogis || sbLines) {
+      rcAppendBubble('ai',
+        `🗂 Desain Pembelajaran\n` +
+        `Strategi  : ${dp.strategi_pedagogis ?? '-'}\n` +
+        `Digital   : ${dp.pemanfaatan_digital ?? '-'}` +
+        (sbLines ? `\n\nSumber Belajar:\n${sbLines}` : ''));
+    }
+    const bkaArr = Array.isArray(dp.bukti_kesiapan_awal) ? dp.bukti_kesiapan_awal : [];
+    const bkArr  = Array.isArray(dp.bukti_ketercapaian) ? dp.bukti_ketercapaian : [];
+    if (bkaArr.length || bkArr.length) {
+      rcAppendBubble('ai',
+        (bkaArr.length ? `Bukti Kesiapan Awal:\n${bkaArr.map(b => `• ${b}`).join('\n')}` : '') +
+        (bkArr.length  ? `\n\nBukti Ketercapaian:\n${bkArr.map(b => `• ${b}`).join('\n')}` : ''));
+    }
+
+    // ── 5. RENCANA ASESMEN ──────────────────────────────────────────────────
+    const aa     = ra.asesmen_awal     ?? {};
+    const afArr  = Array.isArray(ra.asesmen_formatif) ? ra.asesmen_formatif : [];
+    const asLines = [
+      `📊 Rencana Asesmen`,
+      ``,
+      `ASESMEN AWAL`,
+      `Tujuan    : ${aa.tujuan ?? '-'}`,
+      `Teknik    : ${aa.teknik ?? '-'}`,
+      `Instrumen : ${aa.instrumen ?? '-'}`,
+      `Waktu     : ${aa.waktu ?? '-'}`,
+      `Penggunaan: ${aa.penggunaan_hasil ?? '-'}`,
+      `Status    : ${aa.status ?? '-'}`,
+    ];
+    afArr.forEach(f => {
+      asLines.push('');
+      asLines.push(`${f.id ?? '?'} — FORMATIF`);
+      asLines.push(`Waktu   : ${f.waktu ?? '-'}  |  Teknik: ${f.teknik_instrumen ?? '-'}`);
+      asLines.push(`Fungsi  : ${f.fungsi ?? '-'}  |  Kriteria: ${f.kriteria ?? '-'}`);
+      asLines.push(`Umpan balik: ${f.umpan_balik ?? '-'}`);
+    });
+    if (ra.asesmen_sumatif) {
+      asLines.push('');
+      asLines.push(`SUMATIF: ${ra.asesmen_sumatif}`);
+    }
+    rcAppendBubble('ai', asLines.join('\n'));
+
+    // ── 6. PERTEMUAN ────────────────────────────────────────────────────────
+    const pertemuanArr = Array.isArray(konten.pertemuan) ? konten.pertemuan : [];
+    for (const p of pertemuanArr) {
+      const langkahArr = Array.isArray(p.langkah) ? p.langkah : [];
+      const langkahLines = langkahArr.map(lk => {
+        const prinsip = Array.isArray(lk.prinsip) ? lk.prinsip.join(', ') : '-';
+        const slLines = Array.isArray(lk.sub_langkah)
+          ? lk.sub_langkah.map(sl => `      ${sl.nomor ?? '?'}. ${sl.deskripsi ?? '-'}`).join('\n')
+          : '';
+        return `  ▸ ${lk.nama ?? '?'} (${lk.durasi_menit ?? '?'} mnt) [${prinsip}]` +
+          (slLines ? `\n${slLines}` : '');
+      });
+      const mediaStr = Array.isArray(p.media_dan_alat) ? p.media_dan_alat.join(', ') : '-';
+      const bubble =
+        `📅 Pertemuan ${p.nomor ?? '?'}\n` +
+        `Tujuan: ${p.tujuan_pertemuan ?? '-'}\n` +
+        `Media : ${mediaStr}\n\n` +
+        langkahLines.join('\n\n') +
+        (p.catatan_guru ? `\n\nCatatan Guru: ${p.catatan_guru}` : '');
+      rcAppendBubble('ai', bubble);
+    }
+
+    // ── 7. INSTRUMEN G1-G7 ──────────────────────────────────────────────────
+
+    // G1 — Lembar Pemetaan Awal
+    const g1 = ins.g1_lembar_pemetaan ?? {};
+    if (g1.petunjuk || Array.isArray(g1.bagian_a)) {
+      const baLines = Array.isArray(g1.bagian_a)
+        ? g1.bagian_a.map((s, i) => `  ${i + 1}. "${s.kalimat_konteks ?? '-'}" — kata: ${s.kata_target ?? '-'}`).join('\n')
+        : '';
+      const bbLines = Array.isArray(g1.bagian_b)
+        ? g1.bagian_b.map((q, i) => `  ${i + 1}. ${q}`).join('\n') : '';
+      const bcLines = Array.isArray(g1.bagian_c)
+        ? g1.bagian_c.map((s, i) => `  ${i + 1}. ${s}`).join('\n') : '';
+      rcAppendBubble('ai',
+        `📝 G1 — Lembar Pemetaan Awal\n${g1.petunjuk ?? ''}` +
+        (baLines ? `\n\nBagian A — Membaca (${(g1.bagian_a ?? []).length} soal):\n${baLines}` : '') +
+        (bbLines ? `\n\nBagian B — Menyimak:\n${bbLines}` : '') +
+        (bcLines ? `\n\nBagian C — Respons:\n${bcLines}` : ''));
+    }
+
+    // G2 — Dialog Baseline
+    const g2 = ins.g2_dialog_baseline ?? {};
+    if (g2.petunjuk || Array.isArray(g2.giliran)) {
+      const gLines = Array.isArray(g2.giliran)
+        ? g2.giliran.map(g => `  ${g.pembicara ?? '?'}: ${g.ucapan ?? '-'}`).join('\n') : '';
+      rcAppendBubble('ai',
+        `💬 G2 — Dialog Baseline (dibacakan guru)\n${g2.petunjuk ?? ''}\n\n${gLines}`);
+    }
+
+    // G3 — Dialog Model
+    const g3 = ins.g3_dialog_model ?? {};
+    if (g3.petunjuk || Array.isArray(g3.giliran)) {
+      const gLines = Array.isArray(g3.giliran)
+        ? g3.giliran.map(g => `  ${g.pembicara ?? '?'}: ${g.ucapan ?? '-'}`).join('\n') : '';
+      rcAppendBubble('ai',
+        `💬 G3 — Dialog Model Pembelajaran\n${g3.petunjuk ?? ''}\n\n${gLines}`);
+    }
+
+    // G4 — Teks Orientasi
+    const g4 = ins.g4_teks_orientasi ?? {};
+    if (g4.konten || g4.nama_perusahaan) {
+      const cpLines = Array.isArray(g4.contoh_pertanyaan_diterima)
+        ? g4.contoh_pertanyaan_diterima.map((q, i) => `  ${i + 1}. ${q}`).join('\n') : '';
+      rcAppendBubble('ai',
+        `📄 G4 — Teks Orientasi Kerja (${g4.nama_perusahaan ?? '-'})\n\n` +
+        `${g4.konten ?? ''}\n\n` +
+        `Panduan guru: ${g4.panduan_guru ?? '-'}` +
+        (cpLines ? `\n\nContoh pertanyaan yang dapat diterima:\n${cpLines}` : ''));
+    }
+
+    // G5 — Kartu Identitas
+    const g5Arr = Array.isArray(ins.g5_kartu_identitas) ? ins.g5_kartu_identitas : [];
+    if (g5Arr.length) {
+      const setLines = g5Arr.map(s => {
+        const ka = s.kartu_a ?? {};
+        const kb = s.kartu_b ?? {};
+        return `${s.nama_set ?? '-'} — ${s.nama_perusahaan ?? '-'}\n` +
+          `  Kartu A (${ka.nama ?? '-'}, ${ka.jabatan ?? '-'}, ${ka.bagian ?? '-'}, Shift ${ka.shift ?? '-'})\n` +
+          `  Peran A: ${ka.peran ?? '-'}\n` +
+          `  Kartu B (${kb.nama ?? '-'}, ${kb.jabatan ?? '-'}, ${kb.bagian ?? '-'}, Shift ${kb.shift ?? '-'})\n` +
+          `  Peran B: ${kb.peran ?? '-'}`;
+      });
+      rcAppendBubble('ai', `🪪 G5 — Kartu Identitas Kerja Fiktif\n\n${setLines.join('\n\n')}`);
+    }
+
+    // G6 — Matriks Observasi
+    const g6 = ins.g6_matriks_observasi ?? {};
+    if (g6.kode_legend || Array.isArray(g6.kolom_indikator)) {
+      const colLines = Array.isArray(g6.kolom_indikator)
+        ? g6.kolom_indikator.map(c => `  ${c.id ?? '?'}: ${c.label ?? '-'}`).join('\n') : '';
+      rcAppendBubble('ai',
+        `📊 G6 — Matriks Observasi Kelas\n` +
+        `Legend : ${g6.kode_legend ?? '-'}\n` +
+        (colLines ? `Kolom  :\n${colLines}\n` : '') +
+        `Catatan: ${g6.catatan_kritis ?? '-'}`);
+    }
+
+    // G7 — Lembar Refleksi
+    const g7 = ins.g7_lembar_refleksi ?? {};
+    const g7Arr = Array.isArray(g7.pertanyaan) ? g7.pertanyaan : [];
+    if (g7Arr.length) {
+      const pLines = g7Arr.map(p =>
+        `  ${p.nomor ?? '?'}. ${p.prompt ?? '-'} (${p.jumlah_jawaban ?? 1} isian)`
+      ).join('\n');
+      rcAppendBubble('ai', `🪞 G7 — Lembar Refleksi Murid\n${pLines}`);
+    }
+
+    // ── 8. TINDAK LANJUT ────────────────────────────────────────────────────
+    const tl = konten.tindak_lanjut ?? {};
+    const tlSections = [];
+    const pdArr = Array.isArray(tl.pilihan_dukungan)   ? tl.pilihan_dukungan   : [];
+    const sfArr = Array.isArray(tl.sentence_frame)      ? tl.sentence_frame      : [];
+    const tlArr = Array.isArray(tl.tantangan_lanjutan)  ? tl.tantangan_lanjutan  : [];
+    if (pdArr.length) tlSections.push(`Pilihan Dukungan:\n${pdArr.map(d => `• ${d}`).join('\n')}`);
+    if (sfArr.length) tlSections.push(`Sentence Frames:\n${sfArr.map(f => `• ${f}`).join('\n')}`);
+    if (tlArr.length) tlSections.push(`Tantangan Lanjutan:\n${tlArr.map(t => `• ${t}`).join('\n')}`);
+    if (tlSections.length) {
+      rcAppendBubble('ai', `🔄 Tindak Lanjut\n\n${tlSections.join('\n\n')}`);
+    }
+
+    // ── 9. CATATAN GURU ─────────────────────────────────────────────────────
+    const cgArr = Array.isArray(konten.catatan_guru) ? konten.catatan_guru : [];
+    if (cgArr.length) {
+      rcAppendBubble('ai',
+        `📌 Catatan Guru\n${cgArr.map((c, i) => `${i + 1}. ${c}`).join('\n')}`);
+    }
   }
 
   // ─── Generate ATP ─────────────────────────────────────────────────────────
