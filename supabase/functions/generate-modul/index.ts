@@ -757,17 +757,30 @@ SCHEMA SKELETON V3.2.0 - REFERENSI FIELD
     "asesmen_formatif": [{"id":"F1","waktu":string,"teknik_instrumen":string,"fungsi":string,"kriteria":string,"umpan_balik":string}],
     "asesmen_sumatif": "string|null"
   },
-  "pertemuan": [{
-    "nomor": 1, "tujuan_pertemuan": string, "media_dan_alat": [string],
-    "langkah": [
-      {"nama":"PEMBUKA",     "durasi_menit":integer,"prinsip":[string],"sub_langkah":[{"nomor":1,"deskripsi":string}]},
-      {"nama":"ASESMEN_AWAL","durasi_menit":integer,"prinsip":[string],"sub_langkah":[...]},
-      {"nama":"MEMAHAMI",    "durasi_menit":integer,"prinsip":[string],"sub_langkah":[...]},
-      {"nama":"MENGAPLIKASI","durasi_menit":integer,"prinsip":[string],"sub_langkah":[...]},
-      {"nama":"MEREFLEKSI",  "durasi_menit":integer,"prinsip":[string],"sub_langkah":[...]},
-      {"nama":"PENUTUP",     "durasi_menit":integer,"prinsip":[string],"sub_langkah":[...]}
-    ]
-  }],
+  "pertemuan": [
+    {
+      "nomor": 1, "tujuan_pertemuan": string, "media_dan_alat": [string],
+      "langkah": [
+        {"nama":"PEMBUKA",     "durasi_menit":integer,"prinsip":[string],"sub_langkah":[{"nomor":1,"deskripsi":string}]},
+        {"nama":"ASESMEN_AWAL","durasi_menit":integer,"prinsip":[string],"sub_langkah":[...]},
+        {"nama":"MEMAHAMI",    "durasi_menit":integer,"prinsip":[string],"sub_langkah":[...]},
+        {"nama":"MENGAPLIKASI","durasi_menit":integer,"prinsip":[string],"sub_langkah":[...]},
+        {"nama":"MEREFLEKSI",  "durasi_menit":integer,"prinsip":[string],"sub_langkah":[...]},
+        {"nama":"PENUTUP",     "durasi_menit":integer,"prinsip":[string],"sub_langkah":[...]}
+      ]
+    },
+    {
+      "nomor": 2, "tujuan_pertemuan": string, "media_dan_alat": [string],
+      "langkah": [
+        {"nama":"PEMBUKA",     "durasi_menit":integer,"prinsip":[string],"sub_langkah":[...]},
+        {"nama":"ASESMEN_AWAL","durasi_menit":integer,"prinsip":[string],"sub_langkah":[...]},
+        {"nama":"MEMAHAMI",    "durasi_menit":integer,"prinsip":[string],"sub_langkah":[...]},
+        {"nama":"MENGAPLIKASI","durasi_menit":integer,"prinsip":[string],"sub_langkah":[...]},
+        {"nama":"MEREFLEKSI",  "durasi_menit":integer,"prinsip":[string],"sub_langkah":[...]},
+        {"nama":"PENUTUP",     "durasi_menit":integer,"prinsip":[string],"sub_langkah":[...]}
+      ]
+    }
+  ],
   "instrumen": {
     "g1_lembar_pemetaan": {"petunjuk":string,"bagian_a":[{"kalimat_konteks":string,"kata_target":string}],"bagian_b":[string],"bagian_c":[string]},
     "g2_dialog_baseline": {"petunjuk":string,"giliran":[{"pembicara":string,"ucapan":string}]},
@@ -896,7 +909,7 @@ function buildUserMessageFaseB(params: {
   const targetDurasi = params.jpPerPertemuan * params.durasiJp;
   return JSON.stringify({
     fase: 'B',
-    output_instruction: 'Jawab ringkas dan padat. Jangan tambahkan penjelasan atau komentar di luar JSON. Setiap field cukup 1-3 kalimat. Total output harus di bawah 3000 token.',
+    output_instruction: `Jawab ringkas dan padat. Jangan tambahkan penjelasan atau komentar di luar JSON. Setiap field cukup 1-3 kalimat. Total output harus di bawah ${Math.min(3000 * params.jumlahPertemuan, 9000)} token.`,
     instruksi_durasi:
       `sum(langkah[].durasi_menit) per pertemuan HARUS = ${targetDurasi} ` +
       `(${params.jpPerPertemuan} JP x ${params.durasiJp} menit). Syarat mutlak.`,
@@ -932,7 +945,9 @@ function buildUserMessageFaseC(params: {
       program_keahlian:    params.programKeahlian ?? '',
     },
     jumlah_pertemuan: pertemuan.length,
-    tujuan_pertemuan_1: pertemuan[0]?.tujuan_pertemuan ?? '',
+    tujuan_pertemuan: pertemuan.map((p, i) =>
+      `Pertemuan ${i + 1}: ${(p as Record<string, unknown>).tujuan_pertemuan ?? ''}`
+    ).join('\n'),
     konteks: params.cd.KONTEKS_MODUL   ?? null,
     asesmen: params.cd.ASESMEN_MODUL   ?? null,
   });
@@ -1294,7 +1309,7 @@ Deno.serve(async (req) => {
     try {
       faseBOutput = await callPhase('Fase B',
         buildUserMessageFaseB({ faseAOutput, jumlahPertemuan, jpPerPertemuan, durasiJp, cd }),
-        90_000);
+        90_000, Math.min(4000 * jumlahPertemuan, 10000));
     } catch (e) {
       const err = e as { message?: string; code?: string; retryable?: boolean };
       return json({ error: err.message ?? 'Gagal di Fase B', code: err.code ?? 'AI_ERROR', retryable: err.retryable ?? true }, 500);
@@ -1394,7 +1409,7 @@ Deno.serve(async (req) => {
         : JSON.stringify(merged) +
           `\n\nERROR yang harus diperbaiki: ${errorList}. Hasilkan JSON object penuh yang sudah benar.`;
       try {
-        const repairText = await callAI([{ role: 'user', content: repairMsg }], 50_000);
+        const repairText = await callAI([{ role: 'user', content: repairMsg }], 50_000, Math.min(4000 * jumlahPertemuan, 10000));
         const repairParsed = extractJson(repairText);
         merged = hasDurasiError
           ? { ...merged as Record<string, unknown>, pertemuan: (repairParsed as Record<string, unknown>).pertemuan }

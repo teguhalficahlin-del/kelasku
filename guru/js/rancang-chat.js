@@ -743,8 +743,16 @@
       ], function (value) {
         rcClearChips();
         if (value === '__buka_modul__') {
-          _chat._modul_just_active = true;
-          startPhase('DONE');
+          _chat.viewing_existing_modul = true;
+          _chat.modul_source = 'flow';
+          renderModulPreview();
+          rcRenderChips([
+            { value: '__kembali_daftar__', label: '← Kembali ke daftar TP' },
+          ], function () {
+            rcClearChips();
+            _chat.viewing_existing_modul = false;
+            startPhase('DONE');
+          });
           return;
         }
         if (value === '__ulang_generate__') {
