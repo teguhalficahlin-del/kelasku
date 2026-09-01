@@ -917,19 +917,19 @@ function buildUserMessageFaseC(params: {
   faseAOutput: Record<string, unknown>;
   faseBOutput: Record<string, unknown>;
   cd: Record<string, unknown>;
+  programKeahlian?: string;
 }): string {
   const identitas = params.faseAOutput.identitas as Record<string, unknown> ?? {};
   const pertemuan = (params.faseBOutput as Record<string, unknown>).pertemuan as Array<Record<string, unknown>> ?? [];
   return JSON.stringify({
     fase: 'C',
-    output_instruction: 'Hasilkan HANYA field "instrumen" sesuai schema G1-G7. Tiap sub-field MAKSIMAL 1 kalimat pendek. Total output WAJIB di bawah 2000 token.',
-    // Hanya kirim identitas ringkas (bukan desain_pembelajaran/rencana_asesmen yang besar)
+    output_instruction: 'Hasilkan HANYA field "instrumen" sesuai schema G1-G7. Jawab ringkas: tiap deskripsi 1-2 kalimat, dialog 1 baris per giliran. Tidak ada teks di luar JSON.',
     identitas_ringkas: {
-      mata_pelajaran: identitas.mata_pelajaran,
-      fase:           identitas.fase,
-      kelas:          identitas.kelas,
-      elemen_cp:      identitas.elemen_cp,
-      tujuan_tp:      identitas.tujuan_tp,
+      mata_pelajaran:      identitas.mata_pelajaran,
+      fase:                identitas.fase,
+      elemen_cp:           identitas.elemen_cp,
+      tujuan_pembelajaran: identitas.tujuan_pembelajaran,
+      program_keahlian:    params.programKeahlian ?? '',
     },
     jumlah_pertemuan: pertemuan.length,
     tujuan_pertemuan_1: pertemuan[0]?.tujuan_pertemuan ?? '',
@@ -1326,8 +1326,8 @@ Deno.serve(async (req) => {
     let faseCOutput: Record<string, unknown>;
     try {
       faseCOutput = await callPhase('Fase C',
-        buildUserMessageFaseC({ faseAOutput, faseBOutput, cd }),
-        120_000, 4000);
+        buildUserMessageFaseC({ faseAOutput, faseBOutput, cd, programKeahlian: settings?.program_keahlian ?? '' }),
+        120_000, 6000);
     } catch (e) {
       const err = e as { message?: string; code?: string; retryable?: boolean };
       return json({ error: err.message ?? 'Gagal di Fase C', code: err.code ?? 'AI_ERROR', retryable: err.retryable ?? true }, 500);

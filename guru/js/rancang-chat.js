@@ -1559,6 +1559,23 @@
     if (_chat.modul_generating) return;
     _chat.modul_generating = true;
 
+    // Refresh updated_at dari DB sebelum setiap generate/retry.
+    // Fase A dan B menulis ke DB dan mengubah updated_at; tanpa refresh ini,
+    // retry setelah kegagalan Fase C akan selalu conflict karena _chat.modul_updated_at stale.
+    if (_chat.modul_induk_id) {
+      try {
+        const { data: freshModul } = await window.supabaseClient
+          .from('modul_induk')
+          .select('updated_at')
+          .eq('id', _chat.modul_induk_id)
+          .maybeSingle();
+        if (freshModul?.updated_at) {
+          _chat.modul_updated_at = freshModul.updated_at;
+          saveState();
+        }
+      } catch (_) { /* biarkan generate lanjut dengan updated_at lama */ }
+    }
+
     const FASE_LABELS = {
       A: '⏳ Menyusun identitas dan rencana asesmen…',
       B: '⏳ Merancang langkah pembelajaran…',
