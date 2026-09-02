@@ -364,6 +364,15 @@ async function fetchAllModulAktifGuru() {
   return data || [];
 }
 
+async function updateProgramKeahlianRpc(classroomId, programKeahlian, bidangKeahlian = null) {
+  const { error } = await window.supabaseClient.rpc('fn_update_program_keahlian', {
+    p_classroom_id:     classroomId,
+    p_program_keahlian: programKeahlian,
+    p_bidang_keahlian:  bidangKeahlian,
+  });
+  if (error) throw error;
+}
+
 async function fetchModulAktifByAtpId(atpIndukId) {
   if (!atpIndukId) return [];
   const { data, error } = await window.supabaseClient

@@ -330,6 +330,11 @@
       _chat.collected_answers.fase = answer(inferFaseFromClassroom(), 'otomatis', false);
       _chat.collected_answers.jenjang = answer(window._classroomJenjang || 'SMK', 'otomatis', false);
       _chat.collected_answers.program_keahlian = answer(window._classroomProgram || '', 'otomatis', false);
+      // Jika program_keahlian belum tercatat, auto-jawab konfirmasi='tidak'
+      // sehingga pertanyaan pilih_program_keahlian langsung muncul.
+      if (!window._classroomProgram) {
+        _chat.collected_answers.konfirmasi_program_keahlian = answer('tidak', 'otomatis', true);
+      }
       startPhase('KONTEKS_CP');
     }
 
@@ -914,8 +919,16 @@
     }
     const questions = RANCANG_FLOW[phase];
     if (!questions?.length) return;
-    const first = questions[0];
-    askQuestion(first);
+    // Jika phase KONTEKS_CP dan program_keahlian kosong, konfirmasi_program_keahlian
+    // sudah di-auto-jawab 'tidak' — mulai dari pertanyaan kedua langsung.
+    let firstToAsk = questions[0];
+    if (phase === 'KONTEKS_CP' &&
+        answerValue('konfirmasi_program_keahlian') === 'tidak' &&
+        !window._classroomProgram) {
+      const skip = getNextQuestion('KONTEKS_CP', 'konfirmasi_program_keahlian', _chat.collected_answers);
+      if (skip) firstToAsk = skip;
+    }
+    askQuestion(firstToAsk);
   }
 
   function renderModulSummaryInfo() {
@@ -1087,14 +1100,25 @@
     startPhase('KONTEKS_CP');
   }
 
-  async function updateProgramKeahlian(newValue) {
-    _chat.collected_answers.program_keahlian = answer(newValue, 'guru', true);
-    window._classroomProgram = newValue;
+  function lookupBidangFromProgram(programKeahlian) {
     try {
-      await window.api.upsertRancangSettings(_chat.classroom_id, { program_keahlian: newValue });
-    } catch (err) {
-      console.warn('[rancang-chat] gagal update program_keahlian di DB:', err);
-    }
+      const data = window._cpData;
+      if (!data) return null;
+      for (const entry of Object.values(data)) {
+        if (entry.program_keahlian === programKeahlian && entry.bidang) return entry.bidang;
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  // Simpan program_keahlian baru ke state dan DB via SECURITY DEFINER RPC.
+  // Lempar error jika RPC gagal — pemanggil harus handle (tidak advance funnel).
+  async function updateProgramKeahlian(newValue) {
+    const bidang = lookupBidangFromProgram(newValue);
+    await updateProgramKeahlianRpc(_chat.classroom_id, newValue, bidang);
+    _chat.collected_answers.program_keahlian = answer(newValue, 'guru', true);
+    if (bidang) _chat.collected_answers.bidang_keahlian = answer(bidang, 'otomatis', true);
+    window._classroomProgram = newValue;
   }
 
   async function handleGuruInput(rawText) {
@@ -1129,10 +1153,21 @@
       const evalResult = await evaluateAnswer(q, rawText);
       rcHideTyping();
 
+      const PROGRAM_UPDATE_IDS = new Set([
+        'program_keahlian_teks_bebas', 'program_keahlian_teks_bebas_modul',
+      ]);
       if (evalResult.status === 'ACCEPT') {
         recordAnswer(qId, evalResult.normalizedAnswer, 'guru', true);
-        if (qId === 'koreksi_program_keahlian' || qId === 'koreksi_program_keahlian_modul') {
-          await updateProgramKeahlian(evalResult.normalizedAnswer);
+        if (PROGRAM_UPDATE_IDS.has(qId)) {
+          try {
+            await updateProgramKeahlian(evalResult.normalizedAnswer);
+            rcAppendBubble('sistem', '✓ Program keahlian diperbarui: ' + evalResult.normalizedAnswer);
+          } catch (saveErr) {
+            console.error('[rancang-chat] updateProgramKeahlian gagal:', saveErr);
+            rcAppendBubble('sistem', '⚠ Gagal menyimpan program keahlian. Coba lagi.');
+            rcSetComposerDisabled(false);
+            return;
+          }
         }
         rcMakeBubbleEditable(guruBubble, qId, phase, handleEditAnswer);
         rcAppendBubble('ai', evalResult.message);
@@ -1267,10 +1302,28 @@
     }
     recordAnswer(q.id, value, 'guru', true);
     rcMakeBubbleEditable(guruBubble, q.id, phaseAtAsk, handleEditAnswer);
+    // konfirmasi_program_keahlian 'ya' → tandai program_keahlian sebagai confirmed
+    if ((q.id === 'konfirmasi_program_keahlian' || q.id === 'konfirmasi_program_keahlian_modul') && value === 'ya') {
+      if (_chat.collected_answers.program_keahlian) {
+        _chat.collected_answers.program_keahlian.confirmed_by_teacher = true;
+      }
+    }
     if (q.id === 'konfirmasi_konteks' && value === 'sesuai') {
       ['mapel', 'nama_kelas', 'fase', 'jenjang', 'program_keahlian'].forEach(id => {
         if (_chat.collected_answers[id]) _chat.collected_answers[id].confirmed_by_teacher = true;
       });
+    }
+    // Pilih program dari dropdown (bukan __lainnya__) → simpan ke DB langsung
+    const PILIH_PROGRAM_IDS = new Set(['pilih_program_keahlian', 'pilih_program_keahlian_modul']);
+    if (PILIH_PROGRAM_IDS.has(q.id) && value !== '__lainnya__') {
+      try {
+        await updateProgramKeahlian(value);
+        rcAppendBubble('sistem', '✓ Program keahlian diperbarui: ' + value);
+      } catch (saveErr) {
+        console.error('[rancang-chat] updateProgramKeahlian gagal:', saveErr);
+        rcAppendBubble('sistem', '⚠ Gagal menyimpan program keahlian. Coba lagi.');
+        return;
+      }
     }
     const confirmMsg = `Dicatat: ${label}.`;
     rcAppendBubble('ai', confirmMsg);

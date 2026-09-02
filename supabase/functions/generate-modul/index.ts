@@ -858,30 +858,42 @@ G7: >=4 pertanyaan. Mencakup: hal yang bisa dilakukan, perlu diperkuat, situasi 
 KONTEKSTUALISASI PROGRAM KEAHLIAN (WAJIB)
 ═════════════════════════════════════════════════════════════════
 
-Field program_keahlian dan bidang_keahlian dari identitas_db menentukan konteks
-dunia kerja yang harus muncul KONSISTEN di seluruh modul:
+Field program_keahlian dari identitas_db adalah parameter utama yang menentukan
+SELURUH konteks dunia kerja modul. Gunakan KONSISTEN di semua komponen:
 
-kosakata_inti: pilih 10 kata Bahasa Inggris yang lazim digunakan di dunia kerja
-program keahlian tersebut.
-Contoh konteks per program:
-- DPIB (Desain Permodelan dan Informasi Bangunan) → blueprint, scaffolding, contractor, elevation, specification
-- Desain dan Produksi Busana → fabric, pattern, sewing, fitting, seam, tailor, garment, alteration, hem, lining
+kosakata_inti: 10 kata Bahasa Inggris yang lazim digunakan profesional di program
+keahlian ini — pilih kata yang benar-benar khas program tersebut, bukan kata umum.
+
+Panduan kosakata per program keahlian:
+- Busana / Desain dan Produksi Busana → fabric, pattern, sewing, fitting, seam, tailor, garment, alteration, hem, lining
+- Desain Pemodelan dan Informasi Bangunan → blueprint, scaffolding, contractor, elevation, specification, layout, survey, permit, rendering, setback
 - Akuntansi dan Keuangan Lembaga → invoice, ledger, audit, balance sheet, payroll, journal, receipt, disbursement, reconcile, fiscal
-- Produksi Siaran Program Televisi → script, broadcast, camera, editing, rundown, footage, segment, anchor, cue, airtime
-- Bisnis Daring dan Pemasaran → campaign, conversion, engagement, marketplace, pitch, checkout, traffic, listing, promotion, revenue
+- Broadcasting dan Perfilman → script, broadcast, footage, rundown, segment, anchor, cue, airtime, editing, frame
+- Pemasaran / Bisnis Daring → campaign, conversion, engagement, marketplace, checkout, traffic, listing, promotion, revenue, pitch
+- Teknik Mesin → lathe, milling, CNC, tolerance, machining, fixture, blueprint, calibration, hardness, turning
+- Teknik Otomotif → torque, diagnosis, carburetor, transmission, brake, alignment, lubrication, ignition, suspension, valve
+- Teknik Jaringan Komputer dan Telekomunikasi → bandwidth, router, firewall, protocol, latency, subnet, topology, gateway, encryption, uptime
+- Kuliner → mise en place, garnish, plating, reduction, blanching, emulsion, glaze, stock, seasoning, portion
+- Perhotelan → check-in, concierge, housekeeping, amenity, reservation, occupancy, banquet, turndown, valet, guest
+- Teknik Konstruksi dan Perumahan → formwork, reinforcement, mortar, footing, pile, curing, finishing, slope, drainage, excavation
 
-G2 dan G3 (dialog): latar situasi kerja HARUS sesuai program keahlian.
-- DPB → butik, atelier, fitting session, fashion show, garmen factory
-- DPIB → proyek konstruksi, kantor arsitek, site inspection
-- AKL → kantor akuntan, client meeting, audit session
-- PSPT → studio produksi, lokasi syuting, ruang editing
-- BDP → toko online, event pemasaran, customer service
+G2 dan G3 (dialog): latar situasi kerja HARUS sesuai program keahlian — bukan
+kantor atau pabrik generik. Contoh:
+- Busana → butik, atelier, fitting session, fashion show, garmen factory
+- Desain Pemodelan dan Informasi Bangunan → proyek konstruksi, kantor arsitek, site inspection
+- Akuntansi dan Keuangan Lembaga → kantor akuntan, client meeting, audit session
+- Broadcasting → studio produksi, lokasi syuting, ruang editing, control room
+- Pemasaran → toko online, event pemasaran, customer service, campaign briefing
+- Teknik Otomotif → bengkel resmi, service advisor, ruang diagnosa, spare parts counter
+- Teknik Jaringan → NOC room, server room, helpdesk, network monitoring center
+- Kuliner → dapur restoran, pastry kitchen, catering event, food service station
+- Perhotelan → front office, housekeeping floor, concierge desk, guest relations
 
 G4 (teks orientasi): nama perusahaan dan konten dokumen harus sesuai bidang usaha
 program keahlian. Seluruh isi G4 dalam Bahasa Inggris.
 
-G5 (kartu identitas): jabatan, perusahaan, dan deskripsi pekerjaan harus
-mencerminkan profesi nyata di program keahlian tersebut.
+G5 (kartu identitas): jabatan dan nama perusahaan harus mencerminkan profesi nyata
+di program keahlian tersebut.
 
 lingkup_materi dan sumber_belajar: konteks harus berangkat dari situasi kerja
 program keahlian, bukan konteks umum atau fiksi.

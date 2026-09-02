@@ -18,20 +18,58 @@ const konfirmasi = (id, prompt, pairs, extra = {}) => ({
   skippable: false, ...extra,
 });
 
+// Daftar 50 program keahlian SMK dari cp-data.json, diurutkan A-Z.
+// Dipakai sebagai pilihan chip di konfirmasi / koreksi program keahlian.
+const PROGRAM_KEAHLIAN_OPTIONS = [
+  'Agribisnis Perikanan', 'Agribisnis Tanaman', 'Agribisnis Ternak',
+  'Agriteknologi Pengolahan Hasil Pertanian', 'Akuntansi dan Keuangan Lembaga',
+  'Animasi', 'Broadcasting dan Perfilman', 'Busana',
+  'Desain dan Produksi Kriya', 'Desain Komunikasi Visual',
+  'Desain Pemodelan dan Informasi Bangunan', 'Kecantikan dan Spa',
+  'Kehutanan', 'Kimia Analisis', 'Konstruksi dan Perawatan Bangunan Sipil',
+  'Kuliner', 'Layanan Kesehatan', 'Manajemen Perkantoran dan Layanan Bisnis',
+  'Nautika Kapal Niaga', 'Nautika Kapal Penangkap Ikan', 'Pekerjaan Sosial',
+  'Pemasaran', 'Pengembangan Perangkat Lunak dan Gim', 'Perhotelan',
+  'Seni Pertunjukan', 'Seni Rupa', 'Teknik Elektronika',
+  'Teknik Energi Terbarukan', 'Teknik Furnitur', 'Teknik Geologi Pertambangan',
+  'Teknik Geospasial', 'Teknik Jaringan Komputer dan Telekomunikasi',
+  'Teknik Ketenagalistrikan', 'Teknik Kimia Industri',
+  'Teknik Konstruksi dan Perumahan', 'Teknik Konstruksi Kapal',
+  'Teknik Laboratorium Medik', 'Teknik Logistik', 'Teknik Mesin',
+  'Teknik Otomotif', 'Teknik Pengelasan dan Fabrikasi Logam',
+  'Teknik Perawatan Gedung', 'Teknik Perminyakan', 'Teknik Pesawat Udara',
+  'Teknik Tekstil', 'Teknika Kapal Niaga', 'Teknika Kapal Penangkap Ikan',
+  'Teknologi Farmasi', 'Usaha Layanan Pariwisata', 'Usaha Pertanian Terpadu',
+].map(p => [p, p]);
+
+const PROGRAM_KEAHLIAN_PAIRS = [
+  ...PROGRAM_KEAHLIAN_OPTIONS,
+  ['__lainnya__', 'Program keahlian saya tidak ada di daftar ini'],
+];
+
 const RANCANG_FLOW = {
   KONTEKS_CP: [
+    pilihan('konfirmasi_program_keahlian',
+      'MiClass menemukan data kelas dan CP berikut:\n\n{{mapel}} · {{nama_kelas}} · Fase {{fase}}\nProgram Keahlian: {{program_keahlian}}\n\nATP akan menggunakan konteks dunia kerja yang relevan dengan program keahlian tersebut.\n\nApakah pemahaman ini sudah benar?', [
+        ['ya', 'Ya, sudah benar'],
+        ['tidak', 'Tidak, program keahlian perlu dikoreksi'],
+      ], { helpText: 'Program keahlian menentukan konteks dunia kerja di seluruh ATP dan Modul Ajar.' }),
+    pilihan('pilih_program_keahlian',
+      'Pilih program keahlian kelas ini:',
+      PROGRAM_KEAHLIAN_PAIRS,
+      { condition: { question_id: 'konfirmasi_program_keahlian', value: 'tidak' },
+        helpText: 'Pilih dari daftar atau pilih opsi paling bawah jika tidak ada.' }),
+    { id: 'program_keahlian_teks_bebas', kind: 'teks_bebas',
+      prompt: 'Tuliskan nama program keahlian kelas ini:',
+      helpText: 'Contoh: Teknik Sepeda Motor, Agribisnis Holtikultura, Keperawatan.',
+      skippable: false,
+      condition: { question_id: 'pilih_program_keahlian', value: '__lainnya__' } },
     pilihan('konfirmasi_konteks',
-      'MiClass menemukan data kelas dan CP berikut:\n\n{{mapel}} · {{nama_kelas}} · Fase {{fase}}\nProgram Keahlian: {{program_keahlian}}\n\nMiClass akan menyusun ATP menggunakan konteks dunia kerja yang relevan dengan program keahlian tersebut.\n\nApakah pemahaman ini sudah benar?', [
-        ['sesuai', 'Ya, sudah benar'],
-        ['perbaiki_kelas', 'Tidak, program keahlian perlu dikoreksi'],
+      'Data kelas dan CP yang akan digunakan:\n\n{{mapel}} · {{nama_kelas}} · Fase {{fase}}\n\nApakah Capaian Pembelajaran yang akan digunakan sudah sesuai?', [
+        ['sesuai', 'Ya, CP sudah sesuai — lanjutkan'],
         ['lihat_cp', 'Lihat ringkasan isi CP terlebih dahulu'],
         ['cp_tidak_sesuai', 'CP atau versinya tidak sesuai'],
       ], { helpText: 'ATP mencakup satu fase penuh dan seluruh elemen CP.' }),
-    { id: 'koreksi_program_keahlian', kind: 'teks_bebas',
-      prompt: 'Tuliskan nama program keahlian yang benar untuk kelas ini:',
-      helpText: 'Contoh: Desain dan Produksi Busana, Akuntansi dan Keuangan Lembaga, Produksi Siaran Program Televisi.',
-      skippable: false,
-      condition: { question_id: 'konfirmasi_konteks', value: 'perbaiki_kelas' } },
   ],
 
   SUMBER_ATP: [
@@ -258,15 +296,20 @@ const RANCANG_FLOW = {
 
   KONTEKS_MODUL: [
     pilihan('konfirmasi_program_keahlian_modul',
-      'Modul Ajar ini akan dibuat untuk kelas {{nama_kelas}} dengan program keahlian {{program_keahlian}}.\n\nSemua instrumen modul — kosakata, dialog, teks orientasi, kartu simulasi — akan menggunakan konteks dunia kerja {{program_keahlian}}.\n\nApakah sudah benar?', [
-        ['lanjutkan', 'Ya, lanjutkan'],
-        ['koreksi', 'Tidak, program keahlian kelas ini adalah...'],
+      'Modul Ajar ini akan dibuat untuk:\n\n{{mapel}} · {{nama_kelas}} · Fase {{fase}}\nProgram Keahlian: {{program_keahlian}}\n\nSemua instrumen — kosakata, dialog, teks orientasi, kartu simulasi — akan menggunakan konteks dunia kerja {{program_keahlian}}.\n\nSudah benar?', [
+        ['ya', 'Ya, lanjutkan'],
+        ['tidak', 'Tidak, program keahlian perlu dikoreksi'],
       ], { helpText: 'Program keahlian menentukan kosakata, latar dialog, dan konteks dokumen kerja di seluruh modul.' }),
-    { id: 'koreksi_program_keahlian_modul', kind: 'teks_bebas',
-      prompt: 'Tuliskan nama program keahlian yang benar:',
-      helpText: 'Contoh: Desain dan Produksi Busana, Akuntansi dan Keuangan Lembaga, Produksi Siaran Program Televisi.',
+    pilihan('pilih_program_keahlian_modul',
+      'Pilih program keahlian kelas ini:',
+      PROGRAM_KEAHLIAN_PAIRS,
+      { condition: { question_id: 'konfirmasi_program_keahlian_modul', value: 'tidak' },
+        helpText: 'Pilih dari daftar atau pilih opsi paling bawah jika tidak ada.' }),
+    { id: 'program_keahlian_teks_bebas_modul', kind: 'teks_bebas',
+      prompt: 'Tuliskan nama program keahlian kelas ini:',
+      helpText: 'Contoh: Teknik Sepeda Motor, Agribisnis Holtikultura, Keperawatan.',
       skippable: false,
-      condition: { question_id: 'konfirmasi_program_keahlian_modul', value: 'koreksi' } },
+      condition: { question_id: 'pilih_program_keahlian_modul', value: '__lainnya__' } },
     pilihan('kondisi_kelas_modul', 'Bagaimana kondisi kelas untuk modul ini?', [
       ['reguler',            'Reguler — semua siswa mengikuti bersama'],
       ['diferensiasi',       'Perlu diferensiasi konten atau proses'],
