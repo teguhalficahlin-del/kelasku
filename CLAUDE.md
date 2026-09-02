@@ -927,20 +927,23 @@ Pengguna Tab Rancang adalah guru SMK Indonesia yang:
 
 ### 23.3 Fase yang Sudah Diimplementasikan vs Belum
 
-**SUDAH DIIMPLEMENTASIKAN dan verified:**
-- Welcome screen dengan 4 card
+**SUDAH DIIMPLEMENTASIKAN dan verified (per September 2026):**
+- Welcome screen dengan 4 card (kondisional berdasarkan ATP aktif)
+- PILIH_ATP — fase memilih ATP aktif (mode sesuaikan/modul), termasuk fallback ke susun-baru jika kosong
+- Percabangan flow berdasarkan card welcome (`sumber_flow`: sesuaikan/susun/modul)
+- Verifikasi DB + loading state sebelum tampilkan card welcome
 - Flow Modul Ajar (KONTEKS_MODUL → SUMBER_STRATEGI → ASESMEN_MODUL → MODUL_SUMMARY → generate 4 fase)
 - Katalog Modul Ajar Aktif
 - Konfirmasi program_keahlian (dropdown 56 program + teks bebas)
 - Navigasi kembali kontekstual
+- Rate limit per classroom di generate-modul (identifier: `guru_id:classroom_id`)
+- `sumber_flow` dikirim ke generate-atp (instruksi AI berbeda: sesuaikan vs susun baru)
+- Label bahasa guru di kondisi kelas dan strategi pembelajaran
+- Staleness check 24 jam untuk `collected_answers`
 
 **BELUM DIIMPLEMENTASIKAN (backlog):**
-- PILIH_ATP — fase untuk memilih ATP yang sudah ada
-- Percabangan flow berdasarkan card welcome
-- Verifikasi DB sebelum tampilkan card welcome
-- CARI_ATP — fase untuk mencari ATP tersimpan
-- Rate limit per classroom (bukan per user)
-- Istilah teknis di kondisi kelas dan strategi pembelajaran
+- CARI_ATP — fase pencarian ATP tersimpan lintas kelas
+- FIX 5 EF: generate-modul return 422 jika `identitas_db` kosong (guard klien sudah ada)
 
 **DILARANG membuat routing ke fase yang belum diimplementasikan**
 tanpa terlebih dahulu mengimplementasikan fase tersebut.
