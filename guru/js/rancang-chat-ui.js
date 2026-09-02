@@ -423,6 +423,86 @@ function rcRenderModulPicker(panel, moduls, onBuka, onBack) {
   }
 }
 
+// ── Dropdown searchable untuk pilihan daftar panjang ─────────────────────────
+// options: array { value, label } — item "__lainnya__" selalu muncul di bawah.
+// onSelect(value, label) dipanggil saat guru memilih satu item.
+function rcRenderDropdownSearch(options, onSelect) {
+  const chips = document.getElementById('rc-chips');
+  if (!chips) return;
+  chips.innerHTML = '';
+
+  const reguler  = options.filter(o => o.value !== '__lainnya__');
+  const lainnya  = options.find(o => o.value === '__lainnya__');
+
+  const wrap = document.createElement('div');
+  wrap.style.cssText =
+    'display:flex;flex-direction:column;gap:0;padding:6px 12px 8px;width:100%;box-sizing:border-box;';
+
+  // Search input
+  const searchInput = document.createElement('input');
+  searchInput.type = 'text';
+  searchInput.placeholder = 'Cari program keahlian…';
+  searchInput.autocomplete = 'off';
+  searchInput.style.cssText =
+    'width:100%;box-sizing:border-box;padding:8px 12px;' +
+    'background:rgba(255,255,255,0.07);color:var(--text,#fff);' +
+    'border:1px solid rgba(255,255,255,0.18);border-radius:8px 8px 0 0;' +
+    'font-size:0.92rem;outline:none;';
+
+  // List container (max 8 items visible)
+  const list = document.createElement('div');
+  list.style.cssText =
+    'max-height:272px;overflow-y:auto;' +
+    'border:1px solid rgba(255,255,255,0.18);border-top:none;border-radius:0 0 8px 8px;' +
+    'background:rgba(30,30,40,0.97);';
+
+  function makeItem(value, label, isLainnya) {
+    const item = document.createElement('button');
+    item.type = 'button';
+    item.dataset.value = value;
+    item.textContent = label;
+    item.style.cssText =
+      'display:block;width:100%;text-align:left;padding:9px 14px;' +
+      'background:none;color:var(--text,#fff);border:none;border-bottom:1px solid rgba(255,255,255,0.07);' +
+      'cursor:pointer;font-size:0.88rem;line-height:1.4;' +
+      (isLainnya ? 'color:var(--gold,#f2c14e);font-style:italic;border-top:1px solid rgba(255,255,255,0.12);border-bottom:none;' : '');
+    item.addEventListener('mouseover', () => { item.style.background = 'rgba(255,255,255,0.08)'; });
+    item.addEventListener('mouseout',  () => { item.style.background = 'none'; });
+    item.addEventListener('click', () => {
+      chips.innerHTML = '';
+      onSelect(value, label);
+    });
+    return item;
+  }
+
+  function renderList(query) {
+    list.innerHTML = '';
+    const q = query.trim().toLowerCase();
+    const filtered = q
+      ? reguler.filter(o => o.label.toLowerCase().includes(q))
+      : reguler;
+    if (!filtered.length) {
+      const empty = document.createElement('div');
+      empty.textContent = 'Tidak ditemukan.';
+      empty.style.cssText = 'padding:10px 14px;color:var(--text-muted,#888);font-size:0.88rem;';
+      list.appendChild(empty);
+    } else {
+      filtered.forEach(o => list.appendChild(makeItem(o.value, o.label, false)));
+    }
+    if (lainnya) list.appendChild(makeItem(lainnya.value, lainnya.label, true));
+  }
+
+  renderList('');
+  searchInput.addEventListener('input', () => renderList(searchInput.value));
+
+  wrap.appendChild(searchInput);
+  wrap.appendChild(list);
+  chips.appendChild(wrap);
+
+  // Autofocus setelah DOM paint
+  setTimeout(() => searchInput.focus(), 80);
+}
+
 // Konfirmasi hapus ATP inline di dalam area pesan picker — memakai ulang
 // kelas .rp-chip yang sudah ada, tidak menambah CSS baru.
 function rcConfirmHapusAtp(atp, onConfirm) {

@@ -957,8 +957,13 @@
     const needsInput = q.kind === 'teks_bebas' || q.kind === 'angka';
     rcSetComposerVisible(needsInput);
 
+    const DROPDOWN_SEARCH_IDS = new Set(['pilih_program_keahlian', 'pilih_program_keahlian_modul']);
     if (q.kind === 'pilihan_jamak') {
       renderMultiSelect(q, true);
+    } else if (DROPDOWN_SEARCH_IDS.has(q.id)) {
+      rcRenderDropdownSearch(q.options, (value, label) => {
+        handleChipSelect(value, label, q);
+      });
     } else if (q.kind === 'pilihan' || q.kind === 'konfirmasi') {
       rcRenderChips(q.options, (value, label) => {
         handleChipSelect(value, label, q);
