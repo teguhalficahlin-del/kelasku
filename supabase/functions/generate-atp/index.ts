@@ -199,14 +199,14 @@ Deno.serve(async (req) => {
 
   // ── 3. REQUEST BODY ───────────────────────────────────────────────────────
 
-  let body: { atp_induk_id?: string; expected_updated_at?: string };
+  let body: { atp_induk_id?: string; expected_updated_at?: string; sumber_flow?: string };
   try {
     body = await req.json();
   } catch {
     return json({ error: 'Request tidak valid.' }, 400);
   }
 
-  const { atp_induk_id, expected_updated_at } = body;
+  const { atp_induk_id, expected_updated_at, sumber_flow } = body;
   if (!atp_induk_id) return json({ error: 'atp_induk_id wajib diisi.' }, 400);
 
   // ── 4. BACA atp_induk — user JWT (RLS berlaku) ────────────────────────────
@@ -290,8 +290,12 @@ Deno.serve(async (req) => {
     profil_siswa:       profilSiswa,
     konteks_dudi:       konteksDudi,
     penguatan_prasyarat: prasyarat,
+    sumber_flow: sumber_flow || 'susun',
     instruksi: `Susun ATP ${atp.mapel} Fase ${atp.fase} ${atp.jenjang}. Total JP = ${jpOp}. ` +
-      `sum(jp_alokasi) HARUS = ${jpOp}. ID elemen hanya dari: ${elemenCp.map(e => e.id).join(', ')}.`,
+      `sum(jp_alokasi) HARUS = ${jpOp}. ID elemen hanya dari: ${elemenCp.map(e => e.id).join(', ')}. ` +
+      (sumber_flow === 'sesuaikan'
+        ? 'ATP ini merupakan pembaruan dari ATP yang sudah ada. Pertahankan struktur TP yang ada, hanya perbarui yang perlu disesuaikan dengan CP terbaru.'
+        : 'Susun ATP baru dari nol sesuai CP.'),
   });
 
   // ── 8. PANGGIL AI ─────────────────────────────────────────────────────────

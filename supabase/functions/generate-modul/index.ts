@@ -1311,7 +1311,7 @@ Deno.serve(async (req) => {
         Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
       );
       const { data: allowed, error: rlErr } = await svc.rpc('fn_check_rate_limit', {
-        p_identifier:    user.id,
+        p_identifier:    classroom_id ? `${user.id}:${classroom_id}` : user.id,
         p_endpoint:      'generate_modul',
         p_max_requests:  5,
         p_window_minutes: 1440,

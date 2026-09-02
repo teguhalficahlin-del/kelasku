@@ -132,7 +132,7 @@ async function saveAtpPhaseOptimistic(atpId, phase, phaseData, expectedUpdatedAt
 
 const GENERATE_ATP_URL = 'https://teccdzetrdjowqemnuuc.supabase.co/functions/v1/generate-atp';
 
-async function callGenerateAtp(atpIndukId, expectedUpdatedAt) {
+async function callGenerateAtp(atpIndukId, expectedUpdatedAt, sumberFlow) {
   const { data: { session } } = await window.supabaseClient.auth.getSession();
   const token = session?.access_token ?? '';
 
@@ -148,6 +148,7 @@ async function callGenerateAtp(atpIndukId, expectedUpdatedAt) {
       body: JSON.stringify({
         atp_induk_id:        atpIndukId,
         expected_updated_at: expectedUpdatedAt || undefined,
+        sumber_flow:         sumberFlow || undefined,
       }),
       signal: controller.signal,
     });

@@ -311,10 +311,10 @@ const RANCANG_FLOW = {
       skippable: false,
       condition: { question_id: 'pilih_program_keahlian_modul', value: '__lainnya__' } },
     pilihan('kondisi_kelas_modul', 'Bagaimana kondisi kelas untuk modul ini?', [
-      ['reguler',            'Reguler — semua siswa mengikuti bersama'],
-      ['diferensiasi',       'Perlu diferensiasi konten atau proses'],
-      ['inklusif',           'Kelas inklusif'],
-      ['campuran_kemampuan', 'Kemampuan awal sangat beragam'],
+      ['reguler',            'Kemampuan murid relatif seragam'],
+      ['diferensiasi',       'Kemampuan murid sangat beragam'],
+      ['inklusif',           'Ada murid berkebutuhan khusus'],
+      ['campuran_kemampuan', 'Sebagian murid sedang PKL'],
     ]),
     pilihan('target_kompetensi_modul', 'Target kompetensi utama modul ini?', [
       ['pemahaman',  'Pemahaman konsep'],
@@ -340,11 +340,11 @@ const RANCANG_FLOW = {
       skippable: false,
       condition: { question_id: 'jenis_sumber', value: 'lainnya' } },
     pilihan('strategi_utama', 'Strategi pembelajaran utama yang digunakan?', [
-      ['ceramah_diskusi', 'Ceramah dan diskusi'],
-      ['pbl',         'Pembelajaran berbasis proyek (PBL)'],
-      ['inquiry',     'Inkuiri dan eksplorasi'],
-      ['kolaboratif', 'Pembelajaran kolaboratif'],
-      ['campuran',    'Campuran beberapa strategi'],
+      ['ceramah_diskusi', 'Guru menjelaskan, murid berlatih dan menerapkan (langsung)'],
+      ['pbl',         'Murid mengerjakan proyek konkret yang bisa dipamerkan (berbasis proyek)'],
+      ['inquiry',     'Murid menemukan sendiri melalui eksplorasi dan eksperimen (inkuiri)'],
+      ['kolaboratif', 'Murid memecahkan masalah nyata dari dunia kerja (berbasis masalah)'],
+      ['campuran',    'Murid belajar langsung di konteks dunia kerja atau industri (kontekstual)'],
       ['rekomendasi', 'Minta rekomendasi MiClass'],
     ], { aiRecommendation: true }),
   ],
@@ -386,7 +386,7 @@ const RANCANG_FLOW = {
 // V1 AKTIF: KONTEKS_CP sampai ATP_REVIEW
 const FASE_URUTAN_V1 = [
   'KONTEKS_CP',      // Identitas kelas + validasi CP
-  'SUMBER_ATP',      // Status ATP, tujuan, sumber ATP lama
+  'PILIH_ATP',       // Pilih ATP yang ada (hanya mode sesuaikan) — skip otomatis jika susun baru
   'PRIORITAS',       // Fondasi TKA, kerja, PKL, pendidikan, target sekolah
   'WAKTU',           // JP, minggu efektif, kegiatan khusus, cadangan, pola jadwal
   'PROFIL_SISWA',    // Kemampuan awal, diagnostik, kesulitan, status data

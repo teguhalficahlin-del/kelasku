@@ -22,6 +22,8 @@
     in_flight:            false,
     pending_multi:        {},
     modul_generating:     false,  // guard double-trigger generate-modul
+    sumber_flow:          null,   // 'sesuaikan' | 'susun' | 'modul'
+    state_saved_at:       null,   // timestamp ms — staleness check >24 jam
   };
 
   const HISTORY_CAP = 40;
@@ -57,6 +59,8 @@
       modul_updated_at:    _chat.modul_updated_at,
       teaching_context_id: _chat.teaching_context_id,
       planning_context_id: _chat.planning_context_id,
+      sumber_flow:         _chat.sumber_flow,
+      state_saved_at:      Date.now(),
     };
     try {
       localStorage.setItem(LS_KEY(), JSON.stringify(payload));
@@ -80,11 +84,13 @@
       if (!raw) return false;
       const saved = JSON.parse(raw);
       if (!saved?.session_phase) return false;
+      const stale = saved.state_saved_at &&
+        (Date.now() - saved.state_saved_at) > 24 * 60 * 60 * 1000;
       Object.assign(_chat, {
         active_question_id:  saved.active_question_id  ?? null,
-        collected_answers:   saved.collected_answers   ?? {},
+        collected_answers:   stale ? {} : (saved.collected_answers ?? {}),
         conversation_history: saved.conversation_history ?? [],
-        session_phase:       saved.session_phase       ?? 'KONTEKS_CP',
+        session_phase:       stale ? 'KONTEKS_CP' : (saved.session_phase ?? 'KONTEKS_CP'),
         atp_induk_id:        saved.atp_induk_id        ?? null,
         atp_updated_at:      saved.atp_updated_at      ?? null,
         atp_draft:           saved.atp_draft           ?? [],
@@ -93,6 +99,8 @@
         modul_updated_at:    saved.modul_updated_at    ?? null,
         teaching_context_id: saved.teaching_context_id ?? null,
         planning_context_id: saved.planning_context_id ?? null,
+        sumber_flow:         saved.sumber_flow         ?? null,
+        state_saved_at:      saved.state_saved_at      ?? null,
       });
       return true;
     } catch (_) {
@@ -295,7 +303,12 @@
       _chat.profile = await window.api.getRancangProfil();
     } catch (_) { _chat.profile = null; }
 
+    // Simpan sumber_flow yang baru diset dari welcome handler — loadState()
+    // bisa menimpa dengan nilai lama dari localStorage.
+    const _pendingSumberFlow = _chat.sumber_flow;
     const restored = loadState();
+    // Kembalikan sumber_flow baru jika memang baru diset (bukan null).
+    if (_pendingSumberFlow) _chat.sumber_flow = _pendingSumberFlow;
     rcRenderComposer('rc-composer-wrap', handleGuruInput);
     if (notice) rcAppendBubble('sistem', notice);
 
@@ -430,25 +443,22 @@
     return async function (mode) {
       _initializing = true;
       try {
-        // 'sesuaikan' tanpa satu pun ATP tersimpan tidak punya yang bisa
-        // disesuaikan — alihkan ke ATP baru sambil menjelaskan alasannya.
+        _chat.sumber_flow = mode;
         let notice = null;
         if (mode === 'sesuaikan' && atpCount === 0) {
+          // Tidak ada ATP — masuk flow susun baru dengan penjelasan
+          _chat.sumber_flow = 'susun';
           mode = 'susun';
           notice = 'Belum ada ATP tersimpan untuk disesuaikan — memulai ATP baru.';
         }
-        if (mode === 'sesuaikan' && atpCount > 0) {
-          renderAtpPickerScreen(panel, cId, atpList, mapelDisplay);
-          return;
-        }
+        // 'sesuaikan' dengan ATP ada: masuk flow biasa, PILIH_ATP dihandle di startPhase
+        // 'modul' dengan ATP ada: masuk flow biasa, PILIH_ATP dihandle di startPhase
         if (mode === 'modul') {
           const atpAktif = (atpList || []).filter(function (a) { return a.status === 'aktif'; });
           if (!atpAktif.length) {
+            _chat.sumber_flow = 'susun';
             mode = 'susun';
             notice = 'Belum ada ATP aktif — susun ATP dulu sebelum membuat Modul Ajar.';
-          } else {
-            renderAtpPickerScreen(panel, cId, atpAktif, mapelDisplay, true);
-            return;
           }
         }
         await initChatShell(cId, panel, mode, notice);
@@ -469,9 +479,24 @@
       await waitForClassroomMeta();
       const mapelDisplay = window._classroomSubject || window._classroomProgram || '—';
 
-      // Query daftar ATP tidak boleh menahan layar pembuka. Gagal = jumlah tidak
-      // diketahui (null), bukan nol — badge menampilkan '— ATP' dan mode
-      // 'sesuaikan' tetap memakai perilaku lama.
+      // Guard FIX 5: jika data kelas belum ada, tampilkan notifikasi ringan
+      // (program_keahlian ditangani otomatis di KONTEKS_CP — bukan onboarding penuh)
+      if (!window._classroomSubject && !window._classroomProgram) {
+        panel.innerHTML =
+          '<div style="padding:32px 24px;max-width:480px;margin:0 auto;">' +
+          '<p style="color:var(--text-muted,#888);font-size:0.92rem;line-height:1.6;">' +
+          'Data mata pelajaran kelas ini belum tersedia. Buka halaman kelas dan pastikan mata pelajaran sudah terisi, lalu buka kembali tab Rancang.</p>' +
+          '</div>';
+        return;
+      }
+
+      // Tampilkan loading state sementara fetch ATP berlangsung
+      panel.innerHTML =
+        '<div style="display:flex;align-items:center;justify-content:center;padding:48px 24px;' +
+        'color:var(--text-muted,#888);font-size:0.92rem;">⏳ Memuat data kelas…</div>';
+
+      // Fetch ATP — gagal = jumlah tidak diketahui (null), bukan nol.
+      // atpCount null: badge '— ATP', kartu sesuaikan tetap tersembunyi.
       let atpList = null;
       try {
         atpList = (await getAtpIndukList()).filter(atp => atp.status !== 'arsip');
@@ -703,6 +728,49 @@
     _chat.session_phase = phase;
     if (typeof rcUpdateModulProgress === 'function') rcUpdateModulProgress(phase);
     updateContextualBackBtn(phase);
+    if (phase === 'PILIH_ATP') {
+      rcSetComposerVisible(false);
+      rcClearChips();
+      if (_chat.sumber_flow === 'susun') {
+        // Mode susun baru — langsung ke PRIORITAS, tidak perlu pilih ATP
+        await startPhase('PRIORITAS');
+        return;
+      }
+      // Mode sesuaikan atau modul — fetch daftar ATP dan tampilkan picker
+      const loadBubble = rcAppendBubble('ai', '⏳ Memuat daftar ATP yang tersedia…');
+      let atpList = [];
+      try {
+        const semua = await getAtpIndukList();
+        atpList = semua.filter(function (a) { return a.status === 'aktif'; });
+      } catch (e) {
+        if (loadBubble) loadBubble.remove();
+        rcAppendBubble('sistem', 'Gagal memuat daftar ATP. Periksa koneksi lalu coba lagi.');
+        rcRenderChips([{ value: '__coba_lagi__', label: '↺ Coba lagi' }], function () {
+          rcClearChips();
+          startPhase('PILIH_ATP');
+        });
+        return;
+      }
+      if (loadBubble) loadBubble.remove();
+      if (!atpList.length) {
+        rcAppendBubble('sistem',
+          'Belum ada ATP aktif untuk kelas ini. Susun ATP baru terlebih dahulu.');
+        rcRenderChips([{ value: '__susun_baru__', label: 'Susun ATP Baru' }], function () {
+          rcClearChips();
+          _chat.sumber_flow = 'susun';
+          saveState();
+          startPhase('PRIORITAS');
+        });
+        return;
+      }
+      // Render picker ATP langsung di panel (menggantikan shell flow sementara)
+      const panel = document.getElementById('panel-rancang');
+      if (!panel) return;
+      const skipToModul = _chat.sumber_flow === 'modul';
+      renderAtpPickerScreen(panel, _chat.classroom_id, atpList,
+        answerValue('mapel') || window._classroomSubject || '—', skipToModul);
+      return;
+    }
     if (phase === 'ATP_GENERATE') {
       rcSetComposerVisible(false);
       await triggerGenerateAtp();
@@ -1985,7 +2053,7 @@
     addToHistory('ai', 'Menyusun Alur Tujuan Pembelajaran…');
     rcShowTyping();
     try {
-      const result = await callGenerateAtp(_chat.atp_induk_id, _chat.atp_updated_at);
+      const result = await callGenerateAtp(_chat.atp_induk_id, _chat.atp_updated_at, _chat.sumber_flow);
       rcHideTyping();
       _chat.atp_draft      = result.progresi_tp;
       _chat.atp_updated_at = result.updated_at;

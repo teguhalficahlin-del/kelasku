@@ -216,6 +216,15 @@ function rcRenderWelcomeScreen(panel, mapelDisplay, onContinue, atpCount) {
       ? 'Belum ada ATP'
       : `${atpCount} ATP tersimpan`;
 
+  const hasAtp = typeof atpCount === 'number' && atpCount > 0;
+  const modulBadge = hasAtp ? '' : '<span class="rc-welcome-card-badge">Butuh ATP aktif</span>';
+  const sesuaikanCard = hasAtp ? `
+    <button type="button" class="rc-welcome-card" data-option="sesuaikan" aria-pressed="true">
+      <span class="rc-welcome-card-label">Sesuaikan ATP yang ada</span>
+      <span class="rc-welcome-card-badge">Direkomendasikan</span>
+      <span class="rc-welcome-card-desc">Perbarui ATP lama Anda dalam hitungan menit — tanpa mengulang dari awal.</span>
+    </button>` : '';
+
   panel.innerHTML = `
 <div class="rc-welcome" id="rc-welcome">
   <div class="rc-welcome-ctx">
@@ -228,19 +237,15 @@ function rcRenderWelcomeScreen(panel, mapelDisplay, onContinue, atpCount) {
     <p class="rc-welcome-lead">Yang biasanya butuh berhari-hari, selesai dalam satu sesi. MiClass mengerjakan bagian beratnya — Anda cukup menjawab beberapa pertanyaan dan mengonfirmasi hasilnya.</p>
   </div>
   <div class="rc-welcome-cards">
-    <button type="button" class="rc-welcome-card" data-option="sesuaikan" aria-pressed="true">
-      <span class="rc-welcome-card-label">Sesuaikan ATP yang ada</span>
-      <span class="rc-welcome-card-badge">Direkomendasikan</span>
-      <span class="rc-welcome-card-desc">Perbarui ATP lama Anda dalam hitungan menit — tanpa mengulang dari awal.</span>
-    </button>
+    ${sesuaikanCard}
     <div id="rc-modul-katalog"></div>
-    <button type="button" class="rc-welcome-card" data-option="susun" aria-pressed="false">
+    <button type="button" class="rc-welcome-card" data-option="susun" aria-pressed="${hasAtp ? 'false' : 'true'}">
       <span class="rc-welcome-card-label">Susun ATP baru</span>
       <span class="rc-welcome-card-desc">ATP satu fase penuh, selesai hari ini — bukan bulan depan.</span>
     </button>
     <button type="button" class="rc-welcome-card" data-option="modul" aria-pressed="false">
       <span class="rc-welcome-card-label">Buat Modul Ajar</span>
-      <span class="rc-welcome-card-badge">Butuh ATP aktif</span>
+      ${modulBadge}
       <span class="rc-welcome-card-desc">Dari ATP ke rencana pertemuan siap pakai — langsung bisa dibawa ke kelas.</span>
     </button>
   </div>
