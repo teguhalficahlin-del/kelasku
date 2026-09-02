@@ -102,6 +102,7 @@ function rcMakeBubbleEditable(bubble, questionId, phase, onEdit) {
 function rcRenderComposer(containerId, onSubmit) {
   const el = document.getElementById(containerId);
   if (!el) return;
+  if (document.getElementById('rc-composer')) return;
 
   const composer = document.createElement('div');
   composer.className = 'rc-composer';
