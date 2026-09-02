@@ -276,6 +276,11 @@ const RANCANG_FLOW = {
       ['lingkungan',   'Lingkungan sekitar atau konteks dunia kerja'],
       ['lainnya',      'Sumber lain'],
     ], { constraints: { exclusive: [] } }),
+    { id: 'jenis_sumber_lainnya', kind: 'teks_bebas',
+      prompt: 'Sumber lain apa yang akan digunakan? (contoh: narasumber industri, kunjungan industri, jobsheet, dll)',
+      helpText: 'Deskripsi singkat sudah cukup — MiClass menyesuaikannya ke konteks pembelajaran.',
+      skippable: false,
+      condition: { question_id: 'jenis_sumber', value: 'lainnya' } },
     pilihan('strategi_utama', 'Strategi pembelajaran utama yang digunakan?', [
       ['ceramah_diskusi', 'Ceramah dan diskusi'],
       ['pbl',         'Pembelajaran berbasis proyek (PBL)'],
