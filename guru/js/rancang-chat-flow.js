@@ -21,12 +21,17 @@ const konfirmasi = (id, prompt, pairs, extra = {}) => ({
 const RANCANG_FLOW = {
   KONTEKS_CP: [
     pilihan('konfirmasi_konteks',
-      'MiClass menemukan data kelas dan CP berikut:\n\n{{konteks_kelas}}\n\nApakah data kelas dan CP tersebut sudah sesuai?', [
-        ['sesuai', 'Ya, gunakan data dan CP ini'],
+      'MiClass menemukan data kelas dan CP berikut:\n\n{{mapel}} · {{nama_kelas}} · Fase {{fase}}\nProgram Keahlian: {{program_keahlian}}\n\nMiClass akan menyusun ATP menggunakan konteks dunia kerja yang relevan dengan program keahlian tersebut.\n\nApakah pemahaman ini sudah benar?', [
+        ['sesuai', 'Ya, sudah benar'],
+        ['perbaiki_kelas', 'Tidak, program keahlian perlu dikoreksi'],
         ['lihat_cp', 'Lihat ringkasan isi CP terlebih dahulu'],
-        ['perbaiki_kelas', 'Data kelas perlu diperbaiki'],
         ['cp_tidak_sesuai', 'CP atau versinya tidak sesuai'],
       ], { helpText: 'ATP mencakup satu fase penuh dan seluruh elemen CP.' }),
+    { id: 'koreksi_program_keahlian', kind: 'teks_bebas',
+      prompt: 'Tuliskan nama program keahlian yang benar untuk kelas ini:',
+      helpText: 'Contoh: Desain dan Produksi Busana, Akuntansi dan Keuangan Lembaga, Produksi Siaran Program Televisi.',
+      skippable: false,
+      condition: { question_id: 'konfirmasi_konteks', value: 'perbaiki_kelas' } },
   ],
 
   SUMBER_ATP: [
@@ -252,6 +257,16 @@ const RANCANG_FLOW = {
   ],
 
   KONTEKS_MODUL: [
+    pilihan('konfirmasi_program_keahlian_modul',
+      'Modul Ajar ini akan dibuat untuk kelas {{nama_kelas}} dengan program keahlian {{program_keahlian}}.\n\nSemua instrumen modul — kosakata, dialog, teks orientasi, kartu simulasi — akan menggunakan konteks dunia kerja {{program_keahlian}}.\n\nApakah sudah benar?', [
+        ['lanjutkan', 'Ya, lanjutkan'],
+        ['koreksi', 'Tidak, program keahlian kelas ini adalah...'],
+      ], { helpText: 'Program keahlian menentukan kosakata, latar dialog, dan konteks dokumen kerja di seluruh modul.' }),
+    { id: 'koreksi_program_keahlian_modul', kind: 'teks_bebas',
+      prompt: 'Tuliskan nama program keahlian yang benar:',
+      helpText: 'Contoh: Desain dan Produksi Busana, Akuntansi dan Keuangan Lembaga, Produksi Siaran Program Televisi.',
+      skippable: false,
+      condition: { question_id: 'konfirmasi_program_keahlian_modul', value: 'koreksi' } },
     pilihan('kondisi_kelas_modul', 'Bagaimana kondisi kelas untuk modul ini?', [
       ['reguler',            'Reguler — semua siswa mengikuti bersama'],
       ['diferensiasi',       'Perlu diferensiasi konten atau proses'],

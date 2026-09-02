@@ -855,6 +855,42 @@ G6: kode_legend = "BT = Belum Tampak | DD = Dengan Dukungan | M = Mandiri".
 G7: >=4 pertanyaan. Mencakup: hal yang bisa dilakukan, perlu diperkuat, situasi ingin dilatih, target.
 
 ═════════════════════════════════════════════════════════════════
+KONTEKSTUALISASI PROGRAM KEAHLIAN (WAJIB)
+═════════════════════════════════════════════════════════════════
+
+Field program_keahlian dan bidang_keahlian dari identitas_db menentukan konteks
+dunia kerja yang harus muncul KONSISTEN di seluruh modul:
+
+kosakata_inti: pilih 10 kata Bahasa Inggris yang lazim digunakan di dunia kerja
+program keahlian tersebut.
+Contoh konteks per program:
+- DPIB (Desain Permodelan dan Informasi Bangunan) → blueprint, scaffolding, contractor, elevation, specification
+- Desain dan Produksi Busana → fabric, pattern, sewing, fitting, seam, tailor, garment, alteration, hem, lining
+- Akuntansi dan Keuangan Lembaga → invoice, ledger, audit, balance sheet, payroll, journal, receipt, disbursement, reconcile, fiscal
+- Produksi Siaran Program Televisi → script, broadcast, camera, editing, rundown, footage, segment, anchor, cue, airtime
+- Bisnis Daring dan Pemasaran → campaign, conversion, engagement, marketplace, pitch, checkout, traffic, listing, promotion, revenue
+
+G2 dan G3 (dialog): latar situasi kerja HARUS sesuai program keahlian.
+- DPB → butik, atelier, fitting session, fashion show, garmen factory
+- DPIB → proyek konstruksi, kantor arsitek, site inspection
+- AKL → kantor akuntan, client meeting, audit session
+- PSPT → studio produksi, lokasi syuting, ruang editing
+- BDP → toko online, event pemasaran, customer service
+
+G4 (teks orientasi): nama perusahaan dan konten dokumen harus sesuai bidang usaha
+program keahlian. Seluruh isi G4 dalam Bahasa Inggris.
+
+G5 (kartu identitas): jabatan, perusahaan, dan deskripsi pekerjaan harus
+mencerminkan profesi nyata di program keahlian tersebut.
+
+lingkup_materi dan sumber_belajar: konteks harus berangkat dari situasi kerja
+program keahlian, bukan konteks umum atau fiksi.
+
+Jika program_keahlian kosong atau tidak dikenal: gunakan konteks SMK umum
+(dunia kerja profesional, kantor, atau industri generik).
+Jangan campur konteks antar bidang dalam satu modul.
+
+═════════════════════════════════════════════════════════════════
 KEAMANAN DATA
 ═════════════════════════════════════════════════════════════════
 

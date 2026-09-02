@@ -956,8 +956,13 @@
   function renderQuestionPrompt(prompt) {
     const context = [answerValue('mapel'), answerValue('nama_kelas'),
       `Fase ${answerValue('fase')}`, answerValue('program_keahlian')].filter(Boolean).join(' · ');
+    const programKeahlian = answerValue('program_keahlian') || '(belum tercatat)';
     return prompt
       .replace('{{konteks_kelas}}', context)
+      .replace(/\{\{program_keahlian\}\}/g, programKeahlian)
+      .replace('{{nama_kelas}}', answerValue('nama_kelas') || '—')
+      .replace('{{mapel}}', answerValue('mapel') || '—')
+      .replace('{{fase}}', answerValue('fase') || '—')
       .replace('{{ringkasan_waktu}}', formatAllocationSummary())
       .replace('{{ringkasan_target}}', formatPhaseAnswers('TARGET_FASE'))
       .replace('{{ringkasan_dudi}}', formatPhaseAnswers('KONTEKS_DUDI'))
@@ -1082,6 +1087,16 @@
     startPhase('KONTEKS_CP');
   }
 
+  async function updateProgramKeahlian(newValue) {
+    _chat.collected_answers.program_keahlian = answer(newValue, 'guru', true);
+    window._classroomProgram = newValue;
+    try {
+      await window.api.upsertRancangSettings(_chat.classroom_id, { program_keahlian: newValue });
+    } catch (err) {
+      console.warn('[rancang-chat] gagal update program_keahlian di DB:', err);
+    }
+  }
+
   async function handleGuruInput(rawText) {
     if (_chat.in_flight) return;
     const qId = _chat.active_question_id;
@@ -1116,6 +1131,9 @@
 
       if (evalResult.status === 'ACCEPT') {
         recordAnswer(qId, evalResult.normalizedAnswer, 'guru', true);
+        if (qId === 'koreksi_program_keahlian' || qId === 'koreksi_program_keahlian_modul') {
+          await updateProgramKeahlian(evalResult.normalizedAnswer);
+        }
         rcMakeBubbleEditable(guruBubble, qId, phase, handleEditAnswer);
         rcAppendBubble('ai', evalResult.message);
         addToHistory('ai', evalResult.message);
