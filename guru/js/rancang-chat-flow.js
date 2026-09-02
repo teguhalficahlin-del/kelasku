@@ -76,8 +76,8 @@ const RANCANG_FLOW = {
     pilihan('sumber_atp', 'Apakah ATP untuk mapel dan fase ini sudah tersedia?', [
       ['baru', 'Belum ada — susun ATP induk baru'],
       ['gunakan', 'Sudah ada — gunakan dan sesuaikan untuk kelas ini'],
-      ['periksa', 'Sudah ada — periksa kesesuaiannya dengan CP'],
-      ['referensi', 'Sudah ada — susun ulang dengan ATP lama sebagai referensi'],
+      ['periksa', 'Sudah ada — susun ulang, pastikan sesuai CP'],
+      ['referensi', 'Sudah ada — susun versi baru dengan ATP lama sebagai panduan'],
       ['cari', 'Belum diketahui — cari ATP yang tersimpan di MiClass'],
     ], { helpText: 'ATP induk lintas kelas; adaptasi pelaksanaan tetap per classroom.' }),
   ],
