@@ -1017,30 +1017,7 @@ Deno.serve(async (req) => {
   if (!modul_induk_id) return json({ error: 'modul_induk_id wajib diisi.' }, 400);
   if (!classroom_id)   return json({ error: 'classroom_id wajib diisi.' }, 400);
 
-  // 2. RATE LIMIT — hanya Fase A (B dan C adalah lanjutan, bukan generate baru)
-  if (fase === 'A') {
-    try {
-      const svc = createClient(
-        Deno.env.get('SUPABASE_URL')!,
-        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
-      );
-      const { data: allowed, error: rlErr } = await svc.rpc('fn_check_rate_limit', {
-        p_identifier:    user.id,
-        p_endpoint:      'generate_modul',
-        p_max_requests:  5,
-        p_window_minutes: 1440,
-      });
-      if (!rlErr && allowed === false) {
-        return json({ error: 'Batas generate Modul Ajar harian (5×) tercapai. Coba lagi besok.', code: 'RATE_LIMIT' }, 429);
-      }
-      if (rlErr) {
-        console.warn('[generate-modul] rate limit RPC error:', rlErr.message);
-        return json({ error: 'Rate limit tidak tersedia. Coba lagi.', code: 'RATE_LIMIT_UNAVAILABLE' }, 503);
-      }
-    } catch (e) {
-      console.warn('[generate-modul] rate limit exception (ignored):', e);
-    }
-  }
+  // 2. RATE LIMIT — dijalankan di dalam blok Fase A setelah idempotency check
 
   // 4. BACA modul_induk — user JWT, RLS memfilter guru_id = fn_current_profile_id()
   const { data: modul, error: modulErr } = await userClient
@@ -1269,6 +1246,37 @@ Deno.serve(async (req) => {
         code: 'MODUL_INPUT_INCOMPLETE',
         missing: ['status'],
       }, 422);
+    }
+
+    // Idempotency: jika draft.fase_a sudah ada (dari run sebelumnya yang terputus
+    // di Fase B/C/D), skip AI call dan rate limit — kembalikan updated_at saat ini
+    // agar klien bisa langsung lanjut ke Fase B.
+    const existingDraftA = (kontenObj._draft as Record<string, unknown> | undefined)?.fase_a;
+    if (existingDraftA) {
+      return json({ fase: 'A', ok: true, updated_at: (modul as Record<string, unknown>).updated_at as string });
+    }
+
+    // Rate limit — hanya jika Fase A benar-benar baru (tidak ada draft.fase_a)
+    try {
+      const svc = createClient(
+        Deno.env.get('SUPABASE_URL')!,
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+      );
+      const { data: allowed, error: rlErr } = await svc.rpc('fn_check_rate_limit', {
+        p_identifier:    user.id,
+        p_endpoint:      'generate_modul',
+        p_max_requests:  5,
+        p_window_minutes: 1440,
+      });
+      if (!rlErr && allowed === false) {
+        return json({ error: 'Batas generate Modul Ajar harian (5×) tercapai. Coba lagi besok.', code: 'RATE_LIMIT' }, 429);
+      }
+      if (rlErr) {
+        console.warn('[generate-modul] rate limit RPC error:', rlErr.message);
+        return json({ error: 'Rate limit tidak tersedia. Coba lagi.', code: 'RATE_LIMIT_UNAVAILABLE' }, 503);
+      }
+    } catch (e) {
+      console.warn('[generate-modul] rate limit exception (ignored):', e);
     }
 
     let faseAOutput: Record<string, unknown>;
