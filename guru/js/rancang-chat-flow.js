@@ -222,7 +222,7 @@ const RANCANG_FLOW = {
       ['membaca_memirsa', 'Membaca–Memirsa'], ['menulis_presentasi', 'Menulis–Mempresentasikan'],
       ['setelah_pemetaan', 'Tentukan setelah hasil pemetaan'], ['rekomendasi', 'Minta rekomendasi MiClass'],
     ], { aiRecommendation: true, helpText: 'Elemen adalah komponen Capaian Pembelajaran — misalnya Menyimak–Berbicara dan Membaca–Memirsa. Semua elemen tetap dicakup, hanya porsi penekanannya yang berbeda.' }),
-    pilihan('target_kemandirian', 'Pada akhir fase, seberapa mandiri siswa dalam menggunakan Bahasa Inggris?', [
+    pilihan('target_kemandirian', 'Di akhir fase ini, kemandirian seperti apa yang ingin Anda capai untuk siswa dalam menggunakan {{mapel}}?', [
       ['panduan', 'Masih butuh contoh dan panduan guru'],
       ['bantuan_terbatas', 'Bisa mandiri dengan sedikit bantuan'],
       ['mandiri_dikenal', 'Mandiri di situasi yang sudah pernah dilatih'],
