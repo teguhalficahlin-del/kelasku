@@ -1108,7 +1108,6 @@ Deno.serve(async (req) => {
   if (settingsErr) {
     console.warn('[generate-modul] rancang_settings error:', settingsErr.message);
   }
-  // settings boleh null — EF lanjut tanpa data identitas (fallback ke string kosong di user message)
 
   // 5c. BACA tp_kktp — KKTP aktif untuk classroom ini
   const { data: kktp, error: kktpErr } = await userClient
@@ -1198,6 +1197,18 @@ Deno.serve(async (req) => {
     tahun_ajaran:     settings?.tahun_ajaran     ?? '',
     semester:         settings?.semester         ?? '',
   };
+
+  // Guard: mapel, jenjang, fase wajib ada — tanpa ketiganya AI tidak bisa
+  // menghasilkan modul yang bermakna dan kuota harian guru terbuang sia-sia.
+  if (!identitasDB.mapel || !identitasDB.jenjang || !identitasDB.fase) {
+    const missing = (['mapel', 'jenjang', 'fase'] as const)
+      .filter(k => !identitasDB[k]);
+    return json({
+      error: 'Data kelas belum lengkap. Buka halaman kelas, isi mata pelajaran dan fase, lalu coba lagi.',
+      code:  'IDENTITAS_TIDAK_LENGKAP',
+      missing,
+    }, 422);
+  }
 
   // 9. SETUP CALL AI
   const apiKey = Deno.env.get('ANTHROPIC_API_KEY');
