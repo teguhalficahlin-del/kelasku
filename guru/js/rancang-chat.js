@@ -661,6 +661,7 @@
   function kembaliKeLayarUtama() {
     rcClearChips();
     const cId = _chat.classroom_id;
+    try { localStorage.removeItem('rc_sesi_' + cId); } catch (_) {}
     _loaded = false;
     initRancangChat(cId);
   }
