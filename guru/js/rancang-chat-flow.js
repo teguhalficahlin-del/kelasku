@@ -66,7 +66,7 @@ const RANCANG_FLOW = {
       skippable: false,
       condition: { question_id: 'pilih_program_keahlian', value: '__lainnya__' } },
     pilihan('konfirmasi_konteks',
-      'Data kelas dan CP yang akan digunakan:\n\n{{mapel}} · {{nama_kelas}} · Fase {{fase}}\n\nApakah Capaian Pembelajaran yang akan digunakan sudah sesuai?', [
+      'Data kelas dan CP yang akan digunakan:\n\n{{mapel}} · {{nama_kelas}} · Fase {{fase}}\nProgram keahlian: {{program_keahlian}}\n\nApakah Capaian Pembelajaran yang akan digunakan sudah sesuai?', [
         ['sesuai', 'Ya, CP sudah sesuai — lanjutkan'],
         ['lihat_cp', 'Lihat ringkasan isi CP terlebih dahulu'],
         ['cp_tidak_sesuai', 'CP yang muncul bukan yang saya gunakan'],
