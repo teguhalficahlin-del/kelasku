@@ -270,7 +270,7 @@ const RANCANG_FLOW = {
     konfirmasi('konfirmasi_dudi',
       'Ringkasan konteks kejuruan:\n\n{{ringkasan_dudi}}\n\nApakah pengaturan konteks sudah sesuai?', [
         ['ya', 'Ya, lanjutkan'], ['ubah', 'Ubah konteks kejuruan'],
-      ]),
+      ], { condition: { question_id: 'kekuatan_konteks', values: ['seimbang', 'dominan', 'terbatas', 'rekomendasi'] } }),
   ],
 
   PENGUATAN_PRASYARAT: [
