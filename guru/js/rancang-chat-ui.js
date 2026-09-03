@@ -285,6 +285,21 @@ function rcRenderAtpPicker(panel, items, onPick, onDelete, onBack) {
 
   let selectedId = items[0]?.id || null;
 
+  if (!items.length) {
+    panel.innerHTML = `
+<div class="rc-welcome" id="rc-atp-picker">
+  <div class="rc-welcome-header">
+    <h2 class="rc-welcome-title">ATP Anda</h2>
+    <p class="rc-welcome-lead">Belum ada ATP tersimpan. Susun ATP baru terlebih dahulu.</p>
+  </div>
+  <div class="rc-welcome-footer" style="display:flex;gap:12px;flex-wrap:wrap;">
+    ${onBack ? '<button type="button" class="rc-welcome-btn" id="rc-atp-picker-kembali" style="background:transparent;border:1px solid var(--border,rgba(255,255,255,0.12));color:var(--text-muted,#888);">← Menu Rancang</button>' : ''}
+  </div>
+</div>`;
+    if (onBack) panel.querySelector('#rc-atp-picker-kembali')?.addEventListener('click', onBack);
+    return;
+  }
+
   const cards = items.map(function (atp) {
     const judul  = [atp.mapel, 'Fase ' + atp.fase, atp.jenjang].filter(Boolean).join(' · ');
     const jumlah = Array.isArray(atp.progresi_tp) ? atp.progresi_tp.length : 0;
@@ -309,8 +324,8 @@ function rcRenderAtpPicker(panel, items, onPick, onDelete, onBack) {
   panel.innerHTML = `
 <div class="rc-welcome" id="rc-atp-picker">
   <div class="rc-welcome-header">
-    <h2 class="rc-welcome-title">ATP mana yang ingin disesuaikan?</h2>
-    <p class="rc-welcome-lead">Pilih satu ATP tersimpan. Jawaban yang sudah Anda isi sebelumnya akan dimuat kembali.</p>
+    <h2 class="rc-welcome-title">ATP Anda</h2>
+    <p class="rc-welcome-lead">Pilih ATP yang ingin dibuka. Status <strong>Aktif</strong> = sudah disetujui, <strong>Draf</strong> = masih dalam penyusunan.</p>
   </div>
   <div class="rc-welcome-cards">${cards}</div>
   <p class="rc-welcome-ai-note" id="rc-atp-picker-pesan"></p>
