@@ -942,8 +942,11 @@ Pengguna Tab Rancang adalah guru SMK Indonesia yang:
 - Staleness check 24 jam untuk `collected_answers`
 
 **BELUM DIIMPLEMENTASIKAN (backlog):**
-- CARI_ATP — fase pencarian ATP tersimpan lintas kelas
-- FIX 5 EF: generate-modul return 422 jika `identitas_db` kosong (guard klien sudah ada)
+- *(kosong — semua item backlog aktif sudah selesai)*
+
+**DITANGGUHKAN (bukan backlog aktif):**
+- CARI_ATP — tidak relevan untuk guru mapel umum SMK (ATP-nya sedikit, picker sudah cukup).
+  Dipertimbangkan kembali jika Tab Rancang dibuka untuk guru produktif.
 
 **DILARANG membuat routing ke fase yang belum diimplementasikan**
 tanpa terlebih dahulu mengimplementasikan fase tersebut.
