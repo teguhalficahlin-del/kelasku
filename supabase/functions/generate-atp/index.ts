@@ -293,6 +293,7 @@ Deno.serve(async (req) => {
     (polajadwal === 'reguler_bagi' || polajadwal === 'blok') && jpPerSesi > 0 ? jpPerSesi :
     0;
 
+  const targetFase    = unwrapPhaseData(cd.TARGET_FASE);
   const prioritas     = unwrapPhaseData(cd.PRIORITAS);
   const profilSiswa   = unwrapPhaseData(cd.PROFIL_SISWA);
   const konteksDudi   = unwrapPhaseData(cd.KONTEKS_DUDI);
@@ -317,6 +318,7 @@ Deno.serve(async (req) => {
     jp_operasional:     jpOp,
     jp_per_pertemuan:   jpPerPertemuan || null,
     pola_jadwal:        polajadwal,
+    target_fase_detail: targetFase,
     prioritas,
     profil_siswa:       profilSiswa,
     konteks_dudi:       konteksDudi,
