@@ -201,8 +201,7 @@ const RANCANG_FLOW = {
   TARGET_FASE: [
     pilihan('target_akhir_mode', 'Bagaimana target akhir fase ditentukan?', [
       ['rekomendasi', 'Minta rekomendasi berdasarkan CP dan profil siswa'],
-      ['kandidat_cp', 'Pilih dari kandidat turunan CP'],
-      ['target_guru', 'Masukkan target sekolah atau guru'], ['atp_lama', 'Gunakan target dari ATP lama'],
+      ['target_guru', 'Masukkan target sendiri'],
     ], { aiRecommendation: true }),
     { id: 'target_akhir_teks', kind: 'teks_bebas', prompt: 'Tuliskan target akhir fase yang ingin digunakan.',
       helpText: 'MiClass memeriksa kesesuaian dan keterukurannya.', skippable: false,
