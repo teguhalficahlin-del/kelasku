@@ -957,7 +957,7 @@ function buildUserMessageFaseB(params: {
   const targetDurasi = params.jpPerPertemuan * params.durasiJp;
   return JSON.stringify({
     fase: 'B',
-    output_instruction: `Jawab ringkas dan padat. Jangan tambahkan penjelasan atau komentar di luar JSON. Setiap field cukup 1-3 kalimat. Total output harus di bawah ${Math.min(3000 * params.jumlahPertemuan, 9000)} token.`,
+    output_instruction: `Jawab ringkas dan padat. Jangan tambahkan penjelasan atau komentar di luar JSON. Setiap field cukup 1-3 kalimat. Total output harus di bawah ${Math.min(3000 * params.jumlahPertemuan, 9000)} token. ATURAN FIELD WAJIB — jangan ubah nama field: Gunakan 'nama' (BUKAN 'tahap', BUKAN 'tahapan'). Nilai 'nama' HARUS salah satu dari: PEMBUKA, ASESMEN_AWAL, MEMAHAMI, MENGAPLIKASI, MEREFLEKSI, PENUTUP. 'prinsip' HARUS array of string: ["Bermakna"]. 'sub_langkah' HARUS array of object: [{"nomor":1,"deskripsi":"teks (X menit)"}]. Contoh satu langkah yang benar: {"nama":"PEMBUKA","durasi_menit":10,"prinsip":["Bermakna"],"sub_langkah":[{"nomor":1,"deskripsi":"Guru menyapa murid. (5 menit)"}]}`,
     instruksi_durasi:
       `sum(langkah[].durasi_menit) per pertemuan HARUS = ${targetDurasi} ` +
       `(${params.jpPerPertemuan} JP x ${params.durasiJp} menit). Syarat mutlak.`,
@@ -1211,7 +1211,7 @@ Deno.serve(async (req) => {
   }
 
   // 9. SETUP CALL AI
-  const apiKey = Deno.env.get('ANTHROPIC_API_KEY');
+  const apiKey = Deno.env.get('GOOGLE_API_KEY');
   if (!apiKey) return json({ error: 'Konfigurasi server tidak lengkap.' }, 500);
 
   async function callAI(
@@ -1222,24 +1222,26 @@ Deno.serve(async (req) => {
     const ctrl = new AbortController();
     const tid = setTimeout(() => ctrl.abort(), timeoutMs);
     try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': apiKey!,
-          'anthropic-version': '2023-06-01',
+      const contents = messages.map(m => ({
+        role: m.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: m.content }],
+      }));
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+            contents,
+            generationConfig: { maxOutputTokens: maxTokens },
+          }),
+          signal: ctrl.signal,
         },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-6',
-          max_tokens: maxTokens,
-          system: SYSTEM_PROMPT,
-          messages,
-        }),
-        signal: ctrl.signal,
-      });
-      if (!res.ok) throw new Error(`Anthropic HTTP ${res.status}`);
+      );
+      if (!res.ok) throw new Error(`Gemini HTTP ${res.status}`);
       const b = await res.json();
-      return String(b?.content?.[0]?.text ?? '');
+      return String(b?.candidates?.[0]?.content?.parts?.[0]?.text ?? '');
     } finally {
       clearTimeout(tid);
     }
