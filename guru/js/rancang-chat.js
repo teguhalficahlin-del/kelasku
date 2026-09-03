@@ -1263,7 +1263,9 @@
   }
 
   function formatAtpSummary() {
+    const skipPhases = _chat.sumber_flow === 'susun' ? new Set(['PILIH_ATP']) : new Set();
     return FASE_URUTAN_V1.slice(0, FASE_URUTAN_V1.indexOf('ATP_SUMMARY'))
+      .filter(phase => !skipPhases.has(phase))
       .map(phase => `${phase}\n${formatPhaseAnswers(phase)}`).join('\n\n');
   }
 

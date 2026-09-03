@@ -304,8 +304,12 @@ Deno.serve(async (req) => {
 
   // ── 7. BANGUN USER MESSAGE ────────────────────────────────────────────────
 
+  const polaDesc =
+    polajadwal === 'reguler_satu' ? 'pola reguler satu pertemuan per minggu' :
+    polajadwal === 'reguler_bagi' ? 'pola reguler dibagi beberapa pertemuan' :
+    polajadwal === 'blok'         ? 'sistem blok' : 'pola jadwal guru';
   const jpConstraintNote = jpPerPertemuan > 0
-    ? `jp_per_pertemuan=${jpPerPertemuan} (pola reguler satu pertemuan per minggu). jp_alokasi SETIAP TP HARUS kelipatan ${jpPerPertemuan}. `
+    ? `jp_per_pertemuan=${jpPerPertemuan} (${polaDesc}). jp_alokasi SETIAP TP HARUS kelipatan ${jpPerPertemuan}. `
     : '';
 
   const userMessage = JSON.stringify({
