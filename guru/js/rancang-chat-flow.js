@@ -68,7 +68,7 @@ const RANCANG_FLOW = {
       'Data kelas dan CP yang akan digunakan:\n\n{{mapel}} · {{nama_kelas}} · Fase {{fase}}\n\nApakah Capaian Pembelajaran yang akan digunakan sudah sesuai?', [
         ['sesuai', 'Ya, CP sudah sesuai — lanjutkan'],
         ['lihat_cp', 'Lihat ringkasan isi CP terlebih dahulu'],
-        ['cp_tidak_sesuai', 'CP atau versinya tidak sesuai'],
+        ['cp_tidak_sesuai', 'CP yang muncul bukan yang saya gunakan'],
       ], { helpText: 'ATP mencakup satu fase penuh dan seluruh elemen CP.' }),
   ],
 
@@ -81,7 +81,7 @@ const RANCANG_FLOW = {
       ['target_sekolah', 'Target khusus sekolah'], ['tidak_ada', 'Tidak ada prioritas khusus'],
       ['rekomendasi', 'Minta rekomendasi MiClass'],
     ], { constraints: { maxSelections: 3, exclusive: ['tidak_ada', 'rekomendasi'] }, aiRecommendation: true,
-      helpText: 'Prioritas mengatur penekanan, bukan mengubah CP.' }),
+      helpText: 'Prioritas mengatur penekanan, bukan mengubah CP. Rekomendasi bersifat umum — Anda tetap bisa mengubahnya.' }),
     pilihan('timeline_tka', 'Bagaimana fondasi TKA ditempatkan dalam ATP ini?', [
       ['fase_ini', 'Dibangun selama fase ini'],
       ['lintas_fase', 'Dibangun pada fase ini dan dilanjutkan pada fase berikutnya'],
@@ -117,7 +117,7 @@ const RANCANG_FLOW = {
       condition: { question_id: 'tahun_pelajaran', value: 'lainnya' } },
     pilihan('minggu_efektif_mode', 'Bagaimana minggu efektif ditentukan?', [
       ['isi_sendiri', 'Isi sendiri'],
-      ['cari_daerah', 'Mengacu kalender pendidikan daerah (isi minggu efektif sendiri)'],
+      ['cari_daerah', 'Dari kalender dinas pendidikan — isi jumlahnya sendiri'],
       ['standar_36', 'Gunakan asumsi sementara 36 minggu (18+18)'],
     ], { helpText: 'Data resmi dan asumsi disimpan dengan status berbeda.' }),
     angka('minggu_sem1', 'Berapa minggu efektif semester pertama?', 10, 22,
@@ -133,7 +133,7 @@ const RANCANG_FLOW = {
         ['tidak_tahu', 'Belum diketahui — gunakan asumsi sementara'],
       ], { helpText: 'Mencegah pengurangan waktu dihitung dua kali.' }),
     jamak('kegiatan_khusus', 'Kegiatan apa yang masih mengurangi pembelajaran?', [
-      ['pkl', 'PKL'], ['projek', 'Projek atau kegiatan sekolah'], ['asesmen', 'Asesmen tambahan'],
+      ['pkl', 'PKL'], ['projek', 'Projek atau kegiatan sekolah'], ['asesmen', 'Ujian atau tes tambahan'],
       ['program', 'Kegiatan program keahlian'], ['libur', 'Libur khusus sekolah'],
       ['lainnya', 'Kegiatan lainnya'], ['belum_diketahui', 'Belum diketahui — sediakan cadangan umum'],
       ['tidak_ada', 'Tidak ada pengurangan tambahan'],
@@ -144,7 +144,7 @@ const RANCANG_FLOW = {
     pilihan('cadangan_minggu', 'Berapa cadangan untuk gangguan tak terduga?', [
       ['0', 'Tidak ada cadangan'], ['1', '1 minggu'], ['2', '2 minggu'], ['3', '3 minggu'],
       ['lain', 'Tentukan sendiri'], ['rekomendasi', 'Minta rekomendasi MiClass'],
-    ], { aiRecommendation: true, helpText: 'JP cadangan dihitung deterministik dari JP mingguan.' }),
+    ], { aiRecommendation: true, helpText: 'Setiap minggu cadangan setara dengan JP per minggu Anda. Pilih sesuai kebiasaan sekolah.' }),
     angka('cadangan_minggu_lain', 'Berapa minggu cadangan yang Anda tentukan?', 0, 10,
       { condition: { question_id: 'cadangan_minggu', value: 'lain' } }),
     pilihan('pola_jadwal', 'Bagaimana pola JP dalam satu minggu?', [
@@ -160,31 +160,34 @@ const RANCANG_FLOW = {
 
   PROFIL_SISWA: [
     pilihan('status_data_awal', 'Apakah data kemampuan awal siswa tersedia?', [
-      ['aktual', 'Data aktual tersedia'], ['sebagian', 'Sebagian data tersedia'],
-      ['belum_ada', 'Belum ada data'],
+      ['aktual', 'Ya, saya sudah punya data kemampuan awal siswa'],
+      ['sebagian', 'Ada sebagian data kemampuan awal siswa'],
+      ['belum_ada', 'Belum ada data sama sekali'],
     ]),
     pilihan('tindakan_tanpa_data', 'Bagaimana titik awal kemampuan siswa ditentukan?', [
-      ['pemetaan', 'Buat asesmen pemetaan awal'], ['observasi', 'Gunakan observasi pada pembelajaran awal'],
-      ['perkiraan_guru', 'Masukkan perkiraan profesional guru'],
-      ['asumsi_cp', 'Lanjutkan dengan asumsi berdasarkan CP'],
-      ['simulasi', 'Lihat simulasi sebagai contoh saja'], ['rekomendasi', 'Minta rekomendasi MiClass'],
+      ['pemetaan', 'Buat soal atau tugas untuk mengukur kemampuan awal'],
+      ['observasi', 'Gunakan observasi pada pembelajaran awal'],
+      ['perkiraan_guru', 'Isi sendiri berdasarkan pengalaman mengajar'],
+      ['asumsi_cp', 'Anggap kemampuan awal sesuai deskripsi CP dan lanjutkan'],
+      ['simulasi', 'Gunakan data simulasi (tidak disimpan sebagai data siswa nyata)'],
+      ['rekomendasi', 'Minta rekomendasi MiClass'],
     ], { condition: { question_id: 'status_data_awal', value: 'belum_ada' }, aiRecommendation: true,
       helpText: 'Simulasi tidak disimpan sebagai data aktual.' }),
     pilihan('cara_pemetaan', 'Bagaimana pemetaan awal dilakukan?', [
-      ['diagnostik', 'Asesmen diagnostik umum'], ['observasi', 'Observasi awal'],
-      ['tugas_singkat', 'Tugas pemetaan singkat'], ['terpadu', 'Kombinasi asesmen, observasi, dan tugas'],
+      ['diagnostik', 'Tes singkat untuk mengetahui kemampuan awal'], ['observasi', 'Observasi awal'],
+      ['tugas_singkat', 'Tugas pemetaan singkat'], ['terpadu', 'Gabungan tes, observasi, dan tugas'],
       ['rekomendasi', 'Minta rekomendasi paling efisien'],
     ], { condition: { question_id: 'tindakan_tanpa_data', value: 'pemetaan' }, aiRecommendation: true }),
     angka('jp_pemetaan', 'Berapa JP yang digunakan untuk pemetaan awal?', 1, 12,
       { condition: { question_id: 'tindakan_tanpa_data', value: 'pemetaan' } }),
     pilihan('tindakan_instrumen', 'Apa yang dilakukan dengan instrumen pemetaan?', [
-      ['buat_sekarang', 'Minta MiClass membuat instrumen sekarang'],
-      ['gunakan_ada', 'Gunakan instrumen yang sudah dimiliki'],
+      ['buat_sekarang', 'Minta MiClass membuat soalnya saat ATP selesai'],
+      ['gunakan_ada', 'Pakai soal yang sudah saya punya'],
       ['catat_lanjut', 'Catat rencana dan lanjutkan ATP'], ['ubah', 'Ubah metode atau alokasi pemetaan'],
     ], { condition: { question_id: 'tindakan_tanpa_data', value: 'pemetaan' } }),
     pilihan('kesulitan_mode', 'Bagaimana kesulitan siswa yang perlu diantisipasi ditentukan?', [
-      ['asumsi_umum', 'Gunakan asumsi umum transisi ke fase ini'],
-      ['perkiraan_guru', 'Masukkan perkiraan profesional guru'],
+      ['asumsi_umum', 'Gunakan perkiraan umum untuk siswa kelas fase ini'],
+      ['perkiraan_guru', 'Isi sendiri berdasarkan pengalaman mengajar'],
       ['belum_diketahui', 'Belum diketahui — jangan tetapkan kesulitan khusus'],
       ['rekomendasi', 'Minta rekomendasi MiClass'],
     ], { aiRecommendation: true, helpText: 'Tanpa hasil aktual, kesulitan berstatus asumsi.' }),
@@ -224,8 +227,8 @@ const RANCANG_FLOW = {
 
   KONTEKS_DUDI: [
     pilihan('kekuatan_konteks', 'Seberapa kuat konteks program keahlian digunakan dalam ATP?', [
-      ['seimbang', 'Seimbang dengan konteks kehidupan dan akademik'], ['dominan', 'Dominan kejuruan'],
-      ['terbatas', 'Hanya pada TP yang relevan'], ['tidak_prioritas', 'Tidak diprioritaskan'],
+      ['seimbang', 'Seimbang — dunia kerja dan kehidupan sehari-hari'], ['dominan', 'Dominan kejuruan'],
+      ['terbatas', 'Hanya pada bagian pelajaran yang memang relevan'], ['tidak_prioritas', 'Tidak diprioritaskan'],
       ['rekomendasi', 'Minta rekomendasi MiClass'],
     ], { aiRecommendation: true, helpText: 'Kontekstualisasi tidak mengubah CP.' }),
     jamak('ranah_dunia_kerja', 'Ranah dunia kerja mana yang diprioritaskan? Pilih maksimal lima.', [
@@ -247,7 +250,7 @@ const RANCANG_FLOW = {
       ['tanpa_batas', 'Tidak ada batasan khusus'],
       ['hindari_belum_dipelajari', 'Hindari materi produktif yang belum dipelajari'],
       ['hindari_sensitif', 'Hindari data atau dokumen sensitif'],
-      ['penerapan_saja', 'Gunakan konteks hanya sebagai penerapan'],
+      ['penerapan_saja', 'Gunakan konteks dunia kerja hanya sebagai contoh, bukan target belajar'],
       ['bukan_target_produktif', 'Jangan jadikan kompetensi produktif sebagai target mapel'],
       ['rekomendasi', 'Minta rekomendasi MiClass'],
     ], { constraints: { exclusive: ['tanpa_batas', 'rekomendasi'] }, aiRecommendation: true }),
@@ -259,8 +262,9 @@ const RANCANG_FLOW = {
 
   PENGUATAN_PRASYARAT: [
     pilihan('strategi_prasyarat', 'Bagaimana penguatan prasyarat dimasukkan ke ATP?', [
-      ['awal', 'Pada awal fase sebelum TP pertama'], ['terintegrasi', 'Sebelum TP yang membutuhkan'],
-      ['kombinasi', 'Kombinasi penguatan awal dan terintegrasi'],
+      ['awal', 'Pada awal fase sebelum TP pertama'],
+      ['terintegrasi', 'Disisipkan sebelum materi yang memerlukannya'],
+      ['kombinasi', 'Gabungan — diperkuat di awal dan disisipkan saat mengajar'],
       ['tidak_perlu', 'Tidak diperlukan'], ['rekomendasi', 'Minta rekomendasi MiClass'],
     ], { aiRecommendation: true }),
     angka('jp_prasyarat', 'Berapa JP yang digunakan untuk penguatan awal?', 1, 24,
