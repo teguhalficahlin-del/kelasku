@@ -220,7 +220,7 @@ function rcRenderWelcomeScreen(panel, mapelDisplay, onContinue, atpCount) {
   const modulBadge = hasAtp ? '' : '<span class="rc-welcome-card-badge">Butuh ATP aktif</span>';
   const sesuaikanCard = hasAtp ? `
     <button type="button" class="rc-welcome-card" data-option="sesuaikan" aria-pressed="true">
-      <span class="rc-welcome-card-label">Sesuaikan ATP yang ada</span>
+      <span class="rc-welcome-card-label">ATP Aktif</span>
       <span class="rc-welcome-card-badge">Direkomendasikan</span>
       <span class="rc-welcome-card-desc">Perbarui ATP lama Anda dalam hitungan menit — tanpa mengulang dari awal.</span>
     </button>` : '';
