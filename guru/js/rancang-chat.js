@@ -1515,9 +1515,35 @@
         rcMakeBubbleEditable(guruBubble, q.id, phaseAtAsk, handleEditAnswer);
         await startPhase('DONE');
       } catch (err) {
-        const errMsg = err.code === 'ATP_WRITE_CONFLICT'
-          ? err.message : '❌ Gagal menyimpan ATP. Coba lagi.';
-        rcAppendBubble('sistem', errMsg);
+        // T68: conflict = data stale (muat ulang), error lain = retryable
+        if (err.code === 'ATP_WRITE_CONFLICT') {
+          rcAppendBubble('sistem', err.message);
+        } else {
+          rcAppendBubble('sistem', '❌ Gagal menyimpan ATP. Coba lagi.');
+          const retryBtn = document.createElement('button');
+          retryBtn.className = 'rp-chip';
+          retryBtn.textContent = '↺ Coba lagi';
+          retryBtn.addEventListener('click', async () => {
+            retryBtn.closest('.rc-bubble')?.remove();
+            rcSetComposerDisabled(true);
+            try {
+              const saved2 = await acceptAtp(_chat.atp_induk_id, _chat.atp_updated_at);
+              _chat.atp_updated_at = saved2.updated_at;
+              saveState();
+              const msg = 'ATP telah diterima. Anda dapat mulai merancang pembelajaran.';
+              rcAppendBubble('ai', msg); addToHistory('ai', msg);
+              recordAnswer(q.id, value, 'guru', true);
+              rcMakeBubbleEditable(guruBubble, q.id, phaseAtAsk, handleEditAnswer);
+              await startPhase('DONE');
+            } catch (err2) {
+              rcAppendBubble('sistem', err2.code === 'ATP_WRITE_CONFLICT'
+                ? err2.message : '❌ Gagal menyimpan ATP. Muat ulang halaman lalu coba lagi.');
+            } finally {
+              rcSetComposerDisabled(false);
+            }
+          });
+          rcAppendBubble('sistem', retryBtn);
+        }
       } finally {
         rcSetComposerDisabled(false);
       }
@@ -1654,6 +1680,18 @@
       ], async (value, chipLabel) => {
         rcClearChips();
         if (value === '__accept_ai__') {
+          // T14/T51: validasi nilai AI terhadap opsi yang tersedia sebelum direkam
+          const validOptions = Array.isArray(q.options) ? q.options.map(o => o.value) : [];
+          if (validOptions.length > 0) {
+            const recValues = Array.isArray(recommendation.value)
+              ? recommendation.value : [recommendation.value];
+            const allValid = recValues.every(v => validOptions.includes(v));
+            if (!allValid) {
+              rcAppendBubble('sistem', 'Rekomendasi tidak sesuai pilihan yang tersedia. Silakan pilih sendiri.');
+              askQuestion(q);
+              return;
+            }
+          }
           const guruBubble = rcAppendBubble('guru', chipLabel);
           addToHistory('guru', chipLabel);
           recordAnswer(q.id, recommendation.value, 'ai_recommendation', true);
