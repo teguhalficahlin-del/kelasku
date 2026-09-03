@@ -328,6 +328,9 @@
     if (mode === 'adaptasi' && _chat.atp_induk_id) {
       resumeAtpFromDb();
     } else if (restored && _chat.active_question_id) {
+      (_chat.conversation_history || []).forEach(function (entry) {
+        rcAppendBubble(entry.role, entry.text);
+      });
       rcAppendBubble('sistem', 'Melanjutkan sesi sebelumnya…');
       renderActiveQuestion();
     } else {
