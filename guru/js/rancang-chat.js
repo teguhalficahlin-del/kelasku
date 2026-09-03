@@ -1492,6 +1492,21 @@
       askQuestion(q);
       return;
     }
+    // CP tidak sesuai: beri penjelasan lalu kembali ke pertanyaan yang sama.
+    // CP ditentukan otomatis dari mapel + fase; guru tidak bisa menggantinya
+    // lewat funnel ini — solusinya adalah melanjutkan dan menyesuaikan TP/KKTP.
+    if (q.id === 'konfirmasi_konteks' && value === 'cp_tidak_sesuai') {
+      const program = answerValue('program_keahlian') || '';
+      const pesanCp = 'Capaian Pembelajaran ditentukan oleh mata pelajaran dan fase yang tercatat di kelas ini'
+        + (program ? ` (${program})` : '') + '.'
+        + ' Isi CP tidak bisa diganti lewat Tab Rancang.'
+        + '\n\nJika CP yang muncul terasa tidak relevan, Anda bisa tetap melanjutkan'
+        + ' — TP dan KKTP yang dihasilkan akan disesuaikan dengan konteks program keahlian Anda.';
+      rcAppendBubble('ai', pesanCp);
+      addToHistory('ai', pesanCp);
+      askQuestion(q);
+      return;
+    }
     // Buat ulang ATP: panggil generate langsung, jangan rekam jawaban
     if (q.id === 'tindakan_review_atp' && value === 'ulang') {
       rcSetComposerDisabled(true);
