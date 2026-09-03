@@ -42,10 +42,21 @@ function extractJson(text: string): unknown {
   throw new Error('Tidak ada JSON dalam respons');
 }
 
+// Unwrap semua answer envelope { value, source, confirmed_by_teacher } pada satu fase
+function unwrapPhaseData(phase: unknown): Record<string, unknown> {
+  if (!phase || typeof phase !== 'object' || Array.isArray(phase)) return {};
+  const result: Record<string, unknown> = {};
+  for (const [key, val] of Object.entries(phase as Record<string, unknown>)) {
+    result[key] = unwrap(val);
+  }
+  return result;
+}
+
 function validateTpList(
   raw: unknown,
   jpOperasional: number,
   allowedElemen: Set<string>,
+  jpPerPertemuan = 0,
 ): { valid: boolean; errors: string[]; entries: TpEntry[] } {
   const errors: string[] = [];
 
@@ -84,10 +95,12 @@ function validateTpList(
     errors.push(`elemen ID tidak valid: ${[...new Set(invalidElemen)].join(', ')}`);
   }
 
-  // jp_alokasi integer > 0
+  // jp_alokasi integer > 0 dan (jika jpPerPertemuan > 0) harus kelipatan jp_per_pertemuan
   for (const tp of entries) {
     if (typeof tp.jp_alokasi !== 'number' || !Number.isInteger(tp.jp_alokasi) || tp.jp_alokasi <= 0) {
       errors.push(`TP ${tp.nomor}: jp_alokasi harus integer > 0 (dapat: ${tp.jp_alokasi})`);
+    } else if (jpPerPertemuan > 0 && tp.jp_alokasi % jpPerPertemuan !== 0) {
+      errors.push(`TP ${tp.nomor}: jp_alokasi=${tp.jp_alokasi} bukan kelipatan jp_per_pertemuan=${jpPerPertemuan}`);
     }
   }
 
@@ -126,6 +139,8 @@ const SYSTEM_PROMPT =
   '   - jp_alokasi: integer > 0 (alokasi JP untuk TP ini)\n' +
   '   - jp_pertemuan: array integer, sum-nya HARUS sama persis dengan jp_alokasi\n' +
   '3. sum(jp_alokasi) dari SEMUA TP HARUS SAMA PERSIS dengan jp_operasional yang diberikan.\n' +
+  '   Jika jp_per_pertemuan tersedia: jp_alokasi setiap TP HARUS merupakan kelipatan jp_per_pertemuan\n' +
+  '   (contoh: jika jp_per_pertemuan=4, maka jp_alokasi valid = 4, 8, 12, 16 — BUKAN 6, 10, 14).\n' +
   '4. Urutan TP: dari kompetensi dasar ke kompleks, memperhatikan prasyarat dan profil siswa.\n' +
   '5. Field opsional: tipe ("inti"|"prasyarat"|"pengayaan"), catatan (string), konteks (array string).\n\n' +
   'FORMAT OUTPUT:\n' +
@@ -213,7 +228,7 @@ Deno.serve(async (req) => {
 
   const { data: atp, error: atpErr } = await userClient
     .from('atp_induk')
-    .select('id, guru_id, mapel, fase, jenjang, target_fase, elemen_cp, collected_data, status, updated_at')
+    .select('id, guru_id, mapel, fase, jenjang, target_fase, elemen_cp, collected_data, status, updated_at, program_keahlian')
     .eq('id', atp_induk_id)
     .maybeSingle();
 
@@ -270,29 +285,44 @@ Deno.serve(async (req) => {
 
   const allowedElemen = new Set(elemenCp.map(e => e.id));
 
-  const polajadwal    = unwrap(waktu.pola_jadwal) ?? null;
-  const prioritas     = cd.PRIORITAS     ?? null;
-  const profilSiswa   = cd.PROFIL_SISWA  ?? null;
-  const konteksDudi   = cd.KONTEKS_DUDI  ?? null;
-  const prasyarat     = cd.PENGUATAN_PRASYARAT ?? null;
+  const polajadwal    = unwrap(waktu.pola_jadwal) as string | null ?? null;
+  // jp_per_pertemuan: untuk pola reguler_satu, satu pertemuan = jp_per_minggu
+  const jpPerMinggu      = Number(perhitungan.jp_per_minggu ?? 0);
+  const jpPerPertemuan   = (polajadwal === 'reguler_satu' && jpPerMinggu > 0) ? jpPerMinggu : 0;
+
+  const prioritas     = unwrapPhaseData(cd.PRIORITAS);
+  const profilSiswa   = unwrapPhaseData(cd.PROFIL_SISWA);
+  const konteksDudi   = unwrapPhaseData(cd.KONTEKS_DUDI);
+  const prasyarat     = unwrapPhaseData(cd.PENGUATAN_PRASYARAT);
+
+  const programKeahlian = (atp as Record<string, unknown>).program_keahlian as string | null ?? null;
 
   // ── 7. BANGUN USER MESSAGE ────────────────────────────────────────────────
+
+  const jpConstraintNote = jpPerPertemuan > 0
+    ? `jp_per_pertemuan=${jpPerPertemuan} (pola reguler satu pertemuan per minggu). jp_alokasi SETIAP TP HARUS kelipatan ${jpPerPertemuan}. `
+    : '';
 
   const userMessage = JSON.stringify({
     mapel:      atp.mapel,
     fase:       atp.fase,
     jenjang:    atp.jenjang,
+    program_keahlian: programKeahlian || '',
     target_fase: atp.target_fase || '',
     elemen_cp:  elemenCp.map(e => ({ id: e.id, label: e.label, cp_text: e.cp_text })),
     jp_operasional:     jpOp,
+    jp_per_pertemuan:   jpPerPertemuan || null,
     pola_jadwal:        polajadwal,
-    prioritas:          prioritas,
+    prioritas,
     profil_siswa:       profilSiswa,
     konteks_dudi:       konteksDudi,
     penguatan_prasyarat: prasyarat,
     sumber_flow: sumber_flow || 'susun',
-    instruksi: `Susun ATP ${atp.mapel} Fase ${atp.fase} ${atp.jenjang}. Total JP = ${jpOp}. ` +
-      `sum(jp_alokasi) HARUS = ${jpOp}. ID elemen hanya dari: ${elemenCp.map(e => e.id).join(', ')}. ` +
+    instruksi: `Susun ATP ${atp.mapel} Fase ${atp.fase} ${atp.jenjang}` +
+      (programKeahlian ? ` untuk program keahlian ${programKeahlian}` : '') +
+      `. Total JP = ${jpOp}. sum(jp_alokasi) HARUS = ${jpOp}. ` +
+      jpConstraintNote +
+      `ID elemen hanya dari: ${elemenCp.map(e => e.id).join(', ')}. ` +
       (sumber_flow === 'sesuaikan'
         ? 'ATP ini merupakan pembaruan dari ATP yang sudah ada. Pertahankan struktur TP yang ada, hanya perbarui yang perlu disesuaikan dengan CP terbaru.'
         : 'Susun ATP baru dari nol sesuai CP.'),
@@ -369,7 +399,7 @@ Deno.serve(async (req) => {
     }
   }
 
-  let validation = validateTpList(parsed, jpOp, allowedElemen);
+  let validation = validateTpList(parsed, jpOp, allowedElemen, jpPerPertemuan);
 
   if (!validation.valid) {
     // Satu repair attempt
@@ -380,7 +410,7 @@ Deno.serve(async (req) => {
       const repairText = await callAI([
         { role: 'user', content: userMessage },
         { role: 'assistant', content: rawText },
-        { role: 'user', content: `Output memiliki error: ${errorDesc}. Perbaiki bagian yang salah. sum(jp_alokasi) HARUS = ${jpOp}. ID elemen hanya dari: ${elemenCp.map(e => e.id).join(', ')}. Hasilkan ulang JSON array penuh yang benar.` },
+        { role: 'user', content: `Output memiliki error: ${errorDesc}. Perbaiki bagian yang salah. sum(jp_alokasi) HARUS = ${jpOp}. ${jpPerPertemuan > 0 ? `jp_alokasi SETIAP TP HARUS kelipatan ${jpPerPertemuan}. ` : ''}ID elemen hanya dari: ${elemenCp.map(e => e.id).join(', ')}. Hasilkan ulang JSON array penuh yang benar.` },
       ], budget);
       repairParsed = extractJson(repairText);
     } catch {
@@ -388,7 +418,7 @@ Deno.serve(async (req) => {
         ? 'ATP_GENERATION_JP_MISMATCH' : 'ATP_GENERATION_INVALID_ELEMENT';
       return json({ error: `Repair gagal: ${errorDesc}`, code, retryable: true }, 502);
     }
-    validation = validateTpList(repairParsed, jpOp, allowedElemen);
+    validation = validateTpList(repairParsed, jpOp, allowedElemen, jpPerPertemuan);
     if (!validation.valid) {
       const code = validation.errors.some(e => e.includes('jp_alokasi') || e.includes('jp_operasional'))
         ? 'ATP_GENERATION_JP_MISMATCH' : 'ATP_GENERATION_INVALID_ELEMENT';
