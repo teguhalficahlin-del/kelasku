@@ -1215,8 +1215,8 @@
     tindakan_instrumen:   'Instrumen pemetaan',
     kesulitan_mode:       'Antisipasi kesulitan',
     kesulitan_teks_guru:  'Kesulitan (perkiraan guru)',
-    strategi_prasyarat:   'Strategi prasyarat',
-    jp_prasyarat:         'JP penguatan prasyarat',
+    strategi_prasyarat:   'Pengulangan kemampuan dasar',
+    jp_prasyarat:         'JP pengulangan awal',
   };
 
   function formatPhaseAnswers(phase) {
@@ -1262,11 +1262,22 @@
       `\nCadangan: ${a.jp_cadangan} JP\nSisa sementara: ${a.jp_operasional} JP`;
   }
 
+  const PHASE_DISPLAY = {
+    KONTEKS_CP:          'Konteks CP',
+    PILIH_ATP:           'Pilih ATP',
+    PRIORITAS:           'Prioritas',
+    WAKTU:               'Waktu',
+    PROFIL_SISWA:        'Profil Siswa',
+    TARGET_FASE:         'Target Fase',
+    KONTEKS_DUDI:        'Konteks Kejuruan',
+    PENGUATAN_PRASYARAT: 'Penguatan Kemampuan Dasar',
+  };
+
   function formatAtpSummary() {
     const skipPhases = _chat.sumber_flow === 'susun' ? new Set(['PILIH_ATP']) : new Set();
     return FASE_URUTAN_V1.slice(0, FASE_URUTAN_V1.indexOf('ATP_SUMMARY'))
       .filter(phase => !skipPhases.has(phase))
-      .map(phase => `${phase}\n${formatPhaseAnswers(phase)}`).join('\n\n');
+      .map(phase => `${PHASE_DISPLAY[phase] || phase}\n${formatPhaseAnswers(phase)}`).join('\n\n');
   }
 
   function renderMultiSelect(q, isFirstRender) {
@@ -1889,7 +1900,7 @@
           && calculateAllocation().jp_operasional <= 0) {
         const jp = answerValue('jp_prasyarat') || 0;
         rcAppendBubble('sistem',
-          `JP penguatan prasyarat (${jp} JP) melebihi sisa JP yang tersedia. Kurangi jumlahnya.`);
+          `JP pengulangan awal (${jp} JP) melebihi sisa JP yang tersedia. Kurangi jumlahnya.`);
         const prasyaratQ = (RANCANG_FLOW['PENGUATAN_PRASYARAT'] || []).find(q => q.id === 'jp_prasyarat');
         if (prasyaratQ) askQuestion(prasyaratQ);
         return;
@@ -1903,10 +1914,10 @@
       // T55: blokir generate jika jp_operasional = 0 (bisa terjadi setelah ubah prasyarat)
       if (nextPhase === 'ATP_GENERATE' && calculateAllocation().jp_operasional <= 0) {
         rcAppendBubble('sistem',
-          '❌ JP untuk mengajar tersisa 0. Perbaiki alokasi waktu atau kurangi JP penguatan prasyarat sebelum generate.');
+          '❌ JP untuk mengajar tersisa 0. Perbaiki alokasi waktu atau kurangi JP pengulangan awal sebelum generate.');
         rcRenderChips([
           { value: '__ubah_waktu__',     label: 'Ubah alokasi waktu' },
-          { value: '__ubah_prasyarat__', label: 'Ubah penguatan prasyarat' },
+          { value: '__ubah_prasyarat__', label: 'Ubah pengulangan kemampuan dasar' },
         ], function (v) {
           rcClearChips();
           startPhase(v === '__ubah_waktu__' ? 'WAKTU' : 'PENGUATAN_PRASYARAT');
@@ -2401,7 +2412,7 @@
           target_akhir_mode: 'target akhir fase', penguatan_elemen: 'elemen penguatan',
           target_kemandirian: 'target kemandirian', kekuatan_konteks: 'kekuatan konteks kejuruan',
           ranah_dunia_kerja: 'ranah dunia kerja', kebutuhan_bidang: 'kebutuhan bidang',
-          batas_konteks: 'batas konteks', strategi_prasyarat: 'strategi prasyarat',
+          batas_konteks: 'batas konteks', strategi_prasyarat: 'pengulangan kemampuan dasar',
         };
         const missing = (err.missing || []).map(f => FIELD_LABELS[f] || f);
         const list = missing.join(', ');
