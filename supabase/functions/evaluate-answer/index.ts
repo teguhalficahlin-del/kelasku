@@ -66,6 +66,23 @@ function validateRecommendation(
   };
 }
 
+// Ringkas collected_answers menjadi teks konteks yang mudah dibaca AI.
+// Hanya sertakan nilai yang relevan — abaikan 'rekomendasi' dan nilai kosong.
+function summariseCollectedAnswers(collected: Record<string, unknown>): string {
+  const lines: string[] = [];
+  for (const [key, stored] of Object.entries(collected)) {
+    const v = stored !== null && typeof stored === 'object' && !Array.isArray(stored) &&
+              'value' in (stored as object)
+      ? (stored as Record<string, unknown>).value
+      : stored;
+    if (v === undefined || v === null || v === 'rekomendasi') continue;
+    const text = Array.isArray(v) ? v.join(', ') : String(v);
+    if (!text.trim()) continue;
+    lines.push(`  ${key}: ${text}`);
+  }
+  return lines.length ? lines.join('\n') : '  (belum ada jawaban sebelumnya)';
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { status: 200, headers: CORS_HEADERS });
@@ -87,8 +104,6 @@ Deno.serve(async (req) => {
   if (authError || !user) return json({ error: 'Unauthorized.' }, 401);
 
   // ── 2. RATE LIMIT ─────────────────────────────────────────────────────────
-  // fn_check_rate_limit hanya di-grant ke service_role — gunakan serviceClient
-  // khusus di sini; jangan pakai untuk operasi lain.
 
   try {
     const serviceClient = createClient(
@@ -138,9 +153,111 @@ Deno.serve(async (req) => {
     return json({ error: 'Request tidak lengkap.' }, 400);
   }
 
+  // ── 4. KONTEKS KELAS ──────────────────────────────────────────────────────
+  // Diambil di sini agar tersedia untuk semua mode.
+
+  let classroomCtx = 'Konteks kelas tidak tersedia.';
+  try {
+    const { data: classroom } = await supabase
+      .from('classrooms')
+      .select('nama_kelas, mapel, program_keahlian, bidang_keahlian')
+      .eq('id', classroom_id)
+      .maybeSingle();
+    if (classroom) {
+      const mapel    = classroom.mapel           ?? 'tidak diketahui';
+      const kelas    = classroom.nama_kelas      ?? 'tidak diketahui';
+      const program  = classroom.program_keahlian ?? 'tidak diketahui';
+      const bidang   = classroom.bidang_keahlian  ?? null;
+      classroomCtx =
+        `Kelas: ${kelas} | Mapel: ${mapel} | Program keahlian: ${program}` +
+        (bidang ? ` | Bidang keahlian: ${bidang}` : '');
+    }
+  } catch (e) {
+    console.warn('[evaluate-answer] classroom fetch failed (ignored):', e);
+  }
+
+  const apiKey = Deno.env.get('ANTHROPIC_API_KEY');
+  if (!apiKey) return json({ error: 'Konfigurasi server tidak lengkap.' }, 500);
+
+  const collectedSummary = summariseCollectedAnswers(context?.collected_answers ?? {});
+
+  // ── 5. REKOMENDASI ────────────────────────────────────────────────────────
+
   if (mode === 'recommendation') {
+
+    // 5a. Rekomendasi teks bebas (khusus target_akhir_teks)
+    if (question_spec.kind === 'teks_bebas') {
+      const systemPrompt =
+        'Kamu adalah perancang pembelajaran untuk guru SMK Indonesia di Fase E.\n' +
+        'Tugasmu: tulis satu kalimat target akhir fase yang konkret dan terukur.\n' +
+        'Gunakan pola: "Pada akhir Fase E, siswa mampu [kompetensi spesifik] [dalam konteks program keahlian]"\n' +
+        'Syarat:\n' +
+        '- Relevan dengan mapel dan program keahlian kelas\n' +
+        '- Sesuai kemampuan siswa SMK Fase E (bukan ahli, bukan pemula)\n' +
+        '- Satu kalimat, maks 60 kata\n' +
+        '- Bahasa Indonesia formal\n' +
+        'Kembalikan HANYA JSON: { "teks": string, "reason": string }';
+
+      const userMessage =
+        `Identitas kelas: ${classroomCtx}\n` +
+        `Fase ATP: ${context?.session_phase ?? '-'}\n` +
+        `Jawaban funnel sebelumnya:\n${collectedSummary}`;
+
+      let aiText = '';
+      let aiReason = '';
+      let aiFailed = false;
+
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 20_000);
+        try {
+          const res = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-api-key': apiKey,
+              'anthropic-version': '2023-06-01',
+            },
+            body: JSON.stringify({
+              model: 'claude-sonnet-4-6',
+              max_tokens: 256,
+              system: systemPrompt,
+              messages: [{ role: 'user', content: userMessage }],
+            }),
+            signal: controller.signal,
+          });
+          if (!res.ok) throw new Error(`Anthropic HTTP ${res.status}`);
+          const anthropicBody = await res.json();
+          const aiResult = extractAiJson(anthropicBody?.content?.[0]?.text ?? '');
+          aiText   = typeof aiResult.teks   === 'string' ? aiResult.teks.trim()   : '';
+          aiReason = typeof aiResult.reason === 'string' ? aiResult.reason.trim() : '';
+        } finally {
+          clearTimeout(timeout);
+        }
+      } catch (e) {
+        aiFailed = true;
+        console.warn('[evaluate-answer] teks_bebas recommendation AI failed:', e);
+      }
+
+      if (!aiText) aiFailed = true;
+      if (aiFailed || !aiText) {
+        return json({ error: 'Rekomendasi teks tidak dapat dibuat saat ini.' }, 502);
+      }
+
+      return json({
+        mode: 'recommendation',
+        status: 'ACCEPT',
+        recommendation: {
+          value: aiText,
+          label: aiText,
+          reason: aiReason || 'Target disusun berdasarkan CP dan profil kelas.',
+        },
+      });
+    }
+
+    // 5b. Rekomendasi pilihan / pilihan_jamak
     if (!['pilihan', 'pilihan_jamak'].includes(question_spec.kind)) {
-      return json({ error: 'Mode recommendation hanya mendukung pilihan dan pilihan_jamak.' }, 400);
+      return json({ error: 'Mode recommendation hanya mendukung pilihan, pilihan_jamak, dan teks_bebas.' }, 400);
     }
 
     const validOptions = (question_spec.options ?? []).filter(option =>
@@ -149,9 +266,6 @@ Deno.serve(async (req) => {
     if (!validOptions.length) {
       return json({ error: 'Mode recommendation memerlukan options yang valid.' }, 400);
     }
-
-    const apiKey = Deno.env.get('ANTHROPIC_API_KEY');
-    if (!apiKey) return json({ error: 'Konfigurasi server tidak lengkap.' }, 500);
 
     const maxSelections = question_spec.kind === 'pilihan_jamak'
       ? Math.max(1, question_spec.constraints?.maxSelections ?? validOptions.length)
@@ -162,14 +276,13 @@ Deno.serve(async (req) => {
     const valueShape = question_spec.kind === 'pilihan_jamak'
       ? `array value, maksimal ${maxSelections} pilihan`
       : 'satu value string';
-    // Contoh konkret memakai value opsi pertama yang nyata — schema abstrak
-    // "string|string[]" membuat model memilih string untuk pilihan_jamak.
     const sampleValue = validOptions[0].value;
     const exampleValue = question_spec.kind === 'pilihan_jamak'
       ? JSON.stringify([sampleValue])
       : JSON.stringify(sampleValue);
+
     const systemPrompt =
-      'Kamu adalah pemberi rekomendasi perancangan pembelajaran untuk guru Indonesia.\n' +
+      'Kamu adalah pemberi rekomendasi perancangan pembelajaran untuk guru SMK Indonesia.\n' +
       'Pilih HANYA value dari daftar opsi yang diberikan. Jangan membuat value baru.\n' +
       `Field "value" WAJIB berupa ${valueShape}.\n` +
       (question_spec.kind === 'pilihan_jamak'
@@ -177,17 +290,19 @@ Deno.serve(async (req) => {
           'JANGAN kembalikan string tunggal.\n'
         : 'Untuk pertanyaan ini "value" WAJIB berupa satu string, bukan array.\n') +
       'Value yang tercantum dalam constraint exclusive tidak boleh digabungkan dengan value lain.\n' +
-      'Berikan alasan singkat dan konkret dalam Bahasa Indonesia.\n' +
+      'Berikan alasan singkat dan konkret dalam Bahasa Indonesia yang mengacu pada konteks kelas.\n' +
       'Kembalikan HANYA JSON ketat dengan format: ' +
       '{ "value": ..., "reason": string, "message": string }.\n' +
       `Contoh output: { "value": ${exampleValue}, ` +
       '"reason": "alasan singkat", "message": "pesan singkat" }.';
+
     const userMessage =
+      `Identitas kelas: ${classroomCtx}\n` +
       `Pertanyaan: ${question_spec.prompt}\n` +
       `Konteks pertanyaan: ${question_spec.helpText ?? '-'}\n` +
       `Opsi valid:\n${optionText}\n` +
       `Constraint exclusive: ${JSON.stringify(question_spec.constraints?.exclusive ?? [])}\n` +
-      `Jawaban funnel sebelumnya: ${JSON.stringify(context?.collected_answers ?? {})}`;
+      `Jawaban funnel sebelumnya:\n${collectedSummary}`;
 
     let aiResult: Record<string, unknown> = {};
     let aiFailed = false;
@@ -245,15 +360,15 @@ Deno.serve(async (req) => {
     });
   }
 
-  // ── 4. EVALUASI (hanya teks_bebas) ────────────────────────────────────────
+  // ── 6. EVALUASI (hanya teks_bebas) ────────────────────────────────────────
 
   if (question_spec.kind !== 'teks_bebas') {
-    // Kind lain (pilihan, angka) dievaluasi di klien secara deterministik
     return json({ error: 'Kind ini tidak memerlukan evaluasi AI.' }, 400);
   }
 
-  const apiKey = Deno.env.get('ANTHROPIC_API_KEY');
-  if (!apiKey) return json({ error: 'Konfigurasi server tidak lengkap.' }, 500);
+  if (mode === 'evaluation' && !raw_answer) {
+    return json({ error: 'Request tidak lengkap.' }, 400);
+  }
 
   const systemPrompt =
     'Kamu adalah evaluator jawaban guru Indonesia untuk perancangan pembelajaran.\n' +
@@ -269,6 +384,7 @@ Deno.serve(async (req) => {
     '- suggestions: array string untuk opsi klarifikasi (kosong jika tidak ada)';
 
   const userMessage =
+    `Identitas kelas: ${classroomCtx}\n` +
     `Pertanyaan: ${question_spec.prompt}\n` +
     `Konteks pertanyaan: ${question_spec.helpText ?? '-'}\n` +
     `Jawaban guru: ${raw_answer}`;
@@ -304,8 +420,6 @@ Deno.serve(async (req) => {
 
     const anthropicBody = await res.json();
     const rawText: string = anthropicBody?.content?.[0]?.text ?? '';
-
-    // Ekstrak JSON dari respons (model kadang membungkus dengan markdown)
     aiResult = extractAiJson(rawText) as unknown as typeof aiResult;
 
   } catch (e) {
@@ -313,13 +427,11 @@ Deno.serve(async (req) => {
     return json({ error: 'Gagal menghubungi AI. Coba lagi.' }, 502);
   }
 
-  // ── 5. RESPONSE ───────────────────────────────────────────────────────────
-
   return json({
-    mode:            'evaluation',
-    status:          aiResult.status          ?? 'ACCEPT',
-    normalizedAnswer: aiResult.normalizedAnswer ?? raw_answer,
-    message:         aiResult.message          ?? 'Dicatat.',
-    suggestions:     aiResult.suggestions      ?? [],
+    mode:             'evaluation',
+    status:           aiResult.status           ?? 'ACCEPT',
+    normalizedAnswer: aiResult.normalizedAnswer  ?? raw_answer,
+    message:          aiResult.message           ?? 'Dicatat.',
+    suggestions:      aiResult.suggestions       ?? [],
   });
 });
