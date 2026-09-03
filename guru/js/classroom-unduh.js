@@ -9,6 +9,7 @@
 (function () {
   'use strict';
 
+  var client    = window.supabaseClient;
   var _loaded   = false;
   var _classroomId = null;
   var _guruId      = null;
