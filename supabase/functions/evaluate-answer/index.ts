@@ -381,7 +381,10 @@ Deno.serve(async (req) => {
     '- HELP: guru meminta penjelasan (deteksi kata: apa itu, maksudnya, contoh, jelaskan, help, bantuan)\n' +
     '- normalizedAnswer: jawaban yang sudah dinormalisasi (untuk ACCEPT), kosong untuk lainnya\n' +
     '- message: respons singkat dalam Bahasa Indonesia, hangat, tidak menggurui\n' +
-    '- suggestions: array string untuk opsi klarifikasi (kosong jika tidak ada)';
+    '- suggestions: array string untuk opsi klarifikasi (kosong jika tidak ada)\n' +
+    'PENTING: suggestions dan message WAJIB konsisten dengan identitas kelas yang diberikan — ' +
+    'gunakan nama mapel, program keahlian, dan nama kelas persis seperti yang tercantum di konteks. ' +
+    'Jangan menyebut mata pelajaran, bahasa, atau program keahlian lain yang tidak sesuai dengan kelas ini.';
 
   const userMessage =
     `Identitas kelas: ${classroomCtx}\n` +
