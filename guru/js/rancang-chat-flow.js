@@ -287,13 +287,11 @@ const RANCANG_FLOW = {
   ATP_REVIEW: [
     pilihan('tindakan_review_atp', 'Bagaimana draf ATP ingin ditindaklanjuti?', [
       ['terima',         'Terima ATP ini'],
-      ['rumusan',        'Tinjau rumusan TP'],
-      ['urutan',         'Tinjau urutan TP'],
       ['waktu',          'Tinjau distribusi waktu'],
       ['ulang',          'Buat ulang ATP'],
       ['ubah_prioritas', 'Ubah prioritas'],
       ['ubah_target',    'Ubah target fase'],
-    ], { helpText: 'Tinjau rumusan dan urutan TP tersedia penuh di versi berikutnya.' }),
+    ]),
   ],
 
   PILIH_TP: [

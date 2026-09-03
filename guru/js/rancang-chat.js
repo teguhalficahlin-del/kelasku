@@ -22,6 +22,7 @@
     in_flight:            false,
     pending_multi:        {},
     modul_generating:     false,  // guard double-trigger generate-modul
+    atp_generating:       false,  // guard double-trigger generate-atp
     sumber_flow:          null,   // 'sesuaikan' | 'susun' | 'modul'
     state_saved_at:       null,   // timestamp ms — staleness check >24 jam
   };
@@ -1500,20 +1501,6 @@
       }
       return;
     }
-    // Placeholder V1: revisi rumusan TP
-    if (q.id === 'tindakan_review_atp' && value === 'rumusan') {
-      rcAppendBubble('ai', 'Fitur revisi rumusan TP per item akan tersedia di versi berikutnya. Saat ini Anda dapat menerima ATP ini atau membuatnya ulang.');
-      addToHistory('ai', 'Fitur revisi rumusan TP belum tersedia.');
-      askQuestion(q);
-      return;
-    }
-    // Placeholder V1: pengurutan TP manual
-    if (q.id === 'tindakan_review_atp' && value === 'urutan') {
-      rcAppendBubble('ai', 'Fitur pengurutan TP manual akan tersedia di versi berikutnya. Saat ini Anda dapat menerima ATP ini atau membuatnya ulang.');
-      addToHistory('ai', 'Fitur pengurutan TP belum tersedia.');
-      askQuestion(q);
-      return;
-    }
     // Terima ATP: update status='aktif' sebelum advance
     if (q.id === 'tindakan_review_atp' && value === 'terima') {
       rcSetComposerDisabled(true);
@@ -1832,12 +1819,35 @@
         if (modeQ) askQuestion(modeQ);
         return;
       }
+      // T50: jp_prasyarat bisa over-allocate — cek setelah PENGUATAN_PRASYARAT selesai
+      if (_chat.session_phase === 'PENGUATAN_PRASYARAT' && currentQ.id === 'jp_prasyarat'
+          && calculateAllocation().jp_operasional <= 0) {
+        const jp = answerValue('jp_prasyarat') || 0;
+        rcAppendBubble('sistem',
+          `JP penguatan prasyarat (${jp} JP) melebihi sisa JP yang tersedia. Kurangi jumlahnya.`);
+        const prasyaratQ = (RANCANG_FLOW['PENGUATAN_PRASYARAT'] || []).find(q => q.id === 'jp_prasyarat');
+        if (prasyaratQ) askQuestion(prasyaratQ);
+        return;
+      }
       const revisionPhase = revisionDestination(currentQ.id, answerValue(currentQ.id));
       if (revisionPhase) {
         await startPhase(revisionPhase);
         return;
       }
       const nextPhase = getNextPhase(_chat.session_phase);
+      // T55: blokir generate jika jp_operasional = 0 (bisa terjadi setelah ubah prasyarat)
+      if (nextPhase === 'ATP_GENERATE' && calculateAllocation().jp_operasional <= 0) {
+        rcAppendBubble('sistem',
+          '❌ JP untuk mengajar tersisa 0. Perbaiki alokasi waktu atau kurangi JP penguatan prasyarat sebelum generate.');
+        rcRenderChips([
+          { value: '__ubah_waktu__',     label: 'Ubah alokasi waktu' },
+          { value: '__ubah_prasyarat__', label: 'Ubah penguatan prasyarat' },
+        ], function (v) {
+          rcClearChips();
+          startPhase(v === '__ubah_waktu__' ? 'WAKTU' : 'PENGUATAN_PRASYARAT');
+        });
+        return;
+      }
       if (nextPhase) await startPhase(nextPhase);
     }
   }
@@ -2283,6 +2293,20 @@
   // ─── Generate ATP ─────────────────────────────────────────────────────────
 
   async function triggerGenerateAtp() {
+    // T59: guard double-trigger — satu pipeline dalam satu waktu
+    if (_chat.atp_generating) return;
+    _chat.atp_generating = true;
+    // T62: refresh updated_at dari DB sebelum setiap generate/retry (same pattern as triggerGenerateModul)
+    if (_chat.atp_induk_id) {
+      try {
+        const { data: freshAtp } = await window.supabaseClient
+          .from('atp_induk').select('updated_at').eq('id', _chat.atp_induk_id).maybeSingle();
+        if (freshAtp?.updated_at) {
+          _chat.atp_updated_at = freshAtp.updated_at;
+          saveState();
+        }
+      } catch (_) { /* biarkan generate lanjut dengan updated_at lama */ }
+    }
     rcAppendBubble('ai', '⏳ Menyusun Alur Tujuan Pembelajaran…');
     addToHistory('ai', 'Menyusun Alur Tujuan Pembelajaran…');
     rcShowTyping();
@@ -2332,6 +2356,8 @@
         });
         rcAppendBubble('sistem', btn);
       }
+    } finally {
+      _chat.atp_generating = false;
     }
   }
 
