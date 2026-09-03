@@ -2366,7 +2366,18 @@
       let msg;
       let retryable = false;
       if (code === 'ATP_INPUT_INCOMPLETE') {
-        const list = err.missing?.join(', ') || '';
+        const FIELD_LABELS = {
+          jp_per_minggu: 'JP per minggu', durasi_jp: 'durasi JP', minggu_sem1: 'minggu semester 1',
+          minggu_sem2: 'minggu semester 2', cadangan_minggu: 'cadangan minggu',
+          pola_jadwal: 'pola jadwal', target_prioritas: 'prioritas', timeline_tka: 'target waktu TKA',
+          status_data_awal: 'data kemampuan awal', kesulitan_mode: 'kesulitan siswa',
+          target_akhir_mode: 'target akhir fase', penguatan_elemen: 'elemen penguatan',
+          target_kemandirian: 'target kemandirian', kekuatan_konteks: 'kekuatan konteks kejuruan',
+          ranah_dunia_kerja: 'ranah dunia kerja', kebutuhan_bidang: 'kebutuhan bidang',
+          batas_konteks: 'batas konteks', strategi_prasyarat: 'strategi prasyarat',
+        };
+        const missing = (err.missing || []).map(f => FIELD_LABELS[f] || f);
+        const list = missing.join(', ');
         msg = `❌ Data funnel belum lengkap${list ? ': ' + list : ''}.`;
       } else if (code === 'ATP_GENERATION_CONFLICT') {
         msg = '❌ Jawaban funnel berubah sejak disimpan. Muat ulang halaman lalu coba lagi.';

@@ -180,7 +180,8 @@ const RANCANG_FLOW = {
       ['rekomendasi', 'Minta rekomendasi paling efisien'],
     ], { condition: { question_id: 'tindakan_tanpa_data', value: 'pemetaan' }, aiRecommendation: true }),
     angka('jp_pemetaan', 'Berapa JP yang digunakan untuk pemetaan awal?', 1, 12,
-      { condition: { question_id: 'tindakan_tanpa_data', value: 'pemetaan' } }),
+      { condition: { question_id: 'tindakan_tanpa_data', value: 'pemetaan' },
+        helpText: 'JP pemetaan diambil dari JP efektif yang tersedia — bukan tambahan. Semakin banyak JP pemetaan, semakin sedikit yang tersisa untuk mengajar TP.' }),
     pilihan('tindakan_instrumen', 'Apa yang dilakukan dengan instrumen pemetaan?', [
       ['buat_sekarang', 'Minta MiClass membuat soalnya saat ATP selesai'],
       ['gunakan_ada', 'Pakai soal yang sudah saya punya'],
@@ -205,13 +206,14 @@ const RANCANG_FLOW = {
       ['target_guru', 'Masukkan target sendiri'],
     ]),
     { id: 'target_akhir_teks', kind: 'teks_bebas', prompt: 'Tuliskan target akhir fase yang ingin digunakan.',
-      helpText: 'MiClass memeriksa kesesuaian dan keterukurannya.', skippable: false,
+      helpText: 'Contoh: Siswa mampu membaca instruksi kerja sederhana dan meresponsnya secara mandiri. MiClass memeriksa kesesuaian dan keterukurannya.',
+      skippable: false,
       condition: { question_id: 'target_akhir_mode', value: 'target_guru' } },
     pilihan('penguatan_elemen', 'Elemen mana yang perlu mendapat penguatan lebih besar?', [
       ['seimbang', 'Seimbang pada seluruh elemen'], ['menyimak_berbicara', 'Menyimak–Berbicara'],
       ['membaca_memirsa', 'Membaca–Memirsa'], ['menulis_presentasi', 'Menulis–Mempresentasikan'],
       ['setelah_pemetaan', 'Tentukan setelah hasil pemetaan'], ['rekomendasi', 'Minta rekomendasi MiClass'],
-    ], { aiRecommendation: true, helpText: 'Semua elemen tetap dicakup.' }),
+    ], { aiRecommendation: true, helpText: 'Elemen adalah komponen Capaian Pembelajaran — misalnya Menyimak–Berbicara dan Membaca–Memirsa. Semua elemen tetap dicakup, hanya porsi penekanannya yang berbeda.' }),
     pilihan('target_kemandirian', 'Pada akhir fase, seberapa mandiri siswa dalam menggunakan Bahasa Inggris?', [
       ['panduan', 'Masih butuh contoh dan panduan guru'],
       ['bantuan_terbatas', 'Bisa mandiri dengan sedikit bantuan'],
