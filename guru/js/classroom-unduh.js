@@ -112,16 +112,7 @@
           spacing: { after: 100 },
         }));
 
-        // Konteks (jika ada)
-        if (Array.isArray(tp.konteks) && tp.konteks.length > 0) {
-          tp.konteks.forEach(function (k) {
-            children.push(new D.Paragraph({
-              children: [new D.TextRun({ text: '• ' + k })],
-              spacing: { after: 60 },
-              indent: { left: 360 },
-            }));
-          });
-        }
+        // Konteks: tag internal, tidak ditampilkan di dokumen cetak
       });
     }
 
@@ -172,26 +163,52 @@
     children.push(tableRow2Col('Jenjang', atpInfo.jenjang || '-'));
     children.push(new D.Paragraph({ text: '', spacing: { after: 300 } }));
 
-    // A. Informasi Umum
-    var infoUmum = k.informasi_umum || {};
-    if (Object.keys(infoUmum).length > 0) {
+    // A. Informasi Umum (key: identitas)
+    var identitas = k.identitas || {};
+    if (identitas.tujuan_pembelajaran || identitas.jumlah_pertemuan) {
       children.push(sectionHeading('A. Informasi Umum'));
-      if (infoUmum.durasi_jp)         children.push(tableRow2Col('Alokasi Waktu', infoUmum.durasi_jp + ' JP'));
-      if (infoUmum.jp_per_pertemuan)  children.push(tableRow2Col('JP per Pertemuan', String(infoUmum.jp_per_pertemuan)));
-      if (infoUmum.jumlah_pertemuan)  children.push(tableRow2Col('Jumlah Pertemuan', String(infoUmum.jumlah_pertemuan)));
-      if (infoUmum.model_pembelajaran) children.push(tableRow2Col('Model Pembelajaran', infoUmum.model_pembelajaran));
+      if (identitas.tujuan_pembelajaran) {
+        children.push(new D.Paragraph({ children: [new D.TextRun({ text: 'Tujuan Pembelajaran:', bold: true })], spacing: { after: 60 } }));
+        children.push(bodyPara(identitas.tujuan_pembelajaran));
+      }
+      if (identitas.jumlah_pertemuan)
+        children.push(tableRow2Col('Jumlah Pertemuan', identitas.jumlah_pertemuan + ' pertemuan @ ' + (identitas.jp_per_pertemuan || '-') + ' JP (' + (identitas.durasi_jp_menit || 40) + ' menit/JP)'));
+      if (identitas.alokasi_waktu_total_menit)
+        children.push(tableRow2Col('Total Waktu', identitas.alokasi_waktu_total_menit + ' menit'));
+      if (Array.isArray(identitas.elemen_cp) && identitas.elemen_cp.length > 0)
+        children.push(tableRow2Col('Elemen CP', identitas.elemen_cp.join(', ')));
+      if (Array.isArray(identitas.lingkup_materi) && identitas.lingkup_materi.length > 0) {
+        children.push(new D.Paragraph({ children: [new D.TextRun({ text: 'Lingkup Materi:', bold: true })], spacing: { before: 120, after: 60 } }));
+        identitas.lingkup_materi.forEach(function (m) { children.push(bulletPara(m)); });
+      }
+      if (Array.isArray(identitas.kosakata_inti) && identitas.kosakata_inti.length > 0)
+        children.push(tableRow2Col('Kosakata Inti', identitas.kosakata_inti.join(', ')));
       children.push(new D.Paragraph({ text: '', spacing: { after: 200 } }));
     }
 
-    // B. Tujuan Pembelajaran
-    var tujuan = k.tujuan_pembelajaran || {};
-    if (tujuan.rumusan || tujuan.kompetensi || tujuan.lingkup_materi) {
-      children.push(sectionHeading('B. Tujuan Pembelajaran'));
-      if (tujuan.rumusan) children.push(bodyPara(tujuan.rumusan));
-      if (Array.isArray(tujuan.lingkup_materi) && tujuan.lingkup_materi.length > 0) {
-        children.push(new D.Paragraph({ children: [new D.TextRun({ text: 'Lingkup Materi:', bold: true })], spacing: { before: 100 } }));
-        tujuan.lingkup_materi.forEach(function (m) {
-          children.push(bulletPara(m));
+    // B. Identifikasi Pembelajaran (key: identifikasi)
+    var identifikasi = k.identifikasi || {};
+    if (identifikasi.kesiapan_murid || identifikasi.karakteristik_materi) {
+      children.push(sectionHeading('B. Identifikasi Pembelajaran'));
+      if (identifikasi.kesiapan_murid) {
+        children.push(new D.Paragraph({ children: [new D.TextRun({ text: 'Kesiapan Murid:', bold: true })], spacing: { after: 60 } }));
+        children.push(bodyPara(identifikasi.kesiapan_murid));
+      }
+      if (identifikasi.lingkungan_pembelajaran) {
+        children.push(new D.Paragraph({ children: [new D.TextRun({ text: 'Lingkungan Pembelajaran:', bold: true })], spacing: { before: 120, after: 60 } }));
+        children.push(bodyPara(identifikasi.lingkungan_pembelajaran));
+      }
+      var km = identifikasi.karakteristik_materi || {};
+      if (km.faktual || km.konseptual || km.prosedural) {
+        children.push(new D.Paragraph({ children: [new D.TextRun({ text: 'Karakteristik Materi:', bold: true })], spacing: { before: 120, after: 60 } }));
+        if (km.faktual)    children.push(tableRow2Col('Faktual', km.faktual));
+        if (km.konseptual) children.push(tableRow2Col('Konseptual', km.konseptual));
+        if (km.prosedural) children.push(tableRow2Col('Prosedural', km.prosedural));
+      }
+      if (Array.isArray(identifikasi.dimensi_profil_lulusan) && identifikasi.dimensi_profil_lulusan.length > 0) {
+        children.push(new D.Paragraph({ children: [new D.TextRun({ text: 'Dimensi Profil Pelajar Pancasila:', bold: true })], spacing: { before: 120, after: 60 } }));
+        identifikasi.dimensi_profil_lulusan.forEach(function (d) {
+          children.push(bulletPara(d.dimensi + ': ' + (d.indikator || '')));
         });
       }
       children.push(new D.Paragraph({ text: '', spacing: { after: 200 } }));
