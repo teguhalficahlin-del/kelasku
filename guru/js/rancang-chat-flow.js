@@ -241,7 +241,7 @@ const RANCANG_FLOW = {
       ['terbatas', 'Hanya pada bagian pelajaran yang memang relevan'], ['tidak_prioritas', 'Tidak diprioritaskan'],
       ['rekomendasi', 'Minta rekomendasi MiClass'],
     ], { aiRecommendation: true, helpText: 'Kontekstualisasi tidak mengubah CP.' }),
-    jamak('ranah_dunia_kerja', 'Ranah dunia kerja mana yang diprioritaskan? Pilih maksimal lima.', [
+    jamak('ranah_dunia_kerja', 'Dari dunia kerja {{program_keahlian}}, keterampilan apa yang ingin dikaitkan ke pelajaran ini?', [
       ['k3', 'Keselamatan dan kesehatan kerja'], ['komunikasi_prof', 'Komunikasi profesional'],
       ['kerja_tim', 'Kerja sama tim'], ['pelayanan', 'Pelayanan pelanggan'],
       ['dokumentasi', 'Dokumentasi dan pelaporan'], ['literasi_digital', 'Literasi digital'],
@@ -250,9 +250,9 @@ const RANCANG_FLOW = {
       ['tidak_ada', 'Tidak ada ranah khusus'], ['rekomendasi', 'Minta rekomendasi MiClass'],
     ], { constraints: { maxSelections: 5, exclusive: ['tidak_ada', 'rekomendasi'] }, aiRecommendation: true,
       condition: { question_id: 'kekuatan_konteks', values: ['seimbang', 'dominan', 'terbatas', 'rekomendasi'] } }),
-    jamak('kebutuhan_bidang', 'Kebutuhan bidang apa yang perlu diperhatikan?', [
-      ['kosakata', 'Kosakata atau istilah dasar bidang'], ['dokumen', 'Dokumen kerja sederhana'],
-      ['prosedur', 'Prosedur kerja'], ['teknologi', 'Perangkat atau teknologi bidang'],
+    jamak('kebutuhan_bidang', 'Dari dunia kerja, hal apa yang perlu masuk ke dalam pelajaran ini?', [
+      ['kosakata', 'Kosakata atau istilah yang dipakai di lapangan'], ['dokumen', 'Dokumen kerja sederhana'],
+      ['prosedur', 'Prosedur kerja'], ['teknologi', 'Perangkat atau teknologi yang dipakai di lapangan'],
       ['komunikasi', 'Komunikasi dengan pelanggan atau rekan kerja'],
       ['etika_data', 'Etika dan kerahasiaan informasi'], ['tidak_ada', 'Tidak ada kebutuhan khusus'],
       ['rekomendasi', 'Minta rekomendasi MiClass'],

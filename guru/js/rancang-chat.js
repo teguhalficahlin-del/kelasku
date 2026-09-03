@@ -1219,6 +1219,10 @@
     kesulitan_teks_guru:  'Kesulitan (perkiraan guru)',
     strategi_prasyarat:   'Pengulangan kemampuan dasar',
     jp_prasyarat:         'JP pengulangan awal',
+    kekuatan_konteks:     'Kekuatan konteks kejuruan',
+    ranah_dunia_kerja:    'Keterampilan dunia kerja',
+    kebutuhan_bidang:     'Hal yang perlu masuk ke pelajaran',
+    batas_konteks:        'Batas penggunaan konteks',
   };
 
   function formatPhaseAnswers(phase) {
