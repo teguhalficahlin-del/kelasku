@@ -1187,10 +1187,6 @@
     target_akhir_teks:    'Target (ditulis guru)',
     penguatan_elemen:     'Penguatan elemen',
     target_kemandirian:   'Tingkat kemandirian target',
-    kekuatan_konteks:     'Kekuatan konteks kejuruan',
-    ranah_dunia_kerja:    'Ranah dunia kerja',
-    kebutuhan_bidang:     'Kebutuhan bidang',
-    batas_konteks:        'Batas penggunaan konteks',
     target_prioritas:     'Prioritas siswa',
     timeline_tka:         'Target waktu TKA',
     timeline_tka_lain:    'Target waktu TKA (kustom)',
@@ -1280,7 +1276,7 @@
   };
 
   function formatAtpSummary() {
-    const skipPhases = _chat.sumber_flow === 'susun' ? new Set(['PILIH_ATP']) : new Set();
+    const skipPhases = new Set(['PILIH_ATP']);
     return FASE_URUTAN_V1.slice(0, FASE_URUTAN_V1.indexOf('ATP_SUMMARY'))
       .filter(phase => !skipPhases.has(phase))
       .map(phase => `${PHASE_DISPLAY[phase] || phase}\n${formatPhaseAnswers(phase)}`).join('\n\n');
@@ -1896,7 +1892,7 @@
       }
       if (_chat.session_phase === 'WAKTU' && calculateAllocation().jp_operasional <= 0) {
         rcAppendBubble('sistem',
-          'Alokasi JP tidak valid (0 JP). Pilih cara lain untuk menentukan minggu efektif.');
+          'JP yang tersisa untuk mengajar menjadi 0 — biasanya karena jumlah minggu efektif belum diisi atau terlalu banyak dikurangi kegiatan. Silakan isi ulang minggu efektif.');
         const modeQ = (RANCANG_FLOW['WAKTU'] || []).find(q => q.id === 'minggu_efektif_mode');
         if (modeQ) askQuestion(modeQ);
         return;

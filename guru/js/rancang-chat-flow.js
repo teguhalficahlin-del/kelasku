@@ -75,7 +75,7 @@ const RANCANG_FLOW = {
 
   PRIORITAS: [
     jamak('target_prioritas', 'Apa prioritas utama siswa selama fase ini? Pilih maksimal tiga.', [
-      ['fondasi_tka', 'Membangun fondasi TKA'], ['dunia_kerja', 'Kesiapan memasuki dunia kerja'],
+      ['fondasi_tka', 'Membangun fondasi TKA (Tes Kompetensi Akademik)'], ['dunia_kerja', 'Kesiapan memasuki dunia kerja'],
       ['pkl', 'Kesiapan PKL'], ['sertifikasi', 'Kesiapan sertifikasi kompetensi'],
       ['pendidikan_lanjut', 'Kesiapan melanjutkan pendidikan'],
       ['literasi_numerasi', 'Literasi dan numerasi fungsional'],
@@ -282,7 +282,7 @@ const RANCANG_FLOW = {
     ], { aiRecommendation: true }),
     angka('jp_prasyarat', 'Berapa JP yang digunakan untuk penguatan awal?', 1, 24,
       { condition: { question_id: 'strategi_prasyarat', values: ['awal', 'kombinasi'] },
-        helpText: 'Penguatan terintegrasi tetap di dalam alokasi TP.' }),
+        helpText: 'Pengulangan yang terintegrasi menggunakan JP yang sudah dialokasikan untuk topik pelajaran — tidak menambah jam baru.' }),
   ],
 
   ATP_SUMMARY: [
@@ -378,10 +378,10 @@ const RANCANG_FLOW = {
       ['rekomendasi', 'Minta rekomendasi MiClass'],
     ], { constraints: { exclusive: ['rekomendasi'] }, aiRecommendation: true }),
     pilihan('waktu_asesmen', 'Kapan asesmen utama dilakukan?', [
-      ['awal',     'Di awal (diagnostik)'],
-      ['proses',   'Selama proses (formatif)'],
-      ['akhir',    'Di akhir pertemuan (sumatif)'],
-      ['campuran', 'Campuran awal, proses, dan akhir'],
+      ['awal',     'Di awal — untuk tahu kemampuan murid sebelum mulai'],
+      ['proses',   'Selama proses belajar — untuk cek pemahaman saat mengajar'],
+      ['akhir',    'Di akhir pertemuan — untuk nilai hasil belajar'],
+      ['campuran', 'Campuran — di awal, selama, dan akhir pertemuan'],
     ]),
   ],
 

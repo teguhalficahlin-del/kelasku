@@ -142,7 +142,10 @@ const SYSTEM_PROMPT =
   '   Jika jp_per_pertemuan tersedia: jp_alokasi setiap TP HARUS merupakan kelipatan jp_per_pertemuan\n' +
   '   (contoh: jika jp_per_pertemuan=4, maka jp_alokasi valid = 4, 8, 12, 16 — BUKAN 6, 10, 14).\n' +
   '4. Urutan TP: dari kompetensi dasar ke kompleks, memperhatikan prasyarat dan profil siswa.\n' +
-  '5. Field opsional: tipe ("inti"|"prasyarat"|"pengayaan"), catatan (string), konteks (array string).\n\n' +
+  '5. Field opsional: tipe ("inti"|"prasyarat"|"pengayaan"), catatan (string), konteks (array string).\n' +
+  '6. Gunakan program_keahlian untuk menentukan konteks TP — kosakata, situasi kerja, dan\n' +
+  '   dokumen yang disebutkan harus relevan dengan program keahlian tersebut.\n' +
+  '   Judul TP harus spesifik dan kontekstual, bukan generik.\n\n' +
   'FORMAT OUTPUT:\n' +
   '[\n' +
   '  {\n' +
@@ -328,14 +331,14 @@ Deno.serve(async (req) => {
     konteks_dudi:       konteksDudi,
     penguatan_prasyarat: prasyarat,
     sumber_flow: sumber_flow || 'susun',
-    instruksi: `Susun ATP ${atp.mapel} Fase ${atp.fase} ${atp.jenjang}` +
+    instruksi: (sumber_flow === 'sesuaikan'
+      ? 'MODE: Pembaruan ATP yang sudah ada — pertahankan struktur TP yang ada, hanya perbarui yang perlu disesuaikan dengan CP terbaru. '
+      : 'MODE: Susun ATP baru dari nol sesuai CP. ') +
+      `Susun ATP ${atp.mapel} Fase ${atp.fase} ${atp.jenjang}` +
       (programKeahlian ? ` untuk program keahlian ${programKeahlian}` : '') +
       `. Total JP = ${jpOp}. sum(jp_alokasi) HARUS = ${jpOp}. ` +
       jpConstraintNote +
-      `ID elemen hanya dari: ${elemenCp.map(e => e.id).join(', ')}. ` +
-      (sumber_flow === 'sesuaikan'
-        ? 'ATP ini merupakan pembaruan dari ATP yang sudah ada. Pertahankan struktur TP yang ada, hanya perbarui yang perlu disesuaikan dengan CP terbaru.'
-        : 'Susun ATP baru dari nol sesuai CP.'),
+      `ID elemen hanya dari: ${elemenCp.map(e => e.id).join(', ')}.`,
   });
 
   // ── 8. PANGGIL AI ─────────────────────────────────────────────────────────
