@@ -248,14 +248,16 @@ const RANCANG_FLOW = {
       ['pemecahan', 'Pemecahan masalah'], ['mutu', 'Mutu layanan'], ['etika', 'Etika kerja'],
       ['wirausaha', 'Kewirausahaan'], ['data', 'Penggunaan data'],
       ['tidak_ada', 'Tidak ada ranah khusus'], ['rekomendasi', 'Minta rekomendasi MiClass'],
-    ], { constraints: { maxSelections: 5, exclusive: ['tidak_ada', 'rekomendasi'] }, aiRecommendation: true }),
+    ], { constraints: { maxSelections: 5, exclusive: ['tidak_ada', 'rekomendasi'] }, aiRecommendation: true,
+      condition: { question_id: 'kekuatan_konteks', values: ['seimbang', 'dominan', 'terbatas', 'rekomendasi'] } }),
     jamak('kebutuhan_bidang', 'Kebutuhan bidang apa yang perlu diperhatikan?', [
       ['kosakata', 'Kosakata atau istilah dasar bidang'], ['dokumen', 'Dokumen kerja sederhana'],
       ['prosedur', 'Prosedur kerja'], ['teknologi', 'Perangkat atau teknologi bidang'],
       ['komunikasi', 'Komunikasi dengan pelanggan atau rekan kerja'],
       ['etika_data', 'Etika dan kerahasiaan informasi'], ['tidak_ada', 'Tidak ada kebutuhan khusus'],
       ['rekomendasi', 'Minta rekomendasi MiClass'],
-    ], { constraints: { exclusive: ['tidak_ada', 'rekomendasi'] }, aiRecommendation: true }),
+    ], { constraints: { exclusive: ['tidak_ada', 'rekomendasi'] }, aiRecommendation: true,
+      condition: { question_id: 'kekuatan_konteks', values: ['seimbang', 'dominan', 'terbatas', 'rekomendasi'] } }),
     jamak('batas_konteks', 'Batas apa yang diterapkan saat menggunakan konteks kejuruan?', [
       ['tanpa_batas', 'Tidak ada batasan khusus'],
       ['hindari_belum_dipelajari', 'Hindari materi produktif yang belum dipelajari'],
@@ -263,7 +265,8 @@ const RANCANG_FLOW = {
       ['penerapan_saja', 'Gunakan konteks dunia kerja hanya sebagai contoh, bukan target belajar'],
       ['bukan_target_produktif', 'Jangan jadikan kompetensi produktif sebagai target mapel'],
       ['rekomendasi', 'Minta rekomendasi MiClass'],
-    ], { constraints: { exclusive: ['tanpa_batas', 'rekomendasi'] }, aiRecommendation: true }),
+    ], { constraints: { exclusive: ['tanpa_batas', 'rekomendasi'] }, aiRecommendation: true,
+      condition: { question_id: 'kekuatan_konteks', values: ['seimbang', 'dominan', 'terbatas', 'rekomendasi'] } }),
     konfirmasi('konfirmasi_dudi',
       'Ringkasan konteks kejuruan:\n\n{{ringkasan_dudi}}\n\nApakah pengaturan konteks sudah sesuai?', [
         ['ya', 'Ya, lanjutkan'], ['ubah', 'Ubah konteks kejuruan'],
