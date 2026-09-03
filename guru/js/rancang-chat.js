@@ -455,9 +455,22 @@
         if (mode === 'modul') {
           const atpAktif = (atpList || []).filter(function (a) { return a.status === 'aktif'; });
           if (!atpAktif.length) {
-            _chat.sumber_flow = 'susun';
-            mode = 'susun';
-            notice = 'Belum ada ATP aktif — susun ATP dulu sebelum membuat Modul Ajar.';
+            // Belum ada ATP aktif — jangan masuk flow, tampilkan pesan + tombol kembali
+            panel.innerHTML = `
+<div class="rc-welcome" id="rc-modul-gate">
+  <div class="rc-welcome-header">
+    <h2 class="rc-welcome-title">Buat Modul Ajar</h2>
+    <p class="rc-welcome-lead">Modul Ajar dibuat dari ATP yang sudah aktif. Belum ada ATP aktif untuk kelas ini — susun ATP terlebih dahulu, baru kembali ke sini.</p>
+  </div>
+  <div class="rc-welcome-footer" style="display:flex;gap:12px;flex-wrap:wrap;">
+    <button type="button" class="rc-welcome-btn" id="rc-modul-gate-kembali"
+      style="background:transparent;border:1px solid var(--border,rgba(255,255,255,0.12));color:var(--text-muted,#888);">
+      ← Menu Rancang
+    </button>
+  </div>
+</div>`;
+            panel.querySelector('#rc-modul-gate-kembali')?.addEventListener('click', kembaliKeLayarUtama);
+            return;
           }
         }
         await initChatShell(cId, panel, mode, notice);
