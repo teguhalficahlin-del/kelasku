@@ -62,7 +62,7 @@ const RANCANG_FLOW = {
         helpText: 'Pilih dari daftar atau pilih opsi paling bawah jika tidak ada.' }),
     { id: 'program_keahlian_teks_bebas', kind: 'teks_bebas',
       prompt: 'Tuliskan nama program keahlian kelas ini:',
-      helpText: 'Contoh: Teknik Sepeda Motor, Agribisnis Holtikultura, Keperawatan.',
+      helpText: 'Tulis nama lengkap sesuai kurikulum. Contoh: Kimia Analisis, Nautika Kapal Penangkap Ikan, Agribisnis Tanaman Pangan dan Hortikultura.',
       skippable: false,
       condition: { question_id: 'pilih_program_keahlian', value: '__lainnya__' } },
     pilihan('konfirmasi_konteks',
@@ -325,7 +325,7 @@ const RANCANG_FLOW = {
         helpText: 'Pilih dari daftar atau pilih opsi paling bawah jika tidak ada.' }),
     { id: 'program_keahlian_teks_bebas_modul', kind: 'teks_bebas',
       prompt: 'Tuliskan nama program keahlian kelas ini:',
-      helpText: 'Contoh: Teknik Sepeda Motor, Agribisnis Holtikultura, Keperawatan.',
+      helpText: 'Tulis nama lengkap sesuai kurikulum. Contoh: Kimia Analisis, Nautika Kapal Penangkap Ikan, Agribisnis Tanaman Pangan dan Hortikultura.',
       skippable: false,
       condition: { question_id: 'pilih_program_keahlian_modul', value: '__lainnya__' } },
     pilihan('kondisi_kelas_modul', 'Bagaimana kondisi kelas untuk modul ini?', [
