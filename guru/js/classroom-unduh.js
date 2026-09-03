@@ -20,7 +20,7 @@
   function loadDocxLib(callback) {
     if (window.docx) { callback(null); return; }
     var s = document.createElement('script');
-    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/docx/8.5.0/build/index.js';
+    s.src = 'https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.js';
     s.onload = function () {
       if (window.docx) { callback(null); }
       else { callback(new Error('Library docx gagal dimuat')); }
