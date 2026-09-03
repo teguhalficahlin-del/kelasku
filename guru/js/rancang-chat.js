@@ -217,6 +217,7 @@
   // menulis ke kunci 'unknown' sementara sesi lama tetap utuh di kunci aslinya.
   function resetSessionState() {
     try { localStorage.removeItem('rc_sesi_' + (_chat.classroom_id || '')); } catch (_) {}
+    try { localStorage.removeItem(LS_KEY()); } catch (_) {}
     Object.assign(_chat, {
       atp_induk_id:         null,
       atp_updated_at:       null,
@@ -322,8 +323,9 @@
 
     // Simpan sumber_flow yang baru diset dari welcome handler — loadState()
     // bisa menimpa dengan nilai lama dari localStorage.
+    // Mode susun: state sudah bersih dari resetSessionState(), skip loadState.
     const _pendingSumberFlow = _chat.sumber_flow;
-    const restored = loadState();
+    const restored = mode === 'susun' ? false : loadState();
     // Kembalikan sumber_flow baru jika memang baru diset (bukan null).
     if (_pendingSumberFlow) _chat.sumber_flow = _pendingSumberFlow;
     rcRenderComposer('rc-composer-wrap', handleGuruInput);
