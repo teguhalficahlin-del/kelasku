@@ -237,17 +237,17 @@ function rcRenderWelcomeScreen(panel, mapelDisplay, onContinue, atpCount) {
     <p class="rc-welcome-lead">Yang biasanya butuh berhari-hari, selesai dalam satu sesi. MiClass mengerjakan bagian beratnya — Anda cukup menjawab beberapa pertanyaan dan mengonfirmasi hasilnya.</p>
   </div>
   <div class="rc-welcome-cards">
-    ${sesuaikanCard}
-    <div id="rc-modul-katalog"></div>
     <button type="button" class="rc-welcome-card" data-option="susun" aria-pressed="${hasAtp ? 'false' : 'true'}">
       <span class="rc-welcome-card-label">Susun ATP baru</span>
       <span class="rc-welcome-card-desc">ATP satu fase penuh, selesai hari ini — bukan bulan depan.</span>
     </button>
+    ${sesuaikanCard}
     <button type="button" class="rc-welcome-card" data-option="modul" aria-pressed="false">
       <span class="rc-welcome-card-label">Buat Modul Ajar</span>
       ${modulBadge}
       <span class="rc-welcome-card-desc">Dari ATP ke rencana pertemuan siap pakai — langsung bisa dibawa ke kelas.</span>
     </button>
+    <div id="rc-modul-katalog"></div>
   </div>
   <p class="rc-welcome-ai-note">Guru yang sibuk tidak butuh aplikasi yang rumit. MiClass dirancang agar Anda bisa fokus mengajar — bukan mengurus berkas.</p>
 </div>`;
