@@ -261,6 +261,11 @@
     for (let i = 0; i < 20 && phase && tersimpan[phase]; i++) {
       phase = getNextPhase(phase);
     }
+    // PILIH_ATP: ATP sudah dipilih dari picker (id ada di _chat.atp_induk_id).
+    // Fase ini bisa terlewat di flow 'susun' sehingga tidak masuk collected_data,
+    // tapi startPhase('PILIH_ATP') hanya menampilkan ATP aktif — draf tidak
+    // terlihat dan guru mendapat pesan error. Lewati ke fase berikutnya.
+    if (phase === 'PILIH_ATP') phase = getNextPhase('PILIH_ATP');
     // Semua fase terjawab tapi belum ada TP: penelusuran habis (null) atau
     // mendarat di ATP_GENERATE. Keduanya diarahkan ke ATP_SUMMARY — mengulang
     // dari KONTEKS_CP membuang seluruh jawaban guru, sedangkan langsung
