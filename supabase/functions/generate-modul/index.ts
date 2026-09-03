@@ -1010,7 +1010,7 @@ function buildUserMessageFaseD(params: {
 }): string {
   return JSON.stringify({
     fase: 'D',
-    output_instruction: 'Hasilkan HANYA field "tindak_lanjut" dan "catatan_guru". Ringkas, maksimal 2-3 kalimat per sub-field. Total output di bawah 800 token.',
+    output_instruction: 'Hasilkan HANYA field "tindak_lanjut" dan "catatan_guru". Ringkas, maksimal 2-3 kalimat per sub-field. Total output di bawah 800 token. ATURAN WAJIB: "tindak_lanjut" HARUS object dengan 3 field array: "pilihan_dukungan" (array ≥ 3 string), "sentence_frame" (array ≥ 3 string), "tantangan_lanjutan" (array ≥ 2 string). "catatan_guru" HARUS array ≥ 7 string. Contoh format yang benar: {"tindak_lanjut":{"pilihan_dukungan":["...","...","..."],"sentence_frame":["...","...","..."],"tantangan_lanjutan":["...","..."]},"catatan_guru":["...","...","...","...","...","...","..."]}',
     identitas:           params.faseAOutput.identitas,
     rencana_asesmen:     params.faseAOutput.rencana_asesmen,
     instrumen_ringkas:   Object.keys(params.faseCOutput.instrumen as Record<string, unknown> || {}),
