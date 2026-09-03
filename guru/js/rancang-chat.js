@@ -1684,10 +1684,14 @@
     rcSetComposerDisabled(true);
     rcShowTyping();
     try {
+      // Buang jawaban pertanyaan ini sendiri agar AI tidak meng-echo jawaban lama
+      const answersForRec = Object.fromEntries(
+        Object.entries(_chat.collected_answers).filter(([k]) => k !== q.id)
+      );
       const recommendation = await callRecommendation(q.id, q, {
         classroom_id: _chat.classroom_id,
         session_phase: _chat.session_phase,
-        collected_answers: _chat.collected_answers,
+        collected_answers: answersForRec,
       });
       rcHideTyping();
       const displayLabel = Array.isArray(recommendation.label)
