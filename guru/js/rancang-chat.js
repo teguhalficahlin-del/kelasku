@@ -73,6 +73,16 @@
         console.error('[rancang-chat] saveState gagal total:', e2);
       }
     }
+    // Hint ringan (tanpa guru_id) agar initRancangChat bisa auto-resume tanpa RPC dulu.
+    if (_chat.active_question_id && _chat.atp_induk_id) {
+      try {
+        localStorage.setItem('rc_sesi_' + _chat.classroom_id, JSON.stringify({
+          ls_key: LS_KEY(), atp_induk_id: _chat.atp_induk_id, ts: Date.now(),
+        }));
+      } catch (_) {}
+    } else {
+      try { localStorage.removeItem('rc_sesi_' + _chat.classroom_id); } catch (_) {}
+    }
   }
 
   function loadState() {
@@ -205,6 +215,7 @@
   // setelah guru_id terisi — LS_KEY() bergantung padanya, dan tanpa itu reset
   // menulis ke kunci 'unknown' sementara sesi lama tetap utuh di kunci aslinya.
   function resetSessionState() {
+    try { localStorage.removeItem('rc_sesi_' + (_chat.classroom_id || '')); } catch (_) {}
     Object.assign(_chat, {
       atp_induk_id:         null,
       atp_updated_at:       null,
@@ -331,7 +342,16 @@
       return;
     }
     if (mode === 'adaptasi' && _chat.atp_induk_id) {
-      resumeAtpFromDb();
+      if (restored && _chat.active_question_id) {
+        // Sesi aktif tersimpan di localStorage untuk ATP ini — replay langsung.
+        (_chat.conversation_history || []).forEach(function (entry) {
+          rcAppendBubble(entry.role, entry.text);
+        });
+        rcAppendBubble('sistem', 'Melanjutkan sesi sebelumnya…');
+        renderActiveQuestion();
+      } else {
+        resumeAtpFromDb();
+      }
     } else if (restored && _chat.active_question_id) {
       (_chat.conversation_history || []).forEach(function (entry) {
         rcAppendBubble(entry.role, entry.text);
@@ -389,7 +409,31 @@
       return;
     }
 
+    // Simpan history + posisi dari localStorage sebelum hydrateFromAtp menghapusnya.
+    // Dipakai untuk restore sesi jika guru membuka ulang ATP yang sama dari picker.
+    let _savedHistory = [], _savedActiveQ = null, _savedPhase = null;
+    try {
+      const raw = localStorage.getItem(LS_KEY());
+      if (raw) {
+        const saved = JSON.parse(raw);
+        if (saved?.atp_induk_id === picked.id && saved?.active_question_id) {
+          _savedHistory = saved.conversation_history || [];
+          _savedActiveQ = saved.active_question_id;
+          _savedPhase   = saved.session_phase;
+        }
+      }
+    } catch (_) {}
+
     hydrateFromAtp(full);
+
+    // Pulihkan sesi tersimpan setelah hydrate (hydrate sudah set collected_answers dari DB).
+    if (_savedActiveQ) {
+      _chat.conversation_history = _savedHistory;
+      _chat.active_question_id   = _savedActiveQ;
+      _chat.session_phase        = _savedPhase;
+      saveState();
+    }
+
     await initChatShell(cId, panel, skipToModul ? 'modul' : 'adaptasi');
   }
 
@@ -508,6 +552,35 @@
           'Data mata pelajaran kelas ini belum tersedia. Buka halaman kelas dan pastikan mata pelajaran sudah terisi, lalu buka kembali tab Rancang.</p>' +
           '</div>';
         return;
+      }
+
+      // Auto-resume: cek hint sesi aktif (tanpa RPC — pakai classroom_id saja).
+      // Jika ada, lewati welcome screen dan buka langsung ATP yang sedang dikerjakan.
+      const _resumeHint = (() => {
+        try {
+          const raw = localStorage.getItem('rc_sesi_' + cId);
+          if (!raw) return null;
+          const h = JSON.parse(raw);
+          if (!h?.ls_key || !h?.atp_induk_id) return null;
+          if (h.ts && (Date.now() - h.ts) > 24 * 60 * 60 * 1000) return null;
+          // Verifikasi sesi penuh ada di localStorage
+          const full = JSON.parse(localStorage.getItem(h.ls_key) || 'null');
+          if (!full?.active_question_id) return null;
+          return h;
+        } catch (_) { return null; }
+      })();
+
+      if (_resumeHint) {
+        panel.innerHTML =
+          '<div style="display:flex;align-items:center;justify-content:center;padding:48px 24px;' +
+          'color:var(--text-muted,#888);font-size:0.92rem;">⏳ Melanjutkan sesi…</div>';
+        try {
+          await openAtpAdaptasi(cId, panel, { id: _resumeHint.atp_induk_id }, false);
+        } catch (_) {
+          // Gagal auto-resume — lanjut ke welcome screen normal
+          try { localStorage.removeItem('rc_sesi_' + cId); } catch (_) {}
+        }
+        if (_loaded) return; // openAtpAdaptasi set _loaded via initChatShell
       }
 
       // Tampilkan loading state sementara fetch ATP berlangsung
