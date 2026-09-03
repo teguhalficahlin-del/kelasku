@@ -209,10 +209,11 @@ const RANCANG_FLOW = {
       ['membaca_memirsa', 'Membaca–Memirsa'], ['menulis_presentasi', 'Menulis–Mempresentasikan'],
       ['setelah_pemetaan', 'Tentukan setelah hasil pemetaan'], ['rekomendasi', 'Minta rekomendasi MiClass'],
     ], { aiRecommendation: true, helpText: 'Semua elemen tetap dicakup.' }),
-    pilihan('target_kemandirian', 'Tingkat kemandirian apa yang ditargetkan pada akhir fase?', [
-      ['panduan', 'Dengan contoh dan panduan'], ['bantuan_terbatas', 'Dengan bantuan terbatas'],
-      ['mandiri_dikenal', 'Mandiri dalam situasi yang dikenal'],
-      ['mandiri_baru', 'Mandiri dalam situasi baru'],
+    pilihan('target_kemandirian', 'Pada akhir fase, seberapa mandiri siswa dalam menggunakan Bahasa Inggris?', [
+      ['panduan', 'Masih butuh contoh dan panduan guru'],
+      ['bantuan_terbatas', 'Bisa mandiri dengan sedikit bantuan'],
+      ['mandiri_dikenal', 'Mandiri di situasi yang sudah pernah dilatih'],
+      ['mandiri_baru', 'Mandiri meski di situasi baru yang belum pernah dilatih'],
       ['rekomendasi', 'Minta rekomendasi berdasarkan CP dan profil'],
     ], { aiRecommendation: true }),
     konfirmasi('konfirmasi_target',

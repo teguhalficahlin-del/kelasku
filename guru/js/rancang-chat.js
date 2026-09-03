@@ -1076,9 +1076,68 @@
     return result;
   }
 
+  function resolveAnswerLabel(phase, questionId, rawValue) {
+    const questions = RANCANG_FLOW[phase] || [];
+    const q = questions.find(function (item) { return item.id === questionId; });
+    if (!q || !q.options) return String(rawValue ?? '');
+    if (Array.isArray(rawValue)) {
+      return rawValue.map(function (v) {
+        const opt = q.options.find(function (o) { return o.value === v; });
+        return opt ? opt.label : v;
+      }).join(', ');
+    }
+    const opt = q.options.find(function (o) { return o.value === rawValue; });
+    return opt ? opt.label : String(rawValue ?? '');
+  }
+
+  const LABEL_PERTANYAAN = {
+    target_akhir_mode:    'Target akhir fase',
+    target_akhir_teks:    'Target (ditulis guru)',
+    penguatan_elemen:     'Penguatan elemen',
+    target_kemandirian:   'Tingkat kemandirian target',
+    kekuatan_konteks:     'Kekuatan konteks kejuruan',
+    ranah_dunia_kerja:    'Ranah dunia kerja',
+    kebutuhan_bidang:     'Kebutuhan bidang',
+    batas_konteks:        'Batas penggunaan konteks',
+    target_prioritas:     'Prioritas siswa',
+    timeline_tka:         'Target waktu TKA',
+    timeline_tka_lain:    'Target waktu TKA (kustom)',
+    target_sekolah_detail:'Target khusus sekolah',
+    jp_per_minggu:        'JP per minggu',
+    durasi_jp:            'Durasi JP',
+    tahun_pelajaran:      'Tahun pelajaran',
+    tahun_pelajaran_lain: 'Tahun pelajaran (kustom)',
+    minggu_efektif_mode:  'Penetapan minggu efektif',
+    minggu_sem1:          'Minggu efektif semester 1',
+    minggu_sem2:          'Minggu efektif semester 2',
+    kegiatan_sudah_dikurangi: 'Kegiatan khusus',
+    kegiatan_khusus:      'Jenis kegiatan pengurangan',
+    jp_kegiatan_khusus:   'JP kegiatan khusus',
+    cadangan_minggu:      'Cadangan gangguan',
+    cadangan_minggu_lain: 'Cadangan (kustom, minggu)',
+    pola_jadwal:          'Pola jadwal',
+    status_data_awal:     'Data kemampuan awal',
+    tindakan_tanpa_data:  'Cara menentukan titik awal',
+    cara_pemetaan:        'Cara pemetaan',
+    jp_pemetaan:          'JP pemetaan',
+    tindakan_instrumen:   'Instrumen pemetaan',
+    kesulitan_mode:       'Antisipasi kesulitan',
+    kesulitan_teks_guru:  'Kesulitan (perkiraan guru)',
+    strategi_prasyarat:   'Strategi prasyarat',
+    jp_prasyarat:         'JP penguatan prasyarat',
+  };
+
   function formatPhaseAnswers(phase) {
     return Object.entries(phaseAnswerObject(phase))
-      .map(([key, stored]) => `${key}: ${JSON.stringify(unwrapStored(stored))}`).join('\n') || 'Belum lengkap.';
+      .filter(function (_ref) { return _ref[0] !== 'perhitungan'; })
+      .map(function (_ref) {
+        const key    = _ref[0];
+        const stored = _ref[1];
+        const raw    = unwrapStored(stored);
+        const label  = LABEL_PERTANYAAN[key] || key;
+        const value  = resolveAnswerLabel(phase, key, raw);
+        return label + ': ' + value;
+      }).join('\n') || 'Belum lengkap.';
   }
 
   function unwrapStored(stored) {
