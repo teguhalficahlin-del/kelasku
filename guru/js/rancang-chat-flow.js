@@ -174,6 +174,11 @@ const RANCANG_FLOW = {
       ['rekomendasi', 'Minta rekomendasi MiClass'],
     ], { condition: { question_id: 'status_data_awal', value: 'belum_ada' }, aiRecommendation: true,
       helpText: 'Simulasi tidak disimpan sebagai data aktual.' }),
+    { id: 'perkiraan_kemampuan_awal', kind: 'teks_bebas',
+      prompt: 'Bagaimana Anda menggambarkan kemampuan awal siswa saat ini?',
+      helpText: 'Contoh: Sebagian besar siswa bisa memahami teks pendek, tapi belum mampu menulis paragraf mandiri.',
+      skippable: false,
+      condition: { question_id: 'tindakan_tanpa_data', value: 'perkiraan_guru' } },
     pilihan('cara_pemetaan', 'Bagaimana pemetaan awal dilakukan?', [
       ['diagnostik', 'Tes singkat untuk mengetahui kemampuan awal'], ['observasi', 'Observasi awal'],
       ['tugas_singkat', 'Tugas pemetaan singkat'], ['terpadu', 'Gabungan tes, observasi, dan tugas'],
