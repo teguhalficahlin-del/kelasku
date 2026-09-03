@@ -175,7 +175,7 @@
 
   function resolveTargetFaseText() {
     const mode = answerValue('target_akhir_mode');
-    if (mode === 'target_guru') return answerValue('target_akhir_teks') || '';
+    if (mode === 'target_guru' || mode === 'rekomendasi') return answerValue('target_akhir_teks') || '';
     return getCpUmum();
   }
 
@@ -1109,6 +1109,13 @@
   }
 
   function askQuestion(q) {
+    // Buang jawaban lama yang opsinya sudah tidak ada (cegah kontaminasi AI)
+    if ((q.kind === 'pilihan' || q.kind === 'konfirmasi') && Array.isArray(q.options)) {
+      const cur = answerValue(q.id);
+      if (cur && !q.options.some(o => o.value === cur)) {
+        delete _chat.collected_answers[q.id];
+      }
+    }
     _chat.active_question_id = q.id;
     saveState();
 
@@ -1534,11 +1541,70 @@
       handleEditAnswer('cara_pemetaan', 'PROFIL_SISWA');
       return;
     }
-    // target_akhir_mode 'kandidat_cp' → fitur belum tersedia
-    if (q.id === 'target_akhir_mode' && value === 'kandidat_cp') {
-      rcAppendBubble('ai', 'Fitur pilih dari kandidat turunan CP belum tersedia di versi ini. Masukkan target sendiri atau minta rekomendasi MiClass.');
-      addToHistory('ai', 'Fitur kandidat CP belum tersedia.');
-      askQuestion(q);
+    // target_akhir_mode 'rekomendasi' → generate teks target, bukan rekomendasikan mode
+    if (q.id === 'target_akhir_mode' && value === 'rekomendasi') {
+      if (_chat.in_flight) return;
+      _chat.in_flight = true;
+      rcSetComposerDisabled(true);
+      rcShowTyping();
+      recordAnswer(q.id, 'rekomendasi', 'guru', true);
+      try {
+        const { data: { session } } = await window.supabaseClient.auth.getSession();
+        const token = session?.access_token ?? '';
+        const res = await fetch(EVAL_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+          body: JSON.stringify({
+            mode: 'recommendation',
+            classroom_id: _chat.classroom_id,
+            question_id: 'target_akhir_teks',
+            question_spec: {
+              kind: 'teks_bebas',
+              prompt: 'Tuliskan target akhir fase yang ingin digunakan.',
+              options: [{ value: '__teks__', label: 'Teks target' }],
+            },
+            context: {
+              session_phase: _chat.session_phase,
+              collected_answers: (typeof trimCollectedAnswers === 'function'
+                ? trimCollectedAnswers(_chat.collected_answers)
+                : _chat.collected_answers),
+            },
+          }),
+        });
+        const json = await res.json();
+        rcHideTyping();
+        if (!res.ok) throw new Error(json.error || 'EF error');
+        const teks = json?.recommendation?.label || json?.recommendation?.value || '';
+        if (!teks) throw new Error('Teks rekomendasi kosong.');
+        const rekMsg = 'Rekomendasi target akhir fase:\n\n' + teks + '\n\n' + (json.recommendation.reason || '');
+        rcAppendBubble('ai', rekMsg);
+        addToHistory('ai', rekMsg);
+        rcRenderChips([
+          { value: '__pakai__', label: 'Gunakan rekomendasi ini' },
+          { value: '__tulis__', label: 'Tulis sendiri' },
+        ], async function (v, chipLabel) {
+          rcClearChips();
+          rcAppendBubble('guru', chipLabel);
+          addToHistory('guru', chipLabel);
+          if (v === '__pakai__') {
+            recordAnswer('target_akhir_teks', teks, 'ai_recommendation', true);
+            await advanceToNext(q);
+          } else {
+            // Tampilkan input teks untuk guru isi sendiri
+            const teksQ = (RANCANG_FLOW['TARGET_FASE'] || []).find(x => x.id === 'target_akhir_teks');
+            if (teksQ) askQuestion(teksQ); else await advanceToNext(q);
+          }
+        });
+      } catch (err) {
+        rcHideTyping();
+        rcAppendBubble('sistem', 'Rekomendasi target belum dapat dimuat. Silakan tulis sendiri.');
+        addToHistory('sistem', 'Gagal ambil rekomendasi target.');
+        const teksQ = (RANCANG_FLOW['TARGET_FASE'] || []).find(x => x.id === 'target_akhir_teks');
+        if (teksQ) askQuestion(teksQ); else await advanceToNext(q);
+      } finally {
+        _chat.in_flight = false;
+        rcSetComposerDisabled(false);
+      }
       return;
     }
     recordAnswer(q.id, value, 'guru', true);

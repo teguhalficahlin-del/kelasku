@@ -1,3 +1,4 @@
+// v=chat-20260903f7
 'use strict';
 
 const opts = pairs => pairs.map(([value, label]) => ({ value, label }));
@@ -202,7 +203,7 @@ const RANCANG_FLOW = {
     pilihan('target_akhir_mode', 'Bagaimana target akhir fase ditentukan?', [
       ['rekomendasi', 'Minta rekomendasi berdasarkan CP dan profil siswa'],
       ['target_guru', 'Masukkan target sendiri'],
-    ], { aiRecommendation: true }),
+    ]),
     { id: 'target_akhir_teks', kind: 'teks_bebas', prompt: 'Tuliskan target akhir fase yang ingin digunakan.',
       helpText: 'MiClass memeriksa kesesuaian dan keterukurannya.', skippable: false,
       condition: { question_id: 'target_akhir_mode', value: 'target_guru' } },
