@@ -72,16 +72,6 @@ const RANCANG_FLOW = {
       ], { helpText: 'ATP mencakup satu fase penuh dan seluruh elemen CP.' }),
   ],
 
-  SUMBER_ATP: [
-    pilihan('sumber_atp', 'Apakah ATP untuk mapel dan fase ini sudah tersedia?', [
-      ['baru', 'Belum ada — susun ATP induk baru'],
-      ['gunakan', 'Sudah ada — gunakan dan sesuaikan untuk kelas ini'],
-      ['periksa', 'Sudah ada — susun ulang, pastikan sesuai CP'],
-      ['referensi', 'Sudah ada — susun versi baru dengan ATP lama sebagai panduan'],
-      ['cari', 'Belum diketahui — cari ATP yang tersimpan di MiClass'],
-    ], { helpText: 'ATP induk lintas kelas; adaptasi pelaksanaan tetap per classroom.' }),
-  ],
-
   PRIORITAS: [
     jamak('target_prioritas', 'Apa prioritas utama siswa selama fase ini? Pilih maksimal tiga.', [
       ['fondasi_tka', 'Membangun fondasi TKA'], ['dunia_kerja', 'Kesiapan memasuki dunia kerja'],
@@ -98,6 +88,11 @@ const RANCANG_FLOW = {
       ['lainnya', 'Tentukan target waktu lain'], ['rekomendasi', 'Minta rekomendasi MiClass'],
     ], { condition: { question_id: 'target_prioritas', value: 'fondasi_tka' }, aiRecommendation: true,
       helpText: 'Kelulusan TKA bukan hasil akhir langsung Fase E.' }),
+    { id: 'timeline_tka_lain', kind: 'teks_bebas',
+      prompt: 'Tuliskan target waktu untuk fondasi TKA:',
+      helpText: 'Contoh: Diperkuat mulai semester genap, atau Ditargetkan selesai sebelum PKL.',
+      skippable: false,
+      condition: { question_id: 'timeline_tka', value: 'lainnya' } },
     { id: 'target_sekolah_detail', kind: 'teks_bebas',
       prompt: 'Tuliskan target khusus sekolah yang perlu diperhatikan.',
       helpText: 'MiClass memeriksa kesesuaiannya dengan CP dan fase.', skippable: false,
@@ -115,6 +110,11 @@ const RANCANG_FLOW = {
     pilihan('tahun_pelajaran', 'ATP ini digunakan untuk tahun pelajaran berapa?', [
       ['2026/2027', '2026/2027'], ['2027/2028', '2027/2028'], ['lainnya', 'Tahun pelajaran lainnya'],
     ]),
+    { id: 'tahun_pelajaran_lain', kind: 'teks_bebas',
+      prompt: 'Tuliskan tahun pelajaran yang digunakan:',
+      helpText: 'Contoh: 2028/2029',
+      skippable: false,
+      condition: { question_id: 'tahun_pelajaran', value: 'lainnya' } },
     pilihan('minggu_efektif_mode', 'Bagaimana minggu efektif ditentukan?', [
       ['isi_sendiri', 'Isi sendiri'],
       ['cari_daerah', 'Mengacu kalender pendidikan daerah (isi minggu efektif sendiri)'],
@@ -145,6 +145,8 @@ const RANCANG_FLOW = {
       ['0', 'Tidak ada cadangan'], ['1', '1 minggu'], ['2', '2 minggu'], ['3', '3 minggu'],
       ['lain', 'Tentukan sendiri'], ['rekomendasi', 'Minta rekomendasi MiClass'],
     ], { aiRecommendation: true, helpText: 'JP cadangan dihitung deterministik dari JP mingguan.' }),
+    angka('cadangan_minggu_lain', 'Berapa minggu cadangan yang Anda tentukan?', 0, 10,
+      { condition: { question_id: 'cadangan_minggu', value: 'lain' } }),
     pilihan('pola_jadwal', 'Bagaimana pola JP dalam satu minggu?', [
       ['reguler_satu', 'Reguler — seluruh JP dalam satu pertemuan'],
       ['reguler_bagi', 'Reguler — dibagi beberapa pertemuan'], ['blok', 'Sistem blok'],

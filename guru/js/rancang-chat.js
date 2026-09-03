@@ -1093,7 +1093,11 @@
       : Number(answerValue('minggu_sem1') || 0) + Number(answerValue('minggu_sem2') || 0);
     const kalender = jpPerMinggu * minggu;
     const kegiatan = Number(answerValue('jp_kegiatan_khusus') || 0);
-    const cadangan = Number(answerValue('cadangan_minggu') || 0) * jpPerMinggu;
+    const cadanganVal = answerValue('cadangan_minggu');
+    const cadanganMinggu = cadanganVal === 'lain'
+      ? Number(answerValue('cadangan_minggu_lain') || 0)
+      : Number(cadanganVal || 0);
+    const cadangan = cadanganMinggu * jpPerMinggu;
     const pemetaan = Number(answerValue('jp_pemetaan') || 0);
     const prasyarat = Number(answerValue('jp_prasyarat') || 0);
     return { jp_per_minggu: jpPerMinggu, minggu_efektif: minggu, jp_kalender: kalender,
@@ -1383,6 +1387,18 @@
       } finally {
         rcSetComposerDisabled(false);
       }
+      return;
+    }
+    // tindakan_instrumen 'ubah' → navigasi balik ke cara_pemetaan
+    if (q.id === 'tindakan_instrumen' && value === 'ubah') {
+      handleEditAnswer('cara_pemetaan', 'PROFIL_SISWA');
+      return;
+    }
+    // target_akhir_mode 'kandidat_cp' → fitur belum tersedia
+    if (q.id === 'target_akhir_mode' && value === 'kandidat_cp') {
+      rcAppendBubble('ai', 'Fitur pilih dari kandidat turunan CP belum tersedia di versi ini. Masukkan target sendiri atau minta rekomendasi MiClass.');
+      addToHistory('ai', 'Fitur kandidat CP belum tersedia.');
+      askQuestion(q);
       return;
     }
     recordAnswer(q.id, value, 'guru', true);
