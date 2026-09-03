@@ -150,9 +150,12 @@ const RANCANG_FLOW = {
       { condition: { question_id: 'cadangan_minggu', value: 'lain' } }),
     pilihan('pola_jadwal', 'Bagaimana pola JP dalam satu minggu?', [
       ['reguler_satu', 'Reguler — seluruh JP dalam satu pertemuan'],
-      ['reguler_bagi', 'Reguler — dibagi beberapa pertemuan'], ['blok', 'Sistem blok'],
-      ['campuran', 'Campuran atau bergantian'], ['belum_diketahui', 'Belum diketahui'],
+      ['reguler_bagi', 'Reguler — dibagi beberapa pertemuan'],
+      ['blok', 'Sistem blok'],
     ]),
+    angka('jp_per_sesi', 'Berapa JP dalam satu pertemuan atau sesi?', 1, 12,
+      { condition: { question_id: 'pola_jadwal', values: ['reguler_bagi', 'blok'] },
+        helpText: 'Contoh: jika 4 JP dibagi 2 pertemuan isi 2; jika satu sesi blok 8 JP isi 8.' }),
     konfirmasi('konfirmasi_waktu',
       'Perhitungan waktu deterministik:\n\n{{ringkasan_waktu}}\n\nApakah perhitungan ini sudah sesuai?', [
         ['ya', 'Ya, gunakan perhitungan ini'], ['ubah', 'Ubah data waktu'],

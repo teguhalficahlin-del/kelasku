@@ -286,9 +286,12 @@ Deno.serve(async (req) => {
   const allowedElemen = new Set(elemenCp.map(e => e.id));
 
   const polajadwal    = unwrap(waktu.pola_jadwal) as string | null ?? null;
-  // jp_per_pertemuan: untuk pola reguler_satu, satu pertemuan = jp_per_minggu
-  const jpPerMinggu      = Number(perhitungan.jp_per_minggu ?? 0);
-  const jpPerPertemuan   = (polajadwal === 'reguler_satu' && jpPerMinggu > 0) ? jpPerMinggu : 0;
+  const jpPerMinggu   = Number(perhitungan.jp_per_minggu ?? 0);
+  const jpPerSesi     = Number(unwrap(waktu.jp_per_sesi) ?? 0);
+  const jpPerPertemuan =
+    polajadwal === 'reguler_satu' && jpPerMinggu > 0 ? jpPerMinggu :
+    (polajadwal === 'reguler_bagi' || polajadwal === 'blok') && jpPerSesi > 0 ? jpPerSesi :
+    0;
 
   const prioritas     = unwrapPhaseData(cd.PRIORITAS);
   const profilSiswa   = unwrapPhaseData(cd.PROFIL_SISWA);

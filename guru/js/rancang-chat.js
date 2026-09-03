@@ -1206,6 +1206,7 @@
     cadangan_minggu:      'Cadangan gangguan',
     cadangan_minggu_lain: 'Cadangan (kustom, minggu)',
     pola_jadwal:          'Pola jadwal',
+    jp_per_sesi:          'JP per pertemuan/sesi',
     status_data_awal:     'Data kemampuan awal',
     tindakan_tanpa_data:       'Cara menentukan titik awal',
     perkiraan_kemampuan_awal:  'Gambaran kemampuan awal siswa',
