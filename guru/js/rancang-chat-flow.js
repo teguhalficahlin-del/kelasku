@@ -261,11 +261,11 @@ const RANCANG_FLOW = {
   ],
 
   PENGUATAN_PRASYARAT: [
-    pilihan('strategi_prasyarat', 'Bagaimana penguatan prasyarat dimasukkan ke ATP?', [
-      ['awal', 'Pada awal fase sebelum TP pertama'],
-      ['terintegrasi', 'Disisipkan sebelum materi yang memerlukannya'],
-      ['kombinasi', 'Gabungan — diperkuat di awal dan disisipkan saat mengajar'],
-      ['tidak_perlu', 'Tidak diperlukan'], ['rekomendasi', 'Minta rekomendasi MiClass'],
+    pilihan('strategi_prasyarat', 'Apakah ada kemampuan dasar yang perlu diulang sebelum masuk ke materi baru?', [
+      ['awal', 'Di awal semester, sebelum masuk materi baru'],
+      ['terintegrasi', 'Saat mengajar, tepat sebelum bagian yang membutuhkannya'],
+      ['kombinasi', 'Keduanya — di awal semester dan saat mengajar'],
+      ['tidak_perlu', 'Tidak perlu — siswa sudah siap'], ['rekomendasi', 'Minta rekomendasi MiClass'],
     ], { aiRecommendation: true }),
     angka('jp_prasyarat', 'Berapa JP yang digunakan untuk penguatan awal?', 1, 24,
       { condition: { question_id: 'strategi_prasyarat', values: ['awal', 'kombinasi'] },
