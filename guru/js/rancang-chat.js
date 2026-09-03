@@ -444,15 +444,14 @@
       _initializing = true;
       try {
         _chat.sumber_flow = mode;
-        let notice = null;
-        if (mode === 'sesuaikan' && atpCount === 0) {
-          // Tidak ada ATP — masuk flow susun baru dengan penjelasan
-          _chat.sumber_flow = 'susun';
-          mode = 'susun';
-          notice = 'Belum ada ATP tersimpan untuk disesuaikan — memulai ATP baru.';
+
+        // Card "ATP Aktif": langsung tampilkan picker tanpa masuk flow chat
+        if (mode === 'sesuaikan') {
+          renderAtpPickerScreen(panel, cId, atpList || [], mapelDisplay);
+          return;
         }
-        // 'sesuaikan' dengan ATP ada: masuk flow biasa, PILIH_ATP dihandle di startPhase
-        // 'modul' dengan ATP ada: masuk flow biasa, PILIH_ATP dihandle di startPhase
+
+        let notice = null;
         if (mode === 'modul') {
           const atpAktif = (atpList || []).filter(function (a) { return a.status === 'aktif'; });
           if (!atpAktif.length) {
