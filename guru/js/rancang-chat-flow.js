@@ -279,6 +279,7 @@ const RANCANG_FLOW = {
         ['ubah_waktu', 'Ubah alokasi waktu'], ['ubah_profil', 'Ubah profil siswa'],
         ['ubah_target', 'Ubah target fase'], ['ubah_konteks', 'Ubah konteks kejuruan'],
         ['ubah_prasyarat', 'Ubah penguatan prasyarat'],
+        ['ubah_konteks_cp', 'Ubah kelas & program keahlian'],
       ], { helpText: 'Generate hanya berjalan setelah persetujuan guru.' }),
   ],
 
