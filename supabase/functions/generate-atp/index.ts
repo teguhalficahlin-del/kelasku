@@ -228,7 +228,7 @@ Deno.serve(async (req) => {
 
   const { data: atp, error: atpErr } = await userClient
     .from('atp_induk')
-    .select('id, guru_id, mapel, fase, jenjang, target_fase, elemen_cp, collected_data, status, updated_at, program_keahlian')
+    .select('id, guru_id, mapel, fase, jenjang, target_fase, elemen_cp, collected_data, status, updated_at')
     .eq('id', atp_induk_id)
     .maybeSingle();
 
@@ -295,7 +295,8 @@ Deno.serve(async (req) => {
   const konteksDudi   = unwrapPhaseData(cd.KONTEKS_DUDI);
   const prasyarat     = unwrapPhaseData(cd.PENGUATAN_PRASYARAT);
 
-  const programKeahlian = (atp as Record<string, unknown>).program_keahlian as string | null ?? null;
+  const konteksCP = (cd.KONTEKS_CP as Record<string, unknown>) || {};
+  const programKeahlian = unwrap(konteksCP.program_keahlian) as string | null ?? null;
 
   // ── 7. BANGUN USER MESSAGE ────────────────────────────────────────────────
 
