@@ -1269,8 +1269,11 @@
   function renderMultiSelect(q, isFirstRender) {
     const selected = _chat.pending_multi[q.id] || [];
     const max = q.constraints?.maxSelections || Infinity;
-    if (isFirstRender && isFinite(max)) {
-      rcAppendBubble('sistem', `Pilih maksimal ${max} opsi.`);
+    if (isFirstRender) {
+      const info = isFinite(max)
+        ? `Boleh pilih lebih dari satu. Maksimal ${max} pilihan.`
+        : 'Boleh pilih lebih dari satu pilihan.';
+      rcAppendBubble('sistem', info);
     }
     // Semua opsi tetap tampil; yang sudah dipilih ditandai '✓' dan bisa diklik
     // ulang untuk dibatalkan.
