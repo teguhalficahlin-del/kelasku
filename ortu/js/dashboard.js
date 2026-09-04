@@ -229,7 +229,8 @@ async function getProfileName(profileId) {
   return data;
 }
 
-function renderCard(classroom, guruName, siswaNama, schedules, linkedStudentId, namaAnakSekelas) {
+// Hanya card header + jadwal — section lain dirender ke panel bottom nav masing-masing
+function renderCardJadwal(classroom, guruName, siswaNama, schedules) {
   const card = document.createElement('div');
   card.className = 'classroom-card';
   card.innerHTML =
@@ -241,12 +242,15 @@ function renderCard(classroom, guruName, siswaNama, schedules, linkedStudentId, 
     '<div class="card-teacher">Guru: '          + escHtml(guruName)      + '</div>' +
     '<div class="card-student">Siswa: ' + escHtml(siswaNama)             + '</div>';
   card.appendChild(renderScheduleSection(schedules));
-  if (linkedStudentId) card.appendChild(renderChildAttendanceSection(classroom.id, linkedStudentId, siswaNama));
-  if (linkedStudentId) card.appendChild(renderChildNotesSection(classroom, linkedStudentId));
-  if (linkedStudentId) card.appendChild(renderPesanGuruSection(classroom, linkedStudentId));
-  if (linkedStudentId) card.appendChild(
-    renderChildGradesSection(classroom.id, linkedStudentId, siswaNama, namaAnakSekelas));
   return card;
+}
+
+// Label nama kelas untuk memisahkan konten per kelas di panel section
+function renderKelasLabel(classroom) {
+  const el = document.createElement('div');
+  el.className = 'section-kelas-label';
+  el.textContent = escHtml(classroom.name) + (classroom.subject ? ' — ' + escHtml(classroom.subject) : '');
+  return el;
 }
 
 async function getChildNotes(classroomId, linkedStudentId) {
@@ -1058,39 +1062,28 @@ async function init() {
     return;
   }
 
-  const list = document.getElementById('classroom-list');
+  const panelJadwal    = document.getElementById('panel-jadwal');
+  const panelKehadiran = document.getElementById('panel-kehadiran');
+  const panelCatatan   = document.getElementById('panel-catatan');
+  const panelPesan     = document.getElementById('panel-pesan');
+  const panelPenilaian = document.getElementById('panel-penilaian');
 
   let members;
   try {
     members = await getClassroomMembers(profile.id);
   } catch {
-    list.innerHTML = '<p class="error-msg">Gagal memuat data classroom.</p>';
+    panelJadwal.innerHTML = '<p class="error-msg">Gagal memuat data classroom.</p>';
     return;
   }
 
   if (!members || members.length === 0) {
-    list.appendChild(renderEmpty());
+    panelJadwal.appendChild(renderEmpty());
     return;
   }
 
-  // Dimuat paralel, mengikuti pola yang sudah dipakai portal guru. Sebelumnya
-  // tiga permintaan per kelas dijalankan berurutan di dalam loop: orang tua
-  // dengan tiga anak menunggu sembilan permintaan berantai sebelum kartu
-  // terakhir muncul.
-  //
-  // Slot kosong dibuat lebih dulu dalam urutan aslinya, lalu diisi begitu
-  // datanya tiba — urutan kartu tidak ikut berubah mengikuti kecepatan jaringan.
   const baris = members.filter(row => row.classrooms);
+  const banyakKelas = baris.length;
 
-  // Nama setiap anak diambil sekali di muka, bukan sekali per kartu. Selain
-  // menghapus permintaan berulang untuk anak yang sama, ini yang memungkinkan
-  // sebuah kartu mengetahui SIAPA SAJA anak ortu ini yang sekelas dengannya —
-  // pengetahuan yang tidak dimiliki kartu itu sendiri, dan yang dibutuhkan
-  // renderChildGradesSection untuk memberi judul yang jujur.
-  //
-  // allSettled, bukan all: satu nama yang gagal dimuat tidak boleh menjatuhkan
-  // seluruh halaman. Yang gagal jatuh ke '—', sama seperti perilaku
-  // getProfileName sendiri.
   const idAnak   = [...new Set(baris.map(r => r.linked_student_id).filter(Boolean))];
   const namaAnak = new Map();
   (await Promise.allSettled(idAnak.map(id => getProfileName(id))))
@@ -1098,9 +1091,6 @@ async function init() {
       namaAnak.set(idAnak[i], hasil.status === 'fulfilled' ? hasil.value : '—');
     });
 
-  // classroom_id -> daftar nama anak ortu ini di kelas itu. Panjangnya 1 bagi
-  // hampir semua ortu; lebih dari 1 hanya bila dua anak berada di kelas yang
-  // sama, dan justru kasus itulah yang perlu ditandai.
   const anakPerKelas = new Map();
   baris.forEach(row => {
     const kls = row.classrooms.id;
@@ -1108,37 +1098,67 @@ async function init() {
     anakPerKelas.get(kls).push(namaAnak.get(row.linked_student_id) || '—');
   });
 
-  const slot = baris.map(() => {
-    const d = document.createElement('div');
-    d.innerHTML = '<p class="att-empty">Memuat…</p>';
-    list.appendChild(d);
-    return d;
-  });
+  const slotJadwal    = baris.map(() => { const d = document.createElement('div'); d.innerHTML = '<p class="att-empty">Memuat…</p>'; panelJadwal.appendChild(d);    return d; });
+  const slotKehadiran = baris.map(() => { const d = document.createElement('div'); panelKehadiran.appendChild(d); return d; });
+  const slotCatatan   = baris.map(() => { const d = document.createElement('div'); panelCatatan.appendChild(d);   return d; });
+  const slotPesan     = baris.map(() => { const d = document.createElement('div'); panelPesan.appendChild(d);     return d; });
+  const slotPenilaian = baris.map(() => { const d = document.createElement('div'); panelPenilaian.appendChild(d); return d; });
 
   async function isiSlot(i) {
     const row       = baris[i];
     const classroom = row.classrooms;
-    slot[i].innerHTML = '<p class="att-empty">Memuat…</p>';
+    slotJadwal[i].innerHTML = '<p class="att-empty">Memuat…</p>';
     try {
-      // Nama anak sudah ada di peta yang disiapkan di atas, jadi yang tersisa
-      // per kartu hanya nama guru dan jadwalnya.
       const [guruName, schedules] = await Promise.all([
         getProfileName(classroom.teacher_id),
         getSchedules(classroom.id),
       ]);
       const siswaNama = namaAnak.get(row.linked_student_id) || '—';
-      slot[i].replaceChildren(
-        renderCard(classroom, guruName, siswaNama, schedules, row.linked_student_id,
-                   anakPerKelas.get(classroom.id) || [siswaNama]));
+
+      // Panel Jadwal
+      slotJadwal[i].replaceChildren(
+        renderCardJadwal(classroom, guruName, siswaNama, schedules));
+
+      // Panel Kehadiran
+      const wrapK = document.createDocumentFragment();
+      if (banyakKelas > 1) wrapK.appendChild(renderKelasLabel(classroom));
+      if (row.linked_student_id) wrapK.appendChild(renderChildAttendanceSection(classroom.id, row.linked_student_id, siswaNama));
+      slotKehadiran[i].replaceChildren(wrapK);
+
+      // Panel Catatan
+      const wrapC = document.createDocumentFragment();
+      if (banyakKelas > 1) wrapC.appendChild(renderKelasLabel(classroom));
+      if (row.linked_student_id) wrapC.appendChild(renderChildNotesSection(classroom, row.linked_student_id));
+      slotCatatan[i].replaceChildren(wrapC);
+
+      // Panel Pesan
+      const wrapPs = document.createDocumentFragment();
+      if (banyakKelas > 1) wrapPs.appendChild(renderKelasLabel(classroom));
+      if (row.linked_student_id) wrapPs.appendChild(renderPesanGuruSection(classroom, row.linked_student_id));
+      slotPesan[i].replaceChildren(wrapPs);
+
+      // Panel Penilaian
+      const wrapP = document.createDocumentFragment();
+      if (banyakKelas > 1) wrapP.appendChild(renderKelasLabel(classroom));
+      if (row.linked_student_id) wrapP.appendChild(
+        renderChildGradesSection(classroom.id, row.linked_student_id, siswaNama, anakPerKelas.get(classroom.id) || [siswaNama]));
+      slotPenilaian[i].replaceChildren(wrapP);
+
     } catch (err) {
-      // Gagal satu kelas tidak menjatuhkan kelas lain, dan tombol coba lagi
-      // hanya memuat ulang kartu ini — bukan seluruh halaman.
       console.error('classroom', classroom.id, err);
-      slot[i].innerHTML =
-        '<div class="error-msg">Gagal memuat kelas ' + escHtml(classroom.name || '') + '. ' +
-        '<button type="button" class="btn-muat-ulang-kartu">Coba lagi</button></div>';
-      slot[i].querySelector('.btn-muat-ulang-kartu')
-        .addEventListener('click', function () { isiSlot(i); });
+      const errEl = () => {
+        const d = document.createElement('div');
+        d.className = 'error-msg';
+        d.innerHTML = 'Gagal memuat kelas ' + escHtml(classroom.name || '') + '. ' +
+          '<button type="button" class="btn-muat-ulang-kartu">Coba lagi</button>';
+        d.querySelector('.btn-muat-ulang-kartu').addEventListener('click', () => isiSlot(i));
+        return d;
+      };
+      slotJadwal[i].replaceChildren(errEl());
+      slotKehadiran[i].innerHTML = '';
+      slotCatatan[i].innerHTML   = '';
+      slotPesan[i].innerHTML     = '';
+      slotPenilaian[i].innerHTML = '';
     }
   }
 
@@ -1197,37 +1217,34 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   // Bottom nav
-  const navBeranda = document.getElementById('nav-beranda');
-  const navProfil  = document.getElementById('nav-profil');
-  const listEl     = document.getElementById('classroom-list');
-  const profilEl   = document.getElementById('panel-profil');
-  const NAV_KEY    = 'miclass_nav_ortu';
+  const NAV_KEY = 'miclass_nav_ortu';
+  const TABS = [
+    { id: 'nav-jadwal',    panel: 'panel-jadwal'    },
+    { id: 'nav-kehadiran', panel: 'panel-kehadiran' },
+    { id: 'nav-catatan',   panel: 'panel-catatan'   },
+    { id: 'nav-pesan',     panel: 'panel-pesan'     },
+    { id: 'nav-penilaian', panel: 'panel-penilaian' },
+  ];
 
-  function activateBeranda() {
-    navBeranda.classList.add('active');
-    navProfil.classList.remove('active');
-    listEl.style.display   = '';
-    profilEl.style.display = 'none';
-    try { localStorage.setItem(NAV_KEY, 'beranda'); } catch (_) {}
+  function activateTab(key) {
+    TABS.forEach(t => {
+      const btn   = document.getElementById(t.id);
+      const panel = document.getElementById(t.panel);
+      const active = (t.id === 'nav-' + key);
+      btn.classList.toggle('active', active);
+      panel.style.display = active ? '' : 'none';
+    });
+    try { localStorage.setItem(NAV_KEY, key); } catch (_) {}
   }
 
-  function activateProfil() {
-    navProfil.classList.add('active');
-    navBeranda.classList.remove('active');
-    listEl.style.display   = 'none';
-    profilEl.style.display = '';
-    if (!profilEl.hasChildNodes() && _ortuProfile) {
-      profilEl.appendChild(renderProfilSection(_ortuProfile));
-    }
-    try { localStorage.setItem(NAV_KEY, 'profil'); } catch (_) {}
-  }
-
-  navBeranda.addEventListener('click', activateBeranda);
-  navProfil.addEventListener('click', activateProfil);
+  TABS.forEach(t => {
+    document.getElementById(t.id).addEventListener('click', () => activateTab(t.id.replace('nav-', '')));
+  });
 
   await init();
 
   try {
-    if (localStorage.getItem(NAV_KEY) === 'profil') activateProfil();
+    const saved = localStorage.getItem(NAV_KEY);
+    if (saved && TABS.some(t => t.id === 'nav-' + saved)) activateTab(saved);
   } catch (_) {}
 });

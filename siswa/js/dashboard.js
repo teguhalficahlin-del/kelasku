@@ -229,7 +229,8 @@ async function getGuruName(teacherId) {
   return data;
 }
 
-function renderCard(classroom, guruName, namaOrtu, schedules, studentId) {
+// Hanya card header + jadwal — section lain dirender ke panel bottom nav masing-masing
+function renderCardJadwal(classroom, guruName, namaOrtu, schedules) {
   const card = document.createElement('div');
   card.className = 'classroom-card';
   card.innerHTML =
@@ -242,10 +243,15 @@ function renderCard(classroom, guruName, namaOrtu, schedules, studentId) {
       (namaOrtu ? '<br>Ortu: ' + escHtml(namaOrtu) : '') +
     '</div>';
   card.appendChild(renderScheduleSection(schedules));
-  if (studentId) card.appendChild(renderAttendanceSection(classroom.id, studentId));
-  if (studentId) card.appendChild(renderNotesSection(classroom.id, studentId));
-  if (studentId) card.appendChild(renderGradesSection(classroom.id, studentId));
   return card;
+}
+
+// Label nama kelas untuk memisahkan konten per kelas di panel section
+function renderKelasLabel(classroom) {
+  const el = document.createElement('div');
+  el.className = 'section-kelas-label';
+  el.textContent = escHtml(classroom.name) + (classroom.subject ? ' — ' + escHtml(classroom.subject) : '');
+  return el;
 }
 
 async function getMyNotes(classroomId, studentId) {
@@ -668,53 +674,77 @@ async function init() {
     return;
   }
 
-  const list = document.getElementById('classroom-list');
+  const panelJadwal    = document.getElementById('panel-jadwal');
+  const panelKehadiran = document.getElementById('panel-kehadiran');
+  const panelCatatan   = document.getElementById('panel-catatan');
+  const panelPenilaian = document.getElementById('panel-penilaian');
 
   let classrooms;
   try {
     classrooms = await getClassrooms(profile.id);
   } catch {
-    list.innerHTML = '<p class="error-msg">Gagal memuat data classroom.</p>';
+    panelJadwal.innerHTML = '<p class="error-msg">Gagal memuat data classroom.</p>';
     return;
   }
 
   if (classrooms.length === 0) {
-    list.appendChild(renderEmpty());
+    panelJadwal.appendChild(renderEmpty());
     return;
   }
 
-  // Dimuat paralel, mengikuti pola yang sudah dipakai portal guru. Sebelumnya
-  // dua permintaan per kelas dijalankan berurutan di dalam loop, sehingga
-  // kartu terakhir baru muncul setelah semua kelas sebelumnya selesai.
-  //
-  // Slot kosong dibuat lebih dulu dalam urutan aslinya, lalu diisi begitu
-  // datanya tiba — urutan kartu tidak ikut berubah mengikuti kecepatan jaringan.
-  const slot = classrooms.map(() => {
-    const d = document.createElement('div');
-    d.innerHTML = '<p class="att-empty">Memuat…</p>';
-    list.appendChild(d);
-    return d;
-  });
+  const banyakKelas = classrooms.length;
+
+  // Slot kosong dibuat lebih dulu dalam urutan aslinya per panel
+  const slotJadwal    = classrooms.map(() => { const d = document.createElement('div'); d.innerHTML = '<p class="att-empty">Memuat…</p>'; panelJadwal.appendChild(d);    return d; });
+  const slotKehadiran = classrooms.map(() => { const d = document.createElement('div'); panelKehadiran.appendChild(d); return d; });
+  const slotCatatan   = classrooms.map(() => { const d = document.createElement('div'); panelCatatan.appendChild(d);   return d; });
+  const slotPenilaian = classrooms.map(() => { const d = document.createElement('div'); panelPenilaian.appendChild(d); return d; });
 
   async function isiSlot(i) {
     const { classroom, nama_ortu } = classrooms[i];
-    slot[i].innerHTML = '<p class="att-empty">Memuat…</p>';
+    slotJadwal[i].innerHTML = '<p class="att-empty">Memuat…</p>';
     try {
       const [guruName, schedules] = await Promise.all([
         getGuruName(classroom.teacher_id),
         getSchedules(classroom.id),
       ]);
-      slot[i].replaceChildren(
-        renderCard(classroom, guruName, nama_ortu, schedules, profile.id));
+
+      // Panel Jadwal — card header + jadwal
+      slotJadwal[i].replaceChildren(
+        renderCardJadwal(classroom, guruName, nama_ortu, schedules));
+
+      // Panel Kehadiran
+      const wrapK = document.createDocumentFragment();
+      if (banyakKelas > 1) wrapK.appendChild(renderKelasLabel(classroom));
+      wrapK.appendChild(renderAttendanceSection(classroom.id, profile.id));
+      slotKehadiran[i].replaceChildren(wrapK);
+
+      // Panel Catatan
+      const wrapC = document.createDocumentFragment();
+      if (banyakKelas > 1) wrapC.appendChild(renderKelasLabel(classroom));
+      wrapC.appendChild(renderNotesSection(classroom.id, profile.id));
+      slotCatatan[i].replaceChildren(wrapC);
+
+      // Panel Penilaian
+      const wrapP = document.createDocumentFragment();
+      if (banyakKelas > 1) wrapP.appendChild(renderKelasLabel(classroom));
+      wrapP.appendChild(renderGradesSection(classroom.id, profile.id));
+      slotPenilaian[i].replaceChildren(wrapP);
+
     } catch (err) {
-      // Gagal satu kelas tidak menjatuhkan kelas lain, dan tombol coba lagi
-      // hanya memuat ulang kartu ini — bukan seluruh halaman.
       console.error('classroom', classroom.id, err);
-      slot[i].innerHTML =
-        '<div class="error-msg">Gagal memuat kelas ' + escHtml(classroom.name || '') + '. ' +
-        '<button type="button" class="btn-muat-ulang-kartu">Coba lagi</button></div>';
-      slot[i].querySelector('.btn-muat-ulang-kartu')
-        .addEventListener('click', function () { isiSlot(i); });
+      const errEl = () => {
+        const d = document.createElement('div');
+        d.className = 'error-msg';
+        d.innerHTML = 'Gagal memuat kelas ' + escHtml(classroom.name || '') + '. ' +
+          '<button type="button" class="btn-muat-ulang-kartu">Coba lagi</button>';
+        d.querySelector('.btn-muat-ulang-kartu').addEventListener('click', () => isiSlot(i));
+        return d;
+      };
+      slotJadwal[i].replaceChildren(errEl());
+      slotKehadiran[i].innerHTML = '';
+      slotCatatan[i].innerHTML   = '';
+      slotPenilaian[i].innerHTML = '';
     }
   }
 
@@ -769,37 +799,33 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   // Bottom nav
-  const navBeranda = document.getElementById('nav-beranda');
-  const navProfil  = document.getElementById('nav-profil');
-  const listEl     = document.getElementById('classroom-list');
-  const profilEl   = document.getElementById('panel-profil');
-  const NAV_KEY    = 'miclass_nav_siswa';
+  const NAV_KEY = 'miclass_nav_siswa';
+  const TABS = [
+    { id: 'nav-jadwal',    panel: 'panel-jadwal'    },
+    { id: 'nav-kehadiran', panel: 'panel-kehadiran' },
+    { id: 'nav-catatan',   panel: 'panel-catatan'   },
+    { id: 'nav-penilaian', panel: 'panel-penilaian' },
+  ];
 
-  function activateBeranda() {
-    navBeranda.classList.add('active');
-    navProfil.classList.remove('active');
-    listEl.style.display   = '';
-    profilEl.style.display = 'none';
-    try { localStorage.setItem(NAV_KEY, 'beranda'); } catch (_) {}
+  function activateTab(key) {
+    TABS.forEach(t => {
+      const btn   = document.getElementById(t.id);
+      const panel = document.getElementById(t.panel);
+      const active = (t.id === 'nav-' + key);
+      btn.classList.toggle('active', active);
+      panel.style.display = active ? '' : 'none';
+    });
+    try { localStorage.setItem(NAV_KEY, key); } catch (_) {}
   }
 
-  function activateProfil() {
-    navProfil.classList.add('active');
-    navBeranda.classList.remove('active');
-    listEl.style.display   = 'none';
-    profilEl.style.display = '';
-    if (!profilEl.hasChildNodes() && _siswaProfile) {
-      profilEl.appendChild(renderProfilSection(_siswaProfile));
-    }
-    try { localStorage.setItem(NAV_KEY, 'profil'); } catch (_) {}
-  }
-
-  navBeranda.addEventListener('click', activateBeranda);
-  navProfil.addEventListener('click', activateProfil);
+  TABS.forEach(t => {
+    document.getElementById(t.id).addEventListener('click', () => activateTab(t.id.replace('nav-', '')));
+  });
 
   await init();
 
   try {
-    if (localStorage.getItem(NAV_KEY) === 'profil') activateProfil();
+    const saved = localStorage.getItem(NAV_KEY);
+    if (saved && TABS.some(t => t.id === 'nav-' + saved)) activateTab(saved);
   } catch (_) {}
 });
