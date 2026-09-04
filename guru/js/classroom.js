@@ -1309,7 +1309,7 @@
       items: [
         { text: 'Tambah Jadwal — klik <strong>+ Tambah Jadwal</strong> di section Jadwal Mengajar → pilih hari, jam mulai, jam selesai. Sistem otomatis menolak jika jadwal bentrok dengan kelas lain.' },
         { text: 'Untuk ubah jadwal: klik <strong>Edit</strong>. Untuk hentikan sementara: klik <strong>Nonaktifkan</strong> dan isi keterangan wajib. Hapus jadwal hanya jika tidak ada data absensi — sistem memberi peringatan sebelum hapus.' },
-        { text: 'Absensi Hari Ini — form absensi hanya aktif saat jam mengajar sedang berlangsung. Status default semua siswa: <strong>H (Hadir)</strong>. Klik tombol <strong>S / I / A</strong> untuk ubah. Klik <strong>Simpan Absensi</strong> sebelum jam sesi berakhir — setelah berakhir form terkunci otomatis.' },
+        { text: 'Absensi Hari Ini — form absensi aktif saat jam mengajar berlangsung, dan masih bisa diisi hingga 1 jam setelah sesi berakhir (masa koreksi). Status default semua siswa: <strong>H (Hadir)</strong>. Klik tombol <strong>S / I / A</strong> untuk ubah. Klik <strong>Simpan Absensi</strong> — setelah masa koreksi habis, form terkunci permanen.' },
         { text: 'Rekap Absensi — atur rentang tanggal dari/sampai → lihat ringkasan H/S/I/A per siswa beserta persentase kehadiran. Klik <strong>Export Excel</strong> untuk unduh file <code>rekap-absensi-{dari}-sd-{sampai}.xlsx</code>.' }
       ]
     },
@@ -1357,7 +1357,7 @@
           text: 'Tiga catatan penting:',
           sub: [
             { name: 'ATP diperlukan sebelum Modul', desc: 'Pilih "Sesuaikan ATP" atau "Susun ATP Baru" terlebih dahulu — Modul Ajar hanya bisa dibuat setelah ada ATP yang aktif.' },
-            { name: 'Batas generate Modul', desc: '5× per hari per guru. Jika batas tercapai, coba lagi keesokan harinya.' },
+            { name: 'Batas generate Modul', desc: '5× per hari per kelas. Jika batas tercapai untuk satu kelas, kelas lain tidak terpengaruh. Coba lagi keesokan harinya jika kuota kelas tersebut habis.' },
             { name: 'Hapus ATP', desc: 'Klik ikon 🗑 Hapus di layar picker ATP untuk menghapus ATP yang tidak lagi dipakai. Tindakan ini tidak bisa dibatalkan.' }
           ]
         }

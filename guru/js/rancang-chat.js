@@ -2429,7 +2429,7 @@
         msg = '❌ Waktu habis saat menyusun ATP. Silakan coba lagi.';
         retryable = true;
       } else if (code === 'RATE_LIMIT') {
-        msg = '❌ Batas generate ATP harian (3×) tercapai. Coba lagi besok.';
+        msg = '❌ Batas generate ATP harian (3×) untuk ATP ini tercapai. Coba lagi besok.';
       } else {
         msg = '❌ Gagal menyusun ATP. Coba lagi.';
         retryable = true;
