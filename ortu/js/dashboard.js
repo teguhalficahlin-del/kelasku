@@ -466,16 +466,11 @@ function renderChildNotesSection(classroom, linkedStudentId) {
   title.textContent = 'Catatan dari Guru';
   wrap.appendChild(title);
 
-  const hint = document.createElement('div');
-  hint.style.cssText = 'font-size:.8rem;color:var(--color-text-muted);margin-bottom:.35rem';
-  hint.textContent = 'Catatan bersifat satu arah. Untuk menanggapi, gunakan bagian Pesan di bawah.';
-  wrap.appendChild(hint);
-
   const body = document.createElement('div');
   body.innerHTML = '<p class="att-empty">Memuat…</p>';
   wrap.appendChild(body);
 
-  pasangCollapse(title, hint, body);
+  pasangCollapse(title, body);
 
   getChildNotes(classroom.id, linkedStudentId).then(rows => {
     if (rows.length === 0) {
