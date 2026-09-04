@@ -1,5 +1,6 @@
 const db   = window.supabaseClient;
 const DAYS = ['SENIN','SELASA','RABU','KAMIS','JUMAT','SABTU'];
+let _siswaProfile = null;
 
 // ---- Attendance helpers ----
 function _todayStr() {
@@ -564,6 +565,68 @@ function renderGradesSection(classroomId, studentId) {
   return wrap;
 }
 
+function renderProfilSection(profile) {
+  const wrap = document.createElement('div');
+  wrap.innerHTML = `
+    <div class="profil-section">
+      <div class="profil-title">Profil Saya</div>
+      <div class="profil-field">
+        <div class="profil-label">Nama Lengkap</div>
+        <div class="profil-value" id="pv-nama">${escHtml(profile.full_name)}</div>
+      </div>
+      ${profile.nis ? `<div class="profil-field"><div class="profil-label">NIS</div><div class="profil-value">${escHtml(profile.nis)}</div></div>` : ''}
+      <hr class="profil-divider">
+      <div class="profil-sub">Ubah Nama</div>
+      <input type="text" class="portal-input" id="pf-nama-baru" value="${escHtml(profile.full_name)}" maxlength="100" placeholder="Nama lengkap baru" autocomplete="off">
+      <button type="button" class="btn-profil-save" id="btn-pf-nama">Simpan Nama</button>
+      <span class="profil-status" id="pf-nama-status"></span>
+      <hr class="profil-divider">
+      <div class="profil-sub">Ubah PIN</div>
+      <input type="password" class="portal-input" id="pf-pin-baru" maxlength="6" inputmode="numeric" pattern="[0-9]*" placeholder="PIN baru (6 angka)" autocomplete="new-password" style="margin-bottom:.4rem">
+      <input type="password" class="portal-input" id="pf-pin-konfirm" maxlength="6" inputmode="numeric" pattern="[0-9]*" placeholder="Konfirmasi PIN baru" autocomplete="new-password">
+      <button type="button" class="btn-profil-save" id="btn-pf-pin">Simpan PIN</button>
+      <span class="profil-status" id="pf-pin-status"></span>
+    </div>`;
+
+  wrap.querySelector('#btn-pf-nama').addEventListener('click', async () => {
+    const nama   = wrap.querySelector('#pf-nama-baru').value.trim();
+    const status = wrap.querySelector('#pf-nama-status');
+    if (!nama) { status.textContent = 'Nama tidak boleh kosong.'; return; }
+    status.textContent = 'Menyimpan…';
+    try {
+      const { error } = await db.from('profiles').update({ full_name: nama }).eq('id', profile.id);
+      if (error) throw error;
+      profile.full_name = nama;
+      wrap.querySelector('#pv-nama').textContent = nama;
+      document.getElementById('siswa-name').textContent = nama;
+      status.textContent = 'Nama berhasil diperbarui.';
+    } catch (err) {
+      status.textContent = 'Gagal: ' + err.message;
+    }
+  });
+
+  wrap.querySelector('#btn-pf-pin').addEventListener('click', async () => {
+    const pinBaru    = wrap.querySelector('#pf-pin-baru').value.trim();
+    const pinKonfirm = wrap.querySelector('#pf-pin-konfirm').value.trim();
+    const status     = wrap.querySelector('#pf-pin-status');
+    if (!pinBaru) { status.textContent = 'PIN tidak boleh kosong.'; return; }
+    if (!/^\d{6}$/.test(pinBaru)) { status.textContent = 'PIN harus 6 digit angka.'; return; }
+    if (pinBaru !== pinKonfirm) { status.textContent = 'Konfirmasi PIN tidak cocok.'; return; }
+    status.textContent = 'Menyimpan…';
+    try {
+      const { error } = await db.auth.updateUser({ password: pinBaru });
+      if (error) throw error;
+      wrap.querySelector('#pf-pin-baru').value = '';
+      wrap.querySelector('#pf-pin-konfirm').value = '';
+      status.textContent = 'PIN berhasil diperbarui.';
+    } catch (err) {
+      status.textContent = 'Gagal: ' + err.message;
+    }
+  });
+
+  return wrap;
+}
+
 function renderEmpty() {
   const el = document.createElement('p');
   el.className = 'empty-state';
@@ -598,6 +661,7 @@ async function init() {
     return;
   }
 
+  _siswaProfile = profile;
   document.getElementById('siswa-name').textContent = profile.full_name;
 
   if (profile.role !== 'SISWA') {
@@ -701,9 +765,31 @@ db.auth.onAuthStateChange(function (event) {
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btn-logout').addEventListener('click', async () => {
     _keluarSengaja = true;
-    // scope: 'global' — SEC-014
     await db.auth.signOut({ scope: 'global' });
     window.location.href = 'index.html';
+  });
+
+  // Bottom nav
+  const navBeranda = document.getElementById('nav-beranda');
+  const navProfil  = document.getElementById('nav-profil');
+  const listEl     = document.getElementById('classroom-list');
+  const profilEl   = document.getElementById('panel-profil');
+
+  navBeranda.addEventListener('click', () => {
+    navBeranda.classList.add('active');
+    navProfil.classList.remove('active');
+    listEl.style.display   = '';
+    profilEl.style.display = 'none';
+  });
+
+  navProfil.addEventListener('click', () => {
+    navProfil.classList.add('active');
+    navBeranda.classList.remove('active');
+    listEl.style.display   = 'none';
+    profilEl.style.display = '';
+    if (!profilEl.hasChildNodes() && _siswaProfile) {
+      profilEl.appendChild(renderProfilSection(_siswaProfile));
+    }
   });
 
   init();

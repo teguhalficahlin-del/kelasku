@@ -1,7 +1,7 @@
 const db   = window.supabaseClient;
 const DAYS = ['SENIN','SELASA','RABU','KAMIS','JUMAT','SABTU'];
-// Profil ortu yang sedang login — dibutuhkan saat mengirim pesan ke guru.
 let _ortuProfileId = null;
+let _ortuProfile   = null;
 
 // ---- Attendance helpers (ortu) ----
 function _todayStr() {
@@ -305,9 +305,7 @@ function pesanItemHtml(m) {
 function komposerHtml(idKotak, placeholder, labelTombol) {
   return `<div style="margin-top:.5rem">
     <textarea id="${idKotak}" rows="2" maxlength="1000" placeholder="${escHtml(placeholder)}"
-      style="width:100%;box-sizing:border-box;padding:.5rem;border-radius:.4rem;
-      border:1px solid var(--color-border,rgba(255,255,255,.15));background:transparent;
-      color:inherit;font-family:inherit;font-size:.9rem;resize:vertical"></textarea>
+      class="portal-textarea"></textarea>
     <div style="display:flex;align-items:center;gap:.5rem;margin-top:.35rem">
       <button type="button" id="${idKotak}-btn"
         style="padding:.35rem .9rem;border:none;border-radius:.35rem;background:var(--gold);
@@ -400,6 +398,36 @@ function renderPesanGuruSection(classroom, studentId) {
 
   pasangCollapse(title, body);
 
+  let _belumDibaca = 0;
+
+  function updateBadge(n) {
+    title.querySelector('.badge-unread')?.remove();
+    if (n > 0) {
+      const b = document.createElement('span');
+      b.className = 'badge-unread';
+      b.textContent = n;
+      title.appendChild(b);
+    }
+  }
+
+  // Mark as read when user opens section
+  title.addEventListener('click', () => {
+    setTimeout(async () => {
+      if (title.getAttribute('aria-expanded') === 'true' && _belumDibaca > 0) {
+        _belumDibaca = 0;
+        updateBadge(0);
+        try {
+          await db.from('parent_messages')
+            .update({ read_at: new Date().toISOString() })
+            .eq('classroom_id', classroom.id)
+            .eq('student_id', studentId)
+            .eq('author_role', 'GURU')
+            .is('read_at', null);
+        } catch (_) { /* silent — RLS mungkin belum izinkan */ }
+      }
+    }, 0);
+  });
+
   const idKotak = `pesan-${classroom.id}`;
 
   function render(rows) {
@@ -415,7 +443,11 @@ function renderPesanGuruSection(classroom, studentId) {
   }
 
   getChildMessages(classroom.id, studentId)
-    .then(render)
+    .then(rows => {
+      _belumDibaca = rows.filter(m => m.author_role === 'GURU' && !m.read_at).length;
+      updateBadge(_belumDibaca);
+      render(rows);
+    })
     .catch(err => {
       console.error('pesan', err);
       body.innerHTML = '<p class="att-empty">Gagal memuat pesan. Coba muat ulang halaman.</p>';
@@ -566,9 +598,7 @@ function renderForumSection(classroom, linkedStudentId) {
       </div>
       <div class="forum-komentar-form" data-pid="${escHtml(p.id)}" style="margin-top:.35rem">
         <textarea rows="2" maxlength="500" placeholder="Tulis komentar…"
-          style="width:100%;box-sizing:border-box;padding:.4rem;border-radius:.4rem;
-          border:1px solid var(--color-border,rgba(255,255,255,.15));background:transparent;
-          color:inherit;font-family:inherit;font-size:.85rem;resize:vertical"></textarea>
+          class="portal-textarea"></textarea>
         <button type="button" style="margin-top:.25rem;padding:.3rem .7rem;
           background:var(--gold);color:var(--text-on-gold,#000);border:none;
           border-radius:.4rem;cursor:pointer;font-family:inherit;font-size:.85rem">Kirim</button>
@@ -623,14 +653,10 @@ function renderForumSection(classroom, linkedStudentId) {
       <summary style="cursor:pointer;font-size:.9rem;font-weight:600;list-style:none">+ Tulis Posting Baru</summary>
       <div style="margin-top:.5rem;display:flex;flex-direction:column;gap:.4rem">
         <input type="text" id="forum-ortu-title-${classroomId}" placeholder="Judul (opsional)" maxlength="200"
-          style="width:100%;box-sizing:border-box;padding:.35rem .6rem;border-radius:.4rem;
-          border:1px solid var(--color-border,rgba(255,255,255,.15));background:transparent;
-          color:inherit;font-family:inherit;font-size:.9rem">
+          class="portal-input">
         <textarea id="forum-ortu-content-${classroomId}" rows="3" maxlength="2000" required
           placeholder="Tulis pesan untuk guru…"
-          style="width:100%;box-sizing:border-box;padding:.4rem .6rem;border-radius:.4rem;
-          border:1px solid var(--color-border,rgba(255,255,255,.15));background:transparent;
-          color:inherit;font-family:inherit;font-size:.9rem;resize:vertical"></textarea>
+          class="portal-textarea" style="margin-top:.35rem"></textarea>
         <label style="font-size:.85rem;display:flex;align-items:center;gap:.4rem">
           <input type="checkbox" id="forum-ortu-vis-${classroomId}">
           Tampilkan juga ke anak saya
@@ -934,6 +960,67 @@ function renderChildGradesSection(classroomId, studentId, namaAnak, namaAnakSeke
   return wrap;
 }
 
+function renderProfilSection(profile) {
+  const wrap = document.createElement('div');
+  wrap.innerHTML = `
+    <div class="profil-section">
+      <div class="profil-title">Profil Saya</div>
+      <div class="profil-field">
+        <div class="profil-label">Nama</div>
+        <div class="profil-value" id="pv-nama-ortu">${escHtml(profile.full_name)}</div>
+      </div>
+      <hr class="profil-divider">
+      <div class="profil-sub">Ubah Nama</div>
+      <input type="text" class="portal-input" id="pf-nama-ortu" value="${escHtml(profile.full_name)}" maxlength="100" placeholder="Nama baru" autocomplete="off">
+      <button type="button" class="btn-profil-save" id="btn-pf-nama-ortu">Simpan Nama</button>
+      <span class="profil-status" id="pf-nama-ortu-status"></span>
+      <hr class="profil-divider">
+      <div class="profil-sub">Ubah PIN</div>
+      <input type="password" class="portal-input" id="pf-pin-ortu" maxlength="6" inputmode="numeric" pattern="[0-9]*" placeholder="PIN baru (6 angka)" autocomplete="new-password" style="margin-bottom:.4rem">
+      <input type="password" class="portal-input" id="pf-pin-ortu-konfirm" maxlength="6" inputmode="numeric" pattern="[0-9]*" placeholder="Konfirmasi PIN baru" autocomplete="new-password">
+      <button type="button" class="btn-profil-save" id="btn-pf-pin-ortu">Simpan PIN</button>
+      <span class="profil-status" id="pf-pin-ortu-status"></span>
+    </div>`;
+
+  wrap.querySelector('#btn-pf-nama-ortu').addEventListener('click', async () => {
+    const nama   = wrap.querySelector('#pf-nama-ortu').value.trim();
+    const status = wrap.querySelector('#pf-nama-ortu-status');
+    if (!nama) { status.textContent = 'Nama tidak boleh kosong.'; return; }
+    status.textContent = 'Menyimpan…';
+    try {
+      const { error } = await db.from('profiles').update({ full_name: nama }).eq('id', profile.id);
+      if (error) throw error;
+      profile.full_name = nama;
+      wrap.querySelector('#pv-nama-ortu').textContent = nama;
+      document.getElementById('ortu-name').textContent = nama;
+      status.textContent = 'Nama berhasil diperbarui.';
+    } catch (err) {
+      status.textContent = 'Gagal: ' + err.message;
+    }
+  });
+
+  wrap.querySelector('#btn-pf-pin-ortu').addEventListener('click', async () => {
+    const pinBaru    = wrap.querySelector('#pf-pin-ortu').value.trim();
+    const pinKonfirm = wrap.querySelector('#pf-pin-ortu-konfirm').value.trim();
+    const status     = wrap.querySelector('#pf-pin-ortu-status');
+    if (!pinBaru) { status.textContent = 'PIN tidak boleh kosong.'; return; }
+    if (!/^\d{6}$/.test(pinBaru)) { status.textContent = 'PIN harus 6 digit angka.'; return; }
+    if (pinBaru !== pinKonfirm) { status.textContent = 'Konfirmasi PIN tidak cocok.'; return; }
+    status.textContent = 'Menyimpan…';
+    try {
+      const { error } = await db.auth.updateUser({ password: pinBaru });
+      if (error) throw error;
+      wrap.querySelector('#pf-pin-ortu').value = '';
+      wrap.querySelector('#pf-pin-ortu-konfirm').value = '';
+      status.textContent = 'PIN berhasil diperbarui.';
+    } catch (err) {
+      status.textContent = 'Gagal: ' + err.message;
+    }
+  });
+
+  return wrap;
+}
+
 function renderEmpty() {
   const el = document.createElement('p');
   el.className = 'empty-state';
@@ -964,6 +1051,7 @@ async function init() {
   }
 
   _ortuProfileId = profile.id;
+  _ortuProfile   = profile;
   document.getElementById('ortu-name').textContent = session.user.user_metadata?.nama || profile.full_name;
 
   if (profile.role !== 'ORTU') {
@@ -1105,9 +1193,31 @@ db.auth.onAuthStateChange(function (event) {
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btn-logout').addEventListener('click', async () => {
     _keluarSengaja = true;
-    // scope: 'global' — SEC-014
     await db.auth.signOut({ scope: 'global' });
     window.location.href = 'index.html';
+  });
+
+  // Bottom nav
+  const navBeranda = document.getElementById('nav-beranda');
+  const navProfil  = document.getElementById('nav-profil');
+  const listEl     = document.getElementById('classroom-list');
+  const profilEl   = document.getElementById('panel-profil');
+
+  navBeranda.addEventListener('click', () => {
+    navBeranda.classList.add('active');
+    navProfil.classList.remove('active');
+    listEl.style.display   = '';
+    profilEl.style.display = 'none';
+  });
+
+  navProfil.addEventListener('click', () => {
+    navProfil.classList.add('active');
+    navBeranda.classList.remove('active');
+    listEl.style.display   = 'none';
+    profilEl.style.display = '';
+    if (!profilEl.hasChildNodes() && _ortuProfile) {
+      profilEl.appendChild(renderProfilSection(_ortuProfile));
+    }
   });
 
   init();
