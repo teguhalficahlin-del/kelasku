@@ -522,13 +522,14 @@ main h2 {
   padding: 0 .25rem env(safe-area-inset-bottom, 0);
 }
 .bottom-nav::-webkit-scrollbar { display: none; }
-.bottom-nav-btn {
+.bottom-nav .bottom-nav-btn {
   display: flex !important;
   flex-direction: column !important;
   align-items: center !important;
   justify-content: center !important;
   gap: .2rem !important;
   padding: .55rem .75rem .5rem !important;
+  width: auto !important;
   min-width: 4.25rem !important;
   flex-shrink: 0 !important;
   background: none !important;
@@ -543,15 +544,16 @@ main h2 {
   min-height: unset !important;
   transition: color .15s;
   line-height: 1;
+  margin-top: 0 !important;
 }
-.bottom-nav-btn svg {
+.bottom-nav .bottom-nav-btn svg {
   width: 1.35rem; height: 1.35rem;
   stroke: currentColor; fill: none;
   stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
   flex-shrink: 0;
 }
-.bottom-nav-btn:hover { color: var(--text-secondary) !important; }
-.bottom-nav-btn.active {
+.bottom-nav .bottom-nav-btn:hover { color: var(--text-secondary) !important; }
+.bottom-nav .bottom-nav-btn.active {
   color: var(--gold) !important;
   background: none !important;
   border-color: transparent !important;
