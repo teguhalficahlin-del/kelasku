@@ -1278,7 +1278,7 @@ Deno.serve(async (req) => {
     campuran_kemampuan: 'Sebagian murid sedang PKL',
   };
   const inputGuru = {
-    kondisi_kelas: KONDISI_LABEL[kondisiKelasKode] ?? kondisiKelasKode || null,
+    kondisi_kelas: (KONDISI_LABEL[kondisiKelasKode] ?? kondisiKelasKode) || null,
     jumlah_murid:  jumlahMurid,
   };
 
