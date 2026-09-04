@@ -1227,7 +1227,7 @@ td { padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border); }
   border-color: var(--danger);
 }
 
-/* ── Tab navigation ── */
+/* ── Tab navigation (legacy — dipertahankan untuk halaman lain) ── */
 .tab-bar {
   display: flex;
   gap: .375rem;
@@ -1255,6 +1255,68 @@ td { padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border); }
   background: var(--gold-muted);
   border-color: var(--gold);
   color: var(--gold);
+}
+
+/* ── Bottom navigation bar ── */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  background: var(--bg-surface, #14141e);
+  border-top: 1px solid var(--border);
+  z-index: 200;
+  padding: 0 .25rem env(safe-area-inset-bottom, 0);
+}
+.bottom-nav::-webkit-scrollbar { display: none; }
+
+.bottom-nav-btn {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: .2rem !important;
+  padding: .55rem .75rem .5rem !important;
+  min-width: 4.25rem !important;
+  flex-shrink: 0 !important;
+  background: none !important;
+  border: none !important;
+  border-radius: 0 !important;
+  color: var(--text-muted) !important;
+  cursor: pointer;
+  font-size: .6rem !important;
+  font-weight: 500 !important;
+  font-family: inherit;
+  white-space: nowrap !important;
+  min-height: unset !important;
+  transition: color .15s;
+  line-height: 1;
+}
+.bottom-nav-btn svg {
+  width: 1.35rem;
+  height: 1.35rem;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex-shrink: 0;
+}
+.bottom-nav-btn:hover { color: var(--text-secondary) !important; }
+.bottom-nav-btn.active {
+  color: var(--gold) !important;
+  background: none !important;
+  border-color: transparent !important;
+}
+
+/* Beri ruang di bawah agar konten tidak tertutup bottom-nav */
+body.dashboard main {
+  padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0));
 }
 
 /* ── Panel collapse ── */
