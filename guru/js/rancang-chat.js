@@ -1091,6 +1091,14 @@
       const skip = getNextQuestion('KONTEKS_CP', 'konfirmasi_program_keahlian', _chat.collected_answers);
       if (skip) firstToAsk = skip;
     }
+    if (phase === 'KONTEKS_MODUL') {
+      const pk = String(answerValue('program_keahlian') || '').trim();
+      if (pk && pk !== '__lainnya__') {
+        _chat.collected_answers['konfirmasi_program_keahlian_modul'] = answer('ya', 'otomatis', true);
+        const skip = getNextQuestion('KONTEKS_MODUL', 'konfirmasi_program_keahlian_modul', _chat.collected_answers);
+        if (skip) firstToAsk = skip;
+      }
+    }
     askQuestion(firstToAsk);
   }
 
