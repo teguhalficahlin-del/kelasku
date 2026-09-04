@@ -80,6 +80,105 @@ Kalau salah satu dari dua verifikasi ini belum dilakukan, JANGAN lanjut ke peker
 
 ---
 
+## 4b. Mode C — Sprint Fix
+
+Mode ini digunakan saat Romo meminta perbaikan terstruktur atas temuan audit atau bug list. Setiap sprint mengikuti 5 fase berikut secara ketat.
+
+**KLASIFIKASI SPRINT** — wajib dicantumkan di baris pertama setiap prompt sprint:
+
+```
+KLASIFIKASI SPRINT:
+- Tipe: [JS/HTML only | Edge Function | Migration DB | Campuran]
+- Auto-execute FASE 4: [YA | TIDAK — tunggu konfirmasi Romo]
+```
+
+| Tipe | Contoh | Auto-execute FASE 4? |
+|------|--------|----------------------|
+| JS/HTML only | `*.js`, `*.html` di folder portal | YA — jika semua gate lulus. git push boleh otomatis tanpa konfirmasi terpisah |
+| Edge Function | `supabase/functions/**` | TIDAK — STOP setelah FASE 3, tunggu konfirmasi Romo |
+| Migration DB | `supabase/migrations/**` | TIDAK — STOP setelah FASE 3, tunggu konfirmasi Romo |
+| Campuran | Kombinasi tipe di atas | Ikuti aturan tipe paling ketat |
+
+---
+
+**PRA-FASE 0 — KONFIRMASI PEMAHAMAN**
+
+Sebelum memulai apapun, nyatakan pemahaman atas perintah Romo dalam bahasa pengguna: apa yang akan diperbaiki, siapa yang terdampak, dan apa yang akan berubah dari sudut pandang guru/siswa/ortu — bukan bahasa teknis. Tunggu Romo tidak membantah sebelum lanjut ke FASE 0.
+
+---
+
+**FASE 0 — BASELINE SNAPSHOT**
+
+- Jalankan `pwd`, konfirmasi path mengandung `MIClass`
+- Baca `AGENT_RULES.md` + `CLAUDE.md`
+- Catat state awal: `git log --oneline -3` + `git status --short` — tampilkan verbatim
+- **GATE 0:** Jika ditemukan kondisi tidak terduga yang mengubah scope sprint → STOP, laporkan, jangan lanjut
+
+---
+
+**FASE 1 — MAPPING AKTUAL**
+
+- Untuk setiap finding dalam prompt: jalankan grep/read aktual ke file, tampilkan baris yang ditemukan verbatim di badan teks
+- Identifikasi semua file yang akan disentuh
+- Grep semua pemanggil dari fungsi/event yang akan diubah (event listeners, callback, dynamic caller)
+- **GATE 1:** Jika finding tidak ditemukan di lokasi yang diharapkan, atau lokasi berbeda dari deskripsi → STOP, laporkan detail perbedaan, jangan lanjut ke FASE 2
+
+---
+
+**FASE 2 — DIFF + TARGETED TEST PLAN**
+
+- Tulis diff lengkap untuk setiap file yang akan diubah, verbatim di badan teks:
+  ```diff
+  --- a/path/file
+  +++ b/path/file
+  @@ ... @@
+  - baris lama
+  + baris baru
+  ```
+- Untuk setiap finding yang di-fix, tulis langkah verifikasi manual konkret di browser yang membuktikan bug tidak ada lagi
+- Analisis dampak per file: fungsi yang terpengaruh, fungsi yang TIDAK terpengaruh, potensi regresi
+- **GATE 2:** Jika tidak bisa menulis langkah verifikasi konkret, atau analisis dampak menemukan risiko tinggi → STOP, laporkan, jangan lanjut ke FASE 3
+
+---
+
+**FASE 3 — APPLY + VERIFIKASI**
+
+- Simpan backup: `git stash push -m "backup-sebelum-[nama-sprint]"`
+- Apply perubahan ke working tree
+- Jalankan verifikasi dari FASE 2 — tampilkan hasilnya verbatim
+- **GATE 3:** Jika verifikasi gagal →
+  ```
+  git checkout -- .
+  git stash drop
+  ```
+  STOP, laporkan output lengkap, jangan lanjut ke FASE 4
+
+**PRA-FASE 4 — PERBANDINGAN SISI PENGGUNA**
+
+Sajikan perbandingan dari sudut pandang pengguna — bukan diff kode:
+- **Sebelum**: apa yang guru/siswa/ortu lihat atau alami sebelum perubahan ini
+- **Sesudah**: apa yang mereka akan lihat atau alami setelah perubahan ini
+
+Baru kemudian minta konfirmasi Romo untuk lanjut ke FASE 4.
+
+---
+
+**FASE 4 — COMMIT + PUSH**
+
+- Hanya dieksekusi jika GATE 0 + 1 + 2 + 3 semua lulus
+- Jika Auto-execute FASE 4: TIDAK → STOP setelah FASE 3, tampilkan semua hasil, tunggu konfirmasi eksplisit Romo
+- Jika Auto-execute FASE 4: YA (JS/HTML only):
+  ```
+  git add [file spesifik — BUKAN git add .]
+  git commit -m "fix([scope]): [deskripsi ringkas findings]"
+  git push origin main
+  ```
+  Laporkan verbatim: commit hash, file yang berubah. STOP.
+
+> Self-review 5 poin (aturan #7) tetap wajib di dalam FASE 3, sebelum apply. Gate bukan pengganti self-review — keduanya wajib dijalankan.
+
+---
+
 ## 5. Standing Rule Teknis — Supabase/PostgreSQL
 
 - **SECURITY DEFINER**: setiap `CREATE FUNCTION SECURITY DEFINER` baru wajib disertai, di migration yang sama: `GRANT EXECUTE` ke role yang dituju (biasanya `authenticated`), lalu `REVOKE EXECUTE FROM anon` (wajib), lalu `REVOKE EXECUTE FROM PUBLIC` (defense-in-depth). Jangan andalkan `REVOKE FROM PUBLIC` saja — Supabase memberi grant eksplisit ke `anon` yang tidak ikut tercabut oleh revoke dari `PUBLIC`.
@@ -131,6 +230,7 @@ Cantumkan checklist ini (ringkas, boleh dalam bentuk daftar centang) di akhir se
 
 - **27 Jul 2026** — Dokumen awal disusun dari evaluasi satu sesi kerja intensif di proyek pendahulu. Tiga insiden "laporan sukses tanpa bukti verbatim" dan satu kesalahan SQL (`MIN(uuid)` yang baru ketahuan saat deploy gagal) jadi dasar penyusunan aturan #1, #2, dan #7.
 - **30 Jul 2026** — Diadaptasi ke MIClass. Aturan teknis (SECURITY DEFINER, RLS, commit workflow) tetap berlaku tanpa perubahan.
+- **4 Sep 2026** — Tambah **§4b Mode C — Sprint Fix**: 5 fase sprint (Pra-0, 0–4) diadaptasi dari SIP SMK. Diaktifkan saat Romo meminta perbaikan terstruktur atas temuan audit atau bug list. Tiga penyesuaian dari versi SIP SMK: tanpa Playwright (test suite MIClass belum ada), tanpa "Freebuff Audit" branding, verifikasi berbasis browser manual.
 - **25 Agu 2026** — Penutupan sisa gap adaptasi. Tambahan: tabel identitas proyek di #0 (repo, Pages, project ref, anchor, role); penegasan "verbatim = badan pesan, bukan panel tool" di #2; batas baca ikut berlaku di #3; catatan GitHub Pages auto-live di #4; **section #5b baru** — standing rule tenant isolation khusus MIClass (`classroom_id`, `fn_current_profile_id()`, `fn_is_classroom_owner`/`fn_is_classroom_member`, `teacher_id` denormalisasi, uji lintas classroom); dua item baru di checklist #7. Detail insiden proyek pendahulu di entri 27 Jul dipangkas — pelajarannya dipertahankan, konteks non-MIClass dibuang.
 
 
