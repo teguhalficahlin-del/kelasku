@@ -965,11 +965,6 @@
         _chat._modul_just_active = false;
         saveState();
       }
-      const atpPreview = renderAtpDonePreview();
-      const atpBubble  = atpPreview
-        ? `✓ ATP telah selesai ditinjau.\n\n${atpPreview}`
-        : '✓ ATP telah selesai ditinjau.';
-      rcAppendBubble('ai', atpBubble);
       const tpList = _chat.atp_draft || [];
       if (!tpList.length) {
         rcRenderChips([{ value: '__kembali_utama__', label: '← Kembali ke layar utama' }], function () {
@@ -977,7 +972,6 @@
         });
         return;
       }
-      rcAppendBubble('ai', 'TP mana yang ingin Anda rancang dulu?');
       function renderTpChips(modulByNomor) {
         const stream = document.getElementById('rc-stream');
         if (!stream) return;
@@ -1053,20 +1047,6 @@
             list.appendChild(modulBtn);
           }
         });
-
-        const nantiBubble = document.createElement('button');
-        nantiBubble.type = 'button';
-        nantiBubble.className = 'rp-chip';
-        nantiBubble.textContent = 'Nanti saja';
-        nantiBubble.addEventListener('click', function () {
-          list.remove();
-          rcClearChips();
-          rcRenderChips(
-            [{ value: '__kembali_utama__', label: '← Kembali ke layar utama' }],
-            function () { kembaliKeLayarUtama(); }
-          );
-        });
-        list.appendChild(nantiBubble);
 
         stream.appendChild(list);
         list.scrollIntoView({ behavior: 'smooth', block: 'start' });
