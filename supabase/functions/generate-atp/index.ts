@@ -134,7 +134,7 @@ const SYSTEM_PROMPT =
   '1. Hasilkan HANYA JSON array TP — tidak ada teks narasi di luar array.\n' +
   '2. Setiap TP memiliki field wajib:\n' +
   '   - nomor: integer berurutan dari 1\n' +
-  '   - judul: string non-kosong, konkret, dan terukur\n' +
+  '   - judul: string non-kosong, konkret, terukur, maksimal 12 kata\n' +
   '   - elemen: array ID elemen CP (hanya dari daftar yang diberikan — JANGAN membuat ID baru)\n' +
   '   - jp_alokasi: integer > 0 (alokasi JP untuk TP ini)\n' +
   '   - jp_pertemuan: array integer, sum-nya HARUS sama persis dengan jp_alokasi\n' +
@@ -146,11 +146,27 @@ const SYSTEM_PROMPT =
   '6. Gunakan program_keahlian untuk menentukan konteks TP — kosakata, situasi kerja, dan\n' +
   '   dokumen yang disebutkan harus relevan dengan program keahlian tersebut.\n' +
   '   Judul TP harus spesifik dan kontekstual, bukan generik.\n\n' +
+  'PANDUAN BAHASA JUDUL TP:\n' +
+  'Judul TP harus ditulis dalam bahasa yang bisa dipahami guru SMK tanpa perlu membuka glosarium.\n' +
+  'Gunakan kalimat aktif yang menyebut kegiatan nyata siswa dan konteks dunia kerja secara natural.\n\n' +
+  'DILARANG menggunakan istilah berikut di judul maupun field catatan/konteks:\n' +
+  '  asesmen formatif, asesmen sumatif, diferensiasi, scaffolding, HOTS, taksonomi Bloom,\n' +
+  '  berpikir kritis (kecuali sebagai kegiatan yang dijelaskan, bukan label),\n' +
+  '  kompetensi inti, kompetensi dasar, indikator pencapaian, capaian pembelajaran (di judul).\n\n' +
+  'Contoh judul BAIK (natural, kontekstual, mudah dibaca guru):\n' +
+  '  "Membaca SOP K3 dan menjawab pertanyaan keselamatan kerja"\n' +
+  '  "Menulis email keluhan pelanggan dengan format bisnis yang benar"\n' +
+  '  "Menyimak instruksi teknisi dan mencatat langkah perbaikan"\n' +
+  '  "Berdiskusi tentang prosedur audit mutu di tempat kerja"\n\n' +
+  'Contoh judul BURUK (jargon akademik, terlalu panjang, tidak konkret):\n' +
+  '  "Mengidentifikasi dan menganalisis fitur kebahasaan teks prosedur dalam konteks komunikasi profesional"\n' +
+  '  "Mengembangkan kemampuan berpikir kritis melalui analisis teks argumentatif multimoda"\n' +
+  '  "Mengimplementasikan strategi diferensiasi dalam penguasaan kosakata teknis"\n\n' +
   'FORMAT OUTPUT:\n' +
   '[\n' +
   '  {\n' +
   '    "nomor": 1,\n' +
-  '    "judul": "Judul TP yang konkret",\n' +
+  '    "judul": "Membaca instruksi kerja dan menjawab pertanyaan lisan",\n' +
   '    "elemen": ["id_elemen"],\n' +
   '    "jp_alokasi": 8,\n' +
   '    "jp_pertemuan": [4, 4],\n' +
