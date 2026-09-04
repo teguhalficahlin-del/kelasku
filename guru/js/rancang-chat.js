@@ -1544,11 +1544,7 @@
         const saved = await acceptAtp(_chat.atp_induk_id, _chat.atp_updated_at);
         _chat.atp_updated_at = saved.updated_at;
         saveState();
-        const confirmMsg = 'ATP telah diterima. Anda dapat mulai merancang pembelajaran.';
-        rcAppendBubble('ai', confirmMsg);
-        addToHistory('ai', confirmMsg);
         recordAnswer(q.id, value, 'guru', true);
-        rcMakeBubbleEditable(guruBubble, q.id, phaseAtAsk, handleEditAnswer);
         await startPhase('DONE');
       } catch (err) {
         // T68: conflict = data stale (muat ulang), error lain = retryable
