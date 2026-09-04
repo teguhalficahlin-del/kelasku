@@ -819,6 +819,17 @@ INKLUSIVITAS:
 - Dukungan diberikan per keterampilan, bersifat fleksibel, dan tidak permanen.
 - Kesalahan adalah data - bukan kegagalan.
 
+KONDISI KELAS (dari konteks_pembelajaran.kondisi_kelas_modul):
+- reguler: satu jalur instruksi. tindak_lanjut.pilihan_dukungan berisi variasi
+  pengayaan ringan, bukan pemilahan kelompok.
+- diferensiasi: sub_langkah MEMAHAMI dan MENGAPLIKASI wajib menyertakan minimal
+  satu opsi lebih mudah dan satu opsi lebih menantang. tindak_lanjut.pilihan_dukungan
+  wajib berisi ≥ 2 opsi bertingkat (untuk yang butuh bantuan / untuk yang sudah lancar).
+- inklusif: sub_langkah MEMAHAMI menyertakan instruksi adaptasi fisik atau sensorik.
+  catatan_guru memuat minimal satu catatan tentang akomodasi murid berkebutuhan khusus.
+- campuran_kemampuan: pertemuan menyertakan instruksi untuk murid yang hadir parsial.
+  tindak_lanjut menyertakan opsi catch-up mandiri.
+
 ═════════════════════════════════════════════════════════════════
 ATURAN KONTEKS INPUT
 ═════════════════════════════════════════════════════════════════
