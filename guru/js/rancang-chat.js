@@ -2146,7 +2146,7 @@
       ['Mata Pelajaran', id.mata_pelajaran],
       ['Jenjang / Fase', `${id.jenjang ?? '-'} / Fase ${id.fase ?? '-'}`],
       ['Nomor TP',       id.nomor_tp],
-      ['Jumlah Murid',   id.jumlah_murid],
+
       ['Pertemuan',      id.jumlah_pertemuan ? `${id.jumlah_pertemuan} × ${id.jp_per_pertemuan ?? '?'} JP` : null],
       ['Total Alokasi',  id.alokasi_waktu_total_menit ? `${id.alokasi_waktu_total_menit} menit` : null],
       ['Elemen CP',      Array.isArray(id.elemen_cp) ? id.elemen_cp.join(', ') : id.elemen_cp],
@@ -2156,11 +2156,11 @@
     resmi += sec('Identitas', idLines);
 
     // Konteks Murid
-    if (km.kondisi_kelas || km.jumlah_murid || km.profil_singkat) {
+    if (km.kesiapan_awal?.length || km.variasi_kemampuan || km.kebutuhan_dukungan?.length) {
       const kmHtml = [
-        km.jumlah_murid ? `<div class="mv4-row"><span class="mv4-label">Jumlah Murid</span><span>${esc(km.jumlah_murid)}</span></div>` : '',
-        km.kondisi_kelas ? `<div class="mv4-row"><span class="mv4-label">Kondisi Kelas</span><span>${esc(km.kondisi_kelas)}</span></div>` : '',
-        km.profil_singkat ? `<div class="mv4-row"><span class="mv4-label">Profil Singkat</span><span>${esc(km.profil_singkat)}</span></div>` : '',
+        km.variasi_kemampuan ? `<div class="mv4-row"><span class="mv4-label">Variasi Kemampuan</span><span>${esc(km.variasi_kemampuan)}</span></div>` : '',
+        km.kesiapan_awal?.length ? `<div class="mv4-row"><span class="mv4-label">Kesiapan Awal</span><span>${km.kesiapan_awal.map(esc).join('; ')}</span></div>` : '',
+        km.kebutuhan_dukungan?.length ? `<div class="mv4-row"><span class="mv4-label">Kebutuhan Dukungan</span><span>${km.kebutuhan_dukungan.map(esc).join('; ')}</span></div>` : '',
       ].join('');
       resmi += sec('Konteks Murid', kmHtml);
     }
@@ -2170,7 +2170,7 @@
       const kktpHtml = kktp.map(k =>
         `<div class="mv4-kktp-item"><strong>${esc(k.id_kktp ?? '?')}</strong> — ${esc(k.kriteria ?? '-')}`+
         (k.ambang_batas != null ? ` <em>(≥${k.ambang_batas})</em>` : '') +
-        (k.bukti ? `<div class="mv4-sub">Bukti: ${esc(k.bukti)}</div>` : '') +
+        (Array.isArray(k.instrumen_bukti) && k.instrumen_bukti.length ? `<div class="mv4-sub">Instrumen Bukti: ${k.instrumen_bukti.map(esc).join(', ')}</div>` : '') +
         `</div>`
       ).join('');
       resmi += sec('KKTP', kktpHtml);
@@ -2242,10 +2242,12 @@
     // Tindak Lanjut
     const tlHtml = (() => {
       let out = '';
-      if (Array.isArray(tl.pengayaan) && tl.pengayaan.length)
-        out += `<div class="mv4-row"><span class="mv4-label">Pengayaan</span><span>${tl.pengayaan.map(esc).join('; ')}</span></div>`;
-      if (Array.isArray(tl.remediasi) && tl.remediasi.length)
-        out += `<div class="mv4-row"><span class="mv4-label">Remediasi</span><span>${tl.remediasi.map(esc).join('; ')}</span></div>`;
+      if (Array.isArray(tl.pilihan_dukungan) && tl.pilihan_dukungan.length)
+        out += `<div class="mv4-row"><span class="mv4-label">Pilihan Dukungan</span><span>${tl.pilihan_dukungan.map(esc).join('; ')}</span></div>`;
+      if (Array.isArray(tl.dukungan_terstruktur) && tl.dukungan_terstruktur.length)
+        out += `<div class="mv4-row"><span class="mv4-label">Dukungan Terstruktur</span><span>${tl.dukungan_terstruktur.map(esc).join('; ')}</span></div>`;
+      if (Array.isArray(tl.tantangan_lanjutan) && tl.tantangan_lanjutan.length)
+        out += `<div class="mv4-row"><span class="mv4-label">Tantangan Lanjutan</span><span>${tl.tantangan_lanjutan.map(esc).join('; ')}</span></div>`;
       return out;
     })();
     if (tlHtml) resmi += sec('Tindak Lanjut', tlHtml);
@@ -2259,23 +2261,27 @@
       naskah = '<div class="mv4-empty">Naskah fasilitasi belum tersedia.</div>';
     } else {
       nf.forEach(np => {
-        const subArr = Array.isArray(np.sub_langkah) ? np.sub_langkah : [];
-        const subHtml = subArr.map(sl => {
-          const ucapan = Array.isArray(sl.ucapan_guru) ? sl.ucapan_guru : [];
-          const aksi   = Array.isArray(sl.aksi_guru)   ? sl.aksi_guru   : [];
-          const tanya  = Array.isArray(sl.pertanyaan_kunci) ? sl.pertanyaan_kunci : [];
-          const kesulitan = Array.isArray(sl.jika_kesulitan) ? sl.jika_kesulitan : [];
-          return `<div class="mv4-ns-sl">`+
-            `<div class="mv4-ns-ref">${esc(sl.ref ?? '?')}</div>`+
-            (ucapan.length ? `<div class="mv4-ns-group"><div class="mv4-ns-group-label">Ucapan Guru</div>`+
-              ucapan.map(u => `<div class="mv4-ns-item">"${esc(u)}"</div>`).join('')+`</div>` : '')+
-            (aksi.length ? `<div class="mv4-ns-group"><div class="mv4-ns-group-label">Aksi Guru</div>`+
-              aksi.map(a => `<div class="mv4-ns-item">→ ${esc(a)}</div>`).join('')+`</div>` : '')+
-            (tanya.length ? `<div class="mv4-ns-group"><div class="mv4-ns-group-label">Pertanyaan Kunci</div>`+
-              tanya.map(t => `<div class="mv4-ns-item">? ${esc(t)}</div>`).join('')+`</div>` : '')+
-            (kesulitan.length ? `<div class="mv4-ns-group mv4-ns-tip"><div class="mv4-ns-group-label">Jika Kesulitan</div>`+
-              kesulitan.map(k => `<div class="mv4-ns-item">⚠ ${esc(k)}</div>`).join('')+`</div>` : '')+
-            `</div>`;
+        const lkArr = Array.isArray(np.langkah) ? np.langkah : [];
+        const subHtml = lkArr.map(lk => {
+          const slArr = Array.isArray(lk.sub_langkah) ? lk.sub_langkah : [];
+          const slHtml = slArr.map(sl => {
+            const ucapan = Array.isArray(sl.ucapan_guru) ? sl.ucapan_guru : [];
+            const aksi   = Array.isArray(sl.aksi_guru)   ? sl.aksi_guru   : [];
+            const tanya  = Array.isArray(sl.pertanyaan_kunci) ? sl.pertanyaan_kunci : [];
+            const kesulitan = Array.isArray(sl.jika_kesulitan) ? sl.jika_kesulitan : [];
+            return `<div class="mv4-ns-sl">`+
+              `<div class="mv4-ns-ref">${esc(sl.ref ?? '?')}</div>`+
+              (ucapan.length ? `<div class="mv4-ns-group"><div class="mv4-ns-group-label">Ucapan Guru</div>`+
+                ucapan.map(u => `<div class="mv4-ns-item">"${esc(u)}"</div>`).join('')+`</div>` : '')+
+              (aksi.length ? `<div class="mv4-ns-group"><div class="mv4-ns-group-label">Aksi Guru</div>`+
+                aksi.map(a => `<div class="mv4-ns-item">→ ${esc(a)}</div>`).join('')+`</div>` : '')+
+              (tanya.length ? `<div class="mv4-ns-group"><div class="mv4-ns-group-label">Pertanyaan Kunci</div>`+
+                tanya.map(t => `<div class="mv4-ns-item">? ${esc(t)}</div>`).join('')+`</div>` : '')+
+              (kesulitan.length ? `<div class="mv4-ns-group mv4-ns-tip"><div class="mv4-ns-group-label">Jika Kesulitan</div>`+
+                kesulitan.map(k => `<div class="mv4-ns-item">⚠ ${esc(k)}</div>`).join('')+`</div>` : '')+
+              `</div>`;
+          }).join('');
+          return `<div class="mv4-ns-langkah"><div class="mv4-langkah-nama">${esc(lk.nama ?? '?')}</div>${slHtml}</div>`;
         }).join('');
         naskah += `<div class="mv4-section">`+
           `<div class="mv4-section-title">Pertemuan ${np.nomor ?? '?'} — Naskah</div>`+
