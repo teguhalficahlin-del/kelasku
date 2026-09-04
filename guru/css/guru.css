@@ -4882,16 +4882,35 @@ h2.panel-header.open .panel-collapse-arrow {
   margin-top: .35rem;
 }
 
+.forum-input,
+.forum-textarea,
+.forum-comment-input {
+  background: var(--input-bg);
+  border: 1.5px solid var(--input-border);
+  border-radius: var(--input-r);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: var(--fs-body);
+}
+
+.forum-input {
+  width: 100%;
+  padding: .45rem .6rem;
+  box-sizing: border-box;
+}
+
+.forum-textarea {
+  width: 100%;
+  padding: .45rem .6rem;
+  box-sizing: border-box;
+  resize: vertical;
+  min-height: 5rem;
+}
+
 .forum-comment-input {
   flex: 1;
   min-width: 0;
-  border: 1px solid var(--border);
-  border-radius: var(--btn-r);
   padding: .3rem .6rem;
-  font-size: var(--fs-body);
-  background: var(--bg-input, var(--bg-surface));
-  color: var(--text-primary);
-  font-family: inherit;
 }
 
 .forum-no-comment,

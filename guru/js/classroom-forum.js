@@ -281,17 +281,40 @@
   // ── Collapse sections ──────────────────────────────────────────────────────
 
   function initCollapseSections() {
-    const headers = document.querySelectorAll('#panel-forum h2.panel-header');
-    headers.forEach((h2, idx) => {
+    const headers = Array.from(document.querySelectorAll('#panel-forum h2.panel-header'));
+
+    function openSection(h2) {
+      // tutup semua dulu (single expand)
+      headers.forEach(hdr => {
+        if (hdr === h2) return;
+        hdr.classList.remove('open');
+        const b = document.getElementById(hdr.dataset.panel);
+        if (b) b.style.display = 'none';
+      });
+      h2.classList.add('open');
+      const body = document.getElementById(h2.dataset.panel);
+      if (body) body.style.display = '';
+    }
+
+    function closeSection(h2) {
+      h2.classList.remove('open');
+      const body = document.getElementById(h2.dataset.panel);
+      if (body) body.style.display = 'none';
+    }
+
+    headers.forEach(h2 => {
       const body = document.getElementById(h2.dataset.panel);
       if (!body) return;
-      // "Tulis Posting" default terbuka, "Daftar" default terbuka
-      h2.classList.add('open');
-      body.style.display = '';
+      // default tertutup
+      h2.classList.remove('open');
+      body.style.display = 'none';
 
       h2.addEventListener('click', () => {
-        const isOpen = h2.classList.toggle('open');
-        body.style.display = isOpen ? '' : 'none';
+        if (h2.classList.contains('open')) {
+          closeSection(h2);
+        } else {
+          openSection(h2);
+        }
       });
     });
   }
