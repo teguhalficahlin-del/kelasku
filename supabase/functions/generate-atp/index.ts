@@ -343,7 +343,7 @@ Deno.serve(async (req) => {
 
   // ── 8. PANGGIL AI ─────────────────────────────────────────────────────────
 
-  const apiKey = Deno.env.get('ANTHROPIC_API_KEY');
+  const apiKey = Deno.env.get('GOOGLE_API_KEY');
   if (!apiKey) return json({ error: 'Konfigurasi server tidak lengkap.' }, 500);
 
   async function callAI(
@@ -353,24 +353,26 @@ Deno.serve(async (req) => {
     const controller = new AbortController();
     const tid = setTimeout(() => controller.abort(), timeoutMs);
     try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type':    'application/json',
-          'x-api-key':       apiKey,
-          'anthropic-version': '2023-06-01',
+      const contents = messages.map(m => ({
+        role: m.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: m.content }],
+      }));
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+            contents,
+            generationConfig: { maxOutputTokens: 5000 },
+          }),
+          signal: controller.signal,
         },
-        body: JSON.stringify({
-          model:      'claude-sonnet-4-6',
-          max_tokens: 5000,
-          system:     SYSTEM_PROMPT,
-          messages,
-        }),
-        signal: controller.signal,
-      });
-      if (!res.ok) throw new Error(`Anthropic HTTP ${res.status}`);
+      );
+      if (!res.ok) throw new Error(`Gemini HTTP ${res.status}`);
       const b = await res.json();
-      return String(b?.content?.[0]?.text ?? '');
+      return String(b?.candidates?.[0]?.content?.parts?.[0]?.text ?? '');
     } finally {
       clearTimeout(tid);
     }
