@@ -389,8 +389,7 @@ const RANCANG_FLOW = {
     konfirmasi('persetujuan_modul_summary',
       'Ringkasan Modul Ajar siap disusun.\n\nApakah data modul sudah sesuai?', [
         ['generate',       'Ya, buat Modul Ajar'],
-        ['ubah_pertemuan', 'Ubah jumlah pertemuan'],
-        ['ubah_konteks',   'Ubah konteks'],
+        ['ubah_konteks',   'Ubah kondisi kelas'],
         ['ubah_strategi',  'Ubah sumber & strategi'],
         ['ubah_asesmen',   'Ubah asesmen'],
       ], { helpText: 'Generate hanya berjalan setelah persetujuan guru.' }),
