@@ -649,6 +649,23 @@ const SYSTEM_PROMPT = `Kamu adalah ahli perancangan pembelajaran Kurikulum Merde
 Tugasmu: menyusun Modul Ajar lengkap sesuai schema ModulOutput V4.0.
 
 ═════════════════════════════════════════════════════════════════
+TP ANCHOR — TIDAK BOLEH BERGESER
+═════════════════════════════════════════════════════════════════
+
+Field "tp_anchor.tp_teks" di userMessage adalah satu-satunya kompetensi
+yang boleh diajarkan dalam modul ini. Tidak boleh diinterpretasikan ulang,
+diparafrasekan menjadi topik lain, atau digabungkan dengan kompetensi lain.
+
+KKTP          : setiap kriteria harus secara langsung mengukur kemampuan di tp_teks.
+tujuan_pertemuan: harus merupakan tahap membangun kemampuan di tp_teks.
+materi_esensial : hanya materi yang langsung mendukung pencapaian tp_teks.
+instrumen     : hanya mengukur atau memfasilitasi kemampuan di tp_teks.
+
+Contoh: jika tp_teks = "Menyimak permintaan pelanggan dan mencatat ukuran tubuh busana"
+→ KKTP dan pertemuan harus tentang menyimak + mencatat ukuran tubuh, bukan perawatan kain.
+→ DILARANG menggeser ke topik yang terasa serupa, prasyarat, atau topik terkait program keahlian.
+
+═════════════════════════════════════════════════════════════════
 KONTRAK OUTPUT — WAJIB DIPATUHI
 ═════════════════════════════════════════════════════════════════
 
@@ -959,6 +976,12 @@ function buildUserMessageFaseA(params: {
     jumlah_murid:        params.jumlahMurid,
     tp_nomor:            params.nomorTp,
     tp_judul:            params.tpJudul,
+    tp_anchor: {
+      tp_teks:   params.tpJudul,
+      instruksi: 'SEMUA komponen modul (KKTP, pertemuan, materi, instrumen) HARUS ' +
+                 'mengajarkan atau mengukur kemampuan ini persis. ' +
+                 'Bukan variasi, bukan prasyarat, bukan topik terkait.',
+    },
     jumlah_pertemuan:    params.jumlahPertemuan,
     jp_per_pertemuan:    params.jpPerPertemuan,
     durasi_jp:           params.durasiJp,
@@ -1600,9 +1623,27 @@ Deno.serve(async (req) => {
     }
 
     // Merge semua fase → ModulOutput V4.0
+    // Identitas deterministik diambil dari DB params — tidak dari AI output
+    // AI hanya dipercaya untuk dasar_cp, tujuan_pembelajaran, konteks_kejuruan
+    const identitasAI = (faseAOutput.identitas ?? {}) as Record<string, unknown>;
+    const identitasFinal: Record<string, unknown> = {
+      mata_pelajaran:            identitasDB.mapel  || identitasAI.mata_pelajaran,
+      jenjang:                   identitasDB.jenjang || identitasAI.jenjang,
+      fase:                      identitasDB.fase   || identitasAI.fase,
+      nomor_tp:                  nomorTp,
+      jumlah_pertemuan:          jumlahPertemuan,
+      jp_per_pertemuan:          jpPerPertemuan,
+      durasi_jp_menit:           durasiJp,
+      alokasi_waktu_total_menit: jumlahPertemuan * jpPerPertemuan * durasiJp,
+      elemen_cp:                 elemenCp.map(e => e.label),
+      jenis_dokumen:             'Modul Induk; guru mengadaptasi konteks kelas dan program keahlian',
+      konteks_kejuruan:          identitasAI.konteks_kejuruan,
+      dasar_cp:                  identitasAI.dasar_cp,
+      tujuan_pembelajaran:       identitasAI.tujuan_pembelajaran,
+    };
     const merged: unknown = {
       schema_version:         '4.0.0',
-      identitas:              faseAOutput.identitas,
+      identitas:              identitasFinal,
       kktp:                   faseAOutput.kktp,
       konteks_murid:          faseAOutput.konteks_murid,
       materi_esensial:        faseAOutput.materi_esensial,
