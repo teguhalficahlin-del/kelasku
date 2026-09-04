@@ -3,7 +3,7 @@
 
 > Baca SELURUH dokumen ini sebelum mengerjakan apapun.
 > Dokumen ini adalah sumber kebenaran untuk **konteks produk** MIClass.
-> Pasangannya, `AGENT_WORKING_RULES.md`, adalah sumber kebenaran untuk **aturan kerja agen**
+> Pasangannya, `AGENT_RULES.md`, adalah sumber kebenaran untuk **aturan kerja agen**
 > — wajib dibaca juga, dan menang kalau keduanya bertabrakan soal cara kerja.
 >
 > Proyek ini berdiri sendiri: jangan campur dengan proyek pendahulu (SIP SMK) — produk,

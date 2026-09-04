@@ -6,7 +6,7 @@ Disusun 27 Juli 2026 dari evaluasi satu sesi kerja penuh (lihat Changelog di akh
 
 **Pembagian dokumen:**
 - `CLAUDE.md` → konteks produk MIClass (schema, role, portal, status proyek).
-- `AGENT_WORKING_RULES.md` (dokumen ini) → aturan kerja agen. Kalau keduanya bertabrakan soal cara kerja, dokumen ini yang menang.
+- `AGENT_RULES.md` (dokumen ini) → aturan kerja agen. Kalau keduanya bertabrakan soal cara kerja, dokumen ini yang menang.
 
 ---
 
@@ -15,7 +15,7 @@ Disusun 27 Juli 2026 dari evaluasi satu sesi kerja penuh (lihat Changelog di akh
 Sebelum baris kode/perintah pertama dijalankan:
 
 1. **Verifikasi pwd** — pastikan path mengandung `MIClass`.
-2. **Verifikasi dokumen ini sudah dibaca** — di awal respons, sebutkan eksplisit satu kalimat konfirmasi, contoh: *"Sudah membaca AGENT_WORKING_RULES.md (versi 25 Agu 2026)."* Ini bukti telah dibaca, bukan asumsi.
+2. **Verifikasi dokumen ini sudah dibaca** — di awal respons, sebutkan eksplisit satu kalimat konfirmasi, contoh: *"Sudah membaca AGENT_RULES.md (versi Sep 2026)."* Ini bukti telah dibaca, bukan asumsi.
 3. Baca juga `CLAUDE.md` (dan dokumen handoff lain kalau ada) sebelum mulai — sebutkan itu juga sudah dibaca.
 
 Kalau salah satu dari dua verifikasi ini belum dilakukan, JANGAN lanjut ke pekerjaan apapun — laporkan dulu bahwa verifikasi belum lengkap.
@@ -119,7 +119,7 @@ Isolasi data di sini **per classroom**, bukan per sekolah. Tidak ada entitas sek
 Cantumkan checklist ini (ringkas, boleh dalam bentuk daftar centang) di akhir setiap laporan kerja:
 
 - [ ] pwd terverifikasi mengandung "MIClass"
-- [ ] AGENT_WORKING_RULES.md dan CLAUDE.md sudah dibaca — disebutkan eksplisit di awal
+- [ ] AGENT_RULES.md dan CLAUDE.md sudah dibaca — disebutkan eksplisit di awal
 - [ ] Semua perubahan sesuai `BATASAN KERAS` — tidak ada file di luar daftar yang tersentuh (baca maupun tulis)
 - [ ] Diff/output ditampilkan verbatim di badan teks — bukan ringkasan, placeholder, atau cuma output tool
 - [ ] Kalau menyentuh RLS/policy/fungsi: isolasi antar-classroom sudah dipikirkan (aturan #5b)
