@@ -271,15 +271,13 @@ async function getMyNotes(classroomId, studentId) {
 // punya baris keterangan di atas badannya.
 function pasangCollapse(title, ...isi) {
   const arrow = document.createElement('span');
-  arrow.textContent = '▶';
+  arrow.textContent = '▼';
   arrow.style.cssText = 'float:right;font-size:.8em;opacity:.7';
   title.appendChild(arrow);
   title.style.cursor = 'pointer';
   title.setAttribute('role', 'button');
   title.setAttribute('tabindex', '0');
-  title.setAttribute('aria-expanded', 'false');
-
-  isi.forEach(el => { if (el) el.style.display = 'none'; });
+  title.setAttribute('aria-expanded', 'true');
 
   function toggle() {
     const tertutup = isi[0] && isi[0].style.display === 'none';
