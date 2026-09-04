@@ -238,7 +238,7 @@ git push origin main                  → urutan TERAKHIR
 ## 12. STATUS PROYEK
 
 **Fase saat ini: DEVELOPMENT AKTIF**
-**HEAD:** `46de0aa` (per 25 Agustus 2026)
+**HEAD:** `c36a254` (per 4 September 2026)
 
 - [x] Dokumen rancangan selesai (REQUIREMENTS, SCHEMA-v0, ADR-001)
 - [x] Supabase project baru dibuat
@@ -516,12 +516,16 @@ a97eb61 chore: hapus p_classroom_id ghost param dari fn_check_schedule_conflict
 d5b36d3 docs: adaptasi CLAUDE.md dan AGENT_WORKING_RULES.md untuk MIClass
 5f2222c feat: gate Tab Rancang untuk GURU_MAPEL_UMUM_SMK + GURU_PRO di tiga lapisan
 46de0aa fix: sembunyikan tombol tab Rancang untuk guru tak berhak, jujurkan label tier
+ccb57ad fix(ortu): hapus keterangan hint catatan satu arah — tidak relevan
+f997497 fix(help): luruskan tiga petunjuk yang tidak sesuai implementasi
+c36a254 feat(ux): aktifkan back button di semua layar dan portal
 ```
 
 > Lima commit teratas (`dc8334f` … `a97eb61`) masih **belum terurai** di catatan
-> sesi mana pun — isinya hanya diketahui dari judul commit. Tiga terakhir
+> sesi mana pun — isinya hanya diketahui dari judul commit. Tiga berikutnya
 > (`d5b36d3`, `5f2222c`, `46de0aa`) diuraikan di catatan sesi 25 Agustus 2026
-> di bawah.
+> di bawah. Tiga terakhir (`ccb57ad`, `f997497`, `c36a254`) diuraikan di catatan
+> sesi 4 September 2026 di bawah.
 
 > Konsekuensi yang perlu diingat saat membaca daftar migration di atas:
 > `fn_lookup_classroom_code` (migration `20260803000003`) **sudah di-drop** di `b2fd8c8`,
@@ -576,6 +580,30 @@ Catatan cakupan yang perlu diingat:
   pre-existing, dampaknya nol terhadap gate ini.
 - **Belum diuji di browser dengan akun nyata.** Yang terverifikasi baru tabel
   keputusan gate dan objek DB pasca-`db push`.
+
+**Fitur & fix sesi 4 September 2026 (HEAD `46de0aa` → `c36a254`):**
+
+Fix petunjuk penggunaan (`f997497`) — tiga petunjuk di help overlay classroom.html
+dan error message rancang-chat.js yang tidak sesuai implementasi:
+- Help Tab Jadwal: "setelah berakhir form terkunci otomatis" → diluruskan: ada
+  **masa koreksi 1 jam** setelah sesi berakhir sebelum form benar-benar terkunci
+  (`classroom-attendance.js:13` sudah mengimplementasikan ini sejak lama)
+- Help Tab Rancang — batas generate Modul: "5× per hari per guru" → diluruskan:
+  "5× per hari per kelas" — identifier aktual di EF adalah `user_id:classroom_id`,
+  bukan hanya `user_id`
+- Error rate limit ATP di `rancang-chat.js`: "Batas generate ATP harian (3×)
+  tercapai" → ditambah "untuk ATP ini" agar jelas limit per `atp_induk_id`
+
+Back-button support (`c36a254`) — History API (pushState + popstate) di semua portal:
+- Tidak ada perubahan URL — history state berisi `{sip: 'tab'|'modal', ...}`
+- Back Android dan back browser laptop keduanya memicu popstate
+- **classroom.html**: tab switching via capture-phase click listener; overlay
+  dinamis (`.share-overlay`) dilacak otomatis via MutationObserver; help overlay
+  (#help-overlay) dan modal penilaian (#pai-modal via `window._sipCL`) di-hook manual
+- **dashboard.html**: modal buat/edit kelas + help overlay — popstate listener
+  hanya aktif jika elemen `classroom-list` ada (guard halaman)
+- **Portal Siswa & Ortu**: capture-phase listener push state per klik tab;
+  popstate memanggil `activateTab()` langsung; localStorage restore → replaceState
 
 ---
 
