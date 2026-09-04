@@ -60,7 +60,10 @@ const BASE  = `https://${REF}.supabase.co`;
 // Catatan: fn_validate_roster_login dan fn_validate_ortu_login STABLE —
 // tidak perlu masuk sini karena CHECK 2 hanya memeriksa provolatile='v'.
 const ANON_RPC_ALLOWLIST = new Set([
-    // Tambahkan di sini jika ada fungsi VOLATILE yang memang sengaja anon-accessible.
+    // Pre-auth lookup: dipakai siswa/ortu verifikasi NIS sebelum punya akun.
+    // GRANT ke anon sengaja (lihat migration 20260803000004_fn-lookup-roster.sql).
+    'fn_lookup_roster_by_nis',
+    'fn_lookup_roster_by_name_nis',
 ]);
 
 // Tabel inti yang anon TIDAK boleh baca satu baris pun.
@@ -145,7 +148,7 @@ async function anonRpc(anon, fn, params = {}) {
 // fn_current_profile_id() memetakan auth.uid() (= sub) ke profiles.id.
 const asAuth = (userUid) =>
     ` SET LOCAL ROLE authenticated;` +
-    ` SELECT set_config('request.jwt.claims', $j${"sub":"${userUid}","role":"authenticated"}$j$, true);`;
+    ` SELECT set_config('request.jwt.claims', '{"sub":"` + userUid + `","role":"authenticated"}', true);`;
 
 async function main() {
     console.log(`Tenant-isolation audit → MIClass project ${REF}`);
