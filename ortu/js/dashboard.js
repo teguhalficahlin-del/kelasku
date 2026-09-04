@@ -1190,7 +1190,7 @@ db.auth.onAuthStateChange(function (event) {
   tandaiSesiBerakhir();
 });
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('btn-logout').addEventListener('click', async () => {
     _keluarSengaja = true;
     await db.auth.signOut({ scope: 'global' });
@@ -1202,15 +1202,17 @@ document.addEventListener('DOMContentLoaded', () => {
   const navProfil  = document.getElementById('nav-profil');
   const listEl     = document.getElementById('classroom-list');
   const profilEl   = document.getElementById('panel-profil');
+  const NAV_KEY    = 'miclass_nav_ortu';
 
-  navBeranda.addEventListener('click', () => {
+  function activateBeranda() {
     navBeranda.classList.add('active');
     navProfil.classList.remove('active');
     listEl.style.display   = '';
     profilEl.style.display = 'none';
-  });
+    try { localStorage.setItem(NAV_KEY, 'beranda'); } catch (_) {}
+  }
 
-  navProfil.addEventListener('click', () => {
+  function activateProfil() {
     navProfil.classList.add('active');
     navBeranda.classList.remove('active');
     listEl.style.display   = 'none';
@@ -1218,7 +1220,15 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!profilEl.hasChildNodes() && _ortuProfile) {
       profilEl.appendChild(renderProfilSection(_ortuProfile));
     }
-  });
+    try { localStorage.setItem(NAV_KEY, 'profil'); } catch (_) {}
+  }
 
-  init();
+  navBeranda.addEventListener('click', activateBeranda);
+  navProfil.addEventListener('click', activateProfil);
+
+  await init();
+
+  try {
+    if (localStorage.getItem(NAV_KEY) === 'profil') activateProfil();
+  } catch (_) {}
 });
