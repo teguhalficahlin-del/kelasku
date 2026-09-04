@@ -174,6 +174,38 @@
   // menampilkan teks gagal, bukan angka sebenarnya.
   var guruProfileId = null;
 
+  // ── Back-button / History API (dashboard.html) ────────────────────────────
+  var _sipDModalOpen = false;
+  var _sipDClose     = null;
+
+  function sipOpenModalD(closeFn) {
+    _sipDModalOpen = true;
+    _sipDClose     = closeFn || null;
+    history.pushState({ sip: 'modal' }, '');
+  }
+  function sipCloseModalD() {
+    if (!_sipDModalOpen) return;
+    _sipDModalOpen = false;
+    _sipDClose     = null;
+    history.replaceState({ sip: 'page' }, '');
+  }
+
+  if (document.getElementById('classroom-list')) {
+    // State awal history saat dashboard dibuka
+    history.replaceState({ sip: 'page' }, '');
+
+    window.addEventListener('popstate', function (e) {
+      var st = e.state;
+      if (!st || st.sip !== 'modal') return;
+      if (_sipDModalOpen) {
+        _sipDModalOpen = false;
+        var fn = _sipDClose; _sipDClose = null;
+        if (fn) fn();
+      }
+    });
+  }
+  // ─────────────────────────────────────────────────────────────────────────
+
   if (document.getElementById('classroom-list')) {
     let currentTeacherId  = null;
     let currentRoleGuru   = null;
@@ -362,9 +394,11 @@
       }
 
       document.getElementById('modal-classroom').style.display = 'flex';
+      sipOpenModalD(resetModal);
     }
 
     function resetModal() {
+      sipCloseModalD();
       document.getElementById('modal-classroom').style.display = 'none';
       document.getElementById('modal-error').style.display = 'none';
       document.getElementById('modal-error').textContent = '';
@@ -924,9 +958,11 @@
     var overlay = document.getElementById('help-overlay');
     overlay.style.display = 'flex';
     requestAnimationFrame(function () { overlay.classList.add('help-overlay-visible'); });
+    sipOpenModalD(closeHelpDashboard);
   }
 
   function closeHelpDashboard() {
+    sipCloseModalD();
     var overlay = document.getElementById('help-overlay');
     overlay.classList.remove('help-overlay-visible');
     setTimeout(function () { overlay.style.display = 'none'; }, 200);

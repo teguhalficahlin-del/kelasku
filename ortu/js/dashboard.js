@@ -1230,6 +1230,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     try { localStorage.setItem(NAV_KEY, key); } catch (_) {}
   }
 
+  // Back-button: klik tab → push history; popstate → activateTab langsung
+  const _sipTabSelector = TABS.map(t => '#' + t.id).join(',');
+  document.addEventListener('click', function (e) {
+    const btn = e.target.closest(_sipTabSelector);
+    if (btn) history.pushState({ sip: 'tab', tab: btn.id.replace('nav-', '') }, '');
+  }, true);
+  window.addEventListener('popstate', function (e) {
+    const st = e.state;
+    if (st && st.sip === 'tab') activateTab(st.tab);
+  });
+
   TABS.forEach(t => {
     document.getElementById(t.id).addEventListener('click', () => activateTab(t.id.replace('nav-', '')));
   });
@@ -1238,6 +1249,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   try {
     const saved = localStorage.getItem(NAV_KEY);
-    if (saved && TABS.some(t => t.id === 'nav-' + saved)) activateTab(saved);
-  } catch (_) {}
+    if (saved && TABS.some(t => t.id === 'nav-' + saved)) {
+      activateTab(saved);
+      history.replaceState({ sip: 'tab', tab: saved }, '');
+    } else {
+      history.replaceState({ sip: 'tab', tab: 'jadwal' }, '');
+    }
+  } catch (_) {
+    history.replaceState({ sip: 'tab', tab: 'jadwal' }, '');
+  }
 });

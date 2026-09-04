@@ -576,6 +576,7 @@ ${errHtml}
     // Menutup di tengah simpan membuat guru mengira ia membatalkan, padahal
     // permintaannya jalan terus sampai selesai.
     m.onclick = ev => { if (ev.target === m && !_nilaiSedangDisimpan) closeModal(); };
+    if (window._sipCL) window._sipCL.openModal(function () { closeModal(); });
   }
 
   // token bersifat opsional dan SENGAJA tidak memeriksa _nilaiSedangDisimpan:
@@ -591,6 +592,7 @@ ${errHtml}
     if (token != null && token !== _modalId) return;
     const m = el('pai-modal');
     if (m) m.style.display = 'none';
+    if (window._sipCL) window._sipCL.closeModal();
   }
 
   // ══════════════════════════════════════════════════════════════════════════════

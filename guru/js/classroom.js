@@ -11,6 +11,89 @@
 
   const PAGE_SIZE = 10;
 
+  // ── Back-button / History API ─────────────────────────────────────────────
+  // Prinsip: setiap perpindahan "layar" (buka tab, buka modal/overlay) push
+  // satu state ke browser history. Back button (laptop) dan back Android
+  // keduanya memicu popstate — handler di bawah menanganinya.
+  var _sipModalOpen = false; // ada modal yang sedang terbuka?
+  var _sipClose     = null;  // fn untuk menutup modal itu dari sisi history
+  var _sipBusy      = false; // sedang menangani popstate — jangan push ulang
+
+  function sipOpenModal(closeFn) {
+    _sipModalOpen = true;
+    _sipClose     = closeFn || null;
+    history.pushState({ sip: 'modal' }, '');
+  }
+  function sipCloseModal() {
+    // No-op jika dipanggil dari jalur popstate (flag sudah dibersihkan lebih dulu)
+    if (!_sipModalOpen) return;
+    _sipModalOpen = false;
+    _sipClose     = null;
+    history.replaceState({ sip: 'tab', tab: window.currentTab || 'siswa' }, '');
+  }
+
+  // Ekspor agar classroom-assessment.js (modul terpisah di halaman yang sama)
+  // bisa menggunakannya tanpa duplikasi
+  window._sipCL = { openModal: sipOpenModal, closeModal: sipCloseModal };
+
+  // Auto-track semua overlay dinamis (class="share-overlay") yang di-append ke body
+  new MutationObserver(function (mutations) {
+    for (var mi = 0; mi < mutations.length; mi++) {
+      var added = mutations[mi].addedNodes;
+      for (var ni = 0; ni < added.length; ni++) {
+        var node = added[ni];
+        if (node.nodeType !== 1 || !node.classList.contains('share-overlay')) continue;
+        (function (overlay) {
+          // Buka state modal saat overlay muncul
+          sipOpenModal(function () {
+            // Tutup via Escape — semua overlay punya handler Escape
+            document.dispatchEvent(
+              new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })
+            );
+          });
+          // Sinkron kembali history saat overlay dihapus secara normal
+          var obs = new MutationObserver(function (ms) {
+            for (var k = 0; k < ms.length; k++) {
+              var rn = ms[k].removedNodes;
+              for (var l = 0; l < rn.length; l++) {
+                if (rn[l] === overlay) { sipCloseModal(); obs.disconnect(); return; }
+              }
+            }
+          });
+          obs.observe(document.body, { childList: true });
+        })(node);
+      }
+    }
+  }).observe(document.body, { childList: true });
+
+  // Intersep klik pada tombol tab (fase capture) → push history state
+  document.addEventListener('click', function (e) {
+    if (_sipBusy) return;
+    var btn = e.target.closest(
+      '#tab-siswa, #tab-jadwal, #tab-catatan, #tab-penilaian, #tab-rancang, #tab-unduh'
+    );
+    if (!btn) return;
+    history.pushState({ sip: 'tab', tab: btn.id.slice(4) }, ''); // slice 'tab-'
+  }, true);
+
+  window.addEventListener('popstate', function (e) {
+    var st = e.state;
+    if (!st || !st.sip) return;
+    _sipBusy = true;
+    if (st.sip === 'modal') {
+      if (_sipModalOpen) {
+        _sipModalOpen = false; // clear sebelum fn() agar sipCloseModal() di-fn jadi no-op
+        var fn = _sipClose; _sipClose = null;
+        if (fn) fn();
+      }
+    } else if (st.sip === 'tab') {
+      var tabBtn = document.getElementById('tab-' + st.tab);
+      if (tabBtn) tabBtn.click();
+    }
+    _sipBusy = false;
+  });
+  // ─────────────────────────────────────────────────────────────────────────
+
   function escHtml(str) {
     return String(str)
       .replace(/&/g, '&amp;')
@@ -1214,6 +1297,9 @@
   // -------------------------------------------------------------------------
 
   window.addEventListener('DOMContentLoaded', async function () {
+    // Set state awal history — tab default siswa
+    history.replaceState({ sip: 'tab', tab: 'siswa' }, '');
+
     // Collapse sections — init per tab
     var panelSiswaEl = document.getElementById('panel-siswa');
     if (panelSiswaEl) initCollapseSections(panelSiswaEl);
@@ -1408,9 +1494,11 @@
     var overlay = document.getElementById('help-overlay');
     overlay.style.display = 'flex';
     requestAnimationFrame(function () { overlay.classList.add('help-overlay-visible'); });
+    sipOpenModal(closeHelp);
   }
 
   function closeHelp() {
+    sipCloseModal();
     var overlay = document.getElementById('help-overlay');
     overlay.classList.remove('help-overlay-visible');
     setTimeout(function () { overlay.style.display = 'none'; }, 200);
