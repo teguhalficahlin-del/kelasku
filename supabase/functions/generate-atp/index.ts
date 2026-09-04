@@ -191,31 +191,7 @@ Deno.serve(async (req) => {
     return json({ error: 'Akses khusus guru.', code: 'FORBIDDEN_ROLE' }, 403);
   }
 
-  // ── 2. RATE LIMIT — service_role hanya di sini ────────────────────────────
-
-  try {
-    const svc = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
-    );
-    const { data: allowed, error: rlErr } = await svc.rpc('fn_check_rate_limit', {
-      p_identifier:    user.id,
-      p_endpoint:      'generate_atp',
-      p_max_requests:  3,
-      p_window_minutes: 1440,
-    });
-    if (!rlErr && allowed === false) {
-      return json({ error: 'Batas generate ATP harian tercapai. Coba lagi besok.', code: 'RATE_LIMIT' }, 429);
-    }
-    if (rlErr) {
-      console.warn('[generate-atp] rate limit RPC error:', rlErr.message);
-      return json({ error: 'Rate limit tidak tersedia. Coba lagi.', code: 'RATE_LIMIT_UNAVAILABLE' }, 503);
-    }
-  } catch (e) {
-    console.warn('[generate-atp] rate limit exception (ignored):', e);
-  }
-
-  // ── 3. REQUEST BODY ───────────────────────────────────────────────────────
+  // ── 2. REQUEST BODY ───────────────────────────────────────────────────────
 
   let body: { atp_induk_id?: string; expected_updated_at?: string; sumber_flow?: string };
   try {
@@ -226,6 +202,30 @@ Deno.serve(async (req) => {
 
   const { atp_induk_id, expected_updated_at, sumber_flow } = body;
   if (!atp_induk_id) return json({ error: 'atp_induk_id wajib diisi.' }, 400);
+
+  // ── 3. RATE LIMIT per ATP — service_role hanya di sini ───────────────────
+
+  try {
+    const svc = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+    );
+    const { data: allowed, error: rlErr } = await svc.rpc('fn_check_rate_limit', {
+      p_identifier:    user.id + ':' + atp_induk_id,
+      p_endpoint:      'generate_atp',
+      p_max_requests:  3,
+      p_window_minutes: 1440,
+    });
+    if (!rlErr && allowed === false) {
+      return json({ error: 'Batas generate ATP ini tercapai hari ini. Coba lagi besok.', code: 'RATE_LIMIT' }, 429);
+    }
+    if (rlErr) {
+      console.warn('[generate-atp] rate limit RPC error:', rlErr.message);
+      return json({ error: 'Rate limit tidak tersedia. Coba lagi.', code: 'RATE_LIMIT_UNAVAILABLE' }, 503);
+    }
+  } catch (e) {
+    console.warn('[generate-atp] rate limit exception (ignored):', e);
+  }
 
   // ── 4. BACA atp_induk — user JWT (RLS berlaku) ────────────────────────────
 
