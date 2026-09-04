@@ -210,7 +210,6 @@
             '<button class="btn-edit-cl">Edit</button>' +
             '<button class="btn-hapus-cl btn-sm-danger">Hapus</button>' +
             '<a href="classroom.html?id=' + escHtml(classroom.id) + '" class="btn-kelola">Kelola</a>' +
-            '<a href="classroom.html?id=' + escHtml(classroom.id) + '&tab=rancang" class="btn-kelola btn-rancang-link" title="Buka Tab Rancang Pembelajaran">✏️ Rancang</a>' +
           '</div>' +
         '</div>';
 
