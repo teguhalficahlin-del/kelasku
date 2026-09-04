@@ -892,6 +892,8 @@
       return; // triggerGenerateAtp memanggil startPhase('ATP_REVIEW') sendiri jika sukses
     }
     if (phase === 'MODUL_GENERATE') {
+      _chat.active_question_id = null;
+      saveState();
       rcSetComposerVisible(false);
       await triggerGenerateModul();
       return;
@@ -1354,7 +1356,22 @@
       askQuestion(q);
       return;
     }
-    // Tidak ketemu — state tidak konsisten, mulai dari awal
+    // Tidak ketemu — cek apakah phase ini memang tidak punya pertanyaan
+    if (!questions.length) {
+      // MODUL_GENERATE dan ATP_GENERATE adalah phase eksekusi tanpa pertanyaan.
+      // Saat reload di phase ini, kembalikan ke summary supaya guru bisa retry.
+      const fallback = phase === 'MODUL_GENERATE' ? 'MODUL_SUMMARY'
+                     : phase === 'ATP_GENERATE'   ? 'ATP_REVIEW'
+                     : null;
+      if (fallback) {
+        console.warn('[rancang-chat] phase', phase, 'tidak punya pertanyaan — resume ke', fallback);
+        _chat.active_question_id = null;
+        saveState();
+        startPhase(fallback);
+        return;
+      }
+    }
+    // State tidak konsisten — mulai dari awal
     console.warn('[rancang-chat] active_question_id tidak ditemukan di phase', phase, '— reset ke KONTEKS_CP');
     _chat.session_phase = 'KONTEKS_CP';
     _chat.active_question_id = null;
