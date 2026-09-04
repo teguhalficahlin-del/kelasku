@@ -601,8 +601,20 @@
       }
       const atpCount = atpList ? atpList.length : null;
 
+      const _atpAktifFirst = (atpList || []).find(function (a) { return a.status === 'aktif'; });
+      const _atpSummary = _atpAktifFirst ? (function () {
+        const tps = Array.isArray(_atpAktifFirst.progresi_tp) ? _atpAktifFirst.progresi_tp : [];
+        return {
+          jumlah_tp: tps.length,
+          total_jp: tps.reduce(function (s, tp) { return s + (tp.jp_alokasi || 0); }, 0),
+          total_pertemuan: tps.reduce(function (s, tp) {
+            return s + (Array.isArray(tp.jp_pertemuan) ? tp.jp_pertemuan.length : 1);
+          }, 0),
+        };
+      })() : null;
+
       rcRenderWelcomeScreen(panel, mapelDisplay,
-        makeWelcomeContinueHandler(panel, cId, mapelDisplay, atpList), atpCount);
+        makeWelcomeContinueHandler(panel, cId, mapelDisplay, atpList), atpCount, _atpSummary);
 
       // ITEM 10: katalog modul aktif — query tanpa menahan render
       const katalogEl = document.getElementById('rc-modul-katalog');
@@ -1545,7 +1557,7 @@
         _chat.atp_updated_at = saved.updated_at;
         saveState();
         recordAnswer(q.id, value, 'guru', true);
-        await startPhase('DONE');
+        kembaliKeLayarUtama();
       } catch (err) {
         // T68: conflict = data stale (muat ulang), error lain = retryable
         if (err.code === 'ATP_WRITE_CONFLICT') {

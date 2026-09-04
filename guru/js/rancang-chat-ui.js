@@ -201,7 +201,8 @@ function rcIsComposerDisabled() {
 
 // atpCount: jumlah ATP tersimpan. null/undefined = belum diketahui (query gagal)
 // — badge tidak boleh berbohong "0 ATP" saat jawabannya sebenarnya tidak ada.
-function rcRenderWelcomeScreen(panel, mapelDisplay, onContinue, atpCount) {
+// atpSummary: { jumlah_tp, total_jp, total_pertemuan } dari ATP aktif pertama — opsional.
+function rcRenderWelcomeScreen(panel, mapelDisplay, onContinue, atpCount, atpSummary) {
   function escHtml(s) {
     return String(s)
       .replace(/&/g, '&amp;')
@@ -218,10 +219,13 @@ function rcRenderWelcomeScreen(panel, mapelDisplay, onContinue, atpCount) {
 
   const hasAtp = typeof atpCount === 'number' && atpCount > 0;
   const modulBadge = hasAtp ? '' : '<span class="rc-welcome-card-badge">Butuh ATP aktif</span>';
+  const sesuaikanDesc = (atpSummary && atpSummary.jumlah_tp > 0)
+    ? `${atpSummary.jumlah_tp} TP · ${atpSummary.total_pertemuan} pertemuan · ${atpSummary.total_jp} JP`
+    : 'Lihat dan edit ATP yang sudah disetujui.';
   const sesuaikanCard = hasAtp ? `
     <button type="button" class="rc-welcome-card" data-option="sesuaikan" aria-pressed="true">
       <span class="rc-welcome-card-label">ATP Aktif</span>
-      <span class="rc-welcome-card-desc">Lihat dan edit ATP yang sudah disetujui.</span>
+      <span class="rc-welcome-card-desc">${escHtml(sesuaikanDesc)}</span>
     </button>` : '';
 
   panel.innerHTML = `
