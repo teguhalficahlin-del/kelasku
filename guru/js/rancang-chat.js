@@ -2131,6 +2131,8 @@
     const iaArr = Array.isArray(konten.instrumen_asesmen) ? konten.instrumen_asesmen : [];
     const tl    = konten.tindak_lanjut ?? {};
     const cg    = Array.isArray(konten.catatan_guru) ? konten.catatan_guru : [];
+    const rc    = konten.rancangan          ?? {};
+    const mp    = konten.metadata_pedagogis ?? {};
 
     // ── helper ──────────────────────────────────────────────────────────────
     const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -2205,6 +2207,20 @@
     })();
     if (raHtml) resmi += sec('Rencana Asesmen', raHtml);
 
+    // Rancangan Pembelajaran
+    const rcHtml = (() => {
+      let out = '';
+      if (rc.strategi_pedagogis) out += `<div class="mv4-row"><span class="mv4-label">Strategi</span><span>${esc(rc.strategi_pedagogis)}</span></div>`;
+      if (rc.lingkungan_pembelajaran) out += `<div class="mv4-row"><span class="mv4-label">Lingkungan</span><span>${esc(rc.lingkungan_pembelajaran)}</span></div>`;
+      if (rc.pemanfaatan_digital) out += `<div class="mv4-row"><span class="mv4-label">Digital</span><span>${esc(rc.pemanfaatan_digital)}</span></div>`;
+      if (Array.isArray(rc.sumber_belajar) && rc.sumber_belajar.length)
+        out += `<div class="mv4-sub" style="margin-top:4px"><strong>Sumber Belajar:</strong> ${rc.sumber_belajar.map(s => esc(s.sumber ?? s)).join('; ')}</div>`;
+      if (rc.kemitraan_pembelajaran) out += `<div class="mv4-row"><span class="mv4-label">Kemitraan</span><span>${esc(rc.kemitraan_pembelajaran)}</span></div>`;
+      if (rc.keselamatan_k3) out += `<div class="mv4-row"><span class="mv4-label">K3</span><span>${esc(rc.keselamatan_k3)}</span></div>`;
+      return out;
+    })();
+    if (rcHtml) resmi += sec('Rancangan Pembelajaran', rcHtml);
+
     // Pertemuan
     pt.forEach(p => {
       const lkHtml = (Array.isArray(p.langkah) ? p.langkah : []).map(lk => {
@@ -2254,6 +2270,32 @@
 
     if (cg.length)
       resmi += sec('Catatan Guru', cg.map((c,i) => `<div class="mv4-cg">${i+1}. ${esc(c)}</div>`).join(''));
+
+    // Metadata Pedagogis
+    const mpHtml = (() => {
+      let out = '';
+      const dpl = Array.isArray(mp.dimensi_profil_lulusan) ? mp.dimensi_profil_lulusan : [];
+      if (dpl.length)
+        out += `<div style="margin-bottom:4px"><strong>Dimensi Profil Lulusan:</strong></div>` +
+          dpl.map(d => `<div class="mv4-asesmen-blok"><div class="mv4-asesmen-label">${esc(d.dimensi ?? '?')}</div>`+
+            `<div class="mv4-sub">${esc(d.alasan ?? '')}</div>`+
+            (d.indikator ? `<div class="mv4-sub"><em>Indikator: ${esc(d.indikator)}</em></div>` : '')+
+            `</div>`).join('');
+      const km2 = mp.karakteristik_materi ?? {};
+      if (km2.faktual || km2.konseptual || km2.prosedural)
+        out += `<div style="margin-top:6px"><strong>Karakteristik Materi:</strong></div>` +
+          (km2.faktual ? `<div class="mv4-row"><span class="mv4-label">Faktual</span><span>${esc(km2.faktual)}</span></div>` : '') +
+          (km2.konseptual ? `<div class="mv4-row"><span class="mv4-label">Konseptual</span><span>${esc(km2.konseptual)}</span></div>` : '') +
+          (km2.prosedural ? `<div class="mv4-row"><span class="mv4-label">Prosedural</span><span>${esc(km2.prosedural)}</span></div>` : '');
+      const lp = mp.language_policy ?? {};
+      if (lp.teacher_instruction || lp.student_instruction)
+        out += `<div style="margin-top:6px"><strong>Language Policy:</strong></div>` +
+          (lp.teacher_instruction ? `<div class="mv4-row"><span class="mv4-label">Guru</span><span>${esc(lp.teacher_instruction)}</span></div>` : '') +
+          (lp.student_instruction ? `<div class="mv4-row"><span class="mv4-label">Murid</span><span>${esc(lp.student_instruction)}</span></div>` : '') +
+          (lp.target_language ? `<div class="mv4-row"><span class="mv4-label">Bahasa Target</span><span>${esc(lp.target_language)}</span></div>` : '');
+      return out;
+    })();
+    if (mpHtml) resmi += sec('Metadata Pedagogis', mpHtml);
 
     // ── bangun HTML tab Naskah Fasilitasi ──────────────────────────────────
     let naskah = '';
