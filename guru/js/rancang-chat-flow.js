@@ -328,11 +328,11 @@ const RANCANG_FLOW = {
       helpText: 'Tulis nama lengkap sesuai kurikulum. Contoh: Kimia Analisis, Nautika Kapal Penangkap Ikan, Agribisnis Tanaman Pangan dan Hortikultura.',
       skippable: false,
       condition: { question_id: 'pilih_program_keahlian_modul', value: '__lainnya__' } },
-    pilihan('kondisi_kelas_modul', 'Bagaimana kondisi kelas untuk modul ini?', [
-      ['reguler',            'Kemampuan murid relatif seragam'],
-      ['diferensiasi',       'Kemampuan murid sangat beragam'],
-      ['inklusif',           'Ada murid berkebutuhan khusus'],
-      ['campuran_kemampuan', 'Sebagian murid sedang PKL'],
+    pilihan('kondisi_kelas_modul', 'Murid di kelas ini...', [
+      ['reguler',            'Punya kemampuan yang mirip-mirip'],
+      ['diferensiasi',       'Ada yang sudah lancar, ada yang masih kesulitan'],
+      ['inklusif',           'Ada yang butuh pendampingan khusus'],
+      ['campuran_kemampuan', 'Sebagian sedang PKL'],
     ]),
     pilihan('target_kompetensi_modul', 'Target kompetensi utama modul ini?', [
       ['pemahaman',  'Pemahaman konsep'],
