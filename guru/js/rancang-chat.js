@@ -221,6 +221,7 @@
     Object.assign(_chat, {
       atp_induk_id:         null,
       atp_updated_at:       null,
+      atp_status:           null,
       atp_draft:            [],
       selected_tp:          null,
       modul_induk_id:       null,
@@ -244,6 +245,7 @@
     resetSessionState();
     _chat.atp_induk_id   = atp.id;
     _chat.atp_updated_at = atp.updated_at;
+    _chat.atp_status     = atp.status || null;
     _chat.atp_draft      = Array.isArray(atp.progresi_tp) ? atp.progresi_tp : [];
     const collected = atp.collected_data || {};
     for (const phaseData of Object.values(collected)) {
@@ -261,8 +263,12 @@
   // fase tetap satu sumber, bukan disalin ulang di sini.
   function resumeAtpFromDb() {
     if (_chat.atp_draft.length) {
-      rcAppendBubble('sistem', 'Membuka ATP tersimpan — meninjau draf yang sudah ada.');
-      startPhase('ATP_REVIEW');
+      if (_chat.atp_status === 'aktif') {
+        startPhase('DONE');
+      } else {
+        rcAppendBubble('sistem', 'Membuka ATP tersimpan — meninjau draf yang sudah ada.');
+        startPhase('ATP_REVIEW');
+      }
       return;
     }
     // Kunci fase di collected_data adalah penanda "fase selesai" yang sahih —
