@@ -246,7 +246,6 @@ function renderCard(classroom, guruName, siswaNama, schedules, linkedStudentId, 
   if (linkedStudentId) card.appendChild(renderPesanGuruSection(classroom, linkedStudentId));
   if (linkedStudentId) card.appendChild(
     renderChildGradesSection(classroom.id, linkedStudentId, siswaNama, namaAnakSekelas));
-  card.appendChild(renderForumSection(classroom, linkedStudentId));
   return card;
 }
 

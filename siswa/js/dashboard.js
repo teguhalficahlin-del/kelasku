@@ -245,7 +245,6 @@ function renderCard(classroom, guruName, namaOrtu, schedules, studentId) {
   if (studentId) card.appendChild(renderAttendanceSection(classroom.id, studentId));
   if (studentId) card.appendChild(renderNotesSection(classroom.id, studentId));
   if (studentId) card.appendChild(renderGradesSection(classroom.id, studentId));
-  card.appendChild(renderForumSection(classroom.id));
   return card;
 }
 
