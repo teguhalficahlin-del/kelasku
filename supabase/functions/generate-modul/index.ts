@@ -870,6 +870,18 @@ KONDISI KELAS (dari kondisi_kelas_modul):
 - inklusif: MEMAHAMI sertakan instruksi adaptasi fisik/sensorik.
 - campuran_kemampuan: sertakan instruksi untuk murid hadir parsial; tindak_lanjut sertakan opsi catch-up.
 
+FASILITAS DIGITAL (WAJIB DIPATUHI):
+- DILARANG menyebut LCD proyektor, laptop, HP/smartphone, internet, wifi, QR code,
+  atau tautan URL di media_dan_alat dan pemanfaatan_digital KECUALI guru memilih
+  'modul_digital' atau 'video' di jenis_sumber (lihat field sumber_strategi di input).
+- Jika jenis_sumber tidak mengandung 'modul_digital' atau 'video':
+    pemanfaatan_digital HARUS berisi "Tidak memerlukan perangkat digital khusus."
+    media_dan_alat hanya boleh berisi bahan cetak, kartu, papan tulis, dan alat fisik.
+- Sumber belajar berbasis internet (YouTube, Google, situs web) hanya boleh muncul
+  di sumber_belajar jika 'video' atau 'modul_digital' dipilih guru.
+Alasan: Sebagian besar kelas SMK tidak punya akses internet stabil atau proyektor.
+Modul yang bergantung pada fasilitas yang tidak ada tidak bisa dipakai.
+
 MODE PELAKSANAAN (mode_pelaksanaan di sub_langkah):
 - Gunakan mode_pelaksanaan dan ukuran_kelompok jika kegiatan melibatkan pengelompokan.
 - 'bergantian': hitung apakah cukup waktu (n_kelompok × 3 mnt + transisi).
@@ -1256,6 +1268,20 @@ Deno.serve(async (req) => {
 
   const jumlahMurid = settings?.jumlah_murid ?? null;
 
+  // input_guru untuk konteks_murid — fakta eksplisit dari guru (bukan inferensi AI)
+  const konteksMod = (cd.KONTEKS_MODUL as Record<string, unknown>) || {};
+  const kondisiKelasKode = String(unwrap(konteksMod.kondisi_kelas_modul) ?? '');
+  const KONDISI_LABEL: Record<string, string> = {
+    reguler:            'Kemampuan murid relatif seragam',
+    diferensiasi:       'Ada yang sudah lancar, ada yang masih kesulitan',
+    inklusif:           'Ada yang butuh pendampingan khusus',
+    campuran_kemampuan: 'Sebagian murid sedang PKL',
+  };
+  const inputGuru = {
+    kondisi_kelas: KONDISI_LABEL[kondisiKelasKode] ?? kondisiKelasKode || null,
+    jumlah_murid:  jumlahMurid,
+  };
+
   // 6. BACA tp_kktp
   const { data: kktp, error: kktpErr } = await userClient
     .from('tp_kktp')
@@ -1456,13 +1482,11 @@ Deno.serve(async (req) => {
     }
 
     // Rate limit
+    const rlIdentifier = classroom_id ? `${user.id}:${classroom_id}` : user.id;
+    let rlUsed = 0;
     try {
-      const svc = createClient(
-        Deno.env.get('SUPABASE_URL')!,
-        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
-      );
-      const { data: allowed, error: rlErr } = await svc.rpc('fn_check_rate_limit', {
-        p_identifier:     classroom_id ? `${user.id}:${classroom_id}` : user.id,
+      const { data: allowed, error: rlErr } = await svcClient.rpc('fn_check_rate_limit', {
+        p_identifier:     rlIdentifier,
         p_endpoint:       'generate_modul',
         p_max_requests:   5,
         p_window_minutes: 1440,
@@ -1477,6 +1501,20 @@ Deno.serve(async (req) => {
     } catch (e) {
       console.warn('[generate-modul] rate limit exception (ignored):', e);
     }
+    // Baca jumlah pemakaian untuk UI feedback
+    try {
+      const windowSeconds = 1440 * 60;
+      const windowStart = new Date(Math.floor(Date.now() / 1000 / windowSeconds) * windowSeconds * 1000).toISOString();
+      const { data: rlRow } = await svcClient
+        .from('rate_limits')
+        .select('request_count')
+        .eq('identifier', rlIdentifier)
+        .eq('endpoint', 'generate_modul')
+        .eq('window_start', windowStart)
+        .maybeSingle();
+      if (rlRow) rlUsed = (rlRow as { request_count: number }).request_count;
+    } catch { /* non-critical */ }
+
 
     let faseAOutput: Record<string, unknown>;
     try {
@@ -1488,6 +1526,11 @@ Deno.serve(async (req) => {
     } catch (e) {
       const err = e as { message?: string; code?: string; retryable?: boolean };
       return json({ error: err.message ?? 'Gagal di Fase A', code: err.code ?? 'AI_ERROR', retryable: err.retryable ?? true }, 500);
+    }
+
+    // Injeksi input_guru ke konteks_murid — backend yang mengisi, bukan AI
+    if (faseAOutput.konteks_murid && typeof faseAOutput.konteks_murid === 'object') {
+      (faseAOutput.konteks_murid as Record<string, unknown>).input_guru = inputGuru;
     }
 
     const draftA = { ...kontenObj, _draft: { fase_a: faseAOutput } };
@@ -1742,6 +1785,7 @@ Deno.serve(async (req) => {
       },
       konten:     kontenFinal,
       validation: { valid: validation.valid, errors: validation.errors },
+      rate_limit_info: { used: rlUsed, remaining: Math.max(0, 5 - rlUsed), max: 5 },
     });
   }
 

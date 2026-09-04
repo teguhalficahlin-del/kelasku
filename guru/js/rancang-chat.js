@@ -2293,14 +2293,23 @@
     }
 
     // [D] Konteks Murid
-    if (km.kesiapan_awal?.length || km.variasi_kemampuan || km.kebutuhan_dukungan?.length) {
-      const kmHtml = [
-        km.variasi_kemampuan ? `<div class="mv4-row"><span class="mv4-label">Variasi Kemampuan</span><span>${esc(km.variasi_kemampuan)}</span></div>` : '',
-        km.kesiapan_awal?.length ? `<div class="mv4-sub"><strong>Kesiapan Awal:</strong></div>${list(km.kesiapan_awal)}` : '',
-        km.kebutuhan_dukungan?.length ? `<div class="mv4-sub"><strong>Kebutuhan Dukungan:</strong></div>${list(km.kebutuhan_dukungan)}` : '',
-      ].join('');
-      resmi += sec('D. Konteks Murid', kmHtml);
-    }
+    const ig = km.input_guru ?? {};
+    const kmHtml = [
+      // Fakta dari guru
+      (ig.kondisi_kelas || ig.jumlah_murid != null)
+        ? `<div class="mv4-ins-zone-label" style="margin-bottom:4px">Yang Guru Sampaikan</div>`+
+          (ig.kondisi_kelas ? `<div class="mv4-row"><span class="mv4-label">Kondisi Kelas</span><span>${esc(ig.kondisi_kelas)}</span></div>` : '')+
+          (ig.jumlah_murid != null ? `<div class="mv4-row"><span class="mv4-label">Jumlah Murid</span><span>${esc(String(ig.jumlah_murid))} orang</span></div>` : '')
+        : '',
+      // Inferensi AI
+      (km.kesiapan_awal?.length || km.variasi_kemampuan || km.kebutuhan_dukungan?.length)
+        ? `<div class="mv4-ins-zone-label" style="margin:6px 0 4px">Analisis MiClass</div>`+
+          (km.variasi_kemampuan ? `<div class="mv4-row"><span class="mv4-label">Variasi Kemampuan</span><span>${esc(km.variasi_kemampuan)}</span></div>` : '')+
+          (km.kesiapan_awal?.length ? `<div class="mv4-sub"><strong>Kesiapan Awal:</strong></div>${list(km.kesiapan_awal)}` : '')+
+          (km.kebutuhan_dukungan?.length ? `<div class="mv4-sub"><strong>Kebutuhan Dukungan:</strong></div>${list(km.kebutuhan_dukungan)}` : '')
+        : '',
+    ].join('');
+    if (kmHtml) resmi += sec('D. Konteks Murid', kmHtml);
 
     // [E] Materi Esensial
     const meHtml = [
@@ -2949,9 +2958,11 @@
       saveState();
       const s = result.summary;
       const durasi = Math.round((Date.now() - generateStart) / 1000);
+      const rlInfo = result.rate_limit_info;
+      const rlNote = rlInfo ? ` Sisa ${rlInfo.remaining}× generate hari ini.` : '';
       const msg =
         `✅ Modul Ajar selesai! ${s.jumlah_pertemuan} pertemuan, ` +
-        `${s.jp_per_pertemuan} JP per pertemuan. (${durasi}s)`;
+        `${s.jp_per_pertemuan} JP per pertemuan. (${durasi}s)${rlNote}`;
       rcAppendBubble('ai', msg);
       addToHistory('ai', msg);
       await startPhase('MODUL_REVIEW');

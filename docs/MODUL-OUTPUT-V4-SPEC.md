@@ -160,8 +160,15 @@ type KktpItem = {
 
 ```typescript
 type KonteksMurid = {
+  // Diisi backend dari jawaban guru — bukan AI-generated
+  input_guru: {
+    kondisi_kelas:  string | null;  // label dari kondisi_kelas_modul
+    jumlah_murid:   number | null;  // dari rancang_settings.jumlah_murid
+  };
+
+  // Dihasilkan AI berdasarkan input_guru + konteks TP
   kesiapan_awal:      string[]; // ≥ 3 kemampuan awal yang diasumsikan dimiliki murid
-  variasi_kemampuan:  string;   // deskripsi kondisi kelas
+  variasi_kemampuan:  string;   // deskripsi kondisi kelas (konsisten dengan kondisi_kelas)
   kebutuhan_dukungan: string[]; // ≥ 2 bentuk dukungan yang mungkin dibutuhkan
 };
 ```
