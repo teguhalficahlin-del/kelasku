@@ -334,6 +334,8 @@ const RANCANG_FLOW = {
       ['inklusif',           'Ada yang butuh pendampingan khusus'],
       ['campuran_kemampuan', 'Sebagian sedang PKL'],
     ]),
+    angka('jumlah_murid_kelas', 'Berapa murid di kelas ini?', 10, 60,
+      { helpText: 'Digunakan untuk merancang instrumen dan menentukan apakah kegiatan bisa dilakukan serentak atau bergantian.' }),
     pilihan('target_kompetensi_modul', 'Target kompetensi utama modul ini?', [
       ['pemahaman',  'Pemahaman konsep'],
       ['keterampilan', 'Keterampilan praktis'],
@@ -368,6 +370,13 @@ const RANCANG_FLOW = {
   ],
 
   ASESMEN_MODUL: [
+    jamak('pilihan_asesmen', 'Jenis asesmen apa yang akan digunakan dalam modul ini?', [
+      ['diagnostik', 'Diagnostik — pemetaan kemampuan awal sebelum pembelajaran'],
+      ['formatif',   'Formatif — cek pemahaman selama proses belajar'],
+      ['sumatif',    'Sumatif — penilaian hasil belajar di akhir modul'],
+      ['tidak_ada',  'Tidak ada asesmen khusus dalam modul ini'],
+    ], { constraints: { exclusive: ['tidak_ada'] },
+      helpText: 'Jenis yang tidak dipilih tidak akan muncul di modul.' }),
     jamak('teknik_asesmen', 'Teknik asesmen apa yang digunakan?', [
       ['tes_tulis',   'Tes tulis'],
       ['tes_lisan',   'Tes lisan'],
@@ -376,13 +385,14 @@ const RANCANG_FLOW = {
       ['proyek',      'Proyek'],
       ['unjuk_kerja', 'Unjuk kerja'],
       ['rekomendasi', 'Minta rekomendasi MiClass'],
-    ], { constraints: { exclusive: ['rekomendasi'] }, aiRecommendation: true }),
+    ], { constraints: { exclusive: ['rekomendasi'] }, aiRecommendation: true,
+      condition: { question_id: 'pilihan_asesmen', values: ['diagnostik', 'formatif', 'sumatif'] } }),
     pilihan('waktu_asesmen', 'Kapan asesmen utama dilakukan?', [
       ['awal',     'Di awal — untuk tahu kemampuan murid sebelum mulai'],
       ['proses',   'Selama proses belajar — untuk cek pemahaman saat mengajar'],
       ['akhir',    'Di akhir pertemuan — untuk nilai hasil belajar'],
       ['campuran', 'Campuran — di awal, selama, dan akhir pertemuan'],
-    ]),
+    ], { condition: { question_id: 'pilihan_asesmen', values: ['diagnostik', 'formatif', 'sumatif'] } }),
   ],
 
   MODUL_SUMMARY: [

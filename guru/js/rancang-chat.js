@@ -2104,7 +2104,9 @@
       return;
     }
     try {
-      if (konten.schema_version === '3.2.0') {
+      if (konten.schema_version === '4.0.0') {
+        _renderModulPreviewV400(konten);
+      } else if (konten.schema_version === '3.2.0') {
         _renderModulPreviewV320(konten);
       } else {
         _renderModulPreviewLama(konten);
@@ -2115,6 +2117,220 @@
         '⚠ Modul berhasil dibuat tapi terjadi error saat menampilkannya. ' +
         'Data sudah tersimpan — klik "Lihat Modul" untuk mengecek konten.');
     }
+  }
+
+  // ── Render schema V4.0.0 — dua tab: Modul Resmi + Naskah Fasilitasi ─────
+  function _renderModulPreviewV400(konten) {
+    const id   = konten.identitas           ?? {};
+    const kktp = Array.isArray(konten.kktp) ? konten.kktp : [];
+    const km   = konten.konteks_murid       ?? {};
+    const ra   = konten.rencana_asesmen     ?? {};
+    const pt   = Array.isArray(konten.pertemuan) ? konten.pertemuan : [];
+    const nf   = Array.isArray(konten.naskah_fasilitasi) ? konten.naskah_fasilitasi : [];
+    const ipArr = Array.isArray(konten.instrumen_pembelajaran) ? konten.instrumen_pembelajaran : [];
+    const iaArr = Array.isArray(konten.instrumen_asesmen) ? konten.instrumen_asesmen : [];
+    const tl    = konten.tindak_lanjut ?? {};
+    const cg    = Array.isArray(konten.catatan_guru) ? konten.catatan_guru : [];
+
+    // ── helper ──────────────────────────────────────────────────────────────
+    const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const h   = (tag, cls, html) => `<${tag} class="${cls}">${html}</${tag}>`;
+    const sec = (judul, html) => html
+      ? `<div class="mv4-section"><div class="mv4-section-title">${esc(judul)}</div>${html}</div>` : '';
+
+    // ── bangun HTML tab Modul Resmi ─────────────────────────────────────────
+    let resmi = '';
+
+    // Identitas
+    const idLines = [
+      ['Mata Pelajaran', id.mata_pelajaran],
+      ['Jenjang / Fase', `${id.jenjang ?? '-'} / Fase ${id.fase ?? '-'}`],
+      ['Nomor TP',       id.nomor_tp],
+      ['Jumlah Murid',   id.jumlah_murid],
+      ['Pertemuan',      id.jumlah_pertemuan ? `${id.jumlah_pertemuan} × ${id.jp_per_pertemuan ?? '?'} JP` : null],
+      ['Total Alokasi',  id.alokasi_waktu_total_menit ? `${id.alokasi_waktu_total_menit} menit` : null],
+      ['Elemen CP',      Array.isArray(id.elemen_cp) ? id.elemen_cp.join(', ') : id.elemen_cp],
+    ].filter(([,v]) => v != null)
+     .map(([k,v]) => `<div class="mv4-row"><span class="mv4-label">${esc(k)}</span><span>${esc(v)}</span></div>`)
+     .join('');
+    resmi += sec('Identitas', idLines);
+
+    // Konteks Murid
+    if (km.kondisi_kelas || km.jumlah_murid || km.profil_singkat) {
+      const kmHtml = [
+        km.jumlah_murid ? `<div class="mv4-row"><span class="mv4-label">Jumlah Murid</span><span>${esc(km.jumlah_murid)}</span></div>` : '',
+        km.kondisi_kelas ? `<div class="mv4-row"><span class="mv4-label">Kondisi Kelas</span><span>${esc(km.kondisi_kelas)}</span></div>` : '',
+        km.profil_singkat ? `<div class="mv4-row"><span class="mv4-label">Profil Singkat</span><span>${esc(km.profil_singkat)}</span></div>` : '',
+      ].join('');
+      resmi += sec('Konteks Murid', kmHtml);
+    }
+
+    // KKTP
+    if (kktp.length) {
+      const kktpHtml = kktp.map(k =>
+        `<div class="mv4-kktp-item"><strong>${esc(k.id_kktp ?? '?')}</strong> — ${esc(k.kriteria ?? '-')}`+
+        (k.ambang_batas != null ? ` <em>(≥${k.ambang_batas})</em>` : '') +
+        (k.bukti ? `<div class="mv4-sub">Bukti: ${esc(k.bukti)}</div>` : '') +
+        `</div>`
+      ).join('');
+      resmi += sec('KKTP', kktpHtml);
+    }
+
+    // Rencana Asesmen
+    const raHtml = (() => {
+      let out = '';
+      if (ra.asesmen_diagnostik) {
+        const d = ra.asesmen_diagnostik;
+        out += `<div class="mv4-asesmen-blok"><div class="mv4-asesmen-label">Diagnostik</div>`+
+          `<div class="mv4-row"><span class="mv4-label">Teknik</span><span>${esc(d.teknik ?? '-')}</span></div>`+
+          `<div class="mv4-row"><span class="mv4-label">Waktu</span><span>${esc(d.waktu ?? '-')}</span></div>`+
+          `</div>`;
+      }
+      if (Array.isArray(ra.asesmen_formatif) && ra.asesmen_formatif.length) {
+        ra.asesmen_formatif.forEach((f, i) => {
+          out += `<div class="mv4-asesmen-blok"><div class="mv4-asesmen-label">Formatif ${i+1}</div>`+
+            `<div class="mv4-row"><span class="mv4-label">Teknik</span><span>${esc(f.teknik ?? '-')}</span></div>`+
+            `<div class="mv4-row"><span class="mv4-label">Fungsi</span><span>${esc(f.fungsi ?? '-')}</span></div>`+
+            `</div>`;
+        });
+      }
+      if (ra.asesmen_sumatif) {
+        const s = ra.asesmen_sumatif;
+        out += `<div class="mv4-asesmen-blok"><div class="mv4-asesmen-label">Sumatif</div>`+
+          `<div class="mv4-row"><span class="mv4-label">Teknik</span><span>${esc(s.teknik ?? '-')}</span></div>`+
+          `<div class="mv4-row"><span class="mv4-label">Durasi</span><span>${s.durasi_menit != null ? s.durasi_menit+' menit' : '-'}</span></div>`+
+          `</div>`;
+      }
+      return out;
+    })();
+    if (raHtml) resmi += sec('Rencana Asesmen', raHtml);
+
+    // Pertemuan
+    pt.forEach(p => {
+      const lkHtml = (Array.isArray(p.langkah) ? p.langkah : []).map(lk => {
+        const slHtml = (Array.isArray(lk.sub_langkah) ? lk.sub_langkah : []).map(sl =>
+          `<div class="mv4-sl">${sl.nomor ?? '?'}. ${esc(sl.deskripsi ?? '-')} `+
+          `<em>(${sl.durasi_menit ?? '?'} mnt)</em>`+
+          (sl.instrumen_ref?.length ? ` [${sl.instrumen_ref.map(esc).join(', ')}]` : '')+
+          `</div>`
+        ).join('');
+        return `<div class="mv4-langkah"><div class="mv4-langkah-nama">${esc(lk.nama ?? '?')} `+
+          `<em>(${lk.durasi_menit ?? '?'} mnt)</em></div>${slHtml}</div>`;
+      }).join('');
+      const mediaStr = Array.isArray(p.media_dan_alat) ? p.media_dan_alat.map(esc).join(', ') : '-';
+      resmi += `<div class="mv4-section">`+
+        `<div class="mv4-section-title">Pertemuan ${p.nomor ?? '?'}</div>`+
+        `<div class="mv4-row"><span class="mv4-label">Tujuan</span><span>${esc(p.tujuan_pertemuan ?? '-')}</span></div>`+
+        `<div class="mv4-row"><span class="mv4-label">Media</span><span>${mediaStr}</span></div>`+
+        lkHtml + `</div>`;
+    });
+
+    // Instrumen (ringkasan)
+    const allIns = [...ipArr, ...iaArr];
+    if (allIns.length) {
+      const insHtml = allIns.map(ins =>
+        `<div class="mv4-ins-item">`+
+        `<span class="mv4-ins-id">${esc(ins.id ?? '?')}</span> `+
+        `<span class="mv4-ins-jenis">[${esc(ins.jenis ?? '-')}]</span> `+
+        (ins.untuk_murid ? `<span class="mv4-ins-star" title="Untuk Murid">★</span> ` : '')+
+        `${esc(ins.judul ?? ins.deskripsi_singkat ?? '')}`+
+        `</div>`
+      ).join('');
+      resmi += sec('Instrumen', insHtml);
+    }
+
+    // Tindak Lanjut
+    const tlHtml = (() => {
+      let out = '';
+      if (Array.isArray(tl.pengayaan) && tl.pengayaan.length)
+        out += `<div class="mv4-row"><span class="mv4-label">Pengayaan</span><span>${tl.pengayaan.map(esc).join('; ')}</span></div>`;
+      if (Array.isArray(tl.remediasi) && tl.remediasi.length)
+        out += `<div class="mv4-row"><span class="mv4-label">Remediasi</span><span>${tl.remediasi.map(esc).join('; ')}</span></div>`;
+      return out;
+    })();
+    if (tlHtml) resmi += sec('Tindak Lanjut', tlHtml);
+
+    if (cg.length)
+      resmi += sec('Catatan Guru', cg.map((c,i) => `<div class="mv4-cg">${i+1}. ${esc(c)}</div>`).join(''));
+
+    // ── bangun HTML tab Naskah Fasilitasi ──────────────────────────────────
+    let naskah = '';
+    if (nf.length === 0) {
+      naskah = '<div class="mv4-empty">Naskah fasilitasi belum tersedia.</div>';
+    } else {
+      nf.forEach(np => {
+        const subArr = Array.isArray(np.sub_langkah) ? np.sub_langkah : [];
+        const subHtml = subArr.map(sl => {
+          const ucapan = Array.isArray(sl.ucapan_guru) ? sl.ucapan_guru : [];
+          const aksi   = Array.isArray(sl.aksi_guru)   ? sl.aksi_guru   : [];
+          const tanya  = Array.isArray(sl.pertanyaan_kunci) ? sl.pertanyaan_kunci : [];
+          const kesulitan = Array.isArray(sl.jika_kesulitan) ? sl.jika_kesulitan : [];
+          return `<div class="mv4-ns-sl">`+
+            `<div class="mv4-ns-ref">${esc(sl.ref ?? '?')}</div>`+
+            (ucapan.length ? `<div class="mv4-ns-group"><div class="mv4-ns-group-label">Ucapan Guru</div>`+
+              ucapan.map(u => `<div class="mv4-ns-item">"${esc(u)}"</div>`).join('')+`</div>` : '')+
+            (aksi.length ? `<div class="mv4-ns-group"><div class="mv4-ns-group-label">Aksi Guru</div>`+
+              aksi.map(a => `<div class="mv4-ns-item">→ ${esc(a)}</div>`).join('')+`</div>` : '')+
+            (tanya.length ? `<div class="mv4-ns-group"><div class="mv4-ns-group-label">Pertanyaan Kunci</div>`+
+              tanya.map(t => `<div class="mv4-ns-item">? ${esc(t)}</div>`).join('')+`</div>` : '')+
+            (kesulitan.length ? `<div class="mv4-ns-group mv4-ns-tip"><div class="mv4-ns-group-label">Jika Kesulitan</div>`+
+              kesulitan.map(k => `<div class="mv4-ns-item">⚠ ${esc(k)}</div>`).join('')+`</div>` : '')+
+            `</div>`;
+        }).join('');
+        naskah += `<div class="mv4-section">`+
+          `<div class="mv4-section-title">Pertemuan ${np.nomor ?? '?'} — Naskah</div>`+
+          subHtml+`</div>`;
+      });
+    }
+
+    // ── render widget dua tab ke chat ───────────────────────────────────────
+    const wrap = document.createElement('div');
+    wrap.className = 'mv4-wrap';
+    wrap.innerHTML = `
+<style>
+.mv4-wrap{font-size:.87rem;line-height:1.5;max-width:100%}
+.mv4-tabs{display:flex;gap:4px;margin-bottom:8px}
+.mv4-tab{padding:4px 12px;border-radius:4px;border:1px solid var(--border,#ccc);
+  background:transparent;cursor:pointer;font-size:.82rem;color:var(--text-muted,#888)}
+.mv4-tab.active{background:var(--gold,#c8a84b);color:#000;border-color:var(--gold,#c8a84b);font-weight:600}
+.mv4-panel{display:none}.mv4-panel.active{display:block}
+.mv4-section{margin:8px 0;padding:8px;border-radius:6px;background:var(--surface2,rgba(255,255,255,.04))}
+.mv4-section-title{font-weight:700;margin-bottom:6px;color:var(--gold,#c8a84b);font-size:.82rem;text-transform:uppercase;letter-spacing:.04em}
+.mv4-row{display:flex;gap:8px;margin:2px 0;font-size:.84rem}
+.mv4-label{min-width:7rem;color:var(--text-muted,#888);flex-shrink:0}
+.mv4-kktp-item{margin:4px 0;font-size:.84rem}.mv4-sub{color:var(--text-muted,#888);font-size:.8rem;margin-left:8px}
+.mv4-asesmen-blok{margin:4px 0;padding:4px 8px;border-left:2px solid var(--gold,#c8a84b)}
+.mv4-asesmen-label{font-weight:600;font-size:.8rem;color:var(--gold,#c8a84b);margin-bottom:2px}
+.mv4-langkah{margin:6px 0}.mv4-langkah-nama{font-weight:600;font-size:.83rem;margin-bottom:2px}
+.mv4-sl{margin-left:12px;font-size:.82rem;color:var(--text-muted,#888)}
+.mv4-ins-item{font-size:.82rem;margin:2px 0}
+.mv4-ins-id{font-weight:600}.mv4-ins-jenis{color:var(--text-muted,#888)}
+.mv4-ins-star{color:var(--gold,#c8a84b)}
+.mv4-cg{font-size:.83rem;margin:2px 0}
+.mv4-ns-sl{margin:6px 0;padding:6px 8px;border-radius:4px;background:var(--surface2,rgba(255,255,255,.04))}
+.mv4-ns-ref{font-weight:700;font-size:.8rem;color:var(--gold,#c8a84b);margin-bottom:4px}
+.mv4-ns-group{margin:4px 0}.mv4-ns-group-label{font-size:.75rem;font-weight:600;color:var(--text-muted,#888);text-transform:uppercase}
+.mv4-ns-item{font-size:.83rem;margin:2px 0 2px 8px}
+.mv4-ns-tip .mv4-ns-item{color:#e08c4f}
+.mv4-empty{color:var(--text-muted,#888);font-style:italic;padding:8px}
+</style>
+<div class="mv4-tabs">
+  <button class="mv4-tab active" data-tab="resmi">Modul Ajar Resmi</button>
+  <button class="mv4-tab" data-tab="naskah">Naskah Fasilitasi</button>
+</div>
+<div class="mv4-panel active" data-panel="resmi">${resmi}</div>
+<div class="mv4-panel" data-panel="naskah">${naskah}</div>`;
+
+    wrap.querySelectorAll('.mv4-tab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const t = btn.dataset.tab;
+        wrap.querySelectorAll('.mv4-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === t));
+        wrap.querySelectorAll('.mv4-panel').forEach(p => p.classList.toggle('active', p.dataset.panel === t));
+      });
+    });
+
+    rcAppendBubble('ai', wrap);
+    addToHistory('ai', `Modul Ajar V4.0 — ${id.mata_pelajaran ?? ''} TP ${id.nomor_tp ?? '?'} (${pt.length} pertemuan)`);
   }
 
   // ── Render schema lama (sebelum V3.2.0) ──────────────────────────────────
