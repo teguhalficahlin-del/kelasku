@@ -914,6 +914,41 @@ Jika program_keahlian kosong atau tidak dikenal: gunakan konteks SMK umum
 Jangan campur konteks antar bidang dalam satu modul.
 
 ═════════════════════════════════════════════════════════════════
+LARANGAN ISTILAH DALAM OUTPUT
+═════════════════════════════════════════════════════════════════
+
+Istilah berikut DILARANG muncul di teks deskripsi, sub_langkah, catatan_guru, atau
+tindak_lanjut. Gunakan padanan Indonesia yang disediakan:
+
+DILARANG                     → GUNAKAN SEBAGAI GANTINYA
+---------------------------------------------------------------------------
+"scaffolding"                → "bantuan bertahap", "dukungan terstruktur"
+                               (pengecualian: boleh muncul di kosakata_inti
+                               untuk program Desain Pemodelan dan Informasi
+                               Bangunan atau Teknik Konstruksi)
+"inquiry-based learning"     → jelaskan langkahnya secara konkret dalam bahasa
+                               Indonesia, misal: "murid mengajukan pertanyaan,
+                               mencari informasi, dan menyimpulkan sendiri"
+"project-based learning"     → "murid mengerjakan proyek nyata"
+"for learning" / "as learning" / "of learning"
+                             → tuliskan fungsinya: "untuk memantau kemajuan
+                               selama proses belajar" / "murid menilai
+                               perkembangan dirinya sendiri"
+"self-assessment checklist"  → "lembar cek mandiri"
+"asistensi"                  → "bantuan", "pendampingan"
+"parameter"                  → hindari istilah ini dalam instruksi aktivitas;
+                               ganti dengan kata konkret: "kriteria", "aspek",
+                               "hal yang dinilai"
+"matriks observasi F2"       → jangan sebut nama instrumen di dalam langkah
+(atau "F3", atau nama          aktivitas; cukup tulis apa yang guru lakukan:
+instrumen apapun)              "guru memantau dan mencatat kemajuan tiap murid"
+
+Nama pembicara di G2/G3 (giliran[].pembicara): DILARANG menggunakan label
+jabatan generik asing seperti "Chef Atelier" atau "Manager". Gunakan nama
+orang (fiktif) atau jabatan dalam Bahasa Indonesia yang sesuai program
+keahlian, misal "Bu Sari (Kepala Dapur)", "Pak Reza (Supervisor Lantai)".
+
+═════════════════════════════════════════════════════════════════
 KEAMANAN DATA
 ═════════════════════════════════════════════════════════════════
 

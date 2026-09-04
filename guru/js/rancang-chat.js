@@ -2263,12 +2263,21 @@
     const pertemuanArr = Array.isArray(konten.pertemuan) ? konten.pertemuan : [];
     for (const p of pertemuanArr) {
       const langkahArr = Array.isArray(p.langkah) ? p.langkah : [];
+      const LABEL_LANGKAH = {
+        PEMBUKA:      'Pembuka',
+        ASESMEN_AWAL: 'Asesmen Awal',
+        MEMAHAMI:     'Memahami',
+        MENGAPLIKASI: 'Mengaplikasi',
+        MEREFLEKSI:   'Merefleksi',
+        PENUTUP:      'Penutup',
+      };
       const langkahLines = langkahArr.map(lk => {
+        const namaLabel = LABEL_LANGKAH[lk.nama] ?? lk.nama ?? '?';
         const prinsip = Array.isArray(lk.prinsip) ? lk.prinsip.join(', ') : '-';
         const slLines = Array.isArray(lk.sub_langkah)
           ? lk.sub_langkah.map(sl => `      ${sl.nomor ?? '?'}. ${sl.deskripsi ?? '-'}`).join('\n')
           : '';
-        return `  ▸ ${lk.nama ?? '?'} (${lk.durasi_menit ?? '?'} mnt) [${prinsip}]` +
+        return `  ▸ ${namaLabel} (${lk.durasi_menit ?? '?'} mnt) [${prinsip}]` +
           (slLines ? `\n${slLines}` : '');
       });
       const mediaStr = Array.isArray(p.media_dan_alat) ? p.media_dan_alat.join(', ') : '-';
@@ -2333,14 +2342,19 @@
     // G5 — Kartu Identitas
     const g5Arr = Array.isArray(ins.g5_kartu_identitas) ? ins.g5_kartu_identitas : [];
     if (g5Arr.length) {
+      const fmtG5Kartu = (k, label) => {
+        const parts = [k.nama, k.jabatan, k.bagian].filter(v => v && v !== '-');
+        const shift = k.shift && k.shift !== '-' ? `Shift ${k.shift}` : null;
+        if (shift) parts.push(shift);
+        const detail = parts.length ? ` (${parts.join(', ')})` : '';
+        return `  ${label}${detail}\n  Peran: ${k.peran ?? '-'}`;
+      };
       const setLines = g5Arr.map(s => {
         const ka = s.kartu_a ?? {};
         const kb = s.kartu_b ?? {};
         return `${s.nama_set ?? '-'} — ${s.nama_perusahaan ?? '-'}\n` +
-          `  Kartu A (${ka.nama ?? '-'}, ${ka.jabatan ?? '-'}, ${ka.bagian ?? '-'}, Shift ${ka.shift ?? '-'})\n` +
-          `  Peran A: ${ka.peran ?? '-'}\n` +
-          `  Kartu B (${kb.nama ?? '-'}, ${kb.jabatan ?? '-'}, ${kb.bagian ?? '-'}, Shift ${kb.shift ?? '-'})\n` +
-          `  Peran B: ${kb.peran ?? '-'}`;
+          fmtG5Kartu(ka, 'Kartu A') + '\n' +
+          fmtG5Kartu(kb, 'Kartu B');
       });
       rcAppendBubble('ai', `🪪 G5 — Kartu Identitas Kerja Fiktif\n\n${setLines.join('\n\n')}`);
     }
