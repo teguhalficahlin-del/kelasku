@@ -2558,7 +2558,8 @@
       let needsReload = false;
       let needsBack = false;
       if (code === 'MODUL_INPUT_INCOMPLETE') {
-        msg = 'Beberapa data belum lengkap. Kembali ke ringkasan untuk melengkapinya.';
+        const missingList = (err.missing || []).join(', ');
+        msg = 'Beberapa data belum lengkap' + (missingList ? ': ' + missingList : '') + '. Kembali ke ringkasan untuk melengkapinya.';
         needsBack = true;
       } else if (code === 'MODUL_WRITE_CONFLICT' || code === 'MODUL_GENERATION_CONFLICT') {
         msg = 'Modul ini sedang dibuka di halaman lain. Muat ulang halaman lalu coba lagi.';

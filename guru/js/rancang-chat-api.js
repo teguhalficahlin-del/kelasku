@@ -190,6 +190,7 @@ async function _callGenerateModulFase(token, modulIndukId, classroomId, expected
     const err = new Error(resJson.error || `generate-modul Fase ${fase} HTTP ${res.status}`);
     err.code      = resJson.code      || String(res.status);
     err.retryable = resJson.retryable ?? false;
+    err.missing   = resJson.missing   || [];
     throw err;
   }
   return resJson;
