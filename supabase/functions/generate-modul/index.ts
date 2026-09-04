@@ -856,7 +856,8 @@ ASESMEN:
 - Formatif harus terdistribusi di langkah berbeda — bukan semuanya di akhir.
 - Sumatif: jika ada, HARUS ada tepat 1 sub_langkah dengan asesmen_ref="SUMATIF" dan
   durasi_menit identik dengan asesmen_sumatif.durasi_menit. Tempatkan di fase = placement.fase.
-- asesmen_xxx = null jika guru tidak memilihnya (lihat field pilihan_asesmen di input).
+- asesmen_diagnostik = null jika gunakan_diagnostik=false, asesmen_formatif = null jika gunakan_formatif=false,
+  asesmen_sumatif = null jika gunakan_sumatif=false.
 
 INKLUSIVITAS:
 - Jangan gunakan label kemampuan global ("murid lemah", "murid pandai").
@@ -963,9 +964,14 @@ function buildUserMessageFaseA(params: {
   jpPerPertemuan:   number;
   durasiJp:         number;
   elemenCp:         ElemenCp[];
-  kktpList:         Array<{ judul: string; konten: string | null; batas_bawah: number | null; batas_atas: number | null }>;
-  cd:               Record<string, unknown>;
-  pilanAsesmen:     string[];
+  kktpList:           Array<{ judul: string; konten: string | null; batas_bawah: number | null; batas_atas: number | null }>;
+  cd:                 Record<string, unknown>;
+  pilanAsesmen:       string[];
+  gunakanDiagnostik:  boolean;
+  teknikDiagnostik:   string | null;
+  gunakanFormatif:    boolean;
+  gunakanSumatif:     boolean;
+  teknikSumatif:      string | null;
 }): string {
   return JSON.stringify({
     fase: 'A',
@@ -997,12 +1003,21 @@ function buildUserMessageFaseA(params: {
     pilihan_asesmen:      params.pilanAsesmen,
     konteks_pembelajaran: params.cd.KONTEKS_MODUL   ?? null,
     sumber_strategi:      params.cd.SUMBER_STRATEGI ?? null,
-    asesmen:              params.cd.ASESMEN_MODUL   ?? null,
+    asesmen: {
+      gunakan_diagnostik: params.gunakanDiagnostik,
+      teknik_diagnostik:  params.teknikDiagnostik,
+      gunakan_formatif:   params.gunakanFormatif,
+      gunakan_sumatif:    params.gunakanSumatif,
+      teknik_sumatif:     params.teknikSumatif,
+    },
     instruksi_manifest:
-      'Buat manifest berdasarkan pilihan_asesmen. ' +
-      'Jika "tidak_ada" ada di pilihan_asesmen, asesmen_manifest=[]. ' +
+      'Buat manifest berdasarkan pilihan_asesmen (array jenis yang aktif). ' +
+      'Jika pilihan_asesmen kosong ([]), asesmen_manifest=[]. ' +
+      'Diagnostik: gunakan teknik_diagnostik untuk menentukan jenis instrumen. ' +
+      'Formatif: AI menentukan teknik dan penempatan per entri F1/F2/F3 berdasarkan jumlah pertemuan. ' +
+      'Sumatif: gunakan teknik_sumatif untuk menentukan jenis instrumen. ' +
       'Instrumen pembelajaran (PBL-xx): buat berdasarkan sumber_strategi dan konteks_pembelajaran. ' +
-      'Instrumen asesmen (ASM-xx): buat sesuai teknik yang dipilih di asesmen — satu ID per instrumen unik. ' +
+      'Instrumen asesmen (ASM-xx): buat sesuai teknik — satu ID per instrumen unik. ' +
       'Setiap ID di manifest harus diisi kontennya di Fase C.',
   });
 }
@@ -1295,12 +1310,19 @@ Deno.serve(async (req) => {
     ? (Number(unwrap(waktu.durasi_jp_lain) ?? 45) || 45)
     : (Number(durasiJpRaw ?? 45) || 45);
 
-  // pilihan_asesmen dari ASESMEN_MODUL
+  // gunakan_* dari ASESMEN_MODUL (field baru menggantikan pilihan_asesmen)
   const asesmenModul = (cd.ASESMEN_MODUL as Record<string, unknown>) || {};
-  const pilanAsesmenRaw = unwrap(asesmenModul.pilihan_asesmen);
-  const pilanAsesmen: string[] = Array.isArray(pilanAsesmenRaw)
-    ? pilanAsesmenRaw as string[]
-    : ['diagnostik', 'formatif'];
+  const gunakanDiagnostik = unwrap(asesmenModul.gunakan_diagnostik) === 'ya';
+  const gunakanFormatif   = unwrap(asesmenModul.gunakan_formatif)   === 'ya';
+  const gunakanSumatif    = unwrap(asesmenModul.gunakan_sumatif)    === 'ya';
+  const teknikDiagnostik  = gunakanDiagnostik ? String(unwrap(asesmenModul.teknik_diagnostik) ?? 'rekomendasi') : null;
+  const teknikSumatif     = gunakanSumatif     ? String(unwrap(asesmenModul.teknik_sumatif)    ?? 'rekomendasi') : null;
+  // pilanAsesmen: dipertahankan untuk instruksi manifest ke AI
+  const pilanAsesmen: string[] = [
+    ...(gunakanDiagnostik ? ['diagnostik'] : []),
+    ...(gunakanFormatif   ? ['formatif']   : []),
+    ...(gunakanSumatif    ? ['sumatif']    : []),
+  ];
 
   // elemen_cp
   const elemenCp: ElemenCp[] = Array.isArray((atp as Record<string, unknown>).elemen_cp)
@@ -1460,7 +1482,7 @@ Deno.serve(async (req) => {
     try {
       faseAOutput = await callPhase(
         'Fase A',
-        buildUserMessageFaseA({ identitasDB, jumlahMurid, nomorTp, tpJudul, jumlahPertemuan, jpPerPertemuan, durasiJp, elemenCp, kktpList, cd, pilanAsesmen }),
+        buildUserMessageFaseA({ identitasDB, jumlahMurid, nomorTp, tpJudul, jumlahPertemuan, jpPerPertemuan, durasiJp, elemenCp, kktpList, cd, pilanAsesmen, gunakanDiagnostik, teknikDiagnostik, gunakanFormatif, gunakanSumatif, teknikSumatif }),
         90_000, 4000,
       );
     } catch (e) {

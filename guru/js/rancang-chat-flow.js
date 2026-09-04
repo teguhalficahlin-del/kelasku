@@ -370,29 +370,39 @@ const RANCANG_FLOW = {
   ],
 
   ASESMEN_MODUL: [
-    jamak('pilihan_asesmen', 'Jenis asesmen apa yang akan digunakan dalam modul ini?', [
-      ['diagnostik', 'Diagnostik — pemetaan kemampuan awal sebelum pembelajaran'],
-      ['formatif',   'Formatif — cek pemahaman selama proses belajar'],
-      ['sumatif',    'Sumatif — penilaian hasil belajar di akhir modul'],
-      ['tidak_ada',  'Tidak ada asesmen khusus dalam modul ini'],
-    ], { constraints: { exclusive: ['tidak_ada'] },
-      helpText: 'Jenis yang tidak dipilih tidak akan muncul di modul.' }),
-    jamak('teknik_asesmen', 'Teknik asesmen apa yang digunakan?', [
-      ['tes_tulis',   'Tes tulis'],
-      ['tes_lisan',   'Tes lisan'],
-      ['observasi',   'Observasi proses'],
-      ['portofolio',  'Portofolio'],
-      ['proyek',      'Proyek'],
-      ['unjuk_kerja', 'Unjuk kerja'],
-      ['rekomendasi', 'Minta rekomendasi MiClass'],
-    ], { constraints: { exclusive: ['rekomendasi'] }, aiRecommendation: true,
-      condition: { question_id: 'pilihan_asesmen', values: ['diagnostik', 'formatif', 'sumatif'] } }),
-    pilihan('waktu_asesmen', 'Kapan asesmen utama dilakukan?', [
-      ['awal',     'Di awal — untuk tahu kemampuan murid sebelum mulai'],
-      ['proses',   'Selama proses belajar — untuk cek pemahaman saat mengajar'],
-      ['akhir',    'Di akhir pertemuan — untuk nilai hasil belajar'],
-      ['campuran', 'Campuran — di awal, selama, dan akhir pertemuan'],
-    ], { condition: { question_id: 'pilihan_asesmen', values: ['diagnostik', 'formatif', 'sumatif'] } }),
+    // --- Diagnostik ---
+    pilihan('gunakan_diagnostik', 'Apakah modul ini perlu memetakan kemampuan awal murid sebelum pembelajaran dimulai?', [
+      ['ya',     'Ya — saya ingin mengecek kemampuan awal murid dulu'],
+      ['lewati', 'Lewati — langsung masuk ke pembelajaran'],
+    ], { helpText: 'Diagnostik membantu guru menyesuaikan cara mengajar dengan kondisi murid nyata.' }),
+    pilihan('teknik_diagnostik', 'Bagaimana cara mengetahui kemampuan awal murid?', [
+      ['pemetaan_awal',  'Pemetaan awal — angket atau soal singkat untuk dipetakan'],
+      ['tanya_jawab',    'Tanya jawab lisan / tes singkat di awal pertemuan'],
+      ['observasi_awal', 'Observasi — amati murid saat mengerjakan tugas pembuka'],
+      ['rekomendasi',    'Minta rekomendasi MiClass'],
+    ], { aiRecommendation: true,
+      condition: { question_id: 'gunakan_diagnostik', value: 'ya' } }),
+
+    // --- Formatif ---
+    pilihan('gunakan_formatif', 'Apakah guru ingin mengecek pemahaman murid selama proses belajar berlangsung?', [
+      ['ya',     'Ya — saya ingin memantau pemahaman murid di tengah pembelajaran'],
+      ['lewati', 'Lewati — tidak perlu asesmen selama proses'],
+    ], { helpText: 'MiClass yang menentukan teknik dan penempatannya berdasarkan jumlah pertemuan.' }),
+
+    // --- Sumatif ---
+    pilihan('gunakan_sumatif', 'Apakah modul ini diakhiri dengan penilaian hasil belajar?', [
+      ['ya',     'Ya — ada penilaian di akhir untuk mengukur ketercapaian TP'],
+      ['lewati', 'Lewati — tidak ada penilaian akhir dalam modul ini'],
+    ], { helpText: 'Sumatif menghasilkan nilai yang dilaporkan ke murid dan orang tua.' }),
+    pilihan('teknik_sumatif', 'Bagaimana bentuk penilaian akhir murid?', [
+      ['tes_tertulis',  'Tes tertulis — soal pilihan ganda atau uraian'],
+      ['unjuk_kerja',   'Unjuk kerja / kinerja — murid menunjukkan kemampuan secara langsung'],
+      ['proyek',        'Proyek / produk — murid menghasilkan karya yang dinilai'],
+      ['praktikum',     'Praktikum — murid melakukan prosedur kerja di lab atau bengkel'],
+      ['presentasi',    'Presentasi — murid menyampaikan hasil di depan kelas'],
+      ['rekomendasi',   'Minta rekomendasi MiClass'],
+    ], { aiRecommendation: true,
+      condition: { question_id: 'gunakan_sumatif', value: 'ya' } }),
   ],
 
   MODUL_SUMMARY: [
