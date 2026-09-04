@@ -226,10 +226,52 @@ Cantumkan checklist ini (ringkas, boleh dalam bentuk daftar centang) di akhir se
 
 ---
 
+## 8. Audit Commands — Tenant Isolation & Migration Check
+
+Dua script Node.js di `tests/` untuk memverifikasi keamanan DB dan konsistensi migration.
+Tidak butuh browser atau server lokal — langsung ke DB live via Supabase Management API.
+
+**Prasyarat:** Access token dari [supabase.com/dashboard/account/tokens](https://supabase.com/dashboard/account/tokens)
+(buat **legacy token** → nilai muncul sekali saat generate → copy langsung).
+
+```powershell
+# Cek konsistensi migration lokal vs DB (cepat, tanpa risiko)
+$env:SUPABASE_ACCESS_TOKEN="sbp_xxx..."; npm run test:migrations
+
+# Audit tenant isolation — 7 check keamanan RLS & cross-classroom
+$env:SUPABASE_ACCESS_TOKEN="sbp_xxx..."; npm run test:tenant
+```
+
+**Kapan dijalankan:**
+- Setelah `supabase db push --linked` (pastikan tidak ada drift migration)
+- Setelah menambah tabel, fungsi SECURITY DEFINER, atau policy RLS baru
+- Sebelum setiap rilis ke production
+- Saat ada laporan data bocor antar classroom
+
+**7 check `test:tenant`:**
+
+| Check | Apa yang diperiksa |
+|-------|--------------------|
+| 1 | RLS enabled di semua tabel public |
+| 2 | Tidak ada `fn_*` VOLATILE SECURITY DEFINER executable oleh `anon` (kecuali allowlist) |
+| 3 | `anon` tidak bisa membaca 9 tabel inti |
+| 4 | Fungsi privileged tidak executable oleh `anon` |
+| 5 | Cross-classroom: guru A tidak bisa baca data classroom guru B |
+| 6 | Semua view public `security_invoker=true` |
+| 7 | `student_notes` memfilter flag visibilitas; `guidance_sessions` default-deny non-guru |
+
+**Allowlist fungsi anon (sengaja, bukan bocor):**
+- `fn_lookup_roster_by_nis` — pre-auth lookup NIS siswa sebelum punya akun
+- `fn_lookup_roster_by_name_nis` — pre-auth lookup nama+NIS ortu sebelum punya akun
+- `fn_validate_roster_login`, `fn_validate_ortu_login` — STABLE, tidak diperiksa CHECK 2
+
+---
+
 ## Changelog
 
 - **27 Jul 2026** — Dokumen awal disusun dari evaluasi satu sesi kerja intensif di proyek pendahulu. Tiga insiden "laporan sukses tanpa bukti verbatim" dan satu kesalahan SQL (`MIN(uuid)` yang baru ketahuan saat deploy gagal) jadi dasar penyusunan aturan #1, #2, dan #7.
 - **30 Jul 2026** — Diadaptasi ke MIClass. Aturan teknis (SECURITY DEFINER, RLS, commit workflow) tetap berlaku tanpa perubahan.
+- **4 Sep 2026** — Tambah **§8 Audit Commands**: `npm run test:tenant` (7 check tenant isolation) dan `npm run test:migrations` (konsistensi migration). Semua check lulus di run pertama. Allowlist anon: `fn_lookup_roster_by_nis`, `fn_lookup_roster_by_name_nis`.
 - **4 Sep 2026** — Tambah **§4b Mode C — Sprint Fix**: 5 fase sprint (Pra-0, 0–4) diadaptasi dari SIP SMK. Diaktifkan saat Romo meminta perbaikan terstruktur atas temuan audit atau bug list. Tiga penyesuaian dari versi SIP SMK: tanpa Playwright (test suite MIClass belum ada), tanpa "Freebuff Audit" branding, verifikasi berbasis browser manual.
 - **25 Agu 2026** — Penutupan sisa gap adaptasi. Tambahan: tabel identitas proyek di #0 (repo, Pages, project ref, anchor, role); penegasan "verbatim = badan pesan, bukan panel tool" di #2; batas baca ikut berlaku di #3; catatan GitHub Pages auto-live di #4; **section #5b baru** — standing rule tenant isolation khusus MIClass (`classroom_id`, `fn_current_profile_id()`, `fn_is_classroom_owner`/`fn_is_classroom_member`, `teacher_id` denormalisasi, uji lintas classroom); dua item baru di checklist #7. Detail insiden proyek pendahulu di entri 27 Jul dipangkas — pelajarannya dipertahankan, konteks non-MIClass dibuang.
 
