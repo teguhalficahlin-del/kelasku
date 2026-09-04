@@ -255,15 +255,16 @@ git push origin main                  → urutan TERAKHIR
 - [x] Portal Guru: tab Penilaian — assessment_items + student_grades (sesi 6 Agustus 2026)
 - [x] Portal Guru: Penilaian section Perencanaan selesai — CP/TP/KKTP CRUD, TP collapsed, grid KKTP, custom dropdown semester (sesi 7–8 Agustus 2026)
 - [x] Portal Guru: Tab Rancang Pembelajaran — pipeline Step 6 (Tahap 1–7) selesai, Step 7 Document Hub selesai, Step 8 Runtime selesai (belum di-hardening); Putaran 9 (Hardening) belum dikerjakan
-- [ ] Portal Guru: catatan siswa + sesi pembinaan
+- [x] Portal Guru: catatan siswa + sesi pembinaan (`classroom-notes.js`)
 - [x] Portal Guru: jadwal classroom (ADR-004)
 - [x] Portal Guru: absensi classroom (ADR-005)
 - [x] Portal Guru: UX polish absensi + rekap (sesi 6 Agustus 2026)
-- [ ] Portal Guru: forum
-- [ ] Portal Siswa
-- [ ] Portal Ortu
-- [ ] Security audit
-- [ ] Test suite
+- [x] Portal Guru: forum dua arah guru-ortu + pengumuman siswa (`classroom-forum.js`, commit `0a382dd`); RLS audit F1/F2/F3 diperbaiki (`1eafda1`)
+- [x] Portal Siswa: dashboard, bottom nav, halaman profil (ubah nama + PIN)
+- [x] Portal Ortu: dashboard, pesan guru, forum, bottom nav, halaman profil, unread badge
+- [x] Security audit Tab Rancang (`docs/AUDIT-RANCANG-UI.md`); audit forum RLS (`1eafda1`)
+- [ ] Test suite (belum dikerjakan — scope belum ditentukan)
+- [ ] Hardening Tab Rancang — Putaran 9 (`docs/AUDIT-RANCANG-UI.md`, `docs/AUDIT-EF-API.md`)
 
 **Test pending manual:**
 - Test 4.4: progress generate semua (butuh siswa baru tanpa akun)
