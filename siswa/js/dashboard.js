@@ -244,6 +244,7 @@ function renderCard(classroom, guruName, namaOrtu, schedules, studentId) {
   if (studentId) card.appendChild(renderAttendanceSection(classroom.id, studentId));
   if (studentId) card.appendChild(renderNotesSection(classroom.id, studentId));
   if (studentId) card.appendChild(renderGradesSection(classroom.id, studentId));
+  card.appendChild(renderForumSection(classroom.id));
   return card;
 }
 
@@ -323,6 +324,54 @@ function renderNotesSection(classroomId, studentId) {
   }).catch(err => {
     console.error('notes', err);
     body.innerHTML = '<p class="att-empty">Gagal memuat data. Coba muat ulang halaman.</p>';
+  });
+
+  return wrap;
+}
+
+// ── Forum: siswa hanya baca posting yang is_visible_to_student=true ──────────
+
+async function getForumPosts(classroomId) {
+  const { data, error } = await db.from('forum_posts')
+    .select('id, title, content, author_role, created_at')
+    .eq('classroom_id', classroomId)
+    .eq('is_visible_to_student', true)
+    .order('created_at', { ascending: false });
+  if (error) { console.error('getForumPosts', error); return []; }
+  return data || [];
+}
+
+function renderForumSection(classroomId) {
+  const wrap = document.createElement('div');
+  wrap.className = 'notes-section';
+
+  const title = document.createElement('div');
+  title.className = 'sch-section-title';
+  title.textContent = 'Pengumuman Forum';
+  wrap.appendChild(title);
+
+  const body = document.createElement('div');
+  body.innerHTML = '<p class="att-empty">Memuat…</p>';
+  wrap.appendChild(body);
+  pasangCollapse(title, body);
+
+  getForumPosts(classroomId).then(rows => {
+    if (!rows.length) {
+      body.innerHTML = '<p class="att-empty">Belum ada pengumuman.</p>';
+      return;
+    }
+    body.innerHTML = rows.map(p => {
+      const tgl   = fmtTgl((p.created_at || '').slice(0, 10));
+      const label = p.author_role === 'GURU' ? 'Guru' : 'Orang Tua';
+      return `<div class="note-item">
+        <div class="note-item-meta">${escHtml(tgl)} · <span style="font-size:.8rem;color:var(--color-text-muted)">${escHtml(label)}</span></div>
+        ${p.title ? `<div style="font-weight:600;margin-bottom:.2rem;">${escHtml(p.title)}</div>` : ''}
+        <div class="note-item-content">${escHtml(p.content)}</div>
+      </div>`;
+    }).join('');
+  }).catch(err => {
+    console.error('forum siswa', err);
+    body.innerHTML = '<p class="att-empty">Gagal memuat. Coba muat ulang halaman.</p>';
   });
 
   return wrap;

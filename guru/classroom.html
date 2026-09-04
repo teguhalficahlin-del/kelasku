@@ -40,6 +40,7 @@
       <button class="tab-btn" id="tab-catatan">Catatan</button>
       <button class="tab-btn" id="tab-penilaian">Penilaian</button>
       <button class="tab-btn" id="tab-rancang">Rancang Pembelajaran</button>
+      <button class="tab-btn" id="tab-forum">Forum</button>
       <button class="tab-btn" id="tab-unduh">Unduh Perangkat Ajar</button>
     </div>
 
@@ -149,6 +150,36 @@
       </div>
     </div><!-- /panel-catatan -->
 
+    <!-- Forum -->
+    <div id="panel-forum" style="display:none">
+      <div class="panel">
+        <h2 class="panel-header" data-panel="forum-tulis-body">Tulis Posting <span class="panel-collapse-arrow">▼</span></h2>
+        <div class="panel-body-collapse" id="forum-tulis-body">
+          <form id="forum-form">
+            <div style="display:flex;flex-direction:column;gap:.5rem;">
+              <input type="text" id="forum-title" placeholder="Judul (opsional)" maxlength="200" style="width:100%">
+              <textarea id="forum-content" rows="4" maxlength="2000"
+                placeholder="Tulis posting untuk forum kelas…" required
+                style="resize:vertical;"></textarea>
+              <label style="font-size:.875rem;display:flex;align-items:center;gap:.4rem;">
+                <input type="checkbox" id="forum-vis-ortu">
+                Tampilkan ke semua ortu dan siswa (pengumuman)
+              </label>
+              <button type="submit" id="forum-submit">Kirim Posting</button>
+            </div>
+          </form>
+          <div id="forum-status" style="display:none;margin-top:.5rem;font-size:.875rem;"></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2 class="panel-header" data-panel="forum-daftar-body">Daftar Posting <span class="panel-collapse-arrow">▼</span></h2>
+        <div class="panel-body-collapse" id="forum-daftar-body">
+          <div id="forum-list"></div>
+        </div>
+      </div>
+    </div><!-- /panel-forum -->
+
     <!-- Penilaian -->
     <div id="panel-penilaian" style="display:none"></div>
 
@@ -212,6 +243,7 @@
   <script src="js/rancang-chat-api.js?v=chat-20260902a1"></script>
   <script src="js/rancang-chat-ui.js?v=chat-20260903u4"></script>
   <script src="js/rancang-chat.js?v=chat-20260903c12"></script>
+  <script src="js/classroom-forum.js"></script>
   <script src="js/classroom-unduh.js?v=unduh-20260903b1"></script>
   <script src="../shared/js/pwa.js"></script>
 </body>

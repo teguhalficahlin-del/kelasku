@@ -246,6 +246,7 @@ function renderCard(classroom, guruName, siswaNama, schedules, linkedStudentId, 
   if (linkedStudentId) card.appendChild(renderPesanGuruSection(classroom, linkedStudentId));
   if (linkedStudentId) card.appendChild(
     renderChildGradesSection(classroom.id, linkedStudentId, siswaNama, namaAnakSekelas));
+  card.appendChild(renderForumSection(classroom, linkedStudentId));
   return card;
 }
 
@@ -465,6 +466,236 @@ function renderChildNotesSection(classroom, linkedStudentId) {
   }).catch(err => {
     console.error('notes', err);
     body.innerHTML = '<p class="att-empty">Gagal memuat data. Coba muat ulang halaman.</p>';
+  });
+
+  return wrap;
+}
+
+// ── Forum ortu: lihat posting guru (is_visible_to_ortu) + posting sendiri ────
+// Ortu bisa membuat posting + komentar di posting guru
+
+async function getForumPosts(classroomId) {
+  const { data, error } = await db.from('forum_posts')
+    .select('id, title, content, author_id, author_role, is_visible_to_student, created_at')
+    .eq('classroom_id', classroomId)
+    .order('created_at', { ascending: false });
+  if (error) { console.error('getForumPosts ortu', error); return []; }
+  return data || [];
+}
+
+async function getForumComments(postId) {
+  const { data, error } = await db.from('forum_comments')
+    .select('id, author_id, content, created_at, profiles!author_id(full_name, role)')
+    .eq('post_id', postId)
+    .order('created_at', { ascending: true });
+  if (error) { console.error('getForumComments', error); return []; }
+  return data || [];
+}
+
+async function kirimForumPost(classroom, content, title, visibleToStudent) {
+  const { data, error } = await db.from('forum_posts')
+    .insert({
+      classroom_id:          classroom.id,
+      author_id:             _ortuProfileId,
+      author_role:           'ORTU',
+      content,
+      title:                 title || null,
+      is_visible_to_student: visibleToStudent,
+    })
+    .select('id, title, content, author_id, author_role, is_visible_to_student, created_at')
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+async function kirimForumKomentar(postId, classroom, content) {
+  const { data, error } = await db.from('forum_comments')
+    .insert({
+      post_id:      postId,
+      classroom_id: classroom.id,
+      teacher_id:   classroom.teacher_id,
+      author_id:    _ortuProfileId,
+      content,
+    })
+    .select('id, author_id, content, created_at, profiles!author_id(full_name, role)')
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+function renderForumSection(classroom, linkedStudentId) {
+  const classroomId = classroom.id;
+  const wrap = document.createElement('div');
+  wrap.className = 'notes-section';
+
+  const title = document.createElement('div');
+  title.className = 'sch-section-title';
+  title.textContent = 'Forum';
+  wrap.appendChild(title);
+
+  const body = document.createElement('div');
+  body.innerHTML = '<p class="att-empty">Memuat…</p>';
+  wrap.appendChild(body);
+  pasangCollapse(title, body);
+
+  function komenHtml(c) {
+    const nama  = c.profiles?.full_name || '—';
+    const label = (c.profiles?.role === 'GURU') ? 'Guru' : 'Ortu';
+    const isMine = c.author_id === _ortuProfileId;
+    const tgl   = fmtTgl(String(c.created_at).slice(0, 10));
+    return `<div class="forum-comment" data-cid="${escHtml(c.id)}">
+      <div class="note-item-meta">
+        <strong>${escHtml(nama)}</strong> (${escHtml(label)}) · ${escHtml(tgl)}
+      </div>
+      <div class="note-item-content">${escHtml(c.content)}</div>
+    </div>`;
+  }
+
+  function postHtml(p) {
+    const tgl    = fmtTgl(String(p.created_at).slice(0, 10));
+    const isMine = p.author_id === _ortuProfileId;
+    const label  = isMine ? 'Postingan Anda' : 'Guru';
+    const visBadge = isMine && p.is_visible_to_student
+      ? ' <span style="font-size:.75rem;color:var(--gold)">(tampil ke anak)</span>' : '';
+    return `<div class="note-item forum-post-ortu" data-pid="${escHtml(p.id)}">
+      <div class="note-item-meta"><strong>${escHtml(label)}</strong> · ${escHtml(tgl)}${visBadge}</div>
+      ${p.title ? `<div style="font-weight:600;margin-bottom:.2rem">${escHtml(p.title)}</div>` : ''}
+      <div class="note-item-content" style="margin-bottom:.4rem">${escHtml(p.content)}</div>
+      <div class="forum-comments-ortu" id="fclist-${escHtml(p.id)}">
+        <p class="att-empty" style="font-size:.8rem">Memuat komentar…</p>
+      </div>
+      <div class="forum-komentar-form" data-pid="${escHtml(p.id)}" style="margin-top:.35rem">
+        <textarea rows="2" maxlength="500" placeholder="Tulis komentar…"
+          style="width:100%;box-sizing:border-box;padding:.4rem;border-radius:.4rem;
+          border:1px solid var(--color-border,rgba(255,255,255,.15));background:transparent;
+          color:inherit;font-family:inherit;font-size:.85rem;resize:vertical"></textarea>
+        <button type="button" style="margin-top:.25rem;padding:.3rem .7rem;
+          background:var(--gold);color:var(--text-on-gold,#000);border:none;
+          border-radius:.4rem;cursor:pointer;font-family:inherit;font-size:.85rem">Kirim</button>
+        <span class="forum-komentar-status" style="font-size:.8rem;color:var(--color-text-muted);margin-left:.4rem"></span>
+      </div>
+    </div>`;
+  }
+
+  function wireKomenForms(posts) {
+    posts.forEach(p => {
+      const listEl = document.getElementById('fclist-' + p.id);
+      if (!listEl) return;
+      getForumComments(p.id).then(comments => {
+        listEl.innerHTML = comments.length
+          ? comments.map(komenHtml).join('')
+          : '<p class="att-empty" style="font-size:.8rem">Belum ada komentar.</p>';
+      }).catch(() => {
+        listEl.innerHTML = '<p class="att-empty" style="font-size:.8rem">Gagal memuat komentar.</p>';
+      });
+
+      const form   = body.querySelector(`.forum-komentar-form[data-pid="${p.id}"]`);
+      if (!form) return;
+      const ta     = form.querySelector('textarea');
+      const btn    = form.querySelector('button');
+      const status = form.querySelector('.forum-komentar-status');
+      btn.addEventListener('click', async () => {
+        const teks = ta.value.trim();
+        if (!teks) return;
+        btn.disabled = true;
+        status.textContent = 'Mengirim…';
+        try {
+          const c = await kirimForumKomentar(p.id, classroom, teks);
+          ta.value = '';
+          const noComment = listEl.querySelector('.att-empty');
+          if (noComment) noComment.remove();
+          listEl.insertAdjacentHTML('beforeend', komenHtml(c));
+          status.textContent = '';
+        } catch (err) {
+          status.textContent = 'Gagal: ' + err.message;
+        } finally {
+          btn.disabled = false;
+        }
+      });
+    });
+  }
+
+  // Form buat posting baru
+  const formWrap = document.createElement('div');
+  formWrap.style.cssText = 'margin-bottom:.75rem;';
+  formWrap.innerHTML = `
+    <details style="background:var(--bg-card,rgba(255,255,255,.04));border-radius:.4rem;padding:.5rem .75rem;border:1px solid var(--color-border,rgba(255,255,255,.12))">
+      <summary style="cursor:pointer;font-size:.9rem;font-weight:600;list-style:none">+ Tulis Posting Baru</summary>
+      <div style="margin-top:.5rem;display:flex;flex-direction:column;gap:.4rem">
+        <input type="text" id="forum-ortu-title-${classroomId}" placeholder="Judul (opsional)" maxlength="200"
+          style="width:100%;box-sizing:border-box;padding:.35rem .6rem;border-radius:.4rem;
+          border:1px solid var(--color-border,rgba(255,255,255,.15));background:transparent;
+          color:inherit;font-family:inherit;font-size:.9rem">
+        <textarea id="forum-ortu-content-${classroomId}" rows="3" maxlength="2000" required
+          placeholder="Tulis pesan untuk guru…"
+          style="width:100%;box-sizing:border-box;padding:.4rem .6rem;border-radius:.4rem;
+          border:1px solid var(--color-border,rgba(255,255,255,.15));background:transparent;
+          color:inherit;font-family:inherit;font-size:.9rem;resize:vertical"></textarea>
+        <label style="font-size:.85rem;display:flex;align-items:center;gap:.4rem">
+          <input type="checkbox" id="forum-ortu-vis-${classroomId}">
+          Tampilkan juga ke anak saya
+        </label>
+        <div style="display:flex;align-items:center;gap:.6rem">
+          <button type="button" id="forum-ortu-kirim-${classroomId}"
+            style="padding:.35rem .8rem;background:var(--gold);color:var(--text-on-gold,#000);
+            border:none;border-radius:.4rem;cursor:pointer;font-family:inherit;font-size:.9rem">Kirim Posting</button>
+          <span id="forum-ortu-status-${classroomId}" style="font-size:.8rem;color:var(--color-text-muted)"></span>
+        </div>
+      </div>
+    </details>`;
+  body.insertAdjacentElement('afterbegin', formWrap);
+
+  // Pasang listener form posting
+  setTimeout(() => {
+    const btn    = document.getElementById('forum-ortu-kirim-' + classroomId);
+    const taEl   = document.getElementById('forum-ortu-content-' + classroomId);
+    const titEl  = document.getElementById('forum-ortu-title-' + classroomId);
+    const visEl  = document.getElementById('forum-ortu-vis-' + classroomId);
+    const stEl   = document.getElementById('forum-ortu-status-' + classroomId);
+    if (!btn || !taEl) return;
+    btn.addEventListener('click', async () => {
+      const teks = taEl.value.trim();
+      if (!teks) return;
+      btn.disabled = true;
+      stEl.textContent = 'Mengirim…';
+      try {
+        const p = await kirimForumPost(classroom, teks, titEl?.value.trim(), visEl?.checked || false);
+        taEl.value = '';
+        if (titEl) titEl.value = '';
+        if (visEl) visEl.checked = false;
+        stEl.textContent = 'Posting berhasil dikirim!';
+        // prepend ke daftar
+        const listContainer = body.querySelector('.forum-posts-list');
+        if (listContainer) {
+          listContainer.insertAdjacentHTML('afterbegin', postHtml(p));
+          wireKomenForms([p]);
+        }
+        setTimeout(() => { stEl.textContent = ''; }, 2500);
+      } catch (err) {
+        stEl.textContent = 'Gagal: ' + err.message;
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  }, 0);
+
+  // Muat daftar posting
+  getForumPosts(classroomId).then(posts => {
+    const listContainer = document.createElement('div');
+    listContainer.className = 'forum-posts-list';
+    if (!posts.length) {
+      listContainer.innerHTML = '<p class="att-empty">Belum ada posting di forum ini.</p>';
+    } else {
+      listContainer.innerHTML = posts.map(postHtml).join('');
+      wireKomenForms(posts);
+    }
+    body.appendChild(listContainer);
+  }).catch(err => {
+    console.error('forum ortu', err);
+    body.appendChild(Object.assign(document.createElement('p'), {
+      className: 'att-empty',
+      textContent: 'Gagal memuat forum. Coba muat ulang halaman.'
+    }));
   });
 
   return wrap;
