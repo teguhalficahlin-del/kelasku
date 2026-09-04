@@ -6,7 +6,9 @@
   "description": "Test end-to-end SIP Mandiri. Aplikasinya sendiri statis tanpa build step — paket ini hanya untuk Playwright.",
   "scripts": {
     "test": "playwright test",
-    "test:report": "playwright show-report"
+    "test:report": "playwright show-report",
+    "test:tenant": "node tests/tenant-isolation.mjs",
+    "test:migrations": "node tests/verify-migrations.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.40.0"
