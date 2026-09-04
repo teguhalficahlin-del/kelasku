@@ -392,6 +392,7 @@ function validateModulOutputV400(
   jpPerPertemuan: number,
   durasiJp: number,
   jumlahMurid: number | null,
+  manifest?: InstrumentManifest,
 ): { valid: boolean; errors: string[]; output: ModulOutput | null } {
   const errors: string[] = [];
 
@@ -432,6 +433,14 @@ function validateModulOutputV400(
       if (k.id_kktp !== expectedId) errors.push(`kktp[${i}].id_kktp='${k.id_kktp}', diharapkan '${expectedId}'`);
       if (!nonEmpty(k.kriteria))   errors.push(`kktp[${i}].kriteria kosong`);
       if (!nonEmpty(k.ambang_batas)) errors.push(`kktp[${i}].ambang_batas kosong`);
+    });
+
+    // V10: ambang_batas harus mengandung angka, level rubrik, atau kondisi terverifikasi
+    const AMBANG_PATTERN = /\d|%|mandiri|berkembang|mulai\s+berkembang|BT\b|DD\b|semua|tidak ada|seluruh|minimal|maksimal/i;
+    (kktp as Array<Record<string, unknown>>).forEach((k, i) => {
+      if (nonEmpty(k.ambang_batas) && !AMBANG_PATTERN.test(String(k.ambang_batas))) {
+        errors.push(`kktp[${i}].ambang_batas tidak mengandung angka/level/kondisi terverifikasi: "${k.ambang_batas}"`);
+      }
     });
   }
 
@@ -519,9 +528,23 @@ function validateModulOutputV400(
             }
           }
 
+          // V4: Time-feasibility (individual sequential)
+          if (s.mode_pelaksanaan === 'individual' && s.mode_observasi === 'semua' && jumlahMurid && intPos(s.durasi_menit)) {
+            const mntPerMurid = 2;
+            const diperlukan  = jumlahMurid * mntPerMurid;
+            if (diperlukan > (s.durasi_menit as number)) {
+              errors.push(
+                `pertemuan ${no}.${lk.nama || j}.sub_langkah[${k}]: individual+semua membutuhkan ≥${diperlukan} menit ` +
+                `(${jumlahMurid} murid × ${mntPerMurid} mnt) tapi durasi=${s.durasi_menit}. Ganti pendekatan.`,
+              );
+            }
+          }
+
           // V9: mode_pelaksanaan + mode_observasi contract
           if (s.mode_pelaksanaan === 'kelompok_kecil' && !(Number(s.ukuran_kelompok) >= 2))
             errors.push(`pertemuan ${no}.${lk.nama || j}.sub_langkah[${k}]: kelompok_kecil wajib ukuran_kelompok ≥ 2`);
+          if (s.mode_pelaksanaan === 'individual' && s.ukuran_kelompok !== undefined && Number(s.ukuran_kelompok) > 1)
+            errors.push(`pertemuan ${no}.${lk.nama || j}.sub_langkah[${k}]: individual wajib ukuran_kelompok undefined atau 1`);
           if (s.mode_observasi === 'sampel' && s.asesmen_ref === 'SUMATIF')
             errors.push(`pertemuan ${no}.${lk.nama || j}.sub_langkah[${k}]: mode_observasi='sampel' dilarang di slot SUMATIF`);
 
@@ -597,6 +620,56 @@ function validateModulOutputV400(
       if (ins.untuk_murid === false && ins.konten_murid !== null && ins.konten_murid !== undefined)
         errors.push(`instrumen[${i}].id=${ins.id}: untuk_murid=false tapi konten_murid bukan null`);
     });
+  }
+
+  // V7: Manifest integrity — instrumen di array harus cocok dengan manifest
+  if (manifest && (manifest.pembelajaran_manifest.length > 0 || manifest.asesmen_manifest.length > 0)) {
+    const pbManifestById = new Map(manifest.pembelajaran_manifest.map(m => [m.id, m]));
+    const asManifestById = new Map(manifest.asesmen_manifest.map(m => [m.id, m]));
+
+    // Setiap instrumen_pembelajaran harus ada di pembelajaran_manifest, tidak di asesmen_manifest
+    if (Array.isArray(o.instrumen_pembelajaran)) {
+      (o.instrumen_pembelajaran as Array<Record<string, unknown>>).forEach((ins, i) => {
+        const id = ins.id as string;
+        if (!pbManifestById.has(id))
+          errors.push(`instrumen_pembelajaran[${i}].id='${id}' tidak ada di pembelajaran_manifest`);
+        if (asManifestById.has(id))
+          errors.push(`instrumen_pembelajaran[${i}].id='${id}' tidak boleh ada di asesmen_manifest`);
+        const m = pbManifestById.get(id);
+        if (m && m.untuk_murid !== ins.untuk_murid)
+          errors.push(`instrumen_pembelajaran[${i}].id='${id}': untuk_murid=${ins.untuk_murid}, manifest=${m.untuk_murid}`);
+      });
+    }
+
+    // Setiap instrumen_asesmen harus ada di asesmen_manifest, tidak di pembelajaran_manifest
+    if (Array.isArray(o.instrumen_asesmen)) {
+      (o.instrumen_asesmen as Array<Record<string, unknown>>).forEach((ins, i) => {
+        const id = ins.id as string;
+        if (!asManifestById.has(id))
+          errors.push(`instrumen_asesmen[${i}].id='${id}' tidak ada di asesmen_manifest`);
+        if (pbManifestById.has(id))
+          errors.push(`instrumen_asesmen[${i}].id='${id}' tidak boleh ada di pembelajaran_manifest`);
+        const m = asManifestById.get(id);
+        if (m && m.untuk_murid !== ins.untuk_murid)
+          errors.push(`instrumen_asesmen[${i}].id='${id}': untuk_murid=${ins.untuk_murid}, manifest=${m.untuk_murid}`);
+      });
+    }
+
+    // Setiap entri manifest harus punya tepat satu instrumen di array yang sesuai
+    for (const m of manifest.pembelajaran_manifest) {
+      const found = Array.isArray(o.instrumen_pembelajaran)
+        ? (o.instrumen_pembelajaran as Array<Record<string, unknown>>).filter(ins => ins.id === m.id).length
+        : 0;
+      if (found !== 1)
+        errors.push(`pembelajaran_manifest id='${m.id}' harus punya tepat 1 instrumen di instrumen_pembelajaran, ditemukan ${found}`);
+    }
+    for (const m of manifest.asesmen_manifest) {
+      const found = Array.isArray(o.instrumen_asesmen)
+        ? (o.instrumen_asesmen as Array<Record<string, unknown>>).filter(ins => ins.id === m.id).length
+        : 0;
+      if (found !== 1)
+        errors.push(`asesmen_manifest id='${m.id}' harus punya tepat 1 instrumen di instrumen_asesmen, ditemukan ${found}`);
+    }
   }
 
   // V11: Naskah alignment
@@ -1675,6 +1748,15 @@ Deno.serve(async (req) => {
     if (!faseBOutput) return json({ error: 'Output Fase B belum ada.', code: 'MODUL_INPUT_INCOMPLETE', missing: ['draft_fase_b'] }, 422);
     if (!faseCOutput) return json({ error: 'Output Fase C belum ada.', code: 'MODUL_INPUT_INCOMPLETE', missing: ['draft_fase_c'] }, 422);
 
+    const manifestFaseD: InstrumentManifest = {
+      pembelajaran_manifest: Array.isArray((faseAOutput.manifest as Record<string, unknown>)?.pembelajaran_manifest)
+        ? (faseAOutput.manifest as Record<string, unknown>).pembelajaran_manifest as ManifestEntry[]
+        : [],
+      asesmen_manifest: Array.isArray((faseAOutput.manifest as Record<string, unknown>)?.asesmen_manifest)
+        ? (faseAOutput.manifest as Record<string, unknown>).asesmen_manifest as ManifestEntry[]
+        : [],
+    };
+
     let faseDOutput: Record<string, unknown>;
     try {
       faseDOutput = await callPhase(
@@ -1723,7 +1805,7 @@ Deno.serve(async (req) => {
       metadata_pedagogis:     faseAOutput.metadata_pedagogis,
     };
 
-    let validation = validateModulOutputV400(merged, nomorTp, jumlahPertemuan, jpPerPertemuan, durasiJp, jumlahMurid);
+    let validation = validateModulOutputV400(merged, nomorTp, jumlahPertemuan, jpPerPertemuan, durasiJp, jumlahMurid, manifestFaseD);
 
     if (!validation.valid) {
       const errorList = validation.errors.join('; ');
