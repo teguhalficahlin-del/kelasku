@@ -2140,88 +2140,231 @@
     const sec = (judul, html) => html
       ? `<div class="mv4-section"><div class="mv4-section-title">${esc(judul)}</div>${html}</div>` : '';
 
+    const me = konten.materi_esensial ?? {};
+
+    // ── helper instrumen ────────────────────────────────────────────────────
+    const list = (arr) => Array.isArray(arr) && arr.length
+      ? `<ul class="mv4-list">${arr.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '';
+
+    function renderKontenInstrumen(ins) {
+      const km2  = ins.konten_murid  ?? null;
+      const pg   = ins.panduan_guru  ?? null;
+      const star = ins.untuk_murid ? `<span class="mv4-ins-star">★ Untuk Murid</span>` : '';
+      let out = `<div class="mv4-ins-block">`+
+        `<div class="mv4-ins-header">`+
+        `<span class="mv4-ins-id">${esc(ins.id ?? '?')}</span> `+
+        `<span class="mv4-ins-jenis">[${esc(ins.jenis ?? '-')}]</span> `+
+        `<strong>${esc(ins.judul ?? '')}</strong> ${star}</div>`;
+
+      if (km2 !== null) {
+        out += `<div class="mv4-ins-murid"><div class="mv4-ins-zone-label">★ Bagian Murid</div>`;
+        const j = ins.jenis ?? '';
+        if (j === 'dialog_baseline' || j === 'dialog_model') {
+          if (km2.petunjuk) out += `<div class="mv4-sub">${esc(km2.petunjuk)}</div>`;
+          if (Array.isArray(km2.giliran)) km2.giliran.forEach(g =>
+            out += `<div class="mv4-dialog-turn"><span class="mv4-dialog-speaker">${esc(g.pembicara ?? '?')}:</span> ${esc(g.ucapan ?? '')}</div>`);
+        } else if (j === 'teks_autentik') {
+          if (km2.isi_teks) out += `<div class="mv4-teks">${esc(km2.isi_teks)}</div>`;
+          if (Array.isArray(km2.pertanyaan_panduan) && km2.pertanyaan_panduan.length)
+            out += `<div class="mv4-sub"><strong>Pertanyaan Panduan:</strong></div>${list(km2.pertanyaan_panduan)}`;
+        } else if (j === 'kartu_peran') {
+          if (Array.isArray(km2.set)) km2.set.forEach(s => {
+            out += `<div class="mv4-asesmen-blok"><div class="mv4-asesmen-label">${esc(s.nama_set ?? s.nama_entitas ?? '?')}</div>`;
+            if (s.peran_a) out += `<div class="mv4-sub"><strong>Peran A${s.peran_a.jabatan ? ' — '+s.peran_a.jabatan : ''}:</strong> ${esc(s.peran_a.instruksi_peran ?? '')}</div>`;
+            if (s.peran_b) out += `<div class="mv4-sub"><strong>Peran B${s.peran_b.jabatan ? ' — '+s.peran_b.jabatan : ''}:</strong> ${esc(s.peran_b.instruksi_peran ?? '')}</div>`;
+            out += `</div>`;
+          });
+        } else if (j === 'pemetaan_awal') {
+          if (km2.petunjuk) out += `<div class="mv4-sub">${esc(km2.petunjuk)}</div>`;
+          if (Array.isArray(km2.item_soal) && km2.item_soal.length)
+            out += `<div class="mv4-sub"><strong>Item Soal:</strong></div>`+
+              `<ul class="mv4-list">${km2.item_soal.map(s => `<li>${esc(s.kalimat_konteks ?? '')} <em>[${esc(s.kata_target ?? '')}]</em></li>`).join('')}</ul>`;
+          if (Array.isArray(km2.pertanyaan_menyimak) && km2.pertanyaan_menyimak.length)
+            out += `<div class="mv4-sub"><strong>Pertanyaan Menyimak:</strong></div>${list(km2.pertanyaan_menyimak)}`;
+          if (Array.isArray(km2.situasi_respons) && km2.situasi_respons.length)
+            out += `<div class="mv4-sub"><strong>Situasi Respons:</strong></div>${list(km2.situasi_respons)}`;
+        } else if (j === 'matriks_observasi') {
+          if (km2.petunjuk) out += `<div class="mv4-sub">${esc(km2.petunjuk)}</div>`;
+          if (Array.isArray(km2.kolom_indikator) && km2.kolom_indikator.length)
+            out += `<div class="mv4-sub"><strong>Indikator:</strong></div>`+
+              `<ul class="mv4-list">${km2.kolom_indikator.map(k => `<li><strong>${esc(k.id ?? '')}</strong> — ${esc(k.label ?? '')}</li>`).join('')}</ul>`;
+        } else if (j === 'lembar_refleksi') {
+          if (Array.isArray(km2.pertanyaan) && km2.pertanyaan.length)
+            out += `<ol class="mv4-list">${km2.pertanyaan.map(p2 => `<li>${esc(p2.prompt ?? '')}</li>`).join('')}</ol>`;
+        } else if (j === 'soal_latihan') {
+          if (km2.petunjuk) out += `<div class="mv4-sub">${esc(km2.petunjuk)}</div>`;
+          if (Array.isArray(km2.soal) && km2.soal.length)
+            out += `<ol class="mv4-list">${km2.soal.map(s => `<li>${esc(s.pertanyaan ?? '')} <em>[${esc(s.tipe ?? '')}]</em></li>`).join('')}</ol>`;
+        } else if (j === 'lembar_praktikum') {
+          if (km2.tujuan) out += `<div class="mv4-sub"><strong>Tujuan:</strong> ${esc(km2.tujuan)}</div>`;
+          if (Array.isArray(km2.alat_bahan) && km2.alat_bahan.length)
+            out += `<div class="mv4-sub"><strong>Alat & Bahan:</strong></div>${list(km2.alat_bahan)}`;
+          if (Array.isArray(km2.langkah_kerja) && km2.langkah_kerja.length)
+            out += `<div class="mv4-sub"><strong>Langkah Kerja:</strong></div><ol class="mv4-list">${km2.langkah_kerja.map(x => `<li>${esc(x)}</li>`).join('')}</ol>`;
+          if (Array.isArray(km2.pertanyaan_analisis) && km2.pertanyaan_analisis.length)
+            out += `<div class="mv4-sub"><strong>Pertanyaan Analisis:</strong></div>${list(km2.pertanyaan_analisis)}`;
+        } else if (j === 'panduan_proyek') {
+          if (km2.deskripsi_proyek) out += `<div class="mv4-sub">${esc(km2.deskripsi_proyek)}</div>`;
+          if (Array.isArray(km2.tahapan) && km2.tahapan.length)
+            out += `<div class="mv4-sub"><strong>Tahapan:</strong></div><ol class="mv4-list">${km2.tahapan.map(t => `<li><strong>${esc(t.judul ?? '')}</strong> — ${esc(t.instruksi ?? '')}</li>`).join('')}</ol>`;
+          if (Array.isArray(km2.kriteria_produk) && km2.kriteria_produk.length)
+            out += `<div class="mv4-sub"><strong>Kriteria Produk:</strong></div>${list(km2.kriteria_produk)}`;
+          if (Array.isArray(km2.pertanyaan_refleksi) && km2.pertanyaan_refleksi.length)
+            out += `<div class="mv4-sub"><strong>Refleksi:</strong></div>${list(km2.pertanyaan_refleksi)}`;
+        } else {
+          out += `<pre class="mv4-sub">${esc(JSON.stringify(km2, null, 2))}</pre>`;
+        }
+        out += `</div>`;
+      }
+
+      if (pg !== null) {
+        out += `<div class="mv4-ins-guru"><div class="mv4-ins-zone-label">Panduan Guru</div>`;
+        const j = ins.jenis ?? '';
+        if (j === 'dialog_baseline' || j === 'dialog_model') {
+          if (pg.catatan_fasilitasi) out += `<div class="mv4-sub">${esc(pg.catatan_fasilitasi)}</div>`;
+        } else if (j === 'teks_autentik') {
+          if (pg.nama_entitas) out += `<div class="mv4-row"><span class="mv4-label">Entitas</span><span>${esc(pg.nama_entitas)}</span></div>`;
+          if (pg.catatan_konteks) out += `<div class="mv4-sub">${esc(pg.catatan_konteks)}</div>`;
+        } else if (j === 'kartu_peran') {
+          if (pg.fokus_pengamatan) out += `<div class="mv4-row"><span class="mv4-label">Fokus Amati</span><span>${esc(pg.fokus_pengamatan)}</span></div>`;
+          if (pg.catatan_fasilitasi) out += `<div class="mv4-sub">${esc(pg.catatan_fasilitasi)}</div>`;
+        } else if (j === 'pemetaan_awal') {
+          if (pg.tujuan_diagnostik) out += `<div class="mv4-sub"><strong>Tujuan:</strong> ${esc(pg.tujuan_diagnostik)}</div>`;
+          if (pg.panduan_interpretasi) out += `<div class="mv4-sub">${esc(pg.panduan_interpretasi)}</div>`;
+        } else if (j === 'matriks_observasi') {
+          if (pg.kode_legend) out += `<div class="mv4-sub"><strong>Kode:</strong> ${esc(pg.kode_legend)}</div>`;
+          if (Array.isArray(pg.kolom_indikator) && pg.kolom_indikator.length)
+            out += `<ul class="mv4-list">${pg.kolom_indikator.map(k => `<li><strong>${esc(k.id ?? '')}</strong> — ${esc(k.label ?? '')}</li>`).join('')}</ul>`;
+          if (pg.catatan_kritis) out += `<div class="mv4-sub"><em>${esc(pg.catatan_kritis)}</em></div>`;
+        } else if (j === 'lembar_refleksi') {
+          if (pg.panduan_interpretasi) out += `<div class="mv4-sub">${esc(pg.panduan_interpretasi)}</div>`;
+        } else if (j === 'soal_latihan') {
+          if (Array.isArray(pg.kunci_jawaban) && pg.kunci_jawaban.length)
+            out += `<div class="mv4-sub"><strong>Kunci Jawaban:</strong></div>${list(pg.kunci_jawaban)}`;
+          if (pg.panduan_penskoran) out += `<div class="mv4-sub">${esc(pg.panduan_penskoran)}</div>`;
+        } else if (j === 'lembar_praktikum') {
+          if (pg.rubrik_penilaian) out += `<div class="mv4-sub"><strong>Rubrik:</strong> ${esc(pg.rubrik_penilaian)}</div>`;
+          if (pg.catatan_k3) out += `<div class="mv4-sub"><em>K3: ${esc(pg.catatan_k3)}</em></div>`;
+        } else if (j === 'panduan_proyek') {
+          if (pg.rubrik_penilaian) out += `<div class="mv4-sub"><strong>Rubrik:</strong> ${esc(pg.rubrik_penilaian)}</div>`;
+          if (pg.contoh_produk) out += `<div class="mv4-sub">${esc(pg.contoh_produk)}</div>`;
+        } else {
+          out += `<pre class="mv4-sub">${esc(JSON.stringify(pg, null, 2))}</pre>`;
+        }
+        out += `</div>`;
+      }
+
+      out += `</div>`;
+      return out;
+    }
+
     // ── bangun HTML tab Modul Resmi ─────────────────────────────────────────
     let resmi = '';
 
-    // Identitas
+    // [A] Identitas
     const idLines = [
       ['Mata Pelajaran', id.mata_pelajaran],
       ['Jenjang / Fase', `${id.jenjang ?? '-'} / Fase ${id.fase ?? '-'}`],
       ['Nomor TP',       id.nomor_tp],
-
       ['Pertemuan',      id.jumlah_pertemuan ? `${id.jumlah_pertemuan} × ${id.jp_per_pertemuan ?? '?'} JP` : null],
       ['Total Alokasi',  id.alokasi_waktu_total_menit ? `${id.alokasi_waktu_total_menit} menit` : null],
       ['Elemen CP',      Array.isArray(id.elemen_cp) ? id.elemen_cp.join(', ') : id.elemen_cp],
     ].filter(([,v]) => v != null)
      .map(([k,v]) => `<div class="mv4-row"><span class="mv4-label">${esc(k)}</span><span>${esc(v)}</span></div>`)
      .join('');
-    resmi += sec('Identitas', idLines);
+    resmi += sec('A. Identitas Modul', idLines);
 
-    // Konteks Murid
-    if (km.kesiapan_awal?.length || km.variasi_kemampuan || km.kebutuhan_dukungan?.length) {
-      const kmHtml = [
-        km.variasi_kemampuan ? `<div class="mv4-row"><span class="mv4-label">Variasi Kemampuan</span><span>${esc(km.variasi_kemampuan)}</span></div>` : '',
-        km.kesiapan_awal?.length ? `<div class="mv4-row"><span class="mv4-label">Kesiapan Awal</span><span>${km.kesiapan_awal.map(esc).join('; ')}</span></div>` : '',
-        km.kebutuhan_dukungan?.length ? `<div class="mv4-row"><span class="mv4-label">Kebutuhan Dukungan</span><span>${km.kebutuhan_dukungan.map(esc).join('; ')}</span></div>` : '',
-      ].join('');
-      resmi += sec('Konteks Murid', kmHtml);
-    }
+    // [B] Capaian & Tujuan Pembelajaran
+    const capTujHtml = [
+      id.dasar_cp          ? `<div class="mv4-row"><span class="mv4-label">Dasar CP</span><span>${esc(id.dasar_cp)}</span></div>` : '',
+      id.tujuan_pembelajaran ? `<div class="mv4-row"><span class="mv4-label">Tujuan Pembelajaran</span><span>${esc(id.tujuan_pembelajaran)}</span></div>` : '',
+    ].join('');
+    if (capTujHtml) resmi += sec('B. Capaian & Tujuan Pembelajaran', capTujHtml);
 
-    // KKTP
+    // [C] KKTP
     if (kktp.length) {
       const kktpHtml = kktp.map(k =>
         `<div class="mv4-kktp-item"><strong>${esc(k.id_kktp ?? '?')}</strong> — ${esc(k.kriteria ?? '-')}`+
-        (k.ambang_batas != null ? ` <em>(≥${k.ambang_batas})</em>` : '') +
+        (k.ambang_batas != null ? ` <em>(${esc(String(k.ambang_batas))})</em>` : '') +
         (Array.isArray(k.instrumen_bukti) && k.instrumen_bukti.length ? `<div class="mv4-sub">Instrumen Bukti: ${k.instrumen_bukti.map(esc).join(', ')}</div>` : '') +
         `</div>`
       ).join('');
-      resmi += sec('KKTP', kktpHtml);
+      resmi += sec('C. Kriteria Ketercapaian Tujuan Pembelajaran (KKTP)', kktpHtml);
     }
 
-    // Rencana Asesmen
+    // [D] Konteks Murid
+    if (km.kesiapan_awal?.length || km.variasi_kemampuan || km.kebutuhan_dukungan?.length) {
+      const kmHtml = [
+        km.variasi_kemampuan ? `<div class="mv4-row"><span class="mv4-label">Variasi Kemampuan</span><span>${esc(km.variasi_kemampuan)}</span></div>` : '',
+        km.kesiapan_awal?.length ? `<div class="mv4-sub"><strong>Kesiapan Awal:</strong></div>${list(km.kesiapan_awal)}` : '',
+        km.kebutuhan_dukungan?.length ? `<div class="mv4-sub"><strong>Kebutuhan Dukungan:</strong></div>${list(km.kebutuhan_dukungan)}` : '',
+      ].join('');
+      resmi += sec('D. Konteks Murid', kmHtml);
+    }
+
+    // [E] Materi Esensial
+    const meHtml = [
+      Array.isArray(me.lingkup_materi)  && me.lingkup_materi.length  ? `<div class="mv4-sub"><strong>Lingkup Materi:</strong></div>${list(me.lingkup_materi)}`  : '',
+      Array.isArray(me.kosakata_kunci)  && me.kosakata_kunci.length  ? `<div class="mv4-sub"><strong>Kosakata Kunci:</strong></div>${list(me.kosakata_kunci)}`  : '',
+      Array.isArray(me.konsep_utama)    && me.konsep_utama.length    ? `<div class="mv4-sub"><strong>Konsep Utama:</strong></div>${list(me.konsep_utama)}`    : '',
+    ].join('');
+    if (meHtml) resmi += sec('E. Materi Esensial', meHtml);
+
+    // [F] Rencana Asesmen
     const raHtml = (() => {
       let out = '';
       if (ra.asesmen_diagnostik) {
         const d = ra.asesmen_diagnostik;
-        out += `<div class="mv4-asesmen-blok"><div class="mv4-asesmen-label">Diagnostik</div>`+
+        out += `<div class="mv4-asesmen-blok"><div class="mv4-asesmen-label">F1 — Diagnostik</div>`+
+          (d.tujuan ? `<div class="mv4-row"><span class="mv4-label">Tujuan</span><span>${esc(d.tujuan)}</span></div>` : '')+
           `<div class="mv4-row"><span class="mv4-label">Teknik</span><span>${esc(d.teknik ?? '-')}</span></div>`+
-          `<div class="mv4-row"><span class="mv4-label">Waktu</span><span>${esc(d.waktu ?? '-')}</span></div>`+
+          (d.waktu ? `<div class="mv4-row"><span class="mv4-label">Waktu</span><span>${esc(d.waktu)}</span></div>` : '')+
+          (d.penggunaan_hasil ? `<div class="mv4-row"><span class="mv4-label">Penggunaan</span><span>${esc(d.penggunaan_hasil)}</span></div>` : '')+
+          (Array.isArray(d.instrumen_ref) && d.instrumen_ref.length ? `<div class="mv4-sub">Instrumen: ${d.instrumen_ref.map(esc).join(', ')}</div>` : '')+
           `</div>`;
       }
       if (Array.isArray(ra.asesmen_formatif) && ra.asesmen_formatif.length) {
-        ra.asesmen_formatif.forEach((f, i) => {
-          out += `<div class="mv4-asesmen-blok"><div class="mv4-asesmen-label">Formatif ${i+1}</div>`+
+        ra.asesmen_formatif.forEach(f => {
+          out += `<div class="mv4-asesmen-blok"><div class="mv4-asesmen-label">${esc(f.id ?? 'Formatif')} — Formatif (P${f.waktu_pertemuan ?? '?'} · ${esc(f.fase_langkah ?? '-')})</div>`+
             `<div class="mv4-row"><span class="mv4-label">Teknik</span><span>${esc(f.teknik ?? '-')}</span></div>`+
-            `<div class="mv4-row"><span class="mv4-label">Fungsi</span><span>${esc(f.fungsi ?? '-')}</span></div>`+
+            (f.fungsi ? `<div class="mv4-row"><span class="mv4-label">Fungsi</span><span>${esc(f.fungsi)}</span></div>` : '')+
+            (f.umpan_balik ? `<div class="mv4-row"><span class="mv4-label">Umpan Balik</span><span>${esc(f.umpan_balik)}</span></div>` : '')+
+            (Array.isArray(f.referensi_kktp) && f.referensi_kktp.length ? `<div class="mv4-sub">KKTP: ${f.referensi_kktp.map(esc).join(', ')}</div>` : '')+
+            (Array.isArray(f.instrumen_ref) && f.instrumen_ref.length ? `<div class="mv4-sub">Instrumen: ${f.instrumen_ref.map(esc).join(', ')}</div>` : '')+
             `</div>`;
         });
       }
       if (ra.asesmen_sumatif) {
         const s = ra.asesmen_sumatif;
+        const plc = s.placement ? `P${s.placement.pertemuan} · ${esc(s.placement.fase ?? '-')}` : '-';
         out += `<div class="mv4-asesmen-blok"><div class="mv4-asesmen-label">Sumatif</div>`+
+          (s.deskripsi ? `<div class="mv4-row"><span class="mv4-label">Deskripsi</span><span>${esc(s.deskripsi)}</span></div>` : '')+
           `<div class="mv4-row"><span class="mv4-label">Teknik</span><span>${esc(s.teknik ?? '-')}</span></div>`+
           `<div class="mv4-row"><span class="mv4-label">Durasi</span><span>${s.durasi_menit != null ? s.durasi_menit+' menit' : '-'}</span></div>`+
+          `<div class="mv4-row"><span class="mv4-label">Placement</span><span>${plc}</span></div>`+
+          (Array.isArray(s.instrumen_ref) && s.instrumen_ref.length ? `<div class="mv4-sub">Instrumen: ${s.instrumen_ref.map(esc).join(', ')}</div>` : '')+
           `</div>`;
       }
       return out;
     })();
-    if (raHtml) resmi += sec('Rencana Asesmen', raHtml);
+    if (raHtml) resmi += sec('F. Rencana Asesmen', raHtml);
 
-    // Rancangan Pembelajaran
+    // [G] Rancangan Pembelajaran
     const rcHtml = (() => {
       let out = '';
       if (rc.strategi_pedagogis) out += `<div class="mv4-row"><span class="mv4-label">Strategi</span><span>${esc(rc.strategi_pedagogis)}</span></div>`;
       if (rc.lingkungan_pembelajaran) out += `<div class="mv4-row"><span class="mv4-label">Lingkungan</span><span>${esc(rc.lingkungan_pembelajaran)}</span></div>`;
       if (rc.pemanfaatan_digital) out += `<div class="mv4-row"><span class="mv4-label">Digital</span><span>${esc(rc.pemanfaatan_digital)}</span></div>`;
       if (Array.isArray(rc.sumber_belajar) && rc.sumber_belajar.length)
-        out += `<div class="mv4-sub" style="margin-top:4px"><strong>Sumber Belajar:</strong> ${rc.sumber_belajar.map(s => esc(s.sumber ?? s)).join('; ')}</div>`;
+        out += `<div class="mv4-sub"><strong>Sumber Belajar:</strong></div>`+
+          `<ul class="mv4-list">${rc.sumber_belajar.map(s => `<li>${esc(s.sumber ?? s)}${s.fungsi ? ` — ${esc(s.fungsi)}` : ''}</li>`).join('')}</ul>`;
       if (rc.kemitraan_pembelajaran) out += `<div class="mv4-row"><span class="mv4-label">Kemitraan</span><span>${esc(rc.kemitraan_pembelajaran)}</span></div>`;
       if (rc.keselamatan_k3) out += `<div class="mv4-row"><span class="mv4-label">K3</span><span>${esc(rc.keselamatan_k3)}</span></div>`;
       return out;
     })();
-    if (rcHtml) resmi += sec('Rancangan Pembelajaran', rcHtml);
+    if (rcHtml) resmi += sec('G. Rancangan Pembelajaran', rcHtml);
 
-    // Pertemuan
+    // [H] Pertemuan
     pt.forEach(p => {
       const lkHtml = (Array.isArray(p.langkah) ? p.langkah : []).map(lk => {
         const slHtml = (Array.isArray(lk.sub_langkah) ? lk.sub_langkah : []).map(sl =>
@@ -2235,67 +2378,36 @@
       }).join('');
       const mediaStr = Array.isArray(p.media_dan_alat) ? p.media_dan_alat.map(esc).join(', ') : '-';
       resmi += `<div class="mv4-section">`+
-        `<div class="mv4-section-title">Pertemuan ${p.nomor ?? '?'}</div>`+
+        `<div class="mv4-section-title">H. Pertemuan ${p.nomor ?? '?'}</div>`+
         `<div class="mv4-row"><span class="mv4-label">Tujuan</span><span>${esc(p.tujuan_pertemuan ?? '-')}</span></div>`+
         `<div class="mv4-row"><span class="mv4-label">Media</span><span>${mediaStr}</span></div>`+
         lkHtml + `</div>`;
     });
 
-    // Instrumen (ringkasan)
-    const allIns = [...ipArr, ...iaArr];
-    if (allIns.length) {
-      const insHtml = allIns.map(ins =>
-        `<div class="mv4-ins-item">`+
-        `<span class="mv4-ins-id">${esc(ins.id ?? '?')}</span> `+
-        `<span class="mv4-ins-jenis">[${esc(ins.jenis ?? '-')}]</span> `+
-        (ins.untuk_murid ? `<span class="mv4-ins-star" title="Untuk Murid">★</span> ` : '')+
-        `${esc(ins.judul ?? ins.deskripsi_singkat ?? '')}`+
-        `</div>`
-      ).join('');
-      resmi += sec('Instrumen', insHtml);
-    }
-
-    // Tindak Lanjut
+    // [I] Tindak Lanjut
     const tlHtml = (() => {
       let out = '';
       if (Array.isArray(tl.pilihan_dukungan) && tl.pilihan_dukungan.length)
-        out += `<div class="mv4-row"><span class="mv4-label">Pilihan Dukungan</span><span>${tl.pilihan_dukungan.map(esc).join('; ')}</span></div>`;
+        out += `<div class="mv4-sub"><strong>Pilihan Dukungan:</strong></div>${list(tl.pilihan_dukungan)}`;
       if (Array.isArray(tl.dukungan_terstruktur) && tl.dukungan_terstruktur.length)
-        out += `<div class="mv4-row"><span class="mv4-label">Dukungan Terstruktur</span><span>${tl.dukungan_terstruktur.map(esc).join('; ')}</span></div>`;
+        out += `<div class="mv4-sub"><strong>Dukungan Terstruktur:</strong></div>${list(tl.dukungan_terstruktur)}`;
       if (Array.isArray(tl.tantangan_lanjutan) && tl.tantangan_lanjutan.length)
-        out += `<div class="mv4-row"><span class="mv4-label">Tantangan Lanjutan</span><span>${tl.tantangan_lanjutan.map(esc).join('; ')}</span></div>`;
+        out += `<div class="mv4-sub"><strong>Tantangan Lanjutan:</strong></div>${list(tl.tantangan_lanjutan)}`;
       return out;
     })();
-    if (tlHtml) resmi += sec('Tindak Lanjut', tlHtml);
+    if (tlHtml) resmi += sec('I. Tindak Lanjut', tlHtml);
 
+    // [J] Catatan Guru
     if (cg.length)
-      resmi += sec('Catatan Guru', cg.map((c,i) => `<div class="mv4-cg">${i+1}. ${esc(c)}</div>`).join(''));
+      resmi += sec('J. Catatan Guru', cg.map((c,i) => `<div class="mv4-cg">${i+1}. ${esc(c)}</div>`).join(''));
 
-    // Metadata Pedagogis
-    const mpHtml = (() => {
-      let out = '';
-      const dpl = Array.isArray(mp.dimensi_profil_lulusan) ? mp.dimensi_profil_lulusan : [];
-      if (dpl.length)
-        out += `<div style="margin-bottom:4px"><strong>Dimensi Profil Lulusan:</strong></div>` +
-          dpl.map(d => `<div class="mv4-asesmen-blok"><div class="mv4-asesmen-label">${esc(d.dimensi ?? '?')}</div>`+
-            `<div class="mv4-sub">${esc(d.alasan ?? '')}</div>`+
-            (d.indikator ? `<div class="mv4-sub"><em>Indikator: ${esc(d.indikator)}</em></div>` : '')+
-            `</div>`).join('');
-      const km2 = mp.karakteristik_materi ?? {};
-      if (km2.faktual || km2.konseptual || km2.prosedural)
-        out += `<div style="margin-top:6px"><strong>Karakteristik Materi:</strong></div>` +
-          (km2.faktual ? `<div class="mv4-row"><span class="mv4-label">Faktual</span><span>${esc(km2.faktual)}</span></div>` : '') +
-          (km2.konseptual ? `<div class="mv4-row"><span class="mv4-label">Konseptual</span><span>${esc(km2.konseptual)}</span></div>` : '') +
-          (km2.prosedural ? `<div class="mv4-row"><span class="mv4-label">Prosedural</span><span>${esc(km2.prosedural)}</span></div>` : '');
-      const lp = mp.language_policy ?? {};
-      if (lp.teacher_instruction || lp.student_instruction)
-        out += `<div style="margin-top:6px"><strong>Language Policy:</strong></div>` +
-          (lp.teacher_instruction ? `<div class="mv4-row"><span class="mv4-label">Guru</span><span>${esc(lp.teacher_instruction)}</span></div>` : '') +
-          (lp.student_instruction ? `<div class="mv4-row"><span class="mv4-label">Murid</span><span>${esc(lp.student_instruction)}</span></div>` : '') +
-          (lp.target_language ? `<div class="mv4-row"><span class="mv4-label">Bahasa Target</span><span>${esc(lp.target_language)}</span></div>` : '');
-      return out;
-    })();
-    if (mpHtml) resmi += sec('Metadata Pedagogis', mpHtml);
+    // [K] Lampiran A — Instrumen Pembelajaran
+    if (ipArr.length)
+      resmi += sec('K. Lampiran A — Instrumen Pembelajaran', ipArr.map(renderKontenInstrumen).join(''));
+
+    // [L] Lampiran B — Instrumen Asesmen
+    if (iaArr.length)
+      resmi += sec('L. Lampiran B — Instrumen Asesmen', iaArr.map(renderKontenInstrumen).join(''));
 
     // ── bangun HTML tab Naskah Fasilitasi ──────────────────────────────────
     let naskah = '';
@@ -2351,9 +2463,18 @@
 .mv4-asesmen-label{font-weight:600;font-size:.8rem;color:var(--gold,#c8a84b);margin-bottom:2px}
 .mv4-langkah{margin:6px 0}.mv4-langkah-nama{font-weight:600;font-size:.83rem;margin-bottom:2px}
 .mv4-sl{margin-left:12px;font-size:.82rem;color:var(--text-muted,#888)}
-.mv4-ins-item{font-size:.82rem;margin:2px 0}
-.mv4-ins-id{font-weight:600}.mv4-ins-jenis{color:var(--text-muted,#888)}
-.mv4-ins-star{color:var(--gold,#c8a84b)}
+.mv4-ins-block{margin:8px 0;border:1px solid var(--border,rgba(255,255,255,.1));border-radius:6px;overflow:hidden}
+.mv4-ins-header{padding:6px 8px;font-size:.83rem;background:var(--surface2,rgba(255,255,255,.04))}
+.mv4-ins-id{font-weight:700}.mv4-ins-jenis{color:var(--text-muted,#888)}
+.mv4-ins-star{color:var(--gold,#c8a84b);font-weight:600;margin-left:4px}
+.mv4-ins-murid{padding:6px 8px;border-top:1px solid var(--border,rgba(255,255,255,.1));background:rgba(200,168,75,.05)}
+.mv4-ins-guru{padding:6px 8px;border-top:1px solid var(--border,rgba(255,255,255,.1))}
+.mv4-ins-zone-label{font-size:.73rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--gold,#c8a84b);margin-bottom:4px}
+.mv4-list{margin:2px 0 4px 16px;padding:0;font-size:.82rem}
+.mv4-list li{margin:1px 0}
+.mv4-dialog-turn{font-size:.82rem;margin:2px 0 2px 8px}
+.mv4-dialog-speaker{font-weight:600;color:var(--gold,#c8a84b)}
+.mv4-teks{font-size:.82rem;margin:4px 0;padding:6px 8px;border-left:2px solid var(--border,rgba(255,255,255,.2));white-space:pre-wrap}
 .mv4-cg{font-size:.83rem;margin:2px 0}
 .mv4-ns-sl{margin:6px 0;padding:6px 8px;border-radius:4px;background:var(--surface2,rgba(255,255,255,.04))}
 .mv4-ns-ref{font-weight:700;font-size:.8rem;color:var(--gold,#c8a84b);margin-bottom:4px}
