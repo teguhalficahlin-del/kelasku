@@ -119,6 +119,31 @@ const RE_PERANGKAT_DIGITAL = new RegExp(
   ].join('|') + ')\\b', 'gi',
 );
 
+// Samakan bentuk tanda kutip dan spasi sebelum dibandingkan. Model kerap menukar
+// petik lurus dengan petik keriting di antara dua fase, dan perbedaan sepele itu
+// akan membuat kutipan yang sah tampak seperti karangan.
+function normalKutip(t: string): string {
+  return t.replace(/[\u2018\u2019\u201C\u201D]/g, "'").replace(/\s+/g, ' ').toLowerCase();
+}
+
+// Kalimat dalam tanda kutip yang berbahasa Inggris. Ambangnya sengaja tinggi —
+// minimal empat kata dan dua kata fungsi Inggris — supaya kalimat instruksi
+// berbahasa Indonesia yang kebetulan dikutip tidak ikut terjaring.
+const KATA_FUNGSI_INGGRIS = /\b(the|a|an|is|are|do|does|you|your|would|what|how|and|or|for|with|to|of|in|on|my|we|it)\b/gi;
+
+function ambilKutipanInggris(teks: string): string[] {
+  const hasil: string[] = [];
+  const pola = /['\u2018\u201C]([^'\u2019\u201D]{18,200})['\u2019\u201D]/g;
+  let m: RegExpExecArray | null;
+  while ((m = pola.exec(teks)) !== null) {
+    const isi = m[1].trim();
+    if (isi.split(/\s+/).length < 4) continue;
+    if ((isi.match(KATA_FUNGSI_INGGRIS) ?? []).length < 2) continue;
+    hasil.push(isi);
+  }
+  return hasil;
+}
+
 // ── TYPES V4.0 ───────────────────────────────────────────────────────────────
 
 type ElemenCp = { id: string; label: string; cp_text: string };
@@ -877,6 +902,59 @@ function validateModulOutputV400(
     }
   }
 
+  // V15: Kutipan yang diakui berasal dari instrumen harus benar-benar ada
+  //
+  // Naskah menyuruh murid mencermati kalimat "What kind of fabric do you prefer?"
+  // pada PBL-01. Kalimat itu tidak pernah ada di sana. Guru menyuruh murid
+  // menggarisbawahi sesuatu yang tidak ada di lembar di tangannya.
+  //
+  // Pemeriksaannya dipersempit dua kali sebelum dipakai. Versi pertama menandai
+  // setiap kalimat Inggris berkutip di sub-langkah yang menyebut instrumen, dan
+  // itu menyalakan peringatan di ketiga modul yang sehat — guru memang boleh
+  // mengucapkan kalimat Inggris karangannya sendiri sambil membahas instrumen.
+  //
+  // Yang ditandai sekarang hanya kalimat yang benar-benar DIAKUI ada di dalam
+  // instrumen: kutipan, sebutan instrumen, dan kata kerja penunjuk ("cermati",
+  // "garis bawahi", "temukan") harus berada dalam SATU kalimat yang sama.
+  if (Array.isArray(o.naskah_fasilitasi)) {
+    const isiInstrumen = new Map<string, string>();
+    for (const arr of [o.instrumen_pembelajaran, o.instrumen_asesmen]) {
+      if (!Array.isArray(arr)) continue;
+      for (const raw of arr as Array<Record<string, unknown>>)
+        isiInstrumen.set(String(raw.id), normalKutip(JSON.stringify(raw)));
+    }
+    const PENUNJUK = /\b(cermati|mencermati|perhatikan|memperhatikan|garis ?bawahi|menggaris ?bawahi|temukan|menemukan|tandai|menandai|baca|membaca|lihat|melihat|cari|mencari|tertulis|tertera)\b/i;
+    const temuan: string[] = [];
+    for (const np of o.naskah_fasilitasi as Array<Record<string, unknown>>) {
+      for (const lk of (np.langkah as Array<Record<string, unknown>> ?? [])) {
+        for (const sl of (lk.sub_langkah as Array<Record<string, unknown>> ?? [])) {
+          const baris: string[] = [];
+          for (const medan of ['ucapan_guru', 'aksi_guru', 'pertanyaan_kunci', 'jika_kesulitan'])
+            if (Array.isArray(sl[medan])) baris.push(...(sl[medan] as unknown[]).map(String));
+          // Instrumen boleh disebut di baris lain dalam langkah yang sama — model
+          // kerap menaruh "buka PBL-01" di aksi_guru lalu kutipannya di
+          // ucapan_guru. Yang harus sekalimat adalah kutipan dan kata penunjuknya.
+          const dirujuk = [...new Set(baris.join(' ').match(/\b(?:PBL|ASM)-\d+\b/g) ?? [])]
+            .filter(id => isiInstrumen.has(id));
+          if (!dirujuk.length) continue;
+          for (const b of baris) {
+            if (!PENUNJUK.test(b)) continue;
+            for (const kutipan of ambilKutipanInggris(b)) {
+              const bersih = normalKutip(kutipan);
+              if (dirujuk.some(id => (isiInstrumen.get(id) ?? '').includes(bersih))) continue;
+              temuan.push(`"${kutipan.slice(0, 65)}" (${sl.ref}, diakui ada di ${dirujuk.join('/')})`);
+            }
+          }
+        }
+      }
+    }
+    for (const t of temuan.slice(0, 4))
+      errors.push(
+        `naskah_fasilitasi menyuruh guru menunjukkan kalimat yang tidak ada di instrumennya: ${t}. ` +
+        `Salin persis dari isi instrumen, atau jangan mengaku kalimat itu tertulis di sana.`,
+      );
+  }
+
   // V13: Larangan perangkat digital berlaku ke SELURUH dokumen
   if (!perangkatDigitalOk) {
     const ketemu = [...new Set((JSON.stringify(o).match(RE_PERANGKAT_DIGITAL) ?? [])
@@ -1628,18 +1706,27 @@ function buildUserMessageFaseC(params: {
   });
 }
 
-// Fakta instrumen yang paling sering dikarang naskah kalau tidak diberitahukan:
-// nama tokoh, jumlah bagian, dan nama tiap bagian.
+// ISI instrumen yang dikirim ke penyusun naskah.
 //
-// Sebelumnya Fase B2 hanya menerima id, judul, jenis, dan untuk_murid — isinya
-// sengaja dibuang demi menghemat token. Akibatnya penyusun naskah tidak punya
-// cara mengetahui bahwa tokoh PBL-01 bernama Dewi dan Ibu Sarah, atau bahwa
-// dialognya cuma satu. Ia mengarang "Kak Amanda", "Ibu Diana", dan menyuruh guru
-// membuka "PBL-01 halaman dua" yang tidak pernah ada. Guru membuka bahannya di
-// depan kelas dan menemukan dokumen yang tidak cocok dengan yang ia baca.
+// Ini putaran kedua. Putaran pertama hanya mengirim NAMA — tokoh, nama bagian,
+// jumlah indikator — dan itu memang menghentikan naskah mengarang tokoh dan
+// halaman. Tapi kelas kesalahan yang lebih halus tetap lolos, karena mengetahui
+// nama tidak sama dengan mengetahui isi:
 //
-// Yang dikirim di bawah tetap ringkas — bukan seluruh isi instrumen, hanya fakta
-// yang membuat naskah bisa menyebutnya dengan benar.
+//   - naskah menyuruh murid mencari "What kind of fabric do you prefer?" di
+//     PBL-01. Kalimat itu tidak ada; PBL-01 berbunyi "What silhouette and color
+//     palette do you have in mind?". Guru menyuruh murid menggarisbawahi kalimat
+//     yang tidak ada di lembar yang sedang dipegangnya.
+//   - naskah mengarahkan murid ke "daftar kosakata pada kartu peran PBL-02".
+//     PBL-02 hanya berisi instruksi peran; daftar itu tidak pernah ada.
+//   - naskah menyebut tiga aspek penilaian dengan kata karangannya sendiri,
+//     sehingga dua dari tiga kriteria ASM-02 yang sebenarnya tidak pernah
+//     disampaikan ke murid.
+//
+// Model tidak bisa mengutip yang tidak pernah ia lihat. Karena itu isinya kini
+// dikirim — dipotong secukupnya, bukan mentah-mentah.
+const potong = (v: unknown, n = 220) => String(v ?? '').slice(0, n);
+
 function faktaInstrumen(ins: unknown): Record<string, unknown> {
   const i = ins as Record<string, unknown>;
   const km = (i.konten_murid ?? null) as Record<string, unknown> | null;
@@ -1647,23 +1734,41 @@ function faktaInstrumen(ins: unknown): Record<string, unknown> {
     id: i.id, judul: i.judul, jenis: i.jenis, untuk_murid: i.untuk_murid,
   };
   if (km) {
+    if (typeof km.petunjuk === 'string') fakta.petunjuk = potong(km.petunjuk);
     if (Array.isArray(km.giliran)) {
-      fakta.jumlah_dialog = 1;
-      fakta.jumlah_giliran = km.giliran.length;
       fakta.tokoh = [...new Set(
         (km.giliran as Array<Record<string, unknown>>).map(g => String(g.pembicara ?? '')).filter(Boolean),
       )];
+      // Baris dialog dikirim UTUH. Inilah satu-satunya sumber sah kalau naskah
+      // menyuruh guru merujuk kalimat tertentu di dalam bahan murid.
+      fakta.dialog = (km.giliran as Array<Record<string, unknown>>).map(g => ({
+        pembicara: g.pembicara, ucapan: potong(g.ucapan, 200),
+      }));
     }
     if (Array.isArray(km.set)) {
-      fakta.nama_bagian = (km.set as Array<Record<string, unknown>>).map(x => String(x.nama_set ?? ''));
+      fakta.bagian = (km.set as Array<Record<string, unknown>>).map(x => ({
+        nama_set: x.nama_set,
+        peran_a: potong((x.peran_a as Record<string, unknown>)?.instruksi_peran, 180),
+        peran_b: potong((x.peran_b as Record<string, unknown>)?.instruksi_peran, 180),
+      }));
     }
-    for (const [kunci, medan] of [['jumlah_soal', 'soal'], ['jumlah_pertanyaan', 'pertanyaan'],
-                                  ['jumlah_item', 'item_soal'], ['jumlah_indikator', 'kolom_indikator']]) {
-      if (Array.isArray(km[medan])) fakta[kunci] = (km[medan] as unknown[]).length;
+    if (typeof km.isi_teks === 'string') fakta.isi_teks = potong(km.isi_teks, 500);
+    for (const medan of ['soal', 'pertanyaan', 'item_soal', 'pertanyaan_panduan',
+                         'pertanyaan_menyimak', 'situasi_respons']) {
+      if (Array.isArray(km[medan]))
+        fakta[medan] = (km[medan] as unknown[]).slice(0, 10).map(x =>
+          typeof x === 'string' ? potong(x, 160) : x);
     }
   }
   const pg = (i.panduan_guru ?? null) as Record<string, unknown> | null;
-  if (pg && Array.isArray(pg.kolom_indikator)) fakta.jumlah_indikator = pg.kolom_indikator.length;
+  if (pg && Array.isArray(pg.kolom_indikator)) {
+    // Label indikator dikirim apa adanya. Naskah WAJIB memakai bunyi ini saat
+    // memberitahu murid apa yang dinilai — bukan meringkasnya sendiri.
+    fakta.indikator_penilaian = (pg.kolom_indikator as Array<Record<string, unknown>>).map(k => ({
+      id: k.id, label: potong(k.label, 160),
+    }));
+  }
+  if (pg && typeof pg.kode_legend === 'string') fakta.kode_legend = potong(pg.kode_legend, 160);
   return fakta;
 }
 
@@ -1721,9 +1826,20 @@ function buildUserMessageFaseB2(params: {
       '"bagian kedua", atau sejenisnya — rujuk dengan ID-nya saja.',
       'Nama tokoh WAJIB memakai daftar "tokoh" pada instrumen yang bersangkutan. ' +
       'Jangan mengarang nama orang baru.',
-      'Nama skenario atau bagian WAJIB memakai daftar "nama_bagian". Jangan menambah skenario.',
-      'Jika kamu menyuruh guru membagikan atau mengisi sesuatu, benda itu HARUS salah satu ' +
-      'instrumen di instrumen_ringkas, atau alat umum kelas (papan tulis, spidol, buku catatan murid).',
+      'Nama skenario WAJIB memakai nama_set pada daftar "bagian", dan isinya harus sesuai '  +
+      'instruksi peran yang tertera di sana. Jangan menambah skenario baru.',
+      'Jika kamu menyuruh guru membagikan, menempel, atau mengisi sesuatu, benda itu HARUS ' +
+      'salah satu instrumen di instrumen_ringkas, atau alat umum yang pasti ada di setiap kelas ' +
+      '(papan tulis, spidol, buku catatan dan alat tulis murid). DILARANG menyebut lembar, kartu, ' +
+      'formulir, glosarium, poster, atau katalog lain — benda itu tidak dibuatkan sistem, jadi ' +
+      'guru akan mencarinya dan tidak menemukannya. Kalau murid butuh dukungan tambahan, ' +
+      'berikan lewat ucapan guru atau tulisan di papan tulis, bukan lewat benda yang tidak ada.',
+      'Kalau kamu mengutip kalimat dari sebuah instrumen, SALIN PERSIS dari field dialog, ' +
+      'bagian, atau isi_teks milik instrumen itu. Jangan menulis ulang dengan kalimat sendiri — ' +
+      'guru akan menyuruh murid mencarinya di lembar yang dipegangnya.',
+      'Saat memberitahu murid apa yang dinilai, pakai bunyi indikator_penilaian pada instrumen ' +
+      'asesmennya. Jangan meringkas atau menggabungkan sendiri — murid berhak tahu kriteria ' +
+      'yang sebenarnya dipakai.',
       'Durasi: jangan mengarang angka menit. Untuk kegiatan bergantian, pakai angka pada ' +
       'jatah_waktu di bawah dan ucapkan angka itu apa adanya kepada murid.',
     ],
