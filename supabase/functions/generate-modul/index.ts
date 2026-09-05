@@ -41,6 +41,21 @@ function sasaranToken(jumlahPertemuan: number): number {
   return Math.min(3000 * jumlahPertemuan, 36000);
 }
 
+// Anggaran token untuk penyusunan instrumen. Teks instrumen terukur ~500 token
+// per instrumen (dari TP 2 dan TP 3 yang berhasil), tapi pemakaian sebenarnya
+// jauh di atas itu: TP 6 menghasilkan teks setara ~2.500 token namun menghabiskan
+// 5.000 — separuh anggaran habis untuk penalaran model, yang ikut dihitung ke
+// maxOutputTokens. Karena itu ada lantai 12.000, bukan sekadar kelipatan jumlah
+// instrumen: penalaran tidak ikut mengecil hanya karena instrumennya sedikit.
+//
+// Rentang rancangan: sampai 16 instrumen, marjin >= 54%. Modul terkaya yang
+// pernah ada punya 4. Di atas 16 marjinnya menipis dan plafon TIDAK dinaikkan
+// lagi — plafon ada untuk membatasi keluaran yang lari, dan di luar rentang itu
+// deteksi finishReason yang melapor, bukan kegagalan diam-diam.
+function anggaranTokenInstrumen(jumlahInstrumen: number): number {
+  return Math.max(12000, Math.min(2000 * jumlahInstrumen, 32000));
+}
+
 // ── TYPES V4.0 ───────────────────────────────────────────────────────────────
 
 type ElemenCp = { id: string; label: string; cp_text: string };
@@ -1194,7 +1209,7 @@ function buildUserMessageFaseC(params: {
       'untuk_murid=true → konten_murid wajib ada (bukan null). ' +
       'untuk_murid=false → konten_murid harus null. ' +
       'Ringkas: deskripsi 1-2 kalimat, dialog 1 baris per giliran. ' +
-      'Total output di bawah 5000 token.',
+      `Total output di bawah ${Math.max(3000, 1000 * allManifest.length)} token.`,
     program_keahlian: params.programKeahlian,
     identitas_ringkas: {
       mata_pelajaran:      (params.faseAOutput.identitas as Record<string, unknown>)?.mata_pelajaran,
@@ -1509,13 +1524,18 @@ Deno.serve(async (req) => {
       if (!res.ok) throw new Error(`Gemini HTTP ${res.status}`);
       const b = await res.json();
       const cand = b?.candidates?.[0];
+      const um   = (b?.usageMetadata ?? {}) as Record<string, unknown>;
       const teks = String(cand?.content?.parts?.[0]?.text ?? '');
       // Gemini memotong keluaran di batas token sambil tetap membalas HTTP 200.
       // Tanpa cek ini teks terpenggal diserahkan seolah utuh, lalu gagal jauh di
       // hilir sebagai "JSON tidak valid" — sebab sebenarnya tidak pernah terbaca.
       if (String(cand?.finishReason ?? '') === 'MAX_TOKENS') {
         throw Object.assign(
-          new Error(`Keluaran AI terpotong di batas ${maxTokens} token (${teks.length} karakter dihasilkan).`),
+          new Error(
+            `Keluaran AI terpotong di batas ${maxTokens} token (${teks.length} karakter dihasilkan). ` +
+            `Pemakaian: prompt=${um.promptTokenCount ?? '?'}, keluaran=${um.candidatesTokenCount ?? '?'}, ` +
+            `penalaran=${um.thoughtsTokenCount ?? '?'}, total=${um.totalTokenCount ?? '?'}.`,
+          ),
           { code: 'MODUL_GENERATION_TRUNCATED', retryable: false },
         );
       }
@@ -1716,12 +1736,13 @@ Deno.serve(async (req) => {
     };
 
     // C1: Generate instrumen content
+    const jumlahInstrumen = manifest.pembelajaran_manifest.length + manifest.asesmen_manifest.length;
     let faseCOutput: Record<string, unknown>;
     try {
       faseCOutput = await callPhase(
         'Fase C',
         buildUserMessageFaseC({ faseAOutput, manifest, cd, programKeahlian: settings?.program_keahlian ?? '' }),
-        120_000, 5000,
+        120_000, anggaranTokenInstrumen(jumlahInstrumen),
       );
     } catch (e) {
       const err = e as { message?: string; code?: string; retryable?: boolean };
@@ -1790,7 +1811,7 @@ Deno.serve(async (req) => {
       faseDOutput = await callPhase(
         'Fase D',
         buildUserMessageFaseD({ faseAOutput, cd }),
-        60_000, 4000,
+        120_000, 12000,
       );
     } catch (e) {
       const err = e as { message?: string; code?: string; retryable?: boolean };
