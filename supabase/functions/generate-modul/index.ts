@@ -1190,22 +1190,66 @@ function buildUserMessageFaseB(params: {
   });
 }
 
+// Bentuk yang diharapkan per jenis instrumen, disalin dari deklarasi tipe di
+// atas. Dikirim menyatu dengan tiap entri manifest ke Fase C.
+//
+// Sebelumnya entri manifest hanya menyebut `jenis`, sementara bentuknya hanya
+// ada di SYSTEM_PROMPT — di antara empat belas tipe lain. Model harus membaca
+// jenisnya lalu mengingat tipe yang cocok dari tempat yang jauh, dan mata
+// rantai itu putus: dialog_model menghasilkan {situasi, dialog, glosarium_mini}
+// pada satu generate dan {konteks, percakapan, glosarium_singkat} pada generate
+// lain, tidak satu pun sesuai kontrak. Menaruh bentuknya di sebelah pekerjaan
+// menghilangkan indireksinya.
+//
+// Ini ikhtiar, bukan jaminan. Renderer tetap punya penampil umum sebagai jaring
+// pengaman, jadi kalaupun model tetap menyimpang, guru tidak kehilangan apa pun.
+const BENTUK_INSTRUMEN: Record<string, { km: string; pg: string }> = {
+  dialog_baseline:   { km: '{ petunjuk: string, giliran: [{ pembicara: string, ucapan: string }] }',
+                       pg: '{ catatan_fasilitasi: string }' },
+  dialog_model:      { km: '{ petunjuk: string, giliran: [{ pembicara: string, ucapan: string }] }',
+                       pg: '{ catatan_fasilitasi: string }' },
+  teks_autentik:     { km: '{ isi_teks: string, pertanyaan_panduan: string[] }',
+                       pg: '{ nama_entitas: string, catatan_konteks: string }' },
+  kartu_peran:       { km: '{ set: [{ nama_set: string, nama_entitas: string, peran_a: { jabatan?: string, instruksi_peran: string }, peran_b: { jabatan?: string, instruksi_peran: string } }] }',
+                       pg: '{ fokus_pengamatan: string, catatan_fasilitasi: string }' },
+  pemetaan_awal:     { km: '{ petunjuk: string, item_soal: [{ kalimat_konteks: string, kata_target: string }], pertanyaan_menyimak: string[], situasi_respons: string[] }',
+                       pg: '{ tujuan_diagnostik: string, panduan_interpretasi: string }' },
+  matriks_observasi: { km: '{ petunjuk: string, kolom_indikator: [{ id: string, label: string }] }',
+                       pg: '{ kode_legend: string, kolom_indikator: [{ id: string, label: string }], catatan_kritis: string }' },
+  lembar_refleksi:   { km: '{ pertanyaan: [{ nomor: number, prompt: string, jumlah_jawaban: number }] }',
+                       pg: '{ panduan_interpretasi: string }' },
+  soal_latihan:      { km: '{ petunjuk: string, soal: [{ nomor: number, pertanyaan: string, tipe: string }] }',
+                       pg: '{ kunci_jawaban: string[], panduan_penskoran: string }' },
+  lembar_praktikum:  { km: '{ tujuan: string, alat_bahan: string[], langkah_kerja: string[], pertanyaan_analisis: string[] }',
+                       pg: '{ rubrik_penilaian: string, catatan_k3: string | null }' },
+  panduan_proyek:    { km: '{ deskripsi_proyek: string, tahapan: [{ nomor: number, judul: string, instruksi: string }], kriteria_produk: string[], pertanyaan_refleksi: string[] }',
+                       pg: '{ rubrik_penilaian: string, contoh_produk: string | null }' },
+};
+
 function buildUserMessageFaseC(params: {
   faseAOutput:     Record<string, unknown>;
   manifest:        InstrumentManifest;
   cd:              Record<string, unknown>;
   programKeahlian: string;
 }): string {
+  // Bentuk yang diharapkan disematkan ke tiap entri, supaya model tidak perlu
+  // mengingatnya dari SYSTEM_PROMPT. Jenis 'custom' sengaja tanpa bentuk.
   const allManifest = [
     ...params.manifest.pembelajaran_manifest,
     ...params.manifest.asesmen_manifest,
-  ];
+  ].map((m) => {
+    const b = BENTUK_INSTRUMEN[m.jenis];
+    return b ? { ...m, bentuk_konten_murid: b.km, bentuk_panduan_guru: b.pg } : m;
+  });
   return JSON.stringify({
     fase: 'C',
     output_instruction:
       'Hasilkan HANYA field "instrumen_pembelajaran" dan "instrumen_asesmen". ' +
       'Isi HANYA instrumen yang ada di manifest. Jangan buat ID baru. ' +
       'Jika manifest kosong, hasilkan array kosong []. ' +
+      'Untuk setiap entri manifest, IKUTI PERSIS "bentuk_konten_murid" dan ' +
+      '"bentuk_panduan_guru" milik entri itu. Nama field tidak boleh diganti, ' +
+      'diterjemahkan, disingkat, atau ditambah. ' +
       'untuk_murid=true → konten_murid wajib ada (bukan null). ' +
       'untuk_murid=false → konten_murid harus null. ' +
       'Ringkas: deskripsi 1-2 kalimat, dialog 1 baris per giliran. ' +
