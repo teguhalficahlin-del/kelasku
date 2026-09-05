@@ -56,6 +56,24 @@ function anggaranTokenInstrumen(jumlahInstrumen: number): number {
   return Math.max(12000, Math.min(2000 * jumlahInstrumen, 32000));
 }
 
+// Fase A menghasilkan identitas, KKTP, konteks murid, materi esensial, rencana
+// asesmen, rancangan, metadata pedagogis, dan manifest sekaligus. Panjangnya
+// tumbuh mengikuti jumlah KKTP dan elemen CP.
+//
+// Fase ini adalah yang terakhir memakai plafon berupa angka mati (4.000), dan
+// angka itu roboh persis seperti dua pendahulunya: bukan karena keluarannya
+// membengkak, melainkan karena SYSTEM_PROMPT bertambah panjang. Pada TP 6
+// teksnya hanya 2.159 token, tapi penalaran model menghabiskan 1.837 lagi —
+// dan penalaran ikut dihitung ke maxOutputTokens. Jumlahnya 3.996 dari plafon
+// 4.000: gagal dengan sisa empat token.
+//
+// Lantai 12.000 menyamakan marjinnya dengan Fase C dan Fase D, sehingga
+// menambah aturan ke SYSTEM_PROMPT tidak lagi diam-diam mempersempit ruang
+// keluaran fase ini.
+function anggaranTokenFaseA(jumlahKktp: number, jumlahElemen: number): number {
+  return Math.max(12000, Math.min(2000 * (jumlahKktp + jumlahElemen), 24000));
+}
+
 // ── TYPES V4.0 ───────────────────────────────────────────────────────────────
 
 type ElemenCp = { id: string; label: string; cp_text: string };
@@ -1871,7 +1889,7 @@ Deno.serve(async (req) => {
       faseAOutput = await callPhase(
         'Fase A',
         buildUserMessageFaseA({ identitasDB, jumlahMurid, nomorTp, tpJudul, jumlahPertemuan, jpPerPertemuan, durasiJp, elemenCp, kktpList, cd, pilanAsesmen, gunakanDiagnostik, teknikDiagnostik, gunakanFormatif, gunakanSumatif, teknikSumatif }),
-        90_000, 4000,
+        90_000, anggaranTokenFaseA(kktpList.length, elemenCp.length),
       );
     } catch (e) {
       const err = e as { message?: string; code?: string; retryable?: boolean };
