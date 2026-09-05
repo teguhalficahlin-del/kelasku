@@ -41,6 +41,24 @@ function sasaranToken(jumlahPertemuan: number): number {
   return Math.min(3000 * jumlahPertemuan, 36000);
 }
 
+// Anggaran token khusus Naskah Fasilitasi (Fase B2).
+//
+// Naskah adalah keluaran TERBESAR di seluruh pipeline — pada TP 6 panjangnya
+// 40.000 karakter, kira-kira dua kali Modul Ajarnya sendiri. Sampai sekarang ia
+// memakai anggaranToken() yang sama dengan fase lain (4.000 per pertemuan), dan
+// itu sudah pas-pasan bahkan sebelum apa pun ditambahkan.
+//
+// Ia roboh begitu masukannya diperkaya dengan isi instrumen: fase A, B, dan C
+// selesai, B2 terpotong. Bentuk kegagalan yang sama untuk keempat kalinya di
+// berkas ini — plafon yang tidak ikut tumbuh saat sesuatu di sekitarnya bertambah.
+//
+// Angkanya dilipatduakan atas permintaan Romo, tapi tetap turunan: 8.000 per
+// pertemuan dengan lantai 24.000, sehingga modul pendek pun punya ruang untuk
+// token penalaran yang tidak ikut mengecil.
+function anggaranTokenNaskah(jumlahPertemuan: number): number {
+  return Math.max(24000, Math.min(8000 * jumlahPertemuan, 60000));
+}
+
 // Anggaran token untuk penyusunan instrumen. Teks instrumen terukur ~500 token
 // per instrumen (dari TP 2 dan TP 3 yang berhasil), tapi pemakaian sebenarnya
 // jauh di atas itu: TP 6 menghasilkan teks setara ~2.500 token namun menghabiskan
@@ -2352,7 +2370,7 @@ Deno.serve(async (req) => {
       naskahOutput = await callPhase(
         'Fase B2 (naskah)',
         buildUserMessageFaseB2({ faseAOutput, pertemuanWithRef, instrumenPembelajaran, instrumenAsesmen, jumlahPertemuan, jumlahMurid }),
-        120_000, anggaranToken(jumlahPertemuan),
+        120_000, anggaranTokenNaskah(jumlahPertemuan),
       );
     } catch (e) {
       const err = e as { message?: string; code?: string; retryable?: boolean };
