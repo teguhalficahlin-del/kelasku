@@ -238,7 +238,7 @@ git push origin main                  → urutan TERAKHIR
 ## 12. STATUS PROYEK
 
 **Fase saat ini: DEVELOPMENT AKTIF**
-**HEAD:** `c36a254` (per 4 September 2026)
+**HEAD:** `8dc8033` (per 5 September 2026)
 
 - [x] Dokumen rancangan selesai (REQUIREMENTS, SCHEMA-v0, ADR-001)
 - [x] Supabase project baru dibuat
@@ -263,6 +263,7 @@ git push origin main                  → urutan TERAKHIR
 - [x] Portal Siswa: dashboard, bottom nav, halaman profil (ubah nama + PIN)
 - [x] Portal Ortu: dashboard, pesan guru, forum, bottom nav, halaman profil, unread badge
 - [x] Security audit Tab Rancang (`docs/AUDIT-RANCANG-UI.md`); audit forum RLS (`1eafda1`)
+- [x] Tab Rancang: ModulOutput V4.0 — generate 4 fase tuntas, diaudit di produksi (sesi 5 September 2026)
 - [ ] Test suite (belum dikerjakan — scope belum ditentukan)
 - [ ] Hardening Tab Rancang — Putaran 9 (`docs/AUDIT-RANCANG-UI.md`, `docs/AUDIT-EF-API.md`)
 
@@ -455,6 +456,18 @@ Migrations baru:
 20260823000022_cleanup-fn-lookup-classroom-code.sql
 20260823000023_cleanup-fn-check-schedule-conflict.sql
 20260825000001_gate-rancang-umum-smk-guru-pro.sql
+20260825000002_perluas-status-assessment-results.sql
+20260826000001_grade-recap-hardening.sql
+20260826000002_grade-recap-updated-at-trigger.sql
+20260826000003_fn-upsert-assessment-batch.sql
+20260827000001_atp-dua-lapis.sql
+20260829000001_modul-dua-lapis.sql
+20260829000002_fn-is-guru-role.sql
+20260901000001_modul-induk-status-generating.sql
+20260902000001_fn-update-program-keahlian.sql
+20260904000001_forum-v2.sql
+20260904000002_forum-rls-fix.sql
+20260905000001_rancang-settings-jumlah-murid.sql
 ```
 
 **File JS Runtime Rancang (sudah ter-commit di `f99b71b`, 19 Agustus 2026):**
@@ -604,6 +617,108 @@ Back-button support (`c36a254`) — History API (pushState + popstate) di semua 
   hanya aktif jika elemen `classroom-list` ada (guard halaman)
 - **Portal Siswa & Ortu**: capture-phase listener push state per klik tab;
   popstate memanggil `activateTab()` langsung; localStorage restore → replaceState
+
+---
+
+**Fitur & fix sesi 5 September 2026 — ModulOutput V4.0 tuntas (HEAD `c36a254` → `8dc8033`, 40 commit):**
+
+Tab Rancang kini bisa menghasilkan Modul Ajar V4.0 dari awal sampai selesai.
+Sebelum sesi ini **16 dari 21 TP di sistem tidak bisa menghasilkan modul sama
+sekali** — dan tidak ada yang tahu, karena pesan gagalnya menyalahkan penyusunan
+modul, bukan menyebut sebab sebenarnya.
+
+Bukti tuntas: TP 6 (Bahasa Inggris Fase E, 4 pertemuan × 4 JP, 30 murid),
+selesai 98 detik, diaudit langsung di aplikasi produksi.
+
+Pengelompokan 40 commit:
+
+1. **Aturan kerja & test** (`b477917` … `1060076`) — konsolidasi ke 1 CLAUDE.md +
+   1 AGENT_RULES.md, Mode C Sprint Fix (Fase 0–4), `tenant-isolation.mjs`,
+   `verify-migrations.mjs`, §8 Audit Commands.
+2. **Polish flow Rancang** (`38800d1` … `041c8d2`) — ATP aktif langsung ke daftar
+   TP, kembali ke welcome setelah terima ATP, `sumber_flow` dipisah, label bahasa
+   guru, `missing[]` dipropagasi ke pesan error.
+3. **ModulOutput V4.0** (`ab1322d` … `5ae8a97`) — kolom `jumlah_murid`, rewrite EF
+   ke V4.0, renderer V4.0, Fix A TP anchor lock, Gap 1 (asesmen dipisah per jenis),
+   Gap 2 ([B][E][K][L] lengkap), Fix B (dua zona konteks murid), Fix C (larangan
+   fasilitas digital tak dikonfirmasi), rate limit UI, validator V4, V7, V9, V10.
+4. **Anggaran token & deteksi pemotongan** (`23ba57d` … `766ea8b`) — lihat catatan
+   di bawah, ini bagian tersulit sesi ini.
+5. **Penampil umum instrumen** (`95c3240` … `f4615a5`) — lihat catatan di bawah.
+6. **Kontrak instrumen di prompt** (`8dc8033`) — `BENTUK_INSTRUMEN` disematkan ke
+   tiap entri manifest Fase C.
+
+---
+
+**Pelajaran 1 — batas tetap yang tidak ikut tumbuh**
+
+Tiga kegagalan berturut-turut, satu bentuk kesalahan yang sama:
+
+| Tempat | Batas lama | Akibat |
+|---|---|---|
+| Fase B2 (naskah) | `Math.min(4000n, 8000)` | 4 pertemuan menyentuh plafon, JSON terpotong |
+| Fase C (instrumen) | `5000` datar | terpotong saat instrumennya bertambah |
+| Renderer instrumen | ambang 80, lalu 40, lalu 25 karakter | butir sejenis tampil tidak seragam |
+
+Menyetel ulang angkanya tidak pernah menyelesaikan — hanya memindahkan tebing.
+Yang menyelesaikan adalah mengubah **tempat keputusan diambil**: anggaran token
+dihitung dari `jumlahPertemuan`/`jumlahInstrumen` (`anggaranToken`,
+`anggaranTokenInstrumen`), dan urutan-serta-tata-letak field dihitung sekali
+untuk seluruh daftar (`urutanKunciDaftar`), bukan per nilai.
+
+> **Kalau butir-butir sejenis harus seragam, keputusannya diambil sekali untuk
+> seluruh kelompok. Ambang tetap apa pun akan tersandung data yang kebetulan
+> jatuh di dekatnya.**
+
+**Pelajaran 2 — sistem yang tidak bisa mengeluh**
+
+`callAI` tidak memeriksa `finishReason`. Gemini memotong keluaran di batas token
+sambil tetap membalas HTTP 200, dan teks terpenggal itu diserahkan seolah utuh —
+gagal jauh di hilir sebagai "JSON tidak valid". Tiga jam terbuang mengejar Fase D
+dan Fase C, padahal yang patah Fase B2.
+
+Sejak `cf777dc` pemotongan melempar `MODUL_GENERATION_TRUNCATED` yang menyebut
+fase, batas, dan panjang yang dihasilkan; sejak `766ea8b` disertai `usageMetadata`.
+Kejadian berikutnya langsung menyebut sebabnya sendiri dalam satu putaran.
+
+Temuan terkait: **token penalaran ikut dihitung ke `maxOutputTokens`.** Fase C
+menghasilkan 8.302 karakter (~2.500 token teks) tapi menghabiskan seluruh 5.000.
+Menetapkan anggaran dari panjang teks saja selalu meleset.
+
+**Pelajaran 3 — AI tidak mematuhi kontrak bentuk instrumen**
+
+Sejak V4.0 dirilis, kira-kira separuh isi instrumen tidak pernah terlihat guru:
+renderer mencari nama field sesuai kontrak, AI mengarang nama sendiri dan berbeda
+tiap generate (`dialog_model` di TP 3 vs TP 6 saja sudah beda). Cabang khusus
+menghasilkan nol, kotaknya tampil berlabel tapi kosong, tanpa ada yang mengeluh.
+
+Dua lapis penanganan:
+- **Jaring pengaman** (`95c3240`…`f4615a5`) — `renderGenerik` + `renderSisa`
+  menampilkan field apa pun di luar kontrak. Berlaku surut: modul lama langsung
+  terlihat isinya tanpa generate ulang.
+- **Pencegahan** (`8dc8033`) — `BENTUK_INSTRUMEN` disematkan ke tiap entri
+  manifest, menghilangkan indireksi ke SYSTEM_PROMPT.
+
+Uji silang di scratchpad memastikan `BENTUK_INSTRUMEN` (EF) dan
+`KUNCI_MURID`/`KUNCI_GURU` (renderer) tidak menyimpang diam-diam. **Kalau salah
+satu diubah, ubah keduanya.**
+
+**Catatan operasional**
+
+- Nomor versi cache di `guru/classroom.html` **wajib dinaikkan** setiap kali
+  berkas JS-nya berubah. Sempat terlewat di `e8ea8ca`…`db45337`; diperbaiki di
+  `1992de7`.
+- Jalankan `deno check supabase/functions/<nama>/index.ts` sebelum
+  `functions deploy` — esbuild tidak type-check, dan `ReferenceError` yang lolos
+  muncul di browser sebagai kegagalan CORS. Dua kali terjadi (`23ba57d`, `e8ea8ca`).
+- Fase A punya idempotency: kalau `_draft.fase_a` sudah ada ia keluar sebelum
+  menyentuh penghitung kuota. Tombol "Coba Lagi" karena itu **tidak memakan jatah**
+  — berguna sekali saat menguji.
+
+**Yang belum terverifikasi**
+
+`8dc8033` belum di-deploy dan efeknya baru terukur pada generate berikutnya:
+apakah model benar-benar mematuhi bentuk yang kini ada di sebelahnya.
 
 ---
 
