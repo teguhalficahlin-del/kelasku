@@ -2186,8 +2186,12 @@
       }
       // Map mempertahankan urutan kemunculan pertama, dan sort di sini stabil,
       // jadi field berbobot sama tetap mengikuti urutan asli JSON.
-      return [...skor.keys()].sort((a, b) =>
-        (skor.get(a).total / skor.get(a).n) - (skor.get(b).total / skor.get(b).n));
+      const rata = new Map([...skor].map(([k, s]) => [k, s.total / s.n]));
+      const urutan = [...skor.keys()].sort((a, b) => rata.get(a) - rata.get(b));
+      // rata dipakai juga untuk memutuskan tata letak: field yang di sebagian
+      // besar butir berupa prosa mendapat baris sendiri di SEMUA butir, supaya
+      // satu butir tidak tampil sebaris hanya karena nilainya kebetulan pendek.
+      return { urutan, rata };
     }
 
     function renderGenerik(val, depth = 0, urutan = null) {
@@ -2199,9 +2203,9 @@
           return `<ul class="mv4-list">${val.map(x => `<li>${esc(x)}</li>`).join('')}</ul>`;
         // Tiap butir diberi blok sendiri. Tanpa ini giliran dialog dan daftar
         // kategori menyatu jadi satu gumpalan yang batasnya harus ditebak.
-        const urutanDaftar = urutanKunciDaftar(val);
+        const keputusanDaftar = urutanKunciDaftar(val);
         return val.map(x => {
-          const isiButir = renderGenerik(x, depth + 1, urutanDaftar);
+          const isiButir = renderGenerik(x, depth + 1, keputusanDaftar);
           return isiButir ? `<div class="mv4-asesmen-blok">${isiButir}</div>` : '';
         }).join('');
       }
@@ -2218,7 +2222,8 @@
       // tidak ada di daftar itu tetap ditampilkan di belakang — jaminan "tidak
       // ada field yang hilang" lebih penting daripada kerapian urutan.
       const kunci = urutan
-        ? [...urutan.filter(k => k in val), ...Object.keys(val).filter(k => !urutan.includes(k))]
+        ? [...urutan.urutan.filter(k => k in val),
+           ...Object.keys(val).filter(k => !urutan.urutan.includes(k))]
         : Object.keys(val).sort((a, b) => bobot(val[a]) - bobot(val[b]));
       return kunci.map(k => {
         const isi = val[k];
@@ -2226,7 +2231,11 @@
         const judul = esc(humanKey(k));
         if (typeof isi !== 'object') {
           // Prosa diberi baris sendiri; penanda cukup sebaris label-nilai.
-          return String(isi).length > PENDEK
+          // Dalam sebuah daftar, keputusan ini diambil dari seluruh butirnya.
+          const prosa = urutan && urutan.rata.has(k)
+            ? urutan.rata.get(k) >= 0.5
+            : String(isi).length > PENDEK;
+          return prosa
             ? `<div class="mv4-sub"><strong>${judul}</strong></div><div class="mv4-sub">${esc(isi)}</div>`
             : `<div class="mv4-row"><span class="mv4-label">${judul}</span><span>${esc(isi)}</span></div>`;
         }
