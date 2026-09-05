@@ -1515,6 +1515,7 @@ Deno.serve(async (req) => {
     try {
       parsed = extractJson(rawText);
     } catch {
+      console.error(`[generate-modul] ${label} JSON parse failed. Raw text length=${rawText.length}. First 300 chars:`, rawText.slice(0, 300));
       try {
         const repairText = await callAI([
           { role: 'user', content: userMsg },
@@ -1763,7 +1764,7 @@ Deno.serve(async (req) => {
       faseDOutput = await callPhase(
         'Fase D',
         buildUserMessageFaseD({ faseAOutput, cd }),
-        60_000, 2000,
+        60_000, 4000,
       );
     } catch (e) {
       const err = e as { message?: string; code?: string; retryable?: boolean };
