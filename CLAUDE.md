@@ -238,7 +238,7 @@ git push origin main                  → urutan TERAKHIR
 ## 12. STATUS PROYEK
 
 **Fase saat ini: DEVELOPMENT AKTIF**
-**HEAD:** `1b329ad` (per 5 September 2026)
+**HEAD:** `0fb520b` (per 5 September 2026)
 
 - [x] Dokumen rancangan selesai (REQUIREMENTS, SCHEMA-v0, ADR-001)
 - [x] Supabase project baru dibuat
@@ -270,7 +270,24 @@ git push origin main                  → urutan TERAKHIR
       yang benar.
 - [~] Test suite — jaring regresi validator Modul selesai (`tests/validator-modul.ts`,
       5 modul contoh dari produksi). Cakupan lain belum ditentukan.
+- [x] ATP tidak lagi bisa mustahil dipenuhi — pembulatan pertemuan ke bawah,
+      penjaga kelipatan di server, jatah tidak lagi hangus untuk penolakan.
+      Terverifikasi di produksi (sesi 5 September 2026, `696c415`+`0fb520b`).
+      Spesifikasi: `docs/SPEC-ATP-JP-KELIPATAN.md`
+- [ ] Tujuh inkonsistensi alur pertanyaan Tab Rancang — **belum dikerjakan**,
+      terdokumentasi lengkap di `docs/DAFTAR-PERTANYAAN-RANCANG.md` §Catatan.
+      Termasuk: menu revisi menyusut tepat saat guru bisa melihat hasilnya,
+      "Ada sebagian data" jalan buntu, pertanyaan #47 jawabannya dibuang.
 - [ ] Hardening Tab Rancang — Putaran 9 (`docs/AUDIT-RANCANG-UI.md`, `docs/AUDIT-EF-API.md`)
+- [ ] **Temuan 2 telusur mesin generate — `generate-atp` belum disembuhkan.**
+      Ia masih punya `maxOutputTokens: 5000` berupa angka mati dan **tidak
+      memeriksa `finishReason`** — dua kesalahan yang menghabiskan sehari penuh
+      di `generate-modul` dan sudah diperbaiki di sana. ATP terbesar di produksi
+      12 TP = 5.445 karakter; berapa sisa marjinnya tidak diketahui karena
+      `usageMetadata` tidak pernah dibaca di berkas itu. Jalur repair mengirim
+      ulang seluruh keluaran gagal sebagai riwayat tapi plafonnya tetap 5.000.
+      Klien ATP juga belum punya baris sebab teknis yang bisa disalin guru
+      (`2095446` hanya dipasang di jalur Modul).
 - [ ] **KEPUTUSAN TERBUKA — apakah Naskah Fasilitasi layak tetap ada?**
       `docs/BACKLOG-NASKAH-FASILITASI.md`. Ia 45–58% dari isi modul, satu fase
       generate tersendiri, dan sumber hampir seluruh cacat yang ditemukan telaah
@@ -904,6 +921,91 @@ sesudah menyentuh validator.
 
 ---
 
+**Fitur & fix sesi 5 September 2026 — ATP yang mustahil dipenuhi
+(HEAD `86643e5` → `0fb520b`):**
+
+Berangkat dari permintaan Romo menelusuri mesin generate untuk memastikan guru
+tidak gagal. Yang ditemukan bukan bug tunggal melainkan satu cacat yang
+mengunci guru selamanya, dan enam lainnya di sekitarnya.
+
+**Cacat utamanya aritmetika, bukan AI.** `generate-atp` memerintahkan dua hal
+sekaligus: jp_alokasi tiap TP kelipatan satuan pertemuan, DAN jumlahnya persis
+`jp_operasional`. Jumlah bilangan kelipatan 4 selalu kelipatan 4 — jadi kalau
+`jp_operasional` bukan kelipatan satuan pertemuan, **tidak ada jawaban yang
+benar**. Model gagal, jalur repair mengulang kegagalan yang sama, guru
+menghabiskan tiga jatah hariannya, dan besok sama persis. Tanpa satu kata pun
+yang menunjukkan bahwa yang salah adalah satu angka di fase Waktu.
+
+Belum meledak hanya karena kebetulan: keempat ATP di produksi punya pengurang
+yang habis dibagi. Guru pertama yang menjawab "kegiatan khusus 10 JP" dengan
+jadwal 4 JP/minggu akan menabraknya.
+
+Yang dipasang (`696c415`, `0fb520b`):
+
+| | |
+|---|---|
+| Pembulatan pertemuan ke bawah | 32,5 pertemuan jadi 32; sisanya baris tersendiri, bukan dilebur ke cadangan |
+| `WAKTU.perhitungan` disimpan ulang sebelum generate | digabung di atas yang tersimpan, tidak pernah menghapus |
+| Penjaga kelipatan di `generate-atp` | untuk guru ber-cache lama; aritmetika murni, mustahil salah tuduh |
+| Pemotongan jatah dipindah ke belakang validasi | **terbukti: panggilan ditolak 422, `rate_limits` tetap kosong** |
+| Pertanyaan tingkat kemampuan awal | tanpa syarat, untuk semua guru |
+| Pertanyaan instrumen pemetaan dibuang | ia menjanjikan soal yang tidak ada mesin pembuatnya |
+| Perlengkapan kelas ditanyakan eksplisit | menggantikan penyimpulan dari centang sumber belajar |
+
+Terverifikasi di produksi: ringkasan waktu menampilkan "Tidak terjadwal: 2 JP"
+dan "JP untuk mengajar: 124 JP — 31 pertemuan" persis seperti dirancang.
+Kedua ATP produksi tidak berubah angkanya — nol regresi.
+
+---
+
+**PELAJARAN — pertanyaan bisa berbohong**
+
+Pemeriksaan seluruh 62 pertanyaan Tab Rancang (`docs/DAFTAR-PERTANYAAN-RANCANG.md`)
+menemukan **empat pertanyaan yang meminta guru memutuskan sesuatu yang lalu
+dibuang.** Satu di antaranya menjanjikan dokumen yang tidak ada mesin
+pembuatnya di seluruh repo; satu lagi (#47, jumlah pertemuan) jawabannya
+ditimpa oleh distribusi dari ATP dan praktis tidak pernah terpakai.
+
+> **Menambah pertanyaan itu murah; menyambungkannya ke hasil tidak. Sebelum
+> menambah pertanyaan, tunjukkan baris kode yang membaca jawabannya.**
+
+**PELAJARAN — anggaran yang dikunci sebelum pembelanjanya ditanya**
+
+`WAKTU.perhitungan` hanya ditulis saat fase Waktu selesai, padahal JP pemetaan
+(fase Profil Siswa) dan JP penguatan (fase Penguatan Prasyarat) dijawab jauh
+sesudahnya. Waktu yang guru sisihkan untuk keduanya tidak pernah dipesan dari
+anggaran — TP mengisi 100% jam, dan pengulangan yang ia rencanakan tidak punya
+tempat. Bertentangan dengan helpText di layarnya sendiri.
+
+> **Potret yang diambil di fase ketiga akan basi kalau fase keempat dan ketujuh
+> masih mengubah angkanya. Hitung ulang di titik pemakaian, bukan di titik
+> pengisian.**
+
+**PELAJARAN — dua satuan untuk hal yang sama**
+
+Kegiatan khusus ditanyakan dalam **JP** (0–200, bebas); cadangan ditanyakan
+dalam **minggu**. Keduanya melakukan hal yang sama: mengambil waktu dari
+mengajar. Cadangan dalam minggu selalu kelipatan JP per minggu sehingga tidak
+pernah merusak pembagian; kegiatan khusus dalam JP selalu bisa. **Seluruh kelas
+masalah "ATP mustahil" lahir dari perbedaan satuan ini.**
+
+---
+
+**Catatan operasional**
+
+- `sw.js` menuntut `CACHE_NAME` dinaikkan setiap kali kode aplikasi berubah —
+  `696c415` melewatkannya, diperbaiki di `0fb520b` (`miclass-v5` → `v6`).
+  Guru online tidak terpengaruh (Network First); yang terpengaruh guru offline.
+  **Naikkan keduanya: versi `?v=` di `classroom.html` DAN `CACHE_NAME` di `sw.js`.**
+- Menguji perubahan klien tidak perlu push: server statis lokal menyajikan
+  berkas dari disk dan memakai backend Supabase yang sama. Yang tidak bisa
+  diuji tanpa deploy hanyalah perubahan Edge Function.
+- Fungsi yang tidak diekspos ke `window` tetap bisa diuji: ekstrak sumbernya
+  dari berkas lalu jalankan dengan `new Function`. Lebih ketat daripada
+  menyalin ulang logikanya ke harness — yang diuji kode kirimnya sendiri.
+
+---
+
 ## 13. REFERENSI CEPAT
 
 ```bash
@@ -1281,7 +1383,14 @@ Pengguna Tab Rancang adalah guru SMK Indonesia yang:
   renderer. TP 3 & TP 6 di-generate ulang dan strateginya kini benar.
 
 **BELUM DIIMPLEMENTASIKAN (backlog):**
-- (kosong — backlog bahasa manusia sudah selesai, lihat §12)
+- Tujuh inkonsistensi alur pertanyaan — `docs/DAFTAR-PERTANYAAN-RANCANG.md` §Catatan.
+  Yang paling merugikan guru: menu revisi setelah draf ATP terlihat (#46) kehilangan
+  rute ke Profil Siswa dan Penguatan Prasyarat, tepat pada saat guru pertama kali
+  bisa melihat bahwa ATP-nya tidak mengakomodasi murid yang tertinggal.
+- `generate-atp`: plafon token mati + tidak ada deteksi `finishReason` + tidak ada
+  baris sebab teknis di klien. Lihat §12.
+- Perlengkapan kelas sebaiknya pindah ke `rancang_settings` per kelas — sekarang
+  guru dengan 6 modul menjawabnya 6 kali. Butuh satu migration; tidak mendesak.
 
 **DITANGGUHKAN (bukan backlog aktif):**
 - CARI_ATP — tidak relevan untuk guru mapel umum SMK (ATP-nya sedikit, picker sudah cukup).
