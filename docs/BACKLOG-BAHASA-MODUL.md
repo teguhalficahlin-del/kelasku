@@ -1,8 +1,31 @@
 # BACKLOG — Bahasa manusia di Modul Ajar & Naskah Fasilitasi
 
-> **Status:** belum dikerjakan. Ditulis 5 September 2026 setelah audit langsung di
-> aplikasi produksi. Dokumen ini sengaja dibuat berdiri sendiri: sesi Claude Code
-> mana pun bisa mengerjakannya tanpa konteks percakapan sebelumnya.
+> **Status: SELESAI** — dikerjakan dan diverifikasi di produksi pada 5 September 2026,
+> commit `3505493` (bahasa) dan `2789e94` (plafon Fase A). Dokumen ini dipertahankan
+> sebagai catatan temuan dan keputusan, bukan lagi sebagai daftar kerja.
+>
+> **Yang berbeda dari rencana di bawah:** Romo meminta perbaikan dilakukan **di level
+> SYSTEM_PROMPT, bukan sekadar mengganti kata di renderer**. Karena itu Tahap 1, 2,
+> dan 3 tidak dikerjakan terpisah, melainkan sekaligus dalam tiga lapis:
+> kamus pilihan guru di Edge Function (sebelum masuk prompt), aturan bahasa di
+> SYSTEM_PROMPT, dan kamus istilah bersama di renderer untuk enum struktural yang
+> memang harus tetap berupa kode di dalam mesin.
+>
+> **Keputusan Romo yang mengubah rencana:**
+> - Kode `PBL-01` / `ASM-01` / `K1` / `F1` **dipertahankan** (bagian 7 tetap berlaku).
+> - TP 3 dan TP 6 **di-generate ulang**; keduanya kini menyebut strategi yang benar.
+> - Rate limit hari itu di-reset atas permintaan Romo agar verifikasi bisa selesai.
+>
+> **Efek samping yang ditemukan saat verifikasi:** SYSTEM_PROMPT yang bertambah
+> panjang membuat Fase A menembus plafon token tetapnya (4.000) — gagal dengan sisa
+> empat token, karena penalaran model ikut dihitung. Diperbaiki di `2789e94` dengan
+> menjadikan plafonnya turunan, bukan angka mati. Ini bentuk kegagalan ketiga yang
+> sama di proyek ini; lihat "Pelajaran 1" di CLAUDE.md.
+>
+> **Yang masih tersisa:** larangan jargon bekerja tapi tidak mutlak — pada TP 3 dua
+> kata lolos ke prosa ("autentik", "ketercapaian"), pada TP 6 nol. Jangan menambalnya
+> dengan find-replace pada kalimat; itu merusak tata bahasa dan mengulang cara kerja
+> yang sudah ditolak.
 >
 > **HEAD saat audit:** `87d793c` · Edge Function `generate-modul` versi 51.
 

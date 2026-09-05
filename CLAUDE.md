@@ -264,8 +264,10 @@ git push origin main                  → urutan TERAKHIR
 - [x] Portal Ortu: dashboard, pesan guru, forum, bottom nav, halaman profil, unread badge
 - [x] Security audit Tab Rancang (`docs/AUDIT-RANCANG-UI.md`); audit forum RLS (`1eafda1`)
 - [x] Tab Rancang: ModulOutput V4.0 — generate 4 fase tuntas, diaudit di produksi (sesi 5 September 2026)
-- [ ] Bahasa manusia di Modul Ajar & Naskah Fasilitasi — `docs/BACKLOG-BAHASA-MODUL.md`
-      (termasuk perbaikan strategi yang salah tercatat di TP 3 & TP 6)
+- [x] Bahasa manusia di Modul Ajar & Naskah Fasilitasi — selesai & diverifikasi di
+      produksi (sesi 5 September 2026). Termasuk perbaikan strategi yang salah
+      tercatat: TP 3 & TP 6 sudah di-generate ulang dan kini menyebut strategi
+      yang benar.
 - [ ] Test suite (belum dikerjakan — scope belum ditentukan)
 - [ ] Hardening Tab Rancang — Putaran 9 (`docs/AUDIT-RANCANG-UI.md`, `docs/AUDIT-EF-API.md`)
 
@@ -722,8 +724,41 @@ satu diubah, ubah keduanya.**
 `8dc8033` belum di-deploy dan efeknya baru terukur pada generate berikutnya:
 apakah model benar-benar mematuhi bentuk yang kini ada di sebelahnya.
 
-**Backlog aktif — bahasa manusia di Modul Ajar & Naskah Fasilitasi
-(`docs/BACKLOG-BAHASA-MODUL.md`, ditulis 5 September 2026, belum dikerjakan):**
+**SELESAI — bahasa manusia di Modul Ajar & Naskah Fasilitasi
+(commit `3505493` + `2789e94`, diverifikasi di produksi 5 September 2026):**
+
+Dikerjakan di tiga lapis, atas permintaan Romo agar diperbaiki **dari sumbernya,
+bukan dengan mengganti kata di permukaan**:
+
+1. **Kamus pilihan guru di Edge Function** — kunci opsi diterjemahkan jadi frasa
+   manusia SEBELUM masuk prompt, di keempat titik kirim (Fase A/B/C/D). Model
+   tidak pernah lagi melihat `kolaboratif` atau `unjuk_kerja`. `collected_data`
+   tidak diubah, jadi modul lama tetap terbaca.
+2. **SYSTEM_PROMPT** — seksi "Larangan Istilah" diganti "Bahasa Modul": larangan
+   menulis kode mesin di dalam kalimat, 21 jargon beserta frasa penggantinya, dan
+   penegasan bahwa istilah resmi Kurikulum Merdeka justru dipertahankan. Dua
+   aturan yang dulu berpangkal pada kunci mentah ditulis ulang — kondisi kelas
+   kini berpangkal pada frasa manusia, izin perangkat digital pada boolean yang
+   dihitung backend (`perangkat_digital_diizinkan`).
+3. **Renderer** — satu kamus istilah bersama menggantikan `LABEL_LANGKAH` yang
+   terkurung di satu jalur render sementara tiga jalur lain tetap mencetak enum.
+   Penyapuan kode mesin dipasang di `esc()`, satu titik yang dilewati semua teks.
+
+Hasil terverifikasi: kelima modul bersih di kedua tab (nol kata bergaris bawah,
+nol kata berhuruf besar). TP 3 dan TP 6 di-generate ulang — TP 6 kini menulis
+"berbasis masalah", TP 3 menulis "kontekstual", keduanya sesuai pilihan guru.
+
+**Batas yang perlu diingat:** larangan jargon di prompt bekerja, tapi tidak
+mutlak. Pada TP 3 dua kata masih lolos ke prosa ("autentik", "ketercapaian");
+pada TP 6 nol. Sisanya di kedua modul hanyalah NAMA FIELD (`materi_esensial`,
+`dukungan_terstruktur`, `teks_autentik`) yang memang dikecualikan dan
+diterjemahkan renderer. Jangan menambal ini dengan find-replace pada prosa —
+mengganti kata di tengah kalimat merusak tata bahasanya, dan itu persis cara
+kerja yang ditolak.
+
+---
+
+**Konteks asli backlog (dokumen `docs/BACKLOG-BAHASA-MODUL.md`):**
 
 Audit di aplikasi produksi menemukan identifier mentah bocor ke dokumen yang dicetak
 guru: `[teks_autentik]`, `ASESMEN_AWAL`, `MENGAPLIKASI`, `Placement`, dan nilai
@@ -1123,11 +1158,12 @@ Pengguna Tab Rancang adalah guru SMK Indonesia yang:
 - `sumber_flow` dikirim ke generate-atp (instruksi AI berbeda: sesuaikan vs susun baru)
 - Label bahasa guru di kondisi kelas dan strategi pembelajaran
 - Staleness check 24 jam untuk `collected_answers`
+- Bahasa manusia di Modul Ajar & Naskah Fasilitasi (`3505493`, `2789e94`) — kamus
+  pilihan guru di EF, aturan bahasa di SYSTEM_PROMPT, kamus istilah bersama di
+  renderer. TP 3 & TP 6 di-generate ulang dan strateginya kini benar.
 
 **BELUM DIIMPLEMENTASIKAN (backlog):**
-- Bahasa manusia di Modul Ajar & Naskah Fasilitasi — `docs/BACKLOG-BAHASA-MODUL.md`.
-  Identifier mentah bocor ke dokumen yang dicetak guru, dan kunci opsi yang bocor
-  membuat TP 3 & TP 6 salah menyebut strategi pilihan gurunya sendiri.
+- (kosong — backlog bahasa manusia sudah selesai, lihat §12)
 
 **DITANGGUHKAN (bukan backlog aktif):**
 - CARI_ATP — tidak relevan untuk guru mapel umum SMK (ATP-nya sedikit, picker sudah cukup).
