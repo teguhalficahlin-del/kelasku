@@ -257,6 +257,28 @@
     } catch (err) { console.warn('[rancang-chat] lookupCpElemen gagal:', err); return []; }
   }
 
+  // Nama mapel kelas ditulis bebas oleh guru saat membuat kelas, sementara CP
+  // dicari dari cp-data.json lewat kunci hasil normalisasi. "Bahasa Inggris"
+  // dan "Bahasa inggris" sama-sama cocok karena huruf diturunkan lebih dulu,
+  // tapi "ENGLISH SUBJECT" jadi 'english_subject' dan tidak ada di antara 220
+  // mapel — satu kelas nyata di produksi persis begitu.
+  //
+  // Tanpa pemeriksaan ini guru itu menjawab 46 pertanyaan lebih dulu, lalu
+  // ditolak di detik terakhir dengan "Data funnel belum lengkap: elemen_cp" —
+  // id mentah, tanpa petunjuk bahwa yang salah adalah nama mapel kelasnya.
+  //
+  // Mengembalikan null (bukan false) kalau cp-data belum termuat: tidak tahu
+  // bukan berarti tidak dikenali, dan menghalangi guru atas dasar tebakan lebih
+  // buruk daripada membiarkannya lewat.
+  function mapelDikenali(mapel) {
+    const data = window._cpData;
+    if (!data) return null;
+    const kunci = String(mapel || '').toLowerCase()
+      .replace(/[^a-z0-9]/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '');
+    if (!kunci) return false;
+    return Object.prototype.hasOwnProperty.call(data, kunci);
+  }
+
   function getCpUmum() {
     try {
       const data = window._cpData;
@@ -657,6 +679,42 @@
           '<p style="color:var(--text-muted,#888);font-size:0.92rem;line-height:1.6;">' +
           'Data mata pelajaran kelas ini belum tersedia. Buka halaman kelas dan pastikan mata pelajaran sudah terisi, lalu buka kembali tab Rancang.</p>' +
           '</div>';
+        return;
+      }
+
+      // Nama mapel harus cocok dengan daftar CP sebelum guru diajak menjawab
+      // apa pun. cp-data dimuat oleh skrip inline classroom.html dan bisa belum
+      // siap saat tab dibuka — ditunggu sebentar, lalu dilewati kalau tetap
+      // belum ada. Lihat catatan di mapelDikenali().
+      for (let i = 0; i < 15 && !window._cpData; i++) {
+        await new Promise(r => setTimeout(r, 200));
+      }
+      if (window._classroomSubject && mapelDikenali(window._classroomSubject) === false) {
+        // Dibangun sebagai DOM, bukan rangkaian string HTML: nama mapel diketik
+        // guru dan tidak boleh ditafsirkan sebagai markup. textContent menutup
+        // itu tanpa perlu fungsi escape — yang memang tidak ada di berkas ini.
+        const bungkus = document.createElement('div');
+        bungkus.style.cssText = 'padding:32px 24px;max-width:520px;margin:0 auto;';
+
+        const p1 = document.createElement('p');
+        p1.style.cssText = 'font-size:0.95rem;line-height:1.6;margin-bottom:12px;';
+        p1.appendChild(document.createTextNode('Nama mata pelajaran kelas ini — '));
+        const nama = document.createElement('strong');
+        nama.textContent = window._classroomSubject;
+        p1.appendChild(nama);
+        p1.appendChild(document.createTextNode(
+          ' — belum cocok dengan daftar Capaian Pembelajaran Kurikulum Merdeka, ' +
+          'jadi MiClass belum bisa menyusun ATP untuk kelas ini.'));
+
+        const p2 = document.createElement('p');
+        p2.style.cssText = 'color:var(--text-muted,#888);font-size:0.9rem;line-height:1.6;';
+        p2.textContent =
+          'Buka Kelola Kelas → Edit, lalu tulis nama mata pelajaran sesuai kurikulum — ' +
+          'misalnya Bahasa Inggris, Matematika, atau Projek IPAS. Huruf besar-kecil ' +
+          'tidak masalah. Setelah itu buka kembali tab Rancang.';
+
+        bungkus.append(p1, p2);
+        panel.replaceChildren(bungkus);
         return;
       }
 
@@ -3220,6 +3278,9 @@
       } else if (code === 'ATP_GENERATION_TIMEOUT') {
         msg = '❌ Waktu habis saat menyusun ATP. Silakan coba lagi.';
         retryable = true;
+      } else if (code === 'ATP_GENERATION_TRUNCATED') {
+        msg = '❌ MiClass belum berhasil menyusun ATP. Jawaban Anda tersimpan. Silakan coba lagi.';
+        retryable = true;
       } else if (code === 'RATE_LIMIT') {
         msg = '❌ Batas generate ATP harian (3×) untuk ATP ini tercapai. Coba lagi besok.';
       } else {
@@ -3227,6 +3288,27 @@
         retryable = true;
       }
       rcAppendBubble('sistem', msg);
+
+      // Sebab teknisnya ditampilkan di bawah pesan ramah, bukan menggantikannya.
+      //
+      // Ini sudah terpasang di jalur Modul sejak 2095446, tapi jalur ATP tidak
+      // pernah ikut. Akibatnya setiap kegagalan ATP berakhir di kalimat yang
+      // sama untuk lima kode error berbeda, dan tidak ada cara mendiagnosisnya
+      // dari jauh. Dengan 14 guru yang akan masuk, menebak bukan pilihan.
+      //
+      // Guru tidak perlu memahami kalimat ini; ia perlu bisa menyalinnya.
+      const detail = (err.message || '').trim();
+      if (detail && detail !== msg) {
+        const el = document.createElement('div');
+        el.className = 'rc-err-detail';
+        el.textContent = (code ? code + ' — ' : '') + detail;
+        el.style.cssText =
+          'font-size:.72rem;color:var(--text-muted,#888);margin:2px 0 6px 0;' +
+          'padding:4px 6px;border-left:2px solid var(--border,rgba(255,255,255,.15));' +
+          'white-space:pre-wrap;word-break:break-word;user-select:text;';
+        const stream = document.getElementById('rc-stream');
+        if (stream) stream.appendChild(el);
+      }
       if (retryable) {
         const btn = document.createElement('button');
         btn.className = 'rp-chip';

@@ -34,6 +34,29 @@ type TpEntry = {
   catatan?: string;
 };
 
+// Anggaran token penyusunan ATP.
+//
+// Sampai 6 September 2026 berkas ini memakai plafon mati 5.000 — bentuk
+// kegagalan yang persis sama dengan yang membuat 16 dari 21 TP tidak bisa
+// menghasilkan modul, dan yang tidak ketahuan berminggu-minggu karena pesan
+// gagalnya menyalahkan hal lain. generate-modul sudah disembuhkan; berkas ini
+// belum pernah disentuh.
+//
+// Keluarannya tumbuh mengikuti jumlah TP, dan jumlah TP mengikuti jp_operasional
+// (terukur: 124 JP menghasilkan 10 TP, 102 JP menghasilkan 12 TP — kira-kira satu
+// TP per 10-12 JP). Elemen CP menambah panjang judul dan rujukan tiap TP.
+//
+// Lantai 12.000 disamakan dengan Fase A/C/D di generate-modul, dan bukan sekadar
+// kelipatan: token penalaran ikut dihitung ke maxOutputTokens dan TIDAK mengecil
+// hanya karena keluarannya pendek. Justru sebaliknya di sini — syarat
+// "sum(jp_alokasi) HARUS sama persis" adalah kerja aritmetika, dan aritmetika
+// mahal di penalaran. ATP 12 TP yang terukur hanya 5.445 karakter (~1.550 token
+// teks) sudah menghabiskan sebagian besar plafon lama.
+function anggaranTokenAtp(jumlahElemen: number, jpOperasional: number): number {
+  const perkiraanTp = Math.max(4, Math.ceil(jpOperasional / 10));
+  return Math.max(12000, Math.min(800 * perkiraanTp + 1000 * jumlahElemen, 32000));
+}
+
 function extractJson(text: string): unknown {
   const arrMatch = text.match(/\[[\s\S]*\]/);
   if (arrMatch) return JSON.parse(arrMatch[0]);
@@ -394,9 +417,12 @@ Deno.serve(async (req) => {
   const apiKey = Deno.env.get('GOOGLE_API_KEY');
   if (!apiKey) return json({ error: 'Konfigurasi server tidak lengkap.' }, 500);
 
+  const anggaranToken = anggaranTokenAtp(elemenCp.length, jpOp);
+
   async function callAI(
     messages: Array<{ role: string; content: string }>,
     timeoutMs: number,
+    maxTokens = anggaranToken,
   ): Promise<string> {
     const controller = new AbortController();
     const tid = setTimeout(() => controller.abort(), timeoutMs);
@@ -413,14 +439,32 @@ Deno.serve(async (req) => {
           body: JSON.stringify({
             systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
             contents,
-            generationConfig: { maxOutputTokens: 5000 },
+            generationConfig: { maxOutputTokens: maxTokens },
           }),
           signal: controller.signal,
         },
       );
       if (!res.ok) throw new Error(`Gemini HTTP ${res.status}`);
       const b = await res.json();
-      return String(b?.candidates?.[0]?.content?.parts?.[0]?.text ?? '');
+      const cand = b?.candidates?.[0];
+      const um   = (b?.usageMetadata ?? {}) as Record<string, unknown>;
+      const teks = String(cand?.content?.parts?.[0]?.text ?? '');
+      // Gemini memotong keluaran di batas token sambil tetap membalas HTTP 200.
+      // Tanpa cek ini teks terpenggal diserahkan seolah utuh, lalu gagal jauh di
+      // hilir sebagai "JSON tidak valid" — dan sebab sebenarnya tidak pernah
+      // terbaca oleh siapa pun. Pelajaran yang sudah dibayar mahal di
+      // generate-modul; berkas ini belum pernah ikut disembuhkan.
+      if (String(cand?.finishReason ?? '') === 'MAX_TOKENS') {
+        throw Object.assign(
+          new Error(
+            `Keluaran AI terpotong di batas ${maxTokens} token (${teks.length} karakter dihasilkan). ` +
+            `Pemakaian: prompt=${um.promptTokenCount ?? '?'}, keluaran=${um.candidatesTokenCount ?? '?'}, ` +
+            `penalaran=${um.thoughtsTokenCount ?? '?'}, total=${um.totalTokenCount ?? '?'}.`,
+          ),
+          { code: 'ATP_GENERATION_TRUNCATED', retryable: false },
+        );
+      }
+      return teks;
     } finally {
       clearTimeout(tid);
     }
@@ -430,6 +474,11 @@ Deno.serve(async (req) => {
   try {
     rawText = await callAI([{ role: 'user', content: userMessage }], 60_000);
   } catch (e) {
+    // Pemotongan sudah membawa sebabnya sendiri — jangan disamarkan jadi timeout.
+    if ((e as { code?: string }).code === 'ATP_GENERATION_TRUNCATED') {
+      console.error('[generate-atp] keluaran terpotong di batas token:', (e as Error).message);
+      return json({ error: (e as Error).message, code: 'ATP_GENERATION_TRUNCATED', retryable: false }, 500);
+    }
     const isTimeout = e instanceof Error && (e.name === 'AbortError' || String(e).includes('abort'));
     console.error('[generate-atp] primary AI call failed:', e);
     if (isTimeout) {
@@ -453,7 +502,10 @@ Deno.serve(async (req) => {
         { role: 'user', content: `JSON tidak valid. Hasilkan ulang HANYA JSON array TP yang valid. sum(jp_alokasi) HARUS = ${jpOp}.` },
       ], budget);
       parsed = extractJson(repairText);
-    } catch {
+    } catch (e2) {
+      if ((e2 as { code?: string }).code === 'ATP_GENERATION_TRUNCATED') {
+        return json({ error: (e2 as Error).message, code: 'ATP_GENERATION_TRUNCATED', retryable: false }, 500);
+      }
       return json({
         error: 'AI menghasilkan JSON tidak valid setelah repair.',
         code: 'ATP_GENERATION_INVALID_JSON',
@@ -476,7 +528,10 @@ Deno.serve(async (req) => {
         { role: 'user', content: `Output memiliki error: ${errorDesc}. Perbaiki bagian yang salah. sum(jp_alokasi) HARUS = ${jpOp}. ${jpPerPertemuan > 0 ? `jp_alokasi SETIAP TP HARUS kelipatan ${jpPerPertemuan}. ` : ''}ID elemen hanya dari: ${elemenCp.map(e => e.id).join(', ')}. Hasilkan ulang JSON array penuh yang benar.` },
       ], budget);
       repairParsed = extractJson(repairText);
-    } catch {
+    } catch (e3) {
+      if ((e3 as { code?: string }).code === 'ATP_GENERATION_TRUNCATED') {
+        return json({ error: (e3 as Error).message, code: 'ATP_GENERATION_TRUNCATED', retryable: false }, 500);
+      }
       const code = validation.errors.some(e => e.includes('jp_alokasi') || e.includes('jp_operasional'))
         ? 'ATP_GENERATION_JP_MISMATCH' : 'ATP_GENERATION_INVALID_ELEMENT';
       return json({ error: `Repair gagal: ${errorDesc}`, code, retryable: true }, 502);
