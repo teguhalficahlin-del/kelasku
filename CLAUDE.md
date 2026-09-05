@@ -238,7 +238,7 @@ git push origin main                  → urutan TERAKHIR
 ## 12. STATUS PROYEK
 
 **Fase saat ini: DEVELOPMENT AKTIF**
-**HEAD:** `0ecd172` (per 5 September 2026)
+**HEAD:** `1b329ad` (per 5 September 2026)
 
 - [x] Dokumen rancangan selesai (REQUIREMENTS, SCHEMA-v0, ADR-001)
 - [x] Supabase project baru dibuat
@@ -271,6 +271,12 @@ git push origin main                  → urutan TERAKHIR
 - [~] Test suite — jaring regresi validator Modul selesai (`tests/validator-modul.ts`,
       5 modul contoh dari produksi). Cakupan lain belum ditentukan.
 - [ ] Hardening Tab Rancang — Putaran 9 (`docs/AUDIT-RANCANG-UI.md`, `docs/AUDIT-EF-API.md`)
+- [ ] **KEPUTUSAN TERBUKA — apakah Naskah Fasilitasi layak tetap ada?**
+      `docs/BACKLOG-NASKAH-FASILITASI.md`. Ia 45–58% dari isi modul, satu fase
+      generate tersendiri, dan sumber hampir seluruh cacat yang ditemukan telaah
+      ahli kurikulum. Manfaatnya belum terbukti: belum ada guru yang mengajar
+      dengannya. Jawabannya bukan dari diskusi — beri satu modul ke guru
+      sungguhan dan lihat bagian mana yang dibuka.
 
 **Test pending manual:**
 - Test 4.4: progress generate semua (butuh siswa baru tanpa akun)
@@ -864,6 +870,37 @@ terdiagnosis dalam satu putaran tanpa satu pun tebakan.
 
 > **Kalau generate Modul gagal, minta guru menyalin baris abu-abu kecil di bawah
 > pesan peringatan. Jangan menebak dari gejala.**
+
+---
+
+**PELAJARAN CARA KERJA — sesi 5 September 2026**
+
+Sehari penuh habis memperbaiki Naskah Fasilitasi berdasarkan telaah ahli
+kurikulum, dan Romo menilai pekerjaan itu menyita waktu, pikiran, serta token
+melebihi nilainya. Empat hal yang harus berbeda lain kali:
+
+**Telaah bukan daftar perintah kerja.** Peninjau bertugas menemukan; memutuskan
+mana yang layak dikerjakan adalah pekerjaan yang berbeda, dan langkah penyaringan
+itu dilewati. Dua puluh tiga temuan tidak berarti dua puluh tiga pekerjaan.
+
+**Jangan membebankan verifikasi ke Romo.** Seluruh alur generate bisa dijalankan
+sendiri lewat panel Browser setelah satu kali login, dan keadaan modul bisa
+dibaca langsung lewat `supabase db query --linked`. Berkali-kali Romo diminta
+login, mengeklik, dan menyalin pesan error yang bisa diambil sendiri.
+
+**Putuskan, lalu laporkan.** Kalibrasi validator, urutan pengerjaan, dan bentuk
+harness adalah keputusan teknis — bukan bahan pertanyaan. Yang benar-benar milik
+Romo adalah keputusan produk.
+
+**Ukur sebelum memasang gerbang.** Tiga dari lima aturan validator baru sempat
+menjatuhkan modul yang sehat sebelum dipersempit, dan satu aturan yang benar
+sengaja tidak dipasang karena menjatuhkan 4 dari 5 modul. Jalankan
+`deno run --allow-read --allow-write tests/validator-modul.ts` sebelum dan
+sesudah menyentuh validator.
+
+> **Sebelum membangun mesin agar AI patuh, tanyakan dulu apakah keluarannya
+> memang perlu serumit itu.** Seluruh kelas masalah "batas otoritas" hari ini
+> lahir dari keberadaan dokumen kedua yang belum terbukti dibutuhkan guru.
 
 ---
 
