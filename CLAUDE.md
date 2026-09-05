@@ -264,6 +264,8 @@ git push origin main                  → urutan TERAKHIR
 - [x] Portal Ortu: dashboard, pesan guru, forum, bottom nav, halaman profil, unread badge
 - [x] Security audit Tab Rancang (`docs/AUDIT-RANCANG-UI.md`); audit forum RLS (`1eafda1`)
 - [x] Tab Rancang: ModulOutput V4.0 — generate 4 fase tuntas, diaudit di produksi (sesi 5 September 2026)
+- [ ] Bahasa manusia di Modul Ajar & Naskah Fasilitasi — `docs/BACKLOG-BAHASA-MODUL.md`
+      (termasuk perbaikan strategi yang salah tercatat di TP 3 & TP 6)
 - [ ] Test suite (belum dikerjakan — scope belum ditentukan)
 - [ ] Hardening Tab Rancang — Putaran 9 (`docs/AUDIT-RANCANG-UI.md`, `docs/AUDIT-EF-API.md`)
 
@@ -720,6 +722,33 @@ satu diubah, ubah keduanya.**
 `8dc8033` belum di-deploy dan efeknya baru terukur pada generate berikutnya:
 apakah model benar-benar mematuhi bentuk yang kini ada di sebelahnya.
 
+**Backlog aktif — bahasa manusia di Modul Ajar & Naskah Fasilitasi
+(`docs/BACKLOG-BAHASA-MODUL.md`, ditulis 5 September 2026, belum dikerjakan):**
+
+Audit di aplikasi produksi menemukan identifier mentah bocor ke dokumen yang dicetak
+guru: `[teks_autentik]`, `ASESMEN_AWAL`, `MENGAPLIKASI`, `Placement`, dan nilai
+`teknik` seperti `pemetaan_awal` / `unjuk_kerja`.
+
+**Satu di antaranya bukan cacat kosmetik.** Klien menyimpan kunci opsi, bukan
+labelnya, dan beberapa kunci tidak menggambarkan opsinya — `kolaboratif` sebenarnya
+berarti "berbasis masalah", `campuran` berarti "kontekstual". Kunci itu bocor ke
+modul: **TP 3 dan TP 6 salah menyebut strategi yang dipilih gurunya sendiri.**
+Setengah dari modul yang ada salah menggambarkan rancangan guru.
+
+Backlog dibagi tiga tahap: (1) peta enum → nama manusiawi di renderer, sisi klien
+saja dan berlaku surut ke modul lama; (2) kirim label bukan kunci — memperbaiki
+kesalahan strategi di atas, menyentuh klien + EF; (3) daftar larangan jargon di
+SYSTEM_PROMPT.
+
+Dokumen backlog-nya sengaja dibuat berdiri sendiri — memuat lokasi kode dengan nomor
+baris, tabel pemetaan siap pakai, cara verifikasi, dan dua keputusan yang sudah
+diambil supaya tidak diperdebatkan ulang:
+- **Istilah resmi Kurikulum Merdeka tetap dipakai** di dokumen modul (CP, TP, KKTP,
+  asesmen). Larangan §23.2 berlaku untuk pertanyaan di chat, bukan untuk dokumen
+  resmi yang guru cetak dan arsipkan. Yang dibuang adalah istilah teknis kita sendiri.
+- **Prefiks ID `PBL-` / `ASM-` jangan diganti** — dipakai sebagai rujukan silang di
+  naskah, di SYSTEM_PROMPT, di validator, dan di seluruh modul lama.
+
 ---
 
 ## 13. REFERENSI CEPAT
@@ -1053,17 +1082,27 @@ Pengguna Tab Rancang adalah guru SMK Indonesia yang:
    berkebutuhan khusus", "cek pemahaman
    selama pelajaran", "kriteria nilai"
 
-3. KONTEKS SUDAH ADA, JANGAN TANYA ULANG
+3. LARANGAN ISTILAH TEKNIS BERLAKU UNTUK PERTANYAAN DI
+   CHAT, BUKAN UNTUK DOKUMEN MODUL
+   Modul ajar adalah dokumen resmi yang guru cetak
+   dan arsipkan. Istilah Kurikulum Merdeka (CP, TP,
+   KKTP, asesmen) tetap dipakai di sana — menghapusnya
+   membuat modul terlihat tidak sah di mata guru.
+   Yang dibuang dari dokumen adalah istilah teknis
+   kita sendiri: nama enum, nama variabel, dan jargon
+   seperti "diferensiasi" atau "dukungan terstruktur".
+
+4. KONTEKS SUDAH ADA, JANGAN TANYA ULANG
    Jika data sudah ada di DB (program keahlian,
    mapel, fase), jangan tanya lagi ke guru.
    Tampilkan untuk konfirmasi saja.
 
-4. FLOW HARUS DIBEDAKAN PER JALUR MASUK
+5. FLOW HARUS DIBEDAKAN PER JALUR MASUK
    "Sesuaikan ATP" ≠ "Susun ATP baru"
    Setiap card welcome harus membawa guru
    ke jalur yang berbeda dan relevan.
 
-5. OUTPUT HARUS SIAP PAKAI
+6. OUTPUT HARUS SIAP PAKAI
    Modul ajar yang dihasilkan harus bisa
    langsung dicetak dan digunakan di kelas
    tanpa guru harus mengedit bagian besar.
@@ -1086,7 +1125,9 @@ Pengguna Tab Rancang adalah guru SMK Indonesia yang:
 - Staleness check 24 jam untuk `collected_answers`
 
 **BELUM DIIMPLEMENTASIKAN (backlog):**
-- *(kosong — semua item backlog aktif sudah selesai)*
+- Bahasa manusia di Modul Ajar & Naskah Fasilitasi — `docs/BACKLOG-BAHASA-MODUL.md`.
+  Identifier mentah bocor ke dokumen yang dicetak guru, dan kunci opsi yang bocor
+  membuat TP 3 & TP 6 salah menyebut strategi pilihan gurunya sendiri.
 
 **DITANGGUHKAN (bukan backlog aktif):**
 - CARI_ATP — tidak relevan untuk guru mapel umum SMK (ATP-nya sedikit, picker sudah cukup).
