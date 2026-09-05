@@ -21,6 +21,26 @@ function unwrap(val: unknown): unknown {
   return val;
 }
 
+// Anggaran token keluaran AI. Naskah fasilitasi terukur ~2.000 token per
+// pertemuan (diukur dari modul TP 2 dan TP 3 yang berhasil disusun), jadi
+// 4.000 memberi marjin dua kali lipat. Plafon 48.000 masih di bawah kemampuan
+// gemini-3.8-flash (65.536) dan menampung sampai 16 pertemuan tanpa kehilangan
+// marjin — plafon adalah batas atas, bukan jatah yang dipesan, jadi menaikkannya
+// tidak menambah biaya selama keluarannya memang pendek.
+//
+// Plafon lama 8.000 tidak ikut tumbuh saat jumlah pertemuan bertambah: pada 4
+// pertemuan kebutuhannya sudah menyentuh plafon dan keluaran terpotong di
+// tengah JSON. 16 dari 21 TP di sistem tidak bisa menghasilkan modul karenanya.
+function anggaranToken(jumlahPertemuan: number): number {
+  return Math.min(4000 * jumlahPertemuan, 48000);
+}
+
+// Sasaran yang dituliskan ke prompt — sengaja di bawah anggaran, supaya model
+// punya ruang menuntaskan JSON-nya alih-alih berhenti tepat di plafon.
+function sasaranToken(jumlahPertemuan: number): number {
+  return Math.min(3000 * jumlahPertemuan, 36000);
+}
+
 // ── TYPES V4.0 ───────────────────────────────────────────────────────────────
 
 type ElemenCp = { id: string; label: string; cp_text: string };
@@ -1129,7 +1149,7 @@ function buildUserMessageFaseB(params: {
       `Setiap sub_langkah WAJIB ada durasi_menit (integer > 0). ` +
       `Σsub_langkah.durasi_menit HARUS = durasi_menit langkah induk. ` +
       `Σlangkah.durasi_menit HARUS = ${targetDurasi}. ` +
-      `Total output di bawah ${Math.min(4000 * params.jumlahPertemuan, 10000)} token.`,
+      `Total output di bawah ${sasaranToken(params.jumlahPertemuan)} token.`,
     instruksi_durasi:
       `sum(langkah[].durasi_menit) per pertemuan HARUS = ${targetDurasi} ` +
       `(${params.jpPerPertemuan} JP × ${params.durasiJp} menit). ` +
@@ -1215,7 +1235,7 @@ function buildUserMessageFaseB2(params: {
       'Field "ref" di setiap NaskahSubLangkah sudah disediakan dalam pertemuan[] di bawah — salin persis. ' +
       'Tulis ucapan_guru, aksi_guru, pertanyaan_kunci, jika_kesulitan. ' +
       'Bahasa imperatif, informal, langsung, siap diucapkan di kelas. ' +
-      'Total output di bawah 5000 token.',
+      `Total output di bawah ${sasaranToken(params.jumlahPertemuan)} token.`,
     jumlah_pertemuan: params.jumlahPertemuan,
     kktp:             params.faseAOutput.kktp,
     konteks_murid:    params.faseAOutput.konteks_murid,
@@ -1488,7 +1508,18 @@ Deno.serve(async (req) => {
       );
       if (!res.ok) throw new Error(`Gemini HTTP ${res.status}`);
       const b = await res.json();
-      return String(b?.candidates?.[0]?.content?.parts?.[0]?.text ?? '');
+      const cand = b?.candidates?.[0];
+      const teks = String(cand?.content?.parts?.[0]?.text ?? '');
+      // Gemini memotong keluaran di batas token sambil tetap membalas HTTP 200.
+      // Tanpa cek ini teks terpenggal diserahkan seolah utuh, lalu gagal jauh di
+      // hilir sebagai "JSON tidak valid" — sebab sebenarnya tidak pernah terbaca.
+      if (String(cand?.finishReason ?? '') === 'MAX_TOKENS') {
+        throw Object.assign(
+          new Error(`Keluaran AI terpotong di batas ${maxTokens} token (${teks.length} karakter dihasilkan).`),
+          { code: 'MODUL_GENERATION_TRUNCATED', retryable: false },
+        );
+      }
+      return teks;
     } finally {
       clearTimeout(tid);
     }
@@ -1504,6 +1535,11 @@ Deno.serve(async (req) => {
     try {
       rawText = await callAI([{ role: 'user', content: userMsg }], timeoutMs, maxTokens);
     } catch (e) {
+      // Pemotongan sudah membawa sebabnya sendiri — jangan disamarkan jadi AI_ERROR.
+      if ((e as { code?: string }).code === 'MODUL_GENERATION_TRUNCATED') {
+        console.error(`[generate-modul] ${label} terpotong di batas token:`, (e as Error).message);
+        throw e;
+      }
       const isTimeout = e instanceof Error && (e.name === 'AbortError' || String(e).includes('abort'));
       console.error(`[generate-modul] ${label} AI call failed:`, e);
       throw Object.assign(new Error(
@@ -1523,7 +1559,8 @@ Deno.serve(async (req) => {
           { role: 'user', content: `JSON tidak valid. Hasilkan ulang HANYA JSON object untuk ${label} yang valid.` },
         ], 60_000, maxTokens);
         parsed = extractJson(repairText);
-      } catch {
+      } catch (e2) {
+        if ((e2 as { code?: string }).code === 'MODUL_GENERATION_TRUNCATED') throw e2;
         throw Object.assign(
           new Error(`AI ${label} menghasilkan JSON tidak valid setelah repair.`),
           { code: 'MODUL_GENERATION_INVALID_JSON', retryable: true },
@@ -1634,7 +1671,7 @@ Deno.serve(async (req) => {
       faseBRaw = await callPhase(
         'Fase B',
         buildUserMessageFaseB({ faseAOutput, manifest, jumlahPertemuan, jpPerPertemuan, durasiJp, jumlahMurid, cd }),
-        90_000, Math.min(4000 * jumlahPertemuan, 10000),
+        90_000, anggaranToken(jumlahPertemuan),
       );
     } catch (e) {
       const err = e as { message?: string; code?: string; retryable?: boolean };
@@ -1701,7 +1738,7 @@ Deno.serve(async (req) => {
       naskahOutput = await callPhase(
         'Fase B2 (naskah)',
         buildUserMessageFaseB2({ faseAOutput, pertemuanWithRef, instrumenPembelajaran, instrumenAsesmen, jumlahPertemuan }),
-        120_000, Math.min(4000 * jumlahPertemuan, 8000),
+        120_000, anggaranToken(jumlahPertemuan),
       );
     } catch (e) {
       const err = e as { message?: string; code?: string; retryable?: boolean };
@@ -1812,7 +1849,7 @@ Deno.serve(async (req) => {
           `\n\nERROR yang harus diperbaiki: ${errorList}. Hasilkan JSON object penuh yang sudah benar.`;
 
       try {
-        const repairText  = await callAI([{ role: 'user', content: repairMsg }], 50_000, Math.min(4000 * jumlahPertemuan, 10000));
+        const repairText  = await callAI([{ role: 'user', content: repairMsg }], 50_000, anggaranToken(jumlahPertemuan));
         const repairParsed = extractJson(repairText);
         const mergedFixed = hasDurasiError
           ? { ...(merged as Record<string, unknown>), pertemuan: (repairParsed as Record<string, unknown>).pertemuan }
@@ -1821,7 +1858,10 @@ Deno.serve(async (req) => {
         if (!validation.valid) {
           return json({ error: `Validasi gagal setelah repair: ${validation.errors.join('; ')}`, code: 'MODUL_GENERATION_INVALID_SCHEMA', retryable: true }, 422);
         }
-      } catch {
+      } catch (e) {
+        if ((e as { code?: string }).code === 'MODUL_GENERATION_TRUNCATED') {
+          return json({ error: (e as Error).message, code: 'MODUL_GENERATION_TRUNCATED', retryable: false }, 500);
+        }
         return json({ error: `Repair gagal: ${errorList}`, code: 'MODUL_GENERATION_INVALID_SCHEMA', retryable: true }, 422);
       }
     }
