@@ -1012,6 +1012,48 @@ function validateModulOutputV400(
       );
   }
 
+  // V16: Indikator penilaian yang tidak punya kriteria ketercapaian
+  //
+  // Rubrik ASM-02 pada TP 6 menilai empat aspek (K1-K4) padahal KKTP-nya hanya
+  // tiga. Aspek keempat dinilai tanpa ambang batas, jadi nilainya tidak bisa
+  // dipertanggungjawabkan — guru memberi angka untuk sesuatu yang tidak pernah
+  // ditetapkan kriterianya.
+  //
+  // Yang diperiksa hanya arah ini. Rubrik yang menilai SEBAGIAN kriteria itu
+  // sah: pada TP 5 hanya K1 dan K2 yang dinilai lewat unjuk kerja, sisanya lewat
+  // bukti lain. Dan skema id lain (IND-01, seperti pada TP 3) sengaja dilewati —
+  // di sana indikator memang bukan rujukan ke KKTP.
+  if (Array.isArray(o.kktp) && Array.isArray(o.instrumen_asesmen)) {
+    const idKktp = new Set(
+      (o.kktp as Array<Record<string, unknown>>).map(k => String(k.id_kktp ?? '')),
+    );
+    for (const raw of o.instrumen_asesmen as Array<Record<string, unknown>>) {
+      const kolom = ((raw.panduan_guru ?? {}) as Record<string, unknown>).kolom_indikator;
+      if (!Array.isArray(kolom)) continue;
+      const yatim = (kolom as Array<Record<string, unknown>>)
+        .map(k => String(k.id ?? ''))
+        .filter(id => /^K\d+$/.test(id) && !idKktp.has(id));
+      if (yatim.length)
+        errors.push(
+          `${raw.id}: indikator ${yatim.join(', ')} dinilai tapi tidak ada di KKTP ` +
+          `(${[...idKktp].join(', ')}). Setiap aspek yang dinilai harus punya kriteria ` +
+          `ketercapaian, atau hapus indikatornya.`,
+        );
+    }
+  }
+
+  // CATATAN — pemeriksaan bahan hantu belum dipasang.
+  //
+  // Naskah masih menyuruh guru membagikan benda yang tidak pernah dibuatkan
+  // sistem: "lembar format pencatatan pesanan", "kartu simbol grafis", "lembar
+  // rumpang". Aturannya mudah ditulis dan sudah diuji — tapi hasil ukurnya
+  // menjatuhkan EMPAT DARI LIMA modul yang ada. Hanya TP 3 yang bersih.
+  //
+  // Gerbang yang menolak empat dari lima generate merugikan guru lebih besar
+  // daripada lembar yang harus mereka siapkan sendiri, jadi ia tidak dipasang
+  // sampai modelnya cukup patuh untuk melewatinya. Larangannya sudah ada di
+  // aturan_kepatuhan Fase B2; ukur ulang setelah beberapa generate berikutnya.
+
   // V13: Larangan perangkat digital berlaku ke SELURUH dokumen
   if (!perangkatDigitalOk) {
     const ketemu = [...new Set((JSON.stringify(o).match(RE_PERANGKAT_DIGITAL) ?? [])
