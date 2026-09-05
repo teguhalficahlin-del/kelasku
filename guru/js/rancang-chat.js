@@ -2165,7 +2165,32 @@
     // instrumen. AI kerap mengarang nama field sendiri dan berbeda tiap kali —
     // tanpa ini kotaknya tampil berlabel tapi kosong, dan isi yang sudah dibuat
     // tidak pernah sampai ke guru.
-    function renderGenerik(val, depth = 0) {
+    const bobot = (v) => (v !== null && typeof v === 'object') ? 2
+                       : (String(v).length <= PENDEK ? 0 : 1);
+
+    // Urutan field untuk sebuah DAFTAR objek ditentukan sekali dari seluruh
+    // butirnya, lalu dipakai sama rata. Menentukannya per butir membuat dua
+    // butir sejenis tampil dengan urutan berbeda hanya karena selisih beberapa
+    // karakter — subjudul pernah muncul di atas paragrafnya pada satu butir dan
+    // di bawahnya pada butir berikutnya, di lembar yang sama.
+    function urutanKunciDaftar(arr) {
+      const skor = new Map();
+      for (const o of arr) {
+        if (o === null || typeof o !== 'object' || Array.isArray(o)) continue;
+        for (const k of Object.keys(o)) {
+          const s = skor.get(k) || { total: 0, n: 0 };
+          s.total += bobot(o[k]);
+          s.n += 1;
+          skor.set(k, s);
+        }
+      }
+      // Map mempertahankan urutan kemunculan pertama, dan sort di sini stabil,
+      // jadi field berbobot sama tetap mengikuti urutan asli JSON.
+      return [...skor.keys()].sort((a, b) =>
+        (skor.get(a).total / skor.get(a).n) - (skor.get(b).total / skor.get(b).n));
+    }
+
+    function renderGenerik(val, depth = 0, urutan = null) {
       if (val === null || val === undefined || val === '' || depth > 4) return '';
       if (typeof val !== 'object') return `<div class="mv4-sub">${esc(val)}</div>`;
       if (Array.isArray(val)) {
@@ -2174,8 +2199,9 @@
           return `<ul class="mv4-list">${val.map(x => `<li>${esc(x)}</li>`).join('')}</ul>`;
         // Tiap butir diberi blok sendiri. Tanpa ini giliran dialog dan daftar
         // kategori menyatu jadi satu gumpalan yang batasnya harus ditebak.
+        const urutanDaftar = urutanKunciDaftar(val);
         return val.map(x => {
-          const isiButir = renderGenerik(x, depth + 1);
+          const isiButir = renderGenerik(x, depth + 1, urutanDaftar);
           return isiButir ? `<div class="mv4-asesmen-blok">${isiButir}</div>` : '';
         }).join('');
       }
@@ -2188,9 +2214,13 @@
       // urutan aslinya, karena membandingkan panjang antar-prosa membuat dua
       // butir sejenis tampil dengan urutan berbeda hanya karena selisih
       // beberapa karakter. Objek dan array selalu paling bawah.
-      const bobot = (v) => (v !== null && typeof v === 'object') ? 2
-                         : (String(v).length <= PENDEK ? 0 : 1);
-      return Object.keys(val).sort((a, b) => bobot(val[a]) - bobot(val[b])).map(k => {
+      // Butir daftar memakai urutan yang sudah disepakati daftarnya. Field yang
+      // tidak ada di daftar itu tetap ditampilkan di belakang — jaminan "tidak
+      // ada field yang hilang" lebih penting daripada kerapian urutan.
+      const kunci = urutan
+        ? [...urutan.filter(k => k in val), ...Object.keys(val).filter(k => !urutan.includes(k))]
+        : Object.keys(val).sort((a, b) => bobot(val[a]) - bobot(val[b]));
+      return kunci.map(k => {
         const isi = val[k];
         if (isi === null || isi === undefined || isi === '') return '';
         const judul = esc(humanKey(k));
