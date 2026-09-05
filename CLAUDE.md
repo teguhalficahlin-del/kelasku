@@ -238,7 +238,7 @@ git push origin main                  → urutan TERAKHIR
 ## 12. STATUS PROYEK
 
 **Fase saat ini: DEVELOPMENT AKTIF**
-**HEAD:** `8dc8033` (per 5 September 2026)
+**HEAD:** `0ecd172` (per 5 September 2026)
 
 - [x] Dokumen rancangan selesai (REQUIREMENTS, SCHEMA-v0, ADR-001)
 - [x] Supabase project baru dibuat
@@ -268,7 +268,8 @@ git push origin main                  → urutan TERAKHIR
       produksi (sesi 5 September 2026). Termasuk perbaikan strategi yang salah
       tercatat: TP 3 & TP 6 sudah di-generate ulang dan kini menyebut strategi
       yang benar.
-- [ ] Test suite (belum dikerjakan — scope belum ditentukan)
+- [~] Test suite — jaring regresi validator Modul selesai (`tests/validator-modul.ts`,
+      5 modul contoh dari produksi). Cakupan lain belum ditentukan.
 - [ ] Hardening Tab Rancang — Putaran 9 (`docs/AUDIT-RANCANG-UI.md`, `docs/AUDIT-EF-API.md`)
 
 **Test pending manual:**
@@ -783,6 +784,86 @@ diambil supaya tidak diperdebatkan ulang:
   resmi yang guru cetak dan arsipkan. Yang dibuang adalah istilah teknis kita sendiri.
 - **Prefiks ID `PBL-` / `ASM-` jangan diganti** — dipakai sebagai rujukan silang di
   naskah, di SYSTEM_PROMPT, di validator, dan di seluruh modul lama.
+
+---
+
+**Fitur & fix sesi 5 September 2026 — batas otoritas Naskah + plafon token
+(HEAD `6a0dde3` → `0ecd172`):**
+
+Telaah ahli kurikulum atas modul TP 6 menemukan Naskah Fasilitasi berperilaku
+seperti kurikulum bayangan: ia mengarang tokoh, halaman, durasi, kutipan, dan
+bahan yang tidak pernah ada. Guru yang mematuhinya membuka lembar yang tidak
+cocok dengan yang sedang ia baca, lalu kehabisan waktu di depan kelas.
+
+**Akarnya bukan model yang membandel — Naskah tidak pernah diberi tahu.**
+`buildUserMessageFaseB2` hanya mengirim id, judul, jenis, dan untuk_murid; isi
+instrumen dibuang demi menghemat token. Diperbaiki dua putaran: putaran pertama
+mengirim NAMA (tokoh, nama bagian), putaran kedua mengirim ISI (baris dialog,
+instruksi peran, label indikator penilaian).
+
+Gerbang validator baru — V12 sampai V16. Semua dikalibrasi dengan mengukur ke
+modul nyata, bukan diyakini benar:
+
+| | Menolak | Kalibrasi |
+|---|---|---|
+| V12 | naskah menyebut instrumen/halaman yang tidak ada | — |
+| V13 | perangkat digital di SELURUH dokumen, termasuk prosa naskah | sempat menuduh "aplikasi" dari `MENGAPLIKASI` |
+| V14 | persentase tanpa penyebut ("80% tahapan" dari 4 tahapan) | versi pertama menjatuhkan 3 dari 4 modul |
+| V15 | kutipan yang diakui ada di instrumen tapi tidak ada | dipersempit DUA KALI |
+| V16 | indikator rubrik yang tidak punya KKTP | nol salah tuduh |
+
+**TIDAK dipasang:** pemeriksaan bahan hantu. Aturannya benar dan sudah diuji,
+tapi menjatuhkan **4 dari 5** modul. Gerbang yang menolak empat dari lima
+generate merugikan guru lebih besar daripada lembar yang harus mereka siapkan
+sendiri. Ukur ulang setelah beberapa generate berikutnya.
+
+---
+
+**PELAJARAN — plafon token roboh LIMA KALI dalam satu hari**
+
+| Fase | Sebab | Commit |
+|---|---|---|
+| B2 | plafon tidak tumbuh saat pertemuan bertambah | sesi lalu |
+| C | plafon tidak tumbuh saat instrumen bertambah | sesi lalu |
+| A | plafon tidak tumbuh saat SYSTEM_PROMPT membesar | `2789e94` |
+| B2 | plafon tidak tumbuh saat masukan diperkaya | `8cf143d` |
+| D | plafon tidak tumbuh saat prompt membesar | `3f477f8` |
+
+Setiap kali **yang bertambah bukan keluarannya**, melainkan sesuatu di
+sekitarnya. Fase A gagal dengan sisa empat token, Fase D dengan sisa lima.
+Sejak `3f477f8` **tidak ada lagi plafon berupa angka mati** di berkas itu —
+semuanya turunan dengan lantai, karena token penalaran tidak ikut mengecil
+hanya karena keluarannya pendek.
+
+> **Menambah aturan ke SYSTEM_PROMPT diam-diam mempersempit ruang keluaran
+> SEMUA fase. Periksa plafonnya setiap kali prompt diperbesar.**
+
+---
+
+**Fase B2 kini permintaan sendiri** (`3f477f8`). Sebelumnya ia menumpang di
+permintaan Fase C, jadi satu panggilan Edge Function mengerjakan dua penyusunan
+AI berturut-turut — sampai 240 detik. TP 6 gagal dua kali tepat di peralihan itu
+dan sebabnya tidak pernah bisa dipisahkan antara plafon dan batas waktu.
+
+Konsekuensi yang perlu diingat: naskah bergantung pada pertemuan (Fase B) dan
+instrumen (Fase C). `gugurkanNaskah()` membuangnya begitu salah satunya disusun
+ulang — tanpa itu, "Coba Lagi" menyimpan naskah basi dan validasi menolak
+sembilan rujukan sekaligus. Fase D punya jalur mundur menyusun naskah sendiri,
+untuk klien lama yang masih tertahan di cache browser guru.
+
+---
+
+**Pesan error kini sampai ke guru** (`2095446`). Sebelumnya lima kode error
+berakhir di kalimat yang sama, "Terjadi gangguan sementara" — termasuk
+`MODUL_GENERATION_TRUNCATED` yang sudah menyebutkan fase, batas, dan pemakaian
+token secara persis. Klien menerimanya lalu membuangnya.
+
+Akibatnya nyata: dua perbaikan dipasang berdasarkan dugaan dan yang kedua
+meleset. Begitu sebab teknisnya dimunculkan ke layar, kegagalan berikutnya
+terdiagnosis dalam satu putaran tanpa satu pun tebakan.
+
+> **Kalau generate Modul gagal, minta guru menyalin baris abu-abu kecil di bawah
+> pesan peringatan. Jangan menebak dari gejala.**
 
 ---
 
