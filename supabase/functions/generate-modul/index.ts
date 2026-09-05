@@ -753,6 +753,121 @@ function validateModulOutputV400(
 
 // ── SYSTEM PROMPT V4.0 ────────────────────────────────────────────────────────
 
+// ── KAMUS PILIHAN GURU → BAHASA MANUSIA ──────────────────────────────────────
+//
+// Klien menyimpan kunci opsi, bukan kalimat yang dibaca guru. Sebelumnya kunci
+// itu dikirim mentah ke model, dan model menyalinnya apa adanya ke modul yang
+// dicetak guru: "Teknik: unjuk_kerja".
+//
+// Yang lebih buruk: tiga kunci tidak menggambarkan opsinya. 'kolaboratif'
+// menyimpan pilihan "berbasis masalah", 'campuran' menyimpan "kontekstual",
+// dan 'diferensiasi' menyimpan "kemampuan murid beragam". Modul TP 3 dan TP 6
+// karena itu menyebut strategi yang bukan pilihan gurunya — bukan cacat gaya
+// bahasa, melainkan isi yang keliru.
+//
+// Penerjemahan dilakukan di sini, saat menyusun pesan ke model. Kunci di
+// collected_data TIDAK diubah: modul lama harus tetap terbaca, dan klien masih
+// memakai kunci yang sama untuk mengingat jawaban guru.
+
+const ISTILAH_STRATEGI: Record<string, string> = {
+  ceramah_diskusi: 'pembelajaran langsung — guru menjelaskan, murid berlatih dan menerapkan',
+  pbl:             'pembelajaran berbasis proyek — murid mengerjakan proyek konkret yang bisa dipamerkan',
+  inquiry:         'pembelajaran inkuiri — murid menemukan sendiri melalui eksplorasi dan eksperimen',
+  kolaboratif:     'pembelajaran berbasis masalah — murid memecahkan masalah nyata dari dunia kerja',
+  campuran:        'pembelajaran kontekstual — murid belajar langsung di konteks dunia kerja atau industri',
+  rekomendasi:     'belum ditentukan guru — tentukan strategi yang paling sesuai dengan tujuan pembelajaran ini',
+};
+
+const ISTILAH_KONDISI_KELAS: Record<string, string> = {
+  reguler:            'kemampuan murid relatif merata',
+  diferensiasi:       'kemampuan murid beragam — ada yang sudah lancar, ada yang masih kesulitan',
+  inklusif:           'ada murid yang membutuhkan pendampingan khusus',
+  campuran_kemampuan: 'sebagian murid sedang menjalani praktik kerja lapangan',
+};
+
+const ISTILAH_TARGET: Record<string, string> = {
+  pemahaman:   'pemahaman konsep',
+  keterampilan: 'keterampilan praktis',
+  sikap:       'pembentukan sikap atau karakter',
+  terpadu:     'pemahaman, keterampilan, dan sikap sekaligus',
+  rekomendasi: 'belum ditentukan guru — tentukan yang paling sesuai',
+};
+
+const ISTILAH_SUMBER: Record<string, string> = {
+  buku_teks:     'buku teks',
+  modul_digital: 'modul digital',
+  video:         'video pembelajaran',
+  artikel:       'artikel atau bacaan pendek',
+  lingkungan:    'lingkungan sekitar atau konteks dunia kerja',
+  lainnya:       'sumber lain',
+};
+
+const ISTILAH_TEKNIK: Record<string, string> = {
+  pemetaan_awal:  'pemetaan awal — angket atau soal singkat untuk dipetakan',
+  tanya_jawab:    'tanya jawab lisan di awal pertemuan',
+  observasi_awal: 'observasi saat murid mengerjakan tugas pembuka',
+  tes_tertulis:   'tes tertulis — soal pilihan ganda atau uraian',
+  unjuk_kerja:    'unjuk kerja — murid menunjukkan kemampuan secara langsung',
+  proyek:         'proyek atau produk — murid menghasilkan karya yang dinilai',
+  praktikum:      'praktikum — murid melakukan prosedur kerja di lab atau bengkel',
+  presentasi:     'presentasi — murid menyampaikan hasil di depan kelas',
+  rekomendasi:    'belum ditentukan guru — tentukan teknik yang paling sesuai',
+};
+
+function terjemahkan(kamus: Record<string, string>, nilai: unknown): unknown {
+  const v = unwrap(nilai);
+  if (Array.isArray(v)) return v.map(x => kamus[String(x)] ?? String(x));
+  if (v === null || v === undefined || v === '') return v;
+  return kamus[String(v)] ?? String(v);
+}
+
+// Bentuk {value, source, confirmed_by_teacher} dibuang di sini. Model tidak
+// perlu tahu tata cara penyimpanan klien — ia hanya perlu tahu pilihan guru.
+function konteksModulManusiawi(cd: Record<string, unknown>): Record<string, unknown> | null {
+  const km = cd.KONTEKS_MODUL as Record<string, unknown> | undefined;
+  if (!km) return null;
+  return {
+    kondisi_kelas:     terjemahkan(ISTILAH_KONDISI_KELAS, km.kondisi_kelas_modul),
+    target_kompetensi: terjemahkan(ISTILAH_TARGET,        km.target_kompetensi_modul),
+    jumlah_murid:      unwrap(km.jumlah_murid_kelas) ?? null,
+  };
+}
+
+function sumberStrategiManusiawi(cd: Record<string, unknown>): Record<string, unknown> | null {
+  const ss = cd.SUMBER_STRATEGI as Record<string, unknown> | undefined;
+  if (!ss) return null;
+  const lainnya = unwrap(ss.jenis_sumber_lainnya);
+  return {
+    sumber_belajar:      terjemahkan(ISTILAH_SUMBER, ss.jenis_sumber),
+    sumber_lain_uraian:  lainnya ? String(lainnya) : null,
+    strategi_pembelajaran: terjemahkan(ISTILAH_STRATEGI, ss.strategi_utama),
+  };
+}
+
+function asesmenModulManusiawi(cd: Record<string, unknown>): Record<string, unknown> | null {
+  const am = cd.ASESMEN_MODUL as Record<string, unknown> | undefined;
+  if (!am) return null;
+  return {
+    gunakan_diagnostik: unwrap(am.gunakan_diagnostik) === 'ya',
+    teknik_diagnostik:  terjemahkan(ISTILAH_TEKNIK, am.teknik_diagnostik),
+    gunakan_formatif:   unwrap(am.gunakan_formatif)   === 'ya',
+    gunakan_sumatif:    unwrap(am.gunakan_sumatif)    === 'ya',
+    teknik_sumatif:     terjemahkan(ISTILAH_TEKNIK, am.teknik_sumatif),
+  };
+}
+
+// Izin perangkat digital dihitung backend, bukan disimpulkan model dari isi
+// daftar sumber. Sebelumnya SYSTEM_PROMPT menyuruh model memeriksa sendiri
+// apakah 'modul_digital' atau 'video' ada di jenis_sumber — sebuah penilaian
+// yang tidak perlu diserahkan ke model, dan yang ikut memaksa kunci mentahnya
+// tetap dikirim.
+function perangkatDigitalDiizinkan(cd: Record<string, unknown>): boolean {
+  const ss = cd.SUMBER_STRATEGI as Record<string, unknown> | undefined;
+  const v  = ss ? unwrap(ss.jenis_sumber) : null;
+  const arr = Array.isArray(v) ? v.map(String) : (v ? [String(v)] : []);
+  return arr.includes('modul_digital') || arr.includes('video');
+}
+
 const SYSTEM_PROMPT = `Kamu adalah ahli perancangan pembelajaran Kurikulum Merdeka untuk guru SMK Indonesia.
 Tugasmu: menyusun Modul Ajar lengkap sesuai schema ModulOutput V4.0.
 
@@ -927,14 +1042,18 @@ ID format:
 Jenis instrumen pembelajaran yang tersedia:
   dialog_baseline, dialog_model, teks_autentik, kartu_peran, custom
 
-Jenis instrumen asesmen yang tersedia (pemetaan dari teknik):
-  - diagnostik "Pemetaan awal"                    → pemetaan_awal
-  - diagnostik/formatif "Observasi"               → matriks_observasi
-  - formatif/sumatif "Penilaian diri/antarteman"  → lembar_refleksi
-  - formatif/sumatif "Kuis/tes singkat/tes tulis" → soal_latihan
-  - sumatif "Praktikum"                           → lembar_praktikum
-  - sumatif "Proyek/produk"                       → panduan_proyek
-  - lainnya                                       → custom
+Jenis instrumen asesmen yang tersedia. Baca teknik_diagnostik / teknik_sumatif
+di input, cocokkan dengan kata kunci di kolom kiri:
+  - "pemetaan awal"                → pemetaan_awal
+  - "observasi"                    → matriks_observasi
+  - "tanya jawab lisan"            → pemetaan_awal
+  - "tes tertulis"                 → soal_latihan
+  - "unjuk kerja"                  → matriks_observasi
+  - "presentasi"                   → matriks_observasi
+  - "praktikum"                    → lembar_praktikum
+  - "proyek atau produk"           → panduan_proyek
+  - penilaian diri / antarteman    → lembar_refleksi
+  - belum ditentukan guru / lainnya → pilih yang paling sesuai dengan tujuan
 
 Jika guru memilih "tidak_ada" untuk semua asesmen:
   instrumen_asesmen = [] dan asesmen_manifest = []
@@ -972,21 +1091,27 @@ INKLUSIVITAS:
 - Dukungan diberikan per keterampilan, bersifat fleksibel.
 - Kesalahan adalah data, bukan kegagalan.
 
-KONDISI KELAS (dari kondisi_kelas_modul):
-- reguler: satu jalur instruksi; tindak_lanjut berisi variasi pengayaan ringan.
-- diferensiasi: MEMAHAMI dan MENGAPLIKASI sertakan ≥ 1 opsi lebih mudah dan ≥ 1 lebih menantang.
-- inklusif: MEMAHAMI sertakan instruksi adaptasi fisik/sensorik.
-- campuran_kemampuan: sertakan instruksi untuk murid hadir parsial; tindak_lanjut sertakan opsi catch-up.
+KONDISI KELAS (baca konteks_pembelajaran.kondisi_kelas di input):
+- "kemampuan murid relatif merata"
+  → satu jalur instruksi; tindak_lanjut berisi variasi pengayaan ringan.
+- "kemampuan murid beragam — ada yang sudah lancar, ada yang masih kesulitan"
+  → MEMAHAMI dan MENGAPLIKASI sertakan ≥ 1 opsi lebih mudah dan ≥ 1 lebih menantang.
+- "ada murid yang membutuhkan pendampingan khusus"
+  → MEMAHAMI sertakan instruksi adaptasi fisik/sensorik.
+- "sebagian murid sedang menjalani praktik kerja lapangan"
+  → sertakan instruksi untuk murid yang hadir sebagian; tindak_lanjut sertakan
+    opsi menyusul ketertinggalan.
 
 FASILITAS DIGITAL (WAJIB DIPATUHI):
-- DILARANG menyebut LCD proyektor, laptop, HP/smartphone, internet, wifi, QR code,
-  atau tautan URL di media_dan_alat dan pemanfaatan_digital KECUALI guru memilih
-  'modul_digital' atau 'video' di jenis_sumber (lihat field sumber_strategi di input).
-- Jika jenis_sumber tidak mengandung 'modul_digital' atau 'video':
+Field "perangkat_digital_diizinkan" di input sudah dihitung backend dari pilihan
+guru. Patuhi nilainya apa adanya — jangan menyimpulkan sendiri dari daftar sumber.
+- perangkat_digital_diizinkan = false:
+    DILARANG menyebut LCD proyektor, laptop, HP/smartphone, internet, wifi, QR code,
+    atau tautan URL di media_dan_alat, sumber_belajar, dan pemanfaatan_digital.
     pemanfaatan_digital HARUS berisi "Tidak memerlukan perangkat digital khusus."
     media_dan_alat hanya boleh berisi bahan cetak, kartu, papan tulis, dan alat fisik.
-- Sumber belajar berbasis internet (YouTube, Google, situs web) hanya boleh muncul
-  di sumber_belajar jika 'video' atau 'modul_digital' dipilih guru.
+- perangkat_digital_diizinkan = true:
+    perangkat digital dan sumber berbasis internet boleh disebut sewajarnya.
 Alasan: Sebagian besar kelas SMK tidak punya akses internet stabil atau proyektor.
 Modul yang bergantung pada fasilitas yang tidak ada tidak bisa dipakai.
 
@@ -1049,21 +1174,79 @@ IDENTITAS — DETERMINISTIK (SALIN PERSIS DARI INPUT)
 - jenis_dokumen: selalu "Modul Induk; guru mengadaptasi konteks kelas dan program keahlian".
 
 ═════════════════════════════════════════════════════════════════
-LARANGAN ISTILAH DALAM OUTPUT
+BAHASA MODUL — PEMBACANYA GURU, BUKAN SISTEM
 ═════════════════════════════════════════════════════════════════
 
-DILARANG                      → GUNAKAN SEBAGAI GANTINYA
---------------------------------------------------------------------------
-"scaffolding"                 → "bantuan bertahap", "dukungan terstruktur"
-"inquiry-based learning"      → jelaskan langkahnya secara konkret
-"project-based learning"      → "murid mengerjakan proyek nyata"
-"for learning"/"as learning"  → tuliskan fungsinya dalam bahasa Indonesia
-"self-assessment checklist"   → "lembar cek mandiri"
-"asistensi"                   → "bantuan", "pendampingan"
-"parameter"                   → "kriteria", "aspek", "hal yang dinilai"
+Modul ini dicetak dan dibawa ke kelas oleh guru SMK. Sebagian membacanya di HP
+sambil mengajar. Tulis seperti sesama guru menjelaskan rencana mengajarnya —
+bukan seperti dokumen akademik, dan bukan seperti keluaran sistem.
 
-Nama pembicara di dialog: DILARANG menggunakan label jabatan generik asing.
-Gunakan nama orang fiktif atau jabatan dalam Bahasa Indonesia yang sesuai program keahlian.
+── 1. DILARANG MENULIS KODE MESIN DI DALAM KALIMAT ──────────────────────────
+
+Nama tahap (PEMBUKA, ASESMEN_AWAL, MEMAHAMI, MENGAPLIKASI, MEREFLEKSI, PENUTUP)
+adalah kode struktur. Ia HANYA boleh muncul sebagai nilai field "nama",
+"fase_langkah", "placement.fase", dan di dalam "digunakan_pada".
+
+DILARANG menulis kode itu di dalam kalimat mana pun — deskripsi, tujuan, ucapan
+guru, aksi guru, catatan guru, atau judul instrumen. Di dalam kalimat, sebut
+tahapnya dengan kata biasa: "kegiatan pembuka", "saat mengecek kemampuan awal",
+"ketika murid menerapkan", "saat refleksi", "di penutup".
+
+Aturan yang sama berlaku untuk SEMUA identifier internal:
+- DILARANG menulis kata bergaris bawah (contoh: unjuk_kerja, teks_autentik,
+  tanya_jawab, kartu_peran, dialog_model) di dalam kalimat atau di field narasi.
+  Tulis sebagai frasa biasa: "unjuk kerja", "teks nyata dari dunia kerja".
+- DILARANG menulis kata BERHURUF BESAR SELURUHNYA sebagai istilah, kecuali
+  singkatan yang memang dikenal guru (K3, SMK, PKL, JP, TP, CP, KKTP).
+
+Kode instrumen (PBL-01, ASM-01) dan kode kriteria (K1, F1) DIKECUALIKAN —
+guru memakainya untuk menelusuri bahan, dan keduanya memang dirujuk silang.
+
+── 2. ISTILAH YANG DIGANTI ──────────────────────────────────────────────────
+
+DILARANG                         → GUNAKAN SEBAGAI GANTINYA
+--------------------------------------------------------------------------
+"scaffolding"                    → "pendampingan bertahap"
+"dukungan terstruktur"           → "pendampingan bertahap"
+"terstruktur" (sebagai sifat)    → "bertahap", "berurutan", atau hapus saja
+"diferensiasi", "didiferensiasi" → "menyesuaikan dengan kemampuan murid"
+"asesmen formatif"               → "cek pemahaman di tengah pembelajaran"
+"asesmen sumatif"                → "penilaian akhir"
+"autentik"                       → "nyata", "dari dunia kerja"
+"PBL", "project-based learning"  → "murid mengerjakan proyek nyata"
+"inquiry-based learning"         → jelaskan langkahnya secara konkret
+"for learning"/"as learning"     → tuliskan fungsinya dalam bahasa Indonesia
+"self-assessment checklist"      → "lembar cek mandiri"
+"asistensi"                      → "bantuan", "pendampingan"
+"parameter"                      → "kriteria", "aspek", "hal yang dinilai"
+"kondusif"                       → "tenang", "nyaman untuk belajar"
+"ketercapaian"                   → "sejauh mana tujuan tercapai"
+"teridentifikasi"                → "diketahui", "terlihat"
+"memfasilitasi"                  → "membantu", "mendampingi"
+"esensial"                       → "inti", "pokok"
+"elaborasi"                      → "penjelasan lanjutan"
+"internalisasi"                  → "murid benar-benar memahami"
+"holistik"                       → "menyeluruh"
+
+CATATAN PENTING: field "dukungan_terstruktur" di tindak_lanjut adalah NAMA FIELD
+— jangan diganti. Yang dilarang adalah menulis frasa itu di dalam ISI-nya.
+
+── 3. ISTILAH KURIKULUM MERDEKA TETAP DIPAKAI ───────────────────────────────
+
+Modul ajar adalah dokumen resmi yang diarsipkan dan kadang diperiksa pengawas.
+Istilah berikut JUSTRU WAJIB dipertahankan — menggantinya membuat modul
+terlihat tidak sah di mata guru:
+
+  Capaian Pembelajaran (CP), Tujuan Pembelajaran (TP), KKTP, asesmen,
+  Elemen CP, Fase, Dimensi Profil Lulusan, K3.
+
+Yang dibuang adalah jargon akademik dan istilah teknis sistem — bukan kosakata
+resmi kurikulum.
+
+── 4. NAMA ORANG DI DIALOG ──────────────────────────────────────────────────
+
+DILARANG menggunakan label jabatan generik asing. Gunakan nama orang fiktif
+atau jabatan dalam Bahasa Indonesia yang sesuai program keahlian.
 
 ═════════════════════════════════════════════════════════════════
 KEAMANAN DATA
@@ -1121,14 +1304,15 @@ function buildUserMessageFaseA(params: {
       batas_atas:  k.batas_atas  ?? null,
     })),
     pilihan_asesmen:      params.pilanAsesmen,
-    konteks_pembelajaran: params.cd.KONTEKS_MODUL   ?? null,
-    sumber_strategi:      params.cd.SUMBER_STRATEGI ?? null,
+    konteks_pembelajaran: konteksModulManusiawi(params.cd),
+    sumber_strategi:      sumberStrategiManusiawi(params.cd),
+    perangkat_digital_diizinkan: perangkatDigitalDiizinkan(params.cd),
     asesmen: {
       gunakan_diagnostik: params.gunakanDiagnostik,
-      teknik_diagnostik:  params.teknikDiagnostik,
+      teknik_diagnostik:  terjemahkan(ISTILAH_TEKNIK, params.teknikDiagnostik),
       gunakan_formatif:   params.gunakanFormatif,
       gunakan_sumatif:    params.gunakanSumatif,
-      teknik_sumatif:     params.teknikSumatif,
+      teknik_sumatif:     terjemahkan(ISTILAH_TEKNIK, params.teknikSumatif),
     },
     instruksi_manifest:
       'Buat manifest berdasarkan pilihan_asesmen (array jenis yang aktif). ' +
@@ -1185,8 +1369,9 @@ function buildUserMessageFaseB(params: {
     rencana_asesmen:     params.faseAOutput.rencana_asesmen,
     rancangan:           params.faseAOutput.rancangan,
     manifest:            params.manifest,
-    konteks_pembelajaran: params.cd.KONTEKS_MODUL   ?? null,
-    sumber_strategi:      params.cd.SUMBER_STRATEGI ?? null,
+    konteks_pembelajaran: konteksModulManusiawi(params.cd),
+    sumber_strategi:      sumberStrategiManusiawi(params.cd),
+    perangkat_digital_diizinkan: perangkatDigitalDiizinkan(params.cd),
   });
 }
 
@@ -1265,8 +1450,8 @@ function buildUserMessageFaseC(params: {
     konteks_murid:    params.faseAOutput.konteks_murid,
     rencana_asesmen:  params.faseAOutput.rencana_asesmen,
     manifest_wajib_diisi: allManifest,
-    konteks: params.cd.KONTEKS_MODUL   ?? null,
-    asesmen: params.cd.ASESMEN_MODUL   ?? null,
+    konteks: konteksModulManusiawi(params.cd),
+    asesmen: asesmenModulManusiawi(params.cd),
   });
 }
 
@@ -1320,7 +1505,7 @@ function buildUserMessageFaseD(params: {
     identitas:           params.faseAOutput.identitas,
     kktp:                params.faseAOutput.kktp,
     rencana_asesmen:     params.faseAOutput.rencana_asesmen,
-    konteks_pembelajaran: params.cd.KONTEKS_MODUL ?? null,
+    konteks_pembelajaran: konteksModulManusiawi(params.cd),
   });
 }
 

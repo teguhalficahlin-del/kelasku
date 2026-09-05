@@ -43,6 +43,103 @@
   let _katalogModuls = null;
   let _katalogBukaModul = null;
 
+  // ─── Kamus istilah — satu-satunya tempat kode mesin jadi bahasa guru ──────
+  //
+  // Nama langkah, jenis instrumen, dan teknik asesmen adalah kode struktur:
+  // validator generate-modul menolak modul yang namanya menyimpang, dan rujukan
+  // sub-langkah dibangun dari nama itu ("P1.MENGAPLIKASI.3"). Kodenya harus
+  // tetap ada di dalam mesin — yang tidak boleh adalah kode itu sampai ke mata
+  // guru. Dokumen ini dicetak dan dibawa ke kelas.
+  //
+  // Semua tempat yang mencetak nilai-nilai ini WAJIB lewat istilah(). Menambah
+  // penerjemahan lokal di satu renderer saja adalah cara daftar ini mulai
+  // berbeda sendiri — itu persis yang terjadi pada LABEL_LANGKAH sebelumnya:
+  // petanya ada, tapi terkurung di satu jalur render dan tiga jalur lain tetap
+  // mencetak ASESMEN_AWAL.
+
+  const ISTILAH_LANGKAH = {
+    PEMBUKA:      'Pembuka',
+    ASESMEN_AWAL: 'Asesmen Awal',
+    MEMAHAMI:     'Memahami',
+    MENGAPLIKASI: 'Menerapkan',
+    MEREFLEKSI:   'Refleksi',
+    PENUTUP:      'Penutup',
+  };
+
+  const ISTILAH_INSTRUMEN = {
+    dialog_baseline:   'Contoh percakapan (awal)',
+    dialog_model:      'Contoh percakapan',
+    teks_autentik:     'Teks nyata dari dunia kerja',
+    kartu_peran:       'Kartu bermain peran',
+    pemetaan_awal:     'Pemetaan kemampuan awal',
+    matriks_observasi: 'Lembar pengamatan',
+    lembar_refleksi:   'Lembar refleksi',
+    soal_latihan:      'Soal latihan',
+    lembar_praktikum:  'Lembar praktik',
+    panduan_proyek:    'Panduan proyek',
+    custom:            'Lainnya',
+  };
+
+  // Teknik asesmen: modul baru sudah menerima frasa manusia dari generate-modul,
+  // tapi empat modul lama menyimpan kuncinya. Peta ini yang membuat modul lama
+  // ikut terbaca tanpa harus di-generate ulang.
+  const ISTILAH_TEKNIK = {
+    pemetaan_awal:  'Pemetaan awal',
+    tanya_jawab:    'Tanya jawab lisan',
+    observasi_awal: 'Observasi',
+    tes_tertulis:   'Tes tertulis',
+    unjuk_kerja:    'Unjuk kerja',
+    proyek:         'Proyek / produk',
+    praktikum:      'Praktikum',
+    presentasi:     'Presentasi',
+    rekomendasi:    'Ditentukan MiClass',
+  };
+
+  // Jaring pengaman untuk kalimat yang ditulis AI. SYSTEM_PROMPT kini melarang
+  // model menulis kode mesin di dalam kalimat, tapi larangan itu hanya berlaku
+  // untuk modul yang disusun sesudahnya — modul lama sudah terlanjur memuatnya
+  // (TP 5: "Pertemuan 1 fase ASESMEN_AWAL"). Penyapuan ini membuat modul lama
+  // ikut bersih tanpa harus di-generate ulang, sekaligus menjaga kalau suatu
+  // saat model tetap membandel.
+  //
+  // Hanya bentuk yang jelas kode mesin yang disapu: nama tahap berhuruf besar
+  // semua, dan kata bergaris bawah. Kata biasa seperti "proyek" atau "praktikum"
+  // TIDAK disentuh — menggantinya akan merusak kalimat yang sudah benar.
+  const RE_KODE_LANGKAH = /\b(PEMBUKA|ASESMEN_AWAL|MEMAHAMI|MENGAPLIKASI|MEREFLEKSI|PENUTUP)\b/g;
+  const RE_GARIS_BAWAH  = /\b[a-z]{2,}(?:_[a-z]{2,})+\b/g;
+
+  function sapuKodeMesin(teks) {
+    return String(teks)
+      .replace(RE_KODE_LANGKAH, m => ISTILAH_LANGKAH[m] ?? m)
+      .replace(RE_GARIS_BAWAH,  m => m.replace(/_/g, ' '));
+  }
+
+  // Rujukan langkah dibangun backend sebagai "P1.ASESMEN_AWAL.1" — pertemuan,
+  // nama tahap, nomor sub-langkah. Bentuk itu perlu supaya naskah dan modul
+  // bisa dicocokkan mesin, tapi guru membacanya sebagai kode. Diuraikan jadi
+  // kalimat; bentuk yang tak dikenal dikembalikan apa adanya agar tidak ada
+  // rujukan yang hilang diam-diam.
+  function bacaRujukanLangkah(ref) {
+    if (!ref) return '';
+    const m = /^P(\d+)\.([A-Z_]+)\.(\d+)$/.exec(String(ref));
+    if (!m) return String(ref);
+    return `Pertemuan ${m[1]} · ${istilah(ISTILAH_LANGKAH, m[2])} · langkah ${m[3]}`;
+  }
+
+  // Terjemahkan satu nilai. Nilai yang tidak dikenal dikembalikan apa adanya —
+  // tapi kalau bentuknya masih kode mesin (HURUF_BESAR atau garis_bawah), ia
+  // dirapikan jadi kata biasa supaya tidak ada yang lolos ke dokumen guru.
+  function istilah(kamus, nilai, kosong = '-') {
+    if (nilai === null || nilai === undefined || nilai === '') return kosong;
+    const kunci = String(nilai);
+    if (kamus && Object.prototype.hasOwnProperty.call(kamus, kunci)) return kamus[kunci];
+    if (/^[A-Z0-9_]+$/.test(kunci) || /_/.test(kunci)) {
+      const kata = kunci.toLowerCase().replace(/_/g, ' ').trim();
+      return kata.charAt(0).toUpperCase() + kata.slice(1);
+    }
+    return kunci;
+  }
+
   // ─── Persist ─────────────────────────────────────────────────────────────
 
   function saveState() {
@@ -2135,7 +2232,10 @@
     const mp    = konten.metadata_pedagogis ?? {};
 
     // ── helper ──────────────────────────────────────────────────────────────
-    const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    // Setiap teks yang tampil di dokumen lewat sini — jadi penyapuan kode mesin
+    // dipasang di satu titik ini, bukan di puluhan tempat yang harus diingat.
+    const esc = s => sapuKodeMesin(String(s ?? ''))
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     const h   = (tag, cls, html) => `<${tag} class="${cls}">${html}</${tag}>`;
     const sec = (judul, html) => html
       ? `<div class="mv4-section"><div class="mv4-section-title">${esc(judul)}</div>${html}</div>` : '';
@@ -2288,11 +2388,15 @@
       const km2  = ins.konten_murid  ?? null;
       const pg   = ins.panduan_guru  ?? null;
       const star = ins.untuk_murid ? `<span class="mv4-ins-star">★ Untuk Murid</span>` : '';
+      // Jenis diletakkan di baris sendiri, bukan disisipkan antara kode dan
+      // judul. Ditempelkan di tengah, "PBL-01 Contoh percakapan Teks Percakapan
+      // Model..." terbaca sebagai satu judul panjang yang mengulang dirinya.
+      const jenisLabel = istilah(ISTILAH_INSTRUMEN, ins.jenis, '');
       let out = `<div class="mv4-ins-block">`+
         `<div class="mv4-ins-header">`+
         `<span class="mv4-ins-id">${esc(ins.id ?? '?')}</span> `+
-        `<span class="mv4-ins-jenis">[${esc(ins.jenis ?? '-')}]</span> `+
-        `<strong>${esc(ins.judul ?? '')}</strong> ${star}</div>`;
+        `<strong>${esc(ins.judul ?? '')}</strong> ${star}</div>`+
+        (jenisLabel ? `<div class="mv4-ins-jenis">${esc(jenisLabel)}</div>` : '');
 
       if (km2 !== null) {
         out += `<div class="mv4-ins-murid"><div class="mv4-ins-zone-label">★ Bagian Murid</div>`;
@@ -2360,10 +2464,10 @@
         if (j === 'dialog_baseline' || j === 'dialog_model') {
           if (pg.catatan_fasilitasi) out += `<div class="mv4-sub">${esc(pg.catatan_fasilitasi)}</div>`;
         } else if (j === 'teks_autentik') {
-          if (pg.nama_entitas) out += `<div class="mv4-row"><span class="mv4-label">Entitas</span><span>${esc(pg.nama_entitas)}</span></div>`;
+          if (pg.nama_entitas) out += `<div class="mv4-row"><span class="mv4-label">Sumber</span><span>${esc(pg.nama_entitas)}</span></div>`;
           if (pg.catatan_konteks) out += `<div class="mv4-sub">${esc(pg.catatan_konteks)}</div>`;
         } else if (j === 'kartu_peran') {
-          if (pg.fokus_pengamatan) out += `<div class="mv4-row"><span class="mv4-label">Fokus Amati</span><span>${esc(pg.fokus_pengamatan)}</span></div>`;
+          if (pg.fokus_pengamatan) out += `<div class="mv4-row"><span class="mv4-label">Yang Diamati</span><span>${esc(pg.fokus_pengamatan)}</span></div>`;
           if (pg.catatan_fasilitasi) out += `<div class="mv4-sub">${esc(pg.catatan_fasilitasi)}</div>`;
         } else if (j === 'pemetaan_awal') {
           if (pg.tujuan_diagnostik) out += `<div class="mv4-sub"><strong>Tujuan:</strong> ${esc(pg.tujuan_diagnostik)}</div>`;
@@ -2462,7 +2566,7 @@
         const d = ra.asesmen_diagnostik;
         out += `<div class="mv4-asesmen-blok"><div class="mv4-asesmen-label">F1 — Diagnostik</div>`+
           (d.tujuan ? `<div class="mv4-row"><span class="mv4-label">Tujuan</span><span>${esc(d.tujuan)}</span></div>` : '')+
-          `<div class="mv4-row"><span class="mv4-label">Teknik</span><span>${esc(d.teknik ?? '-')}</span></div>`+
+          `<div class="mv4-row"><span class="mv4-label">Teknik</span><span>${esc(istilah(ISTILAH_TEKNIK, d.teknik))}</span></div>`+
           (d.waktu ? `<div class="mv4-row"><span class="mv4-label">Waktu</span><span>${esc(d.waktu)}</span></div>` : '')+
           (d.penggunaan_hasil ? `<div class="mv4-row"><span class="mv4-label">Penggunaan</span><span>${esc(d.penggunaan_hasil)}</span></div>` : '')+
           (Array.isArray(d.instrumen_ref) && d.instrumen_ref.length ? `<div class="mv4-sub">Instrumen: ${d.instrumen_ref.map(esc).join(', ')}</div>` : '')+
@@ -2470,8 +2574,8 @@
       }
       if (Array.isArray(ra.asesmen_formatif) && ra.asesmen_formatif.length) {
         ra.asesmen_formatif.forEach(f => {
-          out += `<div class="mv4-asesmen-blok"><div class="mv4-asesmen-label">${esc(f.id ?? 'Formatif')} — Formatif (P${f.waktu_pertemuan ?? '?'} · ${esc(f.fase_langkah ?? '-')})</div>`+
-            `<div class="mv4-row"><span class="mv4-label">Teknik</span><span>${esc(f.teknik ?? '-')}</span></div>`+
+          out += `<div class="mv4-asesmen-blok"><div class="mv4-asesmen-label">${esc(f.id ?? 'Formatif')} — Formatif (Pertemuan ${f.waktu_pertemuan ?? '?'} · tahap ${esc(istilah(ISTILAH_LANGKAH, f.fase_langkah))})</div>`+
+            `<div class="mv4-row"><span class="mv4-label">Teknik</span><span>${esc(istilah(ISTILAH_TEKNIK, f.teknik))}</span></div>`+
             (f.fungsi ? `<div class="mv4-row"><span class="mv4-label">Fungsi</span><span>${esc(f.fungsi)}</span></div>` : '')+
             (f.umpan_balik ? `<div class="mv4-row"><span class="mv4-label">Umpan Balik</span><span>${esc(f.umpan_balik)}</span></div>` : '')+
             (Array.isArray(f.referensi_kktp) && f.referensi_kktp.length ? `<div class="mv4-sub">KKTP: ${f.referensi_kktp.map(esc).join(', ')}</div>` : '')+
@@ -2481,12 +2585,12 @@
       }
       if (ra.asesmen_sumatif) {
         const s = ra.asesmen_sumatif;
-        const plc = s.placement ? `P${s.placement.pertemuan} · ${esc(s.placement.fase ?? '-')}` : '-';
+        const plc = s.placement ? `Pertemuan ${s.placement.pertemuan} · tahap ${esc(istilah(ISTILAH_LANGKAH, s.placement.fase))}` : '-';
         out += `<div class="mv4-asesmen-blok"><div class="mv4-asesmen-label">Sumatif</div>`+
           (s.deskripsi ? `<div class="mv4-row"><span class="mv4-label">Deskripsi</span><span>${esc(s.deskripsi)}</span></div>` : '')+
-          `<div class="mv4-row"><span class="mv4-label">Teknik</span><span>${esc(s.teknik ?? '-')}</span></div>`+
+          `<div class="mv4-row"><span class="mv4-label">Teknik</span><span>${esc(istilah(ISTILAH_TEKNIK, s.teknik))}</span></div>`+
           `<div class="mv4-row"><span class="mv4-label">Durasi</span><span>${s.durasi_menit != null ? s.durasi_menit+' menit' : '-'}</span></div>`+
-          `<div class="mv4-row"><span class="mv4-label">Placement</span><span>${plc}</span></div>`+
+          `<div class="mv4-row"><span class="mv4-label">Waktu Pelaksanaan</span><span>${plc}</span></div>`+
           (Array.isArray(s.instrumen_ref) && s.instrumen_ref.length ? `<div class="mv4-sub">Instrumen: ${s.instrumen_ref.map(esc).join(', ')}</div>` : '')+
           `</div>`;
       }
@@ -2518,7 +2622,7 @@
           (sl.instrumen_ref?.length ? ` [${sl.instrumen_ref.map(esc).join(', ')}]` : '')+
           `</div>`
         ).join('');
-        return `<div class="mv4-langkah"><div class="mv4-langkah-nama">${esc(lk.nama ?? '?')} `+
+        return `<div class="mv4-langkah"><div class="mv4-langkah-nama">${esc(istilah(ISTILAH_LANGKAH, lk.nama, '?'))} `+
           `<em>(${lk.durasi_menit ?? '?'} mnt)</em></div>${slHtml}</div>`;
       }).join('');
       const mediaStr = Array.isArray(p.media_dan_alat) ? p.media_dan_alat.map(esc).join(', ') : '-';
@@ -2535,7 +2639,7 @@
       if (Array.isArray(tl.pilihan_dukungan) && tl.pilihan_dukungan.length)
         out += `<div class="mv4-sub"><strong>Pilihan Dukungan:</strong></div>${list(tl.pilihan_dukungan)}`;
       if (Array.isArray(tl.dukungan_terstruktur) && tl.dukungan_terstruktur.length)
-        out += `<div class="mv4-sub"><strong>Dukungan Terstruktur:</strong></div>${list(tl.dukungan_terstruktur)}`;
+        out += `<div class="mv4-sub"><strong>Pendampingan Bertahap:</strong></div>${list(tl.dukungan_terstruktur)}`;
       if (Array.isArray(tl.tantangan_lanjutan) && tl.tantangan_lanjutan.length)
         out += `<div class="mv4-sub"><strong>Tantangan Lanjutan:</strong></div>${list(tl.tantangan_lanjutan)}`;
       return out;
@@ -2569,7 +2673,7 @@
             const tanya  = Array.isArray(sl.pertanyaan_kunci) ? sl.pertanyaan_kunci : [];
             const kesulitan = Array.isArray(sl.jika_kesulitan) ? sl.jika_kesulitan : [];
             return `<div class="mv4-ns-sl">`+
-              `<div class="mv4-ns-ref">${esc(sl.ref ?? '?')}</div>`+
+              `<div class="mv4-ns-ref">${esc(bacaRujukanLangkah(sl.ref) || '?')}</div>`+
               (ucapan.length ? `<div class="mv4-ns-group"><div class="mv4-ns-group-label">Ucapan Guru</div>`+
                 ucapan.map(u => `<div class="mv4-ns-item">"${esc(u)}"</div>`).join('')+`</div>` : '')+
               (aksi.length ? `<div class="mv4-ns-group"><div class="mv4-ns-group-label">Aksi Guru</div>`+
@@ -2580,7 +2684,7 @@
                 kesulitan.map(k => `<div class="mv4-ns-item">⚠ ${esc(k)}</div>`).join('')+`</div>` : '')+
               `</div>`;
           }).join('');
-          return `<div class="mv4-ns-langkah"><div class="mv4-langkah-nama">${esc(lk.nama ?? '?')}</div>${slHtml}</div>`;
+          return `<div class="mv4-ns-langkah"><div class="mv4-langkah-nama">${esc(istilah(ISTILAH_LANGKAH, lk.nama, '?'))}</div>${slHtml}</div>`;
         }).join('');
         naskah += `<div class="mv4-section">`+
           `<div class="mv4-section-title">Pertemuan ${np.nomor ?? '?'} — Naskah</div>`+
@@ -2610,7 +2714,8 @@
 .mv4-sl{margin-left:12px;font-size:.82rem;color:var(--text-muted,#888)}
 .mv4-ins-block{margin:8px 0;border:1px solid var(--border,rgba(255,255,255,.1));border-radius:6px;overflow:hidden}
 .mv4-ins-header{padding:6px 8px;font-size:.83rem;background:var(--surface2,rgba(255,255,255,.04))}
-.mv4-ins-id{font-weight:700}.mv4-ins-jenis{color:var(--text-muted,#888)}
+.mv4-ins-id{font-weight:700}
+.mv4-ins-jenis{color:var(--text-muted,#888);font-size:.78rem;margin:1px 0 4px}
 .mv4-ins-star{color:var(--gold,#c8a84b);font-weight:600;margin-left:4px}
 .mv4-ins-murid{padding:6px 8px;border-top:1px solid var(--border,rgba(255,255,255,.1));background:rgba(200,168,75,.05)}
 .mv4-ins-guru{padding:6px 8px;border-top:1px solid var(--border,rgba(255,255,255,.1))}
@@ -2793,16 +2898,8 @@
     const pertemuanArr = Array.isArray(konten.pertemuan) ? konten.pertemuan : [];
     for (const p of pertemuanArr) {
       const langkahArr = Array.isArray(p.langkah) ? p.langkah : [];
-      const LABEL_LANGKAH = {
-        PEMBUKA:      'Pembuka',
-        ASESMEN_AWAL: 'Asesmen Awal',
-        MEMAHAMI:     'Memahami',
-        MENGAPLIKASI: 'Mengaplikasi',
-        MEREFLEKSI:   'Merefleksi',
-        PENUTUP:      'Penutup',
-      };
       const langkahLines = langkahArr.map(lk => {
-        const namaLabel = LABEL_LANGKAH[lk.nama] ?? lk.nama ?? '?';
+        const namaLabel = istilah(ISTILAH_LANGKAH, lk.nama, '?');
         const prinsip = Array.isArray(lk.prinsip) ? lk.prinsip.join(', ') : '-';
         const slLines = Array.isArray(lk.sub_langkah)
           ? lk.sub_langkah.map(sl => `      ${sl.nomor ?? '?'}. ${sl.deskripsi ?? '-'}`).join('\n')
