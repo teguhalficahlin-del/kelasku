@@ -1271,6 +1271,14 @@
       if (_chat.collected_answers[q.id] !== undefined) result[q.id] = _chat.collected_answers[q.id];
     }
     if (phase === 'WAKTU') result.perhitungan = calculateAllocation();
+    // Program keahlian bukan salah satu pertanyaan KONTEKS_CP — ia hasil dari
+    // salah satu dari tiga jalur (dikonfirmasi apa adanya, dipilih dari daftar,
+    // atau diketik sendiri). Tanpa ini, guru yang program keahliannya sudah
+    // benar sejak awal tidak menjawab satu pun pertanyaan yang tercetak, dan
+    // Pratinjau menuliskan "Belum lengkap." tepat sebelum generate.
+    if (phase === 'KONTEKS_CP' && _chat.collected_answers.program_keahlian !== undefined) {
+      result.program_keahlian = _chat.collected_answers.program_keahlian;
+    }
     return result;
   }
 
@@ -1289,8 +1297,8 @@
   }
 
   const LABEL_PERTANYAAN = {
-    target_akhir_mode:    'Target akhir fase',
-    target_akhir_teks:    'Target (ditulis guru)',
+    program_keahlian:     'Program keahlian',
+    durasi_jp_lain:       'Durasi JP (kustom, menit)',
     penguatan_elemen:     'Penguatan elemen',
     target_kemandirian:   'Tingkat kemandirian target',
     target_prioritas:     'Prioritas siswa',
@@ -1327,14 +1335,50 @@
     batas_konteks:        'Batas penggunaan konteks',
   };
 
+  // Persetujuan bukan keputusan perencanaan. "konfirmasi_waktu: Ya, gunakan
+  // perhitungan ini" memanjangkan ringkasan tanpa menambah isi, dan tiga di
+  // antaranya bahkan tidak punya label sehingga id mentahnya tercetak ke layar
+  // guru. Keduanya selesai dengan tidak mencetaknya sama sekali.
+  // 'target_akhir_mode' ikut dibuang: ia mencetak CARA memilih ("Minta
+  // rekomendasi berdasarkan CP dan profil siswa"), bukan targetnya — dan asal
+  // teksnya kini sudah disebut oleh label target_akhir_teks di bawah.
+  // 'pilih_program_keahlian' dan 'program_keahlian_teks_bebas' juga dibuang:
+  // keduanya CARA memilih, sementara hasilnya sudah tampil sebagai
+  // 'program_keahlian'. Menampilkan ketiganya berarti mencetak "Animasi"
+  // dua kali — dan hanya salah satunya terisi tergantung jalur yang ditempuh
+  // guru, sehingga barisnya berpindah-pindah tanpa sebab yang terlihat.
+  const RINGKASAN_DIBUANG = new Set([
+    'perhitungan', 'target_akhir_mode',
+    'pilih_program_keahlian', 'program_keahlian_teks_bebas',
+  ]);
+
+  function barisForRingkasan(key) {
+    if (RINGKASAN_DIBUANG.has(key)) return false;
+    return !/^(konfirmasi_|persetujuan_)/.test(key);
+  }
+
+  // Label yang mengikuti asal jawabannya. 'target_akhir_teks' diisi dua cara:
+  // guru mengetik sendiri, atau menerima rekomendasi AI (recordAnswer dengan
+  // source 'ai_recommendation'). Label mati 'Target (ditulis guru)' membuat
+  // ringkasan menyebut guru sebagai penulis teks yang ditulis model.
+  function labelUntuk(key, stored) {
+    if (key === 'target_akhir_teks') {
+      const sumber = stored && typeof stored === 'object' ? stored.source : null;
+      return sumber === 'ai_recommendation'
+        ? 'Target akhir fase (disusun MiClass, disetujui guru)'
+        : 'Target akhir fase (ditulis guru)';
+    }
+    return LABEL_PERTANYAAN[key] || key;
+  }
+
   function formatPhaseAnswers(phase) {
     return Object.entries(phaseAnswerObject(phase))
-      .filter(function (_ref) { return _ref[0] !== 'perhitungan'; })
+      .filter(function (_ref) { return barisForRingkasan(_ref[0]); })
       .map(function (_ref) {
         const key    = _ref[0];
         const stored = _ref[1];
         const raw    = unwrapStored(stored);
-        const label  = LABEL_PERTANYAAN[key] || key;
+        const label  = labelUntuk(key, stored);
         const value  = resolveAnswerLabel(phase, key, raw);
         return label + ': ' + value;
       }).join('\n') || 'Belum lengkap.';

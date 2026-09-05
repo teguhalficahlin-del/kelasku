@@ -1,4 +1,4 @@
-// v=chat-20260905f11
+// v=chat-20260906f12
 'use strict';
 
 const opts = pairs => pairs.map(([value, label]) => ({ value, label }));
@@ -163,22 +163,32 @@ const RANCANG_FLOW = {
   ],
 
   PROFIL_SISWA: [
-    pilihan('status_data_awal', 'Apakah data kemampuan awal siswa tersedia?', [
-      ['aktual', 'Ya, saya sudah punya data kemampuan awal siswa'],
-      ['sebagian', 'Ada sebagian data kemampuan awal siswa'],
-      ['belum_ada', 'Belum ada data sama sekali'],
-    ]),
-    // Tanpa condition — SEMUA guru menjawabnya, apa pun jawaban status_data_awal.
-    // Sebelumnya lima dari delapan pertanyaan fase ini hanya terbuka bagi guru
-    // yang menjawab "belum ada data", sehingga guru yang justru paling tahu
-    // keadaan muridnya tidak punya tempat menyatakan muridnya jauh tertinggal.
+    // URUTAN: penilaian dulu, bukti kemudian.
+    //
+    // Semula pertanyaan ini diletakkan SESUDAH status_data_awal, dan hasilnya
+    // tiga layar yang berputar di tempat sama: guru bilang "belum ada data",
+    // lalu diminta menempatkan muridnya di skala empat titik, lalu ditanya
+    // bagaimana titik awalnya akan ditentukan — padahal ia baru saja
+    // menyebutkannya. Guru tahu keadaan muridnya tanpa data formal; yang
+    // ditanyakan berikutnya barulah apakah ada datanya, dan bagaimana
+    // mengukurnya kalau belum.
+    //
+    // Tanpa condition — SEMUA guru menjawabnya. Sebelum pertanyaan ini ada,
+    // lima dari delapan pertanyaan fase ini hanya terbuka bagi guru yang
+    // menjawab "belum ada data", sehingga guru yang justru paling tahu keadaan
+    // muridnya tidak punya tempat menyatakan muridnya jauh tertinggal.
     pilihan('tingkat_kemampuan_awal',
       'Dibandingkan kemampuan yang diharapkan di awal fase ini, di mana murid Anda sekarang?', [
       ['sesuai',    'Sudah sesuai — bisa langsung masuk materi fase ini'],
       ['sedikit_di_bawah', 'Sedikit di bawah — perlu penyegaran singkat di awal'],
       ['jauh_di_bawah',    'Jauh di bawah — banyak kemampuan dasar yang harus dibangun dulu'],
       ['sangat_beragam',   'Sangat beragam — ada yang siap, ada yang jauh tertinggal'],
-    ], { helpText: 'Menentukan seberapa banyak pengulangan kemampuan dasar yang disiapkan di awal ATP.' }),
+    ], { helpText: 'Perkiraan Anda sudah cukup — tidak perlu menunggu hasil tes.' }),
+    pilihan('status_data_awal', 'Apakah data kemampuan awal siswa tersedia?', [
+      ['aktual', 'Ya, saya sudah punya data kemampuan awal siswa'],
+      ['sebagian', 'Ada sebagian data kemampuan awal siswa'],
+      ['belum_ada', 'Belum ada data sama sekali'],
+    ]),
     pilihan('tindakan_tanpa_data', 'Bagaimana titik awal kemampuan siswa ditentukan?', [
       ['pemetaan', 'Buat soal atau tugas untuk mengukur kemampuan awal'],
       ['observasi', 'Gunakan observasi pada pembelajaran awal'],
