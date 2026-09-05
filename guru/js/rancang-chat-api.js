@@ -225,6 +225,7 @@ async function callGenerateModul(modulIndukId, classroomId, expectedUpdatedAt, o
     konten:         resD.konten,
     summary:        resD.summary,
     validation:     resD.validation,
+    rate_limit_info: resD.rate_limit_info,
   };
 }
 

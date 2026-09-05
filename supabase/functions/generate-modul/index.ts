@@ -1538,6 +1538,11 @@ Deno.serve(async (req) => {
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
   );
 
+  // Identitas kuota generate: per guru per kelas. Fase A memakainya untuk
+  // menaikkan penghitung, Fase D untuk membaca sisa kuota yang ditampilkan ke
+  // guru — jadi tempatnya di scope handler, bukan di dalam salah satu blok fase.
+  const rlIdentifier = classroom_id ? `${user.id}:${classroom_id}` : user.id;
+
   // ── FASE A ────────────────────────────────────────────────────────────────────
   if (fase === 'A') {
     if (!['draft', 'error'].includes(modulStatus)) {
@@ -1557,8 +1562,6 @@ Deno.serve(async (req) => {
     }
 
     // Rate limit
-    const rlIdentifier = classroom_id ? `${user.id}:${classroom_id}` : user.id;
-    let rlUsed = 0;
     try {
       const { data: allowed, error: rlErr } = await svcClient.rpc('fn_check_rate_limit', {
         p_identifier:     rlIdentifier,
@@ -1576,20 +1579,6 @@ Deno.serve(async (req) => {
     } catch (e) {
       console.warn('[generate-modul] rate limit exception (ignored):', e);
     }
-    // Baca jumlah pemakaian untuk UI feedback
-    try {
-      const windowSeconds = 1440 * 60;
-      const windowStart = new Date(Math.floor(Date.now() / 1000 / windowSeconds) * windowSeconds * 1000).toISOString();
-      const { data: rlRow } = await svcClient
-        .from('rate_limits')
-        .select('request_count')
-        .eq('identifier', rlIdentifier)
-        .eq('endpoint', 'generate_modul')
-        .eq('window_start', windowStart)
-        .maybeSingle();
-      if (rlRow) rlUsed = (rlRow as { request_count: number }).request_count;
-    } catch { /* non-critical */ }
-
 
     let faseAOutput: Record<string, unknown>;
     try {
@@ -1851,6 +1840,25 @@ Deno.serve(async (req) => {
 
     if (writeDErr) return json({ error: 'Gagal menyimpan Modul Ajar.', code: 'MODUL_WRITE_ERROR' }, 500);
     if (!writtenD) return json({ error: 'Modul berubah saat generate. Muat ulang dan coba lagi.', code: 'MODUL_GENERATION_CONFLICT' }, 409);
+
+    // Sisa kuota generate untuk ditampilkan ke guru. Dibaca di sini — bukan di
+    // Fase A — karena hanya respons Fase D yang sampai ke bubble sukses.
+    // Jendelanya harus sama persis dengan fn_check_rate_limit di DB:
+    // floor(epoch / 86400) * 86400. Kalau meleset, barisnya tidak ketemu dan
+    // guru selalu melihat "Sisa 5×".
+    let rlUsed = 0;
+    try {
+      const windowSeconds = 1440 * 60;
+      const windowStart = new Date(Math.floor(Date.now() / 1000 / windowSeconds) * windowSeconds * 1000).toISOString();
+      const { data: rlRow } = await svcClient
+        .from('rate_limits')
+        .select('request_count')
+        .eq('identifier', rlIdentifier)
+        .eq('endpoint', 'generate_modul')
+        .eq('window_start', windowStart)
+        .maybeSingle();
+      if (rlRow) rlUsed = (rlRow as { request_count: number }).request_count;
+    } catch { /* non-critical — angka sisa kuota tidak boleh menggagalkan generate */ }
 
     const elapsed = Date.now() - startTime;
     return json({
