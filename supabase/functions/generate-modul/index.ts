@@ -1341,20 +1341,6 @@ Deno.serve(async (req) => {
 
   const jumlahMurid = settings?.jumlah_murid ?? null;
 
-  // input_guru untuk konteks_murid — fakta eksplisit dari guru (bukan inferensi AI)
-  const konteksMod = (cd.KONTEKS_MODUL as Record<string, unknown>) || {};
-  const kondisiKelasKode = String(unwrap(konteksMod.kondisi_kelas_modul) ?? '');
-  const KONDISI_LABEL: Record<string, string> = {
-    reguler:            'Kemampuan murid relatif seragam',
-    diferensiasi:       'Ada yang sudah lancar, ada yang masih kesulitan',
-    inklusif:           'Ada yang butuh pendampingan khusus',
-    campuran_kemampuan: 'Sebagian murid sedang PKL',
-  };
-  const inputGuru = {
-    kondisi_kelas: (KONDISI_LABEL[kondisiKelasKode] ?? kondisiKelasKode) || null,
-    jumlah_murid:  jumlahMurid,
-  };
-
   // 6. BACA tp_kktp
   const { data: kktp, error: kktpErr } = await userClient
     .from('tp_kktp')
@@ -1373,6 +1359,21 @@ Deno.serve(async (req) => {
   const modulStatus = (modul as Record<string, unknown>).status as string;
   const kontenObj   = ((modul as Record<string, unknown>).konten as Record<string, unknown>) || {};
   const cd          = ((modul as Record<string, unknown>).collected_data as Record<string, unknown>) || {};
+
+  // input_guru untuk konteks_murid — fakta eksplisit dari guru (bukan inferensi AI)
+  const konteksMod = (cd.KONTEKS_MODUL as Record<string, unknown>) || {};
+  const kondisiKelasKode = String(unwrap(konteksMod.kondisi_kelas_modul) ?? '');
+  const KONDISI_LABEL: Record<string, string> = {
+    reguler:            'Kemampuan murid relatif seragam',
+    diferensiasi:       'Ada yang sudah lancar, ada yang masih kesulitan',
+    inklusif:           'Ada yang butuh pendampingan khusus',
+    campuran_kemampuan: 'Sebagian murid sedang PKL',
+  };
+  const inputGuru = {
+    kondisi_kelas: (KONDISI_LABEL[kondisiKelasKode] ?? kondisiKelasKode) || null,
+    jumlah_murid:  jumlahMurid,
+  };
+
   const missing: string[] = [];
 
   // Cek persetujuan MODUL_SUMMARY
