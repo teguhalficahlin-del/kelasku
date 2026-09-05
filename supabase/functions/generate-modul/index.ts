@@ -1171,10 +1171,15 @@ function sumberStrategiManusiawi(cd: Record<string, unknown>): Record<string, un
   const ss = cd.SUMBER_STRATEGI as Record<string, unknown> | undefined;
   if (!ss) return null;
   const lainnya = unwrap(ss.jenis_sumber_lainnya);
+  const perlengkapan = perlengkapanKelas(cd);
   return {
     sumber_belajar:      terjemahkan(ISTILAH_SUMBER, ss.jenis_sumber),
     sumber_lain_uraian:  lainnya ? String(lainnya) : null,
     strategi_pembelajaran: terjemahkan(ISTILAH_STRATEGI, ss.strategi_utama),
+    // Daftar alat yang benar-benar ada di kelas. Kosong berarti guru menjawab
+    // "tidak ada" atau belum pernah ditanya — dua-duanya diperlakukan sama:
+    // modul hanya boleh mengandalkan papan tulis dan alat tulis.
+    perlengkapan_tersedia: perlengkapan.map(k => LABEL_PERLENGKAPAN[k] ?? k),
   };
 }
 
@@ -1190,13 +1195,48 @@ function asesmenModulManusiawi(cd: Record<string, unknown>): Record<string, unkn
   };
 }
 
-// Izin perangkat digital dihitung backend, bukan disimpulkan model dari isi
-// daftar sumber. Sebelumnya SYSTEM_PROMPT menyuruh model memeriksa sendiri
-// apakah 'modul_digital' atau 'video' ada di jenis_sumber — sebuah penilaian
-// yang tidak perlu diserahkan ke model, dan yang ikut memaksa kunci mentahnya
+// Perlengkapan yang menjadikan perangkat digital benar-benar bisa dipakai.
+// 'printer' dan 'lab' sengaja TIDAK di sini: keduanya nyata dan berguna, tapi
+// tidak membuat modul boleh menyebut internet atau proyektor.
+const PERLENGKAPAN_DIGITAL = ['proyektor', 'laptop_guru', 'komputer_murid', 'hp_murid', 'internet', 'speaker'];
+
+const LABEL_PERLENGKAPAN: Record<string, string> = {
+  proyektor:      'proyektor/LCD',
+  laptop_guru:    'laptop atau komputer guru',
+  komputer_murid: 'komputer atau laptop untuk murid',
+  hp_murid:       'HP murid (boleh dipakai untuk belajar)',
+  internet:       'koneksi internet yang bisa diandalkan',
+  speaker:        'speaker atau pengeras suara',
+  lab:            'lab atau bengkel praktik',
+  printer:        'printer atau mesin fotokopi',
+};
+
+function perlengkapanKelas(cd: Record<string, unknown>): string[] {
+  const ss = cd.SUMBER_STRATEGI as Record<string, unknown> | undefined;
+  const v  = ss ? unwrap(ss.perlengkapan_kelas) : null;
+  const arr = Array.isArray(v) ? v.map(String) : (v ? [String(v)] : []);
+  return arr.filter(k => k !== 'tidak_ada');
+}
+
+// Izin perangkat digital dihitung backend, bukan diserahkan ke model — sebuah
+// penilaian yang dulu ada di SYSTEM_PROMPT dan ikut memaksa kunci mentahnya
 // tetap dikirim.
+//
+// Sampai 5 September 2026 fungsi ini menebak dari jenis_sumber: ada 'video'
+// atau 'modul_digital' berarti perangkat digital diizinkan. Dua hal yang sama
+// sekali berbeda — guru bisa memutar video sesekali tanpa punya internet
+// stabil, dan bisa punya proyektor tanpa pernah memakai modul digital.
+// Sekarang guru ditanya langsung apa yang benar-benar ada di kelasnya.
+//
+// Jalur mundur ke penyimpulan lama WAJIB dipertahankan: modul yang sudah
+// berjalan dan guru yang perambannya masih memegang JS lama tidak punya
+// jawaban perlengkapan_kelas. Tanpa ini perilaku mereka berubah diam-diam.
 function perangkatDigitalDiizinkan(cd: Record<string, unknown>): boolean {
   const ss = cd.SUMBER_STRATEGI as Record<string, unknown> | undefined;
+  const dijawab = ss ? unwrap(ss.perlengkapan_kelas) : null;
+  if (dijawab !== null && dijawab !== undefined) {
+    return perlengkapanKelas(cd).some(k => PERLENGKAPAN_DIGITAL.includes(k));
+  }
   const v  = ss ? unwrap(ss.jenis_sumber) : null;
   const arr = Array.isArray(v) ? v.map(String) : (v ? [String(v)] : []);
   return arr.includes('modul_digital') || arr.includes('video');
@@ -1445,7 +1485,11 @@ guru. Patuhi nilainya apa adanya — jangan menyimpulkan sendiri dari daftar sum
     pemanfaatan_digital HARUS berisi "Tidak memerlukan perangkat digital khusus."
     media_dan_alat hanya boleh berisi bahan cetak, kartu, papan tulis, dan alat fisik.
 - perangkat_digital_diizinkan = true:
-    perangkat digital dan sumber berbasis internet boleh disebut sewajarnya.
+    perangkat digital dan sumber berbasis internet boleh disebut sewajarnya,
+    TAPI hanya alat yang tercantum di "perlengkapan_tersedia". Alat yang tidak
+    ada di daftar itu DILARANG disebut — guru tidak memilikinya. Contoh: tanpa
+    "speaker" jangan menyuruh memutar audio; tanpa "printer atau mesin fotokopi"
+    jangan menyuruh membagikan lembar gandaan.
 Alasan: Sebagian besar kelas SMK tidak punya akses internet stabil atau proyektor.
 Modul yang bergantung pada fasilitas yang tidak ada tidak bisa dipakai.
 

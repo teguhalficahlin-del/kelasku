@@ -1,4 +1,4 @@
-// v=chat-20260903f7
+// v=chat-20260905f11
 'use strict';
 
 const opts = pairs => pairs.map(([value, label]) => ({ value, label }));
@@ -168,6 +168,17 @@ const RANCANG_FLOW = {
       ['sebagian', 'Ada sebagian data kemampuan awal siswa'],
       ['belum_ada', 'Belum ada data sama sekali'],
     ]),
+    // Tanpa condition — SEMUA guru menjawabnya, apa pun jawaban status_data_awal.
+    // Sebelumnya lima dari delapan pertanyaan fase ini hanya terbuka bagi guru
+    // yang menjawab "belum ada data", sehingga guru yang justru paling tahu
+    // keadaan muridnya tidak punya tempat menyatakan muridnya jauh tertinggal.
+    pilihan('tingkat_kemampuan_awal',
+      'Dibandingkan kemampuan yang diharapkan di awal fase ini, di mana murid Anda sekarang?', [
+      ['sesuai',    'Sudah sesuai — bisa langsung masuk materi fase ini'],
+      ['sedikit_di_bawah', 'Sedikit di bawah — perlu penyegaran singkat di awal'],
+      ['jauh_di_bawah',    'Jauh di bawah — banyak kemampuan dasar yang harus dibangun dulu'],
+      ['sangat_beragam',   'Sangat beragam — ada yang siap, ada yang jauh tertinggal'],
+    ], { helpText: 'Menentukan seberapa banyak pengulangan kemampuan dasar yang disiapkan di awal ATP.' }),
     pilihan('tindakan_tanpa_data', 'Bagaimana titik awal kemampuan siswa ditentukan?', [
       ['pemetaan', 'Buat soal atau tugas untuk mengukur kemampuan awal'],
       ['observasi', 'Gunakan observasi pada pembelajaran awal'],
@@ -190,11 +201,12 @@ const RANCANG_FLOW = {
     angka('jp_pemetaan', 'Berapa JP yang digunakan untuk pemetaan awal?', 1, 12,
       { condition: { question_id: 'tindakan_tanpa_data', value: 'pemetaan' },
         helpText: 'JP pemetaan diambil dari JP efektif yang tersedia — bukan tambahan. Semakin banyak JP pemetaan, semakin sedikit yang tersisa untuk mengajar TP.' }),
-    pilihan('tindakan_instrumen', 'Apa yang dilakukan dengan instrumen pemetaan?', [
-      ['buat_sekarang', 'Minta MiClass membuat soalnya saat ATP selesai'],
-      ['gunakan_ada', 'Pakai soal yang sudah saya punya'],
-      ['catat_lanjut', 'Catat rencana dan lanjutkan ATP'], ['ubah', 'Ubah metode atau alokasi pemetaan'],
-    ], { condition: { question_id: 'tindakan_tanpa_data', value: 'pemetaan' } }),
+    // 'tindakan_instrumen' dibuang seluruhnya (keputusan Romo, 5 September 2026).
+    // Opsi "Minta MiClass membuat soalnya saat ATP selesai" menjanjikan dokumen
+    // yang tidak ada mesin pembuatnya. Dua opsi tersisa efeknya identik — sama-sama
+    // hanya dicatat — jadi menyisakan pertanyaannya berarti meminta guru memilih
+    // antara dua hal yang tidak berbeda. Navigasi mundur tetap ada lewat
+    // "Ubah profil siswa" di layar persetujuan ATP.
     pilihan('kesulitan_mode', 'Bagaimana kesulitan siswa yang perlu diantisipasi ditentukan?', [
       ['asumsi_umum', 'Gunakan perkiraan umum untuk siswa kelas fase ini'],
       ['perkiraan_guru', 'Isi sendiri berdasarkan pengalaman mengajar'],
@@ -359,6 +371,23 @@ const RANCANG_FLOW = {
       helpText: 'Deskripsi singkat sudah cukup — MiClass menyesuaikannya ke konteks pembelajaran.',
       skippable: false,
       condition: { question_id: 'jenis_sumber', value: 'lainnya' } },
+    // Ditanyakan eksplisit, tidak lagi disimpulkan dari centang sumber belajar.
+    // Sebelumnya perangkatDigitalDiizinkan() menebak dari ada-tidaknya 'video'
+    // atau 'modul_digital' di jenis_sumber — dua hal yang sama sekali berbeda:
+    // guru bisa memutar video sesekali tanpa punya internet stabil, dan bisa
+    // punya proyektor tanpa pernah memakai modul digital.
+    jamak('perlengkapan_kelas', 'Perlengkapan apa yang benar-benar tersedia di kelas ini? Pilih semua yang ada.', [
+      ['proyektor',      'Proyektor / LCD'],
+      ['laptop_guru',    'Laptop atau komputer guru'],
+      ['komputer_murid', 'Komputer atau laptop untuk murid'],
+      ['hp_murid',       'HP murid boleh dipakai untuk belajar'],
+      ['internet',       'Koneksi internet yang bisa diandalkan'],
+      ['speaker',        'Speaker atau pengeras suara'],
+      ['lab',            'Lab atau bengkel praktik'],
+      ['printer',        'Printer atau mesin fotokopi untuk menggandakan lembar kerja'],
+      ['tidak_ada',      'Tidak ada — hanya papan tulis dan alat tulis'],
+    ], { constraints: { exclusive: ['tidak_ada'] },
+      helpText: 'Modul hanya akan menyebut alat yang Anda centang di sini. Yang tidak tersedia tidak akan diminta.' }),
     pilihan('strategi_utama', 'Strategi pembelajaran utama yang digunakan?', [
       ['ceramah_diskusi', 'Guru menjelaskan, murid berlatih dan menerapkan (langsung)'],
       ['pbl',         'Murid mengerjakan proyek konkret yang bisa dipamerkan (berbasis proyek)'],

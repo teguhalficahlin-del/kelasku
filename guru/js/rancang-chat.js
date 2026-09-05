@@ -1314,9 +1314,9 @@
     status_data_awal:     'Data kemampuan awal',
     tindakan_tanpa_data:       'Cara menentukan titik awal',
     perkiraan_kemampuan_awal:  'Gambaran kemampuan awal siswa',
+    tingkat_kemampuan_awal:    'Tingkat kemampuan awal murid',
     cara_pemetaan:        'Cara pemetaan',
     jp_pemetaan:          'JP pemetaan',
-    tindakan_instrumen:   'Instrumen pemetaan',
     kesulitan_mode:       'Antisipasi kesulitan',
     kesulitan_teks_guru:  'Kesulitan (perkiraan guru)',
     strategi_prasyarat:   'Pengulangan kemampuan dasar',
@@ -1359,15 +1359,54 @@
     const cadangan = cadanganMinggu * jpPerMinggu;
     const pemetaan = Number(answerValue('jp_pemetaan') || 0);
     const prasyarat = Number(answerValue('jp_prasyarat') || 0);
+
+    // Satuan pertemuan — ukuran satu pertemuan menurut pola jadwal guru.
+    // 0 berarti belum diketahui (pola belum dijawab, atau JP per sesi kosong);
+    // dalam keadaan itu tidak ada pembulatan yang bisa dihitung.
+    const pola = answerValue('pola_jadwal');
+    const jpPerSesi = Number(answerValue('jp_per_sesi') || 0);
+    const satuan =
+      pola === 'reguler_satu' && jpPerMinggu > 0 ? jpPerMinggu :
+      (pola === 'reguler_bagi' || pola === 'blok') && jpPerSesi > 0 ? jpPerSesi : 0;
+
+    // Jumlah bilangan kelipatan 4 selalu kelipatan 4. Kalau sisa JP bukan
+    // kelipatan satuan pertemuan, tidak ada susunan TP yang bisa memenuhi
+    // kedua syarat generate sekaligus — AI mana pun pasti gagal. Karena itu
+    // pembulatan dilakukan di sini, bukan diserahkan ke guru untuk dihitung.
+    const mentah = Math.max(0, kalender - kegiatan - cadangan - pemetaan - prasyarat);
+    const sisaBagi = satuan > 0 ? mentah % satuan : 0;
+    const operasional = mentah - sisaBagi;
+
     return { jp_per_minggu: jpPerMinggu, minggu_efektif: minggu, jp_kalender: kalender,
       jp_kegiatan_khusus: kegiatan, jp_cadangan: cadangan, jp_pemetaan: pemetaan,
-      jp_prasyarat: prasyarat, jp_operasional: Math.max(0, kalender - kegiatan - cadangan - pemetaan - prasyarat) };
+      jp_prasyarat: prasyarat, jp_operasional: operasional,
+      satuan_pertemuan: satuan,
+      jp_tidak_terjadwal: sisaBagi,
+      jumlah_pertemuan: satuan > 0 ? operasional / satuan : 0 };
   }
 
   function formatAllocationSummary() {
     const a = calculateAllocation();
-    return `Alokasi kalender: ${a.jp_kalender} JP\nKegiatan khusus: ${a.jp_kegiatan_khusus} JP` +
-      `\nCadangan: ${a.jp_cadangan} JP\nSisa sementara: ${a.jp_operasional} JP`;
+    let s = `Alokasi kalender: ${a.jp_kalender} JP\nKegiatan khusus: ${a.jp_kegiatan_khusus} JP` +
+      `\nCadangan: ${a.jp_cadangan} JP\nSisa sementara: ${a.jp_operasional + a.jp_tidak_terjadwal} JP`;
+    if (a.jp_tidak_terjadwal > 0) {
+      s += `\nTidak terjadwal: ${a.jp_tidak_terjadwal} JP (kurang dari satu pertemuan penuh)`;
+    }
+    if (a.satuan_pertemuan > 0) {
+      s += `\nJP untuk mengajar: ${a.jp_operasional} JP — ${a.jumlah_pertemuan} pertemuan`;
+    }
+    return s;
+  }
+
+  // Kalimat yang ditampilkan saat guru baru saja mengisi JP pemetaan atau JP
+  // penguatan. Mengembalikan null kalau tidak ada yang perlu diberitahukan —
+  // pemanggilnya cukup memeriksa null, tidak perlu tahu aturannya.
+  function pesanPembulatanJp(labelAngka, nilaiAngka) {
+    const a = calculateAllocation();
+    if (a.satuan_pertemuan <= 0 || a.jp_tidak_terjadwal <= 0) return null;
+    return `Dicatat: ${nilaiAngka} JP untuk ${labelAngka}. ` +
+      `JP mengajar jadi ${a.jp_operasional} JP — ${a.jumlah_pertemuan} pertemuan penuh. ` +
+      `Sisa ${a.jp_tidak_terjadwal} JP tidak cukup untuk satu pertemuan, jadi tidak dijadwalkan.`;
   }
 
   const PHASE_DISPLAY = {
@@ -1702,11 +1741,6 @@
       }
       return;
     }
-    // tindakan_instrumen 'ubah' → navigasi balik ke cara_pemetaan
-    if (q.id === 'tindakan_instrumen' && value === 'ubah') {
-      handleEditAnswer('cara_pemetaan', 'PROFIL_SISWA');
-      return;
-    }
     // target_akhir_mode 'rekomendasi' → generate teks target, bukan rekomendasikan mode
     if (q.id === 'target_akhir_mode' && value === 'rekomendasi') {
       if (_chat.in_flight) return;
@@ -2024,6 +2058,14 @@
         if (prasyaratQ) askQuestion(prasyaratQ);
         return;
       }
+      // Pemberitahuan pembulatan — hanya memberi tahu, tidak menghentikan guru.
+      // Kedua angka ini ditanyakan di fase berbeda dan masing-masing mengubah
+      // sisa JP lagi, jadi kalimatnya muncul di tempat guru mengisinya.
+      if (currentQ.id === 'jp_pemetaan' || currentQ.id === 'jp_prasyarat') {
+        const labelAngka = currentQ.id === 'jp_pemetaan' ? 'pemetaan awal' : 'penguatan awal';
+        const pesan = pesanPembulatanJp(labelAngka, answerValue(currentQ.id) || 0);
+        if (pesan) rcAppendBubble('sistem', pesan);
+      }
       const revisionPhase = revisionDestination(currentQ.id, answerValue(currentQ.id));
       if (revisionPhase) {
         await startPhase(revisionPhase);
@@ -2040,6 +2082,22 @@
         ], function (v) {
           rcClearChips();
           startPhase(v === '__ubah_waktu__' ? 'WAKTU' : 'PENGUATAN_PRASYARAT');
+        });
+        return;
+      }
+      // Satuan pertemuan tidak diketahui — pola jadwal terisi "dibagi beberapa
+      // pertemuan" atau "blok" tapi JP per sesi kosong. Tanpa angka itu MiClass
+      // tidak bisa membagi materi ke pertemuan, dan ATP yang dihasilkan kehilangan
+      // seluruh aturan kelipatan diam-diam. Satu ATP di produksi persis begini
+      // dan menghasilkan nol TP.
+      if (nextPhase === 'ATP_GENERATE' && calculateAllocation().satuan_pertemuan <= 0) {
+        rcAppendBubble('sistem',
+          '❌ MiClass perlu tahu berapa JP dalam satu pertemuan untuk membagi materi. Lengkapi pola jadwal dan JP per pertemuan di alokasi waktu.');
+        rcRenderChips([
+          { value: '__ubah_waktu__', label: 'Ubah alokasi waktu' },
+        ], function () {
+          rcClearChips();
+          startPhase('WAKTU');
         });
         return;
       }
@@ -3039,12 +3097,41 @@
     if (_chat.atp_induk_id) {
       try {
         const { data: freshAtp } = await window.supabaseClient
-          .from('atp_induk').select('updated_at').eq('id', _chat.atp_induk_id).maybeSingle();
+          .from('atp_induk').select('updated_at, collected_data')
+          .eq('id', _chat.atp_induk_id).maybeSingle();
         if (freshAtp?.updated_at) {
           _chat.atp_updated_at = freshAtp.updated_at;
+          _chat._waktu_tersimpan = (freshAtp.collected_data || {}).WAKTU || {};
           saveState();
         }
       } catch (_) { /* biarkan generate lanjut dengan updated_at lama */ }
+    }
+    // WAKTU.perhitungan disimpan ulang tepat sebelum permintaan dikirim.
+    //
+    // Ia satu-satunya sumber jp_operasional yang dibaca Edge Function, tapi
+    // sebelumnya hanya ditulis saat fase Waktu selesai — padahal JP pemetaan
+    // (fase Profil Siswa) dan JP penguatan (fase Penguatan Prasyarat) dijawab
+    // jauh sesudahnya dan mengubah angkanya lagi. Akibatnya waktu yang guru
+    // sisihkan untuk keduanya tidak pernah dipesan dari anggaran: TP mengisi
+    // 100% jam dan pengulangan yang ia rencanakan tidak punya tempat.
+    //
+    // Di sini pula pembulatan dijamin berlaku, lewat jalur revisi mana pun —
+    // guru bisa melompat mundur dari layar persetujuan dan lewat di belakang
+    // ketiga titik pemberitahuan.
+    // Digabung DI ATAS yang tersimpan, bukan menggantikannya. saveAtpPhaseOptimistic
+    // menimpa seluruh objek fase, dan phaseAnswerObject() membangunnya dari state
+    // klien — sesi yang dipulihkan sebagian akan menulis WAKTU yang lebih miskin
+    // daripada yang sudah ada di basis data. Penggabungan membuat penulisan ini
+    // hanya bisa menambah dan memperbarui, tidak pernah menghapus.
+    if (_chat.atp_induk_id) {
+      try {
+        const payload = Object.assign({}, _chat._waktu_tersimpan || {}, phaseAnswerObject('WAKTU'));
+        const saved = await saveAtpPhaseOptimistic(
+          _chat.atp_induk_id, 'WAKTU', payload, _chat.atp_updated_at
+        );
+        _chat.atp_updated_at = saved.updated_at;
+        saveState();
+      } catch (_) { /* biarkan generate lanjut — penjaga server menangkap sisanya */ }
     }
     rcAppendBubble('ai', '⏳ Menyusun Alur Tujuan Pembelajaran…');
     addToHistory('ai', 'Menyusun Alur Tujuan Pembelajaran…');

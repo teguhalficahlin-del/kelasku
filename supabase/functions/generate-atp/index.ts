@@ -219,31 +219,13 @@ Deno.serve(async (req) => {
   const { atp_induk_id, expected_updated_at, sumber_flow } = body;
   if (!atp_induk_id) return json({ error: 'atp_induk_id wajib diisi.' }, 400);
 
-  // ── 3. RATE LIMIT per ATP — service_role hanya di sini ───────────────────
-
-  try {
-    const svc = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
-    );
-    const { data: allowed, error: rlErr } = await svc.rpc('fn_check_rate_limit', {
-      p_identifier:    user.id + ':' + atp_induk_id,
-      p_endpoint:      'generate_atp',
-      p_max_requests:  3,
-      p_window_minutes: 1440,
-    });
-    if (!rlErr && allowed === false) {
-      return json({ error: 'Batas generate ATP ini tercapai hari ini. Coba lagi besok.', code: 'RATE_LIMIT' }, 429);
-    }
-    if (rlErr) {
-      console.warn('[generate-atp] rate limit RPC error:', rlErr.message);
-      return json({ error: 'Rate limit tidak tersedia. Coba lagi.', code: 'RATE_LIMIT_UNAVAILABLE' }, 503);
-    }
-  } catch (e) {
-    console.warn('[generate-atp] rate limit exception (ignored):', e);
-  }
-
-  // ── 4. BACA atp_induk — user JWT (RLS berlaku) ────────────────────────────
+  // ── 3. BACA atp_induk — user JWT (RLS berlaku) ────────────────────────────
+  //
+  // Rate limit SENGAJA tidak di sini lagi. fn_check_rate_limit menaikkan
+  // penghitung pada setiap panggilan, bukan hanya saat berhasil — jadi selama
+  // ia berdiri di depan validasi, satu dari tiga jatah harian hangus hanya
+  // untuk diberi tahu bahwa datanya belum lengkap. Sekarang ia dipotong di
+  // langkah 6, sesudah seluruh penolakan yang bisa diketahui tanpa memanggil AI.
 
   const { data: atp, error: atpErr } = await userClient
     .from('atp_induk')
@@ -311,6 +293,56 @@ Deno.serve(async (req) => {
     polajadwal === 'reguler_satu' && jpPerMinggu > 0 ? jpPerMinggu :
     (polajadwal === 'reguler_bagi' || polajadwal === 'blok') && jpPerSesi > 0 ? jpPerSesi :
     0;
+
+  // ── 6b. PENJAGA KELIPATAN — soal harus punya jawaban ─────────────────────
+  //
+  // Di bawah ini AI diperintah dua hal sekaligus: jp_alokasi setiap TP harus
+  // kelipatan jpPerPertemuan, DAN jumlah seluruhnya harus persis jpOp. Jumlah
+  // bilangan kelipatan 4 selalu kelipatan 4 — jadi kalau jpOp bukan kelipatan
+  // jpPerPertemuan, tidak ada susunan yang bisa memenuhi keduanya. Model mana
+  // pun akan gagal, jalur repair mengulang kegagalan yang sama, dan guru
+  // menghabiskan tiga jatah hariannya untuk soal yang memang tidak punya jawaban.
+  //
+  // Klien membulatkan jpOp ke bawah sebelum mengirim. Penjaga ini untuk guru
+  // yang perambannya masih memegang JS lama.
+  //
+  // Aritmetika murni: ia tidak mungkin salah menuduh.
+  if (jpPerPertemuan > 0 && jpOp % jpPerPertemuan !== 0) {
+    return json({
+      error: `Sisa JP mengajar (${jpOp}) tidak pas dibagi ${jpPerPertemuan} JP per pertemuan — ` +
+             `tersisa ${jpOp % jpPerPertemuan} JP yang tidak cukup untuk satu pertemuan penuh. ` +
+             `Muat ulang halaman lalu buka kembali alokasi waktu.`,
+      code:    'ATP_INPUT_INCOMPLETE',
+      missing: ['WAKTU.jp_operasional'],
+    }, 422);
+  }
+
+  // ── 7. RATE LIMIT per ATP — service_role hanya di sini ───────────────────
+  //
+  // Dipotong SESUDAH seluruh validasi: setiap penolakan di atas bisa diketahui
+  // tanpa memanggil AI, jadi tidak ada alasan ia memakan jatah guru.
+
+  try {
+    const svc = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+    );
+    const { data: allowed, error: rlErr } = await svc.rpc('fn_check_rate_limit', {
+      p_identifier:    user.id + ':' + atp_induk_id,
+      p_endpoint:      'generate_atp',
+      p_max_requests:  3,
+      p_window_minutes: 1440,
+    });
+    if (!rlErr && allowed === false) {
+      return json({ error: 'Batas generate ATP ini tercapai hari ini. Coba lagi besok.', code: 'RATE_LIMIT' }, 429);
+    }
+    if (rlErr) {
+      console.warn('[generate-atp] rate limit RPC error:', rlErr.message);
+      return json({ error: 'Rate limit tidak tersedia. Coba lagi.', code: 'RATE_LIMIT_UNAVAILABLE' }, 503);
+    }
+  } catch (e) {
+    console.warn('[generate-atp] rate limit exception (ignored):', e);
+  }
 
   const targetFase    = unwrapPhaseData(cd.TARGET_FASE);
   const prioritas     = unwrapPhaseData(cd.PRIORITAS);
