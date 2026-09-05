@@ -3241,6 +3241,29 @@
         retryable = true;
       }
       rcAppendBubble('sistem', '⚠ ' + msg);
+
+      // Sebab teknisnya ditampilkan di bawah pesan ramah, bukan menggantikannya.
+      //
+      // Edge Function sudah menyebutkan sebabnya dengan tepat — "Waktu habis di
+      // Fase B2 (naskah)" atau "Keluaran AI terpotong di batas 32000 token
+      // (prompt=…, penalaran=…)" — tapi klien membuangnya dan menampilkan
+      // "gangguan sementara" untuk empat kode error yang berbeda. Guru tidak
+      // punya cara memberi tahu kami apa yang sebenarnya terjadi, dan kami tidak
+      // punya cara mengetahuinya tanpa menebak.
+      //
+      // Guru tidak perlu memahami kalimat ini; ia perlu bisa menyalinnya.
+      const detail = (err.message || '').trim();
+      if (detail && detail !== msg) {
+        const el = document.createElement('div');
+        el.className = 'rc-err-detail';
+        el.textContent = (code ? code + ' — ' : '') + detail;
+        el.style.cssText =
+          'font-size:.72rem;color:var(--text-muted,#888);margin:2px 0 6px 0;' +
+          'padding:4px 6px;border-left:2px solid var(--border,rgba(255,255,255,.15));' +
+          'white-space:pre-wrap;word-break:break-word;user-select:text;';
+        const stream = document.getElementById('rc-stream');
+        if (stream) stream.appendChild(el);
+      }
       const actionWrap = document.createElement('div');
       actionWrap.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;';
       if (retryable) {
