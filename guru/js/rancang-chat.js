@@ -2146,6 +2146,79 @@
     const list = (arr) => Array.isArray(arr) && arr.length
       ? `<ul class="mv4-list">${arr.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '';
 
+    // Nama field JSON menjadi judul yang enak dibaca:
+    // daftar_pertanyaan_lisan -> "Daftar Pertanyaan Lisan"
+    const humanKey = (k) => String(k).split('_')
+      .map(w => w ? w[0].toUpperCase() + w.slice(1) : w).join(' ');
+
+    // Penampil umum untuk bentuk yang tidak dikenali cabang khusus per jenis
+    // instrumen. AI kerap mengarang nama field sendiri dan berbeda tiap kali —
+    // tanpa ini kotaknya tampil berlabel tapi kosong, dan isi yang sudah dibuat
+    // tidak pernah sampai ke guru.
+    function renderGenerik(val, depth = 0) {
+      if (val === null || val === undefined || val === '' || depth > 4) return '';
+      if (typeof val !== 'object') return `<div class="mv4-sub">${esc(val)}</div>`;
+      if (Array.isArray(val)) {
+        if (!val.length) return '';
+        if (val.every(x => x === null || typeof x !== 'object'))
+          return `<ul class="mv4-list">${val.map(x => `<li>${esc(x)}</li>`).join('')}</ul>`;
+        return val.map(x => renderGenerik(x, depth + 1)).join('');
+      }
+      return Object.keys(val).map(k => {
+        const isi = val[k];
+        if (isi === null || isi === undefined || isi === '') return '';
+        const judul = esc(humanKey(k));
+        if (typeof isi !== 'object') {
+          // Kalimat panjang diberi baris sendiri; yang pendek cukup sebaris label-nilai.
+          return String(isi).length > 80
+            ? `<div class="mv4-sub"><strong>${judul}</strong></div><div class="mv4-sub">${esc(isi)}</div>`
+            : `<div class="mv4-row"><span class="mv4-label">${judul}</span><span>${esc(isi)}</span></div>`;
+        }
+        const dalam = renderGenerik(isi, depth + 1);
+        return dalam ? `<div class="mv4-sub"><strong>${judul}</strong></div>${dalam}` : '';
+      }).join('');
+    }
+
+    // Field yang sudah dibaca cabang khusus di bawah, per jenis instrumen.
+    // Apa pun di luar daftar ini ditampilkan penampil umum — AI kerap mengarang
+    // nama field sendiri dan berbeda tiap generate, dan tanpa jaring ini isinya
+    // hilang diam-diam tanpa ada yang mengeluh.
+    const KUNCI_MURID = {
+      dialog_baseline:   ['petunjuk', 'giliran'],
+      dialog_model:      ['petunjuk', 'giliran'],
+      teks_autentik:     ['isi_teks', 'pertanyaan_panduan'],
+      kartu_peran:       ['set'],
+      pemetaan_awal:     ['petunjuk', 'item_soal', 'pertanyaan_menyimak', 'situasi_respons'],
+      matriks_observasi: ['petunjuk', 'kolom_indikator'],
+      lembar_refleksi:   ['pertanyaan'],
+      soal_latihan:      ['petunjuk', 'soal'],
+      lembar_praktikum:  ['tujuan', 'alat_bahan', 'langkah_kerja', 'pertanyaan_analisis'],
+      panduan_proyek:    ['deskripsi_proyek', 'tahapan', 'kriteria_produk', 'pertanyaan_refleksi'],
+    };
+    const KUNCI_GURU = {
+      dialog_baseline:   ['catatan_fasilitasi'],
+      dialog_model:      ['catatan_fasilitasi'],
+      teks_autentik:     ['nama_entitas', 'catatan_konteks'],
+      kartu_peran:       ['fokus_pengamatan', 'catatan_fasilitasi'],
+      pemetaan_awal:     ['tujuan_diagnostik', 'panduan_interpretasi'],
+      matriks_observasi: ['kode_legend', 'kolom_indikator', 'catatan_kritis'],
+      lembar_refleksi:   ['panduan_interpretasi'],
+      soal_latihan:      ['kunci_jawaban', 'panduan_penskoran'],
+      lembar_praktikum:  ['rubrik_penilaian', 'catatan_k3'],
+      panduan_proyek:    ['rubrik_penilaian', 'contoh_produk'],
+    };
+
+    // Tampilkan field yang tidak dibaca cabang khusus. Menangkap dua kasus
+    // sekaligus: bentuk yang sama sekali asing (semua field tersisa) dan bentuk
+    // yang hanya sebagian dikenali (sisanya saja).
+    function renderSisa(obj, dikenal) {
+      if (obj === null || typeof obj !== 'object' || Array.isArray(obj)) return '';
+      const tahu  = dikenal || [];
+      const sisa  = {};
+      Object.keys(obj).forEach(k => { if (!tahu.includes(k)) sisa[k] = obj[k]; });
+      return Object.keys(sisa).length ? renderGenerik(sisa) : '';
+    }
+
     function renderKontenInstrumen(ins) {
       const km2  = ins.konten_murid  ?? null;
       const pg   = ins.panduan_guru  ?? null;
@@ -2211,9 +2284,8 @@
             out += `<div class="mv4-sub"><strong>Kriteria Produk:</strong></div>${list(km2.kriteria_produk)}`;
           if (Array.isArray(km2.pertanyaan_refleksi) && km2.pertanyaan_refleksi.length)
             out += `<div class="mv4-sub"><strong>Refleksi:</strong></div>${list(km2.pertanyaan_refleksi)}`;
-        } else {
-          out += `<pre class="mv4-sub">${esc(JSON.stringify(km2, null, 2))}</pre>`;
         }
+        out += renderSisa(km2, KUNCI_MURID[j]);
         out += `</div>`;
       }
 
@@ -2248,9 +2320,8 @@
         } else if (j === 'panduan_proyek') {
           if (pg.rubrik_penilaian) out += `<div class="mv4-sub"><strong>Rubrik:</strong> ${esc(pg.rubrik_penilaian)}</div>`;
           if (pg.contoh_produk) out += `<div class="mv4-sub">${esc(pg.contoh_produk)}</div>`;
-        } else {
-          out += `<pre class="mv4-sub">${esc(JSON.stringify(pg, null, 2))}</pre>`;
         }
+        out += renderSisa(pg, KUNCI_GURU[j]);
         out += `</div>`;
       }
 
