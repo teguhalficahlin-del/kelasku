@@ -74,6 +74,51 @@ function anggaranTokenFaseA(jumlahKktp: number, jumlahElemen: number): number {
   return Math.max(12000, Math.min(2000 * (jumlahKktp + jumlahElemen), 24000));
 }
 
+// Waktu yang benar-benar didapat setiap kelompok pada kegiatan bergantian.
+// Angka ini dihitung backend lalu dipakai DUA KALI: oleh validator untuk menolak
+// alokasi yang mustahil, dan oleh Fase B2 sebagai angka yang wajib diucapkan
+// guru di naskah.
+//
+// Sebelumnya keduanya memakai angka masing-masing. Validator mengandaikan 3
+// menit per kelompok, sementara naskah — yang disusun di fase berikutnya —
+// menyuruh murid tampil 7 sampai 8 menit. Tidak ada yang mendamaikan keduanya,
+// jadi modul dengan 15 pasangan × 8 menit dalam slot 80 menit lolos tanpa satu
+// keluhan pun. Guru yang mematuhinya kehabisan waktu di depan kelas.
+function waktuPerKelompok(
+  durasiMenit: number, jumlahMurid: number, ukuranKelompok: number,
+): { nKelompok: number; menitPerKelompok: number; transisiMenit: number } {
+  const n = Math.ceil(jumlahMurid / Math.max(ukuranKelompok, 1));
+  const transisi = n * 0.5;
+  return {
+    nKelompok: n,
+    menitPerKelompok: Math.max(0, (durasiMenit - transisi) / n),
+    transisiMenit: transisi,
+  };
+}
+
+// Lantai waktu tampil. Penilaian akhir menuntut guru mengamati alur utuh dan
+// memberi nilai per murid; tiga menit — angka lama — cukup untuk latihan, tidak
+// untuk menilai. Kegiatan latihan tetap memakai lantai lama.
+const MIN_MENIT_KELOMPOK_SUMATIF = 4;
+const MIN_MENIT_KELOMPOK_LATIHAN = 3;
+
+// Kata yang menandakan perangkat digital. Dipakai untuk menegakkan pilihan guru
+// di SELURUH keluaran, termasuk prosa naskah — larangan di SYSTEM_PROMPT hanya
+// menyebut media_dan_alat, sumber_belajar, dan pemanfaatan_digital, sehingga
+// "minta mereka memotret tulisan di papan tulis" lolos ke naskah TP 6.
+// Dicocokkan dengan batas kata, bukan potongan teks. Percobaan pertama memakai
+// pencocokan bebas dan langsung salah menuduh: nama tahap MENGAPLIKASI memuat
+// "aplikasi". Kata yang punya makna non-digital yang lazim di kelas — "aplikasi"
+// (penerapan), "video" (bisa muncul dalam kalimat penyangkalan) — sengaja tidak
+// masuk daftar; menuduh secara keliru lebih merugikan daripada melewatkan satu.
+const RE_PERANGKAT_DIGITAL = new RegExp(
+  '\\b(' + [
+    'memotret', 'difoto', 'kamera', 'ponsel', 'smartphone', 'proyektor', 'lcd',
+    'laptop', 'komputer', 'internet', 'wifi', 'wi-fi', 'daring', 'youtube',
+    'unduh', 'diunduh', 'mengunduh',
+  ].join('|') + ')\\b', 'gi',
+);
+
 // ── TYPES V4.0 ───────────────────────────────────────────────────────────────
 
 type ElemenCp = { id: string; label: string; cp_text: string };
@@ -446,6 +491,7 @@ function validateModulOutputV400(
   durasiJp: number,
   jumlahMurid: number | null,
   manifest?: InstrumentManifest,
+  perangkatDigitalOk = true,
 ): { valid: boolean; errors: string[]; output: ModulOutput | null } {
   const errors: string[] = [];
 
@@ -571,12 +617,37 @@ function validateModulOutputV400(
           // V3 & V4: Time-feasibility (bergantian)
           if (s.mode_pelaksanaan === 'bergantian' && jumlahMurid && intPos(s.durasi_menit)) {
             const ukuran = Number(s.ukuran_kelompok ?? 1);
-            const nKelompok = Math.ceil(jumlahMurid / Math.max(ukuran, 1));
-            const diperlukan = nKelompok * 3 + nKelompok * 0.5;
+            const w = waktuPerKelompok(s.durasi_menit as number, jumlahMurid, ukuran);
+            const lantai = s.asesmen_ref === 'SUMATIF'
+              ? MIN_MENIT_KELOMPOK_SUMATIF : MIN_MENIT_KELOMPOK_LATIHAN;
+            if (w.menitPerKelompok < lantai) {
+              const perlu = Math.ceil(w.nKelompok * lantai + w.transisiMenit);
+              errors.push(
+                `pertemuan ${no}.${lk.nama || j}.sub_langkah[${k}]: bergantian memberi hanya ` +
+                `${w.menitPerKelompok.toFixed(1)} menit per kelompok (${w.nKelompok} kelompok, ` +
+                `${jumlahMurid} murid). Minimal ${lantai} menit, jadi durasi harus ≥${perlu} menit ` +
+                `(sekarang ${s.durasi_menit}). Perpanjang durasi, perbesar ukuran_kelompok, ` +
+                `atau ganti mode_pelaksanaan.`,
+              );
+            }
+          }
+
+          // V4b: Slot sumatif dinilai per murid, jadi satuan waktunya murid
+          //
+          // Nilai sumatif bersifat individual: setiap murid harus punya buktinya
+          // sendiri. Pada kegiatan bergantian berpasangan, memberi waktu cukup
+          // untuk tiap PASANGAN belum tentu memberi waktu untuk tiap MURID —
+          // yang berperan sebagai pelanggan bisa tidak menghasilkan bukti apa pun.
+          // Ambangnya disamakan dengan aturan individual+semua di bawah.
+          if (s.asesmen_ref === 'SUMATIF' && s.mode_pelaksanaan === 'bergantian' &&
+              jumlahMurid && intPos(s.durasi_menit)) {
+            const w = waktuPerKelompok(s.durasi_menit as number, jumlahMurid, Number(s.ukuran_kelompok ?? 1));
+            const diperlukan = jumlahMurid * 2 + w.transisiMenit;
             if (diperlukan > (s.durasi_menit as number)) {
               errors.push(
-                `pertemuan ${no}.${lk.nama || j}.sub_langkah[${k}]: bergantian membutuhkan ≥${Math.ceil(diperlukan)} menit ` +
-                `(${nKelompok} kelompok) tapi durasi=${s.durasi_menit}. Ganti ke simultan atau sampel.`,
+                `pertemuan ${no}.${lk.nama || j}.sub_langkah[${k}]: slot SUMATIF dinilai per murid, ` +
+                `jadi ${jumlahMurid} murid × 2 menit + transisi = ≥${Math.ceil(diperlukan)} menit, ` +
+                `tapi durasi=${s.durasi_menit}. Perpanjang durasi atau bagi penilaian ke dua pertemuan.`,
               );
             }
           }
@@ -747,6 +818,74 @@ function validateModulOutputV400(
         });
       });
     });
+  }
+
+  // V14: Ambang batas persentase wajib menyebut penyebutnya
+  //
+  // "memenuhi minimal 80% tahapan alur konsultasi" terdengar terukur, padahal
+  // modulnya sendiri hanya menetapkan empat tahapan. Dengan empat butir, nilai
+  // yang mungkin cuma 0, 25, 50, 75, dan 100 persen — 80% tidak pernah bisa
+  // terjadi, jadi guru tidak punya cara memutuskan tercapai atau tidak.
+  //
+  // Aturannya sengaja sempit: hanya persentase atas satuan yang bisa dihitung
+  // jari. "80% data ukuran terisi" dan "80% akurat" tidak disentuh — di sana
+  // penyebutnya besar atau kontinu, dan persentase memang bentuk yang wajar.
+  // Percobaan pertama menolak ketiganya dan menjatuhkan tiga dari empat modul
+  // yang ada; gerbang yang terlalu lebar hanya memakan jatah generate guru.
+  const SATUAN_TERHITUNG = /\b(tahapan?|langkah|aspek|butir|kriteria|indikator|komponen|unsur)\b/i;
+  if (Array.isArray(o.kktp)) {
+    (o.kktp as Array<Record<string, unknown>>).forEach((k, i) => {
+      const ab = String(k.ambang_batas ?? '');
+      if (/\d+\s*%/.test(ab) && SATUAN_TERHITUNG.test(ab) && !/dari\s+\d+/i.test(ab))
+        errors.push(
+          `kktp[${i}].ambang_batas='${ab}' memakai persentase tanpa menyebut jumlah butirnya. ` +
+          `Tulis "80% dari 5 tahapan" atau langsung "4 dari 5 tahapan", supaya guru bisa menghitungnya.`,
+        );
+    });
+  }
+
+  // V12: Naskah tidak boleh melampaui wewenangnya
+  //
+  // Naskah Fasilitasi adalah lapisan pelaksana Modul Ajar: ia menentukan guru
+  // mengatakan apa dan melakukan apa, BUKAN bahan apa yang ada, berapa lama, atau
+  // siapa tokohnya. Tanpa batas ini ia menjadi kurikulum bayangan — pada TP 6 ia
+  // menyuruh guru membuka "PBL-01 halaman dua" yang tidak pernah ada, dan menyebut
+  // tokoh bernama lain daripada yang tertulis di bahan muridnya.
+  if (Array.isArray(o.naskah_fasilitasi)) {
+    const teksNaskah = JSON.stringify(o.naskah_fasilitasi);
+    const idTersedia = new Set<string>([
+      ...(Array.isArray(o.instrumen_pembelajaran)
+        ? (o.instrumen_pembelajaran as Array<Record<string, unknown>>).map(i => String(i.id)) : []),
+      ...(Array.isArray(o.instrumen_asesmen)
+        ? (o.instrumen_asesmen as Array<Record<string, unknown>>).map(i => String(i.id)) : []),
+    ]);
+
+    // Instrumen yang tidak pernah dibuat
+    const disebut = new Set((teksNaskah.match(/\b(?:PBL|ASM)-\d+\b/g) ?? []));
+    for (const id of disebut) {
+      if (!idTersedia.has(id))
+        errors.push(`naskah_fasilitasi menyebut '${id}' yang tidak ada di instrumen. Pakai hanya: ${[...idTersedia].join(', ') || '(tidak ada)'}.`);
+    }
+
+    // Struktur yang dikarang untuk instrumen yang memang ada
+    const karangan = teksNaskah.match(/(?:PBL|ASM)-\d+[^"]{0,60}?(?:halaman|bagian)\s+(?:\d+|dua|kedua|tiga|ketiga)/gi) ?? [];
+    for (const potongan of karangan.slice(0, 3)) {
+      errors.push(
+        `naskah_fasilitasi mengarang struktur instrumen: "${potongan.slice(0, 80)}". ` +
+        `Instrumen tidak punya halaman atau bagian bernomor — rujuk instrumen dengan ID-nya saja.`,
+      );
+    }
+  }
+
+  // V13: Larangan perangkat digital berlaku ke SELURUH dokumen
+  if (!perangkatDigitalOk) {
+    const ketemu = [...new Set((JSON.stringify(o).match(RE_PERANGKAT_DIGITAL) ?? [])
+      .map(x => x.toLowerCase()))];
+    if (ketemu.length)
+      errors.push(
+        `guru menyatakan kelas tanpa perangkat digital, tapi dokumen menyebut: ${ketemu.join(', ')}. ` +
+        `Ganti dengan kegiatan yang memakai bahan cetak, papan tulis, atau alat fisik.`,
+      );
   }
 
   // Tindak lanjut
@@ -1142,6 +1281,17 @@ MODE PELAKSANAAN (mode_pelaksanaan di sub_langkah):
 - Slot SUMATIF: dilarang mode_observasi='sampel'.
 
 NASKAH FASILITASI (Fase B2):
+
+BATAS WEWENANG — naskah adalah lapisan PELAKSANA modul, bukan perancang.
+Kamu menentukan guru MENGATAKAN apa dan MELAKUKAN apa. Kamu TIDAK menentukan:
+  - bahan apa yang tersedia      → hanya instrumen di instrumen_ringkas
+  - siapa tokoh di bahan itu     → hanya nama di field "tokoh"
+  - berapa lama sebuah kegiatan  → hanya angka di jatah_waktu dan pertemuan[]
+  - informasi apa yang dikumpulkan murid → persis daftar di kriteria KKTP
+  - teknik penilaian atau siapa yang dinilai → sudah ditetapkan rencana_asesmen
+Menciptakan salah satunya membuat guru membuka bahan yang tidak cocok dengan
+yang sedang ia baca di depan kelas.
+
 - Tulis untuk guru yang membaca di HP saat mengajar — bahasa imperatif, informal, percakapan nyata.
 - ucapan_guru: mulai dengan "Katakan:", "Tanyakan:", "Umumkan:" — satu elemen = satu momen.
 - aksi_guru: mulai dengan kata kerja — "Pantau", "Bagikan", "Tulis", "Tandai".
@@ -1160,6 +1310,11 @@ ambang_batas HARUS mengandung setidaknya satu dari:
   kondisi terverifikasi ("semua", "tidak ada kesalahan")
 
 DILARANG: "dengan tepat", "secara lancar", "dengan benar" tanpa ukuran konkret.
+
+Jika memakai persentase, SEBUTKAN jumlah butirnya: "80% dari 5 tahapan", bukan
+"80% tahapan". Persentase tanpa penyebut tidak bisa dihitung guru — pada 4 butir,
+nilai yang mungkin hanya 0, 25, 50, 75, dan 100 persen, sehingga ambang 80%
+tidak pernah tercapai. Bentuk "4 dari 5" selalu lebih aman.
 
 KKTP (prioritas):
 - Jika "kktp" di userMessage berisi array non-kosong: GUNAKAN data tersebut.
@@ -1473,21 +1628,80 @@ function buildUserMessageFaseC(params: {
   });
 }
 
+// Fakta instrumen yang paling sering dikarang naskah kalau tidak diberitahukan:
+// nama tokoh, jumlah bagian, dan nama tiap bagian.
+//
+// Sebelumnya Fase B2 hanya menerima id, judul, jenis, dan untuk_murid — isinya
+// sengaja dibuang demi menghemat token. Akibatnya penyusun naskah tidak punya
+// cara mengetahui bahwa tokoh PBL-01 bernama Dewi dan Ibu Sarah, atau bahwa
+// dialognya cuma satu. Ia mengarang "Kak Amanda", "Ibu Diana", dan menyuruh guru
+// membuka "PBL-01 halaman dua" yang tidak pernah ada. Guru membuka bahannya di
+// depan kelas dan menemukan dokumen yang tidak cocok dengan yang ia baca.
+//
+// Yang dikirim di bawah tetap ringkas — bukan seluruh isi instrumen, hanya fakta
+// yang membuat naskah bisa menyebutnya dengan benar.
+function faktaInstrumen(ins: unknown): Record<string, unknown> {
+  const i = ins as Record<string, unknown>;
+  const km = (i.konten_murid ?? null) as Record<string, unknown> | null;
+  const fakta: Record<string, unknown> = {
+    id: i.id, judul: i.judul, jenis: i.jenis, untuk_murid: i.untuk_murid,
+  };
+  if (km) {
+    if (Array.isArray(km.giliran)) {
+      fakta.jumlah_dialog = 1;
+      fakta.jumlah_giliran = km.giliran.length;
+      fakta.tokoh = [...new Set(
+        (km.giliran as Array<Record<string, unknown>>).map(g => String(g.pembicara ?? '')).filter(Boolean),
+      )];
+    }
+    if (Array.isArray(km.set)) {
+      fakta.nama_bagian = (km.set as Array<Record<string, unknown>>).map(x => String(x.nama_set ?? ''));
+    }
+    for (const [kunci, medan] of [['jumlah_soal', 'soal'], ['jumlah_pertanyaan', 'pertanyaan'],
+                                  ['jumlah_item', 'item_soal'], ['jumlah_indikator', 'kolom_indikator']]) {
+      if (Array.isArray(km[medan])) fakta[kunci] = (km[medan] as unknown[]).length;
+    }
+  }
+  const pg = (i.panduan_guru ?? null) as Record<string, unknown> | null;
+  if (pg && Array.isArray(pg.kolom_indikator)) fakta.jumlah_indikator = pg.kolom_indikator.length;
+  return fakta;
+}
+
 function buildUserMessageFaseB2(params: {
   faseAOutput:   Record<string, unknown>;
   pertemuanWithRef: unknown[];
   instrumenPembelajaran: unknown[];
   instrumenAsesmen:      unknown[];
   jumlahPertemuan: number;
+  jumlahMurid:     number | null;
 }): string {
-  // Kirim versi minimal instrumen (hanya id + judul + konten_murid ringkasan)
   const instrumenRingkas = [
     ...params.instrumenPembelajaran,
     ...params.instrumenAsesmen,
-  ].map((ins) => {
-    const i = ins as Record<string, unknown>;
-    return { id: i.id, judul: i.judul, jenis: i.jenis, untuk_murid: i.untuk_murid };
-  });
+  ].map(faktaInstrumen);
+
+  // Waktu tampil dihitung backend untuk setiap kegiatan bergantian, supaya naskah
+  // mengucapkan angka yang benar-benar muat alih-alih mengarang angkanya sendiri.
+  const jatahWaktu: Array<Record<string, unknown>> = [];
+  if (params.jumlahMurid) {
+    for (const pRaw of params.pertemuanWithRef) {
+      const pt = pRaw as Record<string, unknown>;
+      for (const lkRaw of (pt.langkah as Array<Record<string, unknown>> ?? [])) {
+        for (const slRaw of (lkRaw.sub_langkah as Array<Record<string, unknown>> ?? [])) {
+          if (slRaw.mode_pelaksanaan !== 'bergantian') continue;
+          const w = waktuPerKelompok(
+            Number(slRaw.durasi_menit ?? 0), params.jumlahMurid,
+            Number(slRaw.ukuran_kelompok ?? 1),
+          );
+          jatahWaktu.push({
+            ref: slRaw.ref,
+            jumlah_kelompok: w.nKelompok,
+            menit_per_kelompok: Math.floor(w.menitPerKelompok * 10) / 10,
+          });
+        }
+      }
+    }
+  }
 
   return JSON.stringify({
     fase: 'B2',
@@ -1497,7 +1711,23 @@ function buildUserMessageFaseB2(params: {
       'Field "ref" di setiap NaskahSubLangkah sudah disediakan dalam pertemuan[] di bawah — salin persis. ' +
       'Tulis ucapan_guru, aksi_guru, pertanyaan_kunci, jika_kesulitan. ' +
       'Bahasa imperatif, informal, langsung, siap diucapkan di kelas. ' +
+      'WEWENANGMU TERBATAS: kamu menentukan guru MENGATAKAN dan MELAKUKAN apa. ' +
+      'Kamu TIDAK menentukan bahan apa yang ada, berapa lama, atau siapa tokohnya — ' +
+      'semua itu sudah ditetapkan dan dikirim di bawah. ' +
       `Total output di bawah ${sasaranToken(params.jumlahPertemuan)} token.`,
+    aturan_kepatuhan: [
+      'Sebut instrumen HANYA dengan ID yang ada di instrumen_ringkas. Jangan membuat ID baru.',
+      'Instrumen tidak punya halaman atau bagian bernomor. DILARANG menulis "halaman dua", ' +
+      '"bagian kedua", atau sejenisnya — rujuk dengan ID-nya saja.',
+      'Nama tokoh WAJIB memakai daftar "tokoh" pada instrumen yang bersangkutan. ' +
+      'Jangan mengarang nama orang baru.',
+      'Nama skenario atau bagian WAJIB memakai daftar "nama_bagian". Jangan menambah skenario.',
+      'Jika kamu menyuruh guru membagikan atau mengisi sesuatu, benda itu HARUS salah satu ' +
+      'instrumen di instrumen_ringkas, atau alat umum kelas (papan tulis, spidol, buku catatan murid).',
+      'Durasi: jangan mengarang angka menit. Untuk kegiatan bergantian, pakai angka pada ' +
+      'jatah_waktu di bawah dan ucapkan angka itu apa adanya kepada murid.',
+    ],
+    jatah_waktu: jatahWaktu,
     jumlah_pertemuan: params.jumlahPertemuan,
     kktp:             params.faseAOutput.kktp,
     konteks_murid:    params.faseAOutput.konteks_murid,
@@ -2005,7 +2235,7 @@ Deno.serve(async (req) => {
     try {
       naskahOutput = await callPhase(
         'Fase B2 (naskah)',
-        buildUserMessageFaseB2({ faseAOutput, pertemuanWithRef, instrumenPembelajaran, instrumenAsesmen, jumlahPertemuan }),
+        buildUserMessageFaseB2({ faseAOutput, pertemuanWithRef, instrumenPembelajaran, instrumenAsesmen, jumlahPertemuan, jumlahMurid }),
         120_000, anggaranToken(jumlahPertemuan),
       );
     } catch (e) {
@@ -2101,7 +2331,7 @@ Deno.serve(async (req) => {
       metadata_pedagogis:     faseAOutput.metadata_pedagogis,
     };
 
-    let validation = validateModulOutputV400(merged, nomorTp, jumlahPertemuan, jpPerPertemuan, durasiJp, jumlahMurid, manifestFaseD);
+    let validation = validateModulOutputV400(merged, nomorTp, jumlahPertemuan, jpPerPertemuan, durasiJp, jumlahMurid, manifestFaseD, perangkatDigitalDiizinkan(cd));
 
     if (!validation.valid) {
       const errorList = validation.errors.join('; ');
@@ -2122,7 +2352,7 @@ Deno.serve(async (req) => {
         const mergedFixed = hasDurasiError
           ? { ...(merged as Record<string, unknown>), pertemuan: (repairParsed as Record<string, unknown>).pertemuan }
           : repairParsed;
-        validation = validateModulOutputV400(mergedFixed, nomorTp, jumlahPertemuan, jpPerPertemuan, durasiJp, jumlahMurid);
+        validation = validateModulOutputV400(mergedFixed, nomorTp, jumlahPertemuan, jpPerPertemuan, durasiJp, jumlahMurid, undefined, perangkatDigitalDiizinkan(cd));
         if (!validation.valid) {
           return json({ error: `Validasi gagal setelah repair: ${validation.errors.join('; ')}`, code: 'MODUL_GENERATION_INVALID_SCHEMA', retryable: true }, 422);
         }
