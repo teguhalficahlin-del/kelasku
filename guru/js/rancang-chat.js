@@ -2148,8 +2148,18 @@
 
     // Nama field JSON menjadi judul yang enak dibaca:
     // daftar_pertanyaan_lisan -> "Daftar Pertanyaan Lisan"
+    const SINGKATAN = { kktp: 'KKTP', cp: 'CP', tp: 'TP', jp: 'JP', k3: 'K3',
+                        atp: 'ATP', pbl: 'PBL', asm: 'ASM' };
     const humanKey = (k) => String(k).split('_')
-      .map(w => w ? w[0].toUpperCase() + w.slice(1) : w).join(' ');
+      .map(w => SINGKATAN[w] || (w ? w[0].toUpperCase() + w.slice(1) : w)).join(' ');
+
+    // Batas antara nilai yang berperilaku seperti penanda (kode, nama, istilah)
+    // dan yang berperilaku seperti prosa. Dipakai untuk DUA hal sekaligus —
+    // urutan tampil dan bentuk tata letaknya — supaya penanda selalu tampil
+    // lebih dulu sebaris dengan labelnya, dan prosa selalu mendapat barisnya
+    // sendiri. Dua ambang berbeda untuk pemisahan yang sama menghasilkan butir
+    // sejenis yang tampil tidak seragam.
+    const PENDEK = 25;
 
     // Penampil umum untuk bentuk yang tidak dikenali cabang khusus per jenis
     // instrumen. AI kerap mengarang nama field sendiri dan berbeda tiap kali —
@@ -2162,15 +2172,31 @@
         if (!val.length) return '';
         if (val.every(x => x === null || typeof x !== 'object'))
           return `<ul class="mv4-list">${val.map(x => `<li>${esc(x)}</li>`).join('')}</ul>`;
-        return val.map(x => renderGenerik(x, depth + 1)).join('');
+        // Tiap butir diberi blok sendiri. Tanpa ini giliran dialog dan daftar
+        // kategori menyatu jadi satu gumpalan yang batasnya harus ditebak.
+        return val.map(x => {
+          const isiButir = renderGenerik(x, depth + 1);
+          return isiButir ? `<div class="mv4-asesmen-blok">${isiButir}</div>` : '';
+        }).join('');
       }
-      return Object.keys(val).map(k => {
+      // Field pendek (atribut, misalnya "pembicara") ditampilkan sebelum yang
+      // panjang (prosa, misalnya "ucapan"), supaya pembaca tahu konteksnya dulu.
+      // Urutan asli JSON kerap menaruh prosanya lebih dahulu, dan dialog jadi
+      // terbaca sebagai kalimat-dulu-baru-siapa-yang-mengucapkan.
+      // Hanya nilai yang JELAS pendek (kode, nama, istilah — di bawah 25
+      // karakter) yang dinaikkan ke atas sebagai penanda. Sisanya tetap pada
+      // urutan aslinya, karena membandingkan panjang antar-prosa membuat dua
+      // butir sejenis tampil dengan urutan berbeda hanya karena selisih
+      // beberapa karakter. Objek dan array selalu paling bawah.
+      const bobot = (v) => (v !== null && typeof v === 'object') ? 2
+                         : (String(v).length <= PENDEK ? 0 : 1);
+      return Object.keys(val).sort((a, b) => bobot(val[a]) - bobot(val[b])).map(k => {
         const isi = val[k];
         if (isi === null || isi === undefined || isi === '') return '';
         const judul = esc(humanKey(k));
         if (typeof isi !== 'object') {
-          // Kalimat panjang diberi baris sendiri; yang pendek cukup sebaris label-nilai.
-          return String(isi).length > 80
+          // Prosa diberi baris sendiri; penanda cukup sebaris label-nilai.
+          return String(isi).length > PENDEK
             ? `<div class="mv4-sub"><strong>${judul}</strong></div><div class="mv4-sub">${esc(isi)}</div>`
             : `<div class="mv4-row"><span class="mv4-label">${judul}</span><span>${esc(isi)}</span></div>`;
         }
