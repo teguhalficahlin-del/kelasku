@@ -3136,8 +3136,9 @@
     const FASE_LABELS = {
       A: '⏳ Menyusun identitas dan rencana asesmen…',
       B: '⏳ Merancang langkah pembelajaran…',
-      C: '⏳ Membuat instrumen asesmen…',
-      D: '⏳ Menyusun tindak lanjut dan finalisasi…',
+      C:  '⏳ Membuat instrumen dan bahan ajar…',
+      B2: '⏳ Menyusun naskah fasilitasi…',
+      D:  '⏳ Menyusun tindak lanjut dan finalisasi…',
     };
 
     // Disable chip "Ulangi Generate" jika ada di DOM

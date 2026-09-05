@@ -211,12 +211,22 @@ async function callGenerateModul(modulIndukId, classroomId, expectedUpdatedAt, o
   const resB = await _callGenerateModulFase(token, modulIndukId, classroomId, resA.updated_at, 'B', signal);
   if (typeof onProgress === 'function') onProgress({ fase: 'C', elapsed: Date.now() - start });
 
-  // Fase C — instrumen G1-G7
+  // Fase C — instrumen
   const resC = await _callGenerateModulFase(token, modulIndukId, classroomId, resB.updated_at, 'C', signal);
+  if (typeof onProgress === 'function') onProgress({ fase: 'B2', elapsed: Date.now() - start });
+
+  // Fase B2 — naskah fasilitasi.
+  //
+  // Dulu ini menumpang di dalam permintaan Fase C, sehingga satu panggilan
+  // mengerjakan dua penyusunan AI berturut-turut dan bisa berjalan sampai empat
+  // menit. Modul TP 6 gagal dua kali tepat di peralihan itu. Sebagai permintaan
+  // sendiri, setiap panggilan hanya mengerjakan satu penyusunan — dan guru
+  // melihat tahapnya berjalan, bukan menunggu lama tanpa keterangan.
+  const resB2 = await _callGenerateModulFase(token, modulIndukId, classroomId, resC.updated_at, 'B2', signal);
   if (typeof onProgress === 'function') onProgress({ fase: 'D', elapsed: Date.now() - start });
 
   // Fase D — tindak_lanjut + catatan_guru + merge + write final + status='aktif'
-  const resD = await _callGenerateModulFase(token, modulIndukId, classroomId, resC.updated_at, 'D', signal);
+  const resD = await _callGenerateModulFase(token, modulIndukId, classroomId, resB2.updated_at, 'D', signal);
 
   return {
     status:         'done',

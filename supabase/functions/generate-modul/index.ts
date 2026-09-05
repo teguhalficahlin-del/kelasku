@@ -41,6 +41,45 @@ function sasaranToken(jumlahPertemuan: number): number {
   return Math.min(3000 * jumlahPertemuan, 36000);
 }
 
+// Naskah fasilitasi disusun DARI pertemuan (Fase B) dan instrumen (Fase C).
+// Begitu salah satunya disusun ulang, naskah lama tidak lagi cocok: rujukan
+// sub-langkahnya menunjuk langkah yang sudah tidak ada, dan kutipannya mengaku
+// berasal dari instrumen yang isinya sudah berganti.
+//
+// Ini terlihat saat menguji tombol "Coba Lagi": Fase B menyusun ulang pertemuan,
+// Fase B2 melewati diri sendiri karena naskah sudah ada, lalu validasi menolak
+// sembilan rujukan sekaligus. Idempotency yang menghemat pekerjaan berubah jadi
+// idempotency yang menyimpan pekerjaan yang sudah basi.
+function gugurkanNaskah(draft: Record<string, unknown>): Record<string, unknown> {
+  const d = { ...draft };
+  delete d.fase_b2;
+  return d;
+}
+
+// Fase D — tindak lanjut dan catatan guru.
+//
+// Keluarannya pendek dan hampir tidak tumbuh, tapi plafonnya tetap roboh: 6.804
+// token teks ditambah 5.191 token penalaran = 11.995 dari plafon 12.000. Gagal
+// dengan sisa lima token, persis seperti Fase A pagi ini yang gagal dengan sisa
+// empat.
+//
+// Pelajarannya bukan "12.000 kurang besar", melainkan bahwa penalaran model
+// tidak ikut mengecil hanya karena keluarannya pendek. Lantai lebih berguna
+// daripada kelipatan di sini.
+function anggaranTokenFaseD(jumlahKktp: number, jumlahPertemuan: number): number {
+  return Math.max(16000, Math.min(2000 * (jumlahKktp + jumlahPertemuan), 24000));
+}
+
+// Jalur perbaikan menyusun ULANG SELURUH dokumen ketika validasi gagal —
+// termasuk naskah fasilitasi yang sendirian sudah 40.000 karakter. Memakai
+// anggaranToken() yang sama dengan satu fase adalah kekeliruan yang belum pernah
+// terlihat hanya karena jalur ini jarang terpakai: begitu ia jalan, keluarannya
+// pasti terpotong dan guru melihat "Validasi gagal setelah repair" tanpa tahu
+// bahwa perbaikannya tidak pernah punya ruang untuk selesai.
+function anggaranTokenPerbaikan(jumlahPertemuan: number): number {
+  return Math.min(60000, Math.max(32000, 10000 * jumlahPertemuan));
+}
+
 // Anggaran token khusus Naskah Fasilitasi (Fase B2).
 //
 // Naskah adalah keluaran TERBESAR di seluruh pipeline — pada TP 6 panjangnya
@@ -1926,7 +1965,7 @@ Deno.serve(async (req) => {
     modul_induk_id?: string;
     classroom_id?: string;
     expected_updated_at?: string;
-    fase?: 'A' | 'B' | 'C' | 'D';
+    fase?: 'A' | 'B' | 'C' | 'B2' | 'D';
   };
   try {
     body = await req.json();
@@ -1938,7 +1977,7 @@ Deno.serve(async (req) => {
     modul_induk_id?: string;
     classroom_id?: string;
     expected_updated_at?: string;
-    fase?: 'A' | 'B' | 'C' | 'D';
+    fase?: 'A' | 'B' | 'C' | 'B2' | 'D';
   };
   if (!modul_induk_id) return json({ error: 'modul_induk_id wajib diisi.' }, 400);
   if (!classroom_id)   return json({ error: 'classroom_id wajib diisi.' }, 400);
@@ -2201,6 +2240,25 @@ Deno.serve(async (req) => {
     return parsed as Record<string, unknown>;
   }
 
+  // Penyusunan naskah dipakai dua tempat: Fase B2 (jalur normal) dan Fase D
+  // (jalur mundur untuk klien lama yang belum tahu Fase B2 ada).
+  async function susunNaskah(
+    faseAOutput: Record<string, unknown>,
+    pertemuanWithRef: unknown[],
+    instrumenPembelajaran: unknown[],
+    instrumenAsesmen: unknown[],
+  ): Promise<unknown[]> {
+    const out = await callPhase(
+      'Fase B2 (naskah)',
+      buildUserMessageFaseB2({
+        faseAOutput, pertemuanWithRef, instrumenPembelajaran, instrumenAsesmen,
+        jumlahPertemuan, jumlahMurid,
+      }),
+      120_000, anggaranTokenNaskah(jumlahPertemuan),
+    );
+    return Array.isArray(out.naskah_fasilitasi) ? out.naskah_fasilitasi : [];
+  }
+
   const svcClient = createClient(
     Deno.env.get('SUPABASE_URL')!,
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
@@ -2314,7 +2372,7 @@ Deno.serve(async (req) => {
     const pertemuanWithRef = injectSubLangkahRef(pertemuanArr);
     const faseBOutput = { ...faseBRaw, pertemuan: pertemuanWithRef };
 
-    const draftB = { ...kontenObj, _draft: { ...draft, fase_b: faseBOutput } };
+    const draftB = { ...kontenObj, _draft: { ...gugurkanNaskah(draft), fase_b: faseBOutput } };
     const writeResult = expected_updated_at
       ? await userClient.from('modul_induk').update({ konten: draftB })
           .eq('id', modul_induk_id).eq('updated_at', expected_updated_at)
@@ -2364,26 +2422,24 @@ Deno.serve(async (req) => {
     const instrumenAsesmen      = Array.isArray(faseCOutput.instrumen_asesmen)      ? faseCOutput.instrumen_asesmen      : [];
     const pertemuanWithRef      = Array.isArray(faseBOutput.pertemuan) ? faseBOutput.pertemuan as unknown[] : [];
 
-    // C2: Generate naskah_fasilitasi (B2) menggunakan instrumen final
-    let naskahOutput: Record<string, unknown>;
-    try {
-      naskahOutput = await callPhase(
-        'Fase B2 (naskah)',
-        buildUserMessageFaseB2({ faseAOutput, pertemuanWithRef, instrumenPembelajaran, instrumenAsesmen, jumlahPertemuan, jumlahMurid }),
-        120_000, anggaranTokenNaskah(jumlahPertemuan),
-      );
-    } catch (e) {
-      const err = e as { message?: string; code?: string; retryable?: boolean };
-      return json({ error: err.message ?? 'Gagal di Fase B2 (naskah)', code: err.code ?? 'AI_ERROR', retryable: err.retryable ?? true }, 500);
-    }
-
+    // Fase C berhenti di sini. Penyusunan naskah pindah ke Fase B2 sebagai
+    // permintaan tersendiri.
+    //
+    // Sebelumnya keduanya berbagi satu panggilan Edge Function, sehingga satu
+    // permintaan mengerjakan dua penyusunan AI berturut-turut — masing-masing
+    // berbatas 120 detik, jadi sampai 240 detik untuk satu permintaan. Modul TP 6
+    // gagal dua kali berturut-turut tepat di peralihan itu, dan sebabnya tidak
+    // pernah bisa dipisahkan antara plafon token dan batas waktu.
+    //
+    // Memisahkannya menghapus pertanyaannya: satu permintaan, satu penyusunan.
+    // Guru juga melihat progres yang jujur — "menyusun naskah" jadi tahap
+    // tersendiri, bukan menunggu lama di "membuat instrumen".
     const faseCFinal = {
       instrumen_pembelajaran: instrumenPembelajaran,
       instrumen_asesmen:      instrumenAsesmen,
-      naskah_fasilitasi:      Array.isArray(naskahOutput.naskah_fasilitasi) ? naskahOutput.naskah_fasilitasi : [],
     };
 
-    const draftC = { ...kontenObj, _draft: { ...draft, fase_c: faseCFinal } };
+    const draftC = { ...kontenObj, _draft: { ...gugurkanNaskah(draft), fase_c: faseCFinal } };
     const writeResult = expected_updated_at
       ? await userClient.from('modul_induk').update({ konten: draftC })
           .eq('id', modul_induk_id).eq('updated_at', expected_updated_at)
@@ -2399,6 +2455,52 @@ Deno.serve(async (req) => {
   }
 
   // ── FASE D — tindak_lanjut + catatan_guru + merge + write final ───────────────
+  if (fase === 'B2') {
+    const draft       = (kontenObj._draft as Record<string, unknown>) || {};
+    const faseAOutput = draft.fase_a as Record<string, unknown> | undefined;
+    const faseBOutput = draft.fase_b as Record<string, unknown> | undefined;
+    const faseCOutput = draft.fase_c as Record<string, unknown> | undefined;
+    if (!faseAOutput) return json({ error: 'Output Fase A belum ada.', code: 'MODUL_INPUT_INCOMPLETE', missing: ['draft_fase_a'] }, 422);
+    if (!faseBOutput) return json({ error: 'Output Fase B belum ada.', code: 'MODUL_INPUT_INCOMPLETE', missing: ['draft_fase_b'] }, 422);
+    if (!faseCOutput) return json({ error: 'Output Fase C belum ada.', code: 'MODUL_INPUT_INCOMPLETE', missing: ['draft_fase_c'] }, 422);
+
+    // Idempotency, sama seperti Fase A: naskah yang sudah tersusun tidak disusun
+    // ulang. Tombol "Coba Lagi" karena itu tidak membuang pekerjaan yang sudah
+    // jadi — termasuk naskah dari draft bentuk lama yang menyimpannya di fase_c.
+    const naskahAda = (draft.fase_b2 as Record<string, unknown> | undefined)?.naskah_fasilitasi
+      ?? faseCOutput.naskah_fasilitasi;
+    if (Array.isArray(naskahAda) && naskahAda.length) {
+      return json({ fase: 'B2', ok: true, updated_at: (modul as Record<string, unknown>).updated_at as string });
+    }
+
+    let naskah: unknown[];
+    try {
+      naskah = await susunNaskah(
+        faseAOutput,
+        Array.isArray(faseBOutput.pertemuan) ? faseBOutput.pertemuan as unknown[] : [],
+        Array.isArray(faseCOutput.instrumen_pembelajaran) ? faseCOutput.instrumen_pembelajaran as unknown[] : [],
+        Array.isArray(faseCOutput.instrumen_asesmen) ? faseCOutput.instrumen_asesmen as unknown[] : [],
+      );
+    } catch (e) {
+      const err = e as { message?: string; code?: string; retryable?: boolean };
+      return json({ error: err.message ?? 'Gagal di Fase B2 (naskah)', code: err.code ?? 'AI_ERROR', retryable: err.retryable ?? true }, 500);
+    }
+
+    const draftB2 = { ...kontenObj, _draft: { ...draft, fase_b2: { naskah_fasilitasi: naskah } } };
+    const writeResult = expected_updated_at
+      ? await userClient.from('modul_induk').update({ konten: draftB2 })
+          .eq('id', modul_induk_id).eq('updated_at', expected_updated_at)
+          .select('id, updated_at').maybeSingle()
+      : await userClient.from('modul_induk').update({ konten: draftB2 })
+          .eq('id', modul_induk_id)
+          .select('id, updated_at').maybeSingle();
+
+    if (writeResult.error) return json({ error: 'Gagal menyimpan naskah fasilitasi.', code: 'MODUL_WRITE_ERROR' }, 500);
+    if (!writeResult.data) return json({ error: 'Modul berubah saat generate. Muat ulang dan coba lagi.', code: 'MODUL_GENERATION_CONFLICT' }, 409);
+
+    return json({ fase: 'B2', ok: true, updated_at: (writeResult.data as { updated_at: string }).updated_at });
+  }
+
   if (fase === 'D') {
     const draft       = (kontenObj._draft as Record<string, unknown>) || {};
     const faseAOutput  = draft.fase_a as Record<string, unknown> | undefined;
@@ -2407,6 +2509,33 @@ Deno.serve(async (req) => {
     if (!faseAOutput) return json({ error: 'Output Fase A belum ada.', code: 'MODUL_INPUT_INCOMPLETE', missing: ['draft_fase_a'] }, 422);
     if (!faseBOutput) return json({ error: 'Output Fase B belum ada.', code: 'MODUL_INPUT_INCOMPLETE', missing: ['draft_fase_b'] }, 422);
     if (!faseCOutput) return json({ error: 'Output Fase C belum ada.', code: 'MODUL_INPUT_INCOMPLETE', missing: ['draft_fase_c'] }, 422);
+
+    // Naskah dicari di tiga tempat, berurutan:
+    //   1. draft.fase_b2       — jalur normal sejak naskah dipisah
+    //   2. draft.fase_c        — draft bentuk lama, dari sebelum pemisahan
+    //   3. disusun di sini     — klien lama yang memanggil A→B→C→D tanpa B2
+    //
+    // Lapis ketiga penting: berkas klien disajikan GitHub Pages dan bisa
+    // tertahan di cache browser guru berhari-hari. Tanpa jalur mundur, guru
+    // dengan klien lama akan melihat modulnya gagal tepat di langkah terakhir,
+    // padahal seluruh pekerjaan sebelumnya sudah selesai dan terbayar.
+    let naskahFinal =
+      ((draft.fase_b2 as Record<string, unknown> | undefined)?.naskah_fasilitasi
+        ?? faseCOutput.naskah_fasilitasi) as unknown[] | undefined;
+
+    if (!Array.isArray(naskahFinal) || !naskahFinal.length) {
+      try {
+        naskahFinal = await susunNaskah(
+          faseAOutput,
+          Array.isArray(faseBOutput.pertemuan) ? faseBOutput.pertemuan as unknown[] : [],
+          Array.isArray(faseCOutput.instrumen_pembelajaran) ? faseCOutput.instrumen_pembelajaran as unknown[] : [],
+          Array.isArray(faseCOutput.instrumen_asesmen) ? faseCOutput.instrumen_asesmen as unknown[] : [],
+        );
+      } catch (e) {
+        const err = e as { message?: string; code?: string; retryable?: boolean };
+        return json({ error: err.message ?? 'Gagal di Fase B2 (naskah)', code: err.code ?? 'AI_ERROR', retryable: err.retryable ?? true }, 500);
+      }
+    }
 
     const manifestFaseD: InstrumentManifest = {
       pembelajaran_manifest: Array.isArray((faseAOutput.manifest as Record<string, unknown>)?.pembelajaran_manifest)
@@ -2422,7 +2551,10 @@ Deno.serve(async (req) => {
       faseDOutput = await callPhase(
         'Fase D',
         buildUserMessageFaseD({ faseAOutput, cd }),
-        120_000, 12000,
+        120_000, anggaranTokenFaseD(
+          Array.isArray(faseAOutput.kktp) ? (faseAOutput.kktp as unknown[]).length : 3,
+          jumlahPertemuan,
+        ),
       );
     } catch (e) {
       const err = e as { message?: string; code?: string; retryable?: boolean };
@@ -2457,7 +2589,7 @@ Deno.serve(async (req) => {
       rencana_asesmen:        faseAOutput.rencana_asesmen,
       rancangan:              faseAOutput.rancangan,
       pertemuan:              faseBOutput.pertemuan,
-      naskah_fasilitasi:      faseCOutput.naskah_fasilitasi ?? [],
+      naskah_fasilitasi:      naskahFinal ?? [],
       instrumen_pembelajaran: faseCOutput.instrumen_pembelajaran ?? [],
       instrumen_asesmen:      faseCOutput.instrumen_asesmen ?? [],
       tindak_lanjut:          faseDOutput.tindak_lanjut,
@@ -2481,7 +2613,8 @@ Deno.serve(async (req) => {
           `\n\nERROR yang harus diperbaiki: ${errorList}. Hasilkan JSON object penuh yang sudah benar.`;
 
       try {
-        const repairText  = await callAI([{ role: 'user', content: repairMsg }], 50_000, anggaranToken(jumlahPertemuan));
+        const repairText  = await callAI([{ role: 'user', content: repairMsg }], 50_000,
+          hasDurasiError ? anggaranToken(jumlahPertemuan) : anggaranTokenPerbaikan(jumlahPertemuan));
         const repairParsed = extractJson(repairText);
         const mergedFixed = hasDurasiError
           ? { ...(merged as Record<string, unknown>), pertemuan: (repairParsed as Record<string, unknown>).pertemuan }
