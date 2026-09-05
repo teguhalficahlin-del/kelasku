@@ -238,7 +238,14 @@ git push origin main                  → urutan TERAKHIR
 ## 12. STATUS PROYEK
 
 **Fase saat ini: DEVELOPMENT AKTIF**
-**HEAD:** `0fb520b` (per 5 September 2026)
+**HEAD:** `b67ec0f` (per 6 September 2026)
+
+> **KEPUTUSAN TERTAHAN — kesiapan go-live Tab Rancang.**
+> `docs/BACKLOG-GO-LIVE-RANCANG.md`. Putusan **GO BERTAHAP (3 guru dulu, bukan
+> 14)** sudah disusun beserta dasarnya, syarat sebelum gerbang dibuka, dan
+> kriteria pembatalannya — ditahan atas permintaan Romo yang menilai perlu
+> kepastian lebih dulu tentang bagaimana Tab Rancang bekerja sampai tuntas.
+> Isolasi antar-guru sudah diuji tuntas dan bersih (menutup Test 8.4–8.5).
 
 - [x] Dokumen rancangan selesai (REQUIREMENTS, SCHEMA-v0, ADR-001)
 - [x] Supabase project baru dibuat
@@ -254,7 +261,11 @@ git push origin main                  → urutan TERAKHIR
 - [x] Edge Functions deployed: `generate-akun`, `hapus-akun`, `phase2-material`, `phase2-meeting`, `phase2-followup`, `phase2-validator`, `runtime-sync`
 - [x] Portal Guru: tab Penilaian — assessment_items + student_grades (sesi 6 Agustus 2026)
 - [x] Portal Guru: Penilaian section Perencanaan selesai — CP/TP/KKTP CRUD, TP collapsed, grid KKTP, custom dropdown semester (sesi 7–8 Agustus 2026)
-- [x] Portal Guru: Tab Rancang Pembelajaran — pipeline Step 6 (Tahap 1–7) selesai, Step 7 Document Hub selesai, Step 8 Runtime selesai (belum di-hardening); Putaran 9 (Hardening) belum dikerjakan
+- [x] Portal Guru: Tab Rancang Pembelajaran — kini berbentuk **chat interface**
+      (`a433504`), bukan wizard. Pipeline: funnel ATP → generate-atp → funnel
+      Modul → generate-modul 5 fase → tab Unduh (.docx). **Step 8 Runtime sudah
+      TIDAK ADA** — berkasnya dihapus di `a433504`. Peta lengkap beserta status
+      pengujian tiap tahap: `docs/BACKLOG-GO-LIVE-RANCANG.md` §3
 - [x] Portal Guru: catatan siswa + sesi pembinaan (`classroom-notes.js`)
 - [x] Portal Guru: jadwal classroom (ADR-004)
 - [x] Portal Guru: absensi classroom (ADR-005)
@@ -297,7 +308,13 @@ git push origin main                  → urutan TERAKHIR
 
 **Test pending manual:**
 - Test 4.4: progress generate semua (butuh siswa baru tanpa akun)
-- Test 8.4–8.5: cross-classroom isolation (butuh guru kedua)
+- ~~Test 8.4–8.5: cross-classroom isolation~~ — **SELESAI 6 September 2026, bersih.**
+  Baca B→A 8 tabel, baca A→B 6 tabel, tulis 9 percobaan: nol kebocoran, semua
+  tulisan digagalkan RLS. Ternyata tidak butuh guru kedua yang *login* — cukup
+  guru kedua yang *ada*, lalu menyamar sebagai JWT-nya lewat
+  `SET LOCAL request.jwt.claims` di dalam transaksi ber-ROLLBACK. Menguji lewat
+  peramban justru menguji lapisan yang salah: isolasi ditegakkan RLS, bukan UI.
+  Caranya di `docs/BACKLOG-GO-LIVE-RANCANG.md` §6.
 
 **Fitur & fix sesi 6 Agustus 2026 — penilaian (HEAD ca290cb → c9b5d16):**
 
@@ -498,19 +515,28 @@ Migrations baru:
 20260905000001_rancang-settings-jumlah-murid.sql
 ```
 
-**File JS Runtime Rancang (sudah ter-commit di `f99b71b`, 19 Agustus 2026):**
+**File JS Runtime Rancang — SUDAH DIHAPUS, blok ini tinggal catatan sejarah:**
 ```
-guru/js/runtime-compiler.js
-guru/js/runtime-db.js
-guru/js/runtime-session.js
-guru/js/runtime-ui.js
-guru/js/runtime-sync.js
+guru/js/runtime-compiler.js      dihapus di a433504
+guru/js/runtime-db.js            dihapus di a433504
+guru/js/runtime-session.js       dihapus di a433504
+guru/js/runtime-ui.js            dihapus di a433504
+guru/js/runtime-sync.js          dihapus di a433504
+guru/js/classroom-rancang.js     dihapus di a433504
 ```
 
-> Label blok ini sebelumnya berbunyi "untracked, belum commit". Itu sudah
-> tidak benar sejak `f99b71b` — kelimanya masuk dalam satu commit dan kini
-> tracked. Daftarnya dipertahankan karena masih berguna: ia menyebutkan
-> berkas mana saja yang menyusun runtime Tab Rancang.
+> **Lapisan Runtime Tab Rancang tidak ada lagi.** Commit `a433504` ("ganti
+> wizard rancang dengan chat interface V1 — hapus semua file lama") membuang
+> keenamnya. Blok ini dua kali salah sebelumnya: pernah berlabel "untracked,
+> belum commit", lalu diperbaiki jadi "sudah ter-commit di f99b71b" — dan
+> label kedua itu ikut basi begitu wizard-nya diganti.
+>
+> Verifikasi cepat kapan pun ragu:
+> `git log --diff-filter=D --name-only -- 'guru/js/runtime-*.js'`
+>
+> Peta pipeline Tab Rancang yang berlaku sekarang ada di
+> `docs/BACKLOG-GO-LIVE-RANCANG.md` §3 — ujungnya berkas .docx dari tab Unduh,
+> bukan sesi mengajar di aplikasi.
 
 **Catatan hardening:**
 Putaran 9 (Hardening) belum dikerjakan.
