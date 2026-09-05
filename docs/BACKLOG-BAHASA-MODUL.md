@@ -228,3 +228,139 @@ modul yang gagal di tengah bisa diulang gratis.
   esbuild tidak type-check, dan `ReferenceError` yang lolos muncul di browser sebagai
   kegagalan CORS.
 - Naikkan nomor versi cache di `guru/classroom.html` setiap berkas JS berubah.
+
+---
+
+## 10. Prompt siap pakai
+
+Tiga prompt di bawah ditulis untuk ditempel apa adanya ke sesi Claude Code baru.
+Satu prompt = satu sesi. **Kerjakan berurutan A → B → C.** Urutan ini disengaja:
+Prompt A memperbaiki isi modul yang keliru, B dan C hanya memperbaiki redaksi.
+
+Setiap prompt memuat perintah untuk **membuktikan sendiri temuannya sebelum
+mengubah apa pun**. Itu bukan formalitas: dokumen ini ditulis pada 5 September 2026,
+dan kalau kode atau data sudah berubah sejak itu, bukti di lapangan yang menang —
+bukan tulisan di sini.
+
+---
+
+### PROMPT A — Tahap 2: kunci opsi bocor ke modul (kerjakan pertama)
+
+```
+Repo MIClass. Kerjakan Tahap 2 dari docs/BACKLOG-BAHASA-MODUL.md.
+
+Masalahnya: klien menyimpan kunci opsi (bukan labelnya), kunci itu dikirim ke AI,
+dan AI menyalinnya apa adanya ke modul ajar. Beberapa kunci tidak menggambarkan
+opsinya — 'kolaboratif' sebenarnya berarti "berbasis masalah", 'campuran' berarti
+"kontekstual". Akibatnya modul TP 3 dan TP 6 salah menyebut strategi yang dipilih
+gurunya sendiri. Ini bukan cacat kosmetik: isi modulnya keliru.
+
+Sebelum menyentuh kode:
+1. Jalankan /sip-start.
+2. Baca docs/BACKLOG-BAHASA-MODUL.md seluruhnya. Bagian yang mengikat: 2 (temuan),
+   4 (yang dikerjakan), 6 (keputusan yang sudah diambil), 7 (larangan), 8
+   (verifikasi), 9 (gate).
+3. Baca AGENT_RULES.md bagian "4b. Mode C — Sprint Fix" dan ikuti Fase 0-4.
+4. BUKTIKAN DULU temuannya sendiri dengan query SQL di bagian 8. Jangan percaya
+   dokumen ini begitu saja. Kalau bukti di database bertentangan dengan yang
+   tertulis, ikuti bukti dan laporkan bedanya sebelum lanjut.
+
+Klasifikasi sprint: Campuran (klien + Edge Function).
+Auto-execute FASE 4: TIDAK — berhenti setelah FASE 3, tunggu konfirmasi Romo.
+
+Yang dikerjakan: terjemahkan kunci opsi menjadi frasa manusiawi saat menyusun
+prompt ke AI, memakai tabel pemetaan di bagian 4. Jangan mengubah kunci yang sudah
+tersimpan di collected_data modul lama — data lama harus tetap terbaca.
+
+Selesai bila:
+- deno check supabase/functions/generate-modul/index.ts lolos
+- tidak ada kunci opsi mentah yang bisa sampai ke prompt AI (tunjukkan buktinya)
+- diff ditampilkan verbatim dan Self Review 5 Poin lulus
+
+Sesudah commit: STOP. Deploy Edge Function dan git push menunggu izin Romo.
+Verifikasi akhir butuh satu generate baru — usulkan ke Romo, jangan jalankan
+sendiri tanpa izin. Kuota 5x per hari per kelas.
+```
+
+---
+
+### PROMPT B — Tahap 1: identifier mentah di layar
+
+```
+Repo MIClass. Kerjakan Tahap 1 dari docs/BACKLOG-BAHASA-MODUL.md.
+
+Masalahnya: nama enum dan identifier internal bocor ke Modul Ajar dan Naskah
+Fasilitasi yang dicetak guru — jenis instrumen tampil sebagai [teks_autentik],
+nama langkah sebagai ASESMEN_AWAL, fase sebagai MENGAPLIKASI, dan ada label
+"Placement", "Entitas", "Fokus Amati".
+
+Sebelum menyentuh kode:
+1. Jalankan /sip-start.
+2. Baca docs/BACKLOG-BAHASA-MODUL.md bagian 3 (yang dikerjakan, lengkap dengan
+   nomor baris dan tabel pemetaan), 6 (keputusan yang sudah diambil), 7 (larangan),
+   8 (verifikasi), 9 (gate).
+3. Baca AGENT_RULES.md bagian "4b. Mode C — Sprint Fix" dan ikuti Fase 0-4.
+4. BUKTIKAN DULU: buka modul mana pun di browser dan jalankan dua cuplikan konsol
+   di bagian 8. Nomor baris di dokumen berasal dari 5 September 2026 — kalau kode
+   sudah bergeser, cari lokasi sebenarnya, jangan menambal berdasarkan nomor baris
+   yang sudah basi.
+
+Klasifikasi sprint: JS/HTML only (guru/js/rancang-chat.js + guru/classroom.html).
+Auto-execute FASE 4: YA — commit dan push otomatis bila semua gate lulus.
+
+Perhatian khusus: peta LABEL_LANGKAH sudah ada di rancang-chat.js sekitar baris
+2796, tapi terkurung di jalur render lama berbasis bubble. Naikkan ke scope
+bersama dan pakai di ketiga tempat (renderer V4.0, renderer naskah, jalur lama) —
+jangan membuat peta kedua yang nanti menyimpang sendiri.
+
+Selesai bila:
+- node --check guru/js/rancang-chat.js lolos
+- dua cuplikan konsol di bagian 8 mengembalikan array kosong, untuk KEDUA tab,
+  diuji pada minimal dua modul berbeda
+- tab Naskah Fasilitasi tidak berubah selain nama langkah (tidak boleh ada regresi)
+- nomor versi cache di guru/classroom.html dinaikkan
+- diff verbatim + Self Review 5 Poin
+
+Perubahan ini berlaku surut ke semua modul lama tanpa generate ulang. Buktikan
+dengan membuka modul yang dibuat sebelum perubahan.
+```
+
+---
+
+### PROMPT C — Tahap 3: larangan jargon di prompt AI
+
+```
+Repo MIClass. Kerjakan Tahap 3 dari docs/BACKLOG-BAHASA-MODUL.md.
+
+Masalahnya: prosa AI di Modul Ajar dan Naskah Fasilitasi masih memuat jargon
+pedagogis yang tidak dipakai guru sehari-hari — "asesmen formatif", "dukungan
+terstruktur", "diferensiasi", "PBL", "autentik", "kondusif", "ketercapaian".
+
+Sebelum menyentuh kode:
+1. Jalankan /sip-start.
+2. Baca docs/BACKLOG-BAHASA-MODUL.md bagian 5 (daftar istilah dan gantinya),
+   6 (keputusan yang sudah diambil), 7 (larangan), 8 (verifikasi), 9 (gate).
+3. Baca AGENT_RULES.md bagian "4b. Mode C — Sprint Fix" dan ikuti Fase 0-4.
+4. BUKTIKAN DULU: hitung sendiri istilah-istilah itu pada modul yang ada, jangan
+   memakai angka di dokumen. Kalau sebuah istilah ternyata sudah tidak muncul,
+   jangan menambahkan larangannya — prompt yang membengkak tanpa alasan hanya
+   menambah beban token.
+
+Klasifikasi sprint: Edge Function (SYSTEM_PROMPT di generate-modul).
+Auto-execute FASE 4: TIDAK — berhenti setelah FASE 3, tunggu konfirmasi Romo.
+
+Jangan melarang istilah resmi Kurikulum Merdeka. Baca bagian 6 sebelum menyusun
+daftar larangan: CP, TP, KKTP, asesmen, Elemen CP, Fase, dan K3 TETAP DIPAKAI.
+Yang dilarang hanya jargon teknis kita sendiri.
+
+Selesai bila:
+- deno check supabase/functions/generate-modul/index.ts lolos
+- daftar larangan tertulis di SYSTEM_PROMPT beserta frasa penggantinya, bukan
+  sekadar "hindari bahasa teknis"
+- diff verbatim + Self Review 5 Poin
+
+Sesudah commit: STOP. Deploy dan push menunggu izin Romo. Efek perubahan ini baru
+terukur pada generate berikutnya — usulkan satu generate uji ke Romo, lalu hitung
+ulang istilahnya pada hasil baru itu. Jangan mengklaim selesai sebelum angka itu
+ada.
+```
