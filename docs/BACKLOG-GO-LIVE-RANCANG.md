@@ -7,6 +7,12 @@
 > perlu kepastian lebih dulu tentang bagaimana Tab Rancang bekerja sampai
 > tuntas. Dokumen ini mencatat putusan beserta dasarnya supaya tidak disusun
 > ulang dari awal.
+>
+> **Pembaruan 7 September 2026 (HEAD `af3f32b`).** Satu-satunya syarat teknis
+> sebelum gerbang dibuka — pola `reguler_bagi` dan `blok` dijalankan sampai
+> tuntas — **sudah terpenuhi, keduanya sehat.** Buktinya di §2. Yang menahan
+> sekarang tinggal keputusan Romo: siapa tiga gurunya. Cacat di §4 tidak
+> berubah dan tetap berlaku sebagai alasan "bertahap, bukan 14 sekaligus".
 
 ---
 
@@ -69,11 +75,48 @@ sengaja.
 
 **Rem diabaikan model** — lihat §4.
 
-### Syarat sebelum gerbang dibuka
+### Syarat sebelum gerbang dibuka — **TERPENUHI 7 September 2026**
 
 Satu, dan bisa dikerjakan tanpa pengguna: **jalankan `reguler_bagi` dan `blok`
 sampai tuntas.** Jatah generate dihitung per `atp_induk_id`, jadi dua ATP uji
 baru muat. Kalau salah satunya patah, putusan berubah jadi no-go.
+
+**Keduanya dijalankan sampai tuntas di produksi 7 September 2026 dan keduanya
+sehat.** Dijalankan lewat peramban pada akun Roni Satria S.Pd, kelas
+Bahasa Inggris X TB, program keahlian Busana. Hasilnya diperiksa dari basis
+data, bukan dari pesan di layar:
+
+| | `reguler_bagi` | `blok` |
+|---|---|---|
+| `atp_induk.id` | `79246d4e` | `b455b27d` |
+| `jp_per_sesi` | 2 | 8 |
+| `jp_operasional` | 128 | 200 |
+| Jumlah TP | 16 | 12 |
+| **`sum(jp_alokasi)`** | **128 — sama persis** | **200 — sama persis** |
+| Total pertemuan (`sum(len(jp_pertemuan))`) | 64 = 128 ÷ 2 | 25 = 200 ÷ 8 |
+| TP yang `jp_alokasi`-nya bukan kelipatan sesi | 0 | 0 |
+| TP tanpa `jp_pertemuan` | 0 | 0 |
+
+Uji `blok` sengaja dirancang supaya sekaligus menguji penjaga kelipatan dari
+`696c415`: 6 JP/minggu × 36 minggu = 216, dikurangi cadangan 2 minggu (12) = 204
+— dan 204 tidak habis dibagi 8. Pembulatan ke bawah bekerja, dan sisanya
+**terlihat oleh guru** sebagai barisnya sendiri, bukan dilebur diam-diam ke
+cadangan: *"Tidak terjadwal: 4 JP (kurang dari satu pertemuan penuh) · JP untuk
+mengajar: 200 JP — 25 pertemuan"*.
+
+**Koreksi atas premis yang dipakai dokumen ini.** Kalimat di §1 — "Satu ATP di
+produksi yang memakai `reguler_bagi` menghasilkan nol TP" — benar, tapi
+menyesatkan sebagai bukti. ATP itu (`40e1e078`) dibuat **27 Agustus 2026**,
+sedangkan pertanyaan `jp_per_sesi` baru lahir **3 September** di `839e6a6`,
+bersama pengaktifan batasan `jp_per_pertemuan` di `generate-atp`. Isi
+`collected_data`-nya membuktikannya: `pola_jadwal = reguler_bagi` terjawab dan
+`konfirmasi_waktu = ya`, tapi tidak ada `jp_per_sesi` sama sekali. Jadi
+kegagalannya bukan "cacat pola jadwal" dan bukan "kebetulan data" — ia
+peninggalan alur yang memang belum bisa menanyakan ukuran satu pertemuan.
+
+Sepuluh ATP kosong lainnya di produksi tidak punya `pola_jadwal` sama sekali —
+funnel yang ditinggalkan di tengah, bukan generate yang gagal. Satu lagi
+(`829b4e22`) kosong karena `jp_operasional`-nya 0.
 
 ### Yang membatalkan bertahap jadi tutup lagi
 
@@ -121,7 +164,7 @@ sesi mengajar di aplikasi.
 | generate-modul 5 fase | Ya — TP 6, 98 detik, diaudit di produksi |
 | Render Modul di layar | Ya |
 | **Unduh .docx** | **TIDAK PERNAH diuji sesi ini** |
-| Pola `reguler_bagi` / `blok` | **TIDAK PERNAH** |
+| Pola `reguler_bagi` / `blok` | **Ya — 7 September 2026, keduanya sehat** (lihat §2) |
 | Mapel selain Bahasa Inggris | **TIDAK PERNAH** |
 | Fase selain E | **TIDAK PERNAH** |
 | Dua guru bersamaan | **TIDAK PERNAH** |
@@ -170,14 +213,26 @@ pernah muncul**, karena ia hanya ditanyakan untuk `awal` / `kombinasi`.
 Guru yang paling butuh waktu khusus berakhir dengan nol JP, tanpa pernah
 ditawari.
 
-### 4c. Lima sisanya
+### 4c. Sisanya — empat, bukan lima
 
-Terdokumentasi di `docs/DAFTAR-PERTANYAAN-RANCANG.md` §Catatan. Yang paling
-merugikan: **menu revisi menyusut tepat saat guru bisa melihat hasilnya** —
-setelah draf ATP tampil, rute ke Profil Siswa dan Penguatan Prasyarat hilang
-dari pilihan, padahal itu saat pertama guru bisa melihat ATP-nya tidak
-mengakomodasi murid yang tertinggal. Yang tersisa hanya "Buat ulang ATP", yang
-memakan satu dari tiga jatah harian.
+*Dikoreksi 7 September 2026 saat rekonsiliasi ke HEAD `af3f32b`.*
+
+Terdokumentasi di `docs/DAFTAR-PERTANYAAN-RANCANG.md` §Catatan, yang kini punya
+tabel status di awal bagiannya. Cacat 4b di atas sudah masuk daftar itu sebagai
+Catatan 8, dan cacat "menu revisi menyusut" masuk sebagai Catatan 7 — sebelumnya
+ia hanya hidup di dokumen ini dan di CLAUDE.md §23.3, yang membuat angka "tujuh
+inkonsistensi" di CLAUDE.md tidak pernah cocok dengan enam Catatan di sana.
+
+Yang masih terbuka di dokumen itu: **Catatan 3, 4, 6, 7** (ditambah 8 = 4b di
+atas, dan jalur "Ada sebagian data"). Catatan 1 dan 2 tertutup di `696c415`,
+Catatan 5 di `3505493`.
+
+Yang paling merugikan tetap **Catatan 7 — menu revisi menyusut tepat saat guru
+bisa melihat hasilnya**: setelah draf ATP tampil, rute ke Profil Siswa, Konteks
+Kejuruan, dan Penguatan Prasyarat hilang dari pilihan
+(`guru/js/rancang-chat-flow.js:322-330`), padahal itu saat pertama guru bisa
+melihat ATP-nya tidak mengakomodasi murid yang tertinggal. Yang tersisa hanya
+"Buat ulang ATP", yang memakan satu dari tiga jatah harian.
 
 ---
 
@@ -192,12 +247,18 @@ memakan satu dari tiga jatah harian.
 
 ## 6. Perintah yang berguna
 
+> **Catatan cara pakai (7 September 2026).** `supabase db query` pada CLI v2.107
+> **tidak menerima `-f -`** (stdin) — ia menjawab
+> `failed to read SQL file: open -`. Tulis SQL-nya ke berkas dulu, lalu
+> `supabase db query --linked -f berkas.sql`. Contoh di bawah sudah disesuaikan.
+
 ```bash
 # Sebaran role & tier — siapa yang masuk kalau gerbang dibuka
-supabase db query --linked -f - <<'SQL'
+cat > /tmp/q.sql <<'SQL'
 SELECT COALESCE(role_guru,'(kosong)') r, COALESCE(tier,'(kosong)') t, count(*)
 FROM public.profiles WHERE role='GURU' GROUP BY 1,2 ORDER BY 3 DESC;
 SQL
+supabase db query --linked -f /tmp/q.sql
 
 # Uji isolasi: menyamar sebagai JWT guru tanpa perlu kata sandi
 #   BEGIN;

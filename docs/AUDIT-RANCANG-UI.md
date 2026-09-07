@@ -1,5 +1,15 @@
 # Audit UI `guru/js/classroom-rancang.js`
 
+> **ARSIP — berkas yang diaudit sudah tidak ada.** `guru/js/classroom-rancang.js`
+> dihapus di `a433504` (27 Agustus 2026) saat wizard Rancang diganti chat
+> interface. Semua nomor baris di bawah menunjuk ke berkas yang tidak lagi ada di
+> pohon kerja, jadi dokumen ini **bukan daftar pekerjaan** dan tidak bisa
+> dikerjakan apa adanya. Dipertahankan sebagai katalog pola cacat — `catch` tanpa
+> umpan balik ke guru, async tanpa guard, race saat re-render — yang layak dicari
+> ulang di penggantinya (`guru/js/rancang-chat.js`, 174 KB), yang belum pernah
+> diaudit setara. *Dicatat 7 September 2026 saat rekonsiliasi daftar pekerjaan.*
+
+
 Audit statis atas seluruh file (5.658 baris). Nomor baris mengacu pada versi file saat audit. Tidak semua `catch` atau listener adalah masalah: entri di bawah hanya mencakup pola yang sesuai dengan kategori yang diminta.
 
 ## 1. CATCH TANPA UI FEEDBACK

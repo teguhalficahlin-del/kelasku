@@ -238,7 +238,7 @@ git push origin main                  → urutan TERAKHIR
 ## 12. STATUS PROYEK
 
 **Fase saat ini: DEVELOPMENT AKTIF**
-**HEAD:** `b67ec0f` (per 6 September 2026)
+**HEAD:** `af3f32b` (per 7 September 2026 — daftar di bawah direkonsiliasi ke kode aktual pada tanggal ini)
 
 > **KEPUTUSAN TERTAHAN — kesiapan go-live Tab Rancang.**
 > `docs/BACKLOG-GO-LIVE-RANCANG.md`. Putusan **GO BERTAHAP (3 guru dulu, bukan
@@ -246,6 +246,14 @@ git push origin main                  → urutan TERAKHIR
 > kriteria pembatalannya — ditahan atas permintaan Romo yang menilai perlu
 > kepastian lebih dulu tentang bagaimana Tab Rancang bekerja sampai tuntas.
 > Isolasi antar-guru sudah diuji tuntas dan bersih (menutup Test 8.4–8.5).
+>
+> **7 September 2026 — syarat teknisnya sudah terpenuhi.** Pola `reguler_bagi`
+> (ATP `79246d4e`) dan `blok` (ATP `b455b27d`) dijalankan sampai tuntas di
+> produksi; keduanya sehat, `sum(jp_alokasi)` sama persis dengan
+> `jp_operasional`, nol TP yang bukan kelipatan satuan pertemuan, nol TP tanpa
+> distribusi. Uji `blok` sekaligus membuktikan penjaga kelipatan `696c415`
+> bekerja dan sisanya terlihat oleh guru. Bukti lengkap di §2 dokumen itu.
+> **Yang menahan sekarang tinggal keputusan Romo: siapa tiga gurunya.**
 
 - [x] Dokumen rancangan selesai (REQUIREMENTS, SCHEMA-v0, ADR-001)
 - [x] Supabase project baru dibuat
@@ -258,7 +266,12 @@ git push origin main                  → urutan TERAKHIR
 - [x] Trial 30 hari + trial gate classroom
 - [x] Hapus akun siswa + ortu (end-to-end)
 - [x] 6 slash commands di `.claude/commands/`
-- [x] Edge Functions deployed: `generate-akun`, `hapus-akun`, `phase2-material`, `phase2-meeting`, `phase2-followup`, `phase2-validator`, `runtime-sync`
+- [x] Edge Functions deployed: `admin-action`, `cron-health-check`, `evaluate-answer`,
+      `generate-akun`, `generate-atp`, `generate-modul`, `hapus-akun`,
+      `hard-delete-expired-guru`, `kirim-notifikasi-trial`, `semester-reset`.
+      *(Dikoreksi 7 Sep 2026: baris ini sebelumnya menyebut `phase2-material`,
+      `phase2-meeting`, `phase2-followup`, `phase2-validator`, dan `runtime-sync`
+      — kelimanya dihapus di `a433504` bersama wizard lama.)*
 - [x] Portal Guru: tab Penilaian — assessment_items + student_grades (sesi 6 Agustus 2026)
 - [x] Portal Guru: Penilaian section Perencanaan selesai — CP/TP/KKTP CRUD, TP collapsed, grid KKTP, custom dropdown semester (sesi 7–8 Agustus 2026)
 - [x] Portal Guru: Tab Rancang Pembelajaran — kini berbentuk **chat interface**
@@ -285,20 +298,35 @@ git push origin main                  → urutan TERAKHIR
       penjaga kelipatan di server, jatah tidak lagi hangus untuk penolakan.
       Terverifikasi di produksi (sesi 5 September 2026, `696c415`+`0fb520b`).
       Spesifikasi: `docs/SPEC-ATP-JP-KELIPATAN.md`
-- [ ] Tujuh inkonsistensi alur pertanyaan Tab Rancang — **belum dikerjakan**,
-      terdokumentasi lengkap di `docs/DAFTAR-PERTANYAAN-RANCANG.md` §Catatan.
-      Termasuk: menu revisi menyusut tepat saat guru bisa melihat hasilnya,
-      "Ada sebagian data" jalan buntu, pertanyaan #47 jawabannya dibuang.
-- [ ] Hardening Tab Rancang — Putaran 9 (`docs/AUDIT-RANCANG-UI.md`, `docs/AUDIT-EF-API.md`)
-- [ ] **Temuan 2 telusur mesin generate — `generate-atp` belum disembuhkan.**
-      Ia masih punya `maxOutputTokens: 5000` berupa angka mati dan **tidak
-      memeriksa `finishReason`** — dua kesalahan yang menghabiskan sehari penuh
-      di `generate-modul` dan sudah diperbaiki di sana. ATP terbesar di produksi
-      12 TP = 5.445 karakter; berapa sisa marjinnya tidak diketahui karena
-      `usageMetadata` tidak pernah dibaca di berkas itu. Jalur repair mengirim
-      ulang seluruh keluaran gagal sebagai riwayat tapi plafonnya tetap 5.000.
-      Klien ATP juga belum punya baris sebab teknis yang bisa disalin guru
-      (`2095446` hanya dipasang di jalur Modul).
+- [x] **Temuan 2 telusur mesin generate — `generate-atp` sudah disembuhkan
+      (`b67ec0f`).** Plafon token kini turunan dari `jp_operasional` dan jumlah
+      elemen CP dengan lantai 12.000 (`anggaranTokenAtp()`,
+      `supabase/functions/generate-atp/index.ts:55-58`, dipakai di baris 420);
+      `finishReason === 'MAX_TOKENS'` diperiksa dan dilempar sebagai
+      `ATP_GENERATION_TRUNCATED` beserta angka `usageMetadata` (baris 450–466);
+      klien menampilkan baris sebab teknis yang bisa disalin guru
+      (`guru/js/rancang-chat.js:3298-3312`). *Verifikasi 7 Sep 2026 — item ini
+      sudah basi sejak 6 Sep dan tertinggal ditandai.*
+- [ ] **Enam inkonsistensi alur pertanyaan Tab Rancang yang masih terbuka** —
+      `docs/DAFTAR-PERTANYAAN-RANCANG.md` §Catatan (tabel status di awal bagian
+      itu). Yang tertutup: Catatan 1 dan 2 (`696c415`), Catatan 5 (`3505493`).
+      Yang terbuka: Catatan 3 (#47 jawabannya dibuang), 4 (formatif tanpa
+      pertanyaan teknik), 6 (ATP tidak menanyakan jumlah murid), 7 (menu revisi
+      menyusut setelah draf ATP tampil), 8 (tuas JP penguatan tercabut diam-diam),
+      dan jalur "Ada sebagian data" yang belum punya lanjutan sendiri.
+      *Angka "tujuh" di versi lama baris ini tidak pernah cocok dengan enam
+      Catatan di dokumennya. Sebabnya sudah ditemukan: yang ketujuh — menu revisi
+      #46 — memang ada, tapi hanya tertulis di §23.3 dan
+      `BACKLOG-GO-LIVE-RANCANG.md` §4c. Kini masuk daftar sebagai Catatan 7.*
+- [ ] ~~Hardening Tab Rancang — Putaran 9~~ — **BASI, jangan dikerjakan sebagai
+      backlog aktif.** `docs/AUDIT-RANCANG-UI.md` mengaudit
+      `guru/js/classroom-rancang.js` (6.270 baris) dan `docs/AUDIT-EF-API.md`
+      mengaudit `phase2c-generate`, `phase2-material`, `phase2-meeting`,
+      `phase2-followup`, `phase2-validator` — **kesemuanya dihapus di `a433504`**
+      saat wizard diganti chat interface. Kedua dokumen dipertahankan sebagai
+      arsip pola cacat yang layak diperiksa ulang di berkas penggantinya, bukan
+      sebagai daftar pekerjaan. Audit setara untuk `rancang-chat.js` (174 KB) dan
+      `generate-atp`/`generate-modul` belum pernah dibuat.
 - [ ] **KEPUTUSAN TERBUKA — apakah Naskah Fasilitasi layak tetap ada?**
       `docs/BACKLOG-NASKAH-FASILITASI.md`. Ia 45–58% dari isi modul, satu fase
       generate tersendiri, dan sumber hampir seluruh cacat yang ditemukan telaah
@@ -1408,15 +1436,24 @@ Pengguna Tab Rancang adalah guru SMK Indonesia yang:
   pilihan guru di EF, aturan bahasa di SYSTEM_PROMPT, kamus istilah bersama di
   renderer. TP 3 & TP 6 di-generate ulang dan strateginya kini benar.
 
-**BELUM DIIMPLEMENTASIKAN (backlog):**
-- Tujuh inkonsistensi alur pertanyaan — `docs/DAFTAR-PERTANYAAN-RANCANG.md` §Catatan.
-  Yang paling merugikan guru: menu revisi setelah draf ATP terlihat (#46) kehilangan
-  rute ke Profil Siswa dan Penguatan Prasyarat, tepat pada saat guru pertama kali
-  bisa melihat bahwa ATP-nya tidak mengakomodasi murid yang tertinggal.
-- `generate-atp`: plafon token mati + tidak ada deteksi `finishReason` + tidak ada
-  baris sebab teknis di klien. Lihat §12.
+**BELUM DIIMPLEMENTASIKAN (backlog — direkonsiliasi 7 September 2026):**
+- Enam inkonsistensi alur pertanyaan yang masih terbuka —
+  `docs/DAFTAR-PERTANYAAN-RANCANG.md` §Catatan, tabel status di awal bagian itu.
+  Yang paling merugikan guru (Catatan 7): menu revisi setelah draf ATP terlihat
+  (#46, `rancang-chat-flow.js:322-330`) kehilangan rute ke Profil Siswa, Konteks
+  Kejuruan, dan Penguatan Prasyarat — tepat pada saat guru pertama kali bisa
+  melihat bahwa ATP-nya tidak mengakomodasi murid yang tertinggal. Yang tersisa
+  hanya "Buat ulang ATP", yang memakan satu dari tiga jatah hariannya.
 - Perlengkapan kelas sebaiknya pindah ke `rancang_settings` per kelas — sekarang
   guru dengan 6 modul menjawabnya 6 kali. Butuh satu migration; tidak mendesak.
+  *(Masih terbuka: `perlengkapan_kelas` hanya ada di `rancang-chat-flow.js:389`,
+  tidak ada kolomnya di `rancang_settings`.)*
+
+**SUDAH DIKERJAKAN — dipindahkan dari daftar di atas 7 September 2026:**
+- `generate-atp`: plafon token turunan, deteksi `finishReason`, dan baris sebab
+  teknis di klien — ketiganya selesai di `b67ec0f`. Bukti barisnya di §12.
+- Pertanyaan tingkat kemampuan awal tanpa syarat + JP pemetaan/penguatan
+  dikurangkan dari anggaran — `696c415` (Catatan 1 dan 2).
 
 **DITANGGUHKAN (bukan backlog aktif):**
 - CARI_ATP — tidak relevan untuk guru mapel umum SMK (ATP-nya sedikit, picker sudah cukup).

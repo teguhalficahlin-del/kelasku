@@ -1,5 +1,15 @@
 # Audit Edge Functions dan `guru/js/api.js`
 
+> **ARSIP SEBAGIAN — lima dari enam berkas yang diaudit sudah tidak ada.**
+> `phase2c-generate`, `phase2-material`, `phase2-meeting`, `phase2-followup`, dan
+> `phase2-validator` dihapus di `a433504` (27 Agustus 2026). Hanya
+> `guru/js/api.js` yang masih ada. Temuan tentang kelima Edge Function itu
+> **bukan daftar pekerjaan** — dipertahankan sebagai katalog pola (error
+> `getUser()` tidak diperiksa, kegagalan DB menyamar sebagai 403) yang layak
+> dicari ulang di `generate-atp` dan `generate-modul`, yang belum pernah diaudit
+> setara. *Dicatat 7 September 2026 saat rekonsiliasi daftar pekerjaan.*
+
+
 Audit statis atas:
 
 - `guru/js/api.js` (493 baris)
