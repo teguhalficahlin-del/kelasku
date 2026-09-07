@@ -1,7 +1,8 @@
 # Akses uji coba Tab Rancang — spesifikasi perilaku
 
-> Disusun 7 September 2026 pada HEAD `33e2f3c`. **Belum diimplementasikan.**
-> Menunggu persetujuan Romo sesuai §21.3 CLAUDE.md.
+> Disusun 7 September 2026 pada HEAD `33e2f3c`. **SUDAH DIIMPLEMENTASIKAN**
+> di `1cb4cf9` (migration `20260907000001` + perubahan klien), disetujui Romo
+> lebih dulu sesuai §21.3 CLAUDE.md.
 >
 > Dipilih Romo dari tiga pilihan yang diajukan setelah ditemukan pertentangan
 > antara rencana go-live dan `docs/TIER-AND-LIFECYCLE.md`.
@@ -221,13 +222,45 @@ berlaku 12 hari. Perlu diputuskan tersendiri: dibiarkan, atau diluruskan lewat
 
 ## 8. Definisi selesai
 
-- [ ] Migration diuji `BEGIN…ROLLBACK`, lalu di-push setelah dry-run ditinjau
-- [ ] `npm run test:tenant` lulus — tabel baru ikut CHECK 1 (RLS aktif) dan
-      CHECK 3 (`anon` tidak bisa membaca)
-- [ ] Diuji di peramban dengan akun uji coba sungguhan: tab Rancang muncul,
-      lalu hilang setelah barisnya dihapus
-- [ ] Guru `GURU_PRO` yang ada tidak kehilangan akses — diperiksa sebelum dan
-      sesudah
-- [ ] `docs/TIER-AND-LIFECYCLE.md` dan `docs/BACKLOG-GO-LIVE-RANCANG.md`
-      diperbarui: kalimat "menutupnya kembali = mengembalikan tier" diganti
-      dengan mekanisme yang benar
+- [x] Migration diuji `BEGIN…ROLLBACK` — 8 pemeriksaan lulus, rollback
+      diperiksa tidak meninggalkan sisa. Dry-run bersih, lalu diterapkan;
+      tujuh objek diverifikasi ada di produksi.
+- [x] Keamanan dibuktikan **langsung**, bukan lewat `npm run test:tenant`
+      (menuntut access token, dan token adalah kredensial yang tidak diminta
+      lewat percakapan). Ketiga percobaan penembusan ditolak `42501` di lapisan
+      privilege, sebelum RLS sempat dievaluasi: `anon` baca, `authenticated`
+      baca, `authenticated` tulis.
+- [x] Cabang uji coba diuji dengan **menyamar sebagai JWT guru TRIAL sungguhan**
+      (Nursamsi) di dalam transaksi ber-ROLLBACK: `false` → daftarkan → `true`
+      → coret → `false`. Data guru itu tidak berubah sedikit pun. Menguji lewat
+      peramban justru menguji lapisan yang salah — pelajaran yang sama dengan
+      penutupan Test 8.4–8.5.
+- [x] Guru `GURU_PRO` tidak kehilangan akses — diperiksa sebelum dan sesudah,
+      dan dikonfirmasi Romo di peramban: tab Rancang masih muncul.
+- [x] `docs/TIER-AND-LIFECYCLE.md` dan `docs/BACKLOG-GO-LIVE-RANCANG.md`
+      diperbarui di `daee7ba`.
+
+---
+
+## 9. Keadaan akhir 7 September 2026
+
+**Daftar uji coba KOSONG, dan itu disengaja.**
+
+Ketiga guru kohor pertama akhirnya dibuka lewat `fn_activate_guru` → `GURU_PRO`
+berlaku sampai 7 September 2027, bukan lewat daftar ini. Keputusan Romo, diambil
+setelah konsekuensinya dipaparkan: jalur tier menandai mereka sebagai pelanggan
+berbayar dan tidak punya jalan kembali yang sah, tapi ia satu-satunya jalur resmi
+yang **sekaligus memperpanjang umur akun** — dan tanpa itu uji coba Pemdes
+berhenti 18 September, sebelas hari setelah dimulai.
+
+Dua baris yang sempat dimasukkan lalu dihapus, karena tabel ini berarti "boleh
+pakai **tanpa** berbayar" dan pernyataan itu tidak lagi benar untuk mereka.
+
+**Mekanismenya tetap terpasang dan sudah terbukti bekerja.** Kohor berikutnya
+bisa dibuka tanpa menandai siapa pun sebagai pembayar, dan ditutup dengan satu
+`DELETE`. Yang dibangun di sini bukan untuk tiga orang — ia untuk kohor kedua
+dan seterusnya, saat menutup kembali menjadi hal yang benar-benar dibutuhkan.
+
+Satu perbaikan di dalamnya berdiri sendiri, terlepas dari daftar uji coba:
+**klien berhenti menghitung ulang aturan gerbang.** Tiga salinan aturan jadi
+satu.
