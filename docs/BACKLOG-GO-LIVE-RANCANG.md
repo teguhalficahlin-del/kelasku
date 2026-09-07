@@ -12,6 +12,20 @@
 > sebelum gerbang dibuka — pola `reguler_bagi` dan `blok` dijalankan sampai
 > tuntas — **sudah terpenuhi, keduanya sehat.** Buktinya di §2.
 >
+> **GERBANG SUDAH DIBUKA — 7 September 2026.** Tiga guru aktif:
+> Roni Satria S.Pd, Pemdes, dan Hafsah Isykarima. Ketiganya lewat
+> `fn_activate_guru` → `GURU_PRO`, berlaku sampai 7 September 2027.
+>
+> Keputusan itu diambil sadar setelah alternatifnya dipaparkan: jalur tier
+> menandai ketiganya sebagai pelanggan berbayar dan **tidak punya jalan kembali
+> yang sah**. Kalau salah satu tanda pembatalan di §4 muncul, menutupnya berarti
+> menembus pagar. Mekanisme `rancang_akses_uji_coba` tetap terpasang dan siap
+> dipakai untuk kohor berikutnya, yang bisa dibuka dan ditutup tanpa itu.
+>
+> Efek samping yang menguntungkan: akun Roni Satria sebelumnya `GURU_PRO`
+> dengan `activated_at` KOSONG dan berlaku 12 hari — keadaan yang mustahil
+> dihasilkan `fn_activate_guru`, sisa UPDATE langsung entah kapan. Kini lurus.
+>
 > **Satu syarat baru sempat muncul di hari yang sama, dan sudah ditutup.** Alur
 > dilanjutkan sampai ujung — Modul dan Naskah dari ATP berpola blok, lalu
 > Unduh — dan di sanalah ditemukan **§4d: berkas Word yang guru cetak hanya
@@ -41,8 +55,19 @@ Sebaran akun per 6 September 2026 (26 guru):
 | WALI_KELAS_SD | TRIAL | 1 | tidak — di luar cakupan |
 | GURU_MAPEL_UMUM_SMK | GURU_PRO | 1 | ya (Romo) |
 
-**Go-live = membuka gerbang untuk 14 orang.** Menutupnya kembali = mengembalikan
-tier. Paparannya kecil dan bisa dibatalkan.
+**Go-live = membuka gerbang untuk 14 orang.**
+
+> **KOREKSI 7 September 2026.** Kalimat di sini semula berbunyi *"Menutupnya
+> kembali = mengembalikan tier. Paparannya kecil dan bisa dibatalkan."*
+> **Itu tidak benar.** `TIER-AND-LIFECYCLE.md` §3 menyatakan tidak ada
+> downgrade maupun kembali ke `TRIAL`. Seluruh rencana bertahap bersandar pada
+> reversibilitas yang tidak dimiliki mekanisme tier — rencana yang mensyaratkan
+> bisa ditutup, di atas mekanisme yang tidak bisa ditutup.
+>
+> Sejak migration `20260907000001` ada jalur yang benar-benar bisa dibatalkan:
+> tabel `rancang_akses_uji_coba`. Guru di daftar itu boleh memakai Tab Rancang
+> **tanpa** tier berbayar; menutupnya = satu `DELETE`, dan karya guru tidak
+> ikut terhapus. Rinciannya di `docs/SPEC-AKSES-UJI-COBA-RANCANG.md`.
 
 Kohor itu sangat seragam: 16 kelas, **seluruhnya Bahasa Inggris**. Seluruh
 `program_keahlian`-nya kosong, jadi keempat belas guru akan menempuh jalur

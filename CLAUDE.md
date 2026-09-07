@@ -238,9 +238,17 @@ git push origin main                  → urutan TERAKHIR
 ## 12. STATUS PROYEK
 
 **Fase saat ini: DEVELOPMENT AKTIF**
-**HEAD:** `af3f32b` (per 7 September 2026 — daftar di bawah direkonsiliasi ke kode aktual pada tanggal ini)
+**HEAD:** `1cb4cf9` (per 7 September 2026 — daftar di bawah direkonsiliasi ke kode aktual pada tanggal ini)
 
-> **KEPUTUSAN TERTAHAN — kesiapan go-live Tab Rancang.**
+> **SUDAH DIPUTUSKAN 7 September 2026 — gerbang Tab Rancang dibuka untuk 3 guru.**
+> Roni Satria S.Pd, Pemdes, dan Hafsah Isykarima, ketiganya `GURU_PRO` sampai
+> 7 September 2027 lewat `fn_activate_guru`. Konsekuensi yang diterima sadar:
+> tier tidak punya jalan kembali yang sah, jadi menutupnya kembali berarti
+> menembus pagar. Untuk kohor berikutnya pakai `rancang_akses_uji_coba`
+> (migration `20260907000001`) yang memang bisa dicabut — lihat
+> `docs/SPEC-AKSES-UJI-COBA-RANCANG.md`.
+>
+> **Riwayat keputusan (dipertahankan sebagai konteks).**
 > `docs/BACKLOG-GO-LIVE-RANCANG.md`. Putusan **GO BERTAHAP (3 guru dulu, bukan
 > 14)** sudah disusun beserta dasarnya, syarat sebelum gerbang dibuka, dan
 > kriteria pembatalannya — ditahan atas permintaan Romo yang menilai perlu
@@ -541,6 +549,7 @@ Migrations baru:
 20260904000001_forum-v2.sql
 20260904000002_forum-rls-fix.sql
 20260905000001_rancang-settings-jumlah-murid.sql
+20260907000001_rancang-akses-uji-coba.sql
 ```
 
 **File JS Runtime Rancang — SUDAH DIHAPUS, blok ini tinggal catatan sejarah:**

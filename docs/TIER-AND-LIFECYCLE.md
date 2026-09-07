@@ -82,6 +82,17 @@ Aturan yang berlaku untuk semua perpindahan:
   lama ke masa baru. Selalu 365 hari penuh dihitung dari tanggal upgrade.
 - **Tidak ada downgrade.** Tidak ada jalur `GURU_PRO` → `GURU_GO` maupun
   kembali ke `TRIAL`.
+
+  > **Konsekuensi yang sempat terlewat (dicatat 7 September 2026).** Aturan ini
+  > membuat tier **tidak bisa dipakai untuk membuka akses sementara.** Sekali
+  > dinaikkan, tidak ada jalan pulang yang sah. `BACKLOG-GO-LIVE-RANCANG.md`
+  > sempat merencanakan pembukaan bertahap yang "bisa dibatalkan" di atas
+  > mekanisme ini — rencana yang mustahil dipenuhi.
+  >
+  > Untuk akses yang memang harus bisa dicabut, pakai
+  > `rancang_akses_uji_coba` (migration `20260907000001`), bukan tier.
+  > Tier berarti **sudah membayar**; daftar uji coba berarti **sedang dicoba**.
+  > Dua hal berbeda, dan sejak migration itu tidak lagi diwakili satu kolom.
 - **Setiap upgrade menunggu konfirmasi pembayaran manual** oleh Romo.
 
 ### Alur permintaan
