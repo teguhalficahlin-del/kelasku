@@ -73,6 +73,49 @@ const RANCANG_FLOW = {
       ], { helpText: 'ATP mencakup satu fase penuh dan seluruh elemen CP.' }),
   ],
 
+  // ── PROFIL KELAS ────────────────────────────────────────────────────────
+  // Tiga fakta yang melekat pada KELAS, bukan pada modul. Disimpan di
+  // rancang_settings (migration 20260908000001), ditanyakan SEKALI per kelas,
+  // lalu dipakai ulang oleh ATP maupun setiap Modul.
+  //
+  // Sebelum 8 September 2026 perlengkapan dan jumlah murid ditanyakan di jalur
+  // Modul, sehingga guru dengan enam modul menjawabnya enam kali — dan bisa
+  // menjawab berbeda-beda untuk kelas yang sama. Lebih buruk: generate-atp
+  // tidak pernah menerimanya, sehingga ATP melahirkan TP seperti "Menyimak
+  // kosakata alat jahit dari video tutorial" untuk kelas yang mungkin tanpa
+  // proyektor — lalu mesin modul dilarang menyebut video.
+  PROFIL_KELAS: [
+    jamak('perlengkapan_kelas', 'Perlengkapan apa yang benar-benar tersedia di kelas ini? Pilih semua yang ada.', [
+      ['proyektor',      'Proyektor / LCD'],
+      ['laptop_guru',    'Laptop atau komputer guru'],
+      ['komputer_murid', 'Komputer atau laptop untuk murid'],
+      ['hp_murid',       'HP murid boleh dipakai untuk belajar'],
+      ['internet',       'Koneksi internet yang bisa diandalkan'],
+      ['speaker',        'Speaker atau pengeras suara'],
+      ['lab',            'Lab atau bengkel praktik'],
+      ['printer',        'Printer atau mesin fotokopi untuk menggandakan lembar kerja'],
+      ['tidak_ada',      'Tidak ada — hanya papan tulis dan alat tulis'],
+    ], { constraints: { exclusive: ['tidak_ada'] },
+      helpText: 'Ditanyakan sekali untuk kelas ini. ATP dan semua Modul hanya akan menyebut alat yang Anda centang di sini.' }),
+    angka('jumlah_murid_kelas', 'Berapa murid di kelas ini?', 10, 60,
+      { helpText: 'Menentukan apakah kegiatan bisa dilakukan serentak atau bergantian.' }),
+    // Sebelum pertanyaan ini ada, language_policy di modul dihasilkan AI tanpa
+    // satu pun aturan di SYSTEM_PROMPT dan tanpa satu pun masukan guru. Pada
+    // modul 7 September 2026 ia memutuskan sendiri "Murid diarahkan menggunakan
+    // Bahasa Inggris penuh" untuk kelas yang gurunya menyatakan muridnya
+    // "sedikit di bawah". Kuncinya generik ("target"), bukan menyebut nama
+    // bahasa — label di layar yang menyesuaikan mapel.
+    pilihan('bahasa_pengantar', 'Bahasa apa yang Anda pakai saat mengajar kelas ini?', [
+      ['indonesia',         'Bahasa Indonesia sepenuhnya'],
+      ['indonesia_dominan', 'Bahasa Indonesia — bahasa target hanya untuk contoh dan latihan'],
+      ['campur',            'Campur — penjelasan Indonesia, instruksi kelas bahasa target'],
+      ['target_dominan',    'Bahasa target sebagian besar waktu, Indonesia saat murid kesulitan'],
+      ['target_penuh',      'Bahasa target sepenuhnya'],
+      ['rekomendasi',       'Minta rekomendasi MiClass'],
+    ], { aiRecommendation: true,
+      helpText: 'Menentukan bahasa naskah dan instruksi untuk murid di seluruh Modul kelas ini.' }),
+  ],
+
   PRIORITAS: [
     jamak('target_prioritas', 'Apa prioritas utama siswa selama fase ini? Pilih maksimal tiga.', [
       ['fondasi_tka', 'Membangun fondasi TKA (Tes Kompetensi Akademik)'], ['dunia_kerja', 'Kesiapan memasuki dunia kerja'],
@@ -356,8 +399,13 @@ const RANCANG_FLOW = {
       ['inklusif',           'Ada yang butuh pendampingan khusus'],
       ['campuran_kemampuan', 'Sebagian sedang PKL'],
     ]),
+    // JALUR MUNDUR — pindah ke fase PROFIL_KELAS sejak 8 September 2026.
+    // Hanya muncul untuk kelas yang belum punya profil (ATP yang dibuat sebelum
+    // fase itu ada). Tanpa ini, guru dengan ATP lama kehilangan pertanyaannya
+    // sama sekali dan modulnya berubah perilaku diam-diam.
     angka('jumlah_murid_kelas', 'Berapa murid di kelas ini?', 10, 60,
-      { helpText: 'Digunakan untuk merancang instrumen dan menentukan apakah kegiatan bisa dilakukan serentak atau bergantian.' }),
+      { condition: { question_id: 'profil_kelas_lengkap', value: 'tidak' },
+        helpText: 'Digunakan untuk merancang instrumen dan menentukan apakah kegiatan bisa dilakukan serentak atau bergantian.' }),
     pilihan('target_kompetensi_modul', 'Target kompetensi utama modul ini?', [
       ['pemahaman',  'Pemahaman konsep'],
       ['keterampilan', 'Keterampilan praktis'],
@@ -386,6 +434,7 @@ const RANCANG_FLOW = {
     // atau 'modul_digital' di jenis_sumber — dua hal yang sama sekali berbeda:
     // guru bisa memutar video sesekali tanpa punya internet stabil, dan bisa
     // punya proyektor tanpa pernah memakai modul digital.
+    // JALUR MUNDUR — lihat catatan di KONTEKS_MODUL. Pindah ke PROFIL_KELAS.
     jamak('perlengkapan_kelas', 'Perlengkapan apa yang benar-benar tersedia di kelas ini? Pilih semua yang ada.', [
       ['proyektor',      'Proyektor / LCD'],
       ['laptop_guru',    'Laptop atau komputer guru'],
@@ -396,7 +445,8 @@ const RANCANG_FLOW = {
       ['lab',            'Lab atau bengkel praktik'],
       ['printer',        'Printer atau mesin fotokopi untuk menggandakan lembar kerja'],
       ['tidak_ada',      'Tidak ada — hanya papan tulis dan alat tulis'],
-    ], { constraints: { exclusive: ['tidak_ada'] },
+    ], { condition: { question_id: 'profil_kelas_lengkap', value: 'tidak' },
+      constraints: { exclusive: ['tidak_ada'] },
       helpText: 'Modul hanya akan menyebut alat yang Anda centang di sini. Yang tidak tersedia tidak akan diminta.' }),
     pilihan('strategi_utama', 'Strategi pembelajaran utama yang digunakan?', [
       ['ceramah_diskusi', 'Guru menjelaskan, murid berlatih dan menerapkan (langsung)'],
@@ -463,6 +513,7 @@ const RANCANG_FLOW = {
 const FASE_URUTAN_V1 = [
   'KONTEKS_CP',      // Identitas kelas + validasi CP
   'PILIH_ATP',       // Pilih ATP yang ada (hanya mode sesuaikan) — skip otomatis jika susun baru
+  'PROFIL_KELAS',    // Perlengkapan, jumlah murid, bahasa pengantar — sekali per kelas
   'PRIORITAS',       // Fondasi TKA, kerja, PKL, pendidikan, target sekolah
   'WAKTU',           // JP, minggu efektif, kegiatan khusus, cadangan, pola jadwal
   'PROFIL_SISWA',    // Kemampuan awal, diagnostik, kesulitan, status data

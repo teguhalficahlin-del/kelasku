@@ -1238,11 +1238,31 @@
     if (phase === 'MODUL_SUMMARY') {
       renderModulSummaryInfo();
     }
+    // PROFIL_KELAS: lewati seluruhnya kalau kelas ini sudah punya ketiganya.
+    // Guru dengan enam modul tidak ditanya enam kali.
+    if (phase === 'PROFIL_KELAS') {
+      const lengkap = await muatProfilKelas();
+      if (lengkap) {
+        await startPhase(getNextPhase('PROFIL_KELAS'));
+        return;
+      }
+    }
+    // Jalur Modul tidak melewati PROFIL_KELAS — mesin fase memakai indexOf pada
+    // satu daftar gabungan, jadi satu fase tidak bisa muncul di dua jalur. Yang
+    // dimuat di sini menyalakan syarat jalur mundur di KONTEKS_MODUL dan
+    // SUMBER_STRATEGI untuk kelas yang ATP-nya dibuat sebelum fase itu ada.
+    if (phase === 'KONTEKS_MODUL' && !_chat.collected_answers.profil_kelas_lengkap) {
+      await muatProfilKelas();
+    }
     const questions = RANCANG_FLOW[phase];
     if (!questions?.length) return;
     // Jika phase KONTEKS_CP dan program_keahlian kosong, konfirmasi_program_keahlian
     // sudah di-auto-jawab 'tidak' — mulai dari pertanyaan kedua langsung.
     let firstToAsk = questions[0];
+    if (phase === 'PROFIL_KELAS') {
+      const belum = questions.find(q => !_chat.collected_answers[q.id]);
+      if (belum) firstToAsk = belum;
+    }
     if (phase === 'KONTEKS_CP' &&
         answerValue('konfirmasi_program_keahlian') === 'tidak' &&
         !window._classroomProgram) {
@@ -2066,7 +2086,65 @@
       .catch(e => console.warn('[rancang-chat] cleanupAbandonedDrafts gagal:', e));
   }
 
+  // ── PROFIL KELAS ──────────────────────────────────────────────────────────
+  // Tiga fakta yang melekat pada kelas, disimpan di rancang_settings — bukan di
+  // collected_data. Ditanyakan sekali, lalu dipakai ulang oleh ATP maupun setiap
+  // Modul kelas ini.
+  //
+  // Polanya meniru KONTEKS_MODUL yang sudah ada: jawab otomatis apa yang sudah
+  // tersimpan, lalu lompat ke pertanyaan pertama yang belum terjawab. Tidak ada
+  // mekanisme baru — mesin fase memakai indexOf pada satu daftar gabungan,
+  // sehingga satu fase tidak bisa muncul di dua jalur.
+  const PROFIL_KELAS_IDS = ['perlengkapan_kelas', 'jumlah_murid_kelas', 'bahasa_pengantar'];
+
+  async function muatProfilKelas() {
+    let setelan = null;
+    try { setelan = await window.api.getRancangSettings(_chat.classroom_id); } catch (_) {}
+    const ada = {
+      perlengkapan_kelas: setelan && Array.isArray(setelan.perlengkapan_kelas)
+        ? setelan.perlengkapan_kelas : null,
+      jumlah_murid_kelas: setelan && setelan.jumlah_murid != null
+        ? String(setelan.jumlah_murid) : null,
+      bahasa_pengantar:   setelan && setelan.bahasa_pengantar ? setelan.bahasa_pengantar : null,
+    };
+    PROFIL_KELAS_IDS.forEach(id => {
+      if (ada[id] !== null && !_chat.collected_answers[id]) {
+        _chat.collected_answers[id] = answer(ada[id], 'otomatis', true);
+      }
+    });
+    const lengkap = PROFIL_KELAS_IDS.every(id => ada[id] !== null);
+    // Dipakai sebagai syarat jalur mundur di KONTEKS_MODUL dan SUMBER_STRATEGI.
+    _chat.collected_answers.profil_kelas_lengkap =
+      answer(lengkap ? 'ya' : 'tidak', 'otomatis', true);
+    saveState();
+    return lengkap;
+  }
+
+  // Ditulis ke rancang_settings, BUKAN hanya ke collected_data — supaya kelas
+  // ini tidak ditanya lagi di modul berikutnya, dan supaya generate-atp bisa
+  // membacanya tanpa bergantung pada isi funnel.
+  async function simpanProfilKelas() {
+    const muatan = {};
+    const perl = answerValue('perlengkapan_kelas');
+    const jml  = answerValue('jumlah_murid_kelas');
+    const bhs  = answerValue('bahasa_pengantar');
+    if (Array.isArray(perl)) muatan.perlengkapan_kelas = perl;
+    else if (perl) muatan.perlengkapan_kelas = [String(perl)];
+    if (jml) muatan.jumlah_murid = Number(jml);
+    if (bhs && bhs !== 'rekomendasi') muatan.bahasa_pengantar = String(bhs);
+    if (!Object.keys(muatan).length) return;
+    try { await window.api.upsertRancangSettings(_chat.classroom_id, muatan); }
+    catch (e) { console.warn('[rancang] profil kelas gagal disimpan', e); }
+  }
+
   async function persistCompletedPhase(phase) {
+    // Profil kelas hidup di rancang_settings, bukan di collected_data ATP.
+    // Ditulis juga saat jalur mundur di jalur Modul terjawab, sehingga kelas
+    // dengan ATP lama ikut terisi dan tidak ditanya lagi berikutnya.
+    if (phase === 'PROFIL_KELAS' || phase === 'KONTEKS_MODUL' || phase === 'SUMBER_STRATEGI') {
+      await simpanProfilKelas();
+    }
+    if (phase === 'PROFIL_KELAS') return;
     if (FASE_V2.has(phase)) {
       await persistModulPhase(phase);
       return;
