@@ -438,19 +438,40 @@ const RANCANG_FLOW = {
   ],
 
   SUMBER_STRATEGI: [
-    jamak('jenis_sumber', 'Sumber belajar apa yang digunakan? Pilih semua yang sesuai.', [
-      ['buku_teks',    'Buku teks'],
-      ['modul_digital', 'Modul digital'],
-      ['video',        'Video pembelajaran'],
-      ['artikel',      'Artikel atau bacaan pendek'],
-      ['lingkungan',   'Lingkungan sekitar atau konteks dunia kerja'],
-      ['lainnya',      'Sumber lain'],
-    ], { constraints: { exclusive: [] } }),
-    { id: 'jenis_sumber_lainnya', kind: 'teks_bebas',
-      prompt: 'Sumber lain apa yang akan digunakan? (contoh: narasumber industri, kunjungan industri, jobsheet, dll)',
-      helpText: 'Deskripsi singkat sudah cukup — MiClass menyesuaikannya ke konteks pembelajaran.',
+    // MENGGANTIKAN 'jenis_sumber' (8 September 2026, SPEC-REVISI-ALUR-PERTANYAAN §4a).
+    //
+    // Pertanyaan lama berbentuk DAFTAR CENTANG sumber belajar, dan jawabannya
+    // berakhir sebagai satu baris hiasan: delapan modul di produksi diperiksa,
+    // buku teks muncul hanya di daftar sumber — nol kali di kegiatan, naskah,
+    // maupun instrumen. Yang jauh lebih merugikan adalah 'video': dua dari dua
+    // modul yang gurunya mencentangnya MEMBANGUN KEGIATAN DI ATAS VIDEO YANG
+    // TIDAK ADA, sampai ke naskah ("hentikan video pada momen kunci"). Video itu
+    // tidak pernah dibuat MiClass. Guru berdiri di depan kelas dengan naskah
+    // yang menyuruhnya memutar sesuatu yang tidak ia punya.
+    //
+    // Sebabnya bukan model membandel: menyuruh AI memakai buku atau video yang
+    // isinya tidak pernah ia lihat hanya bisa dipatuhi dengan MENGARANG.
+    // Karena itu pertanyaannya berubah dari daftar centang menjadi PEMBAGIAN
+    // TUGAS — apa yang guru bawa sendiri, apa yang MiClass sediakan.
+    //
+    // Kunci lama 'jenis_sumber' SENGAJA tidak dipakai ulang: modul yang sudah
+    // jadi menyimpannya di collected_data, dan generate-modul masih membacanya
+    // sebagai jalur mundur. Dua kunci berbeda supaya keduanya tidak tertukar.
+    jamak('bahan_guru', 'Bahan apa yang akan Anda siapkan sendiri untuk modul ini?', [
+      ['buku_teks',   'Buku teks yang saya pakai'],
+      ['video_audio', 'Video atau audio pilihan saya'],
+      ['artikel',     'Artikel atau bacaan yang saya siapkan'],
+      ['lingkungan',  'Lingkungan sekitar atau kunjungan ke dunia kerja'],
+      ['narasumber',  'Narasumber dari industri'],
+      ['lainnya',     'Bahan lain yang saya siapkan sendiri'],
+      ['tidak_ada',   'Tidak ada — cukup bahan dari MiClass'],
+    ], { constraints: { exclusive: ['tidak_ada'] },
+      helpText: 'MiClass tidak tahu isi buku atau video Anda, jadi ia tidak akan menyandarkan kegiatan padanya. Bahan Anda dicatat sebagai pelengkap, dan modul tetap bisa dipakai walau Anda lupa membawanya.' }),
+    { id: 'bahan_guru_lainnya', kind: 'teks_bebas',
+      prompt: 'Bahan lain apa yang akan Anda siapkan? (contoh: jobsheet, contoh produk, kain perca)',
+      helpText: 'Deskripsi singkat sudah cukup — bahan ini dicatat sebagai pelengkap, bukan sebagai dasar kegiatan.',
       skippable: false,
-      condition: { question_id: 'jenis_sumber', value: 'lainnya' } },
+      condition: { question_id: 'bahan_guru', value: 'lainnya' } },
     // Ditanyakan eksplisit, tidak lagi disimpulkan dari centang sumber belajar.
     // Sebelumnya perangkatDigitalDiizinkan() menebak dari ada-tidaknya 'video'
     // atau 'modul_digital' di jenis_sumber — dua hal yang sama sekali berbeda:

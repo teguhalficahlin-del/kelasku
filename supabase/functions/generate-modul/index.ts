@@ -31,8 +31,17 @@ function unwrap(val: unknown): unknown {
 // Plafon lama 8.000 tidak ikut tumbuh saat jumlah pertemuan bertambah: pada 4
 // pertemuan kebutuhannya sudah menyentuh plafon dan keluaran terpotong di
 // tengah JSON. 16 dari 21 TP di sistem tidak bisa menghasilkan modul karenanya.
+// Lantai 12.000 ditambahkan 8 September 2026, saat SYSTEM_PROMPT kembali
+// diperbesar (aturan bahan milik guru, SPEC-REVISI-ALUR-PERTANYAAN §4a).
+//
+// Ini satu-satunya plafon yang tersisa tanpa lantai, dan bentuknya persis sama
+// dengan plafon Fase A yang roboh dengan sisa EMPAT token: kelipatan murni,
+// tanpa ruang untuk penalaran yang tidak ikut mengecil hanya karena
+// pertemuannya sedikit. Modul satu pertemuan hanya punya 4.000 — angka yang
+// dulu tidak cukup untuk Fase A dengan prompt yang lebih pendek daripada
+// sekarang. Lantainya disamakan dengan Fase A, C, dan D.
 function anggaranToken(jumlahPertemuan: number): number {
-  return Math.min(4000 * jumlahPertemuan, 48000);
+  return Math.max(12000, Math.min(4000 * jumlahPertemuan, 48000));
 }
 
 // Sasaran yang dituliskan ke prompt — sengaja di bawah anggaran, supaya model
@@ -1136,6 +1145,36 @@ const ISTILAH_SUMBER: Record<string, string> = {
   lainnya:       'sumber lain',
 };
 
+// Bahan yang GURU siapkan sendiri (menggantikan jenis_sumber, 8 September 2026).
+// ISTILAH_SUMBER di atas dipertahankan: modul lama menyimpan jenis_sumber dan
+// masih dibaca sebagai jalur mundur.
+const ISTILAH_BAHAN_GURU: Record<string, string> = {
+  buku_teks:   'buku teks yang dipakai guru',
+  video_audio: 'video atau audio pilihan guru',
+  artikel:     'artikel atau bacaan yang disiapkan guru',
+  lingkungan:  'lingkungan sekitar atau kunjungan ke dunia kerja',
+  narasumber:  'narasumber dari industri',
+  lainnya:     'bahan lain yang disiapkan guru',
+};
+
+// Pembedaan yang menentukan apakah AI boleh menyandarkan kegiatan pada sebuah
+// bahan: bukan seberapa penting bahannya, melainkan apakah ISINYA bisa
+// diketahui AI.
+//
+//   LATAR  — lingkungan, narasumber. AI merancang kegiatan tanpa perlu tahu
+//            isinya ("wawancarai narasumber tentang X"). Boleh jadi kegiatan.
+//   WADAH  — buku, video, artikel, bahan lain. Isinya tidak pernah dilihat AI.
+//            Menyuruhnya bersandar di situ hanya bisa dipatuhi dengan mengarang
+//            halaman, adegan, dan kutipan. TIDAK boleh jadi tulang punggung.
+const BAHAN_WADAH_ISI = ['buku_teks', 'video_audio', 'artikel', 'lainnya'];
+
+function bahanGuru(cd: Record<string, unknown>): string[] {
+  const ss = cd.SUMBER_STRATEGI as Record<string, unknown> | undefined;
+  const v  = ss ? unwrap(ss.bahan_guru) : null;
+  const arr = Array.isArray(v) ? v.map(String) : (v ? [String(v)] : []);
+  return arr.filter(k => k !== 'tidak_ada');
+}
+
 const ISTILAH_TEKNIK: Record<string, string> = {
   pemetaan_awal:  'pemetaan awal — angket atau soal singkat untuk dipetakan',
   tanya_jawab:    'tanya jawab lisan di awal pertemuan',
@@ -1170,9 +1209,21 @@ function konteksModulManusiawi(cd: Record<string, unknown>): Record<string, unkn
 function sumberStrategiManusiawi(cd: Record<string, unknown>): Record<string, unknown> | null {
   const ss = cd.SUMBER_STRATEGI as Record<string, unknown> | undefined;
   if (!ss) return null;
-  const lainnya = unwrap(ss.jenis_sumber_lainnya);
   const perlengkapan = perlengkapanKelas(cd);
+  const bahan = bahanGuru(cd);
+  // Jalur mundur: modul yang disusun sebelum 8 September 2026 hanya punya
+  // jenis_sumber. Uraian bebasnya pun ganti nama kunci, jadi keduanya dibaca.
+  const lainnya = unwrap(ss.bahan_guru_lainnya) ?? unwrap(ss.jenis_sumber_lainnya);
   return {
+    // Kosong = guru menjawab "tidak ada", atau ini modul lama yang tidak pernah
+    // ditanya. Dua-duanya diperlakukan sama: modul berdiri sendiri.
+    bahan_disiapkan_guru: bahan.map(k => ISTILAH_BAHAN_GURU[k] ?? k),
+    // Bagian dari daftar di atas yang ISINYA tidak diketahui MiClass. Aturan
+    // keras di SYSTEM_PROMPT berpangkal pada field ini, bukan pada seluruh
+    // daftar — lingkungan dan narasumber tetap boleh menjadi kegiatan.
+    bahan_isinya_tidak_diketahui: bahan
+      .filter(k => BAHAN_WADAH_ISI.includes(k))
+      .map(k => ISTILAH_BAHAN_GURU[k] ?? k),
     sumber_belajar:      terjemahkan(ISTILAH_SUMBER, ss.jenis_sumber),
     sumber_lain_uraian:  lainnya ? String(lainnya) : null,
     strategi_pembelajaran: terjemahkan(ISTILAH_STRATEGI, ss.strategi_utama),
@@ -1493,6 +1544,29 @@ guru. Patuhi nilainya apa adanya — jangan menyimpulkan sendiri dari daftar sum
 Alasan: Sebagian besar kelas SMK tidak punya akses internet stabil atau proyektor.
 Modul yang bergantung pada fasilitas yang tidak ada tidak bisa dipakai.
 
+BAHAN YANG GURU SIAPKAN SENDIRI (WAJIB DIPATUHI):
+Field "bahan_disiapkan_guru" berisi bahan yang guru nyatakan akan ia bawa sendiri.
+Field "bahan_isinya_tidak_diketahui" adalah bagian darinya yang ISINYA tidak pernah
+kamu lihat — buku teks, video atau audio, artikel, bahan lain milik guru.
+Untuk SETIAP bahan di "bahan_isinya_tidak_diketahui":
+- DILARANG menjadi tulang punggung kegiatan. Setiap langkah pembelajaran harus
+  tetap berjalan utuh seandainya guru lupa membawanya.
+- DILARANG muncul di naskah_fasilitasi sebagai instruksi konkret. Tidak boleh
+  menyebut halaman, bab, judul, adegan, menit, tokoh, atau isi apa pun darinya.
+  DILARANG: "Simak video percakapan staf butik", "Hentikan video pada momen kunci",
+  "Buka buku halaman 42", "Bacakan paragraf kedua artikel".
+- BOLEH disebut sekali sebagai pelengkap di sumber_belajar dan di catatan_guru,
+  dalam bentuk tawaran, bukan perintah. Misalnya: "Bila Anda membawa buku teks
+  Anda sendiri, bagian ini bisa diperkaya dengan contoh dari sana."
+Bahan berjenis LATAR — lingkungan sekitar, kunjungan dunia kerja, narasumber
+industri — TIDAK terkena larangan ini dan boleh menjadi kegiatan, karena kegiatan
+bisa dirancang tanpa mengetahui isinya lebih dulu.
+Seluruh langkah pembelajaran hanya boleh bersandar pada instrumen yang ada di
+manifest instrumen modul ini.
+Alasan: bahan milik guru tidak pernah kamu lihat. Menyandarkan kegiatan padanya
+hanya bisa dipatuhi dengan mengarang halaman, adegan, dan kutipan yang tidak ada —
+dan guru baru mengetahuinya saat sudah berdiri di depan kelas.
+
 MODE PELAKSANAAN (mode_pelaksanaan di sub_langkah):
 - Gunakan mode_pelaksanaan dan ukuran_kelompok jika kegiatan melibatkan pengelompokan.
 - 'bergantian': hitung apakah cukup waktu (n_kelompok × 3 mnt + transisi).
@@ -1506,6 +1580,8 @@ NASKAH FASILITASI (Fase B2):
 BATAS WEWENANG — naskah adalah lapisan PELAKSANA modul, bukan perancang.
 Kamu menentukan guru MENGATAKAN apa dan MELAKUKAN apa. Kamu TIDAK menentukan:
   - bahan apa yang tersedia      → hanya instrumen di instrumen_ringkas
+                                   (bahan milik guru DILARANG jadi instruksi —
+                                    lihat BAHAN YANG GURU SIAPKAN SENDIRI)
   - siapa tokoh di bahan itu     → hanya nama di field "tokoh"
   - berapa lama sebuah kegiatan  → hanya angka di jatah_waktu dan pertemuan[]
   - informasi apa yang dikumpulkan murid → persis daftar di kriteria KKTP
