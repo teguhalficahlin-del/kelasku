@@ -491,6 +491,25 @@ const RANCANG_FLOW = {
     ], { condition: { question_id: 'profil_kelas_lengkap', value: 'tidak' },
       constraints: { exclusive: ['tidak_ada'] },
       helpText: 'Modul hanya akan menyebut alat yang Anda centang di sini. Yang tidak tersedia tidak akan diminta.' }),
+    // JALUR MUNDUR — sepasang dengan perlengkapan_kelas di atas.
+    //
+    // Tanpa ini ada lubang yang mudah terlewat: bahasa_pengantar hanya
+    // ditanyakan di PROFIL_KELAS, dan PROFIL_KELAS hanya dilewati jalur ATP.
+    // Guru yang kelasnya sudah punya ATP lama lalu langsung menyusun Modul
+    // tidak akan pernah ditanya, sehingga generate-modul tidak punya jawaban
+    // dan language_policy kembali dikarang model — persis keadaan yang sedang
+    // diperbaiki. Dua pertanyaan profil lainnya sudah punya jalur mundur;
+    // yang ini tertinggal.
+    pilihan('bahasa_pengantar', 'Bahasa apa yang Anda pakai saat mengajar kelas ini?', [
+      ['indonesia',         'Bahasa Indonesia sepenuhnya'],
+      ['indonesia_dominan', 'Bahasa Indonesia — bahasa target hanya untuk contoh dan latihan'],
+      ['campur',            'Campur — penjelasan Indonesia, instruksi kelas bahasa target'],
+      ['target_dominan',    'Bahasa target sebagian besar waktu, Indonesia saat murid kesulitan'],
+      ['target_penuh',      'Bahasa target sepenuhnya'],
+      ['rekomendasi',       'Minta rekomendasi MiClass'],
+    ], { condition: { question_id: 'profil_kelas_lengkap', value: 'tidak' },
+      aiRecommendation: true,
+      helpText: 'Menentukan bahasa naskah dan instruksi untuk murid di seluruh Modul kelas ini.' }),
     pilihan('strategi_utama', 'Strategi pembelajaran utama yang digunakan?', [
       ['ceramah_diskusi', 'Guru menjelaskan, murid berlatih dan menerapkan (langsung)'],
       ['pbl',         'Murid mengerjakan proyek konkret yang bisa dipamerkan (berbasis proyek)'],

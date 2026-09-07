@@ -1293,6 +1293,76 @@ function perangkatDigitalDiizinkan(cd: Record<string, unknown>): boolean {
   return arr.includes('modul_digital') || arr.includes('video');
 }
 
+// ── KEBIJAKAN BAHASA ─────────────────────────────────────────────────────────
+// language_policy DIHITUNG BACKEND dari jawaban guru, bukan dikarang AI.
+//
+// Sampai 8 September 2026 ketiga field language_policy diisi model tanpa satu
+// pun aturan di SYSTEM_PROMPT dan tanpa satu pun masukan guru. Pada modul
+// 7 September ia memutuskan sendiri "Murid diarahkan menggunakan Bahasa Inggris
+// penuh" untuk kelas yang gurunya justru menyatakan muridnya "sedikit di bawah".
+// Tiap generate bisa berbeda, dan tidak ada yang akan tahu — persis bentuk
+// kegagalan yang sama dengan perangkat_digital_diizinkan sebelum dihitung
+// backend: keputusan pedagogis yang diserahkan ke model tanpa diminta.
+//
+// Kunci di basis data sengaja generik ("target"), bukan menyebut Bahasa Inggris:
+// gerbang Tab Rancang berlaku untuk seluruh GURU_MAPEL_UMUM_SMK. Nama bahasanya
+// diturunkan dari nama mapel di sini.
+function bahasaTarget(mapel: string | null | undefined): string | null {
+  if (!mapel) return null;
+  const m = /^bahasa\s+(.+)$/i.exec(String(mapel).trim());
+  if (!m) return null;
+  const nama = m[1].trim();
+  // Mapel Bahasa Indonesia tidak punya "bahasa target" yang berbeda dari
+  // bahasa pengantarnya — pilihan target_* di sana tidak bermakna.
+  if (/^indonesia$/i.test(nama)) return null;
+  return 'Bahasa ' + nama.charAt(0).toUpperCase() + nama.slice(1);
+}
+
+function kebijakanBahasa(
+  bahasaPengantar: string | null | undefined,
+  mapel: string | null | undefined,
+): { teacher_instruction: string; student_instruction: string; target_language: string | null } | null {
+  // Belum dijawab → kembalikan null, dan language_policy dari model dibiarkan
+  // apa adanya. Modul yang sudah jalan dan guru yang kelasnya belum punya
+  // profil tidak boleh berubah perilakunya diam-diam.
+  if (!bahasaPengantar) return null;
+  const T = bahasaTarget(mapel) ?? 'bahasa target mata pelajaran ini';
+  switch (bahasaPengantar) {
+    case 'indonesia':
+      return {
+        teacher_instruction: 'Guru menjelaskan dan memberi instruksi sepenuhnya dalam Bahasa Indonesia.',
+        student_instruction: 'Murid menjawab dan berdiskusi dalam Bahasa Indonesia.',
+        target_language: null,
+      };
+    case 'indonesia_dominan':
+      return {
+        teacher_instruction: `Guru menjelaskan dalam Bahasa Indonesia; ${T} dipakai hanya pada contoh dan latihan.`,
+        student_instruction: `Murid memakai ${T} saat mengerjakan contoh dan latihan, selebihnya Bahasa Indonesia.`,
+        target_language: bahasaTarget(mapel),
+      };
+    case 'campur':
+      return {
+        teacher_instruction: `Guru menjelaskan konsep dalam Bahasa Indonesia dan memberi instruksi kelas dalam ${T}.`,
+        student_instruction: `Murid mengikuti instruksi dalam ${T} dan boleh bertanya dalam Bahasa Indonesia.`,
+        target_language: bahasaTarget(mapel),
+      };
+    case 'target_dominan':
+      return {
+        teacher_instruction: `Guru mengajar sebagian besar dalam ${T} dan beralih ke Bahasa Indonesia saat murid kesulitan.`,
+        student_instruction: `Murid berusaha memakai ${T}; Bahasa Indonesia dipakai hanya saat benar-benar tersendat.`,
+        target_language: bahasaTarget(mapel),
+      };
+    case 'target_penuh':
+      return {
+        teacher_instruction: `Guru mengajar sepenuhnya dalam ${T}.`,
+        student_instruction: `Murid memakai ${T} sepanjang pembelajaran.`,
+        target_language: bahasaTarget(mapel),
+      };
+    default:
+      return null;
+  }
+}
+
 const SYSTEM_PROMPT = `Kamu adalah ahli perancangan pembelajaran Kurikulum Merdeka untuk guru SMK Indonesia.
 Tugasmu: menyusun Modul Ajar lengkap sesuai schema ModulOutput V4.0.
 
@@ -1596,6 +1666,17 @@ yang sedang ia baca di depan kelas.
 - jika_kesulitan: antisipasi jika murid terlihat bingung atau tidak mulai — opsional tapi sangat dianjurkan.
 - Setiap sub_langkah di pertemuan wajib punya satu NaskahSubLangkah yang melingkupinya.
 - ref sudah dikirim dalam konteks — salin persis, jangan ubah.
+
+BAHASA NASKAH (WAJIB DIPATUHI):
+Field "language_policy" di input BUKAN saran dan BUKAN karanganmu — ia berasal
+dari jawaban guru tentang bahasa yang benar-benar ia pakai di kelas ini, dan
+sudah ditetapkan backend sebelum kamu dipanggil.
+- "teacher_instruction" mengatur bahasa di ucapan_guru dan pertanyaan_kunci.
+- "student_instruction" mengatur bahasa yang murid diminta pakai.
+- "target_language" = null berarti seluruh naskah dalam Bahasa Indonesia.
+DILARANG menulis ucapan_guru dalam bahasa yang bertentangan dengan
+teacher_instruction. Guru yang menyatakan mengajar dalam Bahasa Indonesia tidak
+bisa membacakan naskah berbahasa Inggris di depan kelas — dan sebaliknya.
 
 ═════════════════════════════════════════════════════════════════
 KKTP — AMBANG BATAS WAJIB OBSERVABLE/VERIFIABLE
@@ -2178,7 +2259,7 @@ Deno.serve(async (req) => {
   // 5. BACA rancang_settings — tambah jumlah_murid
   const { data: settings, error: settingsErr } = await userClient
     .from('rancang_settings')
-    .select('mapel, jenjang, fase, program_keahlian, bidang_keahlian, nama_guru, tahun_ajaran, semester, jumlah_murid')
+    .select('mapel, jenjang, fase, program_keahlian, bidang_keahlian, nama_guru, tahun_ajaran, semester, jumlah_murid, bahasa_pengantar')
     .eq('classroom_id', classroom_id)
     .maybeSingle();
 
@@ -2187,6 +2268,11 @@ Deno.serve(async (req) => {
   }
 
   const jumlahMurid = settings?.jumlah_murid ?? null;
+
+  // Kebijakan bahasa dibaca dari profil KELAS, bukan dari funnel modul: ia
+  // melekat pada kelas dan berlaku sama untuk seluruh modul kelas itu.
+  // null = kelas ini belum pernah menjawabnya — perilaku lama dipertahankan.
+  const languagePolicy = kebijakanBahasa(settings?.bahasa_pengantar, settings?.mapel);
 
   // 6. BACA tp_kktp
   const { data: kktp, error: kktpErr } = await userClient
@@ -2483,6 +2569,16 @@ Deno.serve(async (req) => {
     // Injeksi input_guru ke konteks_murid — backend yang mengisi, bukan AI
     if (faseAOutput.konteks_murid && typeof faseAOutput.konteks_murid === 'object') {
       (faseAOutput.konteks_murid as Record<string, unknown>).input_guru = inputGuru;
+    }
+
+    // Injeksi language_policy — sama alasannya: keputusan guru, bukan karangan
+    // model. Ditimpa SESUDAH Fase A, sehingga nilai inilah yang tersimpan di
+    // draft dan yang dibaca Fase B2 saat menyusun naskah (baris ~2071).
+    // Ditimpa hanya bila gurunya sudah menjawab; kalau belum, keluaran model
+    // dibiarkan apa adanya supaya modul lama tidak berubah diam-diam.
+    if (languagePolicy && faseAOutput.metadata_pedagogis
+        && typeof faseAOutput.metadata_pedagogis === 'object') {
+      (faseAOutput.metadata_pedagogis as Record<string, unknown>).language_policy = languagePolicy;
     }
 
     const draftA = { ...kontenObj, _draft: { fase_a: faseAOutput } };
