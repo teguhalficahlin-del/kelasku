@@ -2153,7 +2153,18 @@
     if (phase === 'PROFIL_KELAS' || phase === 'KONTEKS_MODUL' || phase === 'SUMBER_STRATEGI') {
       await simpanProfilKelas();
     }
-    if (phase === 'PROFIL_KELAS') return;
+    // PROFIL_KELAS TIDAK berhenti di sini — jawabannya juga dipotret ke
+    // collected_data ATP, bukan hanya ke rancang_settings.
+    //
+    // Sebabnya: atp_induk sengaja LINTAS KELAS (atp_adaptasi yang per classroom),
+    // jadi ia tidak punya classroom_id dan generate-atp tidak bisa membaca
+    // rancang_settings. Lebih dari itu — perlengkapan yang diandaikan saat ATP
+    // disusun adalah bagian dari ATP itu sendiri, sama seperti
+    // WAKTU.perhitungan. Kelas boleh berganti proyektor besok; ATP yang sudah
+    // jadi tetap harus bisa menjelaskan atas dasar apa ia disusun.
+    //
+    // rancang_settings = profil kelas yang berlaku sekarang, supaya tidak
+    // ditanya ulang. collected_data = potret saat generate. Keduanya perlu.
     if (FASE_V2.has(phase)) {
       await persistModulPhase(phase);
       return;

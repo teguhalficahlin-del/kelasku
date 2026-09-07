@@ -117,6 +117,28 @@ const RANCANG_FLOW = {
   ],
 
   PRIORITAS: [
+    // Cara mengurutkan TP sepanjang fase.
+    //
+    // Sampai 8 September 2026 generate-atp menanam SATU metode mati di
+    // index.ts:167 — "dari kompetensi dasar ke kompleks" — dan guru tidak
+    // pernah ditanya. Padahal Panduan Pembelajaran dan Asesmen 2025 hal. 23-24
+    // (Tabel 3.3 "Cara-Cara Menyusun Alur Tujuan Pembelajaran") menyediakan
+    // ENAM metode resmi beserta contohnya. Untuk Bahasa Inggris SMK, Prosedural
+    // dan Scaffolding sering justru lebih tepat daripada Mudah-ke-Sulit.
+    //
+    // Label memakai bahasa guru dengan contoh; istilah resminya tetap dicetak
+    // di dokumen ATP (§23.2 poin 3 — larangan jargon berlaku untuk pertanyaan
+    // di chat, bukan untuk dokumen yang guru arsipkan).
+    pilihan('metode_pengurutan', 'Bagaimana urutan materi disusun sepanjang fase ini?', [
+      ['mudah_sulit',      'Dari yang mudah ke yang lebih sulit — kata pendek dulu, baru kalimat panjang'],
+      ['scaffolding',      'Bertahap sampai mandiri — dibantu penuh dulu, bantuan dikurangi pelan-pelan'],
+      ['prosedural',       'Mengikuti langkah kerja — tahap demi tahap satu prosedur utuh'],
+      ['konkret_abstrak',  'Dari benda nyata ke konsep — praktik dulu, teorinya menyusul'],
+      ['hierarki',         'Kemampuan dasar dulu — yang sederhana jadi syarat yang kompleks'],
+      ['deduktif',         'Dari gambaran umum ke rincian'],
+      ['rekomendasi',      'Minta rekomendasi MiClass'],
+    ], { aiRecommendation: true,
+      helpText: 'Menentukan urutan TP, bukan jumlah jamnya. Mengacu Tabel 3.3 Panduan Pembelajaran dan Asesmen 2025.' }),
     jamak('target_prioritas', 'Apa prioritas utama siswa selama fase ini? Pilih maksimal tiga.', [
       ['fondasi_tka', 'Membangun fondasi TKA (Tes Kompetensi Akademik)'], ['dunia_kerja', 'Kesiapan memasuki dunia kerja'],
       ['pkl', 'Kesiapan PKL'], ['sertifikasi', 'Kesiapan sertifikasi kompetensi'],

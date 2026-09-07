@@ -149,6 +149,54 @@ function validateTpList(
   return { valid: errors.length === 0, errors, entries };
 }
 
+// Metode pengurutan TP, dari Tabel 3.3 "Cara-Cara Menyusun Alur Tujuan
+// Pembelajaran" — Panduan Pembelajaran dan Asesmen 2025, hal. 23-24.
+//
+// Sampai 8 September 2026 SYSTEM_PROMPT menanam SATU metode mati ("dari
+// kompetensi dasar ke kompleks", kira-kira Mudah-ke-Sulit) dan guru tidak
+// pernah ditanya. Lima metode resmi lainnya tidak pernah tersedia, padahal
+// untuk Bahasa Inggris SMK Prosedural dan Scaffolding sering lebih tepat.
+//
+// Nilai kamus ini masuk ke prompt sebagai PERINTAH PENGURUTAN — sejajar dengan
+// aturan lain, bukan menggantikan penjaga aritmetika. Urutan boleh berubah;
+// sum(jp_alokasi) = jp_operasional dan kelipatan satuan pertemuan TIDAK.
+const METODE_PENGURUTAN: Record<string, string> = {
+  mudah_sulit:
+    'Pengurutan dari Mudah ke yang lebih Sulit — mulai dari konten paling mudah ' +
+    'menuju yang paling sulit.',
+  scaffolding:
+    'Scaffolding — standar performa meningkat sementara bantuan guru berkurang ' +
+    'bertahap, sampai murid mampu mandiri di TP terakhir.',
+  prosedural:
+    'Pengurutan Prosedural — ikuti tahapan satu prosedur kerja yang utuh, ' +
+    'TP demi TP mengikuti langkahnya dari awal sampai selesai.',
+  konkret_abstrak:
+    'Pengurutan dari Konkret ke Abstrak — mulai dari benda dan praktik yang ' +
+    'berwujud, baru menuju konsep dan aturan yang simbolis.',
+  hierarki:
+    'Pengurutan Hierarki — keterampilan komponen yang lebih sederhana diajarkan ' +
+    'lebih dulu karena menjadi syarat keterampilan yang lebih kompleks.',
+  deduktif:
+    'Pengurutan Deduktif — dari konten yang umum menuju yang spesifik.',
+  rekomendasi:
+    'belum ditentukan guru — pilih metode pengurutan yang paling sesuai dengan ' +
+    'mata pelajaran, profil siswa, dan konteks program keahlian.',
+};
+
+// Label perlengkapan kelas, untuk dikirim ke AI sebagai frasa manusia.
+// Kunci mentah tidak pernah masuk prompt (CLAUDE.md, pelajaran 5 September).
+const LABEL_PERLENGKAPAN: Record<string, string> = {
+  proyektor:      'proyektor atau LCD',
+  laptop_guru:    'laptop atau komputer guru',
+  komputer_murid: 'komputer atau laptop untuk murid',
+  hp_murid:       'HP murid boleh dipakai untuk belajar',
+  internet:       'koneksi internet yang bisa diandalkan',
+  speaker:        'speaker atau pengeras suara',
+  lab:            'lab atau bengkel praktik',
+  printer:        'printer atau mesin fotokopi',
+  tidak_ada:      'tidak ada perangkat apa pun selain papan tulis dan alat tulis',
+};
+
 const SYSTEM_PROMPT =
   'Kamu adalah ahli perancangan kurikulum Kurikulum Merdeka untuk guru SMK Indonesia.\n' +
   'Tugasmu: menyusun Alur Tujuan Pembelajaran (ATP) sebagai daftar Tujuan Pembelajaran (TP) ' +
@@ -164,11 +212,20 @@ const SYSTEM_PROMPT =
   '3. sum(jp_alokasi) dari SEMUA TP HARUS SAMA PERSIS dengan jp_operasional yang diberikan.\n' +
   '   Jika jp_per_pertemuan tersedia: jp_alokasi setiap TP HARUS merupakan kelipatan jp_per_pertemuan\n' +
   '   (contoh: jika jp_per_pertemuan=4, maka jp_alokasi valid = 4, 8, 12, 16 — BUKAN 6, 10, 14).\n' +
-  '4. Urutan TP: dari kompetensi dasar ke kompleks, memperhatikan prasyarat dan profil siswa.\n' +
+  '4. Urutan TP: IKUTI metode_pengurutan yang diberikan di data.\n' +
+  '   Metode itu menentukan URUTAN, bukan jumlah JP — aturan 3 tetap mutlak.\n' +
+  '   Tetap perhatikan prasyarat antar-TP dan profil siswa.\n' +
   '5. Field opsional: tipe ("inti"|"prasyarat"|"pengayaan"), catatan (string), konteks (array string).\n' +
   '6. Gunakan program_keahlian untuk menentukan konteks TP — kosakata, situasi kerja, dan\n' +
   '   dokumen yang disebutkan harus relevan dengan program keahlian tersebut.\n' +
   '   Judul TP harus spesifik dan kontekstual, bukan generik.\n\n' +
+  '7. PERLENGKAPAN KELAS (wajib dipatuhi): daftar perlengkapan_tersedia menyebut apa yang\n' +
+  '   BENAR-BENAR ada di kelas ini. Judul TP DILARANG menuntut alat di luar daftar itu.\n' +
+  '   Contoh yang dilarang tanpa proyektor/speaker: "Menyimak kosakata dari video tutorial".\n' +
+  '   Ganti dengan kegiatan yang bisa dijalankan dengan alat yang ada. Alasan: ATP yang\n' +
+  '   menuntut alat yang tidak dimiliki menghasilkan modul yang tidak bisa dipakai guru.\n' +
+  '   Jika perlengkapan_tersedia bernilai null, perlengkapannya BELUM DIKETAHUI —\n' +
+  '   abaikan aturan ini dan jangan mengandaikan apa pun, baik ada maupun tiada.\n' +
   'PANDUAN BAHASA JUDUL TP:\n' +
   'Judul TP harus ditulis dalam bahasa yang bisa dipahami guru SMK tanpa perlu membuka glosarium.\n' +
   'Gunakan kalimat aktif yang menyebut kegiatan nyata siswa dan konteks dunia kerja secara natural.\n\n' +
@@ -373,6 +430,28 @@ Deno.serve(async (req) => {
   const konteksDudi   = unwrapPhaseData(cd.KONTEKS_DUDI);
   const prasyarat     = unwrapPhaseData(cd.PENGUATAN_PRASYARAT);
 
+  // Profil kelas — dipotret ke collected_data saat funnel dijalankan.
+  //
+  // TIDAK dibaca dari rancang_settings: atp_induk sengaja LINTAS KELAS
+  // (atp_adaptasi yang per classroom), jadi ia tidak punya classroom_id.
+  // Lebih dari itu, perlengkapan yang diandaikan saat ATP disusun adalah bagian
+  // dari ATP itu sendiri — kelas boleh berganti proyektor besok, ATP yang sudah
+  // jadi tetap harus bisa menjelaskan atas dasar apa ia disusun.
+  const profilKelas = unwrapPhaseData(cd.PROFIL_KELAS);
+  const perlengkapanMentah = Array.isArray(profilKelas.perlengkapan_kelas)
+    ? profilKelas.perlengkapan_kelas as string[] : [];
+  const perlengkapanTersedia = perlengkapanMentah.map(
+    k => LABEL_PERLENGKAPAN[String(k)] ?? String(k));
+
+  // ATP lama tidak punya PROFIL_KELAS. Daftar kosong berarti "belum diketahui",
+  // BUKAN "tidak ada apa-apa" — menyamakan keduanya akan mengubah perilaku ATP
+  // lama diam-diam, dan itu kelas kesalahan yang berulang di proyek ini.
+  const perlengkapanDiketahui = perlengkapanMentah.length > 0;
+
+  const metodeKunci = String(unwrap(
+    (cd.PRIORITAS as Record<string, unknown> | undefined)?.metode_pengurutan) ?? 'rekomendasi');
+  const metodePengurutan = METODE_PENGURUTAN[metodeKunci] ?? METODE_PENGURUTAN.rekomendasi;
+
   const konteksCP = (cd.KONTEKS_CP as Record<string, unknown>) || {};
   const programKeahlian = unwrap(konteksCP.program_keahlian) as string | null ?? null;
 
@@ -401,6 +480,8 @@ Deno.serve(async (req) => {
     profil_siswa:       profilSiswa,
     konteks_dudi:       konteksDudi,
     penguatan_prasyarat: prasyarat,
+    metode_pengurutan: metodePengurutan,
+    perlengkapan_tersedia: perlengkapanDiketahui ? perlengkapanTersedia : null,
     sumber_flow: sumber_flow || 'susun',
     instruksi: (sumber_flow === 'sesuaikan'
       ? 'MODE: Pembaruan ATP yang sudah ada — pertahankan struktur TP yang ada, hanya perbarui yang perlu disesuaikan dengan CP terbaru. '
