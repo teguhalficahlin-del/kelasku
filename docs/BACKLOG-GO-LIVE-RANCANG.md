@@ -308,6 +308,26 @@ fungsi kirimnya sendiri dengan tiruan library docx:
 Modul lama berskema V3 diuji ikut: hanya bab yang datanya ada yang terbit, tanpa
 judul kosong dan tanpa "undefined".
 
+**Diverifikasi pada berkas .docx sungguhan** (7 September 2026, setelah `aa47272`
+di-push dan GitHub Pages menyajikannya). Bukan lagi lewat tiruan library: berkas
+diunduh di aplikasi produksi, blob-nya ditangkap, zip-nya dibongkar, dan
+`word/document.xml` dibaca langsung.
+
+| | ATP | Modul |
+|---|---|---|
+| Ukuran berkas | 7.531 → **7.580 byte** | 9.174 → **19.503 byte** |
+| Teks di dalamnya | 1.751 → 1.867 karakter | 5.171 → **32.565 karakter** |
+| Paragraf | — | 411 |
+| Kata "undefined" | — | **0** |
+| Identifier bergaris bawah | 3 jenis → **0** | **0** |
+| Pemisah halaman lampiran | — | 1 |
+| Paragraf berbutir | — | 139 |
+| Paragraf ber-indent | — | 323 |
+
+Butir dan indentasi bertingkat memang terbentuk di XML-nya, jadi Word akan
+menampilkannya bertingkat — bukan sekadar teks rata kiri. Kedua berkas dibuka
+tanpa galat oleh library aslinya.
+
 **Keputusan yang diambil tanpa menunggu Romo, dan mudah diubah:** satu berkas
 per TP, Naskah sebagai lampiran di halaman baru — bukan dua berkas terpisah.
 Alasannya guru mencetak satu dokumen per pertemuan; pemisahan di layar itu
