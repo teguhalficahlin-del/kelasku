@@ -1003,8 +1003,17 @@
       rcSetComposerVisible(false);
       rcClearChips();
       if (_chat.sumber_flow === 'susun') {
-        // Mode susun baru — langsung ke PRIORITAS, tidak perlu pilih ATP
-        await startPhase('PRIORITAS');
+        // Mode susun baru — tidak perlu memilih ATP, lompat ke fase berikutnya.
+        //
+        // Dulu baris ini menyebut 'PRIORITAS' langsung. Begitu PROFIL_KELAS
+        // disisipkan di antara PILIH_ATP dan PRIORITAS (8 September 2026),
+        // lompatan itu MELEWATINYA diam-diam — ketiga pertanyaan profil tidak
+        // pernah muncul, dan tidak ada galat apa pun. Ketahuan hanya karena
+        // alurnya dijalankan sungguhan di peramban.
+        //
+        // getNextPhase membaca FASE_URUTAN, jadi urutan fase kini punya satu
+        // sumber kebenaran. Menyisipkan fase berikutnya tidak akan memutusnya lagi.
+        await startPhase(getNextPhase('PILIH_ATP'));
         return;
       }
       // Mode sesuaikan atau modul — fetch daftar ATP dan tampilkan picker
@@ -1030,7 +1039,7 @@
           rcClearChips();
           _chat.sumber_flow = 'susun';
           saveState();
-          startPhase('PRIORITAS');
+          startPhase(getNextPhase('PILIH_ATP'));
         });
         return;
       }
