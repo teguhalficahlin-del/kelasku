@@ -8,6 +8,29 @@
 
   let savedEmail = null;
 
+  // Alamat yang dituju tautan konfirmasi email.
+  //
+  // Tanpa emailRedirectTo, Supabase memakai "Site URL" milik proyek — dan nilai
+  // itu bertahan sebagai http://localhost:3000 sejak masa pengembangan sampai
+  // 7 September 2026. Setiap guru baru menerima email berisi tautan ke
+  // localhost, yang di komputer mereka berakhir sebagai ERR_CONNECTION_REFUSED.
+  // Pendaftaran terlihat berhasil, emailnya sampai, dan tautannya mati — tidak
+  // ada satu pun galat yang muncul di sisi kita.
+  //
+  // Site URL sudah dibetulkan, tapi menyebutkan alamatnya di sini membuat
+  // pendaftaran tidak lagi bergantung pada satu setelan dashboard yang bisa
+  // berubah tanpa jejak di repo.
+  //
+  // Bentuknya meniru jalur lupa-password di guru/js/guru.js:147 yang sudah
+  // benar sejak awal: diturunkan dari lokasi berkas, jadi tetap sahih di
+  // GitHub Pages maupun domain sendiri tanpa mengubah kode.
+  function tautanKonfirmasi() {
+    const akar = (window.SIP_CONFIG && window.SIP_CONFIG.APP_BASE_URL) ||
+                 (window.location.origin +
+                  window.location.pathname.replace(/\/onboarding\/.*$/, ''));
+    return akar + '/guru/index.html';
+  }
+
   function showError(msg) {
     errorMsg.textContent = msg;
     errorMsg.style.display = 'block';
@@ -87,7 +110,10 @@
     const { data, error: signUpError } = await client.auth.signUp({
       email,
       password,
-      options: { data: { full_name } },
+      options: {
+        data: { full_name },
+        emailRedirectTo: tautanKonfirmasi(),
+      },
     });
 
     if (signUpError) {
@@ -122,7 +148,11 @@
     btn.textContent = 'Mengirim...';
 
     // B1 — Tangkap error resend
-    const { error: resendErr } = await client.auth.resend({ type: 'signup', email: savedEmail });
+    const { error: resendErr } = await client.auth.resend({
+      type: 'signup',
+      email: savedEmail,
+      options: { emailRedirectTo: tautanKonfirmasi() },
+    });
     if (resendErr) {
       showError(translateSupabaseError(resendErr.message));
       btn.disabled = false;
