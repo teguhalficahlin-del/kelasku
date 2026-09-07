@@ -395,6 +395,24 @@ Bertahap, tiap tahap bisa diverifikasi sendiri (§21.3 poin 6).
 3. **`generate-atp`** — terima perlengkapan; ganti baris 167 dengan metode
    pilihan guru. Verifikasi: ATP untuk kelas tanpa perangkat digital tidak
    menghasilkan satu pun TP yang menuntut perangkat digital.
+   **SELESAI & TERVERIFIKASI DI PRODUKSI, 8 September 2026** (`f8550a1`).
+   Bukti: ATP `e7e8e002` untuk X TB Busana — kelas yang tercatat hanya punya
+   proyektor dan speaker, tanpa internet. Metode yang dipilih guru: Scaffolding.
+
+   | Yang diuji | Hasil |
+   |---|---|
+   | Fase PROFIL KELAS dilewati karena kelas sudah punya profil | ya |
+   | Pertanyaan metode pengurutan muncul dengan kata-kata Tabel 3.3 | ya |
+   | TP yang menuntut video/internet/audio/aplikasi | **0 dari 12** |
+   | `sum(jp_alokasi)` = `jp_operasional` (136 − 4 pemetaan − 4 penguatan) | 128 = 128 |
+   | TP yang bukan kelipatan satuan pertemuan (4 JP) | 0 |
+   | Urutan mencerminkan Scaffolding | ya — TP 1 "Mengidentifikasi kosakata dasar", TP 12 "Mempresentasikan … **secara mandiri**" |
+
+   Jalur "Minta rekomendasi MiClass" ikut teruji di fase yang sama: MiClass
+   memilih opsi yang sah, menyebutkan alasannya dengan menyandingkan dua jawaban
+   guru sebelumnya, dan jawabannya tercatat benar setelah "Gunakan rekomendasi".
+
+   ATP uji dihapus setelah verifikasi — produksi bersih.
 4. **Penggantian #54** + aturan keras bahan guru. Verifikasi: naskah tidak
    menyebut bahan guru sebagai instruksi konkret.
 5. **`language_policy`** disalin dari jawaban guru.
