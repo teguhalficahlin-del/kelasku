@@ -328,6 +328,53 @@ Butir dan indentasi bertingkat memang terbentuk di XML-nya, jadi Word akan
 menampilkannya bertingkat — bukan sekadar teks rata kiri. Kedua berkas dibuka
 tanpa galat oleh library aslinya.
 
+### 4e. Modul .docx diluruskan ke kerangka resmi — **SELESAI `81cac84`**
+
+*Hasil membandingkan keluaran dengan dua dokumen acuan yang ditunjuk Romo:*
+*Panduan Pembelajaran dan Asesmen 2025 (kerangka perencanaan hal. 30–31,*
+*ketentuan SMK hal. 35) dan Panduan Mata Pelajaran Bahasa Inggris Revisi 3*
+*(contoh modul ajar hal. 90–92).*
+
+Kerangka resmi menuntut empat bab berurutan: **Identifikasi → Desain
+Pembelajaran → Langkah-langkah Pembelajaran → Asesmen Pembelajaran.**
+Perbandingan keluaran MiClass terhadapnya:
+
+| Komponen kerangka resmi | Tersimpan di V4.0? | Tercetak sebelum `81cac84`? |
+|---|---|---|
+| Asesmen awal (opsional) | `rencana_asesmen.asesmen_diagnostik` | ya |
+| **Dimensi Profil Lulusan** | `metadata_pedagogis.dimensi_profil_lulusan` | **tidak** |
+| **Karakteristik Materi** | `metadata_pedagogis.karakteristik_materi` | **tidak** |
+| Tujuan Pembelajaran | `identitas.tujuan_pembelajaran` | ya |
+| Praktik Pedagogis | `rancangan.strategi_pedagogis` | ya |
+| Kemitraan Pembelajaran | `rancangan.kemitraan_pembelajaran` | ya |
+| Lingkungan Pembelajaran | `rancangan.lingkungan_pembelajaran` | ya |
+| Pemanfaatan Digital | `rancangan.pemanfaatan_digital` | ya |
+| Memahami/Mengaplikasi/Merefleksi + prinsip | `pertemuan[].langkah` | ya |
+| Asesmen: teknik & instrumen | `rencana_asesmen` | ya |
+| Bahan ajar & lembar kerja (wajib SMK, hal. 35) | `instrumen_*` | ya (sejak `aa47272`) |
+
+**Tiga hal diperbaiki, dua di antaranya mengoreksi `aa47272` sendiri:**
+
+1. **Dimensi Profil Lulusan dan Karakteristik Materi hilang.** Keduanya diminta
+   kerangka resmi, ada di contoh modul Bahasa Inggris, dan **sudah tersimpan**
+   di V4.0 — tapi tidak pernah dicetak sejak V4.0 menggantikan V3. `aa47272`
+   tidak mengembalikannya karena hanya memetakan kunci yang jelas terpakai.
+2. **Nama bab menyimpang.** `aa47272` memakai "Konteks Murid" dan "Rancangan
+   Pembelajaran" — istilah buatan sendiri. Isinya benar, tapi pengawas mencari
+   nama resminya. Dikembalikan ke "Identifikasi" dan "Desain Pembelajaran".
+3. **Identitas dokumen tidak pernah tercetak.** Nama guru, kelas, semester,
+   tahun ajaran, program keahlian — semuanya ada di `rancang_settings`, tidak
+   satu pun masuk berkas. Modul tanpa identitas penyusun bukan dokumen yang
+   bisa diarsipkan sekolah.
+
+Diverifikasi pada berkas .docx sungguhan dari produksi: 19.984 byte, 33.761
+karakter, sembilan bab plus lampiran, nol "undefined", nol identifier mentah.
+
+**Yang sengaja TIDAK diseragamkan:** KKTP tetap bab tersendiri meski tidak ada
+di kerangka empat-bab. Ia istilah resmi Kurikulum Merdeka, dirujuk silang oleh
+bab Asesmen dan bab Instrumen, dan CLAUDE.md §23.2 menegaskan istilah resmi
+dipertahankan di dokumen yang guru cetak.
+
 **Keputusan yang diambil tanpa menunggu Romo, dan mudah diubah:** satu berkas
 per TP, Naskah sebagai lampiran di halaman baru — bukan dua berkas terpisah.
 Alasannya guru mencetak satu dokumen per pertemuan; pemisahan di layar itu
