@@ -415,6 +415,20 @@ Bertahap, tiap tahap bisa diverifikasi sendiri (§21.3 poin 6).
    ATP uji dihapus setelah verifikasi — produksi bersih.
 4. **Penggantian #54** + aturan keras bahan guru. Verifikasi: naskah tidak
    menyebut bahan guru sebagai instruksi konkret.
+   **SELESAI & TERVERIFIKASI DI PRODUKSI, 8 September 2026** (`72984cd`).
+   Bukti: modul `0db3f267` (TP 12, X TB Busana, 2 pertemuan × 8 JP), dengan guru
+   sengaja mencentang **"Video atau audio pilihan saya"** dan **"Buku teks yang
+   saya pakai"** — persis kombinasi yang dulu melahirkan cacatnya.
+
+   | Yang diuji | Sebelum | Sesudah |
+   |---|---|---|
+   | Kata "video" di seluruh modul | kegiatan dibangun di atasnya, 2 dari 2 modul | **0** |
+   | Kata "audio" di seluruh modul | — | **0** |
+   | Bahan guru sebagai instruksi di naskah (23.270 karakter) | "Hentikan video pada momen kunci" | **0** |
+   | Buku teks disebut | satu baris hiasan di daftar sumber | **satu baris tawaran**: *"Dapat dijadikan rujukan pengayaan contoh deskripsi pakaian bagi murid yang memerlukan variasi kosakata."* |
+
+   Bentuk terakhir itulah yang dituju: bahan guru tercatat, dihargai, dan modul
+   tetap utuh seandainya guru lupa membawanya.
 5. **`language_policy`** disalin dari jawaban guru.
 6. **Empat pertanyaan asesmen** + perubahan `instruksi_manifest`.
 7. **Perbaikan §6** — hapus kode mati, tambah rute revisi, perluas syarat.
