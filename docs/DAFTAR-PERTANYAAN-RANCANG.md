@@ -207,7 +207,7 @@ terpisah.
 > |---|---|---|
 > | 1 | Kemampuan awal hanya bisa dijelaskan guru yang mengaku tidak punya data | **SELESAI** `696c415` |
 > | 2 | JP pemetaan dan JP penguatan tidak dipesan dari anggaran | **SELESAI** `696c415` |
-> | 3 | #47 diabaikan bila ATP sudah punya distribusi pertemuan | terbuka |
+> | 3 | #47 diabaikan bila ATP sudah punya distribusi pertemuan | **SELESAI** `fb62f0f` — sisa kode mati |
 > | 4 | Asesmen formatif tidak punya pertanyaan teknik | terbuka |
 > | 5 | Kunci opsi tidak selalu cocok dengan labelnya | **SELESAI** `3505493` |
 > | 6 | ATP tidak pernah menanyakan jumlah murid | terbuka |
@@ -264,23 +264,48 @@ Keduanya dibaca di baris 1462–1463 dan sekarang benar-benar dikurangkan sebelu
 Keduanya juga ikut dikembalikan sebagai `jp_pemetaan` dan `jp_prasyarat`
 (baris 1483–1484), jadi angkanya terbaca di ringkasan yang dilihat guru.
 
-### Catatan 3 — pertanyaan #47 diabaikan bila ATP sudah punya distribusi pertemuan
+### Catatan 3 — pertanyaan #47 — **SUDAH DITANGANI `fb62f0f`, tapi bangkainya tertinggal**
 
-`generate-modul` memakai `selected_tp.jp_pertemuan.length` dan hanya jatuh ke
-jawaban guru bila daftar itu kosong. Karena ATP normal selalu menghasilkan
-`jp_pertemuan`, jawaban guru pada #47 praktis tidak pernah terpakai. Guru ditanya
-sesuatu yang jawabannya dibuang.
+*Dikoreksi 7 September 2026 setelah alur Modul dijalankan sungguhan di produksi.
+Rekonsiliasi sebelumnya salah membiarkan catatan ini terbuka: ia hanya
+membaca `generate-modul`, tidak menelusuri apakah pertanyaannya masih
+ditanyakan ke guru.*
 
-**Masih terbuka per `af3f32b`** — `supabase/functions/generate-modul/index.ts:2158-2162`
-(rujukan `index.ts:2116` di versi lama dokumen ini sudah bergeser):
+Rumusan lama: "guru ditanya sesuatu yang jawabannya dibuang." **Itu tidak lagi
+benar — guru tidak ditanya sama sekali.** `fb62f0f` (31 Agustus 2026,
+"hapus PILIH_TP — jumlah pertemuan otomatis dari ATP") memotong pertanyaannya
+dari alur. Saat guru memilih TP, `rancang-chat.js:1169-1181` mengisi jawabannya
+sendiri dari distribusi ATP lalu langsung melompat ke fase berikutnya:
 
-```ts
-const jpPertemuanArr = Array.isArray(selectedTp.jp_pertemuan)
-  ? (selectedTp.jp_pertemuan as number[]) : [];
-const jumlahPertemuan = jpPertemuanArr.length > 0
-  ? jpPertemuanArr.length
-  : Number(unwrap(pilihTp.jumlah_pertemuan) ?? 0);
+```js
+const pertemuan  = Array.isArray(tp.jp_pertemuan) ? tp.jp_pertemuan : [];
+const nPertemuan = pertemuan.length || 1;
+const jumlahAnswer = { value: String(nPertemuan), source: 'otomatis', confirmed: true };
+_chat.collected_answers.jumlah_pertemuan = jumlahAnswer;
+await persistModulPhase('PILIH_TP');
+await startPhase('KONTEKS_MODUL');
 ```
+
+Diamati langsung di produksi 7 September 2026: setelah memilih TP 1, layar
+berikutnya adalah kondisi kelas (#51), bukan pertanyaan jumlah pertemuan. Daftar
+TP malah **menampilkan** distribusinya — "16 JP · 2 pertemuan (8+8 JP)" — jadi
+guru melihat angkanya, hanya tidak diminta menebaknya.
+
+**Yang benar-benar tersisa adalah kode mati, bukan pertanyaan yang sia-sia:**
+
+1. `rancang-chat-flow.js` masih memuat definisi `jumlah_pertemuan` di fase
+   `PILIH_TP` — tidak pernah dirender.
+2. `rancang-chat.js:2231` masih memetakan `ubah_pertemuan → 'PILIH_TP'`, padahal
+   tidak ada satu pun menu yang menghasilkan nilai `ubah_pertemuan`
+   (#63 hanya menawarkan ubah kondisi kelas, sumber & strategi, asesmen).
+
+Kalau rute itu suatu hari disambungkan kembali tanpa membaca catatan ini, guru
+akan mendarat di pertanyaan yatim yang jawabannya memang ditimpa
+`generate-modul/index.ts:2158-2162`. Membuang keduanya lebih aman daripada
+membiarkannya menunggu.
+
+Karena itu catatan ini **bukan lagi soal alur pertanyaan**, melainkan kebersihan
+kode — bobotnya jauh lebih ringan dari yang tertulis di CLAUDE.md §12.
 
 ### Catatan 4 — asesmen formatif tidak punya pertanyaan teknik
 

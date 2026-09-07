@@ -34,7 +34,7 @@
   async function fetchAtpAktif(guruId) {
     var { data, error } = await client
       .from('atp_induk')
-      .select('id, mapel, fase, jenjang, progresi_tp, updated_at')
+      .select('id, mapel, fase, jenjang, progresi_tp, elemen_cp, updated_at')
       .eq('guru_id', guruId)
       .eq('status', 'aktif')
       .order('updated_at', { ascending: false })
@@ -62,6 +62,28 @@
     var D = window.docx;
     var tpList = Array.isArray(atp.progresi_tp) ? atp.progresi_tp : [];
 
+    // Peta id elemen → label manusia.
+    //
+    // progresi_tp[].elemen menyimpan KUNCI ("menyimak_berbicara"), bukan label.
+    // Sampai 7 September 2026 kunci itu tercetak apa adanya di dokumen yang
+    // dibawa guru ke sekolah — persis kelas cacat yang dilarang
+    // AGENT_RULES.md §5.3. Labelnya sudah tersedia di atp_induk.elemen_cp,
+    // jadi tidak perlu ditebak dari bentuk kuncinya.
+    var elemenLabel = {};
+    (Array.isArray(atp.elemen_cp) ? atp.elemen_cp : []).forEach(function (e) {
+      if (e && e.id) elemenLabel[e.id] = e.label || e.id;
+    });
+    function labelElemen(id) {
+      if (elemenLabel[id]) return elemenLabel[id];
+      // Jalan mundur untuk ATP lama yang elemen_cp-nya kosong: ubah kunci
+      // bergaris bawah jadi frasa berkapital, jangan pernah cetak mentah.
+      return String(id || '')
+        .split('_')
+        .filter(Boolean)
+        .map(function (w) { return w.charAt(0).toUpperCase() + w.slice(1); })
+        .join(' - ') || '-';
+    }
+
     var children = [];
 
     // Judul dokumen
@@ -75,6 +97,15 @@
     children.push(tableRow2Col('Mata Pelajaran', atp.mapel || '-'));
     children.push(tableRow2Col('Fase', atp.fase || '-'));
     children.push(tableRow2Col('Jenjang', atp.jenjang || '-'));
+    var totalJp = tpList.reduce(function (s, tp) { return s + (Number(tp.jp_alokasi) || 0); }, 0);
+    var totalPertemuan = tpList.reduce(function (s, tp) {
+      return s + (Array.isArray(tp.jp_pertemuan) ? tp.jp_pertemuan.length : 0);
+    }, 0);
+    if (tpList.length > 0) {
+      children.push(tableRow2Col('Jumlah TP', String(tpList.length)));
+      children.push(tableRow2Col('Total Alokasi',
+        totalJp + ' JP' + (totalPertemuan ? ' · ' + totalPertemuan + ' pertemuan' : '')));
+    }
     children.push(new D.Paragraph({ text: '', spacing: { after: 300 } }));
 
     // Daftar TP
@@ -96,7 +127,7 @@
           children.push(new D.Paragraph({
             children: [
               new D.TextRun({ text: 'Elemen: ', bold: true, italics: true }),
-              new D.TextRun({ text: tp.elemen.join(', '), italics: true }),
+              new D.TextRun({ text: tp.elemen.map(labelElemen).join(', '), italics: true }),
             ],
             spacing: { after: 80 },
           }));
@@ -151,14 +182,136 @@
   // Fase utama sesuai kerangka pembelajaran mendalam (PDF hal. 38–40)
   var FASE_UTAMA = ['MEMAHAMI', 'MENGAPLIKASI', 'MEREFLEKSI'];
 
+  // Label jenis instrumen — disamakan dengan ISTILAH_INSTRUMEN di rancang-chat.js.
+  // Kalau salah satu diubah, ubah keduanya.
+  var LABEL_INSTRUMEN = {
+    dialog_baseline:   'Contoh percakapan (awal)',
+    dialog_model:      'Contoh percakapan',
+    teks_autentik:     'Teks nyata dari dunia kerja',
+    kartu_peran:       'Kartu bermain peran',
+    pemetaan_awal:     'Pemetaan kemampuan awal',
+    matriks_observasi: 'Lembar pengamatan',
+    lembar_refleksi:   'Lembar refleksi',
+    soal_latihan:      'Soal latihan',
+    lembar_praktikum:  'Lembar praktik',
+    panduan_proyek:    'Panduan proyek',
+    custom:            'Lainnya',
+  };
+
+  // Nama field → frasa manusia. Yang tidak terdaftar diubah otomatis oleh
+  // manusiakanKunci(): kode mesin tidak boleh sampai ke dokumen cetak.
+  var LABEL_FIELD = {
+    petunjuk: 'Petunjuk', giliran: 'Percakapan', set: 'Set peran',
+    pembicara: 'Pembicara', ucapan: 'Ucapan', isi_teks: 'Teks',
+    pertanyaan_panduan: 'Pertanyaan panduan', item_soal: 'Butir soal',
+    pertanyaan_menyimak: 'Pertanyaan menyimak', situasi_respons: 'Situasi respons',
+    kolom_indikator: 'Indikator', kode_legend: 'Keterangan kode',
+    catatan_kritis: 'Catatan penting', catatan_fasilitasi: 'Catatan fasilitasi',
+    fokus_pengamatan: 'Fokus pengamatan', tujuan_diagnostik: 'Tujuan',
+    panduan_interpretasi: 'Cara membaca hasil', nama_set: 'Nama set',
+    nama_entitas: 'Nama', peran_a: 'Peran A', peran_b: 'Peran B',
+    jabatan: 'Jabatan', instruksi_peran: 'Instruksi peran',
+    kalimat_konteks: 'Kalimat', kata_target: 'Kata kunci',
+    pertanyaan: 'Pertanyaan', prompt: 'Pertanyaan', soal: 'Soal',
+    tipe: 'Jenis', label: 'Uraian', id: 'Kode',
+  };
+
+  function manusiakanKunci(k) {
+    if (LABEL_FIELD[k]) return LABEL_FIELD[k];
+    var s = String(k || '').replace(/_/g, ' ').trim();
+    return s ? s.charAt(0).toUpperCase() + s.slice(1) : '';
+  }
+
+  // Penampil isi instrumen — SENGAJA GENERIK.
+  //
+  // Cabang per jenis pernah dicoba di renderer layar dan gagal: AI mengarang
+  // nama field sendiri dan berbeda tiap generate, sehingga kotak tampil
+  // berlabel tapi kosong tanpa ada yang mengeluh (CLAUDE.md, Pelajaran 3 sesi
+  // 5 September 2026). Penyelesaiannya di sana adalah penampil generik, dan
+  // bentuk itu yang ditiru di sini supaya berkas Word tidak mengulang
+  // kesalahan yang sama.
+  function renderIsiInstrumen(children, obj, D, dalam) {
+    if (obj === null || obj === undefined || obj === '') return;
+    dalam = dalam || 0;
+    if (dalam > 3) return;
+    var indent = 360 + dalam * 240;
+
+    if (Array.isArray(obj)) {
+      obj.forEach(function (v) { renderIsiInstrumen(children, v, D, dalam); });
+      return;
+    }
+    if (typeof obj !== 'object') {
+      children.push(new D.Paragraph({
+        children: [new D.TextRun({ text: String(obj) })],
+        indent: { left: indent }, spacing: { after: 50 }, bullet: { level: Math.min(dalam, 2) },
+      }));
+      return;
+    }
+    Object.keys(obj).forEach(function (kunci) {
+      var nilai = obj[kunci];
+      if (nilai === null || nilai === undefined || nilai === '') return;
+      if (Array.isArray(nilai) && nilai.length === 0) return;
+
+      if (typeof nilai !== 'object') {
+        children.push(new D.Paragraph({
+          children: [
+            new D.TextRun({ text: manusiakanKunci(kunci) + ': ', bold: true, size: 20 }),
+            new D.TextRun({ text: String(nilai), size: 20 }),
+          ],
+          indent: { left: indent }, spacing: { after: 50 },
+        }));
+      } else {
+        children.push(new D.Paragraph({
+          children: [new D.TextRun({ text: manusiakanKunci(kunci), bold: true, size: 20 })],
+          indent: { left: indent }, spacing: { before: 80, after: 40 },
+        }));
+        renderIsiInstrumen(children, nilai, D, dalam + 1);
+      }
+    });
+  }
+
+  // Satu blok naskah: label di atas, butirnya di bawah.
+  function blokNaskah(children, label, arr, D) {
+    if (!Array.isArray(arr) || arr.length === 0) return;
+    children.push(new D.Paragraph({
+      children: [new D.TextRun({ text: label, bold: true, size: 19, color: '444444' })],
+      indent: { left: 720 }, spacing: { before: 120, after: 40 },
+    }));
+    arr.forEach(function (x) {
+      children.push(new D.Paragraph({
+        children: [new D.TextRun({ text: String(x) })],
+        indent: { left: 1080 }, spacing: { after: 50 }, bullet: { level: 0 },
+      }));
+    });
+  }
+
   function generateModulDocx(modul, atpInfo) {
     var D = window.docx;
     var k = modul.konten || {};
+    // Skema ModulOutput V4.0.
+    //
+    // Sampai 7 September 2026 fungsi ini masih membaca `identifikasi` dan
+    // `desain_pembelajaran` — dua nama kunci dari V3 yang sudah tidak pernah
+    // ada lagi. Akibatnya bab "A. Identifikasi" tercetak sebagai judul kosong,
+    // bab B tinggal judul TP, dan sebelas bagian V4.0 tidak pernah ikut sama
+    // sekali: berkas Word yang guru cetak hanya memuat 13% isi modul, tanpa
+    // satu pun lembar kerja dan tanpa seluruh Naskah Fasilitasi.
+    //
+    // Kegagalannya diam — tidak ada galat, ukuran berkasnya wajar. Karena itu
+    // setiap bagian di bawah dibaca dengan nama V4.0-nya, dan setiap bab
+    // dilewati kalau datanya memang kosong, bukan dicetak sebagai judul hampa.
     var identitas    = k.identitas    || {};
-    var identifikasi = k.identifikasi || {};
-    var desain       = k.desain_pembelajaran || {};
+    var rancangan    = k.rancangan    || {};
     var asesmen      = k.rencana_asesmen || {};
     var pertemuan    = k.pertemuan || k.langkah_pembelajaran || [];
+    var kktp         = Array.isArray(k.kktp) ? k.kktp : [];
+    var konteksMurid = k.konteks_murid   || {};
+    var materi       = k.materi_esensial || {};
+    var tindakLanjut = k.tindak_lanjut   || {};
+    var catatanGuru  = Array.isArray(k.catatan_guru) ? k.catatan_guru : [];
+    var insAsesmen   = Array.isArray(k.instrumen_asesmen) ? k.instrumen_asesmen : [];
+    var insBelajar   = Array.isArray(k.instrumen_pembelajaran) ? k.instrumen_pembelajaran : [];
+    var naskah       = Array.isArray(k.naskah_fasilitasi) ? k.naskah_fasilitasi : [];
 
     var children = [];
 
@@ -189,90 +342,117 @@
       children.push(tableRow2Col('Kosakata Inti', identitas.kosakata_inti.join(', ')));
     children.push(new D.Paragraph({ text: '', spacing: { after: 300 } }));
 
-    // ── A. IDENTIFIKASI ───────────────────────────────────────────────────────
-    children.push(sectionHeading('A. Identifikasi'));
+    // ── A. KONTEKS MURID ──────────────────────────────────────────────────────
+    if (konteksMurid.variasi_kemampuan ||
+        (Array.isArray(konteksMurid.kesiapan_awal) && konteksMurid.kesiapan_awal.length) ||
+        (Array.isArray(konteksMurid.kebutuhan_dukungan) && konteksMurid.kebutuhan_dukungan.length)) {
+      children.push(sectionHeading('A. Konteks Murid'));
+      if (konteksMurid.variasi_kemampuan) {
+        children.push(subLabel('Keragaman Kemampuan'));
+        children.push(bodyPara(konteksMurid.variasi_kemampuan));
+      }
+      if (Array.isArray(konteksMurid.kesiapan_awal) && konteksMurid.kesiapan_awal.length) {
+        children.push(subLabel('Kesiapan Awal'));
+        konteksMurid.kesiapan_awal.forEach(function (x) { children.push(bulletPara(x)); });
+      }
+      if (Array.isArray(konteksMurid.kebutuhan_dukungan) && konteksMurid.kebutuhan_dukungan.length) {
+        children.push(subLabel('Kebutuhan Dukungan'));
+        konteksMurid.kebutuhan_dukungan.forEach(function (x) { children.push(bulletPara(x)); });
+      }
+      children.push(new D.Paragraph({ text: '', spacing: { after: 200 } }));
+    }
 
-    // Dimensi Profil Lulusan — letakkan di atas sesuai PDF
-    if (Array.isArray(identifikasi.dimensi_profil_lulusan) && identifikasi.dimensi_profil_lulusan.length > 0) {
-      children.push(subLabel('Dimensi Profil Lulusan'));
-      identifikasi.dimensi_profil_lulusan.forEach(function (d) {
+    // ── B. MATERI ESENSIAL ────────────────────────────────────────────────────
+    if ((Array.isArray(materi.konsep_utama) && materi.konsep_utama.length) ||
+        (Array.isArray(materi.lingkup_materi) && materi.lingkup_materi.length) ||
+        (Array.isArray(materi.kosakata_kunci) && materi.kosakata_kunci.length)) {
+      children.push(sectionHeading('B. Materi Esensial'));
+      if (Array.isArray(materi.konsep_utama) && materi.konsep_utama.length) {
+        children.push(subLabel('Konsep Utama'));
+        materi.konsep_utama.forEach(function (x) { children.push(bulletPara(x)); });
+      }
+      if (Array.isArray(materi.lingkup_materi) && materi.lingkup_materi.length) {
+        children.push(subLabel('Lingkup Materi'));
+        materi.lingkup_materi.forEach(function (x) { children.push(bulletPara(x)); });
+      }
+      if (Array.isArray(materi.kosakata_kunci) && materi.kosakata_kunci.length) {
+        children.push(subLabel('Kosakata Kunci'));
+        children.push(bodyPara(materi.kosakata_kunci.join(', ')));
+      }
+      children.push(new D.Paragraph({ text: '', spacing: { after: 200 } }));
+    }
+
+    // ── C. KRITERIA KETERCAPAIAN ──────────────────────────────────────────────
+    // Dasar penilaian guru. Sebelumnya hilang seluruhnya dari dokumen cetak,
+    // padahal asesmen di bab F dan instrumen di bab I merujuk kodenya
+    // (K1, K2, ...) — rujukan ke sesuatu yang tidak pernah ikut tercetak.
+    if (kktp.length > 0) {
+      children.push(sectionHeading('C. Kriteria Ketercapaian Tujuan Pembelajaran'));
+      kktp.forEach(function (kk) {
         children.push(new D.Paragraph({
           children: [
-            new D.TextRun({ text: (d.dimensi || '') + ': ', bold: true }),
-            new D.TextRun({ text: (d.indikator || '') }),
+            new D.TextRun({ text: (kk.id_kktp || '') + ' — ', bold: true }),
+            new D.TextRun({ text: kk.kriteria || '' }),
           ],
-          spacing: { after: 60 },
-          indent: { left: 360 },
+          spacing: { before: 120, after: 40 },
         }));
+        if (kk.ambang_batas)
+          children.push(new D.Paragraph({
+            children: [new D.TextRun({ text: 'Ambang batas: ' + kk.ambang_batas, italics: true, size: 20 })],
+            indent: { left: 360 }, spacing: { after: 40 },
+          }));
+        if (Array.isArray(kk.instrumen_bukti) && kk.instrumen_bukti.length)
+          children.push(new D.Paragraph({
+            children: [new D.TextRun({ text: 'Bukti: ' + kk.instrumen_bukti.join(', '), color: '555555', size: 20 })],
+            indent: { left: 360 }, spacing: { after: 80 },
+          }));
       });
-      children.push(new D.Paragraph({ text: '', spacing: { after: 100 } }));
+      children.push(new D.Paragraph({ text: '', spacing: { after: 200 } }));
     }
 
-    // Asesmen awal (ringkasan di identifikasi, sesuai PDF "opsional")
-    if (asesmen.asesmen_awal && asesmen.asesmen_awal.tujuan) {
-      children.push(subLabel('Asesmen pada Awal Pembelajaran'));
-      children.push(tableRow2Col('Tujuan', asesmen.asesmen_awal.tujuan));
-      if (asesmen.asesmen_awal.teknik)
-        children.push(tableRow2Col('Teknik', asesmen.asesmen_awal.teknik));
-      children.push(new D.Paragraph({ text: '', spacing: { after: 100 } }));
+    // ── D. RANCANGAN PEMBELAJARAN ─────────────────────────────────────────────
+    var adaRancangan = rancangan.strategi_pedagogis || rancangan.lingkungan_pembelajaran ||
+      rancangan.kemitraan_pembelajaran || rancangan.keselamatan_k3 ||
+      rancangan.pemanfaatan_digital ||
+      (Array.isArray(rancangan.sumber_belajar) && rancangan.sumber_belajar.length);
+    if (identitas.tujuan_pembelajaran || adaRancangan) {
+      children.push(sectionHeading('D. Rancangan Pembelajaran'));
+      if (identitas.tujuan_pembelajaran) {
+        children.push(subLabel('Tujuan Pembelajaran'));
+        children.push(bodyPara(identitas.tujuan_pembelajaran));
+      }
+      if (rancangan.strategi_pedagogis) {
+        children.push(subLabel('Praktik Pedagogis'));
+        children.push(bodyPara(rancangan.strategi_pedagogis));
+      }
+      if (rancangan.lingkungan_pembelajaran) {
+        children.push(subLabel('Lingkungan Pembelajaran'));
+        children.push(bodyPara(rancangan.lingkungan_pembelajaran));
+      }
+      if (rancangan.kemitraan_pembelajaran) {
+        children.push(subLabel('Kemitraan Pembelajaran'));
+        children.push(bodyPara(rancangan.kemitraan_pembelajaran));
+      }
+      if (rancangan.keselamatan_k3) {
+        children.push(subLabel('Keselamatan Kerja (K3)'));
+        children.push(bodyPara(rancangan.keselamatan_k3));
+      }
+      if (rancangan.pemanfaatan_digital) {
+        children.push(subLabel('Pemanfaatan Digital'));
+        children.push(bodyPara(rancangan.pemanfaatan_digital));
+      }
+      if (Array.isArray(rancangan.sumber_belajar) && rancangan.sumber_belajar.length) {
+        children.push(subLabel('Sumber Belajar'));
+        rancangan.sumber_belajar.forEach(function (sb) {
+          children.push(bulletPara((sb.sumber || '') + (sb.fungsi ? ' — ' + sb.fungsi : '')));
+        });
+      }
+      children.push(new D.Paragraph({ text: '', spacing: { after: 200 } }));
     }
 
-    // Kesiapan murid
-    if (identifikasi.kesiapan_murid) {
-      children.push(subLabel('Kesiapan Murid'));
-      children.push(bodyPara(identifikasi.kesiapan_murid));
-    }
-
-    // Karakteristik materi
-    var km = identifikasi.karakteristik_materi || {};
-    if (km.faktual || km.konseptual || km.prosedural) {
-      children.push(subLabel('Karakteristik Materi'));
-      if (km.faktual)    children.push(tableRow2Col('Faktual', km.faktual));
-      if (km.konseptual) children.push(tableRow2Col('Konseptual', km.konseptual));
-      if (km.prosedural) children.push(tableRow2Col('Prosedural', km.prosedural));
-    }
-    children.push(new D.Paragraph({ text: '', spacing: { after: 200 } }));
-
-    // ── B. DESAIN PEMBELAJARAN ────────────────────────────────────────────────
-    children.push(sectionHeading('B. Desain Pembelajaran'));
-
-    if (identitas.tujuan_pembelajaran) {
-      children.push(subLabel('Tujuan Pembelajaran'));
-      children.push(bodyPara(identitas.tujuan_pembelajaran));
-    }
-
-    if (desain.strategi_pedagogis) {
-      children.push(subLabel('Praktik Pedagogis'));
-      children.push(bodyPara(desain.strategi_pedagogis));
-    }
-
-    if (identifikasi.kemitraan_dan_keamanan) {
-      children.push(subLabel('Kemitraan Pembelajaran'));
-      children.push(bodyPara(identifikasi.kemitraan_dan_keamanan));
-    }
-
-    if (identifikasi.lingkungan_pembelajaran) {
-      children.push(subLabel('Lingkungan Pembelajaran'));
-      children.push(bodyPara(identifikasi.lingkungan_pembelajaran));
-    }
-
-    if (Array.isArray(desain.sumber_belajar) && desain.sumber_belajar.length > 0) {
-      children.push(subLabel('Pemanfaatan Digital / Sumber Belajar'));
-      desain.sumber_belajar.forEach(function (sb) {
-        children.push(bulletPara(sb.sumber + (sb.fungsi ? ' — ' + sb.fungsi : '')));
-      });
-    }
-
-    if (Array.isArray(desain.bukti_ketercapaian) && desain.bukti_ketercapaian.length > 0) {
-      children.push(subLabel('Bukti Ketercapaian'));
-      desain.bukti_ketercapaian.forEach(function (b) { children.push(bulletPara(b)); });
-    }
-
-    children.push(new D.Paragraph({ text: '', spacing: { after: 200 } }));
-
-    // ── C. LANGKAH-LANGKAH PEMBELAJARAN ──────────────────────────────────────
+    // ── E. LANGKAH-LANGKAH PEMBELAJARAN ──────────────────────────────────────
     if (Array.isArray(pertemuan) && pertemuan.length > 0) {
-      children.push(sectionHeading('C. Langkah-Langkah Pembelajaran'));
+      children.push(sectionHeading('E. Langkah-Langkah Pembelajaran'));
 
       pertemuan.forEach(function (p) {
         // Sub-judul pertemuan
@@ -333,30 +513,157 @@
       children.push(new D.Paragraph({ text: '', spacing: { after: 200 } }));
     }
 
-    // ── D. ASESMEN PEMBELAJARAN ───────────────────────────────────────────────
-    var hasAsesmen = asesmen.asesmen_awal || (Array.isArray(asesmen.asesmen_formatif) && asesmen.asesmen_formatif.length > 0);
-    if (hasAsesmen) {
-      children.push(sectionHeading('D. Asesmen Pembelajaran'));
+    // ── F. ASESMEN PEMBELAJARAN ───────────────────────────────────────────────
+    // V4.0 memakai `asesmen_diagnostik` (bukan `asesmen_awal`) dan tiap butir
+    // formatif memakai `teknik` (bukan `teknik_instrumen`). Pembacaan lama
+    // mencetak kata "undefined" di dokumen guru — terlihat di berkas Word
+    // tertanggal 7 September 2026 sebagai "[F1] undefined".
+    var diag = asesmen.asesmen_diagnostik || asesmen.asesmen_awal || null;
+    var forma = Array.isArray(asesmen.asesmen_formatif) ? asesmen.asesmen_formatif : [];
+    var suma = asesmen.asesmen_sumatif || null;
+    if (diag || forma.length || suma) {
+      children.push(sectionHeading('F. Asesmen Pembelajaran'));
 
-      if (asesmen.asesmen_awal) {
-        var aa = asesmen.asesmen_awal;
+      if (diag) {
         children.push(subLabel('Asesmen Awal'));
-        if (aa.tujuan)    children.push(tableRow2Col('Tujuan', aa.tujuan));
-        if (aa.teknik)    children.push(tableRow2Col('Teknik', aa.teknik));
-        if (aa.instrumen) children.push(tableRow2Col('Instrumen', aa.instrumen));
-        if (aa.waktu)     children.push(tableRow2Col('Waktu', aa.waktu));
+        if (diag.tujuan) children.push(tableRow2Col('Tujuan', diag.tujuan));
+        if (diag.teknik) children.push(tableRow2Col('Teknik', diag.teknik));
+        if (Array.isArray(diag.instrumen_ref) && diag.instrumen_ref.length)
+          children.push(tableRow2Col('Instrumen', diag.instrumen_ref.join(', ')));
+        else if (diag.instrumen) children.push(tableRow2Col('Instrumen', diag.instrumen));
+        if (diag.waktu) children.push(tableRow2Col('Waktu', diag.waktu));
+        if (diag.penggunaan_hasil) children.push(tableRow2Col('Penggunaan Hasil', diag.penggunaan_hasil));
         children.push(new D.Paragraph({ text: '', spacing: { after: 100 } }));
       }
 
-      if (Array.isArray(asesmen.asesmen_formatif) && asesmen.asesmen_formatif.length > 0) {
-        children.push(subLabel('Asesmen Formatif (Proses)'));
-        asesmen.asesmen_formatif.forEach(function (af) {
-          var label = af.id ? '[' + af.id + '] ' : '';
-          children.push(bulletPara(label + af.teknik_instrumen + (af.fungsi ? ' — ' + af.fungsi : '')));
+      if (forma.length) {
+        children.push(subLabel('Cek Pemahaman di Tengah Pembelajaran'));
+        forma.forEach(function (af) {
+          var kode = af.id ? '[' + af.id + '] ' : '';
+          var teknik = af.teknik || af.teknik_instrumen || '';
+          children.push(bulletPara(kode + teknik + (af.fungsi ? ' — ' + af.fungsi : '')));
+          var jejak = [];
+          if (af.waktu_pertemuan) jejak.push('Pertemuan ' + af.waktu_pertemuan);
+          if (af.referensi_kktp)  jejak.push('Kriteria ' + af.referensi_kktp);
+          if (Array.isArray(af.instrumen_ref) && af.instrumen_ref.length)
+            jejak.push('Instrumen ' + af.instrumen_ref.join(', '));
+          if (jejak.length)
+            children.push(new D.Paragraph({
+              children: [new D.TextRun({ text: jejak.join(' · '), color: '666666', size: 18 })],
+              indent: { left: 720 }, spacing: { after: 60 },
+            }));
+          if (af.umpan_balik)
+            children.push(new D.Paragraph({
+              children: [new D.TextRun({ text: 'Umpan balik: ' + af.umpan_balik, italics: true, size: 19 })],
+              indent: { left: 720 }, spacing: { after: 80 },
+            }));
         });
+        children.push(new D.Paragraph({ text: '', spacing: { after: 100 } }));
       }
 
+      if (suma) {
+        children.push(subLabel('Penilaian Akhir'));
+        if (suma.teknik)    children.push(tableRow2Col('Teknik', suma.teknik));
+        if (suma.deskripsi) children.push(tableRow2Col('Deskripsi', suma.deskripsi));
+        if (Array.isArray(suma.instrumen_ref) && suma.instrumen_ref.length)
+          children.push(tableRow2Col('Instrumen', suma.instrumen_ref.join(', ')));
+        if (suma.placement && (suma.placement.pertemuan || suma.placement.fase))
+          children.push(tableRow2Col('Penempatan',
+            (suma.placement.pertemuan ? 'Pertemuan ' + suma.placement.pertemuan : '') +
+            (suma.placement.fase ? ' · ' + (LABEL_LANGKAH[String(suma.placement.fase).toUpperCase()] || suma.placement.fase) : '')));
+        if (suma.durasi_menit) children.push(tableRow2Col('Durasi', suma.durasi_menit + ' menit'));
+      }
       children.push(new D.Paragraph({ text: '', spacing: { after: 200 } }));
+    }
+
+    // ── G. TINDAK LANJUT ──────────────────────────────────────────────────────
+    var tlPunya = ['pilihan_dukungan', 'dukungan_terstruktur', 'tantangan_lanjutan']
+      .some(function (x) { return Array.isArray(tindakLanjut[x]) && tindakLanjut[x].length; });
+    if (tlPunya) {
+      children.push(sectionHeading('G. Tindak Lanjut'));
+      // Label dalam bahasa guru — "dukungan terstruktur" termasuk jargon yang
+      // dilarang muncul di hadapan guru (AGENT_RULES.md §5.3).
+      [['pilihan_dukungan', 'Pilihan Dukungan'],
+       ['dukungan_terstruktur', 'Pendampingan Bertahap'],
+       ['tantangan_lanjutan', 'Tantangan Lanjutan']].forEach(function (pair) {
+        var arr = tindakLanjut[pair[0]];
+        if (Array.isArray(arr) && arr.length) {
+          children.push(subLabel(pair[1]));
+          arr.forEach(function (x) { children.push(bulletPara(x)); });
+        }
+      });
+      children.push(new D.Paragraph({ text: '', spacing: { after: 200 } }));
+    }
+
+    // ── H. CATATAN UNTUK GURU ─────────────────────────────────────────────────
+    if (catatanGuru.length) {
+      children.push(sectionHeading('H. Catatan untuk Guru'));
+      catatanGuru.forEach(function (c) { children.push(bulletPara(c)); });
+      children.push(new D.Paragraph({ text: '', spacing: { after: 200 } }));
+    }
+
+    // ── I. INSTRUMEN ──────────────────────────────────────────────────────────
+    // Lembar kerja murid dan lembar pengamatan guru. Tanpa bagian ini guru
+    // membawa modul ke kelas tanpa satu pun bahan yang dirujuk langkah-langkah
+    // di bab E.
+    if (insBelajar.length || insAsesmen.length) {
+      children.push(sectionHeading('I. Instrumen'));
+      insBelajar.concat(insAsesmen).forEach(function (ins) {
+        children.push(new D.Paragraph({
+          children: [
+            new D.TextRun({ text: (ins.id || '?') + ' — ', bold: true }),
+            new D.TextRun({ text: ins.judul || '', bold: true }),
+          ],
+          spacing: { before: 240, after: 40 },
+        }));
+        var jenisLabel = LABEL_INSTRUMEN[ins.jenis] || ins.jenis || '';
+        if (jenisLabel)
+          children.push(new D.Paragraph({
+            children: [new D.TextRun({
+              text: jenisLabel + (ins.untuk_murid ? ' · dibagikan ke murid' : ' · untuk guru'),
+              italics: true, color: '666666', size: 19,
+            })],
+            spacing: { after: 80 },
+          }));
+        renderIsiInstrumen(children, ins.konten_murid, D);
+        renderIsiInstrumen(children, ins.panduan_guru,  D);
+      });
+      children.push(new D.Paragraph({ text: '', spacing: { after: 200 } }));
+    }
+
+    // ── LAMPIRAN: NASKAH FASILITASI ───────────────────────────────────────────
+    // 47% isi modul. Dimulai di halaman baru supaya guru bisa mencetak atau
+    // membawa bagian ini terpisah dari modulnya.
+    if (naskah.length) {
+      children.push(new D.Paragraph({ text: '', pageBreakBefore: true }));
+      children.push(sectionHeading('Lampiran — Naskah Fasilitasi'));
+      children.push(new D.Paragraph({
+        children: [new D.TextRun({
+          text: 'Panduan kata demi kata untuk dibawa ke kelas. Boleh disesuaikan dengan gaya bicara Anda sendiri.',
+          italics: true, color: '666666', size: 19,
+        })],
+        spacing: { after: 200 },
+      }));
+
+      naskah.forEach(function (np) {
+        children.push(new D.Paragraph({
+          children: [new D.TextRun({ text: 'Pertemuan ' + (np.nomor || '?'), bold: true, size: 26 })],
+          spacing: { before: 320, after: 120 },
+        }));
+        (Array.isArray(np.langkah) ? np.langkah : []).forEach(function (lk) {
+          var label = LABEL_LANGKAH[String(lk.nama || '').toUpperCase()] || lk.nama || '';
+          children.push(new D.Paragraph({
+            children: [new D.TextRun({ text: label, bold: true, size: 22 })],
+            spacing: { before: 200, after: 60 }, indent: { left: 360 },
+          }));
+          (Array.isArray(lk.sub_langkah) ? lk.sub_langkah : []).forEach(function (sl) {
+            blokNaskah(children, 'Ucapan guru',           sl.ucapan_guru,      D);
+            blokNaskah(children, 'Yang dilakukan guru',   sl.aksi_guru,        D);
+            blokNaskah(children, 'Pertanyaan kunci',      sl.pertanyaan_kunci, D);
+            blokNaskah(children, 'Jika murid kesulitan',  sl.jika_kesulitan,   D);
+          });
+        });
+      });
     }
 
     // ── FOOTER ────────────────────────────────────────────────────────────────

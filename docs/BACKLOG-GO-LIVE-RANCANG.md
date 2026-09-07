@@ -10,9 +10,20 @@
 >
 > **Pembaruan 7 September 2026 (HEAD `af3f32b`).** Satu-satunya syarat teknis
 > sebelum gerbang dibuka — pola `reguler_bagi` dan `blok` dijalankan sampai
-> tuntas — **sudah terpenuhi, keduanya sehat.** Buktinya di §2. Yang menahan
-> sekarang tinggal keputusan Romo: siapa tiga gurunya. Cacat di §4 tidak
-> berubah dan tetap berlaku sebagai alasan "bertahap, bukan 14 sekaligus".
+> tuntas — **sudah terpenuhi, keduanya sehat.** Buktinya di §2.
+>
+> **Satu syarat baru sempat muncul di hari yang sama, dan sudah ditutup.** Alur
+> dilanjutkan sampai ujung — Modul dan Naskah dari ATP berpola blok, lalu
+> Unduh — dan di sanalah ditemukan **§4d: berkas Word yang guru cetak hanya
+> memuat 13% isi modul**, tanpa Naskah Fasilitasi dan tanpa satu pun lembar
+> kerja. Ujung pipeline patah diam-diam sejak ModulOutput naik ke V4.0.
+>
+> **Sudah diperbaiki di hari yang sama** — isi berkas Word naik dari 5.171 ke
+> 32.550 karakter, terukur pada modul yang sama. Rinciannya di §4d.
+>
+> Dengan itu tidak ada lagi penghalang teknis yang diketahui. Yang menahan
+> tinggal keputusan Romo: siapa tiga gurunya, dan apakah masa percobaan
+> diperpanjang — seluruh akun, termasuk akun Romo, kedaluwarsa 19 September 2026.
 
 ---
 
@@ -163,7 +174,7 @@ sesi mengajar di aplikasi.
 | Funnel Modul (16 pertanyaan) | Ya — sesi sebelumnya |
 | generate-modul 5 fase | Ya — TP 6, 98 detik, diaudit di produksi |
 | Render Modul di layar | Ya |
-| **Unduh .docx** | **TIDAK PERNAH diuji sesi ini** |
+| **Unduh .docx** | Diuji 7 Sep 2026 — cacat besar ditemukan **dan diperbaiki** hari itu juga. Lihat §4d |
 | Pola `reguler_bagi` / `blok` | **Ya — 7 September 2026, keduanya sehat** (lihat §2) |
 | Mapel selain Bahasa Inggris | **TIDAK PERNAH** |
 | Fase selain E | **TIDAK PERNAH** |
@@ -212,6 +223,98 @@ pernah muncul**, karena ia hanya ditanyakan untuk `awal` / `kombinasi`.
 
 Guru yang paling butuh waktu khusus berakhir dengan nol JP, tanpa pernah
 ditawari.
+
+### 4d. Unduh .docx menjatuhkan tiga perempat isi modul — **SUDAH DIPERBAIKI**
+
+*Ditemukan DAN diperbaiki 7 September 2026, saat menguji ujung pipeline untuk
+pertama kalinya. Uraian di bawah dipertahankan sebagai catatan sebab.*
+
+Berkas Word-nya jadi, terunduh, tidak ada galat, dan terlihat utuh. Tapi
+`generateModulDocx()` di `guru/js/classroom-unduh.js:154-161` masih membaca
+skema **ModulOutput V3**, sementara generatornya sudah lama menghasilkan
+**V4.0**:
+
+```js
+var identitas    = k.identitas    || {};
+var identifikasi = k.identifikasi || {};          // ← tidak ada di V4.0
+var desain       = k.desain_pembelajaran || {};   // ← tidak ada di V4.0
+var asesmen      = k.rencana_asesmen || {};
+var pertemuan    = k.pertemuan || k.langkah_pembelajaran || [];
+```
+
+Dua dari lima kunci yang dibacanya sudah tidak ada. Sebelas kunci V4.0 tidak
+pernah disentuh sama sekali. Terukur pada modul `aff82e2c` (TP 1, pola blok):
+
+| Bagian | Karakter | Masuk .docx? |
+|---|---|---|
+| `naskah_fasilitasi` | 18.356 | **tidak** |
+| `pertemuan` | 6.980 | ya |
+| `instrumen_pembelajaran` | 2.494 | **tidak** |
+| `instrumen_asesmen` | 1.987 | **tidak** |
+| `metadata_pedagogis` | 1.613 | **tidak** |
+| `rencana_asesmen` | 1.482 | ya |
+| `rancangan` | 1.111 | **tidak** |
+| `catatan_guru` | 1.089 | **tidak** |
+| `tindak_lanjut` | 1.019 | **tidak** |
+| `kktp` | 888 | **tidak** |
+| `identitas` | 821 | ya |
+| `konteks_murid` | 782 | **tidak** |
+| `materi_esensial` | 639 | **tidak** |
+| **Total** | **39.261** | **9.283 (23,6%)** |
+
+Yang hilang termasuk **seluruh Naskah Fasilitasi** — 47% isi modul, satu fase
+generate tersendiri — beserta setiap lembar kerja murid, seluruh kriteria
+ketercapaian, dan rencana tindak lanjut.
+
+**Kenapa ini yang paling merugikan.** Tab Unduh adalah ujung pipeline: dokumen
+Word itulah yang guru cetak dan bawa ke kelas. Semua yang dikerjakan di hulu —
+ATP yang jamnya pas, modul yang bahasanya manusia, naskah yang menyebut hanya
+alat yang benar-benar ada — berhenti di layar. Dan kegagalannya **diam**: tidak
+ada galat, ukuran berkasnya wajar (9 KB), dan guru tidak punya cara tahu ada
+yang hilang kecuali membandingkan sendiri dengan layar.
+
+Ini juga menjelaskan kenapa baris "Unduh .docx — TIDAK PERNAH diuji" bertahan
+begitu lama tanpa curiga: fiturnya memang berfungsi, hanya tidak lengkap.
+
+**Perbaikan yang dipasang.** `generateModulDocx()` ditulis ulang ke skema V4.0:
+sembilan bab (A Konteks Murid, B Materi Esensial, C Kriteria Ketercapaian,
+D Rancangan, E Langkah-Langkah, F Asesmen, G Tindak Lanjut, H Catatan Guru,
+I Instrumen) ditambah **Lampiran Naskah Fasilitasi di halaman baru**. Tiap bab
+dilewati kalau datanya kosong — tidak ada lagi judul hampa.
+
+Isi instrumen dirender **generik**, bukan lewat cabang per jenis. Cabang per
+jenis sudah pernah gagal di renderer layar karena AI mengarang nama field
+sendiri dan berbeda tiap generate (CLAUDE.md, Pelajaran 3 sesi 5 September);
+mengulanginya di sini hanya akan memindahkan cacat yang sama ke berkas Word.
+
+Dua cacat menyertai yang ikut ditutup:
+- `[F1] undefined` tercetak di dokumen guru — V4.0 memakai `teknik`, bukan
+  `teknik_instrumen`. Jalan mundur ke nama lama dipertahankan untuk modul V3.
+- ATP mencetak `menyimak_berbicara` mentah. Kini dipetakan lewat
+  `atp_induk.elemen_cp`, dengan jalan mundur yang tetap tidak pernah mencetak
+  kunci apa adanya. ATP juga mendapat ringkasan "Jumlah TP" dan "Total Alokasi".
+
+**Terukur pada modul yang sama** (`aff82e2c`), lewat harness yang menjalankan
+fungsi kirimnya sendiri dengan tiruan library docx:
+
+| | Sebelum | Sesudah |
+|---|---|---|
+| Teks di berkas Word | 5.171 karakter | **32.550 karakter** |
+| Bab yang terbit | 4 (dua di antaranya kosong) | 9 + lampiran |
+| Naskah Fasilitasi | tidak ada | ada, 212 baris |
+| Kata "undefined" | 2 kemunculan | nol |
+| Identifier bergaris bawah | ada di ATP | nol |
+
+Modul lama berskema V3 diuji ikut: hanya bab yang datanya ada yang terbit, tanpa
+judul kosong dan tanpa "undefined".
+
+**Keputusan yang diambil tanpa menunggu Romo, dan mudah diubah:** satu berkas
+per TP, Naskah sebagai lampiran di halaman baru — bukan dua berkas terpisah.
+Alasannya guru mencetak satu dokumen per pertemuan; pemisahan di layar itu
+kemudahan membaca, bukan kebutuhan cetak. Kalau Romo lebih suka dua berkas,
+pemisahannya satu perubahan kecil.
+
+---
 
 ### 4c. Sisanya — empat, bukan lima
 
