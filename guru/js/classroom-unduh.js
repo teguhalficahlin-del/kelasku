@@ -44,6 +44,26 @@
     return data;
   }
 
+  // Identitas dokumen: nama guru, kelas, semester, tahun ajaran.
+  //
+  // Panduan Pembelajaran dan Asesmen 2025 memperlakukan modul ajar sebagai
+  // dokumen perencanaan yang disimpan dan ditinjau, dan contoh modul di
+  // Panduan Mata Pelajaran Bahasa Inggris (hal. 90) membuka dengan
+  // Kelas/Semester. Sampai 7 September 2026 tidak satu pun dari keempatnya
+  // tercetak, padahal semuanya sudah tersimpan di rancang_settings.
+  async function fetchIdentitasKelas(classroomId) {
+    var { data } = await client
+      .from('rancang_settings')
+      .select('nama_guru, nip_guru, nama_kepsek, tahun_ajaran, semester, kota, program_keahlian')
+      .eq('classroom_id', classroomId)
+      .maybeSingle();
+    var { data: kelas } = await client
+      .from('classrooms').select('name').eq('id', classroomId).maybeSingle();
+    var hasil = data || {};
+    hasil.nama_kelas = kelas ? kelas.name : null;
+    return hasil;
+  }
+
   async function fetchModulAktif(guruId, atpIndukId) {
     var { data, error } = await client
       .from('modul_induk')
@@ -285,9 +305,10 @@
     });
   }
 
-  function generateModulDocx(modul, atpInfo) {
+  function generateModulDocx(modul, atpInfo, ident) {
     var D = window.docx;
     var k = modul.konten || {};
+    ident = ident || {};
     // Skema ModulOutput V4.0.
     //
     // Sampai 7 September 2026 fungsi ini masih membaca `identifikasi` dan
@@ -312,6 +333,13 @@
     var insAsesmen   = Array.isArray(k.instrumen_asesmen) ? k.instrumen_asesmen : [];
     var insBelajar   = Array.isArray(k.instrumen_pembelajaran) ? k.instrumen_pembelajaran : [];
     var naskah       = Array.isArray(k.naskah_fasilitasi) ? k.naskah_fasilitasi : [];
+    // metadata_pedagogis menyimpan dua komponen yang DIMINTA kerangka resmi
+    // (Panduan Pembelajaran dan Asesmen 2025, hal. 30–31): Dimensi Profil
+    // Lulusan dan Karakteristik Materi. Keduanya sempat hilang dari dokumen
+    // cetak sejak V4.0 — di V3 mereka ada di bab Identifikasi.
+    var meta         = k.metadata_pedagogis || {};
+    var dpl          = Array.isArray(meta.dimensi_profil_lulusan) ? meta.dimensi_profil_lulusan : [];
+    var karMateri    = meta.karakteristik_materi || {};
 
     var children = [];
 
@@ -327,8 +355,17 @@
     }));
 
     // Tabel identitas
+    if (ident.nama_guru) children.push(tableRow2Col('Guru Penyusun',
+      ident.nama_guru + (ident.nip_guru ? ' (NIP ' + ident.nip_guru + ')' : '')));
     children.push(tableRow2Col('Mata Pelajaran', atpInfo.mapel || '-'));
+    if (ident.nama_kelas || ident.semester)
+      children.push(tableRow2Col('Kelas / Semester',
+        (ident.nama_kelas || '-') + ' / ' + (ident.semester || '-')));
+    if (ident.tahun_ajaran) children.push(tableRow2Col('Tahun Pelajaran', ident.tahun_ajaran));
     children.push(tableRow2Col('Fase / Jenjang', (atpInfo.fase || '-') + ' / ' + (atpInfo.jenjang || '-')));
+    var pk = ident.program_keahlian ||
+      (identitas.konteks_kejuruan && identitas.konteks_kejuruan.program_keahlian);
+    if (pk) children.push(tableRow2Col('Program Keahlian', pk));
     if (Array.isArray(identitas.elemen_cp) && identitas.elemen_cp.length > 0)
       children.push(tableRow2Col('Elemen', identitas.elemen_cp.join(', ')));
     if (identitas.jumlah_pertemuan)
@@ -342,11 +379,46 @@
       children.push(tableRow2Col('Kosakata Inti', identitas.kosakata_inti.join(', ')));
     children.push(new D.Paragraph({ text: '', spacing: { after: 300 } }));
 
-    // ── A. KONTEKS MURID ──────────────────────────────────────────────────────
-    if (konteksMurid.variasi_kemampuan ||
-        (Array.isArray(konteksMurid.kesiapan_awal) && konteksMurid.kesiapan_awal.length) ||
-        (Array.isArray(konteksMurid.kebutuhan_dukungan) && konteksMurid.kebutuhan_dukungan.length)) {
-      children.push(sectionHeading('A. Konteks Murid'));
+    // ── A. IDENTIFIKASI ───────────────────────────────────────────────────────
+    // Nama bab mengikuti kerangka resmi Panduan Pembelajaran dan Asesmen 2025
+    // (hal. 30): Identifikasi → Desain Pembelajaran → Langkah-langkah
+    // Pembelajaran → Asesmen Pembelajaran. Pengawas dan kepala sekolah mencari
+    // keempat nama itu; menggantinya dengan istilah kita sendiri membuat modul
+    // terlihat tidak sah meski isinya lengkap.
+    var adaIdentifikasi = dpl.length || karMateri.faktual || karMateri.konseptual ||
+      karMateri.prosedural || konteksMurid.variasi_kemampuan ||
+      (Array.isArray(konteksMurid.kesiapan_awal) && konteksMurid.kesiapan_awal.length) ||
+      (Array.isArray(konteksMurid.kebutuhan_dukungan) && konteksMurid.kebutuhan_dukungan.length);
+    if (adaIdentifikasi) {
+      children.push(sectionHeading('A. Identifikasi'));
+
+      // Dimensi Profil Lulusan — diminta eksplisit oleh kerangka resmi.
+      if (dpl.length) {
+        children.push(subLabel('Dimensi Profil Lulusan'));
+        dpl.forEach(function (d) {
+          children.push(new D.Paragraph({
+            children: [
+              new D.TextRun({ text: (d.dimensi || '') + ': ', bold: true }),
+              new D.TextRun({ text: d.indikator || '' }),
+            ],
+            indent: { left: 360 }, spacing: { after: 40 },
+          }));
+          if (d.alasan)
+            children.push(new D.Paragraph({
+              children: [new D.TextRun({ text: d.alasan, italics: true, color: '666666', size: 19 })],
+              indent: { left: 720 }, spacing: { after: 80 },
+            }));
+        });
+      }
+
+      // Karakteristik Materi — faktual / konseptual / prosedural.
+      if (karMateri.faktual || karMateri.konseptual || karMateri.prosedural) {
+        children.push(subLabel('Karakteristik Materi'));
+        if (karMateri.faktual)    children.push(tableRow2Col('Faktual', karMateri.faktual));
+        if (karMateri.konseptual) children.push(tableRow2Col('Konseptual', karMateri.konseptual));
+        if (karMateri.prosedural) children.push(tableRow2Col('Prosedural', karMateri.prosedural));
+      }
+
       if (konteksMurid.variasi_kemampuan) {
         children.push(subLabel('Keragaman Kemampuan'));
         children.push(bodyPara(konteksMurid.variasi_kemampuan));
@@ -366,7 +438,7 @@
     if ((Array.isArray(materi.konsep_utama) && materi.konsep_utama.length) ||
         (Array.isArray(materi.lingkup_materi) && materi.lingkup_materi.length) ||
         (Array.isArray(materi.kosakata_kunci) && materi.kosakata_kunci.length)) {
-      children.push(sectionHeading('B. Materi Esensial'));
+      children.push(sectionHeading('B. Fokus Materi'));
       if (Array.isArray(materi.konsep_utama) && materi.konsep_utama.length) {
         children.push(subLabel('Konsep Utama'));
         materi.konsep_utama.forEach(function (x) { children.push(bulletPara(x)); });
@@ -410,13 +482,20 @@
       children.push(new D.Paragraph({ text: '', spacing: { after: 200 } }));
     }
 
-    // ── D. RANCANGAN PEMBELAJARAN ─────────────────────────────────────────────
+    // ── D. DESAIN PEMBELAJARAN ────────────────────────────────────────────────
+    // Nama dan isi bab ini mengikuti kerangka resmi Panduan Pembelajaran dan
+    // Asesmen 2025 (hal. 30): Tujuan Pembelajaran, Praktik Pedagogis,
+    // Kemitraan Pembelajaran (opsional), Lingkungan Pembelajaran, Pemanfaatan
+    // Digital (opsional). K3 dan Sumber Belajar menyusul ketentuan SMK di
+    // hal. 35, yang menuntut modul ajar SMK dilengkapi bahan ajar dan lembar
+    // kerja. "Rancangan Pembelajaran" — nama yang sempat dipakai di sini —
+    // tidak ada di kerangka mana pun; pengawas mencari "Desain Pembelajaran".
     var adaRancangan = rancangan.strategi_pedagogis || rancangan.lingkungan_pembelajaran ||
       rancangan.kemitraan_pembelajaran || rancangan.keselamatan_k3 ||
       rancangan.pemanfaatan_digital ||
       (Array.isArray(rancangan.sumber_belajar) && rancangan.sumber_belajar.length);
     if (identitas.tujuan_pembelajaran || adaRancangan) {
-      children.push(sectionHeading('D. Rancangan Pembelajaran'));
+      children.push(sectionHeading('D. Desain Pembelajaran'));
       if (identitas.tujuan_pembelajaran) {
         children.push(subLabel('Tujuan Pembelajaran'));
         children.push(bodyPara(identitas.tujuan_pembelajaran));
@@ -787,6 +866,7 @@
     }
 
     var modulList = await fetchModulAktif(_guruId, atp.id);
+    var identitasKelas = await fetchIdentitasKelas(_classroomId);
 
     // Render UI
     container.innerHTML = '';
@@ -865,7 +945,7 @@
               alert('Gagal memuat komponen unduh. Periksa koneksi internet Anda.');
               return;
             }
-            var doc = generateModulDocx(modul, atp);
+            var doc = generateModulDocx(modul, atp, identitasKelas);
             var filename = 'Modul_TP' + modul.nomor_tp + '_' + (modul.tp_judul || '').replace(/\s+/g, '_').slice(0, 30) + '.docx';
             saveDocx(doc, filename).then(function () {
               btn.disabled = false;
