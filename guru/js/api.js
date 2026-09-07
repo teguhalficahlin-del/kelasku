@@ -146,6 +146,23 @@
       return data;
     },
 
+    // Hak pakai Tab Rancang — DITANYAKAN, bukan dihitung ulang di klien.
+    //
+    // Aturannya sebelumnya disalin di dua tempat di rancang-chat.js dan sekali
+    // lagi di fn_guru_rancang_eligible(). Tiga salinan dari satu aturan: setiap
+    // perubahan menuntut menyunting ketiganya, dan yang terlewat menyimpang
+    // diam-diam tanpa ada yang mengeluh. Sejak akses uji coba ditambahkan
+    // (20260907000001) salinan di klien akan salah untuk guru uji coba.
+    //
+    // Fungsinya sudah GRANT EXECUTE ke authenticated sejak 20260825000001, jadi
+    // klien boleh memanggilnya langsung. Ia SECURITY DEFINER dan hanya membaca
+    // profil si pemanggil sendiri — tidak ada yang bocor.
+    async isRancangEligible() {
+      const { data, error } = await client.rpc('fn_guru_rancang_eligible');
+      if (error) throw error;
+      return data === true;
+    },
+
     async signOut() {
       try { sessionStorage.removeItem('guru_trial_status'); } catch (_) {}
       // scope: 'global' mencabut semua sesi di semua perangkat

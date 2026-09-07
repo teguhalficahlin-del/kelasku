@@ -3596,13 +3596,20 @@
       } catch (_) {}
     }
 
+    // Hak pakai ditanyakan ke basis data, tidak dihitung ulang di sini.
+    //
+    // Sebelum 7 September 2026 fungsi ini menyalin aturannya sendiri
+    // (tier === 'GURU_PRO' && role === RANCANG_ROLE), dan handler klik di
+    // bawah menyalinnya sekali lagi. Tiga salinan dari satu aturan, karena
+    // fn_guru_rancang_eligible() juga memuatnya. Begitu akses uji coba
+    // ditambahkan (migration 20260907000001), kedua salinan di klien langsung
+    // salah untuk guru uji coba — tabnya tersembunyi padahal RLS mengizinkan.
+    //
+    // Gagal memanggil diperlakukan sebagai TIDAK berhak: arah default yang
+    // aman, sama seperti COALESCE(..., false) di fungsinya.
     async function sinkronkanTampilanTabRancang(id) {
-      let _ts = null;
-      try { _ts = await window.api.getTrialStatus(); } catch (_) {}
-      var _role      = await muatRoleGuru();
-      var _tierSalah = !!_ts && _ts.tier !== 'GURU_PRO';
-      var _roleSalah = _role !== RANCANG_ROLE;
-      var _berhak    = !(_tierSalah || _roleSalah);
+      var _berhak = false;
+      try { _berhak = await window.api.isRancangEligible(); } catch (_) { _berhak = false; }
       tabRancang.style.display = _berhak ? '' : 'none';
       if (!_berhak) bersihkanTabTersimpan(id);
       return _berhak;
@@ -3629,10 +3636,16 @@
         return;
       }
 
+      // Keputusan berhak/tidak diambil basis data (satu sumber kebenaran).
+      // Peran hanya dibaca untuk MEMILIH PESAN, bukan untuk memutuskan —
+      // guru yang salah peran tidak boleh dibujuk membayar, dan guru yang
+      // perannya benar tapi belum berhak perlu tahu ini soal paket.
+      var _berhak    = false;
+      try { _berhak = await window.api.isRancangEligible(); } catch (_) { _berhak = false; }
       var _role      = await muatRoleGuru();
-      var _tierSalah = !!_ts && _ts.tier !== 'GURU_PRO';
       var _roleSalah = _role !== RANCANG_ROLE;
-      if (_tierSalah || _roleSalah) {
+      var _tierSalah = !_roleSalah;
+      if (!_berhak) {
         bersihkanTabTersimpan(cId);
         panelRancang.innerHTML = _tierSalah
           ? '<div class="upgrade-tier-banner">' +
