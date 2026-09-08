@@ -295,7 +295,41 @@ Dua ATP dengan jam **sama persis** menghasilkan 9 dan 10 TP; kepadatannya
 merentang dua kali lipat. Jumlah TP = jumlah modul yang harus guru buat dan
 ajarkan — itu keputusan beban kerja setahun.
 
-### 7b. Pembagian menit antar tahap
+### 7b. Pembagian menit antar tahap — **SELESAI 8 September 2026** (`a2f314d`)
+
+> **Diangkat Romo:** *"Bukankah selama ini AI menentukan jumlah menit tanpa
+> intervensi guru?"* — dan itu benar. Lebih dari itu: penelusuran menemukan
+> **tidak ada satu pun aturan** di SYSTEM_PROMPT tentang pembagian menit antar
+> tahap. Satu-satunya syarat adalah aritmetika.
+>
+> Pengukuran 8 modul produksi menunjukkan polanya justru konsisten (MEMAHAMI
+> 28–31% → 13–19%). Yang salah bukan polanya, melainkan bahwa ia SATU-SATUNYA —
+> dan **guru sudah menjawabnya**: `tingkat_kemampuan_awal` ada di alur ATP sejak
+> `696c415` dan tidak pernah sampai ke mesin modul.
+>
+> **Yang dikerjakan: nol pertanyaan baru.** Jawaban yang sudah ada disalurkan,
+> lalu diterjemahkan jadi arahan pembagian waktu.
+>
+> **Percobaan terkendali di produksi.** Dua ATP disusun lewat alur guru dengan
+> seluruh jawaban dibuat identik kecuali satu, lalu satu modul dari masing-masing
+> — keduanya 3 pertemuan × 4 JP (180 menit), kelas dan mapel sama:
+>
+> | Jawaban guru | MEMAHAMI P1 | P2 | P3 |
+> |---|---|---|---|
+> | "Jauh di bawah" | **50%** (90 mnt) | 33% | 25% |
+> | "Sudah sesuai" | **25%** (45 mnt) | 17% | 11% |
+>
+> Tepat dua kali lipat di setiap pertemuan. Dan yang paling meyakinkan: kelas
+> "jauh di bawah" **berakhir** di 25% — persis titik tempat kelas "sudah sesuai"
+> **memulai**. Kurvanya bergeser utuh, bukan sekadar angka acak yang berbeda.
+>
+> Rekomendasi terkait kondisi siswa ikut diperiksa dan **berbeda secara logis**:
+> kelas "jauh di bawah" tanpa data direkomendasikan *"buat soal atau tugas untuk
+> mengukur kemampuan awal"*; kelas "sudah sesuai" tanpa data direkomendasikan
+> *"isi sendiri berdasarkan pengalaman mengajar"* — kelas yang sudah siap tidak
+> disuruh membuat tes diagnostik.
+
+### 7b-lama. Pembagian menit antar tahap (uraian awal, arsip)
 
 Satu pertemuan 8 JP = 320 menit. Modul 7 September:
 
