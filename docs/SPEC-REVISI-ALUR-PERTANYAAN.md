@@ -489,6 +489,18 @@ Bertahap, tiap tahap bisa diverifikasi sendiri (§21.3 poin 6).
    Ketukan tambahan bagi guru: paling banyak tiga; nol bagi guru yang
    menyerahkan seluruh tekniknya ke MiClass.
 7. **Perbaikan §6** — hapus kode mati, tambah rute revisi, perluas syarat.
+   **SELESAI & TERVERIFIKASI DI PRODUKSI, 8 September 2026** (`b522640`).
+   Diuji dengan menjalankan funnel ATP sampai tuntas, memilih justru kombinasi
+   yang selama ini buntu:
+
+   | Catatan | Yang diuji | Hasil |
+   |---|---|---|
+   | 1 (sisa) | "Ada sebagian data" | muncul lanjutan "Bagian mana yang sudah Anda ketahui…"; jawabannya tersimpan dan ikut ke `profil_siswa` di prompt |
+   | 8 | "Saat mengajar" + isi 0 JP | pertanyaan JP kini muncul (dulu dilewati); nilai 0 diterima; ringkasan menulis "JP pengulangan kemampuan dasar: 0" |
+   | 7 | menu revisi sesudah draf ATP tampil | delapan pilihan, termasuk tiga yang dulu hilang; "Ubah profil siswa" benar-benar mendarat di fase Profil Siswa |
+   | 3 | `jumlah_pertemuan` + rute `ubah_pertemuan` | dihapus; alur Modul tetap jalan karena jumlah pertemuan diturunkan dari `selected_tp.jp_pertemuan` |
+
+   ATP uji dihapus setelah verifikasi.
 
 Tahap 3–6 menyentuh Edge Function → **berhenti dan tunggu konfirmasi Romo**
 sebelum tiap deploy, sesuai §8 CLAUDE.md.
