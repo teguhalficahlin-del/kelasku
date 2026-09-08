@@ -129,9 +129,12 @@ itu tidak pernah dipakai (0 dari 19), dan guru tidak pernah melihat tombolnya.
 
 - **Backfill** dari `atp_adaptasi` untuk 7 baris yang punya kelas.
 - 12 baris draf terbengkalai tidak punya kelas → lihat Keputusan B (§7).
-- `NOT NULL` **belum** dipasang di migration pertama — dipasang di migration
-  kedua setelah data bersih. Memasangnya sekaligus akan menggagalkan migration
-  karena 12 baris itu.
+- `NOT NULL` **dipasang di migration yang sama**, sesudah backfill dan
+  penghapusan draf. *(Rancangan awal menunda ke migration kedua; diubah saat
+  menulis kodenya — sesudah dua langkah itu tidak boleh ada lagi baris tanpa
+  kelas, dan kalau masih ada, migration HARUS gagal alih-alih diam-diam
+  melanjutkan. Baris tanpa kelas adalah baris yang tidak bisa diisolasi policy
+  mana pun.)*
 - RLS diganti: `guru_id = fn_current_profile_id()` → **`fn_is_classroom_owner(classroom_id)`**,
   menyamakan tabel ini dengan seluruh tabel fitur lain.
 - `atp_adaptasi` **TIDAK di-drop di sprint ini.** Kode berhenti menulis ke sana,
