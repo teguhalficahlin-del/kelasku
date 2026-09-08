@@ -1823,6 +1823,60 @@
       return;
     }
     // Buat ulang ATP: panggil generate langsung, jangan rekam jawaban
+    // Pecah / gabungkan jumlah TP.
+    //
+    // Ini menyusun ulang ATP — jadi memakan satu jatah harian, sama seperti
+    // "Buat ulang". Bedanya menentukan: "Buat ulang" mengirim jawaban yang
+    // sama persis sehingga hasilnya kurang lebih sama; ini mengirim perintah
+    // yang berbeda, sehingga jatahnya membeli sesuatu.
+    //
+    // Batasnya aritmetika, bukan selera: setiap TP wajib kelipatan satuan
+    // pertemuan dan jumlahnya persis jp_operasional, jadi TP tidak mungkin
+    // lebih banyak daripada jumlah pertemuan. Kalau guru sudah menyentuh batas
+    // itu, permintaannya DITOLAK DI SINI — sebelum jatahnya terpakai untuk
+    // perintah yang mustahil dipenuhi. Itu persis kelas cacat yang dulu
+    // menghabiskan tiga jatah harian tanpa satu pun petunjuk sebabnya.
+    if (q.id === 'tindakan_review_atp'
+        && (value === 'tp_lebih_banyak' || value === 'tp_lebih_sedikit')) {
+      const sekarang = (_chat.atp_draft || []).length;
+      const alokasi  = calculateAllocation();
+      const maxTp    = Number(alokasi.jumlah_pertemuan) || 0;
+      const naik     = value === 'tp_lebih_banyak';
+      // Langkah ~35%, minimal satu TP, supaya perubahannya terasa tapi tidak
+      // melompat liar. Dibulatkan ke bilangan bulat terdekat.
+      const langkah  = Math.max(1, Math.round(sekarang * 0.35));
+      let target     = naik ? sekarang + langkah : sekarang - langkah;
+      target = Math.max(3, maxTp > 0 ? Math.min(target, maxTp) : target);
+
+      if (target === sekarang) {
+        const sebab = naik
+          ? `ATP ini sudah ${sekarang} TP, dan jam mengajarnya hanya cukup untuk ${maxTp} pertemuan. Memecahnya lebih jauh berarti ada TP yang tidak kebagian satu pertemuan pun.`
+          : `ATP ini sudah ${sekarang} TP — itu jumlah paling sedikit yang masih masuk akal untuk satu fase penuh.`;
+        rcAppendBubble('ai', `${sebab}
+
+Jatah menyusun ATP hari ini tidak terpakai. Silakan pilih tindakan lain.`);
+        addToHistory('ai', sebab);
+        await startPhase('ATP_REVIEW');
+        return;
+      }
+
+      _chat.target_jumlah_tp = target;
+      saveState();
+      const kabar = naik
+        ? `Baik — ATP disusun ulang menjadi sekitar ${target} TP (sekarang ${sekarang}). Tiap TP jadi lebih ringkas.`
+        : `Baik — ATP disusun ulang menjadi sekitar ${target} TP (sekarang ${sekarang}). Tiap TP jadi lebih besar, modulnya lebih sedikit.`;
+      rcAppendBubble('ai', kabar);
+      addToHistory('ai', kabar);
+      rcSetComposerDisabled(true);
+      try {
+        await triggerGenerateAtp();
+      } finally {
+        rcSetComposerDisabled(false);
+        _chat.target_jumlah_tp = null;
+        saveState();
+      }
+      return;
+    }
     if (q.id === 'tindakan_review_atp' && value === 'ulang') {
       rcSetComposerDisabled(true);
       try {
@@ -2454,7 +2508,19 @@
     const allElemen  = [...new Set(_chat.atp_draft.flatMap(tp => tp.elemen || []))];
     const elemenLabels = allElemen.map(id => elemenMap[id] || id);
 
+    // Rata-rata JP per TP ditampilkan sejak 8 September 2026.
+    //
+    // Tanpa angka ini guru tidak punya cara menilai apakah 12 TP itu padat atau
+    // longgar — ia hanya melihat daftar judul. Padahal jumlah TP adalah jumlah
+    // modul yang harus ia susun dan ajarkan sepanjang fase, dan kepadatan
+    // antar-ATP di produksi merentang dua kali lipat (8 sampai 16,7 JP per TP)
+    // tanpa satu pun guru pernah menyetujuinya.
+    const rataJp = _chat.atp_draft.length
+      ? Math.round((total / _chat.atp_draft.length) * 10) / 10 : 0;
     let text = `Draf ATP — ${_chat.atp_draft.length} TP, total ${total} JP`;
+    if (rataJp) {
+      text += `\nRata-rata ${rataJp} JP per TP — berarti ${_chat.atp_draft.length} modul ajar sepanjang fase ini.`;
+    }
     if (elemenLabels.length) text += `\nElemen tercakup: ${elemenLabels.join(', ')}`;
     text += '\n';
     for (const tp of _chat.atp_draft) {
@@ -3351,7 +3417,7 @@
     addToHistory('ai', 'Menyusun Alur Tujuan Pembelajaran…');
     rcShowTyping();
     try {
-      const result = await callGenerateAtp(_chat.atp_induk_id, _chat.atp_updated_at, _chat.sumber_flow);
+      const result = await callGenerateAtp(_chat.atp_induk_id, _chat.atp_updated_at, _chat.sumber_flow, _chat.target_jumlah_tp);
       rcHideTyping();
       _chat.atp_draft      = result.progresi_tp;
       _chat.atp_updated_at = result.updated_at;

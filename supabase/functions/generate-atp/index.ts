@@ -289,14 +289,14 @@ Deno.serve(async (req) => {
 
   // ── 2. REQUEST BODY ───────────────────────────────────────────────────────
 
-  let body: { atp_induk_id?: string; expected_updated_at?: string; sumber_flow?: string };
+  let body: { atp_induk_id?: string; expected_updated_at?: string; sumber_flow?: string; target_jumlah_tp?: number };
   try {
     body = await req.json();
   } catch {
     return json({ error: 'Request tidak valid.' }, 400);
   }
 
-  const { atp_induk_id, expected_updated_at, sumber_flow } = body;
+  const { atp_induk_id, expected_updated_at, sumber_flow, target_jumlah_tp } = body;
   if (!atp_induk_id) return json({ error: 'atp_induk_id wajib diisi.' }, 400);
 
   // ── 3. BACA atp_induk — user JWT (RLS berlaku) ────────────────────────────
@@ -465,6 +465,31 @@ Deno.serve(async (req) => {
     ? `jp_per_pertemuan=${jpPerPertemuan} (${polaDesc}). jp_alokasi SETIAP TP HARUS kelipatan ${jpPerPertemuan}. `
     : '';
 
+  // ── JUMLAH TP YANG DIMINTA GURU ──────────────────────────────────────────
+  //
+  // Sampai 8 September 2026 jumlah TP sepenuhnya keputusan model, dan guru
+  // tidak pernah tahu ia boleh berbeda. Dua ATP dengan jam SAMA PERSIS (124 JP)
+  // menghasilkan 9 dan 10 TP; yang 200 JP jadi 12 TP sementara yang 128 JP jadi
+  // 16. Kepadatannya merentang dua kali lipat — dan jumlah TP adalah jumlah
+  // modul yang harus guru susun dan ajarkan sepanjang fase. Itu keputusan beban
+  // kerja setahun yang selama ini diambil tanpa bertanya.
+  //
+  // BATASNYA ARITMETIKA, BUKAN SELERA. Setiap TP wajib kelipatan satuan
+  // pertemuan dan jumlahnya persis jp_operasional, jadi TP tidak mungkin lebih
+  // banyak daripada jumlah pertemuan yang tersedia. Meminta 30 TP dari 25
+  // pertemuan adalah perintah yang mustahil dipenuhi — persis kelas cacat yang
+  // dulu menghabiskan tiga jatah harian guru tanpa satu pun petunjuk sebabnya.
+  // Karena itu nilainya DIJEPIT di sini, bukan dipercaya apa adanya.
+  const maxTp = jpPerPertemuan > 0 ? Math.floor(jpOp / jpPerPertemuan) : 0;
+  const targetTp = (typeof target_jumlah_tp === 'number' && Number.isFinite(target_jumlah_tp))
+    ? Math.max(3, maxTp > 0 ? Math.min(Math.round(target_jumlah_tp), maxTp) : Math.round(target_jumlah_tp))
+    : null;
+  const targetTpNote = targetTp
+    ? `Guru meminta ATP ini disusun menjadi SEKITAR ${targetTp} TP. Patuhi angka itu ` +
+      `(boleh meleset satu TP) selama aturan JP di atas tetap terpenuhi. ` +
+      `Aturan JP menang kalau keduanya tidak bisa dipenuhi sekaligus. `
+    : '';
+
   const userMessage = JSON.stringify({
     mapel:      atp.mapel,
     fase:       atp.fase,
@@ -490,6 +515,7 @@ Deno.serve(async (req) => {
       (programKeahlian ? ` untuk program keahlian ${programKeahlian}` : '') +
       `. Total JP = ${jpOp}. sum(jp_alokasi) HARUS = ${jpOp}. ` +
       jpConstraintNote +
+      targetTpNote +
       `ID elemen hanya dari: ${elemenCp.map(e => e.id).join(', ')}.`,
   });
 

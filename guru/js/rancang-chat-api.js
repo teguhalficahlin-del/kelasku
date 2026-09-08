@@ -132,7 +132,7 @@ async function saveAtpPhaseOptimistic(atpId, phase, phaseData, expectedUpdatedAt
 
 const GENERATE_ATP_URL = 'https://teccdzetrdjowqemnuuc.supabase.co/functions/v1/generate-atp';
 
-async function callGenerateAtp(atpIndukId, expectedUpdatedAt, sumberFlow) {
+async function callGenerateAtp(atpIndukId, expectedUpdatedAt, sumberFlow, targetJumlahTp) {
   const { data: { session } } = await window.supabaseClient.auth.getSession();
   const token = session?.access_token ?? '';
 
@@ -149,6 +149,10 @@ async function callGenerateAtp(atpIndukId, expectedUpdatedAt, sumberFlow) {
         atp_induk_id:        atpIndukId,
         expected_updated_at: expectedUpdatedAt || undefined,
         sumber_flow:         sumberFlow || undefined,
+        // Jumlah TP yang guru minta setelah melihat draf pertamanya. undefined
+        // berarti guru tidak meminta apa-apa — model yang menentukan, seperti
+        // sebelumnya. Nilainya tetap dijepit ulang di server.
+        target_jumlah_tp:    targetJumlahTp || undefined,
       }),
       signal: controller.signal,
     });

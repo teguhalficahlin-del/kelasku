@@ -428,6 +428,14 @@ const RANCANG_FLOW = {
       ['ubah_profil',    'Ubah profil siswa'],
       ['ubah_konteks',   'Ubah konteks kejuruan'],
       ['ubah_prasyarat', 'Ubah pengulangan kemampuan dasar'],
+      // Jumlah TP = jumlah modul yang harus guru susun dan ajarkan sepanjang
+      // fase. Sampai 8 September 2026 angka itu sepenuhnya keputusan AI dan
+      // guru tidak pernah tahu ia boleh berbeda: dua ATP dengan jam SAMA PERSIS
+      // menghasilkan 9 dan 10 TP, dan kepadatan antar-ATP merentang dua kali
+      // lipat. Ditanyakan di depan tidak masuk akal — guru hanya bisa menebak
+      // dari nol. Di sini ia sudah melihat daftarnya.
+      ['tp_lebih_banyak', 'Pecah jadi lebih banyak TP'],
+      ['tp_lebih_sedikit', 'Gabungkan jadi lebih sedikit TP'],
       ['ulang',          'Buat ulang ATP'],
     ], { helpText: 'Mengubah jawaban lalu menyusun ulang biasanya lebih tepat daripada membuat ulang dengan jawaban yang sama.' }),
   ],
