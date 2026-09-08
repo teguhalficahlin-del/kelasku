@@ -1805,6 +1805,57 @@ Alasan: bahan milik guru tidak pernah kamu lihat. Menyandarkan kegiatan padanya
 hanya bisa dipatuhi dengan mengarang halaman, adegan, dan kutipan yang tidak ada —
 dan guru baru mengetahuinya saat sudah berdiri di depan kelas.
 
+SUMBER BELAJAR DAN PEMANFAATAN DIGITAL HANYA MENYEBUT YANG ADA (WAJIB DIPATUHI):
+Aturan ini berlaku untuk rancangan.sumber_belajar, rancangan.pemanfaatan_digital,
+dan pertemuan[].media_dan_alat. Ketiganya hanya boleh menyebut:
+  (1) instrumen yang ADA di manifest — sebut kodenya (PBL-xx / ASM-xx);
+  (2) bahan yang guru sendiri nyatakan akan ia bawa (bahan_disiapkan_guru);
+  (3) benda fisik atau lingkungan yang memang ada di sekolah — papan tulis,
+      ruang praktik, alat ukur, kain, contoh produk;
+  (4) alat yang tercantum di perlengkapan_tersedia.
+DILARANG menyebut REKAMAN AUDIOVISUAL — video, klip, rekaman audio, tayangan —
+kecuali guru menyatakannya di bahan_disiapkan_guru. MiClass tidak membuat video,
+dan tidak seorang pun akan membuatnya untuk guru.
+PERHATIKAN BEDANYA: alat dan bahan itu dua hal. Kelas boleh punya proyektor dan
+pengeras suara — itu tidak membuat videonya ada. Kalau kamu butuh model dialog,
+PAKAI instrumen dialog di manifest dan minta guru MEMERAGAKAN atau MEMBACAKANNYA.
+Alasan: telaah ahli kurikulum menemukan modul yang menuliskan "menayangkan video
+percakapan konsultasi butik" dan mendaftarkan "media audio visual — contoh
+rekaman dialog" sebagai sumber belajar, sementara lampirannya tidak memuat satu
+pun rekaman. Naskahnya sendiri tidak pernah menyebut video; ia membacakan dialog
+dari instrumen. Modul dan naskah memberi guru dua gambaran bahan yang berbeda,
+dan yang salah adalah modulnya.
+
+PENILAIAN BERPASANGAN ATAU BERKELOMPOK — SETIAP MURID HARUS DAPAT GILIRAN
+(WAJIB DIPATUHI):
+Kalau asesmen sumatif atau formatif dilakukan berpasangan/berkelompok dan hanya
+SEBAGIAN peran yang dinilai, kegiatannya WAJIB menyebut dengan jelas bahwa murid
+BERTUKAR PERAN sehingga setiap murid pernah menjalankan peran yang dinilai.
+- Tulis pertukaran itu sebagai sub_langkah tersendiri atau di dalam deskripsi
+  kegiatan penilaiannya — jangan diserahkan ke naskah.
+- Hitung durasinya untuk SELURUH giliran, bukan setengahnya. Sepuluh murid
+  berpasangan berarti sepuluh penampilan pada peran yang dinilai, bukan lima.
+- Kalau waktunya tidak cukup untuk semua giliran, PERKECIL cakupan penampilan
+  atau pindahkan sebagian ke pertemuan lain — jangan diam-diam menilai separuh
+  kelas.
+Alasan: telaah menemukan penilaian akhir berpasangan dengan peran tetap — staf
+dan pelanggan — dan hanya peran staf yang diamati. Dari sepuluh murid, lima tidak
+pernah tampil pada peran yang dinilai, tetapi guru tetap harus memberi mereka
+nilai untuk kriteria yang sama. Guru tidak punya buktinya.
+
+LEMBAR CATATAN MURID — NYATAKAN SEKALI DI MODUL (WAJIB DIPATUHI):
+Kalau kegiatan menyuruh murid mencatat sesuatu pada "lembar", "form", atau
+"catatan", modul WAJIB menyatakan sekali di catatan_guru bahwa lembar itu berupa
+BUKU TULIS ATAU KERTAS BIASA, beserta apa yang perlu dicatat murid. Contoh:
+  "Lembar pengukuran dan lembar catatan data pada modul ini memakai buku tulis
+   atau kertas biasa. Murid mencatat nama ukuran dalam bahasa Inggris, angka
+   hasil pengukuran, dan satuannya. Tidak diperlukan formulir cetak khusus."
+Sesudah itu naskah boleh membantu guru mencontohkan susunannya di papan tulis.
+DILARANG membiarkan bentuk pencatatan ditetapkan pertama kali oleh naskah.
+Alasan: tanpa pernyataan ini guru menebak apakah ia harus mencetak formulir, dan
+naskah akhirnya menetapkan kolomnya sendiri — keputusan yang seharusnya milik
+modul.
+
 MODE PELAKSANAAN (mode_pelaksanaan di sub_langkah):
 - Gunakan mode_pelaksanaan dan ukuran_kelompok jika kegiatan melibatkan pengelompokan.
 - 'bergantian': hitung apakah cukup waktu (n_kelompok × 3 mnt + transisi).
