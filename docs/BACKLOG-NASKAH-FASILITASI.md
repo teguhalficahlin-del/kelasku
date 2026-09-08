@@ -12,9 +12,29 @@
 
 ---
 
-## 1. Baca ini lebih dulu: keputusan terbuka
+## 1. Baca ini lebih dulu: keputusan SUDAH DIAMBIL
 
-**Apakah Naskah Fasilitasi layak tetap ada dalam bentuk sekarang?**
+> **8 September 2026 — Romo memutuskan: Naskah Fasilitasi WAJIB ADA.**
+>
+> Alasannya bukan teknis melainkan **positioning produk**. Naskah adalah yang
+> membedakan MiClass dari sekadar penghasil dokumen: ia yang menemani guru saat
+> berdiri di depan kelas, bukan hanya mengisi map arsip.
+>
+> **Pertanyaan di bawah ini DITUTUP.** Jangan dibuka ulang, jangan mengusulkan
+> naskah dihapus atau dijadikan opsional, dan jangan memakai biayanya sebagai
+> alasan menolak pekerjaan di sekitarnya.
+>
+> Konsekuensi yang mengikat: setiap cacat naskah adalah cacat **produk inti**.
+> Ia tidak boleh diperlakukan sebagai beban tambahan yang bisa ditawar — tapi
+> juga tidak berarti setiap temuan telaah otomatis jadi pekerjaan (lihat
+> PELAJARAN CARA KERJA 5 September di CLAUDE.md: telaah bukan daftar perintah).
+>
+> Sisa dokumen ini tetap berlaku sebagai peta keadaan dan daftar pekerjaan
+> teknis. Yang tidak berlaku lagi hanyalah pertanyaan di bawah.
+
+### Pertanyaan yang dulu terbuka (arsip)
+
+~~**Apakah Naskah Fasilitasi layak tetap ada dalam bentuk sekarang?**~~
 
 Ini bukan pertanyaan retoris, dan menjawabnya lebih berharga daripada seluruh
 sisa daftar di dokumen ini.

@@ -335,7 +335,17 @@ git push origin main                  → urutan TERAKHIR
       arsip pola cacat yang layak diperiksa ulang di berkas penggantinya, bukan
       sebagai daftar pekerjaan. Audit setara untuk `rancang-chat.js` (174 KB) dan
       `generate-atp`/`generate-modul` belum pernah dibuat.
-- [ ] **KEPUTUSAN TERBUKA — apakah Naskah Fasilitasi layak tetap ada?**
+- [x] **SUDAH DIPUTUSKAN 8 September 2026 — Naskah Fasilitasi WAJIB ADA.**
+      Keputusan Romo, dan alasannya bukan teknis melainkan **positioning
+      produk**: naskah adalah yang membedakan MiClass dari sekadar penghasil
+      dokumen. Pertanyaan "apakah ia layak ada" DITUTUP — jangan dibuka ulang,
+      jangan diusulkan dihapus, dan jangan menjadikan biayanya alasan menolak
+      pekerjaan di sekitarnya.
+      Konsekuensi yang mengikat: seluruh cacat naskah adalah cacat produk inti,
+      bukan beban tambahan yang bisa ditawar. Sisa pekerjaan teknisnya tetap di
+      `docs/BACKLOG-NASKAH-FASILITASI.md` — bagian "keputusan terbuka" di sana
+      sudah tidak berlaku.
+- [ ] ~~KEPUTUSAN TERBUKA — apakah Naskah Fasilitasi layak tetap ada?~~ **SUDAH DIJAWAB, lihat di atas.**
       `docs/BACKLOG-NASKAH-FASILITASI.md`. Ia 45–58% dari isi modul, satu fase
       generate tersendiri, dan sumber hampir seluruh cacat yang ditemukan telaah
       ahli kurikulum. Manfaatnya belum terbukti: belum ada guru yang mengajar
