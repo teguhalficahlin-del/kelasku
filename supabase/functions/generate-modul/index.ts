@@ -1179,6 +1179,12 @@ const ISTILAH_TEKNIK: Record<string, string> = {
   pemetaan_awal:  'pemetaan awal — angket atau soal singkat untuk dipetakan',
   tanya_jawab:    'tanya jawab lisan di awal pertemuan',
   observasi_awal: 'observasi saat murid mengerjakan tugas pembuka',
+  // Teknik formatif — ditambahkan 8 September 2026 bersama pertanyaan
+  // teknik_formatif. Pasangannya ada di ISTILAH_TEKNIK guru/js/rancang-chat.js;
+  // kalau salah satu diubah, ubah keduanya.
+  observasi:       'observasi saat murid bekerja di tengah pembelajaran',
+  latihan_singkat: 'latihan singkat yang langsung dikoreksi bersama',
+  refleksi:        'murid menuliskan sendiri bagian yang belum ia pahami',
   tes_tertulis:   'tes tertulis — soal pilihan ganda atau uraian',
   unjuk_kerja:    'unjuk kerja — murid menunjukkan kemampuan secara langsung',
   proyek:         'proyek atau produk — murid menghasilkan karya yang dinilai',
@@ -1838,7 +1844,11 @@ function buildUserMessageFaseA(params: {
   pilanAsesmen:       string[];
   gunakanDiagnostik:  boolean;
   teknikDiagnostik:   string | null;
+  instrumenDiagnostik: string | null;
   gunakanFormatif:    boolean;
+  teknikFormatif:     string | null;
+  instrumenFormatif:  string | null;
+  instrumenSumatif:   string | null;
   gunakanSumatif:     boolean;
   teknikSumatif:      string | null;
 }): string {
@@ -1876,16 +1886,29 @@ function buildUserMessageFaseA(params: {
     asesmen: {
       gunakan_diagnostik: params.gunakanDiagnostik,
       teknik_diagnostik:  terjemahkan(ISTILAH_TEKNIK, params.teknikDiagnostik),
+      instrumen_diagnostik: params.instrumenDiagnostik,
       gunakan_formatif:   params.gunakanFormatif,
+      teknik_formatif:    terjemahkan(ISTILAH_TEKNIK, params.teknikFormatif),
+      instrumen_formatif: params.instrumenFormatif,
       gunakan_sumatif:    params.gunakanSumatif,
       teknik_sumatif:     terjemahkan(ISTILAH_TEKNIK, params.teknikSumatif),
+      instrumen_sumatif:  params.instrumenSumatif,
     },
     instruksi_manifest:
       'Buat manifest berdasarkan pilihan_asesmen (array jenis yang aktif). ' +
       'Jika pilihan_asesmen kosong ([]), asesmen_manifest=[]. ' +
-      'Diagnostik: gunakan teknik_diagnostik untuk menentukan jenis instrumen. ' +
-      'Formatif: AI menentukan teknik dan penempatan per entri F1/F2/F3 berdasarkan jumlah pertemuan. ' +
-      'Sumatif: gunakan teknik_sumatif untuk menentukan jenis instrumen. ' +
+      // Instrumen kini PILIHAN GURU, bukan turunan teknik. Kalau field
+      // instrumen_* berisi nilai, itu jenis yang guru minta dan tidak boleh
+      // diganti. Kalau null, guru menyerahkannya — barulah diturunkan dari
+      // teknik seperti sebelumnya.
+      'Diagnostik: kalau instrumen_diagnostik berisi nilai, PAKAI jenis itu persis; ' +
+      'kalau null, turunkan dari teknik_diagnostik. ' +
+      'Formatif: kalau teknik_formatif berisi nilai, PAKAI teknik itu; kalau null, tentukan sendiri. ' +
+      'Kalau instrumen_formatif berisi nilai, PAKAI jenis itu persis; kalau null, turunkan dari tekniknya. ' +
+      'Penempatan per entri F1/F2/F3 tetap kamu yang atur berdasarkan jumlah pertemuan. ' +
+      'Sumatif: kalau instrumen_sumatif berisi nilai, PAKAI jenis itu persis; ' +
+      'kalau null, turunkan dari teknik_sumatif. ' +
+      'Nilai instrumen_* adalah nama jenis di manifest — salin apa adanya ke field "jenis". ' +
       'Instrumen pembelajaran (PBL-xx): buat berdasarkan sumber_strategi dan konteks_pembelajaran. ' +
       'Instrumen asesmen (ASM-xx): buat sesuai teknik — satu ID per instrumen unik. ' +
       'Setiap ID di manifest harus diisi kontennya di Fase C.',
@@ -2365,6 +2388,37 @@ Deno.serve(async (req) => {
   const gunakanSumatif    = unwrap(asesmenModul.gunakan_sumatif)    === 'ya';
   const teknikDiagnostik  = gunakanDiagnostik ? String(unwrap(asesmenModul.teknik_diagnostik) ?? 'rekomendasi') : null;
   const teknikSumatif     = gunakanSumatif     ? String(unwrap(asesmenModul.teknik_sumatif)    ?? 'rekomendasi') : null;
+  // Teknik formatif: sampai 8 September 2026 ini SATU-SATUNYA dari ketiganya
+  // yang tidak pernah ditanyakan — instruksi_manifest berbunyi "Formatif: AI
+  // menentukan teknik dan penempatan".
+  const teknikFormatif    = gunakanFormatif    ? String(unwrap(asesmenModul.teknik_formatif)   ?? 'rekomendasi') : null;
+
+  // Instrumen per jenis asesmen. Pertanyaannya dipecah per teknik di klien
+  // supaya guru tidak bisa memasangkan teknik dan instrumen yang bertengkar,
+  // jadi di sini yang dibaca adalah kunci mana pun yang terjawab.
+  //
+  // Panduan Pembelajaran dan Asesmen 2025 hal. 35: "pendidik memilih dan/atau
+  // mengembangkan instrumen asesmen sesuai tujuan." Sampai sekarang instrumen
+  // tidak pernah dipilih guru untuk ketiganya — ia diturunkan sendiri dari
+  // teknik oleh instruksi_manifest.
+  //
+  // null berarti salah satu dari dua hal, dan keduanya berujung sama:
+  // guru menyerahkannya ke MiClass, atau tekniknya memang hanya punya satu
+  // bentuk instrumen yang masuk akal sehingga sengaja tidak ditanyakan.
+  const instrumenPilihan = (ids: string[]): string | null => {
+    for (const id of ids) {
+      const v = unwrap(asesmenModul[id]);
+      if (v && v !== 'rekomendasi') return String(v);
+    }
+    return null;
+  };
+  const instrumenDiagnostik = gunakanDiagnostik
+    ? instrumenPilihan(['instrumen_diag_pemetaan', 'instrumen_diag_tanya']) : null;
+  const instrumenFormatif = gunakanFormatif
+    ? instrumenPilihan(['instrumen_form_tanya', 'instrumen_form_latihan']) : null;
+  const instrumenSumatif = gunakanSumatif
+    ? instrumenPilihan(['instrumen_sum_unjuk', 'instrumen_sum_proyek',
+                        'instrumen_sum_praktikum', 'instrumen_sum_presentasi']) : null;
   // pilanAsesmen: dipertahankan untuk instruksi manifest ke AI
   const pilanAsesmen: string[] = [
     ...(gunakanDiagnostik ? ['diagnostik'] : []),
@@ -2573,7 +2627,7 @@ Deno.serve(async (req) => {
     try {
       faseAOutput = await callPhase(
         'Fase A',
-        buildUserMessageFaseA({ identitasDB, jumlahMurid, nomorTp, tpJudul, jumlahPertemuan, jpPerPertemuan, durasiJp, elemenCp, kktpList, cd, pilanAsesmen, gunakanDiagnostik, teknikDiagnostik, gunakanFormatif, gunakanSumatif, teknikSumatif }),
+        buildUserMessageFaseA({ identitasDB, jumlahMurid, nomorTp, tpJudul, jumlahPertemuan, jpPerPertemuan, durasiJp, elemenCp, kktpList, cd, pilanAsesmen, gunakanDiagnostik, teknikDiagnostik, instrumenDiagnostik, gunakanFormatif, teknikFormatif, instrumenFormatif, gunakanSumatif, teknikSumatif, instrumenSumatif }),
         90_000, anggaranTokenFaseA(kktpList.length, elemenCp.length),
       );
     } catch (e) {

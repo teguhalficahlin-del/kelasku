@@ -534,11 +534,72 @@ const RANCANG_FLOW = {
     ], { aiRecommendation: true,
       condition: { question_id: 'gunakan_diagnostik', value: 'ya' } }),
 
+    // Instrumen diagnostik — SATU pertanyaan per teknik.
+    //
+    // Sampai 8 September 2026 instrumen tidak pernah dipilih guru untuk ketiga
+    // jenis asesmen: instruksi_manifest di generate-modul menurunkannya sendiri
+    // dari teknik. Panduan Pembelajaran dan Asesmen 2025 hal. 35 menetapkan
+    // sebaliknya — "pendidik memilih dan/atau mengembangkan instrumen asesmen
+    // sesuai tujuan" — dan hal. 31 meminta modul menuliskan TEKNIK DAN
+    // INSTRUMEN, dua hal, bukan satu.
+    //
+    // Kenapa satu pertanyaan per teknik, bukan satu daftar gabungan: guru tidak
+    // boleh bisa memilih pasangan yang bertengkar — teknik "observasi" dengan
+    // instrumen "soal pilihan ganda". Yang kalah nanti akan diam, dan itu kelas
+    // kesalahan yang berulang di proyek ini. Mesin fase sudah bisa menyaring
+    // lewat condition; tidak ada mesin baru yang perlu dibuat.
+    //
+    // Teknik yang instrumennya hanya punya satu bentuk masuk akal SENGAJA tidak
+    // ditanya (tes tertulis → soal; observasi → lembar pengamatan). Pertanyaan
+    // dengan satu jawaban benar hanyalah ketukan tambahan bagi guru yang sibuk.
+    pilihan('instrumen_diag_pemetaan', 'Dengan apa kemampuan awal itu dipetakan?', [
+      ['pemetaan_awal',  'Kartu pemetaan — beberapa butir singkat per kemampuan'],
+      ['soal_latihan',   'Soal singkat tertulis'],
+      ['lembar_refleksi', 'Lembar isian yang diisi murid sendiri'],
+      ['rekomendasi',    'Minta rekomendasi MiClass'],
+    ], { aiRecommendation: true,
+      condition: { question_id: 'teknik_diagnostik', value: 'pemetaan_awal' },
+      helpText: 'Instrumen inilah yang akan MiClass susun isinya dan bisa Anda cetak.' }),
+    pilihan('instrumen_diag_tanya', 'Dengan apa jawaban lisan murid dicatat?', [
+      ['dialog_baseline',  'Daftar pertanyaan lisan yang dipakai guru'],
+      ['matriks_observasi', 'Lembar pengamatan — centang per murid'],
+      ['rekomendasi',      'Minta rekomendasi MiClass'],
+    ], { aiRecommendation: true,
+      condition: { question_id: 'teknik_diagnostik', value: 'tanya_jawab' },
+      helpText: 'Instrumen inilah yang akan MiClass susun isinya dan bisa Anda cetak.' }),
+
     // --- Formatif ---
     pilihan('gunakan_formatif', 'Apakah guru ingin mengecek pemahaman murid selama proses belajar berlangsung?', [
       ['ya',     'Ya — saya ingin memantau pemahaman murid di tengah pembelajaran'],
       ['lewati', 'Lewati — tidak perlu asesmen selama proses'],
-    ], { helpText: 'MiClass yang menentukan teknik dan penempatannya berdasarkan jumlah pertemuan.' }),
+    ], { helpText: 'Cek pemahaman di tengah pembelajaran, bukan penilaian akhir.' }),
+    // Sampai 8 September 2026 teknik formatif adalah SATU-SATUNYA dari ketiganya
+    // yang tidak pernah ditanyakan: instruksi_manifest berbunyi "Formatif: AI
+    // menentukan teknik dan penempatan". helpText pertanyaan di atas bahkan
+    // menyatakannya terang-terangan kepada guru.
+    pilihan('teknik_formatif', 'Bagaimana cara mengecek pemahaman murid di tengah pembelajaran?', [
+      ['tanya_jawab',     'Tanya jawab lisan di sela kegiatan'],
+      ['observasi',       'Mengamati murid saat mereka bekerja'],
+      ['latihan_singkat', 'Latihan singkat yang langsung dikoreksi'],
+      ['refleksi',        'Murid menuliskan sendiri apa yang belum ia pahami'],
+      ['rekomendasi',     'Minta rekomendasi MiClass'],
+    ], { aiRecommendation: true,
+      condition: { question_id: 'gunakan_formatif', value: 'ya' },
+      helpText: 'Penempatannya di pertemuan mana tetap diatur MiClass sesuai jumlah pertemuan.' }),
+    pilihan('instrumen_form_tanya', 'Dengan apa hasil tanya jawab itu dicatat?', [
+      ['matriks_observasi', 'Lembar pengamatan — centang per murid'],
+      ['dialog_model',      'Contoh percakapan sebagai acuan jawaban'],
+      ['rekomendasi',       'Minta rekomendasi MiClass'],
+    ], { aiRecommendation: true,
+      condition: { question_id: 'teknik_formatif', value: 'tanya_jawab' },
+      helpText: 'Instrumen inilah yang akan MiClass susun isinya dan bisa Anda cetak.' }),
+    pilihan('instrumen_form_latihan', 'Latihan singkatnya berbentuk apa?', [
+      ['soal_latihan',     'Soal latihan'],
+      ['lembar_praktikum', 'Lembar praktik — murid mengerjakan langkah kerja'],
+      ['rekomendasi',      'Minta rekomendasi MiClass'],
+    ], { aiRecommendation: true,
+      condition: { question_id: 'teknik_formatif', value: 'latihan_singkat' },
+      helpText: 'Instrumen inilah yang akan MiClass susun isinya dan bisa Anda cetak.' }),
 
     // --- Sumatif ---
     pilihan('gunakan_sumatif', 'Apakah modul ini diakhiri dengan penilaian hasil belajar?', [
@@ -554,6 +615,34 @@ const RANCANG_FLOW = {
       ['rekomendasi',   'Minta rekomendasi MiClass'],
     ], { aiRecommendation: true,
       condition: { question_id: 'gunakan_sumatif', value: 'ya' } }),
+    pilihan('instrumen_sum_unjuk', 'Dengan apa unjuk kerja itu dinilai?', [
+      ['matriks_observasi', 'Lembar pengamatan berisi indikator penilaian'],
+      ['kartu_peran',       'Kartu bermain peran — murid memerankan situasi kerja'],
+      ['rekomendasi',       'Minta rekomendasi MiClass'],
+    ], { aiRecommendation: true,
+      condition: { question_id: 'teknik_sumatif', value: 'unjuk_kerja' },
+      helpText: 'Instrumen inilah yang akan MiClass susun isinya dan bisa Anda cetak.' }),
+    pilihan('instrumen_sum_proyek', 'Dengan apa proyek murid dinilai?', [
+      ['panduan_proyek',    'Panduan proyek lengkap dengan kriteria produk'],
+      ['matriks_observasi', 'Lembar pengamatan berisi indikator penilaian'],
+      ['rekomendasi',       'Minta rekomendasi MiClass'],
+    ], { aiRecommendation: true,
+      condition: { question_id: 'teknik_sumatif', value: 'proyek' },
+      helpText: 'Instrumen inilah yang akan MiClass susun isinya dan bisa Anda cetak.' }),
+    pilihan('instrumen_sum_praktikum', 'Dengan apa praktikum murid dinilai?', [
+      ['lembar_praktikum',  'Lembar praktik berisi langkah kerja dan analisis'],
+      ['matriks_observasi', 'Lembar pengamatan berisi indikator penilaian'],
+      ['rekomendasi',       'Minta rekomendasi MiClass'],
+    ], { aiRecommendation: true,
+      condition: { question_id: 'teknik_sumatif', value: 'praktikum' },
+      helpText: 'Instrumen inilah yang akan MiClass susun isinya dan bisa Anda cetak.' }),
+    pilihan('instrumen_sum_presentasi', 'Dengan apa presentasi murid dinilai?', [
+      ['matriks_observasi', 'Lembar pengamatan berisi indikator penilaian'],
+      ['panduan_proyek',    'Panduan penyusunan bahan presentasi beserta kriterianya'],
+      ['rekomendasi',       'Minta rekomendasi MiClass'],
+    ], { aiRecommendation: true,
+      condition: { question_id: 'teknik_sumatif', value: 'presentasi' },
+      helpText: 'Instrumen inilah yang akan MiClass susun isinya dan bisa Anda cetak.' }),
   ],
 
   MODUL_SUMMARY: [
