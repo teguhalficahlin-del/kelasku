@@ -470,6 +470,24 @@ Bertahap, tiap tahap bisa diverifikasi sendiri (§21.3 poin 6).
    Instruksi kelas dalam Bahasa Inggris, penjelasan dalam Bahasa Indonesia —
    persis "campur" seperti yang guru nyatakan.
 6. **Empat pertanyaan asesmen** + perubahan `instruksi_manifest`.
+   **SELESAI & TERVERIFIKASI DI PRODUKSI, 8 September 2026** (`c14d8ab`).
+
+   Bukti: modul `2c40c35e` (TP 9, X TB). Guru menjawab tiga hal yang sebelumnya
+   tidak pernah bisa ia tentukan, dan ketiganya dipatuhi persis:
+
+   | Guru menjawab | Manifest yang dihasilkan |
+   |---|---|
+   | Diagnostik: tanya jawab → **lembar pengamatan** | ASM-01 `matriks_observasi` |
+   | Formatif: **mengamati murid bekerja** (dulu AI yang memilih) | ASM-02 `matriks_observasi` |
+   | Sumatif: proyek → **panduan proyek** | ASM-03 `panduan_proyek` |
+
+   Penyaringan per teknik terbukti bekerja di layar: teknik "tanya jawab" hanya
+   menawarkan dua instrumen yang cocok, dan teknik "mengamati" **tidak
+   memunculkan pertanyaan instrumen sama sekali** — instrumennya memang hanya
+   satu bentuk, jadi bertanya hanya menambah ketukan.
+
+   Ketukan tambahan bagi guru: paling banyak tiga; nol bagi guru yang
+   menyerahkan seluruh tekniknya ke MiClass.
 7. **Perbaikan §6** — hapus kode mati, tambah rute revisi, perluas syarat.
 
 Tahap 3–6 menyentuh Edge Function → **berhenti dan tunggu konfirmasi Romo**
