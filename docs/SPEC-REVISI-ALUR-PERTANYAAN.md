@@ -458,7 +458,17 @@ Bertahap, tiap tahap bisa diverifikasi sendiri (§21.3 poin 6).
 
    Terverifikasi: 8 kasus di `tests/kebijakan-bahasa.ts` lulus, dijalankan
    terhadap potongan kode kirimnya sendiri.
-   **BELUM diuji end-to-end di produksi** — menunggu sesi login Romo.
+
+   **TERVERIFIKASI DI PRODUKSI** — modul `122cfbc5` (TP 11, X TB, 3 pertemuan),
+   disusun sesudah deploy. `language_policy` yang tersimpan sama persis dengan
+   rumusan backend untuk jawaban `campur`, dan — yang lebih penting — naskahnya
+   benar-benar mematuhinya, sesuatu yang sebelumnya tidak pernah diatur:
+
+   > *Katakan: "Good morning, everyone! Please take your seats and prepare your workspace."*
+   > *Katakan: "Sebelum kita mulai berkarya hari ini di studio busana, mari kita berdoa bersama…"*
+
+   Instruksi kelas dalam Bahasa Inggris, penjelasan dalam Bahasa Indonesia —
+   persis "campur" seperti yang guru nyatakan.
 6. **Empat pertanyaan asesmen** + perubahan `instruksi_manifest`.
 7. **Perbaikan §6** — hapus kode mati, tambah rute revisi, perluas syarat.
 
