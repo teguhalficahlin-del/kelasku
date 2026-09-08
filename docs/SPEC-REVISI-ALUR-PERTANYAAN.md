@@ -263,7 +263,23 @@ Empat pertanyaan baru:
 Dua keputusan yang juga diambil MiClass tanpa bertanya, tapi **tidak layak
 ditanyakan di depan.**
 
-### 7a. Berapa TP dalam satu ATP
+### 7a. Berapa TP dalam satu ATP — **SELESAI 8 September 2026** (`8397027`)
+
+> **Keputusan Romo: kerjakan sekarang.** Sudah ter-deploy dan terverifikasi di
+> produksi. Bukti: satu ATP 144 JP disusun jadi 10 TP, dipecah jadi **14**, lalu
+> digabung jadi **9** — total JP tetap 144 dan nol TP di luar kelipatan 4 JP di
+> ketiga putaran. Aritmetikanya tidak goyah sekali pun.
+>
+> Draf ATP kini menyebut kepadatannya dalam bahasa yang guru rasakan:
+> *"Rata-rata 16 JP per TP — berarti 9 modul ajar sepanjang fase ini."*
+>
+> Yang BELUM diuji dengan dijalankan: cabang penolakan saat guru sudah menyentuh
+> batas (TP tidak boleh lebih banyak daripada jumlah pertemuan). Ia terverifikasi
+> lewat pembacaan kode dan lewat penjepit kedua di server, tapi belum pernah
+> benar-benar dipicu — mencapainya butuh beberapa putaran generate berturut-turut
+> pada kelas dengan jam sangat sedikit.
+
+
 
 Guru memberi total jam; AI memutuskan pemecahannya. Lima ATP di produksi:
 
