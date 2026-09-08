@@ -1,7 +1,33 @@
 # SPEC — Satu ATP untuk satu kelas
 
-> **Status: MENUNGGU PERSETUJUAN ROMO.** Belum ada satu baris kode pun yang
-> disentuh. Ditulis 8 September 2026, HEAD `4cbc1e6`.
+> **Status: SELESAI & TERVERIFIKASI DI PRODUKSI, 8 September 2026** (`38a14de`).
+> Ketiga keputusan Romo (nama tabel, draf terbengkalai, atp_adaptasi) dijalankan
+> sesuai rekomendasi.
+>
+> **Hasil migration:** 19 ATP → 7, nol tanpa kelas, 8 modul utuh, 4 policy
+> berpangkal `classroom_id`, `atp_adaptasi` tidak disentuh (7 baris tetap).
+>
+> **Satu regresi tertangkap sebelum apply.** `pol_atp_induk_insert/update` punya
+> penjaga `fn_is_guru_role()` dari migration `20260829000002` yang tidak
+> tercatat di spesifikasi ini. Menulis ulang policy tanpa menyalinnya akan
+> mencabut penjaga peran diam-diam — siswa atau ortu yang memegang JWT bisa
+> menulis ATP asalkan kelasnya cocok. Ketahuan hanya karena policy aktual dibaca
+> dari basis data sebelum apply, bukan dari migration lama.
+>
+> **VERIFIKASI TAHAP 3 YANG SEBENARNYA — akhirnya bermakna:**
+>
+> | Yang dibuktikan | Hasil |
+> |---|---|
+> | ATP baru punya `classroom_id` | ya |
+> | `collected_data.PROFIL_KELAS` tercatat | **ya** — inilah yang gagal sebelumnya |
+> | Query yang persis dijalankan EF mengembalikan data | `jumlah_murid: 10`, `["proyektor","speaker"]` |
+> | TP menuntut video/internet/aplikasi | **0 dari 14** |
+> | `sum(jp_alokasi)` = `jp_operasional` | 144 = 144 |
+> | TP di luar kelipatan satuan pertemuan | 0 |
+>
+> Bedanya dengan laporan 8 September pagi: waktu itu hanya baris terakhir yang
+> diperiksa, dan hasilnya kebetulan bersih sementara aturannya tidak pernah
+> menyala. Sekarang jalur datanya dibuktikan lebih dulu, baru hasilnya.
 >
 > **KLASIFIKASI SPRINT**
 > - Tipe: **Campuran** (Migration DB + Edge Function + JS)
