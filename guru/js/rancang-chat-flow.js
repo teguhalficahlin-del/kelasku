@@ -482,6 +482,33 @@ const RANCANG_FLOW = {
     angka('jumlah_murid_kelas', 'Berapa murid di kelas ini?', 10, 60,
       { condition: { question_id: 'profil_kelas_lengkap', value: 'tidak' },
         helpText: 'Digunakan untuk merancang instrumen dan menentukan apakah kegiatan bisa dilakukan serentak atau bergantian.' }),
+    // Dimensi Profil Lulusan — bagian dari IDENTIFIKASI menurut Panduan
+    // Pembelajaran dan Asesmen 2025 hal. 27:
+    //
+    //   "Pendidik melakukan identifikasi yang meliputi kesiapan murid,
+    //    karakteristik materi pelajaran, juga dimensi profil lulusan yang akan
+    //    dicapai... Pendidik DAPAT MEMILIH dimensi yang relevan dengan tujuan
+    //    pembelajaran dan karakteristik mata pelajaran yang diajarkan."
+    //
+    // Sampai 8 September 2026 guru tidak pernah ditanya, dan mesin tidak punya
+    // daftarnya. Hasilnya: 11 dari 14 isian di produksi memakai nama dari
+    // Profil Pelajar Pancasila yang sudah diganti, atau nama yang dikarang.
+    //
+    // Delapan nama di bawah dikutip dari hal. 5 dokumen itu. Kalau daftar ini
+    // diubah, ubah juga DIMENSI_PROFIL_LULUSAN di generate-modul — keduanya
+    // memang harus disunting berpasangan.
+    jamak('dimensi_profil_lulusan', 'Dimensi Profil Lulusan mana yang ingin dikuatkan lewat modul ini? Pilih maksimal tiga.', [
+      ['keimanan',    'Keimanan dan Ketakwaan terhadap Tuhan YME'],
+      ['kewargaan',   'Kewargaan'],
+      ['penalaran',   'Penalaran Kritis'],
+      ['kreativitas', 'Kreativitas'],
+      ['kolaborasi',  'Kolaborasi'],
+      ['kemandirian', 'Kemandirian'],
+      ['kesehatan',   'Kesehatan'],
+      ['komunikasi',  'Komunikasi'],
+      ['rekomendasi', 'Minta rekomendasi MiClass'],
+    ], { constraints: { maxSelections: 3, exclusive: ['rekomendasi'] },
+      helpText: 'Dimensi ini dicantumkan di Modul Ajar dan menjadi bagian yang dinilai. Delapan pilihan di atas adalah dimensi resmi Panduan Pembelajaran dan Asesmen 2025.' }),
     pilihan('target_kompetensi_modul', 'Target kompetensi utama modul ini?', [
       ['pemahaman',  'Pemahaman konsep'],
       ['keterampilan', 'Keterampilan praktis'],

@@ -1299,6 +1299,67 @@ function perangkatDigitalDiizinkan(cd: Record<string, unknown>): boolean {
   return arr.includes('modul_digital') || arr.includes('video');
 }
 
+// ── DELAPAN DIMENSI PROFIL LULUSAN ───────────────────────────────────────────
+// Dikutip verbatim dari Panduan Pembelajaran dan Asesmen 2025 hal. 5, bagian
+// "A. Dimensi Profil Lulusan":
+//
+//   "Pembelajaran mendalam difokuskan pada pencapaian delapan dimensi profil
+//    lulusan, yaitu (1) keimanan dan ketakwaan terhadap Tuhan YME,
+//    (2) kewargaan, (3) penalaran kritis, (4) kreativitas, (5) kolaborasi,
+//    (6) kemandirian, (7) kesehatan, dan (8) komunikasi."
+//
+// KENAPA DAFTAR INI HARUS ADA DI SINI. Sampai 8 September 2026 field
+// dimensi_profil_lulusan hanya dideklarasikan sebagai string bebas — tidak ada
+// satu pun daftar di mesin. Model mengisinya dari ingatannya sendiri, dan
+// ingatannya condong ke kurikulum lama. Diukur atas 8 modul di produksi:
+// 11 dari 14 isian (79%) SALAH — "Bernalar Kritis" (5x), "Mandiri" (4x),
+// "Berkebinekaan Global" (1x) semuanya dari Profil Pelajar Pancasila yang sudah
+// diganti, dan "Komunikasi Efektif" (1x) tidak ada di kerangka mana pun.
+//
+// Modul adalah dokumen yang guru cetak, arsipkan, dan tunjukkan ke pengawas.
+// Mengaku memakai kerangka yang tidak berlaku lagi lebih buruk daripada tidak
+// menyebutkannya sama sekali.
+const DIMENSI_PROFIL_LULUSAN: Record<string, string> = {
+  keimanan:  'Keimanan dan Ketakwaan terhadap Tuhan YME',
+  kewargaan: 'Kewargaan',
+  penalaran: 'Penalaran Kritis',
+  kreativitas: 'Kreativitas',
+  kolaborasi: 'Kolaborasi',
+  kemandirian: 'Kemandirian',
+  kesehatan: 'Kesehatan',
+  komunikasi: 'Komunikasi',
+};
+
+const NAMA_DIMENSI_SAH = new Set(Object.values(DIMENSI_PROFIL_LULUSAN));
+
+// Pilihan guru, kalau ia memilih sendiri. Kosong = diserahkan ke MiClass.
+function dimensiPilihanGuru(cd: Record<string, unknown>): string[] {
+  const km = cd.KONTEKS_MODUL as Record<string, unknown> | undefined;
+  const v  = km ? unwrap(km.dimensi_profil_lulusan) : null;
+  const arr = Array.isArray(v) ? v.map(String) : (v ? [String(v)] : []);
+  return arr.filter(k => k !== 'rekomendasi')
+            .map(k => DIMENSI_PROFIL_LULUSAN[k])
+            .filter((x): x is string => Boolean(x));
+}
+
+// Jaring terakhir: buang nama yang bukan salah satu dari delapan.
+//
+// SENGAJA BUKAN GERBANG VALIDATOR. Gerbang yang menolak seluruh modul karena
+// satu nama dimensi meleset merugikan guru jauh lebih besar daripada nama yang
+// dibuang diam-diam — pelajaran 5 September: ukur sebelum memasang gerbang.
+// Membuang entri yang salah selalu aman: sisanya tetap dokumen yang sah.
+function saringDimensi(faseA: Record<string, unknown>): void {
+  const meta = faseA.metadata_pedagogis as Record<string, unknown> | undefined;
+  if (!meta || !Array.isArray(meta.dimensi_profil_lulusan)) return;
+  const asli = meta.dimensi_profil_lulusan as Array<Record<string, unknown>>;
+  const bersih = asli.filter(d => NAMA_DIMENSI_SAH.has(String(d?.dimensi ?? '')));
+  if (bersih.length !== asli.length) {
+    console.warn('[generate-modul] dimensi di luar delapan resmi dibuang:',
+      asli.filter(d => !NAMA_DIMENSI_SAH.has(String(d?.dimensi ?? ''))).map(d => d?.dimensi));
+  }
+  meta.dimensi_profil_lulusan = bersih;
+}
+
 // ── TITIK AWAL KEMAMPUAN MURID ───────────────────────────────────────────────
 // Jawaban guru atas "Dibandingkan kemampuan yang diharapkan di awal fase ini,
 // di mana murid Anda sekarang?" — ditanyakan di alur ATP, tersimpan di
@@ -1676,6 +1737,23 @@ yang sama persis dengan kelas yang sudah siap — padahal murid yang belum paham
 tidak bisa berlatih, dan memangkas MEMAHAMI justru menghukum kelas yang paling
 membutuhkannya.
 
+DIMENSI PROFIL LULUSAN (WAJIB DIPATUHI):
+Field "dimensi_profil_lulusan_resmi" berisi DELAPAN dimensi resmi menurut
+Panduan Pembelajaran dan Asesmen 2025 hal. 5. Nilai metadata_pedagogis.
+dimensi_profil_lulusan[].dimensi HARUS DISALIN PERSIS dari daftar itu.
+- DILARANG memakai nama dari Profil Pelajar Pancasila lama — "Bernalar Kritis",
+  "Mandiri", "Berkebinekaan Global", "Gotong Royong", "Beriman dan Bertakwa".
+  Kerangka itu sudah diganti; modul yang menyebutnya terlihat tidak sah.
+- DILARANG mengarang nama baru seperti "Komunikasi Efektif".
+- Kalau "dimensi_profil_lulusan_dipilih" TIDAK KOSONG: pakai PERSIS dimensi itu,
+  tidak kurang tidak lebih. Itu pilihan guru, bukan saran.
+- Kalau kosong: pilih 2-3 dimensi dari delapan yang paling relevan dengan
+  tp_anchor dan program keahlian.
+Untuk setiap dimensi, "alasan" menjelaskan kenapa ia relevan dengan TP ini, dan
+"indikator" menyebut perilaku murid yang bisa diamati guru di kelas.
+Alasan: Panduan hal. 27 menempatkan pemilihan dimensi sebagai bagian IDENTIFIKASI
+yang dilakukan pendidik — "pendidik dapat memilih dimensi yang relevan".
+
 KONDISI KELAS (baca konteks_pembelajaran.kondisi_kelas di input):
 - "kemampuan murid relatif merata"
   → satu jalur instruksi; tindak_lanjut berisi variasi pengayaan ringan.
@@ -1928,6 +2006,11 @@ function buildUserMessageFaseA(params: {
       'Ringkas: tiap field narasi 1-3 kalimat. Total output di bawah 4000 token.',
     identitas_db:        params.identitasDB,
     jumlah_murid:        params.jumlahMurid,
+    // Delapan dimensi resmi + pilihan guru. Daftar lengkap SELALU dikirim,
+    // bukan hanya pilihannya: kalau guru menyerahkan ke MiClass, model tetap
+    // harus memilih dari delapan itu dan bukan dari ingatannya sendiri.
+    dimensi_profil_lulusan_resmi:   Object.values(DIMENSI_PROFIL_LULUSAN),
+    dimensi_profil_lulusan_dipilih: dimensiPilihanGuru(params.cd),
     tp_nomor:            params.nomorTp,
     tp_judul:            params.tpJudul,
     tp_anchor: {
@@ -2718,6 +2801,9 @@ Deno.serve(async (req) => {
     if (faseAOutput.konteks_murid && typeof faseAOutput.konteks_murid === 'object') {
       (faseAOutput.konteks_murid as Record<string, unknown>).input_guru = inputGuru;
     }
+
+    // Buang dimensi di luar delapan resmi — lihat saringDimensi().
+    saringDimensi(faseAOutput);
 
     // Injeksi language_policy — sama alasannya: keputusan guru, bukan karangan
     // model. Ditimpa SESUDAH Fase A, sehingga nilai inilah yang tersimpan di
