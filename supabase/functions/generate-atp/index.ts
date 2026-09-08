@@ -590,7 +590,33 @@ Deno.serve(async (req) => {
           signal: controller.signal,
         },
       );
-      if (!res.ok) throw new Error(`Gemini HTTP ${res.status}`);
+      // Badan balasan IKUT dibawa, bukan hanya status.
+      //
+      // 9 September 2026: generate-atp dan generate-modul gagal berjam-jam,
+      // dan yang sampai ke layar guru hanya "Waktu habis" atau "Gagal
+      // menghubungi AI" — dua kalimat yang menyuruh mencoba lagi padahal
+      // mencoba lagi tidak akan pernah berhasil. Sebabnya baru bisa dipisahkan
+      // setelah membandingkan dengan evaluate-answer, yang memakai penyedia
+      // BERBEDA (Claude) dan tetap sehat. Status dan pesan penyedia sudah ada
+      // di tangan kita sejak awal, lalu dibuang.
+      if (!res.ok) {
+        let detail = '';
+        try { detail = (await res.text()).slice(0, 300); } catch { /* abaikan */ }
+        // KUOTA HABIS DIPISAHKAN dari gangguan biasa.
+        //
+        // 8-9 September 2026 saldo kredit Gemini menyentuh minus, dan selama
+        // berjam-jam yang sampai ke layar hanya "Waktu habis, silakan coba
+        // lagi" — kalimat yang menyuruh guru mencoba berkali-kali padahal
+        // mencoba lagi TIDAK AKAN PERNAH berhasil sampai saldonya diisi.
+        // Guru akan menghabiskan seluruh jatah hariannya lalu menyerah tanpa
+        // pernah tahu sebabnya, dan sebabnya bukan kesalahan dia sama sekali.
+        const kuotaHabis = res.status === 429
+          || /RESOURCE_EXHAUSTED|quota|billing|exceeded|insufficient/i.test(detail);
+        throw Object.assign(
+          new Error(`Gemini HTTP ${res.status}${detail ? ' — ' + detail : ''}`),
+          { kodeSebab: kuotaHabis ? 'AI_QUOTA_EXHAUSTED' : 'AI_PROVIDER_ERROR' },
+        );
+      }
       const b = await res.json();
       const cand = b?.candidates?.[0];
       const um   = (b?.usageMetadata ?? {}) as Record<string, unknown>;
@@ -630,7 +656,25 @@ Deno.serve(async (req) => {
     if (isTimeout) {
       return json({ error: 'Waktu habis saat menyusun ATP.', code: 'ATP_GENERATION_TIMEOUT', retryable: true }, 504);
     }
-    return json({ error: 'Gagal menghubungi AI.', code: 'ATP_GENERATION_TIMEOUT', retryable: true }, 504);
+    // Kode DIBEDAKAN dari timeout sejak 9 September 2026.
+    //
+    // Sebelumnya kegagalan non-timeout memakai kode ATP_GENERATION_TIMEOUT, dan
+    // klien menerjemahkannya jadi "Waktu habis saat menyusun ATP" — kalimat yang
+    // menyuruh guru mencoba lagi padahal mencoba lagi tidak akan berhasil.
+    // Sebabnya baru bisa dipisahkan setelah berjam-jam.
+    const sebab = (e as { kodeSebab?: string }).kodeSebab;
+    if (sebab === 'AI_QUOTA_EXHAUSTED') {
+      return json({
+        error: 'Kuota layanan AI MiClass habis. ' + ((e as Error).message ?? ''),
+        code: 'AI_QUOTA_EXHAUSTED',
+        retryable: false,
+      }, 502);
+    }
+    return json({
+      error: 'Penyedia AI menolak permintaan: ' + ((e as Error).message ?? 'sebab tidak diketahui'),
+      code: 'ATP_AI_PROVIDER_ERROR',
+      retryable: true,
+    }, 502);
   }
 
   // ── 9. PARSE & VALIDASI ───────────────────────────────────────────────────

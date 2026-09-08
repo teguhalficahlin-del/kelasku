@@ -2742,7 +2742,33 @@ Deno.serve(async (req) => {
           signal: ctrl.signal,
         },
       );
-      if (!res.ok) throw new Error(`Gemini HTTP ${res.status}`);
+      // Badan balasan IKUT dibawa, bukan hanya status.
+      //
+      // 9 September 2026: generate-atp dan generate-modul gagal berjam-jam,
+      // dan yang sampai ke layar guru hanya "Waktu habis" atau "Gagal
+      // menghubungi AI" — dua kalimat yang menyuruh mencoba lagi padahal
+      // mencoba lagi tidak akan pernah berhasil. Sebabnya baru bisa dipisahkan
+      // setelah membandingkan dengan evaluate-answer, yang memakai penyedia
+      // BERBEDA (Claude) dan tetap sehat. Status dan pesan penyedia sudah ada
+      // di tangan kita sejak awal, lalu dibuang.
+      if (!res.ok) {
+        let detail = '';
+        try { detail = (await res.text()).slice(0, 300); } catch { /* abaikan */ }
+        // KUOTA HABIS DIPISAHKAN dari gangguan biasa.
+        //
+        // 8-9 September 2026 saldo kredit Gemini menyentuh minus, dan selama
+        // berjam-jam yang sampai ke layar hanya "Waktu habis, silakan coba
+        // lagi" — kalimat yang menyuruh guru mencoba berkali-kali padahal
+        // mencoba lagi TIDAK AKAN PERNAH berhasil sampai saldonya diisi.
+        // Guru akan menghabiskan seluruh jatah hariannya lalu menyerah tanpa
+        // pernah tahu sebabnya, dan sebabnya bukan kesalahan dia sama sekali.
+        const kuotaHabis = res.status === 429
+          || /RESOURCE_EXHAUSTED|quota|billing|exceeded|insufficient/i.test(detail);
+        throw Object.assign(
+          new Error(`Gemini HTTP ${res.status}${detail ? ' — ' + detail : ''}`),
+          { kodeSebab: kuotaHabis ? 'AI_QUOTA_EXHAUSTED' : 'AI_PROVIDER_ERROR' },
+        );
+      }
       const b = await res.json();
       const cand = b?.candidates?.[0];
       const um   = (b?.usageMetadata ?? {}) as Record<string, unknown>;
@@ -2783,6 +2809,13 @@ Deno.serve(async (req) => {
       }
       const isTimeout = e instanceof Error && (e.name === 'AbortError' || String(e).includes('abort'));
       console.error(`[generate-modul] ${label} AI call failed:`, e);
+      // Kuota habis dibawa apa adanya — jangan disamarkan jadi "gagal menghubungi".
+      if ((e as { kodeSebab?: string }).kodeSebab === 'AI_QUOTA_EXHAUSTED') {
+        throw Object.assign(
+          new Error(`Kuota layanan AI MiClass habis (${label}). ${(e as Error).message}`),
+          { code: 'AI_QUOTA_EXHAUSTED', retryable: false },
+        );
+      }
       throw Object.assign(new Error(
         isTimeout ? `Waktu habis di ${label}.` : `Gagal menghubungi AI di ${label}.`,
       ), { code: isTimeout ? 'MODUL_GENERATION_TIMEOUT' : 'AI_ERROR', retryable: true });

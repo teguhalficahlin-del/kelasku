@@ -3461,6 +3461,22 @@ Jatah menyusun ATP hari ini tidak terpakai. Silakan pilih tindakan lain.`);
                   'ATP_GENERATION_INVALID_JSON'].includes(code)) {
         msg = '❌ AI gagal menghasilkan ATP yang valid. Silakan coba lagi.';
         retryable = true;
+      } else if (code === 'AI_QUOTA_EXHAUSTED') {
+        // BUKAN kesalahan guru, dan mencoba lagi TIDAK akan berhasil.
+        //
+        // 8-9 September 2026 saldo layanan AI habis dan layar hanya menulis
+        // "Waktu habis, silakan coba lagi" berjam-jam. Guru yang menurut akan
+        // menghabiskan seluruh jatah hariannya untuk sesuatu yang mustahil
+        // berhasil, lalu menyimpulkan MiClass rusak atau dirinya salah.
+        msg = '❌ Layanan AI MiClass sedang tidak bisa dipakai — ini di sisi kami, '
+            + 'bukan kesalahan Anda. Mencoba lagi sekarang tidak akan berhasil. '
+            + 'Jawaban Anda tersimpan; hubungi pengelola MiClass, lalu buka lagi nanti.';
+        retryable = false;
+      } else if (code === 'ATP_AI_PROVIDER_ERROR') {
+        msg = '❌ Penyedia AI menolak permintaan MiClass. Jawaban Anda tersimpan. '
+            + 'Coba lagi beberapa menit; kalau tetap gagal, salin baris abu-abu di bawah '
+            + 'dan kirimkan ke pengelola MiClass.';
+        retryable = true;
       } else if (code === 'ATP_GENERATION_TIMEOUT') {
         msg = '❌ Waktu habis saat menyusun ATP. Silakan coba lagi.';
         retryable = true;
@@ -3631,6 +3647,11 @@ Jatah menyusun ATP hari ini tidak terpakai. Silakan pilih tindakan lain.`);
       } else if (['MODUL_GENERATION_INVALID_JSON', 'MODUL_GENERATION_INVALID_SCHEMA', 'MODUL_GENERATION_FAILED'].includes(code)) {
         msg = 'MiClass belum berhasil menyusun modul. Jawaban Anda tersimpan. Silakan coba lagi.';
         retryable = true;
+      } else if (code === 'AI_QUOTA_EXHAUSTED') {
+        msg = '❌ Layanan AI MiClass sedang tidak bisa dipakai — ini di sisi kami, '
+            + 'bukan kesalahan Anda. Mencoba lagi sekarang tidak akan berhasil. '
+            + 'Jawaban Anda tersimpan; hubungi pengelola MiClass, lalu buka lagi nanti.';
+        retryable = false;
       } else if (['MODUL_GENERATION_TIMEOUT', 'MODUL_STREAM_INCOMPLETE', 'MODUL_POLL_TIMEOUT', 'AI_ERROR'].includes(code)) {
         msg = 'Terjadi gangguan sementara. Silakan coba lagi dalam beberapa menit.';
         retryable = true;
