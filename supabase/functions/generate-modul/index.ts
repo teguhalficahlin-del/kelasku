@@ -2879,7 +2879,7 @@ Deno.serve(async (req) => {
           { role: 'user', content: userMsg },
           { role: 'assistant', content: rawText },
           { role: 'user', content: `JSON tidak valid. Hasilkan ulang HANYA JSON object untuk ${label} yang valid.` },
-        ], 60_000, maxTokens);
+        ], 60_000, maxTokens, `${label} (perbaikan JSON)`);
         parsed = extractJson(repairText);
       } catch (e2) {
         if ((e2 as { code?: string }).code === 'MODUL_GENERATION_TRUNCATED') throw e2;
@@ -3294,7 +3294,8 @@ Deno.serve(async (req) => {
 
       try {
         const repairText  = await callAI([{ role: 'user', content: repairMsg }], 50_000,
-          hasDurasiError ? anggaranToken(jumlahPertemuan) : anggaranTokenPerbaikan(jumlahPertemuan));
+          hasDurasiError ? anggaranToken(jumlahPertemuan) : anggaranTokenPerbaikan(jumlahPertemuan),
+          'perbaikan validasi');
         const repairParsed = extractJson(repairText);
         const mergedFixed = hasDurasiError
           ? { ...(merged as Record<string, unknown>), pertemuan: (repairParsed as Record<string, unknown>).pertemuan }
