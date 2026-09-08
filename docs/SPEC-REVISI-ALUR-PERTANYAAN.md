@@ -430,6 +430,35 @@ Bertahap, tiap tahap bisa diverifikasi sendiri (§21.3 poin 6).
    Bentuk terakhir itulah yang dituju: bahan guru tercatat, dihargai, dan modul
    tetap utuh seandainya guru lupa membawanya.
 5. **`language_policy`** disalin dari jawaban guru.
+   **SELESAI, ter-deploy 8 September 2026** (`a35be88` + `fdddd29`).
+
+   Bukti cacatnya, dari modul `0db3f267` yang disusun sebelum perbaikan ini —
+   guru X TB menjawab **`campur`** ("penjelasan Indonesia, instruksi kelas
+   bahasa target"), lalu model menuliskan kebalikan penekanannya:
+
+   > *"Guru memandu kegiatan menggunakan bahasa Inggris komunikatif yang
+   > diselingi bahasa Indonesia sederhana saat menjelaskan istilah teknis."*
+
+   Itu `target_dominan`, bukan `campur`. Sekarang backend yang menetapkannya:
+
+   > *"Guru menjelaskan konsep dalam Bahasa Indonesia dan memberi instruksi
+   > kelas dalam Bahasa Inggris."*
+
+   Ikut ditutup dalam tahap ini:
+   - **`bahasa_pengantar` tidak punya jalur mundur di jalur Modul**, sementara
+     `perlengkapan_kelas` dan `jumlah_murid_kelas` punya. Guru dengan ATP lama
+     yang langsung menyusun Modul tidak akan pernah ditanya — dan
+     `language_policy` kembali dikarang model, persis keadaan yang diperbaiki.
+   - **Naskah tidak pernah diberi aturan bahasa.** `language_policy` sudah
+     dikirim ke Fase B2 sejak dulu tapi tidak satu pun aturan merujuknya, jadi
+     naskah bisa berbahasa apa saja tanpa ada yang mengeluh.
+   - **Frasa cadangan bocor ke dokumen** untuk mapel tanpa bahasa target
+     (Matematika, Bahasa Indonesia). Ditemukan jaring regresi
+     `tests/kebijakan-bahasa.ts` sebelum ada guru yang mengalaminya.
+
+   Terverifikasi: 8 kasus di `tests/kebijakan-bahasa.ts` lulus, dijalankan
+   terhadap potongan kode kirimnya sendiri.
+   **BELUM diuji end-to-end di produksi** — menunggu sesi login Romo.
 6. **Empat pertanyaan asesmen** + perubahan `instruksi_manifest`.
 7. **Perbaikan §6** — hapus kode mati, tambah rute revisi, perluas syarat.
 
