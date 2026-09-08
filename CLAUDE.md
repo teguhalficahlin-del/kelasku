@@ -315,17 +315,28 @@ git push origin main                  → urutan TERAKHIR
       klien menampilkan baris sebab teknis yang bisa disalin guru
       (`guru/js/rancang-chat.js:3298-3312`). *Verifikasi 7 Sep 2026 — item ini
       sudah basi sejak 6 Sep dan tertinggal ditandai.*
-- [ ] **Enam inkonsistensi alur pertanyaan Tab Rancang yang masih terbuka** —
-      `docs/DAFTAR-PERTANYAAN-RANCANG.md` §Catatan (tabel status di awal bagian
-      itu). Yang tertutup: Catatan 1 dan 2 (`696c415`), Catatan 5 (`3505493`).
-      Yang terbuka: Catatan 3 (#47 jawabannya dibuang), 4 (formatif tanpa
-      pertanyaan teknik), 6 (ATP tidak menanyakan jumlah murid), 7 (menu revisi
-      menyusut setelah draf ATP tampil), 8 (tuas JP penguatan tercabut diam-diam),
-      dan jalur "Ada sebagian data" yang belum punya lanjutan sendiri.
-      *Angka "tujuh" di versi lama baris ini tidak pernah cocok dengan enam
-      Catatan di dokumennya. Sebabnya sudah ditemukan: yang ketujuh — menu revisi
-      #46 — memang ada, tapi hanya tertulis di §23.3 dan
-      `BACKLOG-GO-LIVE-RANCANG.md` §4c. Kini masuk daftar sebagai Catatan 7.*
+- [x] **Inkonsistensi alur pertanyaan Tab Rancang — TUJUH DARI DELAPAN SELESAI,
+      seluruhnya terverifikasi di produksi 8 September 2026.** Spesifikasi dan
+      bukti tiap tahap: `docs/SPEC-REVISI-ALUR-PERTANYAAN.md` §12. Tabel status
+      per Catatan: `docs/DAFTAR-PERTANYAAN-RANCANG.md`.
+      Ringkas: Catatan 1 & 2 (`696c415`, jalur "sebagian data" `b522640`),
+      3, 7, 8 (`b522640`), 4 (`c14d8ab` — ternyata jauh lebih besar dari
+      rumusan aslinya: instrumen tidak pernah dipilih guru untuk KETIGA jenis
+      asesmen), 5 (`3505493`).
+      Ikut dikerjakan di luar daftar itu: profil kelas ditanya sekali per kelas,
+      metode pengurutan ATP (Tabel 3.3), bahan milik guru tidak lagi jadi
+      tulang punggung kegiatan, kebijakan bahasa disalin dari jawaban guru,
+      jumlah TP bisa dipecah/digabung, dan pembagian menit antar tahap mengikuti
+      titik awal murid.
+- [ ] **SATU-SATUNYA sisa: Catatan 6 — apakah jumlah murid perlu memengaruhi ATP?**
+      Datanya sudah sampai (`collected_data.PROFIL_KELAS`), `generate-atp` tinggal
+      membacanya — beberapa baris, tanpa pertanyaan baru, tanpa migration.
+      **Yang menahan bukan pekerjaannya melainkan keputusan produk:** `atp_induk`
+      sengaja LINTAS KELAS dan tidak punya `classroom_id`, sementara jumlah murid
+      adalah fakta satu kelas. Menyambungkannya membuat ATP yang sama tidak lagi
+      bisa dipakai kelas lain. Kalau jawabannya "tidak perlu", tutup sebagai
+      keputusan sadar — bukan sebagai pekerjaan yang tertinggal.
+      Uraian lengkap: `docs/DAFTAR-PERTANYAAN-RANCANG.md` Catatan 6.
 - [ ] ~~Hardening Tab Rancang — Putaran 9~~ — **BASI, jangan dikerjakan sebagai
       backlog aktif.** `docs/AUDIT-RANCANG-UI.md` mengaudit
       `guru/js/classroom-rancang.js` (6.270 baris) dan `docs/AUDIT-EF-API.md`

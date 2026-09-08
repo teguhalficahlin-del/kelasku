@@ -200,19 +200,22 @@ jumlah murid, jumlah pertemuan, JP per pertemuan, durasi JP, elemen CP, dan daft
 Ini pengamatan, **bukan daftar pekerjaan.** Yang layak dikerjakan adalah keputusan
 terpisah.
 
-> **Rekonsiliasi 7 September 2026 (HEAD `af3f32b`).** Setiap catatan di bawah
-> ditelusuri ke kode aktual. Status ringkasnya:
+> **Rekonsiliasi 8 September 2026 (HEAD `649f616`).** Seluruh isi tabel ini
+> ditelusuri ulang ke kode aktual pada tanggal ini.
 >
 > | | Catatan | Status |
 > |---|---|---|
-> | 1 | Kemampuan awal hanya bisa dijelaskan guru yang mengaku tidak punya data | **SELESAI** `696c415` |
+> | 1 | Kemampuan awal hanya bisa dijelaskan guru yang mengaku tidak punya data | **SELESAI** `696c415`; jalur "sebagian data" ditutup `b522640` |
 > | 2 | JP pemetaan dan JP penguatan tidak dipesan dari anggaran | **SELESAI** `696c415` |
-> | 3 | #47 diabaikan bila ATP sudah punya distribusi pertemuan | **SELESAI** `fb62f0f` — sisa kode mati |
-> | 4 | Asesmen formatif tidak punya pertanyaan teknik | terbuka |
+> | 3 | #47 diabaikan bila ATP sudah punya distribusi pertemuan | **SELESAI** `fb62f0f`; kode matinya dibuang `b522640` |
+> | 4 | Asesmen formatif tidak punya pertanyaan teknik | **SELESAI** `c14d8ab` — ternyata lebih besar dari rumusannya: instrumen tidak pernah dipilih guru untuk KETIGA jenis asesmen, bukan hanya teknik formatif |
 > | 5 | Kunci opsi tidak selalu cocok dengan labelnya | **SELESAI** `3505493` |
-> | 6 | ATP tidak pernah menanyakan jumlah murid | terbuka |
-> | 7 | Menu revisi menyusut setelah draf ATP tampil | terbuka |
-> | 8 | Tuas JP penguatan bisa tercabut diam-diam | terbuka |
+> | 6 | ATP tidak pernah menanyakan jumlah murid | **SEBAGIAN.** Pertanyaannya kini ada dan jawabannya sampai ke `collected_data.PROFIL_KELAS`, tapi `generate-atp` masih nol menyebut `jumlah_murid`. Sisanya pertanyaan produk — lihat Catatan 6 |
+> | 7 | Menu revisi menyusut setelah draf ATP tampil | **SELESAI** `b522640` — tiga rute dikembalikan, ditambah pecah/gabung jumlah TP `8397027` |
+> | 8 | Tuas JP penguatan bisa tercabut diam-diam | **SELESAI** `b522640` |
+>
+> **Tinggal Catatan 6, dan hanya separuhnya.** Selebihnya tertutup dan
+> terverifikasi di produksi — buktinya di `docs/SPEC-REVISI-ALUR-PERTANYAAN.md` §12.
 >
 > Catatan 7 dan 8 ditambahkan saat rekonsiliasi — keduanya sudah terdokumentasi
 > di tempat lain (CLAUDE.md §23.3 dan `BACKLOG-GO-LIVE-RANCANG.md` §4b) tapi
@@ -333,12 +336,28 @@ Jalur Modul menanyakannya (#52) dan memakainya untuk menentukan apakah kegiatan
 bisa serentak atau bergantian. Jalur ATP tidak. Apakah jumlah murid perlu
 memengaruhi penyusunan ATP — pertanyaan produk, belum pernah diputuskan.
 
-**Masih terbuka per `af3f32b`.** `jumlah_murid_kelas` hanya ada di fase
-`KONTEKS_MODUL` (`rancang-chat-flow.js:359`), dibaca `generate-modul/index.ts:1166`
-dan disimpan ke `rancang_settings.jumlah_murid`
-(migration `20260905000001_rancang-settings-jumlah-murid.sql`,
-dibaca `generate-modul/index.ts:2105,2113`). `generate-atp/index.ts` tidak
-menyebutnya sama sekali.
+**SEBAGIAN SELESAI per 8 September 2026 (`649f616`).**
+
+Yang sudah berubah: `jumlah_murid_kelas` pindah ke fase `PROFIL_KELAS`,
+ditanyakan **sekali per kelas**, disimpan ke `rancang_settings.jumlah_murid`,
+DAN dipotret ke `collected_data.PROFIL_KELAS` milik ATP. Jadi datanya kini
+sudah berada di tangan `generate-atp`.
+
+**Yang belum: `generate-atp` tetap nol menyebut `jumlah_murid`.** Ia membaca
+`cd.PROFIL_KELAS` hanya untuk mengambil `perlengkapan_kelas`
+(`generate-atp/index.ts:440-442`). Menyambungkannya sekarang tinggal beberapa
+baris — datanya sudah ada, tidak perlu pertanyaan baru dan tidak perlu migration.
+
+**Tapi menyambungkannya belum tentu benar.** Pertanyaan produknya masih persis
+seperti semula dan belum pernah diputuskan: *apakah jumlah murid seharusnya
+memengaruhi penyusunan ATP?* ATP adalah rencana satu fase penuh yang berlaku
+lintas kelas — `atp_induk` sengaja tidak punya `classroom_id`. Jumlah murid
+adalah fakta satu kelas. Memasukkannya ke ATP berarti ATP yang sama tidak lagi
+bisa dipakai untuk kelas lain dengan jumlah murid berbeda, dan itu bertentangan
+dengan arsitektur dua lapis yang ada sekarang.
+
+Kalau jawabannya "tidak perlu", Catatan ini ditutup sebagai **keputusan sadar**,
+bukan sebagai pekerjaan yang tertinggal.
 
 ---
 
