@@ -1299,6 +1299,62 @@ function perangkatDigitalDiizinkan(cd: Record<string, unknown>): boolean {
   return arr.includes('modul_digital') || arr.includes('video');
 }
 
+// ── TITIK AWAL KEMAMPUAN MURID ───────────────────────────────────────────────
+// Jawaban guru atas "Dibandingkan kemampuan yang diharapkan di awal fase ini,
+// di mana murid Anda sekarang?" — ditanyakan di alur ATP, tersimpan di
+// atp_induk.collected_data.PROFIL_SISWA.
+//
+// Sampai 8 September 2026 jawaban itu TIDAK PERNAH SAMPAI KE SINI. Akibatnya
+// pembagian menit antar tahap identik untuk semua kelas: pengukuran atas 8
+// modul di produksi menunjukkan pola yang sama persis di mana pun — MEMAHAMI
+// 28-31% di pertemuan pertama, menyusut ke 13-19% di pertemuan terakhir,
+// MENGAPLIKASI naik dari ~34% ke 50-53%.
+//
+// Polanya sendiri benar secara pedagogis. Yang salah adalah ia SATU-SATUNYA:
+// kelas yang gurunya menyatakan muridnya "jauh di bawah, banyak kemampuan
+// dasar yang harus dibangun dulu" mendapat kurva yang sama persis dengan kelas
+// "sudah sesuai, bisa langsung masuk materi fase ini". Guru sudah menjawabnya,
+// dan jawabannya dibuang — bentuk cacat yang sama dengan language_policy.
+//
+// Kunci HARUS sama persis dengan opsi tingkat_kemampuan_awal di
+// guru/js/rancang-chat-flow.js. Kalau salah satu diubah, ubah keduanya —
+// kunci yang tidak cocok tidak menimbulkan galat, ia hanya membuat arahan ini
+// diam-diam tidak pernah terpakai.
+const ARAHAN_TITIK_AWAL: Record<string, string> = {
+  sesuai:
+    'Murid sudah siap memasuki materi fase ini. MEMAHAMI cukup ringkas — mulai ' +
+    'sekitar seperempat waktu pertemuan pertama dan boleh cepat mengecil. ' +
+    'MENGAPLIKASI mendapat porsi terbesar sejak awal.',
+  sedikit_di_bawah:
+    'Murid sedikit di bawah dan perlu penyegaran singkat. MEMAHAMI sekitar ' +
+    'sepertiga waktu di pertemuan pertama, lalu menyusut bertahap sementara ' +
+    'MENGAPLIKASI membesar.',
+  jauh_di_bawah:
+    'Murid jauh di bawah — banyak kemampuan dasar yang harus dibangun dulu. ' +
+    'MEMAHAMI HARUS mendapat porsi paling besar di pertemuan pertama, sekitar ' +
+    'separuh waktu pertemuan, dan menyusutnya PELAN — di pertemuan terakhir pun ' +
+    'ia masih layak mendapat sekitar seperempat waktu. Jangan memindahkan waktu ' +
+    'ke MENGAPLIKASI terlalu cepat: murid yang belum paham tidak bisa berlatih.',
+  sangat_beragam:
+    'Kemampuan murid sangat berbeda-beda — ada yang siap, ada yang jauh ' +
+    'tertinggal. Pertahankan MEMAHAMI cukup besar di SETIAP pertemuan (jangan ' +
+    'menyusut tajam), karena murid yang tertinggal butuh penjelasan ulang saat ' +
+    'yang lain sudah berlatih. Perbedaan kemampuan ditangani di dalam tahap, ' +
+    'bukan dengan memangkas tahapnya.',
+};
+
+function arahanTitikAwal(atpCd: Record<string, unknown> | null | undefined): string | null {
+  if (!atpCd) return null;
+  const ps = atpCd.PROFIL_SISWA as Record<string, unknown> | undefined;
+  if (!ps) return null;
+  const v = unwrap(ps.tingkat_kemampuan_awal);
+  if (!v) return null;
+  // ATP lama tidak punya jawaban ini — null berarti perilaku lama dipertahankan,
+  // bukan ditebak. Menyamakan "belum dijawab" dengan sebuah nilai akan mengubah
+  // modul lama diam-diam.
+  return ARAHAN_TITIK_AWAL[String(v)] ?? null;
+}
+
 // ── KEBIJAKAN BAHASA ─────────────────────────────────────────────────────────
 // language_policy DIHITUNG BACKEND dari jawaban guru, bukan dikarang AI.
 //
@@ -1606,6 +1662,19 @@ INKLUSIVITAS:
 - Jangan gunakan label kemampuan global ("murid lemah", "murid pandai").
 - Dukungan diberikan per keterampilan, bersifat fleksibel.
 - Kesalahan adalah data, bukan kegagalan.
+
+PEMBAGIAN WAKTU ANTAR TAHAP (WAJIB DIPATUHI):
+Field "pembagian_waktu_menurut_titik_awal" di input Fase B berisi arahan yang
+BERASAL DARI JAWABAN GURU tentang di mana kemampuan muridnya berada sekarang —
+bukan penilaianmu. Patuhi arahannya saat menentukan durasi_menit tiap tahap.
+- Kalau field itu null, tentukan pembagiannya sendiri seperti biasa.
+- Aturan aritmetika tetap mutlak dan menang atas arahan ini: jumlah durasi
+  seluruh tahap HARUS sama persis dengan durasi satu pertemuan.
+Alasan: sebelum aturan ini ada, pembagian menit identik untuk semua kelas.
+Kelas yang gurunya menyatakan muridnya jauh di bawah mendapat porsi penjelasan
+yang sama persis dengan kelas yang sudah siap — padahal murid yang belum paham
+tidak bisa berlatih, dan memangkas MEMAHAMI justru menghukum kelas yang paling
+membutuhkannya.
 
 KONDISI KELAS (baca konteks_pembelajaran.kondisi_kelas di input):
 - "kemampuan murid relatif merata"
@@ -1923,6 +1992,7 @@ function buildUserMessageFaseB(params: {
   durasiJp:        number;
   jumlahMurid:     number | null;
   cd:              Record<string, unknown>;
+  arahanTitikAwal: string | null;
 }): string {
   const targetDurasi = params.jpPerPertemuan * params.durasiJp;
   const allManifestIds = [
@@ -1942,6 +2012,10 @@ function buildUserMessageFaseB(params: {
       `sum(langkah[].durasi_menit) per pertemuan HARUS = ${targetDurasi} ` +
       `(${params.jpPerPertemuan} JP × ${params.durasiJp} menit). ` +
       `sum(sub_langkah[].durasi_menit) HARUS = durasi_menit langkah induk. Syarat mutlak.`,
+    // Arahan pembagian menit menurut titik awal murid — jawaban guru sendiri,
+    // bukan penilaian model. null berarti ATP-nya belum pernah menanyakannya;
+    // pembagiannya kembali sepenuhnya ke model, seperti sebelumnya.
+    pembagian_waktu_menurut_titik_awal: params.arahanTitikAwal,
     jumlah_pertemuan:           params.jumlahPertemuan,
     jp_per_pertemuan:           params.jpPerPertemuan,
     durasi_jp:                  params.durasiJp,
@@ -2293,6 +2367,11 @@ Deno.serve(async (req) => {
       missing: ['atp_induk_id'],
     }, 422);
   }
+
+  // Titik awal murid — jawaban guru di alur ATP, yang sampai 8 September 2026
+  // tidak pernah sampai ke mesin modul sama sekali.
+  const arahanWaktu = arahanTitikAwal(
+    (atp as Record<string, unknown>).collected_data as Record<string, unknown> | null);
 
   // 5. BACA rancang_settings — tambah jumlah_murid
   const { data: settings, error: settingsErr } = await userClient
@@ -2686,7 +2765,7 @@ Deno.serve(async (req) => {
     try {
       faseBRaw = await callPhase(
         'Fase B',
-        buildUserMessageFaseB({ faseAOutput, manifest, jumlahPertemuan, jpPerPertemuan, durasiJp, jumlahMurid, cd }),
+        buildUserMessageFaseB({ faseAOutput, manifest, jumlahPertemuan, jpPerPertemuan, durasiJp, jumlahMurid, cd, arahanTitikAwal: arahanWaktu }),
         90_000, anggaranToken(jumlahPertemuan),
       );
     } catch (e) {
@@ -2932,7 +3011,7 @@ Deno.serve(async (req) => {
 
       const hasDurasiError = validation.errors.some(e => e.includes('durasi'));
       const repairMsg = hasDurasiError
-        ? buildUserMessageFaseB({ faseAOutput, manifest: { pembelajaran_manifest: [], asesmen_manifest: [] }, jumlahPertemuan, jpPerPertemuan, durasiJp, jumlahMurid, cd }) +
+        ? buildUserMessageFaseB({ faseAOutput, manifest: { pembelajaran_manifest: [], asesmen_manifest: [] }, jumlahPertemuan, jpPerPertemuan, durasiJp, jumlahMurid, cd, arahanTitikAwal: arahanWaktu }) +
           `\n\nERROR yang harus diperbaiki: ${errorList}. ` +
           `Σlangkah[].durasi_menit HARUS = ${jpPerPertemuan * durasiJp}. ` +
           `Σsub_langkah[].durasi_menit HARUS = durasi_menit langkah induk.`
