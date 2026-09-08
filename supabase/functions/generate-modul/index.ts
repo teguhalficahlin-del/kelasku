@@ -1326,7 +1326,22 @@ function kebijakanBahasa(
   // apa adanya. Modul yang sudah jalan dan guru yang kelasnya belum punya
   // profil tidak boleh berubah perilakunya diam-diam.
   if (!bahasaPengantar) return null;
-  const T = bahasaTarget(mapel) ?? 'bahasa target mata pelajaran ini';
+
+  // Mapel yang tidak punya bahasa target berbeda — Matematika, atau Bahasa
+  // Indonesia itu sendiri — membuat kelima pilihan runtuh menjadi satu:
+  // semuanya Bahasa Indonesia. Tanpa cabang ini, frasa cadangan ikut tercetak
+  // di modul yang guru arsipkan ("memberi instruksi kelas dalam bahasa target
+  // mata pelajaran ini") — bentuk cacat yang sama dengan kunci mentah yang
+  // dulu bocor ke dokumen. Lebih baik menyatakan yang benar dan pendek.
+  const T = bahasaTarget(mapel);
+  if (!T) {
+    return {
+      teacher_instruction: 'Guru menjelaskan dan memberi instruksi sepenuhnya dalam Bahasa Indonesia.',
+      student_instruction: 'Murid menjawab dan berdiskusi dalam Bahasa Indonesia.',
+      target_language: null,
+    };
+  }
+
   switch (bahasaPengantar) {
     case 'indonesia':
       return {
@@ -1338,25 +1353,25 @@ function kebijakanBahasa(
       return {
         teacher_instruction: `Guru menjelaskan dalam Bahasa Indonesia; ${T} dipakai hanya pada contoh dan latihan.`,
         student_instruction: `Murid memakai ${T} saat mengerjakan contoh dan latihan, selebihnya Bahasa Indonesia.`,
-        target_language: bahasaTarget(mapel),
+        target_language: T,
       };
     case 'campur':
       return {
         teacher_instruction: `Guru menjelaskan konsep dalam Bahasa Indonesia dan memberi instruksi kelas dalam ${T}.`,
         student_instruction: `Murid mengikuti instruksi dalam ${T} dan boleh bertanya dalam Bahasa Indonesia.`,
-        target_language: bahasaTarget(mapel),
+        target_language: T,
       };
     case 'target_dominan':
       return {
         teacher_instruction: `Guru mengajar sebagian besar dalam ${T} dan beralih ke Bahasa Indonesia saat murid kesulitan.`,
         student_instruction: `Murid berusaha memakai ${T}; Bahasa Indonesia dipakai hanya saat benar-benar tersendat.`,
-        target_language: bahasaTarget(mapel),
+        target_language: T,
       };
     case 'target_penuh':
       return {
         teacher_instruction: `Guru mengajar sepenuhnya dalam ${T}.`,
         student_instruction: `Murid memakai ${T} sepanjang pembelajaran.`,
-        target_language: bahasaTarget(mapel),
+        target_language: T,
       };
     default:
       return null;
