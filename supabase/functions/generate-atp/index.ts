@@ -226,6 +226,15 @@ const SYSTEM_PROMPT =
   '   menuntut alat yang tidak dimiliki menghasilkan modul yang tidak bisa dipakai guru.\n' +
   '   Jika perlengkapan_tersedia bernilai null, perlengkapannya BELUM DIKETAHUI —\n' +
   '   abaikan aturan ini dan jangan mengandaikan apa pun, baik ada maupun tiada.\n' +
+  '8. JUMLAH MURID (wajib dipatuhi): field jumlah_murid menyebut berapa murid di kelas\n' +
+  '   ini. Judul TP harus menggambarkan kegiatan yang BISA DIJALANKAN dengan jumlah itu.\n' +
+  '   Kelas kecil (di bawah 15 murid): hindari TP yang mensyaratkan banyak kelompok\n' +
+  '   berjalan serentak, kompetisi antar-kelompok besar, atau audiens luas.\n' +
+  '   Kelas besar (di atas 30 murid): hindari TP yang menuntut SETIAP murid tampil satu\n' +
+  '   per satu dinilai guru — jamnya tidak akan cukup, dan guru baru menyadarinya saat\n' +
+  '   modulnya sudah disusun dan ia berdiri di depan kelas.\n' +
+  '   Jika jumlah_murid bernilai null, jumlahnya BELUM DIKETAHUI — jangan mengandaikan\n' +
+  '   kelas besar maupun kecil.\n' +
   'PANDUAN BAHASA JUDUL TP:\n' +
   'Judul TP harus ditulis dalam bahasa yang bisa dipahami guru SMK tanpa perlu membuka glosarium.\n' +
   'Gunakan kalimat aktif yang menyebut kegiatan nyata siswa dan konteks dunia kerja secara natural.\n\n' +
@@ -309,7 +318,7 @@ Deno.serve(async (req) => {
 
   const { data: atp, error: atpErr } = await userClient
     .from('atp_induk')
-    .select('id, guru_id, mapel, fase, jenjang, target_fase, elemen_cp, collected_data, status, updated_at')
+    .select('id, guru_id, classroom_id, mapel, fase, jenjang, target_fase, elemen_cp, collected_data, status, updated_at')
     .eq('id', atp_induk_id)
     .maybeSingle();
 
@@ -424,6 +433,30 @@ Deno.serve(async (req) => {
     console.warn('[generate-atp] rate limit exception (ignored):', e);
   }
 
+  // ── PROFIL KELAS DARI SUMBERNYA ──────────────────────────────────────────
+  //
+  // Sampai 8 September 2026 ini mustahil: atp_induk tidak punya classroom_id,
+  // jadi satu-satunya jalan adalah MEMOTRET profil kelas ke collected_data —
+  // dan potret itu tidak pernah terjadi untuk kelas yang sudah menjawab.
+  // Nol ATP di produksi punya PROFIL_KELAS, sehingga aturan perlengkapan tidak
+  // pernah sekali pun menyala meskipun laporan verifikasi menyatakan sebaliknya.
+  //
+  // Sejak ATP milik satu kelas, tabelnya dibaca langsung. Potret tetap dipakai
+  // sebagai JALUR MUNDUR untuk ATP lama yang tidak punya classroom_id.
+  let jumlahMuridDb: number | null = null;
+  let perlengkapanDb: string[] | null = null;
+  if ((atp as Record<string, unknown>).classroom_id) {
+    const { data: st, error: stErr } = await userClient
+      .from('rancang_settings')
+      .select('jumlah_murid, perlengkapan_kelas')
+      .eq('classroom_id', (atp as Record<string, unknown>).classroom_id as string)
+      .maybeSingle();
+    if (stErr) console.warn('[generate-atp] rancang_settings:', stErr.message);
+    jumlahMuridDb  = (st?.jumlah_murid as number | null) ?? null;
+    perlengkapanDb = Array.isArray(st?.perlengkapan_kelas)
+      ? (st!.perlengkapan_kelas as string[]) : null;
+  }
+
   const targetFase    = unwrapPhaseData(cd.TARGET_FASE);
   const prioritas     = unwrapPhaseData(cd.PRIORITAS);
   const profilSiswa   = unwrapPhaseData(cd.PROFIL_SISWA);
@@ -438,8 +471,10 @@ Deno.serve(async (req) => {
   // dari ATP itu sendiri — kelas boleh berganti proyektor besok, ATP yang sudah
   // jadi tetap harus bisa menjelaskan atas dasar apa ia disusun.
   const profilKelas = unwrapPhaseData(cd.PROFIL_KELAS);
-  const perlengkapanMentah = Array.isArray(profilKelas.perlengkapan_kelas)
-    ? profilKelas.perlengkapan_kelas as string[] : [];
+  // rancang_settings menang; potret jadi jalur mundur untuk ATP lama.
+  const perlengkapanMentah = perlengkapanDb
+    ?? (Array.isArray(profilKelas.perlengkapan_kelas)
+          ? profilKelas.perlengkapan_kelas as string[] : []);
   const perlengkapanTersedia = perlengkapanMentah.map(
     k => LABEL_PERLENGKAPAN[String(k)] ?? String(k));
 
@@ -507,6 +542,10 @@ Deno.serve(async (req) => {
     penguatan_prasyarat: prasyarat,
     metode_pengurutan: metodePengurutan,
     perlengkapan_tersedia: perlengkapanDiketahui ? perlengkapanTersedia : null,
+    // Keputusan Romo 8 Sep 2026: jumlah murid harus sampai ke penyusun ATP dan
+    // memengaruhi SYSTEM_PROMPT. Jalur mundur ke potret untuk ATP lama.
+    jumlah_murid: jumlahMuridDb
+      ?? (Number(unwrap(profilKelas.jumlah_murid_kelas)) || null),
     sumber_flow: sumber_flow || 'susun',
     instruksi: (sumber_flow === 'sesuaikan'
       ? 'MODE: Pembaruan ATP yang sudah ada — pertahankan struktur TP yang ada, hanya perbarui yang perlu disesuaikan dengan CP terbaru. '

@@ -607,7 +607,7 @@
       }
       let refreshed = [];
       try {
-        refreshed = (await getAtpIndukList()).filter(atp => atp.status !== 'arsip');
+        refreshed = (await getAtpIndukList(_chat.classroom_id)).filter(atp => atp.status !== 'arsip');
       } catch (e) {
         console.warn('[rancang-chat] gagal memuat ulang daftar ATP setelah hapus:', e);
       }
@@ -759,7 +759,7 @@
       // atpCount null: badge '— ATP', kartu sesuaikan tetap tersembunyi.
       let atpList = null;
       try {
-        atpList = (await getAtpIndukList()).filter(atp => atp.status !== 'arsip');
+        atpList = (await getAtpIndukList(_chat.classroom_id)).filter(atp => atp.status !== 'arsip');
       } catch (e) {
         console.warn('[rancang-chat] getAtpIndukList gagal; jumlah ATP tidak ditampilkan:', e);
       }
@@ -1023,7 +1023,7 @@
       const loadBubble = rcAppendBubble('ai', '⏳ Memuat daftar ATP yang tersedia…');
       let atpList = [];
       try {
-        const semua = await getAtpIndukList();
+        const semua = await getAtpIndukList(_chat.classroom_id);
         atpList = semua.filter(function (a) { return a.status === 'aktif'; });
       } catch (e) {
         if (loadBubble) loadBubble.remove();
@@ -1255,6 +1255,16 @@
     if (phase === 'PROFIL_KELAS') {
       const lengkap = await muatProfilKelas();
       if (lengkap) {
+        // Potret DULU, baru melompat.
+        //
+        // Sampai 8 September 2026 baris ini langsung return, sehingga justru
+        // kelas yang SUDAH menjawab yang jawabannya tidak pernah tercatat di
+        // ATP — nol ATP di produksi punya PROFIL_KELAS. Akibatnya generate-atp
+        // menerima perlengkapan_tersedia = null dan aturan perlengkapannya
+        // tidak pernah menyala, sementara laporan verifikasi menyatakan
+        // sebaliknya.
+        try { await persistCompletedPhase('PROFIL_KELAS'); }
+        catch (e) { console.warn('[rancang] potret profil kelas gagal:', e); }
         await startPhase(getNextPhase('PROFIL_KELAS'));
         return;
       }
@@ -2136,6 +2146,7 @@ Jatah menyusun ATP hari ini tidak terpakai. Silakan pilih tindakan lain.`);
     const fase  = answerValue('fase')  || 'E';
     const jenjang = answerValue('jenjang') || 'SMK';
     const draft = await createAtpIndukDraft({
+      classroom_id: _chat.classroom_id,
       mapel,
       fase,
       jenjang,
@@ -2148,7 +2159,7 @@ Jatah menyusun ATP hari ini tidak terpakai. Silakan pilih tindakan lain.`);
     // Draft sebelumnya untuk mapel+fase+jenjang yang sama sudah ditinggalkan —
     // arsipkan supaya tidak menumpuk. Sengaja tanpa await: kegagalan cleanup
     // tidak boleh menghentikan funnel yang sedang berjalan.
-    cleanupAbandonedDrafts(draft.id, { mapel, fase, jenjang, createdAt: draft.created_at })
+    cleanupAbandonedDrafts(draft.id, { classroomId: _chat.classroom_id, mapel, fase, jenjang, createdAt: draft.created_at })
       .then(n => { if (n) console.info(`[rancang-chat] ${n} draft ATP lama diarsipkan.`); })
       .catch(e => console.warn('[rancang-chat] cleanupAbandonedDrafts gagal:', e));
   }
@@ -2251,9 +2262,9 @@ Jatah menyusun ATP hari ini tidak terpakai. Silakan pilih tindakan lain.`);
     );
     _chat.atp_updated_at = saved.updated_at;
 
-    if (phase === 'WAKTU') {
-      await saveAtpAdaptasi(_chat.atp_induk_id, _chat.classroom_id, { alokasi_waktu: phaseData });
-    } else if (phase === 'TARGET_FASE') {
+    // Sejak 8 Sep 2026 tidak ada lagi tulisan ke atp_adaptasi: ATP sudah milik
+    // satu kelas, dan seluruh isi lapisan kedua sudah ada di collected_data.
+    if (phase === 'TARGET_FASE') {
       // Gabung update target_fase dengan optimistic lock menggunakan updated_at terbaru dari saved,
       // agar _chat.atp_updated_at selalu sinkron dan tidak memicu false conflict di fase berikutnya.
       const targetText = resolveTargetFaseText();
@@ -2265,10 +2276,6 @@ Jatah menyusun ATP hari ini tidak terpakai. Silakan pilih tindakan lain.`);
         .select('id, updated_at')
         .maybeSingle();
       if (writtenTarget) _chat.atp_updated_at = writtenTarget.updated_at;
-    } else if (phase === 'PROFIL_SISWA') {
-      await saveAtpAdaptasi(_chat.atp_induk_id, _chat.classroom_id, { profil_siswa: phaseData });
-    } else if (phase === 'KONTEKS_DUDI') {
-      await saveAtpAdaptasi(_chat.atp_induk_id, _chat.classroom_id, { konteks_dudi: phaseData });
     }
     saveState();
   }

@@ -88,13 +88,17 @@ async function createAtpIndukDraft(metadata) {
     .from('atp_induk')
     .insert({
       guru_id: guruId,
+      // Wajib sejak 8 Sep 2026 (migration 20260908000002). RLS menolak INSERT
+      // tanpa kelas yang benar-benar dimiliki guru ini — tanpa baris ini funnel
+      // gagal di pertanyaan pertama, bukan diam-diam menyimpan yang salah.
+      classroom_id: metadata.classroom_id,
       mapel: metadata.mapel,
       fase: metadata.fase,
       jenjang: metadata.jenjang,
       elemen_cp: metadata.elemen_cp || [],
       collected_data: {},
     })
-    .select('id, guru_id, collected_data, created_at, updated_at')
+    .select('id, guru_id, classroom_id, collected_data, created_at, updated_at')
     .single();
   if (error) throw error;
   return data;
@@ -258,28 +262,24 @@ async function acceptAtp(atpIndukId, updatedAt) {
   return data;
 }
 
-async function saveAtpAdaptasi(atpIndukId, classroomId, patch) {
-  const guruId = await getCurrentGuruId();
-  const { data, error } = await window.supabaseClient
-    .from('atp_adaptasi')
-    .upsert({
-      atp_induk_id: atpIndukId,
-      guru_id: guruId,
-      classroom_id: classroomId,
-      ...patch,
-    }, { onConflict: 'atp_induk_id,classroom_id' })
-    .select('id, updated_at')
-    .single();
-  if (error) throw error;
-  return data;
-}
+// saveAtpAdaptasi dihapus 8 September 2026 bersama lapisan dua.
+//
+// Seluruh isinya — konteks_dudi, profil_siswa, alokasi_waktu — sudah ada di
+// atp_induk.collected_data. Diperiksa baris per baris di produksi sebelum
+// dihapus: nol data unik. Tabel atp_adaptasi sengaja TIDAK di-drop, hanya
+// berhenti ditulis.
 
-// Daftar ATP induk milik guru yang sedang login. RLS pol_atp_induk_select sudah
-// memfilter guru_id = fn_current_profile_id(), jadi tidak perlu filter di sini.
-async function getAtpIndukList() {
+// Daftar ATP milik SATU KELAS.
+//
+// Sejak 8 Sep 2026 RLS sudah memfilter per kelas, tapi seorang guru bisa punya
+// beberapa kelas — tanpa filter eksplisit, picker kelas A akan menampilkan ATP
+// kelas B milik guru yang sama.
+async function getAtpIndukList(classroomId) {
+  if (!classroomId) throw new Error('getAtpIndukList butuh classroomId.');
   const { data, error } = await window.supabaseClient
     .from('atp_induk')
-    .select('id, mapel, fase, jenjang, status, updated_at, progresi_tp')
+    .select('id, mapel, fase, jenjang, status, updated_at, progresi_tp, classroom_id')
+    .eq('classroom_id', classroomId)
     .order('updated_at', { ascending: false });
   if (error) throw error;
   return data || [];
@@ -352,6 +352,10 @@ async function saveModulPhaseOptimistic(modulId, phase, phaseData, expectedUpdat
 // Tidak pernah menghapus baris: status 'arsip' sudah sah menurut CHECK constraint.
 async function cleanupAbandonedDrafts(currentAtpId, scope) {
   if (!currentAtpId || !scope?.mapel || !scope?.fase || !scope?.jenjang) return 0;
+  // Sejak ATP per kelas: JANGAN mengarsipkan draf kelas lain. Tanpa syarat ini
+  // guru yang memulai ATP di kelas B akan mengarsipkan draf kelas A yang mapel
+  // dan fasenya kebetulan sama — dan itu kelas yang sangat lazim.
+  if (!scope?.classroomId) return 0;
   if (!scope?.createdAt) return 0;
   const cutoff = new Date(
     new Date(scope.createdAt).getTime() - 30_000
@@ -360,6 +364,7 @@ async function cleanupAbandonedDrafts(currentAtpId, scope) {
     .from('atp_induk')
     .update({ status: 'arsip' })
     .eq('status', 'draft')
+    .eq('classroom_id', scope.classroomId)
     .eq('mapel', scope.mapel)
     .eq('fase', scope.fase)
     .eq('jenjang', scope.jenjang)
