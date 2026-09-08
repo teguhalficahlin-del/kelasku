@@ -57,6 +57,30 @@ function anggaranTokenAtp(jumlahElemen: number, jpOperasional: number): number {
   return Math.max(12000, Math.min(800 * perkiraanTp + 1000 * jumlahElemen, 32000));
 }
 
+// Nama model dicatat bersama pemakaiannya: kalau modelnya berganti, biaya per
+// modul berubah, dan perbandingan antar-periode harus tahu itu.
+const MODEL_AI = 'gemini-3.8-flash';
+
+// ── PENCATAT PEMAKAIAN AI ────────────────────────────────────────────────────
+// Angka token sudah dikirim Gemini di setiap balasan (usageMetadata) lalu
+// dibuang. Tanpa menyimpannya, biaya per modul dan per guru hanya bisa ditebak
+// dari tinggi batang grafik tagihan — dan harga langganan untuk ribuan guru
+// tidak boleh berdiri di atas tebakan. Lihat migration 20260909000001.
+//
+// SENGAJA TIDAK PERNAH MELEMPAR. Gagal mencatat biaya tidak boleh menggagalkan
+// penyusunan modul yang sudah berhasil; guru tidak peduli pembukuan kita.
+async function catatPemakaian(
+  svc: { from: (t: string) => { insert: (v: unknown) => Promise<unknown> } } | null,
+  baris: Record<string, unknown>,
+): Promise<void> {
+  if (!svc) return;
+  try {
+    await svc.from('ai_usage').insert(baris);
+  } catch (e) {
+    console.warn('[ai_usage] gagal mencatat pemakaian (diabaikan):', e);
+  }
+}
+
 function extractJson(text: string): unknown {
   const arrMatch = text.match(/\[[\s\S]*\]/);
   if (arrMatch) return JSON.parse(arrMatch[0]);
@@ -565,13 +589,41 @@ Deno.serve(async (req) => {
 
   const anggaranToken = anggaranTokenAtp(elemenCp.length, jpOp);
 
+  // Client khusus pencatatan. Dibuat sekali per permintaan; kalau kuncinya
+  // tidak tersedia, pencatatan diam-diam dilewati dan generate tetap jalan.
+  const svcLog = (() => {
+    try {
+      return createClient(
+        Deno.env.get('SUPABASE_URL')!,
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+      ) as unknown as { from: (t: string) => { insert: (v: unknown) => Promise<unknown> } };
+    } catch { return null; }
+  })();
+  const guruIdLog      = (atp as Record<string, unknown>).guru_id      ?? null;
+  const classroomIdLog = (atp as Record<string, unknown>).classroom_id ?? null;
+
   async function callAI(
     messages: Array<{ role: string; content: string }>,
     timeoutMs: number,
     maxTokens = anggaranToken,
+    fase = 'utama',
   ): Promise<string> {
     const controller = new AbortController();
     const tid = setTimeout(() => controller.abort(), timeoutMs);
+    const mulai = Date.now();
+    // Konteks pencatatan DILEWATKAN sebagai argumen, bukan disimpan di variabel
+    // modul: satu isolat Edge Function bisa melayani beberapa permintaan
+    // sekaligus, dan variabel modul akan mencampur milik guru yang berbeda.
+    const catat = (um: Record<string, unknown>, ok: boolean, sebab?: string) =>
+      catatPemakaian(svcLog, {
+        fungsi: 'generate-atp', fase, model: MODEL_AI,
+        guru_id: guruIdLog, classroom_id: classroomIdLog,
+        token_masuk:     um.promptTokenCount     ?? null,
+        token_keluar:    um.candidatesTokenCount ?? null,
+        token_penalaran: um.thoughtsTokenCount   ?? null,
+        token_total:     um.totalTokenCount      ?? null,
+        durasi_ms: Date.now() - mulai, berhasil: ok, sebab_gagal: sebab ?? null,
+      });
     try {
       const contents = messages.map(m => ({
         role: m.role === 'assistant' ? 'model' : 'user',
@@ -636,7 +688,15 @@ Deno.serve(async (req) => {
           { code: 'ATP_GENERATION_TRUNCATED', retryable: false },
         );
       }
+      await catat(um, true);
       return teks;
+    } catch (e) {
+      // Kegagalan TETAP dicatat. Justru inilah yang tidak pernah terlihat di
+      // tagihan sebagai pos tersendiri: percobaan yang gagal tetap ditagih, dan
+      // sampai sekarang tidak ada yang tahu berapa besarnya.
+      await catat({}, false, (e as { kodeSebab?: string; code?: string }).kodeSebab
+        ?? (e as { code?: string }).code ?? 'AI_ERROR');
+      throw e;
     } finally {
       clearTimeout(tid);
     }
@@ -690,7 +750,7 @@ Deno.serve(async (req) => {
         { role: 'user', content: userMessage },
         { role: 'assistant', content: rawText },
         { role: 'user', content: `JSON tidak valid. Hasilkan ulang HANYA JSON array TP yang valid. sum(jp_alokasi) HARUS = ${jpOp}.` },
-      ], budget);
+      ], budget, anggaranToken, 'perbaikan-1');
       parsed = extractJson(repairText);
     } catch (e2) {
       if ((e2 as { code?: string }).code === 'ATP_GENERATION_TRUNCATED') {
@@ -716,7 +776,7 @@ Deno.serve(async (req) => {
         { role: 'user', content: userMessage },
         { role: 'assistant', content: rawText },
         { role: 'user', content: `Output memiliki error: ${errorDesc}. Perbaiki bagian yang salah. sum(jp_alokasi) HARUS = ${jpOp}. ${jpPerPertemuan > 0 ? `jp_alokasi SETIAP TP HARUS kelipatan ${jpPerPertemuan}. ` : ''}ID elemen hanya dari: ${elemenCp.map(e => e.id).join(', ')}. Hasilkan ulang JSON array penuh yang benar.` },
-      ], budget);
+      ], budget, anggaranToken, 'perbaikan-2');
       repairParsed = extractJson(repairText);
     } catch (e3) {
       if ((e3 as { code?: string }).code === 'ATP_GENERATION_TRUNCATED') {

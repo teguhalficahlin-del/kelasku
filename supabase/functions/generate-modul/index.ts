@@ -1501,6 +1501,30 @@ function kebijakanBahasa(
   }
 }
 
+// Nama model dicatat bersama pemakaiannya: kalau modelnya berganti, biaya per
+// modul berubah, dan perbandingan antar-periode harus tahu itu.
+const MODEL_AI = 'gemini-3.8-flash';
+
+// ── PENCATAT PEMAKAIAN AI ────────────────────────────────────────────────────
+// Angka token sudah dikirim Gemini di setiap balasan (usageMetadata) lalu
+// dibuang. Tanpa menyimpannya, biaya per modul dan per guru hanya bisa ditebak
+// dari tinggi batang grafik tagihan — dan harga langganan untuk ribuan guru
+// tidak boleh berdiri di atas tebakan. Lihat migration 20260909000001.
+//
+// SENGAJA TIDAK PERNAH MELEMPAR. Gagal mencatat biaya tidak boleh menggagalkan
+// penyusunan modul yang sudah berhasil; guru tidak peduli pembukuan kita.
+async function catatPemakaian(
+  svc: { from: (t: string) => { insert: (v: unknown) => Promise<unknown> } } | null,
+  baris: Record<string, unknown>,
+): Promise<void> {
+  if (!svc) return;
+  try {
+    await svc.from('ai_usage').insert(baris);
+  } catch (e) {
+    console.warn('[ai_usage] gagal mencatat pemakaian (diabaikan):', e);
+  }
+}
+
 const SYSTEM_PROMPT = `Kamu adalah ahli perancangan pembelajaran Kurikulum Merdeka untuk guru SMK Indonesia.
 Tugasmu: menyusun Modul Ajar lengkap sesuai schema ModulOutput V4.0.
 
@@ -2721,9 +2745,26 @@ Deno.serve(async (req) => {
     messages: Array<{ role: string; content: string }>,
     timeoutMs: number,
     maxTokens = 4000,
+    fase = 'tidak diketahui',
   ): Promise<string> {
     const ctrl = new AbortController();
     const tid  = setTimeout(() => ctrl.abort(), timeoutMs);
+    const mulai = Date.now();
+    // Konteks DILEWATKAN sebagai argumen, bukan variabel modul: satu isolat
+    // Edge Function bisa melayani beberapa permintaan sekaligus.
+    const catat = (um: Record<string, unknown>, ok: boolean, sebab?: string) =>
+      catatPemakaian(
+        svcClient as unknown as { from: (t: string) => { insert: (v: unknown) => Promise<unknown> } },
+        {
+          fungsi: 'generate-modul', fase, model: MODEL_AI,
+          guru_id: (modul as Record<string, unknown>).guru_id ?? null,
+          classroom_id: classroom_id ?? null,
+          token_masuk:     um.promptTokenCount     ?? null,
+          token_keluar:    um.candidatesTokenCount ?? null,
+          token_penalaran: um.thoughtsTokenCount   ?? null,
+          token_total:     um.totalTokenCount      ?? null,
+          durasi_ms: Date.now() - mulai, berhasil: ok, sebab_gagal: sebab ?? null,
+        });
     try {
       const contents = messages.map(m => ({
         role:  m.role === 'assistant' ? 'model' : 'user',
@@ -2786,7 +2827,14 @@ Deno.serve(async (req) => {
           { code: 'MODUL_GENERATION_TRUNCATED', retryable: false },
         );
       }
+      await catat(um, true);
       return teks;
+    } catch (e) {
+      // Kegagalan TETAP dicatat — percobaan yang gagal juga ditagih, dan sampai
+      // sekarang tidak ada yang tahu berapa besar pos itu.
+      await catat({}, false, (e as { kodeSebab?: string; code?: string }).kodeSebab
+        ?? (e as { code?: string }).code ?? 'AI_ERROR');
+      throw e;
     } finally {
       clearTimeout(tid);
     }
@@ -2800,7 +2848,7 @@ Deno.serve(async (req) => {
   ): Promise<Record<string, unknown>> {
     let rawText: string;
     try {
-      rawText = await callAI([{ role: 'user', content: userMsg }], timeoutMs, maxTokens);
+      rawText = await callAI([{ role: 'user', content: userMsg }], timeoutMs, maxTokens, label);
     } catch (e) {
       // Pemotongan sudah membawa sebabnya sendiri — jangan disamarkan jadi AI_ERROR.
       if ((e as { code?: string }).code === 'MODUL_GENERATION_TRUNCATED') {
