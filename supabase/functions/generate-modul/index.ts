@@ -1846,6 +1846,47 @@ DILARANG menulis ucapan_guru dalam bahasa yang bertentangan dengan
 teacher_instruction. Guru yang menyatakan mengajar dalam Bahasa Indonesia tidak
 bisa membacakan naskah berbahasa Inggris di depan kelas — dan sebaliknya.
 
+KKTP ADALAH SATU-SATUNYA OTORITAS KETUNTASAN (WAJIB DIPATUHI):
+Aturan tuntas ditetapkan SEKALI, di bagian kktp, dan tidak boleh dinyatakan
+ulang di tempat lain dengan kata-kata yang berbeda.
+- DILARANG menulis aturan tuntas di dalam instrumen — tidak di rubrik_penilaian,
+  tidak di catatan_kritis, tidak di panduan_interpretasi. Kalimat seperti
+  "Murid mencapai kriteria tuntas jika ..." tidak boleh muncul di instrumen.
+- Instrumen boleh dan harus menjelaskan CARA MENGAMATI: apa yang dilihat guru,
+  bagaimana membedakan tiap tingkat, apa yang dicatat. Itu berbeda dari
+  menetapkan siapa yang lulus.
+- Kalau sebuah instrumen mengukur K1 dan K2 saja, katakan itu apa adanya —
+  jangan menyusun ulang syarat kelulusan dengan mengabaikan kriteria lain.
+Alasan: telaah ahli kurikulum 8 September 2026 menemukan satu modul memuat DUA
+aturan kelulusan yang berbeda. kktp menuntut "menjawab minimal 2 pertanyaan
+audiens pada kategori Mandiri"; instrumen sumatifnya menulis "tuntas jika
+mencapai Mandiri pada K1 dan K2 serta mampu menjawab pertanyaan audiens secara
+komunikatif" — K3 hilang dari syarat, angka duanya lenyap. Guru harus memilih
+sendiri aturan mana yang berlaku, untuk keputusan tentang muridnya.
+
+BANTUAN DIFERENSIASI HANYA BOLEH MENYEBUT YANG BENAR-BENAR ADA (WAJIB DIPATUHI):
+Saat menulis bantuan untuk murid yang kesulitan atau tantangan untuk murid yang
+sudah lancar, kamu hanya boleh menyebut salah satu dari dua ini:
+  (1) instrumen yang ADA di manifest — sebut kodenya, misalnya "menunjuk bagian
+      pembuka pada PBL-01";
+  (2) sesuatu yang GURU LAKUKAN saat itu juga — mengulang pelafalan, menuliskan
+      pola kalimat di papan tulis, menunjuk baris tertentu, memberi contoh lisan.
+DILARANG menyebut bahan siap pakai yang tidak ada di manifest: "panduan kosakata
+bergambar", "templat kalimat rumpang", "daftar padanan kata bergambar", "kartu
+istilah", atau benda sejenis. Kalau bantuan seperti itu memang diperlukan,
+JADIKAN IA INSTRUMEN di manifest supaya isinya benar-benar disusun — atau ubah
+bentuk bantuannya menjadi tindakan guru.
+CATATAN URUTAN FASE: manifest ditetapkan di Fase A dan TIDAK bisa ditambah lagi
+sesudahnya. Jadi kalau di Fase A kamu sudah tahu murid akan butuh penopang
+berupa lembar, daftarkan lembar itu di pembelajaran_manifest SEKARANG. Di Fase B
+kamu hanya boleh memakai apa yang sudah terdaftar.
+Alasan: telaah 8 September 2026 menemukan satu modul menjanjikan EMPAT bahan
+semacam itu sementara lampirannya hanya berisi dua instrumen. Guru tidak pernah
+diberi tahu bahwa keempatnya adalah pekerjaannya sendiri. Yang paling merugikan
+bukan pelajarannya gagal — naskah menyelamatkannya dengan bantuan lisan —
+melainkan guru berhenti mempercayai SELURUH lampiran, termasuk bagian yang
+lengkap. Cacat kecil merusak bagian yang sehat.
+
 ═════════════════════════════════════════════════════════════════
 KKTP — AMBANG BATAS WAJIB OBSERVABLE/VERIFIABLE
 ═════════════════════════════════════════════════════════════════
@@ -3069,7 +3110,22 @@ Deno.serve(async (req) => {
       elemen_cp:                 elemenCp.map(e => e.label),
       jenis_dokumen:             'Modul Induk; guru mengadaptasi konteks kelas dan program keahlian',
       konteks_kejuruan:          identitasAI.konteks_kejuruan,
-      dasar_cp:                  identitasAI.dasar_cp,
+      // dasar_cp DIRAKIT BACKEND sejak 8 September 2026, bukan dipilih AI.
+      //
+      // Telaah ahli kurikulum menemukan "Dasar CP" yang dicetak di modul tidak
+      // menjelaskan seluruh kompetensi yang dituntut KKTP-nya. Setelah
+      // ditelusuri, teksnya TIDAK dikarang — ia verbatim dari CP resmi. Cacatnya
+      // lebih halus: TP ini menyentuh TIGA elemen CP, tapi AI hanya menyalin
+      // SATU. Akibatnya kriteria tentang menjawab pertanyaan audiens tidak bisa
+      // ditelusuri ke dasar yang tercantum, dan guru mengarsipkan dokumen yang
+      // rujukannya tidak lengkap.
+      //
+      // Memilih elemen mana yang dikutip bukan penilaian pedagogis — ia
+      // penyalinan. Menyerahkannya ke model hanya menambah satu tempat lagi
+      // yang bisa meleset tanpa ada yang mengeluh.
+      dasar_cp:                  elemenCp.length
+        ? elemenCp.map(e => `${e.label}: ${e.cp_text}`).join('\n\n')
+        : identitasAI.dasar_cp,
       tujuan_pembelajaran:       identitasAI.tujuan_pembelajaran,
     };
     const merged: unknown = {
