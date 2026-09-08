@@ -250,6 +250,15 @@ const SYSTEM_PROMPT =
   '   menuntut alat yang tidak dimiliki menghasilkan modul yang tidak bisa dipakai guru.\n' +
   '   Jika perlengkapan_tersedia bernilai null, perlengkapannya BELUM DIKETAHUI —\n' +
   '   abaikan aturan ini dan jangan mengandaikan apa pun, baik ada maupun tiada.\n' +
+  '   ALAT DAN BAHAN ITU DUA HAL BERBEDA. Judul TP DILARANG menuntut REKAMAN yang\n' +
+  '   tidak ada yang membuatnya — video, audio, klip, rekaman suara, tayangan.\n' +
+  '   Punya speaker tidak membuat rekamannya ada; punya proyektor tidak membuat\n' +
+  '   videonya ada. MiClass tidak memproduksi bahan audiovisual sama sekali.\n' +
+  '   DILARANG: "Menyimak kosakata dari rekaman suara", "Menyimak dialog dari video".\n' +
+  '   GANTI dengan sumber yang benar-benar bisa dihadirkan guru di kelas: ucapan\n' +
+  '   guru sendiri, percakapan langsung antar-murid, teks yang dibacakan, atau benda\n' +
+  '   nyata di ruang praktik. Alasan: judul TP menjadi judul modul, dan modulnya\n' +
+  '   akan membangun kegiatan di atas bahan yang tidak pernah ada.\n' +
   '8. JUMLAH MURID (wajib dipatuhi): field jumlah_murid menyebut berapa murid di kelas\n' +
   '   ini. Judul TP harus menggambarkan kegiatan yang BISA DIJALANKAN dengan jumlah itu.\n' +
   '   Kelas kecil (di bawah 15 murid): hindari TP yang mensyaratkan banyak kelompok\n' +
