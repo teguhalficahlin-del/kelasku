@@ -263,6 +263,15 @@ const RANCANG_FLOW = {
       ['rekomendasi', 'Minta rekomendasi MiClass'],
     ], { condition: { question_id: 'status_data_awal', value: 'belum_ada' }, aiRecommendation: true,
       helpText: 'Simulasi tidak disimpan sebagai data aktual.' }),
+    // Jalur "Ada sebagian data" sebelum ini BUNTU: ia bukan 'belum_ada',
+    // sehingga tindakan_tanpa_data dilewati, dan bukan 'aktual', sehingga tidak
+    // ada data yang benar-benar dipakai. Guru menjawab, lalu jawabannya tidak
+    // mengubah apa pun — satu-satunya dari ketiga pilihan yang begitu.
+    { id: 'sebagian_data_uraian', kind: 'teks_bebas',
+      prompt: 'Bagian mana yang sudah Anda ketahui, dan bagian mana yang belum?',
+      helpText: 'Contoh: nilai membaca sudah ada dari semester lalu, tapi kemampuan berbicara belum pernah diukur.',
+      skippable: false,
+      condition: { question_id: 'status_data_awal', value: 'sebagian' } },
     { id: 'perkiraan_kemampuan_awal', kind: 'teks_bebas',
       prompt: 'Bagaimana Anda menggambarkan kemampuan awal siswa saat ini?',
       helpText: 'Contoh: Sebagian besar siswa bisa memahami teks pendek, tapi belum mampu menulis paragraf mandiri.',
@@ -367,9 +376,18 @@ const RANCANG_FLOW = {
       ['kombinasi', 'Keduanya — di awal semester dan saat mengajar'],
       ['tidak_perlu', 'Tidak perlu — siswa sudah siap'], ['rekomendasi', 'Minta rekomendasi MiClass'],
     ], { aiRecommendation: true }),
-    angka('jp_prasyarat', 'Berapa JP yang digunakan untuk penguatan awal?', 1, 24,
-      { condition: { question_id: 'strategi_prasyarat', values: ['awal', 'kombinasi'] },
-        helpText: 'Pengulangan yang terintegrasi menggunakan JP yang sudah dialokasikan untuk topik pelajaran — tidak menambah jam baru.' }),
+    // Syarat diperluas ke 'terintegrasi' pada 8 September 2026 (Catatan 8).
+    //
+    // Guru yang muridnya "jauh di bawah" lalu memilih mengulang SAAT MENGAJAR
+    // tidak pernah ditawari jam untuk itu — pertanyaannya dilewati, jatahnya
+    // nol, dan tidak ada satu kata pun yang memberitahunya. Ia merencanakan
+    // pengulangan yang tidak punya tempat di ATP-nya sendiri.
+    //
+    // helpText-nya pun menerangkan justru jalur yang tidak bisa ia lihat.
+    // Sekarang keterangannya menyesuaikan pilihan guru.
+    angka('jp_prasyarat', 'Berapa JP yang disediakan untuk mengulang kemampuan dasar?', 0, 24,
+      { condition: { question_id: 'strategi_prasyarat', values: ['awal', 'kombinasi', 'terintegrasi'] },
+        helpText: 'Jam ini diambil dari JP efektif — semakin besar, semakin sedikit yang tersisa untuk TP. Isi 0 kalau pengulangannya menyatu dengan jam topik yang sudah ada.' }),
   ],
 
   ATP_SUMMARY: [
@@ -385,19 +403,47 @@ const RANCANG_FLOW = {
   ATP_GENERATE: [],
 
   ATP_REVIEW: [
+    // Tiga rute terakhir ditambahkan 8 September 2026 (Catatan 7).
+    //
+    // Menu ini muncul tepat pada saat guru PERTAMA KALI bisa melihat ATP-nya
+    // sebagai daftar TP yang nyata — dan di situlah ia baru sadar bahwa
+    // muridnya yang tertinggal tidak terakomodasi, atau konteks kejuruannya
+    // meleset. Tapi tiga fase yang mengatur persis hal itu — Profil Siswa,
+    // Konteks Kejuruan, Penguatan Prasyarat — tidak punya jalan masuk di sini,
+    // padahal ATP_SUMMARY (yang muncul SEBELUM guru melihat apa pun) punya
+    // keenamnya.
+    //
+    // Yang tersisa hanyalah "Buat ulang ATP", yang memakan satu dari tiga
+    // jatah harian guru dan mengulang dengan jawaban yang sama persis —
+    // sehingga hasilnya pun kurang lebih sama. Guru membakar jatahnya untuk
+    // sesuatu yang tidak bisa berubah.
+    //
+    // Ketiga tujuannya sudah ada di revisionDestination untuk
+    // persetujuan_atp_summary; di sini hanya perlu disambungkan.
     pilihan('tindakan_review_atp', 'Bagaimana draf ATP ingin ditindaklanjuti?', [
       ['terima',         'Terima ATP ini'],
       ['waktu',          'Tinjau distribusi waktu'],
-      ['ulang',          'Buat ulang ATP'],
       ['ubah_prioritas', 'Ubah prioritas'],
       ['ubah_target',    'Ubah target fase'],
-    ]),
+      ['ubah_profil',    'Ubah profil siswa'],
+      ['ubah_konteks',   'Ubah konteks kejuruan'],
+      ['ubah_prasyarat', 'Ubah pengulangan kemampuan dasar'],
+      ['ulang',          'Buat ulang ATP'],
+    ], { helpText: 'Mengubah jawaban lalu menyusun ulang biasanya lebih tepat daripada membuat ulang dengan jawaban yang sama.' }),
   ],
 
-  PILIH_TP: [
-    angka('jumlah_pertemuan', 'Berapa pertemuan yang akan digunakan untuk TP ini?', 1, 30,
-      { helpText: 'Pertemuan = satu sesi pembelajaran sesuai jadwal kelas.' }),
-  ],
+  // PILIH_TP sengaja KOSONG.
+  //
+  // Sampai 8 September 2026 di sini ada pertanyaan 'jumlah_pertemuan'
+  // ("Berapa pertemuan yang akan digunakan untuk TP ini?"). Ia tidak pernah
+  // sekali pun tampil di layar: sejak fb62f0f, mengeklik sebuah TP langsung
+  // mengisi jawabannya dari jp_pertemuan milik ATP lalu melompat ke
+  // KONTEKS_MODUL. generate-modul pun tidak membacanya — jumlah pertemuan
+  // diturunkan dari selected_tp.jp_pertemuan.
+  //
+  // Layar fase ini dirender penyusun daftar TP tersendiri, bukan mesin
+  // pertanyaan, jadi daftar kosong memang bentuk yang benar.
+  PILIH_TP: [],
 
   KONTEKS_MODUL: [
     pilihan('konfirmasi_program_keahlian_modul',

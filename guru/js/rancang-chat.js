@@ -1412,13 +1412,14 @@
     status_data_awal:     'Data kemampuan awal',
     tindakan_tanpa_data:       'Cara menentukan titik awal',
     perkiraan_kemampuan_awal:  'Gambaran kemampuan awal siswa',
+    sebagian_data_uraian:      'Bagian yang sudah dan belum diketahui',
     tingkat_kemampuan_awal:    'Tingkat kemampuan awal murid',
     cara_pemetaan:        'Cara pemetaan',
     jp_pemetaan:          'JP pemetaan',
     kesulitan_mode:       'Antisipasi kesulitan',
     kesulitan_teks_guru:  'Kesulitan (perkiraan guru)',
     strategi_prasyarat:   'Pengulangan kemampuan dasar',
-    jp_prasyarat:         'JP pengulangan awal',
+    jp_prasyarat:         'JP pengulangan kemampuan dasar',
     kekuatan_konteks:     'Kekuatan konteks kejuruan',
     ranah_dunia_kerja:    'Keterampilan dunia kerja',
     kebutuhan_bidang:     'Hal yang perlu masuk ke pelajaran',
@@ -2321,15 +2322,25 @@
       })[value] || 'ATP_SUMMARY';
     }
     if (questionId === 'tindakan_review_atp') {
+      // Tiga tujuan terakhir ditambahkan 8 September 2026 (Catatan 7) — sama
+      // persis dengan yang sudah dipakai persetujuan_atp_summary di atas.
+      // Menu ini sebelumnya kehilangan justru tiga fase yang paling mungkin
+      // ingin guru ubah setelah ia melihat daftar TP-nya untuk pertama kali.
       return ({
         waktu:          'WAKTU',
         ubah_prioritas: 'PRIORITAS',
         ubah_target:    'TARGET_FASE',
+        ubah_profil:    'PROFIL_SISWA',
+        ubah_konteks:   'KONTEKS_DUDI',
+        ubah_prasyarat: 'PENGUATAN_PRASYARAT',
       })[value] || null; // terima/ulang/rumusan/urutan ditangani di handleChipSelect
     }
     if (questionId === 'persetujuan_modul_summary' && value !== 'generate') {
+      // 'ubah_pertemuan' dibuang 8 September 2026: tidak pernah ada di daftar
+      // pilihan persetujuan_modul_summary, jadi nilai ini mustahil muncul.
+      // Tujuannya pun PILIH_TP, fase yang kini tidak punya pertanyaan sama
+      // sekali — guru akan mendarat di layar tanpa apa pun untuk dijawab.
       return ({
-        ubah_pertemuan: 'PILIH_TP',
         ubah_konteks:   'KONTEKS_MODUL',
         ubah_strategi:  'SUMBER_STRATEGI',
         ubah_asesmen:   'ASESMEN_MODUL',
