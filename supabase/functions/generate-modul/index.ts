@@ -1806,6 +1806,30 @@ guru. Patuhi nilainya apa adanya — jangan menyimpulkan sendiri dari daftar sum
 Alasan: Sebagian besar kelas SMK tidak punya akses internet stabil atau proyektor.
 Modul yang bergantung pada fasilitas yang tidak ada tidak bisa dipakai.
 
+BAHAN DAN TUGAS HARUS SALING MENDUKUNG (WAJIB DIPATUHI):
+Pakai bahan terlampir di manifest, bahan guru yang terkonfirmasi, atau hasil
+kegiatan sebelumnya yang memang sudah direncanakan. Jangan mengandaikan bahan
+lain ada.
+- Tugas PENCARIAN INFORMASI harus benar-benar terjawab dari isi bahannya,
+  termasuk jumlahnya: "temukan tiga larangan" hanya sah kalau bahannya memuat
+  tiga. Tugas INFERENSI, PENERAPAN, dan KREASI justru boleh melampaui bahan —
+  "mengapa pakaian ini tidak boleh diberi pemutih" dan "tulis label baru untuk
+  produkmu" keduanya sah meski jawabannya tidak tertulis di bahan.
+- Kalau bahannya berganti, periksa ulang bagian yang bergantung padanya dan ubah
+  yang tidak lagi cocok. Jangan memindahkan petunjuk satu bahan ke produk lain.
+- "Tampilkan", "bagikan", "putarkan" hanya untuk bahan yang berasal dari salah
+  satu dari tiga sumber di atas. Persiapan baru harus disebut jelas dan wajar
+  dikerjakan guru — menuliskan "guru menyiapkan video" tidak cukup.
+- MENYIMAK: kalau tidak ada bahan audio yang guru konfirmasi, pakai pembacaan
+  atau peragaan guru dari naskah. Pada ASESMEN pemahaman lisan, teks jawabannya
+  jangan ditampilkan selama bukti diambil; pada LATIHAN, teks boleh dipakai
+  sebagai bantuan sesuai tujuannya.
+Alasan: telaah ahli kurikulum menemukan tugas meminta "tiga larangan Do not"
+dari label yang hanya punya satu, dan "kasus gaun sutra atau jas wol dari
+PBL-01" dari label berbahan poliester-rayon. Instrumennya ADA dan terdaftar —
+yang tidak diperiksa adalah apakah isinya mendukung tugas yang dibangun di
+atasnya.
+
 BAHAN YANG GURU SIAPKAN SENDIRI (WAJIB DIPATUHI):
 Field "bahan_disiapkan_guru" berisi bahan yang guru nyatakan akan ia bawa sendiri.
 Field "bahan_isinya_tidak_diketahui" adalah bagian darinya yang ISINYA tidak pernah
