@@ -44,28 +44,31 @@ Komponen wajib Modul Ajar MiClass diturunkan dari kerangka itu.
 1. identitas dan konteks pembelajaran;
 2. CP dan TP;
 3. kompetensi serta lingkup materi yang dituntut TP;
-4. kriteria ketercapaian TP.
+4. dimensi Profil Lulusan yang dikembangkan, beserta alasan pemilihannya, bagaimana dimensi itu tampak dalam kegiatan murid, dan bukti atau perilaku yang dapat diamati;
+5. kriteria ketercapaian TP.
 
 **Asesmen**
 
-5. asesmen awal bila diperlukan;
-6. asesmen formatif beserta umpan baliknya;
-7. asesmen sumatif bila digunakan;
-8. bukti atau instrumen penilaian, termasuk kunci jawaban untuk tugas tertutup serta kriteria dan contoh respons untuk tugas terbuka.
+6. asesmen awal bila diperlukan;
+7. asesmen formatif beserta umpan baliknya;
+8. asesmen sumatif bila digunakan;
+9. bukti atau instrumen penilaian, termasuk kunci jawaban untuk tugas tertutup serta kriteria dan contoh respons untuk tugas terbuka.
 
 **Langkah Pembelajaran**
 
-9. langkah pembelajaran yang mencakup memahami, mengaplikasikan, dan merefleksi, beserta durasinya;
-10. peran guru dan kegiatan murid, termasuk pengaturan giliran atau kelompok;
-11. bantuan belajar dan penyesuaian terhadap kebutuhan murid;
-12. teks, dialog, naskah simakan, kasus, data, formulir, latihan, dan instruksi yang diperlukan — seluruh isinya disertakan;
-13. tindak lanjut, penguatan, dan pengayaan.
+10. langkah pembelajaran yang mencakup memahami, mengaplikasikan, dan merefleksi, beserta durasinya;
+11. peran guru dan kegiatan murid, termasuk pengaturan giliran atau kelompok;
+12. bantuan belajar dan penyesuaian terhadap kebutuhan murid;
+13. teks, dialog, naskah simakan, kasus, data, formulir, latihan, dan instruksi yang diperlukan — seluruh isinya disertakan;
+14. tindak lanjut, penguatan, dan pengayaan.
 
 **Keputusan produk MiClass**
 
-14. **Naskah Fasilitasi**.
+15. **Naskah Fasilitasi**.
 
-Butir 1–13 adalah perwujudan kerangka Panduan dalam batas layanan MiClass. Butir 14 tidak diwajibkan Panduan sebagai format tersendiri; ia keputusan produk MiClass.
+Delapan dimensi resminya: Keimanan dan Ketakwaan kepada Tuhan YME, Kewargaan, Penalaran Kritis, Kreativitas, Kolaborasi, Kemandirian, Kesehatan, dan Komunikasi. Batas maksimal tiga dimensi pada M6 adalah keputusan desain MiClass untuk menjaga fokus, bukan batas yang ditetapkan Panduan.
+
+Butir 1–14 adalah perwujudan kerangka Panduan dalam batas layanan MiClass. Butir 15 tidak diwajibkan Panduan sebagai format tersendiri; ia keputusan produk MiClass.
 
 Modul juga mencerminkan prinsip pembelajaran mendalam: berkesadaran, bermakna, dan menggembirakan; konteks yang relevan; serta kesempatan murid menunjukkan pemahaman, merefleksi, dan memperbaiki belajarnya.
 
