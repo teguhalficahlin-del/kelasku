@@ -37,7 +37,7 @@ ATP menyatakan **atas dasar apa profil murid disusun** — hasil penilaian atau 
 
 Modul adalah paket lengkap untuk TP yang dipilih.
 
-Panduan Pembelajaran dan Asesmen 2025 tidak menetapkan format baku atau daftar komponen Modul Ajar yang wajib seragam. Ia memberi kerangka perencanaan dengan tiga unsur inti — **Tujuan Pembelajaran**, **Asesmen**, dan **Langkah Pembelajaran** — yang disusun dengan pendekatan *backward design*: pahami TP, tentukan bukti yang dapat membuktikan ketercapaiannya, baru rancang kegiatannya.
+Panduan Pembelajaran dan Asesmen 2025 tidak menetapkan format baku atau daftar komponen Modul Ajar yang wajib seragam (hal. 3). Ia memberi kerangka perencanaan dengan tiga unsur inti — **Tujuan Pembelajaran**, **Asesmen**, dan **Langkah Pembelajaran** — yang disusun dengan pendekatan *backward design*: pahami TP, tentukan bukti yang dapat membuktikan ketercapaiannya, baru rancang kegiatannya (hal. 33).
 
 Komponen wajib Modul Ajar MiClass diturunkan dari kerangka itu.
 
@@ -68,13 +68,13 @@ Komponen wajib Modul Ajar MiClass diturunkan dari kerangka itu.
 
 15. **Naskah Fasilitasi**.
 
-Delapan dimensi resminya: Keimanan dan Ketakwaan kepada Tuhan YME, Kewargaan, Penalaran Kritis, Kreativitas, Kolaborasi, Kemandirian, Kesehatan, dan Komunikasi. Batas maksimal tiga dimensi pada M6 adalah keputusan desain MiClass untuk menjaga fokus, bukan batas yang ditetapkan Panduan.
+Delapan dimensi resminya: Keimanan dan Ketakwaan kepada Tuhan YME, Kewargaan, Penalaran Kritis, Kreativitas, Kolaborasi, Kemandirian, Kesehatan, dan Komunikasi (Panduan, hal. 5). Batas maksimal tiga dimensi pada M6 adalah keputusan desain MiClass untuk menjaga fokus, bukan batas yang ditetapkan Panduan.
 
 Butir 1–14 adalah perwujudan kerangka Panduan dalam batas layanan MiClass. Butir 15 tidak diwajibkan Panduan sebagai format tersendiri; ia keputusan produk MiClass.
 
-Modul juga mencerminkan prinsip pembelajaran mendalam: berkesadaran, bermakna, dan menggembirakan; konteks yang relevan; serta kesempatan murid menunjukkan pemahaman, merefleksi, dan memperbaiki belajarnya.
+Modul juga mencerminkan prinsip pembelajaran mendalam: berkesadaran, bermakna, dan menggembirakan; konteks yang relevan; serta kesempatan murid menunjukkan pemahaman, merefleksi, dan memperbaiki belajarnya (Panduan, hal. 5–9 dan 28–31).
 
-Panduan menyebut bahan ajar SMK dapat berupa buku, handout, media, lembar kerja, atau jobsheet sesuai kebutuhan keahlian. Dalam batas MiClass, bagian itu diwujudkan melalui teks dan instrumen yang disediakan sistem — bukan melalui kewajiban guru mencari atau membuat bahan tambahan.
+Panduan menyebut bahan ajar SMK dapat berupa buku, handout, media, lembar kerja, atau jobsheet sesuai kebutuhan keahlian (hal. 35). Dalam batas MiClass, bagian itu diwujudkan melalui teks dan instrumen yang disediakan sistem — bukan melalui kewajiban guru mencari atau membuat bahan tambahan.
 
 Naskah Fasilitasi wajib ada. Keputusan produk tanggal 8 September 2026 menetapkannya sebagai pembeda MiClass dari penghasil dokumen biasa. Keputusan itu sudah ditutup dan tidak dibuka kembali dalam spesifikasi ini. Naskah mengikuti gerbang hasil telaah ahli yang sudah berlaku di `CLAUDE.md`: tidak mengarang kutipan, halaman, adegan, tokoh, persentase tanpa penyebut, atau instrumen yang tidak tersedia.
 
@@ -87,10 +87,15 @@ Modul menerangkan prinsip penggandaan hemat di muka. Jumlah halaman dan salinan 
 | Ketentuan | Status |
 |---|---|
 | Revisi alur pertanyaan; tidak menanyakan media/bahan/perlengkapan tambahan; tidak ada tombol mematikan asesmen formatif; kebutuhan murid konkret; kalender masuk sebagai minggu; dukungan cetak sebagai premis | Berlaku sekarang setelah implementasi masing-masing |
+| ATP menyatakan dasar penyusunan profil murid dan menandai bagian yang masih berupa asumsi; ketentuan yang sama berlaku pada Modul Ajar | Berlaku sekarang setelah implementasi alur dan keluaran masing-masing |
+| Jumlah murid menjadi bagian dari pertimbangan ATP | Berlaku sekarang setelah implementasi alur dan keluaran masing-masing |
+| Komponen wajib Modul Ajar MiClass, termasuk Dimensi Profil Lulusan dan Naskah Fasilitasi | Berlaku sekarang setelah implementasi keluaran Modul Ajar; status siap pakai tetap tunduk pada uji penerimaan dan acuan CP |
 | Fase lintas tahun dengan data waktu per periode | Berlaku setelah pekerjaan fase lintas tahun selesai |
 | ATP memetakan seluruh tuntutan CP; kelayakan layanan diperiksa sebelum pintu dibuka; pemeriksaan makna TP terhadap CP | Berlaku setelah acuan CP tersedia |
 | Pemeriksaan bahwa modul memenuhi TP | Berlaku setelah acuan CP tersedia |
 | Jumlah halaman dan kebutuhan salinan aktual | Berlaku setelah dokumen selesai ditata |
+
+Setiap ketentuan baru dalam spesifikasi ini wajib memiliki status waktu di tabel ini atau secara eksplisit mewarisi status ketentuan yang sudah tercantum. Ketentuan tanpa status tidak boleh dianggap berlaku.
 
 Sampai acuan CP tersedia, kohor Tab Rancang dibatasi pada kombinasi mata pelajaran/fase yang sudah terbukti terlayani teks. Saat ini kohor sementara adalah Bahasa Inggris yang sudah memiliki keluaran produksi terverifikasi. Kombinasi lain harus menunggu acuan CP-nya atau didahulukan penyusunan acuannya.
 
@@ -139,10 +144,10 @@ Pertanyaan bersyarat hanya muncul bila diperlukan. Data yang sudah tersimpan dip
 | A14 | Perhitungan waktu sudah sesuai? | Ya; perbaiki minggu/cadangan; perbaiki JP/pola pertemuan. |
 | A15 | Kapan kemampuan dasar dikuatkan? | Di awal; saat topik membutuhkan; keduanya; tidak diperlukan; tentukan saat menyusun. |
 | A15a | Apakah penguatan memerlukan alokasi tersendiri? | Tidak, menyatu dengan topik; ya → isian JP. Muncul bila A15 memerlukan penguatan. |
-| A16 | Kebutuhan apa yang diberi penekanan? Maksimal dua. | Kemampuan dasar; kehidupan sehari-hari; PKL/dunia kerja; pendidikan lanjut/tes akademik; kebutuhan khusus sekolah → uraian; tidak ada penekanan tambahan. |
+| A16 | Bagian apa yang ingin lebih dikuatkan? Maksimal dua. | Kemampuan dasar; kehidupan sehari-hari; PKL/dunia kerja; pendidikan lanjut/tes akademik; kebutuhan khusus sekolah → uraian; tidak ada yang perlu dikuatkan lebih. |
 | A17 | Konteks contoh dan tugas? | Seimbang kehidupan dan kerja; lebih banyak kehidupan/sekolah; lebih banyak situasi kerja; tentukan saat menyusun. |
 | A18 | Situasi yang diutamakan/dihindari? | Tidak ada; ada → uraian singkat. |
-| A19 | Bagaimana urutan pembelajaran? | Mudah ke sulit; prasyarat ke lanjut; contoh konkret ke konsep; umum ke khusus; urutan prosedur; bantuan berkurang menuju mandiri; tentukan saat menyusun. |
+| A19 | Bagaimana urutan pembelajaran? | Mudah ke sulit; kemampuan dasar dulu baru yang membutuhkannya; contoh konkret ke konsep; umum ke khusus; urutan prosedur; bantuan berkurang menuju mandiri; tentukan saat menyusun. |
 | A20 | Ringkasan arah ATP sudah sesuai? | Ya, susun ATP; ubah profil; ubah waktu; ubah penguatan/penekanan; ubah konteks/pengurutan. |
 
 Pilihan “tentukan saat menyusun” hanya menyimpan pendelegasian keputusan. Ia tidak memanggil AI di tengah corong. Saat menyusun, MiClass memilih opsi yang paling sesuai dengan CP, TP, profil murid, waktu, konteks, dan batas layanan teks/interaksi langsung; pilihan itu ditampilkan dalam ringkasan hasil agar guru dapat menilainya. Jika informasi tidak cukup, MiClass memakai pilihan yang paling sedikit menuntut prasyarat dan paling mudah dilaksanakan melalui teks dan interaksi langsung, lalu menyatakan keputusan tersebut secara terbuka.
@@ -158,15 +163,15 @@ Guru memilih TP dari ATP. Identitas, bahasa, profil kelas, konteks, dan waktu di
 | ID | Pertanyaan | Pilihan / isian |
 |---|---|---|
 | M1 | TP dan alokasi waktu ini sudah sesuai? | Sudah; pilih TP lain; tinjau alokasi ATP. |
-| M2 | Bagaimana kesiapan murid untuk TP ini? | Sesuai profil; belum menguasai prasyarat; sudah menguasai sebagian; siap; sangat beragam; belum diketahui. |
+| M2 | Bagaimana kesiapan murid untuk TP ini? | Sesuai profil; belum menguasai kemampuan dasarnya; sudah menguasai sebagian; siap; sangat beragam; belum diketahui. |
 | M3 | Ada perubahan kebutuhan bantuan? | Tidak; ada → bantuan membaca, jawaban lisan, menulis, mengikuti langkah, perhatian, atau kebutuhan lain. |
 | M4 | Konteks modul? | Ikuti ATP; kehidupan/sekolah; situasi kerja; konteks khusus → uraian. |
 | M5 | Cara belajar yang lebih banyak digunakan? | Contoh/latihan terbimbing; kasus tertulis dan alasan; menemukan pola dari contoh/data; karya tulis bertahap; percakapan/bermain peran tanpa properti; tentukan saat menyusun. Pilihan yang ditampilkan dan dipakai harus sesuai dengan kemampuan yang dituntut TP. |
 | M6 | Dimensi Profil Lulusan yang dikuatkan, maksimal tiga? | Keimanan dan Ketakwaan; Kewargaan; Penalaran Kritis; Kreativitas; Kolaborasi; Kemandirian; Kesehatan; Komunikasi; tentukan saat menyusun. Batas tiga adalah keputusan desain MiClass. |
 | M7 | Selain jawaban M2, masih ada informasi kesiapan yang perlu dipakai untuk modul ini? | Tidak ada, gunakan jawaban M2; ada → uraian tambahan; belum diketahui, lakukan pemeriksaan singkat di awal. M7 tidak mengulang pertanyaan M2. |
 | M8 | Bagaimana pemahaman dipantau? | Tanya jawab; pengamatan; latihan dengan umpan balik; gabungan; tentukan saat menyusun. Tidak ada pilihan mematikan asesmen formatif. |
-| M9 | Apakah ada sumatif dalam modul? | Ya; tidak ada sumatif tersendiri. Jika tidak ada sumatif tersendiri, TP tetap harus memiliki bukti melalui asesmen formatif atau bentuk penilaian lain yang sesuai. Keduanya tetap memiliki pemantauan pemahaman dan tindak lanjut. |
-| M10 | Bentuk penilaian sumatif? | Tes tertulis; jawaban/penjelasan lisan; percakapan/bermain peran; karya tulis; penyampaian lisan tanpa slide; gabungan tertulis-lisan; tentukan saat menyusun. Hanya muncul bila M9 ya, dan pilihan yang ditampilkan serta dipakai harus sesuai dengan kemampuan yang dituntut TP. |
+| M9 | Apakah modul ini diakhiri dengan penilaian hasil belajar? | Ya; tidak ada penilaian akhir tersendiri. Jika tidak ada, TP tetap harus memiliki bukti ketercapaian melalui pemantauan pemahaman selama pembelajaran atau bentuk penilaian lain yang sesuai. Kedua pilihan tetap memiliki pemantauan pemahaman dan tindak lanjut. |
+| M10 | Bentuk penilaian akhirnya apa? | Tes tertulis; jawaban/penjelasan lisan; percakapan/bermain peran; karya tulis; penyampaian lisan tanpa slide; gabungan tertulis-lisan; tentukan saat menyusun. Hanya muncul bila M9 ya, dan pilihan yang ditampilkan serta dipakai harus sesuai dengan kemampuan yang dituntut TP. |
 | M11 | Ringkasan modul sudah sesuai? | Ya, buat modul lengkap; ubah kesiapan/bantuan; ubah konteks/cara belajar; ubah asesmen. |
 
 Bentuk penilaian wajib mengukur kemampuan TP: berbicara dibuktikan dengan berbicara, membaca dengan teks yang dibaca murid, menulis dengan tulisan murid, dan menyimak dengan pemahaman terhadap naskah yang dibacakan tanpa memperlihatkan jawaban saat bukti diambil.
