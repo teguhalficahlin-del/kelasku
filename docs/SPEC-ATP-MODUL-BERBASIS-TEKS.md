@@ -75,7 +75,7 @@ Hasil ATP dan Modul Ajar hanya boleh dinyatakan memenuhi spesifikasi jika empat 
 1. seluruh tuntutan CP terpetakan;
 2. setiap TP memiliki kegiatan dan bukti penilaian yang sesuai;
 3. seluruh kebutuhan pembelajaran tersedia melalui teks dan interaksi langsung; dan
-4. tidak ada pekerjaan pengadaan bahan tambahan yang dipindahkan kepada guru.
+4. tidak ada pekerjaan pengadaan bahan tambahan yang dipindahkan kepada guru, di luar penggandaan sederhana yang diatur §2.2.
 
 Butir 1 dan 2 berlaku setelah acuan CP tersedia. Butir 3 dan 4 berlaku sekarang setelah perilaku produk yang terkait diimplementasikan.
 
