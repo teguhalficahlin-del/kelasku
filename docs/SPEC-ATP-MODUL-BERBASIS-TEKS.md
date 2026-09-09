@@ -33,20 +33,43 @@ Prioritas guru mengatur penekanan, bukan menentukan bagian CP yang boleh diabaik
 
 ### 2.2 Modul Ajar
 
-Modul adalah paket lengkap untuk TP yang dipilih. Komponen wajibnya adalah:
+Modul adalah paket lengkap untuk TP yang dipilih.
 
-- tujuan dan hubungan dengan CP;
-- kriteria keberhasilan;
-- langkah dan durasi pembelajaran;
-- tindakan guru dan kegiatan murid;
-- bacaan, dialog, naskah simakan, kasus, data, formulir, dan petunjuk tugas;
-- pengalaman belajar memahami, mengaplikasi, dan merefleksi;
-- bantuan belajar;
-- asesmen formatif;
-- asesmen sumatif bila dipilih;
-- kunci jawaban dan kriteria respons terbuka;
-- penguatan dan pengayaan; dan
-- **Naskah Fasilitasi**.
+Panduan Pembelajaran dan Asesmen 2025 tidak menetapkan format baku atau daftar komponen Modul Ajar yang wajib seragam. Ia memberi kerangka perencanaan dengan tiga unsur inti — **Tujuan Pembelajaran**, **Asesmen**, dan **Langkah Pembelajaran** — yang disusun dengan pendekatan *backward design*: pahami TP, tentukan bukti yang dapat membuktikan ketercapaiannya, baru rancang kegiatannya.
+
+Komponen wajib Modul Ajar MiClass diturunkan dari kerangka itu.
+
+**Tujuan Pembelajaran**
+
+1. identitas dan konteks pembelajaran;
+2. CP dan TP;
+3. kompetensi serta lingkup materi yang dituntut TP;
+4. kriteria ketercapaian TP.
+
+**Asesmen**
+
+5. asesmen awal bila diperlukan;
+6. asesmen formatif beserta umpan baliknya;
+7. asesmen sumatif bila digunakan;
+8. bukti atau instrumen penilaian, termasuk kunci jawaban untuk tugas tertutup serta kriteria dan contoh respons untuk tugas terbuka.
+
+**Langkah Pembelajaran**
+
+9. langkah pembelajaran yang mencakup memahami, mengaplikasikan, dan merefleksi, beserta durasinya;
+10. peran guru dan kegiatan murid, termasuk pengaturan giliran atau kelompok;
+11. bantuan belajar dan penyesuaian terhadap kebutuhan murid;
+12. teks, dialog, naskah simakan, kasus, data, formulir, latihan, dan instruksi yang diperlukan — seluruh isinya disertakan;
+13. tindak lanjut, penguatan, dan pengayaan.
+
+**Keputusan produk MiClass**
+
+14. **Naskah Fasilitasi**.
+
+Butir 1–13 adalah perwujudan kerangka Panduan dalam batas layanan MiClass. Butir 14 tidak diwajibkan Panduan sebagai format tersendiri; ia keputusan produk MiClass.
+
+Modul juga mencerminkan prinsip pembelajaran mendalam: berkesadaran, bermakna, dan menggembirakan; konteks yang relevan; serta kesempatan murid menunjukkan pemahaman, merefleksi, dan memperbaiki belajarnya.
+
+Panduan menyebut bahan ajar SMK dapat berupa buku, handout, media, lembar kerja, atau jobsheet sesuai kebutuhan keahlian. Dalam batas MiClass, bagian itu diwujudkan melalui teks dan instrumen yang disediakan sistem — bukan melalui kewajiban guru mencari atau membuat bahan tambahan.
 
 Naskah Fasilitasi wajib ada. Keputusan produk tanggal 8 September 2026 menetapkannya sebagai pembeda MiClass dari penghasil dokumen biasa. Keputusan itu sudah ditutup dan tidak dibuka kembali dalam spesifikasi ini. Naskah mengikuti gerbang hasil telaah ahli yang sudah berlaku di `CLAUDE.md`: tidak mengarang kutipan, halaman, adegan, tokoh, persentase tanpa penyebut, atau instrumen yang tidak tersedia.
 
