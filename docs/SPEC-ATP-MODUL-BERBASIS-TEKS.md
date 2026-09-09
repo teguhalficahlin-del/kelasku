@@ -48,7 +48,7 @@ Modul adalah paket lengkap untuk TP yang dipilih. Komponen wajibnya adalah:
 - penguatan dan pengayaan; dan
 - **Naskah Fasilitasi**.
 
-Naskah Fasilitasi wajib ada. Keputusan produk tanggal 8 September 2026 menetapkannya sebagai pembeda MiClass dari penghasil dokumen biasa. Keputusan itu sudah ditutup dan tidak dibuka kembali dalam spesifikasi ini.
+Naskah Fasilitasi wajib ada. Keputusan produk tanggal 8 September 2026 menetapkannya sebagai pembeda MiClass dari penghasil dokumen biasa. Keputusan itu sudah ditutup dan tidak dibuka kembali dalam spesifikasi ini. Naskah mengikuti gerbang hasil telaah ahli yang sudah berlaku di `CLAUDE.md`: tidak mengarang kutipan, halaman, adegan, tokoh, persentase tanpa penyebut, atau instrumen yang tidak tersedia.
 
 Guru melaksanakan pembelajaran, termasuk membacakan naskah, memandu, mengamati, dan memberi umpan balik. Penggandaan sederhana dokumen siap cetak adalah pengecualian sadar atas larangan pekerjaan susulan. Guru tidak diminta membuat, mencari, menyunting, memotong, atau merakit bahan.
 
@@ -68,6 +68,8 @@ Sampai acuan CP tersedia, kohor Tab Rancang dibatasi pada kombinasi mata pelajar
 
 Untuk kombinasi yang belum memiliki acuan CP, MiClass menyampaikan bahwa layanan belum tersedia **sebelum guru mulai menjawab pertanyaan dan sebelum kuota generate terpakai**. Gerbang layanan tidak boleh membiarkan guru menghabiskan kuota untuk kombinasi yang belum diperiksa.
 
+Keluaran dari kombinasi yang belum memiliki acuan CP tidak boleh diterbitkan sebagai ATP atau Modul Ajar siap pakai. Untuk kombinasi itu, alasan keterbatasan layanan disampaikan sebelum generate yang menghabiskan kuota. Jika pemeriksaan penerimaan gagal setelah generate, hasilnya tidak dinyatakan siap dan alasan kegagalannya ditampilkan; sistem tidak boleh mengalihkan perbaikan kekurangan bahan kepada guru.
+
 ### 2.4 Uji penerimaan
 
 Hasil ATP dan Modul Ajar hanya boleh dinyatakan memenuhi spesifikasi jika empat hal berikut terbukti:
@@ -77,7 +79,7 @@ Hasil ATP dan Modul Ajar hanya boleh dinyatakan memenuhi spesifikasi jika empat 
 3. seluruh kebutuhan pembelajaran tersedia melalui teks dan interaksi langsung; dan
 4. tidak ada pekerjaan pengadaan bahan tambahan yang dipindahkan kepada guru, di luar penggandaan sederhana yang diatur §2.2.
 
-Butir 1 dan 2 berlaku setelah acuan CP tersedia. Butir 3 dan 4 berlaku sekarang setelah perilaku produk yang terkait diimplementasikan.
+Butir 1 dan 2 berlaku setelah acuan CP tersedia. Butir 3 dan 4 berlaku sekarang setelah perilaku produk yang terkait diimplementasikan. Hasil yang belum memenuhi butir yang berlaku tidak boleh diberi status siap pakai.
 
 ## 3. Acuan CP: prasyarat batas layanan
 
@@ -93,18 +95,18 @@ Pertanyaan bersyarat hanya muncul bila diperlukan. Data yang sudah tersimpan dip
 
 | ID | Pertanyaan | Pilihan / isian |
 |---|---|---|
-| A1 | Data kelas dan CP yang ditampilkan sudah sesuai? | Sudah sesuai; Perbaiki data kelas/program keahlian; Lihat CP lengkap; CP belum sesuai. |
+| A1 | Data kelas dan CP yang ditampilkan sudah sesuai? | Sudah sesuai; Perbaiki data kelas/program keahlian; Lihat CP lengkap; CP belum sesuai → kembali memilih mata pelajaran/fase atau CP resmi yang benar, tanpa melanjutkan generate. |
 | A2 | Berapa jumlah murid? | Isian angka, otomatis bila tersedia. |
-| A3 | Bahasa apa yang membantu murid memahami pelajaran? | Indonesia; Indonesia untuk penjelasan dan bahasa target untuk contoh/latihan; campuran; bahasa target sebagian besar; bahasa target sepenuhnya; tentukan saat menyusun. |
+| A3 | Bahasa pengantar dan dukungan bahasa apa yang membantu murid memahami pelajaran? | Bahasa Indonesia sepenuhnya; Bahasa Indonesia dengan istilah atau contoh dalam bahasa lain bila relevan dengan mapel; campuran Bahasa Indonesia dan bahasa lain yang relevan dengan mapel; sebagian besar bahasa lain yang relevan dengan mapel; sepenuhnya bahasa lain yang relevan dengan mapel; tentukan saat menyusun. |
 | A4 | Bagaimana kesiapan murid memulai fase? | Sebagian besar siap; perlu penyegaran; banyak kemampuan dasar perlu dibangun; sangat beragam; belum diketahui. |
 | A5 | Apa dasar informasi kesiapan? | Hasil penilaian/pekerjaan; pengamatan/pengalaman; gabungan; belum cukup informasi. Dilewati bila A4 belum diketahui. |
-| A6 | Adakah kemampuan atau kesulitan yang perlu dicatat? | Tidak ada; ada → uraian singkat. |
-| A7 | Bantuan apa yang diperlukan? | Memahami bacaan; menjawab lisan; menyusun tulisan; mengikuti urutan kegiatan; mempertahankan perhatian; kebutuhan lain → uraian; tidak ada yang diketahui; belum diketahui. |
+| A6 | Adakah kondisi, kemampuan awal, atau kesulitan belajar yang perlu dicatat? | Tidak ada; ada → uraian singkat. |
+| A7 | Bantuan konkret apa yang diperlukan murid? | Memahami bacaan; menjawab lisan; menyusun tulisan; mengikuti urutan kegiatan; mempertahankan perhatian; kebutuhan lain → uraian; tidak ada yang diketahui; belum diketahui. |
 | A8 | ATP mulai digunakan tahun pelajaran berapa? | Tahun tersedia; tahun lainnya → isian. |
 | A9 | Berapa JP per minggu? | Isian; sama sepanjang fase atau berbeda menurut tahun/periode. |
 | A10 | Berapa menit satu JP? | 35; 40; 45; lainnya → isian. |
 | A11 | Bagaimana pola pertemuan? | Seluruh JP dalam satu pertemuan; dibagi beberapa pertemuan → isian; jadwal blok → isian sesi dan JP. |
-| A12 | Berapa minggu pembelajaran bersih tiap semester? | Isi tiap semester; gunakan perkiraan sementara MiClass. |
+| A12 | Berapa minggu pembelajaran bersih tiap semester? | Isi tiap semester; gunakan perkiraan sementara MiClass. “Bersih” berarti minggu yang benar-benar tersedia untuk pembelajaran reguler setelah libur, kegiatan sekolah, ujian, dan pengurang kalender lain dihitung; ini belum mengurangi JP untuk pemetaan, penguatan prasyarat, atau cadangan yang ditanyakan terpisah. |
 | A13 | Apakah perlu mengurangi waktu cadangan? | Tidak ada; kurangi 1 minggu; kurangi 2 minggu; tentukan sendiri → isian. |
 | A14 | Perhitungan waktu sudah sesuai? | Ya; perbaiki minggu/cadangan; perbaiki JP/pola pertemuan. |
 | A15 | Kapan kemampuan dasar dikuatkan? | Di awal; saat topik membutuhkan; keduanya; tidak diperlukan; tentukan saat menyusun. |
@@ -115,7 +117,9 @@ Pertanyaan bersyarat hanya muncul bila diperlukan. Data yang sudah tersimpan dip
 | A19 | Bagaimana urutan pembelajaran? | Mudah ke sulit; prasyarat ke lanjut; contoh konkret ke konsep; umum ke khusus; urutan prosedur; bantuan berkurang menuju mandiri; tentukan saat menyusun. |
 | A20 | Ringkasan arah ATP sudah sesuai? | Ya, susun ATP; ubah profil; ubah waktu; ubah penguatan/penekanan; ubah konteks/pengurutan. |
 
-Pilihan “tentukan saat menyusun” hanya menyimpan pendelegasian keputusan. Ia tidak memanggil AI di tengah corong.
+Pilihan “tentukan saat menyusun” hanya menyimpan pendelegasian keputusan. Ia tidak memanggil AI di tengah corong. Saat menyusun, MiClass memilih opsi yang paling sesuai dengan CP, TP, profil murid, waktu, konteks, dan batas layanan teks/interaksi langsung; pilihan itu ditampilkan dalam ringkasan hasil agar guru dapat menilainya. Jika informasi tidak cukup, MiClass memakai pilihan yang paling sedikit menuntut prasyarat dan paling mudah dilaksanakan melalui teks dan interaksi langsung, lalu menyatakan keputusan tersebut secara terbuka.
+
+A6 mencatat kondisi atau informasi tentang murid; A7 mencatat dukungan pembelajaran yang harus diberikan. Keduanya tidak boleh diperlakukan sebagai pertanyaan yang sama atau diisi ulang dengan uraian identik.
 
 Setelah ATP selesai, tersedia tindakan pascahasil: gunakan ATP; perbaiki TP/urutan; perbaiki waktu; atau perbaiki profil/konteks. Tindakan ini bukan definisi pertanyaan tambahan.
 
@@ -129,12 +133,12 @@ Guru memilih TP dari ATP. Identitas, bahasa, profil kelas, konteks, dan waktu di
 | M2 | Bagaimana kesiapan murid untuk TP ini? | Sesuai profil; belum menguasai prasyarat; sudah menguasai sebagian; siap; sangat beragam; belum diketahui. |
 | M3 | Ada perubahan kebutuhan bantuan? | Tidak; ada → bantuan membaca, jawaban lisan, menulis, mengikuti langkah, perhatian, atau kebutuhan lain. |
 | M4 | Konteks modul? | Ikuti ATP; kehidupan/sekolah; situasi kerja; konteks khusus → uraian. |
-| M5 | Cara belajar yang lebih banyak digunakan? | Contoh/latihan terbimbing; kasus tertulis dan alasan; menemukan pola dari contoh/data; karya tulis bertahap; percakapan/bermain peran tanpa properti; tentukan saat menyusun. |
+| M5 | Cara belajar yang lebih banyak digunakan? | Contoh/latihan terbimbing; kasus tertulis dan alasan; menemukan pola dari contoh/data; karya tulis bertahap; percakapan/bermain peran tanpa properti; tentukan saat menyusun. Pilihan yang ditampilkan dan dipakai harus sesuai dengan kemampuan yang dituntut TP. |
 | M6 | Dimensi Profil Lulusan yang dikuatkan, maksimal tiga? | Keimanan dan Ketakwaan; Kewargaan; Penalaran Kritis; Kreativitas; Kolaborasi; Kemandirian; Kesehatan; Komunikasi; tentukan saat menyusun. Batas tiga adalah keputusan desain MiClass. |
-| M7 | Informasi kesiapan sudah cukup? | Gunakan informasi sebelumnya; ada tambahan → uraian; belum → pemeriksaan singkat di awal. |
+| M7 | Selain jawaban M2, masih ada informasi kesiapan yang perlu dipakai untuk modul ini? | Tidak ada, gunakan jawaban M2; ada → uraian tambahan; belum diketahui, lakukan pemeriksaan singkat di awal. M7 tidak mengulang pertanyaan M2. |
 | M8 | Bagaimana pemahaman dipantau? | Tanya jawab; pengamatan; latihan dengan umpan balik; gabungan; tentukan saat menyusun. Tidak ada pilihan mematikan asesmen formatif. |
-| M9 | Apakah ada sumatif dalam modul? | Ya; tidak ada sumatif tersendiri. Keduanya tetap memiliki formatif dan tindak lanjut. |
-| M10 | Bentuk penilaian sumatif? | Tes tertulis; jawaban/penjelasan lisan; percakapan/bermain peran; karya tulis; penyampaian lisan tanpa slide; gabungan tertulis-lisan; tentukan saat menyusun. Hanya muncul bila M9 ya. |
+| M9 | Apakah ada sumatif dalam modul? | Ya; tidak ada sumatif tersendiri. Jika tidak ada sumatif tersendiri, TP tetap harus memiliki bukti melalui asesmen formatif atau bentuk penilaian lain yang sesuai. Keduanya tetap memiliki pemantauan pemahaman dan tindak lanjut. |
+| M10 | Bentuk penilaian sumatif? | Tes tertulis; jawaban/penjelasan lisan; percakapan/bermain peran; karya tulis; penyampaian lisan tanpa slide; gabungan tertulis-lisan; tentukan saat menyusun. Hanya muncul bila M9 ya, dan pilihan yang ditampilkan serta dipakai harus sesuai dengan kemampuan yang dituntut TP. |
 | M11 | Ringkasan modul sudah sesuai? | Ya, buat modul lengkap; ubah kesiapan/bantuan; ubah konteks/cara belajar; ubah asesmen. |
 
 Bentuk penilaian wajib mengukur kemampuan TP: berbicara dibuktikan dengan berbicara, membaca dengan teks yang dibaca murid, menulis dengan tulisan murid, dan menyimak dengan pemahaman terhadap naskah yang dibacakan tanpa memperlihatkan jawaban saat bukti diambil.
