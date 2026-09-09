@@ -1,5 +1,7 @@
 # Daftar Pertanyaan Tab Rancang — untuk pemeriksaan Romo
 
+> **Sebagian digantikan `docs/SPEC-ATP-MODUL-BERBASIS-TEKS.md` (9 September 2026).** Dipertahankan sebagai arsip riwayat keputusan. Kalau bertentangan, spesifikasi itu yang berlaku.
+
 > Dibangun langsung dari `guru/js/rancang-chat-flow.js`, 5 September 2026.
 > Kolom **Sampai ke AI?** ditelusuri ke `generate-atp/index.ts` dan `generate-modul/index.ts`.
 >

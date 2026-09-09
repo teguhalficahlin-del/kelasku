@@ -1,5 +1,7 @@
 # Spesifikasi Perilaku — ATP yang mustahil dipenuhi
 
+> **Sebagian digantikan `docs/SPEC-ATP-MODUL-BERBASIS-TEKS.md` (9 September 2026).** Dipertahankan sebagai arsip riwayat keputusan. Kalau bertentangan, spesifikasi itu yang berlaku.
+
 > Status: **PERILAKU DISETUJUI ROMO — implementasi berjalan.**
 > Menutup Temuan 1 telusur mesin generate, 5 September 2026.
 >

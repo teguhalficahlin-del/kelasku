@@ -1,5 +1,7 @@
 # Revisi alur pertanyaan Tab Rancang — spesifikasi perilaku
 
+> **Sebagian digantikan `docs/SPEC-ATP-MODUL-BERBASIS-TEKS.md` (9 September 2026).** Dipertahankan sebagai arsip riwayat keputusan. Kalau bertentangan, spesifikasi itu yang berlaku.
+
 > Disusun 8 September 2026 pada HEAD `897df77`. **Belum diimplementasikan.**
 > Menunggu persetujuan Romo sesuai §21.3 CLAUDE.md.
 >

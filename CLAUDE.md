@@ -240,6 +240,21 @@ git push origin main                  → urutan TERAKHIR
 **Fase saat ini: DEVELOPMENT AKTIF**
 **HEAD:** `1cb4cf9` (per 7 September 2026 — daftar di bawah direkonsiliasi ke kode aktual pada tanggal ini)
 
+> **SUMBER TUNGGAL HASIL AKHIR — `docs/SPEC-ATP-MODUL-BERBASIS-TEKS.md`
+> (9 September 2026).** Dokumen itu menetapkan apa yang wajib dihasilkan ATP dan
+> Modul Ajar: 8 syarat ATP, 15 komponen Modul yang diturunkan dari kerangka
+> Panduan Pembelajaran dan Asesmen 2025, dan 32 definisi pertanyaan menggantikan
+> 78 yang sekarang ada di kode.
+>
+> Keputusan pokoknya: **ATP dan Modul berbasis teks.** MiClass menyusun seluruh
+> materinya sendiri dan tidak menghasilkan gambar, audio, video, atau benda.
+> Seluruh tuntutan CP tetap wajib dilayani — teks bukan alasan menyusutkan
+> cakupan. Benda fisik hanya diakomodir bila guru menyatakannya eksplisit.
+>
+> **Bagian §12 dan §23.3 di bawah menggambarkan keadaan SEBELUM keputusan itu.**
+> Kalau keduanya bertentangan, spesifikasi itu yang berlaku. Kode belum menyusul;
+> status tiap ketentuan ada di §2.3 dokumen tersebut.
+
 > **SUDAH DIPUTUSKAN 7 September 2026 — gerbang Tab Rancang dibuka untuk 3 guru.**
 > Roni Satria S.Pd, Pemdes, dan Hafsah Isykarima, ketiganya `GURU_PRO` sampai
 > 7 September 2027 lewat `fn_activate_guru`. Konsekuensi yang diterima sadar:
@@ -328,7 +343,11 @@ git push origin main                  → urutan TERAKHIR
       tulang punggung kegiatan, kebijakan bahasa disalin dari jawaban guru,
       jumlah TP bisa dipecah/digabung, dan pembagian menit antar tahap mengikuti
       titik awal murid.
-- [ ] **SATU-SATUNYA sisa: Catatan 6 — apakah jumlah murid perlu memengaruhi ATP?**
+- [x] ~~**Catatan 6 — apakah jumlah murid perlu memengaruhi ATP?**~~ — **TERJAWAB
+      9 September 2026: ya.** `docs/SPEC-ATP-MODUL-BERBASIS-TEKS.md` §2.1 butir 5
+      memasukkan jumlah murid sebagai pertimbangan ATP. Uraian aslinya
+      dipertahankan di bawah sebagai konteks keputusan.
+      *Konteks keputusan, dipertahankan:*
       Datanya sudah sampai (`collected_data.PROFIL_KELAS`), `generate-atp` tinggal
       membacanya — beberapa baris, tanpa pertanyaan baru, tanpa migration.
       **Yang menahan bukan pekerjaannya melainkan keputusan produk:** `atp_induk`
@@ -1467,6 +1486,9 @@ Pengguna Tab Rancang adalah guru SMK Indonesia yang:
   renderer. TP 3 & TP 6 di-generate ulang dan strateginya kini benar.
 
 **BELUM DIIMPLEMENTASIKAN (backlog — direkonsiliasi 7 September 2026):**
+
+> Sebagian daftar ini digantikan `docs/SPEC-ATP-MODUL-BERBASIS-TEKS.md`
+> (9 September 2026). Periksa ke sana sebelum mengerjakan butir mana pun di bawah.
 - Enam inkonsistensi alur pertanyaan yang masih terbuka —
   `docs/DAFTAR-PERTANYAAN-RANCANG.md` §Catatan, tabel status di awal bagian itu.
   Yang paling merugikan guru (Catatan 7): menu revisi setelah draf ATP terlihat
@@ -1474,10 +1496,10 @@ Pengguna Tab Rancang adalah guru SMK Indonesia yang:
   Kejuruan, dan Penguatan Prasyarat — tepat pada saat guru pertama kali bisa
   melihat bahwa ATP-nya tidak mengakomodasi murid yang tertinggal. Yang tersisa
   hanya "Buat ulang ATP", yang memakan satu dari tiga jatah hariannya.
-- Perlengkapan kelas sebaiknya pindah ke `rancang_settings` per kelas — sekarang
-  guru dengan 6 modul menjawabnya 6 kali. Butuh satu migration; tidak mendesak.
-  *(Masih terbuka: `perlengkapan_kelas` hanya ada di `rancang-chat-flow.js:389`,
-  tidak ada kolomnya di `rancang_settings`.)*
+- ~~Perlengkapan kelas sebaiknya pindah ke `rancang_settings` per kelas~~ —
+  **BATAL 9 September 2026. Pertanyaan perlengkapan kelas DIHAPUS seluruhnya**
+  atas keputusan Romo: ATP dan Modul berbasis teks, jadi tidak ada alat yang
+  perlu ditanyakan. Lihat `docs/SPEC-ATP-MODUL-BERBASIS-TEKS.md`.
 
 **SUDAH DIKERJAKAN — dipindahkan dari daftar di atas 7 September 2026:**
 - `generate-atp`: plafon token turunan, deteksi `finishReason`, dan baris sebab

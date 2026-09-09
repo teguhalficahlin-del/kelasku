@@ -2,6 +2,8 @@
 
 Status: keputusan produk, belum diimplementasikan.
 
+**Dokumen ini adalah sumber tunggal untuk HASIL AKHIR ATP dan Modul Ajar MiClass.** Ia menyatakan apa yang harus dihasilkan, bukan apa yang sudah berjalan — kode saat ini masih memakai alur pertanyaan lama. Keadaan tiap ketentuan ada di §2.3. Dokumen lain di `docs/` yang membahas alur pertanyaan bersifat arsip; kalau bertentangan, dokumen ini yang berlaku.
+
 Dokumen ini mengumpulkan keputusan yang tersebar dalam konsultasi produk tanggal 9 September 2026. Ia tidak mengubah kode, membuka kohor baru, atau menyatakan kemampuan yang belum tersedia sebagai kemampuan produksi.
 
 ## 1. Latar belakang
