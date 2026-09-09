@@ -24,12 +24,14 @@ ATP wajib:
 2. memetakan seluruh tuntutan kompetensi dan lingkup materi CP ke TP;
 3. merumuskan TP yang dapat dicapai dan dinilai melalui teks serta interaksi langsung;
 4. mempertahankan jenis dan tingkat kemampuan dalam CP;
-5. memperhatikan kesiapan murid, bantuan yang diperlukan, konteks, program keahlian, dan waktu;
+5. memperhatikan kesiapan murid, bantuan yang diperlukan, jumlah murid, konteks, program keahlian, dan waktu;
 6. mengurutkan TP secara logis;
 7. menghitung waktu per tahun dan semester yang tercakup dalam fase; dan
 8. tidak bergantung pada pengadaan gambar, video, rekaman, benda, kunjungan, narasumber, atau peralatan tambahan.
 
 Prioritas guru mengatur penekanan, bukan menentukan bagian CP yang boleh diabaikan.
+
+ATP menyatakan **atas dasar apa profil murid disusun** — hasil penilaian atau pekerjaan murid, pengamatan dan pengalaman mengajar, gabungan keduanya, atau belum ada informasi yang cukup — dan menandai dengan jelas bagian yang berstatus asumsi. Profil yang berasal dari perkiraan tidak boleh ditampilkan seolah berasal dari bukti. Ketentuan yang sama berlaku untuk Modul Ajar pada komponen 12.
 
 ### 2.2 Modul Ajar
 
