@@ -34,7 +34,11 @@
   async function fetchAtpAktif(guruId) {
     var { data, error } = await client
       .from('atp_induk')
-      .select('id, mapel, fase, jenjang, progresi_tp, elemen_cp, updated_at')
+      // collected_data ikut diambil demi ATP_HASIL — amplop dasar penyusunan,
+      // cakupan CP, dan anggaran semester. Tanpanya dokumen yang guru cetak
+      // hanya berisi daftar TP tanpa satu kalimat pun tentang atas dasar apa
+      // ia disusun, dan asumsi tidak bisa dibedakan dari bukti.
+      .select('id, mapel, fase, jenjang, progresi_tp, elemen_cp, collected_data, updated_at')
       .eq('guru_id', guruId)
       .eq('status', 'aktif')
       .order('updated_at', { ascending: false })
@@ -78,6 +82,21 @@
 
   // ── Generate DOCX ATP ─────────────────────────────────────────────────────
 
+  // Kunci rujukan konteks → frasa guru. Sisi Edge Function-nya adalah
+  // DASAR_KETERANGAN di supabase/functions/generate-atp/kontrak.ts — kalau salah
+  // satu diubah, ubah keduanya.
+  var LABEL_DASAR_KEPUTUSAN = {
+    'cp_anchor.tuntutan': 'tuntutan CP fase ini',
+    'cp_anchor.elemen':   'teks CP per elemen',
+    'kesiapan_murid':     'kesiapan murid',
+    'prioritas_guru':     'bagian yang guru ingin lebih dikuatkan',
+    'konteks_kejuruan':   'program keahlian kelas ini',
+    'situasi_khusus':     'situasi yang guru minta diutamakan atau dihindari',
+    'jumlah_murid':       'jumlah murid',
+    'anggaran_waktu':     'jam dan pembagian semester',
+    'batas_mutlak':       'batas layanan teks dan interaksi langsung'
+  };
+
   function generateAtpDocx(atp) {
     var D = window.docx;
     var tpList = Array.isArray(atp.progresi_tp) ? atp.progresi_tp : [];
@@ -113,6 +132,29 @@
       spacing: { after: 200 },
     }));
 
+    // Amplop hasil (schema atp-1.0.0). Null untuk ATP yang disusun sebelum
+    // kontrak ini ada — dokumennya tetap tercetak, hanya tanpa bagian dasar
+    // penyusunan. Jangan menggantinya dengan kalimat karangan: ATP lama memang
+    // tidak pernah mencatat atas dasar apa ia disusun, dan berpura-pura
+    // sebaliknya persis yang dilarang.
+    var hasil = (atp.collected_data && atp.collected_data.ATP_HASIL) || null;
+
+    // Peta id tuntutan CP → kalimat kompetensinya, supaya dokumen tidak
+    // mencetak kode seperti "BIE-MB-2" tanpa artinya.
+    var tuntutanTeks = {};
+    if (hasil && hasil.acuan_cp && window._cpAcuan && window._cpAcuan.acuan) {
+      var mk = String(atp.mapel || '').toLowerCase()
+        .replace(/[^a-z0-9]/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '');
+      var fk = 'fase_' + String(atp.fase || '').toLowerCase();
+      var el = window._cpAcuan.acuan[mk] && window._cpAcuan.acuan[mk][fk]
+        && window._cpAcuan.acuan[mk][fk].elemen;
+      if (el) {
+        Object.keys(el).forEach(function (k) {
+          (el[k].tuntutan || []).forEach(function (t) { tuntutanTeks[t.id] = t.kompetensi; });
+        });
+      }
+    }
+
     // Identitas
     children.push(tableRow2Col('Mata Pelajaran', atp.mapel || '-'));
     children.push(tableRow2Col('Fase', atp.fase || '-'));
@@ -126,13 +168,144 @@
       children.push(tableRow2Col('Total Alokasi',
         totalJp + ' JP' + (totalPertemuan ? ' · ' + totalPertemuan + ' pertemuan' : '')));
     }
+    if (hasil && Array.isArray(hasil.anggaran_semester) && hasil.anggaran_semester.length) {
+      children.push(tableRow2Col('Pembagian Semester',
+        hasil.anggaran_semester.map(function (a) {
+          return 'Semester ' + a.semester + ': ' + a.minggu + ' minggu, ' + a.jp + ' JP';
+        }).join(' · ')));
+    }
+    if (hasil && hasil.acuan_cp && hasil.acuan_cp.versi_cp) {
+      children.push(tableRow2Col('Acuan CP', hasil.acuan_cp.versi_cp));
+    }
     children.push(new D.Paragraph({ text: '', spacing: { after: 300 } }));
 
+    // ── Dasar penyusunan ────────────────────────────────────────────────────
+    //
+    // Ditempatkan SEBELUM daftar TP, bukan sebagai lampiran di belakang.
+    // Guru yang membaca ATP-nya perlu tahu lebih dulu mana yang berasal dari
+    // jawabannya, mana yang MiClass putuskan untuknya, dan mana yang masih
+    // berupa perkiraan — sesudah membaca dua puluh judul TP, ketiganya sudah
+    // terlanjur terbaca sebagai fakta yang setara.
+    if (hasil && hasil.dasar_penyusunan) {
+      var d = hasil.dasar_penyusunan;
+      children.push(new D.Paragraph({
+        text: 'Dasar Penyusunan',
+        heading: D.HeadingLevel.HEADING_2,
+        spacing: { before: 200, after: 120 },
+      }));
+
+      function subJudul(teks) {
+        children.push(new D.Paragraph({
+          children: [new D.TextRun({ text: teks, bold: true, size: 21 })],
+          spacing: { before: 160, after: 60 },
+        }));
+      }
+      function butir(teks, miring) {
+        children.push(new D.Paragraph({
+          children: [new D.TextRun({ text: String(teks), size: 20, italics: !!miring })],
+          bullet: { level: 0 }, indent: { left: 360 }, spacing: { after: 50 },
+        }));
+      }
+
+      if (d.dasar_profil_murid) { subJudul('Profil murid'); butir(d.dasar_profil_murid); }
+
+      if (Array.isArray(d.konteks_dari_guru) && d.konteks_dari_guru.length) {
+        subJudul('Konteks yang diberikan guru');
+        d.konteks_dari_guru.forEach(function (x) { butir(x); });
+      }
+
+      if (Array.isArray(d.keputusan_miclass) && d.keputusan_miclass.length) {
+        subJudul('Keputusan yang ditetapkan MiClass');
+        d.keputusan_miclass.forEach(function (k) {
+          butir(k.pertanyaan + ' → ' + k.dipilih);
+          children.push(new D.Paragraph({
+            children: [new D.TextRun({ text: 'Alasan: ' + k.alasan, size: 19, color: '666666' })],
+            indent: { left: 720 }, spacing: { after: 60 },
+          }));
+          // Hanya keputusan yang diambil saat penyusunan yang punya dasar.
+          // Dicetak supaya dokumen yang guru arsipkan menyatakan atas apa
+          // keputusan itu diambil, bukan hanya bahwa ia diambil.
+          var dasar = Array.isArray(k.dasar) ? k.dasar.map(function (x) {
+            return LABEL_DASAR_KEPUTUSAN[x]
+              || LABEL_DASAR_KEPUTUSAN[String(x).split('.').slice(0, 2).join('.')]
+              || x;
+          }) : [];
+          if (dasar.length) {
+            var unik = dasar.filter(function (v, i) { return dasar.indexOf(v) === i; });
+            children.push(new D.Paragraph({
+              children: [new D.TextRun({ text: 'Ditimbang dari: ' + unik.join('; '), size: 19, color: '666666' })],
+              indent: { left: 720 }, spacing: { after: 60 },
+            }));
+          }
+        });
+      }
+
+      // Jejak penekanan guru (Pass 5) — frasa manusia dari server. ATP lama
+      // tidak memilikinya, dan bagian ini dilewati.
+      if (Array.isArray(d.penerapan_prioritas) && d.penerapan_prioritas.length) {
+        subJudul('Penekanan yang diminta guru');
+        d.penerapan_prioritas.forEach(function (p) {
+          var tpTeks = Array.isArray(p.tp) && p.tp.length ? 'TP ' + p.tp.join(', ') : '-';
+          var pengaruh = Array.isArray(p.pengaruh) && p.pengaruh.length ? ' (' + p.pengaruh.join(', ') + ')' : '';
+          butir(p.prioritas + ' → diterapkan terutama pada ' + tpTeks + pengaruh);
+          if (p.alasan) {
+            children.push(new D.Paragraph({
+              children: [new D.TextRun({ text: p.alasan, size: 19, color: '666666' })],
+              indent: { left: 720 }, spacing: { after: 60 },
+            }));
+          }
+        });
+      }
+
+      if (Array.isArray(d.asumsi) && d.asumsi.length) {
+        subJudul('Bagian yang masih berupa asumsi');
+        children.push(new D.Paragraph({
+          children: [new D.TextRun({
+            text: 'Bagian berikut belum berasal dari bukti dan sebaiknya diperiksa ulang.',
+            size: 19, color: '666666',
+          })],
+          indent: { left: 360 }, spacing: { after: 60 },
+        }));
+        d.asumsi.forEach(function (a) { butir(a.hal + ' — ' + a.sebab, true); });
+      }
+
+      if (hasil.cakupan_cp) {
+        var c = hasil.cakupan_cp;
+        subJudul('Cakupan Capaian Pembelajaran');
+        if (!c.diperiksa) {
+          butir('Belum diperiksa — acuan CP untuk kombinasi ini belum tersedia.');
+        } else if (c.tuntutan_belum && c.tuntutan_belum.length) {
+          butir(c.tuntutan_tercakup.length + ' dari ' + c.tuntutan_wajib.length +
+            ' tuntutan CP terpetakan. Belum terpetakan: ' + c.tuntutan_belum.join(', ') + '.');
+        } else {
+          butir('Seluruh ' + c.tuntutan_wajib.length +
+            ' tuntutan CP fase ini sudah terpetakan ke Tujuan Pembelajaran.');
+        }
+      }
+      children.push(new D.Paragraph({ text: '', spacing: { after: 240 } }));
+    }
+
     // Daftar TP
+    children.push(new D.Paragraph({
+      text: 'Tujuan Pembelajaran',
+      heading: D.HeadingLevel.HEADING_2,
+      spacing: { before: 200, after: 120 },
+    }));
     if (tpList.length === 0) {
       children.push(new D.Paragraph({ text: 'Belum ada Tujuan Pembelajaran yang tersusun.' }));
     } else {
+      var semesterTerakhir = null;
       tpList.forEach(function (tp) {
+        // Penanda semester dicetak sekali, di tempat tahun ajarannya terbelah.
+        if (tp.semester && tp.semester !== semesterTerakhir) {
+          semesterTerakhir = tp.semester;
+          var jpSem = tpList.filter(function (t) { return t.semester === tp.semester; })
+            .reduce(function (s, t) { return s + (Number(t.jp_alokasi) || 0); }, 0);
+          children.push(new D.Paragraph({
+            children: [new D.TextRun({ text: 'Semester ' + tp.semester + ' — ' + jpSem + ' JP', bold: true })],
+            spacing: { before: 300, after: 80 },
+          }));
+        }
         // Nomor + Judul TP
         children.push(new D.Paragraph({
           children: [
@@ -150,6 +323,29 @@
               new D.TextRun({ text: tp.elemen.map(labelElemen).join(', '), italics: true }),
             ],
             spacing: { after: 80 },
+          }));
+        }
+
+        // Tuntutan CP yang dilayani — inilah yang membuat cakupan CP dapat
+        // ditelusuri guru sendiri, bukan hanya diklaim di ringkasan.
+        if (Array.isArray(tp.tuntutan) && tp.tuntutan.length > 0) {
+          children.push(new D.Paragraph({
+            children: [new D.TextRun({ text: 'Tuntutan CP yang dilayani:', bold: true, size: 19 })],
+            spacing: { after: 40 },
+          }));
+          tp.tuntutan.forEach(function (id) {
+            children.push(new D.Paragraph({
+              children: [new D.TextRun({ text: tuntutanTeks[id] || String(id), size: 19 })],
+              bullet: { level: 0 }, indent: { left: 360 }, spacing: { after: 40 },
+            }));
+          });
+        }
+
+        // Jenis teks (Pass 5) — ada pada ATP baru, tidak ada pada ATP lama.
+        if (Array.isArray(tp.kategori_teks) && tp.kategori_teks.length) {
+          children.push(new D.Paragraph({
+            children: [new D.TextRun({ text: 'Jenis teks: ' + tp.kategori_teks.join(' dan '), size: 19 })],
+            spacing: { after: 60 },
           }));
         }
 

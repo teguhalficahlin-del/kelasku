@@ -8,20 +8,25 @@
       "SMK"
     ],
     "fase_e": {
-      "label": "Bahasa Inggris Fase E (Kelas 10 SMA/SMK)",
-      "cp_umum": "Di akhir Fase E, peserta didik mampu menggunakan teks lisan, tulisan, dan visual untuk berkomunikasi sesuai dengan situasi, tujuan pembelajaran, dan pembacanya. Peserta didik telah mempelajari narasi, deskripsi, prosedur, eksposisi, recount, report, dan teks otentik. Peserta didik mampu menggunakan Bahasa Inggris menyampaikan pendapat, berdiskusi topik keseharian, membaca teks untuk mendapatkan informasi, dan membuat teks tulisan dan visual yang beragam.",
+      "label": "Bahasa Inggris Fase E (Kelas X SMA/SMK/MA/MAK/Program Paket C)",
+      "sumber_regulasi": "Keputusan Kepala BSKAP Nomor 046/H/KR/2025",
+      "versi_cp": "046/H/KR/2025",
+      "ditetapkan": "2025-07-16",
+      "mencabut": "32/H/KR/2024",
+      "lampiran": "Lampiran II angka 4 Fase E. Untuk SMK/MAK, Lampiran III angka I menyatakan Bahasa Inggris mengacu pada Lampiran II.",
+      "cp_umum": "",
       "elemen": [
         {
           "nama": "Menyimak - Berbicara",
-          "cp_normatif": "Peserta didik menggunakan bahasa Inggris untuk berkomunikasi dengan guru, teman sebaya dan orang lain dalam berbagai macam situasi. Peserta didik memahami alur informasi secara keseluruhan, gagasan utama dan detail dalam teks lisan fiksi dan non-fiksi mengenai berbagai macam topik yang relevan dengan topik sehari-hari atau isu terkini. Peserta didik menggunakan bahasa Inggris untuk mengungkapkan pendapat dan mempertahankan argumen tentang topik yang dibahas."
+          "cp_normatif": "Memahami alur informasi secara keseluruhan, gagasan utama dan detail dalam teks lisan fiksi dan non fiksi mengenai berbagai macam topik yang relevan dengan topik sehari-hari atau isu terkini; menggunakan bahasa Inggris untuk mengungkapkan pendapat dan mempertahankan argumen tentang topik yang dibahas."
         },
         {
           "nama": "Membaca - Memirsa",
-          "cp_normatif": "Peserta didik membaca dan merespon berbagai macam teks seperti narasi, deskripsi, prosedur, eksposisi, recount, dan report untuk pembelajaran dan pencarian informasi. Peserta didik menganalisis dan menginterpretasi informasi eksplisit dan implisit dalam teks fiksi dan non-fiksi dari teks tulis dan multimodal tentang topik sehari-hari atau isu terkini."
+          "cp_normatif": "Memahami alur informasi secara keseluruhan, menganalisis dan menyimpulkan informasi tersurat dan tersirat dari berbagai jenis teks fiksi dan non fiksi tertulis atau teks multimodal tentang topik sehari-hari atau isu terkini."
         },
         {
           "nama": "Menulis - Mempresentasikan",
-          "cp_normatif": "Peserta didik menulis berbagai jenis teks fiksi dan non-fiksi, melalui aktivitas yang dipandu, menggunakan beragam media untuk berkomunikasi dan menyajikan gagasan dengan struktur dan unsur kebahasaan yang sesuai dengan tujuan dan konteks komunikatif."
+          "cp_normatif": "Mengomunikasikan gagasan dan pengalaman mereka secara tertulis atau multimodal dalam berbagai jenis teks fiksi dan nonfiksi dengan menggunakan berbagai media presentasi (cetak atau digital) untuk mencapai tujuan tertentu dengan struktur teks dan unsur kebahasaan yang tepat; mengungkapkan pendapat dan mempertahankan argumen tentang topik sehari-hari atau isu terkini."
         }
       ]
     },

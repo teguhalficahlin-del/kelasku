@@ -1,0 +1,226 @@
+--- a/supabase/functions/generate-atp/kontrak.ts (sebelum final hardening)
++++ b/supabase/functions/generate-atp/kontrak.ts (sesudah final hardening)
+@@ -1354,7 +1354,8 @@
+   // Pass 5 — tiga batas yang semantic test buktikan tidak ditegakkan.
+   batas.push(`Setiap TP memikul PALING BANYAK ${MAKS_TUNTUTAN_PER_TP} tuntutan CP. TP yang menumpuk lebih banyak kemampuan bukan lagi satu tujuan.`);
+   batas.push('Setiap TP adalah bagian WAJIB ATP. Tidak ada TP prasyarat dan tidak ada TP pengayaan; tuntutan ujung fase tidak pernah menjadi pilihan tambahan.');
+-  batas.push('Tuntutan media presentasi dipenuhi lewat berbagai media presentasi CETAK yang MiClass sediakan di Modul Ajar. ATP tidak menentukan bentuk konkret medianya.');
++  // FINAL HARDENING, RT-002: larangan dulu hanya terbaca untuk judul.
++  batas.push('Tuntutan media presentasi dipenuhi lewat berbagai media presentasi CETAK yang MiClass sediakan di Modul Ajar. ATP — di judul, konteks, maupun catatan — tidak menentukan bentuk media cetak spesifiknya; bentuk itu dipilih pada Modul Ajar.');
+ 
+   return {
+     cp_anchor, kesiapan_murid: kesiapan, prioritas_guru: prioritas,
+@@ -1392,10 +1393,63 @@
+   { pola: /\bgambar\b|\bfoto\b|\bposter\b|\bilustrasi\b/i,             sebut: 'gambar' },
+   { pola: /\bslide\b|\bpowerpoint\b|\bppt\b|\bproyektor\b|\blcd\b/i,   sebut: 'slide atau proyektor' },
+   { pola: /\baplikasi\b|\bsoftware\b|\bperangkat lunak\b|\bdaring\b|\bonline\b|\binternet\b|\bbrowsing\b/i, sebut: 'aplikasi atau internet' },
+-  { pola: /\bkunjungan\b|\bnarasumber\b|\bstudi banding\b|\bmagang\b/i, sebut: 'kunjungan atau narasumber' },
++  // FINAL HARDENING, RT-001: dulu /\bkunjungan\b|\bnarasumber\b|\bmagang\b/ —
++  // kata TOPIK. Semantic retest S3 menolak "Menulis cerita fiksi pengalaman
++  // magang …" dan membakar satu-satunya kesempatan perbaikan. Yang tersisa di
++  // sini hanya ACARA luar yang bernama (kunjungan industri, studi banding);
++  // kegiatan luar yang dilakukan murid ditangkap POLA_KEGIATAN_LUAR di bawah.
++  { pola: /\bkunjungan (industri|lapangan|kerja|perusahaan|pabrik)\b|\bstudi banding\b/i, sebut: 'kunjungan atau narasumber' },
+   { pola: /\bspeaker\b|\bmikrofon\b|\bpengeras suara\b/i,              sebut: 'alat audio' },
+ ];
+ 
++/** Kegiatan luar yang DILAKUKAN murid — verba + objek, bukan kata topik.
++ *
++ *  Validator menjaga KETERGANTUNGAN, bukan topik. "Magang", "kunjungan", dan
++ *  "narasumber" boleh menjadi isi teks yang MiClass sediakan (cerita tentang
++ *  pengalaman magang, laporan kunjungan tokoh fiktif, dialog peserta magang
++ *  dengan supervisor). Yang dilarang adalah TP yang menuntut murid benar-benar
++ *  melakukannya. Pola ini hanya diperiksa pada bagian kalimat SEBELUM penanda
++ *  isi teks (PENANDA_ISI_TEKS): sesudah "cerita", "laporan", "tentang", dan
++ *  sejenisnya, kegiatan itu adalah topik bacaan, bukan tuntutan. */
++export const POLA_KEGIATAN_LUAR: { pola: RegExp; sebut: string }[] = [
++  {
++    pola: new RegExp(
++      '\\b(melakukan|menjalani|mengikuti|melaksanakan)\\s+(magang|pkl|praktik kerja lapangan|kunjungan|studi banding|observasi lapangan)\\b' +
++      '|\\bpergi\\s+(ke\\s+\\S+\\s+)?magang\\b' +
++      '|\\bmengunjungi\\b' +
++      '|\\bmewawancarai\\s+(praktisi|narasumber|pekerja|karyawan|pemilik|pelaku usaha|ahli|pengusaha)\\b' +
++      '|\\b(mengundang|menghadirkan|mendatangkan|mencari)\\s+(narasumber|praktisi|tamu)\\b',
++      'i'),
++    sebut: 'kunjungan atau narasumber',
++  },
++];
++
++/** Kata yang menandai bahwa sisa kalimat adalah ISI teks yang disediakan —
++ *  kegiatan luar sesudahnya adalah topik, bukan tuntutan. "peran" dan
++ *  "simulasi" termasuk: bermain peran mewawancarai narasumber adalah interaksi
++ *  di kelas, bukan wawancara sungguhan. */
++export const PENANDA_ISI_TEKS =
++  /\b(cerita|cerpen|kisah|narasi|laporan|teks|dialog|artikel|kasus|naskah|bacaan|tentang|mengenai|berlatar|bertema|pengalaman|profil|surat|peran|simulasi)\b/i;
++
++/** Bagian kalimat yang menyatakan kegiatan murid — sebelum penanda isi teks. */
++function bagianKegiatan(kalimat: string): string {
++  const m = PENANDA_ISI_TEKS.exec(kalimat);
++  return m ? kalimat.slice(0, m.index) : kalimat;
++}
++
++/** Sebab ketergantungan bahan/kegiatan luar pada satu TP, atau null. Kelompok A
++ *  (benda dan acara bernama) diperiksa di seluruh judul/konteks/catatan;
++ *  kelompok B (kegiatan murid) hanya pada bagian kegiatan tiap kalimat. */
++export function sebabKetergantungan(judul: string, konteks: string[] = [], catatan = ''): string | null {
++  const menyeluruh = [judul, ...konteks, catatan].join(' | ');
++  for (const { pola, sebut } of POLA_BAHAN_TERLARANG) if (pola.test(menyeluruh)) return sebut;
++  for (const kalimat of [judul, ...konteks, catatan]) {
++    const bagian = bagianKegiatan(String(kalimat ?? ''));
++    for (const { pola, sebut } of POLA_KEGIATAN_LUAR) if (pola.test(bagian)) return sebut;
++  }
++  return null;
++}
++
+ /** Jargon yang tidak boleh muncul di judul TP. Daftar ini SEBELUMNYA hanya ada
+  *  di prompt — yaitu hanya sebagai harapan. */
+ export const JARGON_TERLARANG: RegExp[] = [
+@@ -1645,12 +1699,9 @@
+   // ── BAHASA DAN KETERGANTUNGAN BAHAN ──
+   for (const tp of entries) {
+     const judul = String(tp.judul ?? '');
+-    const menyeluruh = [judul, ...(tp.konteks ?? []), tp.catatan ?? ''].join(' | ');
+-    for (const { pola, sebut } of POLA_BAHAN_TERLARANG) {
+-      if (pola.test(menyeluruh)) {
+-        E('B1', `TP ${tp.nomor}: menuntut ${sebut}, bahan yang tidak disediakan MiClass dan tidak boleh dibebankan kepada guru — "${judul}"`);
+-        break;
+-      }
++    const sebut = sebabKetergantungan(judul, (tp.konteks ?? []).map(String), String(tp.catatan ?? ''));
++    if (sebut) {
++      E('B1', `TP ${tp.nomor}: menuntut ${sebut}, bahan yang tidak disediakan MiClass dan tidak boleh dibebankan kepada guru — "${judul}"`);
+     }
+     for (const pola of JARGON_TERLARANG) {
+       if (pola.test(judul)) { E('B2', `TP ${tp.nomor}: judul memakai jargon yang dilarang — "${judul}"`); break; }
+--- a/supabase/functions/generate-atp/index.ts (sebelum final hardening)
++++ b/supabase/functions/generate-atp/index.ts (sesudah final hardening)
+@@ -156,7 +156,8 @@
+   '  - kategori_teks: array berisi "fiksi" dan/atau "nonfiksi". WAJIB bila TP melayani tuntutan yang punya\n' +
+   '                   cakupan_wajib.kategori_teks. Untuk SETIAP tuntutan seperti itu, gabungan TP yang\n' +
+   '                   merujuknya wajib mencakup SELURUH kategori yang diwajibkan — satu TP dengan keduanya,\n' +
+-  '                   atau beberapa TP yang saling melengkapi. Isi judul dan konteks TP harus sesuai kategorinya.\n' +
++  '                   atau beberapa TP yang saling melengkapi. Isi TP harus sesuai kategorinya; kategorinya\n' +
++  '                   sudah tersimpan di field ini, jadi judul tidak perlu menyebutnya.\n' +
+   '  - jp_alokasi   : integer > 0\n' +
+   '  - jp_pertemuan : array integer, jumlahnya HARUS sama persis dengan jp_alokasi\n' +
+   '  - semester     : nomor semester tempat TP ini dijalankan\n' +
+@@ -238,9 +239,13 @@
+   '  Bahasa Inggris; Busana adalah arena penerapannya.\n' +
+   // Pass 5, SEM-008: bentuk media konkret dari cara_layanan bocor ke judul TP.
+   // Sumbernya sudah dicabut dari konteks; aturan ini menutup sisanya.
++  // FINAL HARDENING, RT-002: judul sudah bersih, tetapi bentuk media masih
++  // muncul di konteks dan catatan — dua field yang dibaca Modul di hilir.
+   '- media presentasi: tuntutan media presentasi dipenuhi lewat berbagai media presentasi CETAK\n' +
+-  '  yang MiClass sediakan di Modul Ajar. Di ATP cukup tulis "media presentasi cetak"; JANGAN\n' +
+-  '  menentukan bentuk konkret medianya — itu keputusan Modul Ajar.\n' +
++  '  yang MiClass sediakan di Modul Ajar. Di ATP — di judul, di konteks, DAN di catatan — cukup\n' +
++  '  tulis "media presentasi cetak". JANGAN menentukan bentuk media cetak spesifiknya; bentuknya\n' +
++  '  dipilih dan dibuat lengkap pada Modul Ajar. Konteks tetap menyebut situasi, topik, dan jenis\n' +
++  '  dokumen yang dibahas (mis. pelayanan pelanggan butik, limbah tekstil) — bukan bentuk bahannya.\n' +
+   '- anggaran_waktu: angka mati. Lihat bagian ARITMETIKA.\n' +
+   '- keputusan_didelegasikan: keputusan yang sudah MiClass ambil karena guru menyerahkannya.\n' +
+   '  Perlakukan sebagai keputusan yang sudah final, bukan sebagai saran.\n' +
+@@ -249,6 +254,14 @@
+   'BAHASA JUDUL TP\n' +
+   'Kalimat aktif yang menyebut kegiatan nyata murid dan konteksnya. Bisa dipahami guru SMK\n' +
+   'tanpa membuka glosarium.\n' +
++  // FINAL HARDENING, RT-003: label kategori_teks ikut tersalin ke kalimat judul
++  // ("dialog nonfiksi", "petunjuk kerja nonfiksi"). Aturan bahasa, bukan gerbang.
++  'Tulis judul sebagaimana guru menyebut tujuan belajar secara alami. Pakai nama jenis teks yang\n' +
++  'konkret bila membantu (cerita pendek, artikel, dialog, petunjuk, laporan), tetapi jangan memasukkan\n' +
++  'label metadata "fiksi"/"nonfiksi" hanya untuk membuktikan kategori — kategori_teks sudah\n' +
++  'menyimpannya. Contoh: "Membaca teks nonfiksi tentang perawatan busana" menjadi "Membaca petunjuk\n' +
++  'perawatan busana dan menyimpulkan informasi penting"; "Menulis cerita fiksi tentang …" menjadi\n' +
++  '"Menulis cerita pendek tentang …".\n' +
+   'DILARANG di judul, catatan, dan konteks: asesmen formatif, asesmen sumatif, diferensiasi,\n' +
+   'scaffolding, HOTS, taksonomi Bloom, kompetensi inti, kompetensi dasar, indikator pencapaian,\n' +
+   'capaian pembelajaran, KKTP.\n' +
+--- a/tests/atp-kontrak.test.ts (sebelum final hardening)
++++ b/tests/atp-kontrak.test.ts (sesudah final hardening)
+@@ -1918,3 +1918,87 @@
+   const ef = await BACA_EF();
+   assert(ef.includes('penerapan_prioritas_wajib: konteks.penerapan_prioritas_wajib'));
+ });
++
++// ═════════════════════════════════════════════════════════════════════════════
++// FINAL HARDENING — AK (RT-001) dan AL (RT-002/RT-003)
++// ═════════════════════════════════════════════════════════════════════════════
++
++import { sebabKetergantungan } from '../supabase/functions/generate-atp/kontrak.ts';
++
++/** Validasi satu judul lewat validator produksi penuh, bukan fungsi pembantu saja. */
++function b1Untuk(judul: string, konteks?: string[], catatan?: string): string[] {
++  const data = cd();
++  const o = keluaranKanonik(data);
++  o.tp[0].judul = judul;
++  if (konteks) o.tp[0].konteks = konteks;
++  if (catatan) o.tp[0].catatan = catatan;
++  return validasiAtp(o, syaratP5(data)).errors.filter(e => e.startsWith('[B1]'));
++}
++
++Deno.test('AK: validator menjaga ketergantungan, bukan topik — RT-001', () => {
++  // AK1 — magang sebagai isi teks: LOLOS (persis judul S3 yang dulu ditolak)
++  assertEquals(b1Untuk('Menulis cerita fiksi pengalaman magang menggunakan media presentasi cetak'), []);
++  // AK2 — magang sebagai syarat: DITOLAK
++  assert(b1Untuk('Melakukan magang di perusahaan untuk menulis laporan pengalaman kerja').length === 1);
++  // AK3 — kunjungan luar sebagai syarat: DITOLAK
++  assert(b1Untuk('Mengunjungi bengkel industri untuk mengamati pelayanan pelanggan').length === 1);
++  // AK4 — teks tentang magang yang MiClass sediakan: LOLOS
++  assertEquals(b1Untuk('Membaca laporan pengalaman peserta magang dan menyimpulkan informasi'), []);
++  // AK5 — wawancara praktisi luar: DITOLAK
++  assert(b1Untuk('Mewawancarai praktisi industri untuk memperoleh informasi').length === 1);
++
++  // Tambahan: contoh BOLEH dari peninjau lolos; bermain peran bukan wawancara sungguhan.
++  for (const boleh of [
++    'Menyimak dialog antara peserta magang dan supervisor di bengkel',
++    'Menganalisis kasus fiktif di tempat magang dan menyimpulkan masalahnya',
++    'Membaca artikel mengenai pengalaman PKL dan menyimpulkan pesan penulis',
++    'Bermain peran mewawancarai narasumber tentang tren busana',
++  ]) assertEquals(b1Untuk(boleh), [], `salah tuduh: "${boleh}"`);
++
++  // Tambahan: contoh DILARANG dari peninjau tetap ditolak, juga lewat konteks/catatan.
++  for (const larang of [
++    'Menjalani magang di butik lalu menceritakan hasilnya',
++    'Mengikuti kunjungan ke pabrik garmen dan mencatat prosesnya',
++    'Menghadirkan narasumber dari industri untuk berbagi pengalaman',
++  ]) assert(b1Untuk(larang).length === 1, `lolos padahal menuntut kegiatan luar: "${larang}"`);
++  assert(b1Untuk('Menulis laporan singkat', undefined, 'murid mengunjungi usaha jahit di sekitar sekolah').length === 1);
++
++  // Fungsi pembantu dan validator memberi sebab yang sama.
++  assertEquals(sebabKetergantungan('Mewawancarai praktisi industri untuk memperoleh informasi'), 'kunjungan atau narasumber');
++  assertEquals(sebabKetergantungan('Menulis cerita fiksi pengalaman magang menggunakan media presentasi cetak'), null);
++});
++
++Deno.test('AL: bentuk media Modul tidak diminta di ATP; judul untuk guru — RT-002, RT-003', async () => {
++  // AL1 — user message tidak membawa contoh bentuk media dari cara_layanan.
++  const kirim = JSON.stringify(konteksDari(cd())).toLowerCase();
++  const mp2 = WAJIB_OBJ_BI.find(w => w.id === 'BIE-E25-MP-2')!;
++  const contoh = ['lembar presentasi', 'kartu bicara', 'handout', 'lembar informasi', 'selebaran'];
++  for (const c of contoh) {
++    assert(mp2.t.cara_layanan.toLowerCase().includes(c), `fixture: "${c}" tidak ada di cara_layanan`);
++    assert(!kirim.includes(c), `"${c}" dari cara_layanan terkirim ke penyusun ATP`);
++  }
++
++  // AL1b — aturannya meliputi judul, konteks, DAN catatan; di prompt dan di batas mutlak.
++  const sp = sumberSystemPrompt(await BACA_EF()).toLowerCase();
++  assert(/judul, di konteks, dan di catatan/.test(sp), 'aturan media tidak meliputi konteks dan catatan');
++  assert(sp.includes('dipilih dan dibuat lengkap pada modul ajar'));
++  const batas = gabung(konteksDari(cd()).batas_mutlak);
++  assert(batas.includes('judul, konteks, maupun catatan'), 'batas mutlak media tidak meliputi konteks/catatan');
++
++  // AL2 — BUKAN blacklist: konteks yang menyebut "lembar informasi produk" tidak
++  // menggagalkan ATP. Penjaganya ada di sumber (prompt), bukan regex.
++  const data = cd();
++  const o = keluaranKanonik(data);
++  o.tp[6].konteks = ['lembar informasi produk'];
++  const v = validasiAtp(o, syaratP5(data));
++  assert(v.valid, v.errors.join('; '));
++
++  // RT-003 — aturan bahasa, bukan gerbang: judul yang memuat kata fiksi/nonfiksi tetap sah,
++  // dan prompt menyatakan kategori_teks sebagai tempat informasinya.
++  const f = keluaranKanonik(data);
++  f.tp[0].judul = 'Membaca cerita fiksi ilmiah tentang busana masa depan';
++  assert(validasiAtp(f, syaratP5(data)).valid);
++  // Frasa diambil utuh dari satu baris string sumber (teks sumber, bukan string hasil gabungan).
++  assert(sp.includes('label metadata "fiksi"/"nonfiksi" hanya untuk membuktikan kategori'),
++    'aturan bahasa judul RT-003 tidak ada di prompt');
++});

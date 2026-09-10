@@ -17,7 +17,7 @@
  */
 'use strict';
 
-const CACHE_NAME = 'miclass-v23';
+const CACHE_NAME = 'miclass-v27';
 
 // Relatif terhadap lokasi sw.js, sehingga tidak bergantung pada nama repo.
 //

@@ -1,0 +1,230 @@
+// DIBANGKITKAN — jangan sunting berkas ini langsung.
+// Sumber: shared/data/cp-acuan.json
+// Bangun ulang: node tests/atp-acuan-sinkron.mjs --tulis
+//
+// Acuan CP berversi. Dua keluaran dari satu sumber: menentukan kombinasi
+// mapel/fase yang boleh dibuka, dan memeriksa cakupan ATP yang dihasilkan.
+// Lihat docs/SPEC-ATP-MODUL-BERBASIS-TEKS.md §3.
+
+/** Apakah satu tuntutan dapat dilayani MiClass TANPA pekerjaan tambahan guru.
+ *
+ *  'perlu_telaah_manusia' BUKAN sinonim 'sebagian'. Tidak ada status sebagian
+ *  lagi, dan itu keputusan produk: membuka layanan dengan cakupan sebagian
+ *  berarti menyerahkan sisanya kepada guru sebagai pekerjaan terselubung. */
+export type StatusLayanan = 'dilayani' | 'tidak_dilayani' | 'perlu_telaah_manusia';
+
+export type TuntutanCp = {
+  id: string;
+  kompetensi: string;
+  lingkup_materi: string;
+  /** Potongan cp_normatif VERBATIM yang menjadi asal tuntutan ini. Wajib —
+   *  tuntutan tanpa sumber adalah interpretasi tanpa jejak. */
+  sumber_cp: string;
+  /** SAFE DECOMPOSITION | NEEDS HUMAN REVIEW | EXACT | INVALID */
+  status_dekomposisi: string;
+  /** Hubungan logis di dalam dan di sekitar tuntutan ini: mana yang AND, mana
+   *  yang OR, mana yang kualifikator. Wajib — memperlakukan setiap frasa CP
+   *  sebagai kewajiban kumulatif adalah kesalahan baca yang mengubah hasil
+   *  gerbang layanan. */
+  logika: string;
+  /** Cakupan KUMULATIF di dalam satu tuntutan yang tidak boleh hilang hanya
+   *  karena ID-nya sudah muncul di satu TP. Contoh: "teks fiksi dan non fiksi"
+   *  menuntut KEDUA kategori dilayani gabungan TP yang merujuk tuntutan ini.
+   *  Dibaca validasiAtp() — tidak ada ID yang di-hardcode di validator. */
+  cakupan_wajib?: { kategori_teks?: string[] };
+  layanan: StatusLayanan;
+  /** Bagaimana MiClass melayaninya. Dilarang memuat pekerjaan untuk guru.
+   *  Untuk audit layanan SAJA — TIDAK dikirim ke penyusun ATP (Pass 5, SEM-008):
+   *  daftar bentuk konkretnya terbukti bocor ke judul TP. */
+  cara_layanan: string;
+};
+
+export type ElemenAcuan = {
+  label: string;
+  /** Teks CP normatif elemen ini, VERBATIM dari regulasi yang berlaku. Wajib
+   *  identik dengan cp_normatif di shared/data/cp-data.json — itulah yang
+   *  membuat klien dan Edge Function tidak mungkin membaca CP berlainan. */
+  cp_normatif: string;
+  logika_elemen: string;
+  tuntutan: TuntutanCp[];
+};
+
+export type FaseAcuan = {
+  /** 'tersedia' hanyalah SYARAT, bukan keputusan. Gerbang layanan dihitung
+   *  statusLayanan() dari versi CP, status peninjauan, dan cakupan penuh. */
+  status: string;
+  alasan_status?: string;
+  versi_cp: string;
+  sumber_regulasi: string;
+  ditetapkan: string;
+  mencabut?: string;
+  lampiran?: string;
+  /** 'pending' | 'diterima'. TIDAK BOLEH menyatakan pemeriksaan manusia yang
+   *  belum terjadi. */
+  review_status: string;
+  review_catatan?: string;
+  elemen: Record<string, ElemenAcuan>;
+};
+
+export type AcuanCp = {
+  versi: string;
+  catatan: string;
+  acuan: Record<string, Record<string, FaseAcuan>>;
+};
+
+export const ACUAN_CP: AcuanCp = {
+  "versi": "2026-09-10e",
+  "catatan": "Acuan CP berversi — prasyarat batas layanan (docs/SPEC-ATP-MODUL-BERBASIS-TEKS.md §3) DAN sumber pemeriksaan cakupan ATP. OTORITAS: Keputusan Kepala BSKAP Nomor 046/H/KR/2025, yang lewat Diktum KETUJUH mencabut Keputusan Kepala BSKAP Nomor 32/H/KR/2024. Teks CP di shared/data/cp-data.json wajib identik dengan cp_normatif di sini — tests/atp-kontrak.test.ts (CASE R) menggagalkan diri kalau berbeda, sehingga klien dan Edge Function tidak mungkin membaca CP yang berlainan. Setiap tuntutan WAJIB menyebut sumber_cp verbatim dari cp_normatif elemennya, dan gabungan seluruh sumber_cp satu elemen wajib menutupi cp_normatif itu (CASE N). SATU ANAK KALIMAT BOLEH MENOPANG LEBIH DARI SATU TUNTUTAN — ketertelusuran lebih penting daripada keunikan potongan (CASE W). SALINAN EDGE FUNCTION: supabase/functions/generate-atp/acuan-cp.ts — kalau salah satu diubah, ubah keduanya; tests/atp-acuan-sinkron.mjs menjaganya.",
+  "acuan": {
+    "bahasa_inggris": {
+      "fase_e": {
+        "status": "tersedia",
+        "alasan_status": "Seluruh tuntutan CP dapat dilayani MiClass tanpa pekerjaan tambahan guru, dan penguraiannya sudah ditinjau serta diterima peninjau pada 10 September 2026.",
+        "versi_cp": "046/H/KR/2025",
+        "sumber_regulasi": "Keputusan Kepala BSKAP Nomor 046/H/KR/2025 tentang Capaian Pembelajaran pada Pendidikan Anak Usia Dini, Jenjang Pendidikan Dasar, dan Jenjang Pendidikan Menengah",
+        "ditetapkan": "2025-07-16",
+        "mencabut": "32/H/KR/2024",
+        "lampiran": "Lampiran II angka 4 Fase E. Untuk SMK/MAK, Lampiran III angka I menyatakan Bahasa Inggris mengacu pada Lampiran II.",
+        "review_status": "diterima",
+        "review_catatan": "Ditinjau dan diterima 10 September 2026 untuk Bahasa Inggris Fase E pada CP 046/H/KR/2025 SAJA. Termasuk keputusan normatif atas operator logis pada \"berbagai media presentasi (cetak atau digital)\": operatornya OR (cetak ATAU digital), bukan AND. Dasarnya tiga: Kepka adalah otoritas CP di atas Panduan Mata Pelajaran; teks Indonesia Kepka adalah rumusan normatif yang dipakai; dan terjemahan Inggris tidak dapat dipakai menyelesaikan operator logis, sebab pada elemen Membaca-Memirsa pun teks Indonesia menulis \"tertulis atau teks multimodal\" sementara terjemahannya menulis \"written and multimodal texts\". Keputusan ini TIDAK boleh dibalik kembali berdasarkan Panduan. Kombinasi lain tetap belum ditinjau.",
+        "elemen": {
+          "menyimak_berbicara": {
+            "label": "Menyimak - Berbicara",
+            "cp_normatif": "Memahami alur informasi secara keseluruhan, gagasan utama dan detail dalam teks lisan fiksi dan non fiksi mengenai berbagai macam topik yang relevan dengan topik sehari-hari atau isu terkini; menggunakan bahasa Inggris untuk mengungkapkan pendapat dan mempertahankan argumen tentang topik yang dibahas.",
+            "logika_elemen": "Dua anak kalimat dipisahkan titik koma dan bersifat KUMULATIF (AND): kemampuan reseptif lisan dan kemampuan produktif lisan sama-sama wajib. MODA yang diwarisi seluruh tuntutan di elemen ini adalah lisan — ia berasal dari judul elemen, bukan dari anak kalimat mana pun, sehingga tidak boleh ditulis seolah bagian rumusan tuntutan.",
+            "tuntutan": [
+              {
+                "id": "BIE-E25-MB-1",
+                "kompetensi": "memahami alur informasi secara keseluruhan, gagasan utama, dan detail dalam teks lisan fiksi dan non fiksi",
+                "lingkup_materi": "berbagai macam topik yang relevan dengan topik sehari-hari atau isu terkini",
+                "sumber_cp": "Memahami alur informasi secara keseluruhan, gagasan utama dan detail dalam teks lisan fiksi dan non fiksi mengenai berbagai macam topik yang relevan dengan topik sehari-hari atau isu terkini;",
+                "status_dekomposisi": "SAFE DECOMPOSITION",
+                "logika": "AND pada objek pemahaman: alur informasi keseluruhan DAN gagasan utama DAN detail — ketiganya wajib. AND pada jenis teks: fiksi DAN non fiksi. OR pada lingkup topik: topik sehari-hari ATAU isu terkini — satu jalur sudah memenuhi.",
+                "cakupan_wajib": {
+                  "kategori_teks": [
+                    "fiksi",
+                    "nonfiksi"
+                  ]
+                },
+                "layanan": "dilayani",
+                "cara_layanan": "MiClass menyusun naskah simakan fiksi dan non fiksi beserta pertanyaan pemahamannya. Teks lisan dihadirkan oleh guru yang membacakan naskah itu atau oleh murid yang berbicara — keduanya adalah teks lisan menurut CP, dan naskahnya MiClass yang menyediakan."
+              },
+              {
+                "id": "BIE-E25-MB-2",
+                "kompetensi": "menggunakan bahasa Inggris untuk mengungkapkan pendapat",
+                "lingkup_materi": "topik yang dibahas",
+                "sumber_cp": "menggunakan bahasa Inggris untuk mengungkapkan pendapat dan mempertahankan argumen tentang topik yang dibahas.",
+                "status_dekomposisi": "SAFE DECOMPOSITION",
+                "logika": "AND terhadap BIE-E25-MB-3: mengungkapkan pendapat dan mempertahankan argumen adalah dua kemampuan berbeda — yang pertama menyatakan posisi, yang kedua menahannya terhadap sanggahan — dan keduanya wajib. Anak kalimat sumbernya DIPAKAI BERSAMA dengan BIE-E25-MB-3; pemecahan atomik tidak menuntut potongan sumber yang unik. Moda lisan diwarisi dari elemen Menyimak-Berbicara, bukan dari rumusan tuntutan ini.",
+                "layanan": "dilayani",
+                "cara_layanan": "MiClass menyusun pemantik, pertanyaan pendapat, dan petunjuk giliran bicara. Pelaksanaannya interaksi langsung di kelas, tanpa alat."
+              },
+              {
+                "id": "BIE-E25-MB-3",
+                "kompetensi": "mempertahankan argumen",
+                "lingkup_materi": "topik yang dibahas",
+                "sumber_cp": "menggunakan bahasa Inggris untuk mengungkapkan pendapat dan mempertahankan argumen tentang topik yang dibahas.",
+                "status_dekomposisi": "SAFE DECOMPOSITION",
+                "logika": "AND terhadap BIE-E25-MB-2, dengan anak kalimat sumber yang sama. Moda lisan diwarisi dari elemen Menyimak-Berbicara, bukan dari rumusan tuntutan ini.",
+                "layanan": "dilayani",
+                "cara_layanan": "MiClass menyusun naskah adu argumen, peran penyanggah, dan rambu-rambu bantahan. Pelaksanaannya interaksi langsung antarmurid."
+              }
+            ]
+          },
+          "membaca_memirsa": {
+            "label": "Membaca - Memirsa",
+            "cp_normatif": "Memahami alur informasi secara keseluruhan, menganalisis dan menyimpulkan informasi tersurat dan tersirat dari berbagai jenis teks fiksi dan non fiksi tertulis atau teks multimodal tentang topik sehari-hari atau isu terkini.",
+            "logika_elemen": "Satu kalimat dengan dua kelompok kemampuan yang KUMULATIF (AND). Sumber teksnya ALTERNATIF (OR): tertulis ATAU multimodal. Kedua tuntutan memakai anak kalimat sumber yang sama karena lingkup materi — jenis teks, genre, moda, dan topik — menerangkan keduanya sekaligus.",
+            "tuntutan": [
+              {
+                "id": "BIE-E25-MM-1",
+                "kompetensi": "memahami alur informasi secara keseluruhan",
+                "lingkup_materi": "berbagai jenis teks fiksi dan non fiksi tertulis atau teks multimodal tentang topik sehari-hari atau isu terkini",
+                "sumber_cp": "Memahami alur informasi secara keseluruhan, menganalisis dan menyimpulkan informasi tersurat dan tersirat dari berbagai jenis teks fiksi dan non fiksi tertulis atau teks multimodal tentang topik sehari-hari atau isu terkini.",
+                "status_dekomposisi": "SAFE DECOMPOSITION",
+                "logika": "AND terhadap BIE-E25-MM-2: memahami alur informasi keseluruhan adalah kemampuan tersendiri yang mendahului analisis, dan keduanya wajib. AND pada jenis teks: fiksi DAN non fiksi. OR pada moda sumber: tertulis ATAU teks multimodal. OR pada lingkup topik: sehari-hari ATAU isu terkini. Anak kalimat sumbernya sengaja diambil utuh supaya kompetensi, objek, genre, moda, dan topik seluruhnya tertelusur — bukan hanya verbanya.",
+                "cakupan_wajib": {
+                  "kategori_teks": [
+                    "fiksi",
+                    "nonfiksi"
+                  ]
+                },
+                "layanan": "dilayani",
+                "cara_layanan": "CP menyediakan JALUR ALTERNATIF: \"tertulis ATAU teks multimodal\". MiClass menempuh jalur tertulis secara penuh — bacaan fiksi dan non fiksi, teks bertata-letak, tabel, formulir, jadwal, label — sehingga tuntutan ini terpenuhi utuh tanpa bahan tambahan apa pun."
+              },
+              {
+                "id": "BIE-E25-MM-2",
+                "kompetensi": "menganalisis dan menyimpulkan informasi tersurat dan tersirat",
+                "lingkup_materi": "berbagai jenis teks fiksi dan non fiksi tertulis atau teks multimodal tentang topik sehari-hari atau isu terkini",
+                "sumber_cp": "Memahami alur informasi secara keseluruhan, menganalisis dan menyimpulkan informasi tersurat dan tersirat dari berbagai jenis teks fiksi dan non fiksi tertulis atau teks multimodal tentang topik sehari-hari atau isu terkini.",
+                "status_dekomposisi": "SAFE DECOMPOSITION",
+                "logika": "AND antara menganalisis dan menyimpulkan — dua operasi kognitif berurutan atas objek yang sama, keduanya wajib. AND pada objek: tersurat DAN tersirat. AND pada jenis teks: fiksi DAN non fiksi. OR pada moda sumber: tertulis ATAU multimodal. OR pada lingkup topik: sehari-hari ATAU isu terkini. Anak kalimat sumbernya sama dengan BIE-E25-MM-1 karena satu kalimat CP menerangkan keduanya.",
+                "cakupan_wajib": {
+                  "kategori_teks": [
+                    "fiksi",
+                    "nonfiksi"
+                  ]
+                },
+                "layanan": "dilayani",
+                "cara_layanan": "Jalur tertulis ditempuh penuh. MiClass menyusun bacaan beserta pertanyaan analisis dan penyimpulan, termasuk informasi yang sengaja tersirat, dan kunci penilaiannya."
+              }
+            ]
+          },
+          "menulis_mempresentasikan": {
+            "label": "Menulis - Mempresentasikan",
+            "cp_normatif": "Mengomunikasikan gagasan dan pengalaman mereka secara tertulis atau multimodal dalam berbagai jenis teks fiksi dan nonfiksi dengan menggunakan berbagai media presentasi (cetak atau digital) untuk mencapai tujuan tertentu dengan struktur teks dan unsur kebahasaan yang tepat; mengungkapkan pendapat dan mempertahankan argumen tentang topik sehari-hari atau isu terkini.",
+            "logika_elemen": "Dua anak kalimat dipisahkan titik koma dan KUMULATIF (AND). Anak kalimat pertama memuat satu kompetensi komunikasi beserta tiga keterangan: moda (ALTERNATIF: tertulis ATAU multimodal), media presentasi (ALTERNATIF: cetak ATAU digital), dan mutu keluaran (KUMULATIF: tujuan tertentu, struktur teks, unsur kebahasaan). Mutu keluaran adalah SYARAT atas kegiatan mengomunikasikan, bukan kompetensi tersendiri — CP tidak memuat verba lain untuknya. Moda tertulis atau penyajian yang diwarisi tuntutan di elemen ini berasal dari judul elemen, bukan dari anak kalimat mana pun.",
+            "tuntutan": [
+              {
+                "id": "BIE-E25-MP-1",
+                "kompetensi": "mengomunikasikan gagasan dan pengalaman secara tertulis atau multimodal untuk mencapai tujuan tertentu dengan struktur teks dan unsur kebahasaan yang tepat",
+                "lingkup_materi": "berbagai jenis teks fiksi dan nonfiksi",
+                "sumber_cp": "Mengomunikasikan gagasan dan pengalaman mereka secara tertulis atau multimodal dalam berbagai jenis teks fiksi dan nonfiksi dengan menggunakan berbagai media presentasi (cetak atau digital) untuk mencapai tujuan tertentu dengan struktur teks dan unsur kebahasaan yang tepat;",
+                "status_dekomposisi": "SAFE DECOMPOSITION",
+                "logika": "AND pada objek: gagasan DAN pengalaman. OR pada moda: tertulis ATAU multimodal — jalur tertulis adalah pemenuhan normatif penuh, bukan pemenuhan sebagian. AND pada jenis teks: fiksi DAN nonfiksi. KUMULATIF pada mutu keluaran: tujuan tertentu DAN struktur teks DAN unsur kebahasaan yang tepat — ketiganya syarat atas kegiatan mengomunikasikan, dan digabung ke tuntutan ini karena CP tidak memberi verba tersendiri untuknya.",
+                "cakupan_wajib": {
+                  "kategori_teks": [
+                    "fiksi",
+                    "nonfiksi"
+                  ]
+                },
+                "layanan": "dilayani",
+                "cara_layanan": "MiClass menyusun contoh teks, kerangka, rambu penulisan, uraian struktur tiap jenis teks, daftar unsur kebahasaannya, contoh yang benar dan yang keliru, serta rubrik penilaiannya — untuk teks fiksi maupun nonfiksi. Murid menghasilkan teks; tidak ada bahan yang perlu dicari siapa pun."
+              },
+              {
+                "id": "BIE-E25-MP-2",
+                "kompetensi": "menggunakan berbagai media presentasi",
+                "lingkup_materi": "media presentasi cetak atau digital",
+                "sumber_cp": "dengan menggunakan berbagai media presentasi (cetak atau digital)",
+                "status_dekomposisi": "SAFE DECOMPOSITION",
+                "logika": "OR pada kategori media: cetak ATAU digital. Operatornya ditetapkan peninjau pada 10 September 2026 berdasarkan teks Indonesia Keputusan Kepala BSKAP 046/H/KR/2025, yang berkedudukan di atas Panduan Mata Pelajaran; terjemahan Inggris tidak dipakai menyelesaikan operator logis karena pada elemen Membaca-Memirsa pun ia menulis \"and\" untuk \"atau\". Karena alternatif, jalur cetak sendiri sudah memenuhi tuntutan ini secara penuh. AND pada keragaman: \"berbagai\" menuntut lebih dari satu bentuk media di sepanjang fase, dan itu dipenuhi di dalam jalur cetak.",
+                "layanan": "dilayani",
+                "cara_layanan": "MiClass menempuh jalur cetak, dan menyediakan lebih dari satu bentuk media presentasi berbasis teks sepanjang fase: lembar presentasi, kartu bicara, handout, lembar informasi, formulir, dan selebaran tekstual siap cetak. Bentuk-bentuk itu adalah CARA MiClass melayani, bukan jenis yang CP tuntut. Seluruhnya dihasilkan MiClass dalam keadaan siap cetak; yang tersisa bagi guru hanyalah menggandakannya."
+              },
+              {
+                "id": "BIE-E25-MP-4",
+                "kompetensi": "mengungkapkan pendapat",
+                "lingkup_materi": "topik sehari-hari atau isu terkini",
+                "sumber_cp": "mengungkapkan pendapat dan mempertahankan argumen tentang topik sehari-hari atau isu terkini.",
+                "status_dekomposisi": "SAFE DECOMPOSITION",
+                "logika": "AND terhadap BIE-E25-MP-5, dengan anak kalimat sumber yang dipakai bersama. OR pada lingkup topik: sehari-hari ATAU isu terkini. BEDA DARI BIE-E25-MB-2 dan bukan pengulangannya: lingkup topiknya berbeda, dan modanya diwarisi dari elemen Menulis-Mempresentasikan, bukan dari elemen Menyimak-Berbicara.",
+                "layanan": "dilayani",
+                "cara_layanan": "MiClass menyusun pemantik isu, kerangka teks pendapat, dan rubriknya."
+              },
+              {
+                "id": "BIE-E25-MP-5",
+                "kompetensi": "mempertahankan argumen",
+                "lingkup_materi": "topik sehari-hari atau isu terkini",
+                "sumber_cp": "mengungkapkan pendapat dan mempertahankan argumen tentang topik sehari-hari atau isu terkini.",
+                "status_dekomposisi": "SAFE DECOMPOSITION",
+                "logika": "AND terhadap BIE-E25-MP-4, dengan anak kalimat sumber yang sama. OR pada lingkup topik: sehari-hari ATAU isu terkini. BEDA DARI BIE-E25-MB-3: modanya diwarisi dari elemen Menulis-Mempresentasikan.",
+                "layanan": "dilayani",
+                "cara_layanan": "MiClass menyusun data dan fakta pendukung, sanggahan tandingan yang harus dijawab, dan rubrik penilaian kekuatan argumen."
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+};

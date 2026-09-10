@@ -1,0 +1,439 @@
+--- a/supabase/functions/generate-atp/kontrak.ts
++++ b/supabase/functions/generate-atp/kontrak.ts
+@@ -482,6 +482,87 @@
+     'tertinggal maupun unggul.',
+ };
+ 
++// ─────────────────────────────────────────────────────────────────────────────
++// PROGRESI KESIAPAN — KEBIJAKAN PRODUK, BUKAN ISI CP
++// ─────────────────────────────────────────────────────────────────────────────
++//
++// Uji robustness readiness (empat pasangan S1↔S2 dengan masukan byte-identik,
++// docs/ATP-READINESS-ROBUSTNESS-REPORT.md) menemukan satu mode kegagalan yang
++// BERULANG dan hanya satu: pada kesiapan `jauh_di_bawah`, penyusun kadang
++// memajukan "mempertahankan argumen" — menggabungkannya dengan "mengungkapkan
++// pendapat" dalam satu TP, lalu menaruhnya di Semester 1, padahal baseline yang
++// muridnya LEBIH siap justru memisahkan keduanya dan menundanya ke Semester 2.
++// Tiga dari empat pengulangan benar; satu salah. Arahan prosa saja terbukti
++// belum menjadi jaminan.
++//
++// APA YANG TABEL INI BUKAN. Ia bukan isi CP. Tuntutan CP, kompetensi, lingkup
++// materi, logika, dan cakupan_wajib tidak disentuh sama sekali — ujung fase
++// tetap sama persis, dan seluruh tuntutan tetap wajib terpetakan. Yang diatur
++// di sini adalah JALAN menuju ujung itu untuk satu kondisi kesiapan ekstrem:
++// urutan, pemisahan TP, dan penempatan semester. Karena itu ia tinggal di
++// kontrak produk, bukan di cp-acuan.json.
++//
++// LINGKUPNYA SENGAJA SEMPIT. Hanya `jauh_di_bawah`. Kesiapan lain — termasuk
++// `sedikit_di_bawah` — TIDAK tunduk pada aturan ini: menggabungkan MB-2+MB-3
++// atau menaruh MB-3 di Semester 1 tetap sah di sana, sepanjang aturan ATP umum
++// terpenuhi. Ini kebijakan untuk kondisi ekstrem, bukan aturan universal
++// Bahasa Inggris.
++//
++// Aturan ditulis per ID tuntutan. Untuk mapel atau fase yang tidak memiliki ID
++// itu, aturannya tidak berlaku dengan sendirinya — `aturanProgresiUntuk()`
++// hanya mengembalikan aturan yang KEDUA ID-nya benar-benar ada di acuan yang
++// sedang dipakai.
++export type AturanProgresi = {
++  /** Tuntutan yang harus dilayani lebih dulu. */
++  dasar: string;
++  /** Tuntutan lanjutan yang bergantung padanya. */
++  lanjutan: string;
++  /** Label manusia — dipakai di arahan untuk penyusun DAN di pesan galat, satu
++   *  sumber, supaya prompt dan validator tidak bisa menyimpang diam-diam. */
++  label_dasar: string;
++  label_lanjutan: string;
++  /** Semester tempat `lanjutan` wajib ditempatkan. null = tidak diatur. */
++  semester_lanjutan: number | null;
++};
++
++export const ATURAN_PROGRESI_KESIAPAN: Record<string, AturanProgresi[]> = {
++  jauh_di_bawah: [
++    {
++      dasar: 'BIE-E25-MB-2', lanjutan: 'BIE-E25-MB-3',
++      label_dasar: 'mengungkapkan pendapat secara lisan',
++      label_lanjutan: 'mempertahankan argumen secara lisan',
++      semester_lanjutan: 2,
++    },
++    {
++      dasar: 'BIE-E25-MP-4', lanjutan: 'BIE-E25-MP-5',
++      label_dasar: 'mengungkapkan pendapat secara tertulis',
++      label_lanjutan: 'mempertahankan argumen secara tertulis',
++      semester_lanjutan: 2,
++    },
++  ],
++};
++
++/** Aturan progresi yang benar-benar berlaku: hanya untuk kesiapan yang punya
++ *  entri, dan hanya aturan yang KEDUA tuntutannya ada di acuan yang dipakai. */
++export function aturanProgresiUntuk(
++  kesiapan: string,
++  tuntutanAda: Iterable<string>,
++): AturanProgresi[] {
++  const ada = new Set([...tuntutanAda].map(String));
++  return (ATURAN_PROGRESI_KESIAPAN[kesiapan] ?? [])
++    .filter(a => ada.has(a.dasar) && ada.has(a.lanjutan));
++}
++
++/** Arahan untuk penyusun, DITURUNKAN dari tabel di atas. Validator memeriksa
++ *  aturan yang sama persis; kalimat ini tidak pernah ditulis tangan. */
++export function arahanProgresiKesiapan(aturan: AturanProgresi[]): string | null {
++  if (!aturan.length) return null;
++  const baris = aturan.map(a =>
++    `- bangun kemampuan ${a.label_dasar} SEBELUM ${a.label_lanjutan}; keduanya BUKAN satu TP` +
++    (a.semester_lanjutan ? `, dan ${a.label_lanjutan} ditempatkan Semester ${a.semester_lanjutan}` : '') + '.');
++  return 'Urutan yang WAJIB dipatuhi untuk kelas jauh di bawah:\n' + baris.join('\n');
++}
++
+ export const LABEL_BAHASA: Record<string, string> = {
+   indonesia:         'Pengantar sepenuhnya Bahasa Indonesia.',
+   indonesia_dominan: 'Pengantar Bahasa Indonesia; bahasa mata pelajaran dipakai untuk contoh dan latihan.',
+@@ -1229,6 +1310,14 @@
+   // Arahan kausal per tingkat kesiapan (Pass 5). Semantic test S1↔S2: tanpa
+   // arahan ini kesiapan rendah hanya berubah jadi kata "sederhana" di judul.
+   kesiapan.push(ARAHAN_KESIAPAN[tk] ?? ARAHAN_KESIAPAN.belum_diketahui);
++  // Kebijakan progresi untuk kesiapan ekstrem. Kalimatnya DITURUNKAN dari
++  // ATURAN_PROGRESI_KESIAPAN — tabel yang sama yang ditegakkan validator
++  // (RDS1–RDS6), supaya yang diminta dari penyusun dan yang diperiksa sesudahnya
++  // tidak pernah bisa berbeda. Tujuannya benar di panggilan pertama; validator
++  // adalah jaring pengaman, bukan jalur utama.
++  const arahanProgresi = arahanProgresiKesiapan(
++    aturanProgresiUntuk(tk, tuntutanWajib(acuan).map(x => x.id)));
++  if (arahanProgresi) kesiapan.push(arahanProgresi);
+   kesiapan.push(dasarProfilMurid(cd));
+   const kondisi = teks(jawaban(cd, 'PROFIL_SISWA', 'kondisi_murid_uraian'));
+   if (kondisi) kesiapan.push('Kondisi murid yang guru catat: ' + kondisi);
+@@ -1523,6 +1612,10 @@
+   /** Pass 5. Keluaran penyusunan BARU: field `tipe` lama dibuang dari entri,
+    *  karena setiap TP ATP baru adalah bagian wajib ATP. */
+   skema_baru?: boolean;
++  /** Tingkat kesiapan murid apa adanya. Menyalakan aturan progresi kesiapan
++   *  (RDS1–RDS6) HANYA untuk tingkat yang punya entri di
++   *  ATURAN_PROGRESI_KESIAPAN. undefined atau tingkat lain = tidak diperiksa. */
++  kesiapan?: string;
+ };
+ 
+ export function validasiAtp(raw: unknown, s: SyaratValidasi): HasilValidasi {
+@@ -1696,6 +1789,71 @@
+     }
+   }
+ 
++  // ── PROGRESI KESIAPAN (RDS) ──
++  //
++  // Berlaku HANYA untuk tingkat kesiapan yang punya entri di
++  // ATURAN_PROGRESI_KESIAPAN — hari ini hanya `jauh_di_bawah`. Kesiapan lain
++  // melewati blok ini seluruhnya dan tidak bisa gagal karenanya.
++  //
++  // ATURAN OCCURRENCE. Satu tuntutan boleh muncul di beberapa TP. Yang dipakai
++  // membandingkan urutan dan semester adalah KEMUNCULAN PERTAMA — TP bernomor
++  // terkecil yang menyebut tuntutan itu. Alasannya: yang dijaga adalah kapan
++  // sebuah kemampuan mulai DITUNTUT dari murid, bukan kapan ia terakhir
++  // dilatih. Pengulangan sesudahnya bebas dan tidak diperiksa.
++  //
++  // Kode galat dipetakan per aturan: aturan ke-i memakai RDS(3i+1) urutan,
++  // RDS(3i+2) penggabungan, RDS(3i+3) semester. Untuk kedua aturan yang berlaku
++  // sekarang itu berarti MB-2/MB-3 → RDS1–RDS3, MP-4/MP-5 → RDS4–RDS6.
++  const aturanProgresi = aturanProgresiUntuk(s.kesiapan ?? '', s.tuntutan_diizinkan);
++  if (aturanProgresi.length) {
++    /** Nomor TP kemunculan pertama sebuah tuntutan, null bila tidak ada. */
++    const pertama = (id: string): TpEntry | null => {
++      for (const tp of entries) {
++        const t = (Array.isArray(tp?.tuntutan) ? tp.tuntutan : []).map(String);
++        if (t.includes(id)) return tp;
++      }
++      return null;
++    };
++    const nomorAman = (tp: TpEntry) =>
++      Number.isInteger(Number(tp.nomor)) ? Number(tp.nomor) : entries.indexOf(tp) + 1;
++
++    aturanProgresi.forEach((a, i) => {
++      const kodeUrutan   = `RDS${i * 3 + 1}`;
++      const kodeGabung   = `RDS${i * 3 + 2}`;
++      const kodeSemester = `RDS${i * 3 + 3}`;
++
++      // TP yang menumpuk keduanya diperiksa lebih dulu: ia satu-satunya bentuk
++      // pelanggaran yang membuat "urutan" tidak punya arti.
++      const bersama = entries.find(tp => {
++        const t = (Array.isArray(tp.tuntutan) ? tp.tuntutan : []).map(String);
++        return t.includes(a.dasar) && t.includes(a.lanjutan);
++      });
++      if (bersama) {
++        E(kodeGabung,
++          `TP ${bersama.nomor}: ${a.label_dasar} (${a.dasar}) dan ${a.label_lanjutan} (${a.lanjutan}) ` +
++          `digabung dalam satu TP; untuk kelas jauh di bawah keduanya harus TP terpisah`);
++      }
++
++      const tpDasar = pertama(a.dasar);
++      const tpLanjutan = pertama(a.lanjutan);
++      // Tuntutan yang sama sekali tidak terpetakan sudah dilaporkan C5 —
++      // jangan menumpuk galat kedua untuk sebab yang sama.
++      if (!tpDasar || !tpLanjutan) return;
++
++      if (!bersama && nomorAman(tpLanjutan) < nomorAman(tpDasar)) {
++        E(kodeUrutan,
++          `TP ${tpLanjutan.nomor} menuntut ${a.label_lanjutan} (${a.lanjutan}) sebelum TP ${tpDasar.nomor} ` +
++          `yang membangun ${a.label_dasar} (${a.dasar}); untuk kelas jauh di bawah urutannya harus terbalik`);
++      }
++
++      if (a.semester_lanjutan !== null && Number(tpLanjutan.semester) !== a.semester_lanjutan) {
++        E(kodeSemester,
++          `TP ${tpLanjutan.nomor}: ${a.label_lanjutan} (${a.lanjutan}) muncul pertama kali di semester ` +
++          `${tpLanjutan.semester}; untuk kelas jauh di bawah ia ditempatkan Semester ${a.semester_lanjutan}`);
++      }
++    });
++  }
++
+   // ── BAHASA DAN KETERGANTUNGAN BAHAN ──
+   for (const tp of entries) {
+     const judul = String(tp.judul ?? '');
+@@ -1933,6 +2091,9 @@
+   delegasi: HasilDelegasi;
+   dasar_tersedia: Set<string>;
+   prioritas: { prioritas: string; arti: string; arahan: string }[];
++  /** Tingkat kesiapan murid. Menyalakan RDS1–RDS6 bila tingkatnya punya entri
++   *  di ATURAN_PROGRESI_KESIAPAN. Dibiarkan kosong = tidak diperiksa. */
++  kesiapan?: string;
+ }): SyaratValidasi {
+   const kategori: Record<string, string[]> = {};
+   for (const w of p.wajib) {
+@@ -1952,6 +2113,7 @@
+     prioritas_wajib:    p.prioritas,
+     tuntutan_kategori:  kategori,
+     skema_baru:         true,
++    kesiapan:           p.kesiapan,
+   };
+ }
+ 
+--- a/supabase/functions/generate-atp/index.ts
++++ b/supabase/functions/generate-atp/index.ts
+@@ -742,6 +742,7 @@
+   const syarat = bangunSyaratValidasi({
+     alokasi, target_tp: targetTp.target, elemen: elemenCp, wajib,
+     delegasi, dasar_tersedia: dasarBoleh, prioritas: prioritasDipilih(cd),
++    kesiapan,
+   });
+ 
+   let hasilSusun: Awaited<ReturnType<typeof susunDenganSatuPerbaikan>>;
+--- a/tests/atp-kontrak.test.ts
++++ b/tests/atp-kontrak.test.ts
+@@ -31,7 +31,7 @@
+   DELEGASI_SEMANTIK, DASAR_KETERANGAN, dasarTersedia, pisahkanKeluaran,
+   statusLayanan, cakupanLayanan, periksaParitasCp,
+   VERSI_CP_BERLAKU, VERSI_CP_DICABUT,
+-  METODE_PENGURUTAN, LABEL_KONTEKS_TUGAS,
++  METODE_PENGURUTAN, LABEL_KONTEKS_TUGAS, aturanProgresiUntuk,
+   type Alokasi, type ElemenCp, type TpEntry,
+ } from '../supabase/functions/generate-atp/kontrak.ts';
+ import { ACUAN_CP } from '../supabase/functions/generate-atp/acuan-cp.ts';
+@@ -1645,6 +1645,10 @@
+   return bangunSyaratValidasi({
+     alokasi, target_tp: target, elemen: ELEMEN_BI, wajib: WAJIB_OBJ_BI,
+     delegasi, dasar_tersedia: dasar, prioritas: prioritasDipilih(data),
++    // Dibaca dari data yang sama seperti di produksi — bukan diberikan
++    // terpisah, supaya aturan progresi kesiapan menyala di uji persis pada
++    // kondisi ia menyala bagi guru.
++    kesiapan: String((data.PROFIL_SISWA as Record<string, unknown> | undefined)?.tingkat_kemampuan_awal ?? ''),
+   });
+ }
+ 
+@@ -2002,3 +2006,190 @@
+   assert(sp.includes('label metadata "fiksi"/"nonfiksi" hanya untuk membuktikan kategori'),
+     'aturan bahasa judul RT-003 tidak ada di prompt');
+ });
++
++// ═════════════════════════════════════════════════════════════════════════════
++// AM — PROGRESI KESIAPAN: jaminan, bukan harapan
++// ═════════════════════════════════════════════════════════════════════════════
++//
++// Menutup satu mode kegagalan yang TERBUKTI berulang di
++// docs/ATP-READINESS-ROBUSTNESS-REPORT.md: pada kesiapan `jauh_di_bawah`
++// penyusun kadang menggabungkan "mengungkapkan pendapat" dengan "mempertahankan
++// argumen" dalam satu TP dan memajukannya ke Semester 1, padahal baseline yang
++// muridnya lebih siap justru memisahkan keduanya dan menundanya ke Semester 2.
++//
++// AM7 menjaga arah sebaliknya: aturan ini kebijakan untuk satu kondisi ekstrem,
++// BUKAN aturan universal Bahasa Inggris. Kesiapan lain tidak boleh terkunci.
++
++const JAUH = { PROFIL_SISWA: { tingkat_kemampuan_awal: 'jauh_di_bawah' } };
++
++/** Memindahkan tuntutan ke TP tertentu, lalu menambal TP yang jadi kosong
++ *  supaya yang diuji benar-benar RDS — bukan C3 yang kebetulan ikut menyala. */
++function taruh(o: { tp: TpEntry[] }, penempatan: Record<string, number>) {
++  const tujuan = new Set(Object.values(penempatan).map(n => n - 1));
++  const dipindah = new Set(Object.keys(penempatan));
++
++  // TP tujuan diisi PERSIS tuntutan yang diminta. Tuntutan lain yang kebetulan
++  // menempatinya tergusur, dan dicarikan rumah baru di bawah — kalau tidak,
++  // K2 (tiga tuntutan) atau C5 (tuntutan hilang) yang menyala, bukan RDS.
++  const tergusur: string[] = [];
++  o.tp.forEach((tp, i) => {
++    const punya = (Array.isArray(tp.tuntutan) ? tp.tuntutan : []).map(String);
++    if (tujuan.has(i)) {
++      tergusur.push(...punya.filter(x => !dipindah.has(x)));
++      tp.tuntutan = [];
++    } else {
++      tp.tuntutan = punya.filter(x => !dipindah.has(x));
++    }
++  });
++  for (const [id, nomor] of Object.entries(penempatan)) {
++    o.tp[nomor - 1].tuntutan = [...(o.tp[nomor - 1].tuntutan ?? []), id];
++  }
++
++  /** Menaruh satu tuntutan di TP mana pun yang masih punya ruang. */
++  const rumahkan = (id: string) => {
++    const t = o.tp.find((tp, i) => !tujuan.has(i) && (tp.tuntutan ?? []).length < MAKS_TUNTUTAN_PER_TP);
++    assert(t, `fixture: tidak ada TP tersisa untuk ${id}`);
++    t!.tuntutan = [...(t!.tuntutan ?? []), id];
++    // Tuntutan berkategori menuntut fiksi DAN nonfiksi di TP yang merujuknya.
++    if (TUNTUTAN_BERKATEGORI.includes(id)) t!.kategori_teks = ['fiksi', 'nonfiksi'];
++  };
++  for (const id of [...new Set(tergusur)]) if (!o.tp.some(t => (t.tuntutan ?? []).includes(id))) rumahkan(id);
++  // TP yang jadi kosong tetap harus menyebut sekurang-kurangnya satu tuntutan.
++  for (const t of o.tp) {
++    if ((t.tuntutan ?? []).length === 0) {
++      t.tuntutan = ['BIE-E25-MM-1'];
++      t.kategori_teks = ['fiksi', 'nonfiksi'];
++    }
++  }
++  return o;
++}
++
++/** Nomor TP pertama pada sebuah semester. */
++function nomorDiSemester(o: { tp: TpEntry[] }, semester: number): number {
++  const t = o.tp.find(x => Number(x.semester) === semester);
++  assert(t, `fixture: tidak ada TP di semester ${semester}`);
++  return Number(t!.nomor);
++}
++
++/** Kode galat RDS yang menyala. */
++function kodeRds(errors: string[]): string[] {
++  return errors.map(e => (e.match(/^\[(RDS\d)\]/) ?? [])[1]).filter(Boolean) as string[];
++}
++
++Deno.test('AM1: jauh_di_bawah — MB-2 dan MB-3 dalam satu TP ditolak', () => {
++  const data = cd(JAUH);
++  const o = taruh(keluaranKanonik(data), { 'BIE-E25-MB-2': 8, 'BIE-E25-MB-3': 8 });
++  const v = validasiAtp(o, syaratP5(data));
++  assert(!v.valid, 'MB-2+MB-3 satu TP lolos');
++  assert(kodeRds(v.errors).includes('RDS2'), `RDS2 tidak menyala: ${v.errors.join('; ')}`);
++});
++
++Deno.test('AM2: jauh_di_bawah — MB-3 di Semester 1 ditolak', () => {
++  const data = cd(JAUH);
++  const dasar = keluaranKanonik(data);
++  const s1 = nomorDiSemester(dasar, 1);
++  const o = taruh(dasar, { 'BIE-E25-MB-2': s1, 'BIE-E25-MB-3': s1 + 1 });
++  assertEquals(Number(o.tp[s1].semester), 1, 'fixture: TP penampung MB-3 bukan semester 1');
++  const v = validasiAtp(o, syaratP5(data));
++  assert(!v.valid, 'MB-3 di semester 1 lolos');
++  assert(kodeRds(v.errors).includes('RDS3'), `RDS3 tidak menyala: ${v.errors.join('; ')}`);
++});
++
++Deno.test('AM3: jauh_di_bawah — MB-2 lebih dahulu, MB-3 Semester 2 diterima', () => {
++  const data = cd(JAUH);
++  const dasar = keluaranKanonik(data);
++  const s2 = nomorDiSemester(dasar, 2);
++  const o = taruh(dasar, {
++    'BIE-E25-MB-2': s2 - 1, 'BIE-E25-MB-3': s2 + 1,
++    'BIE-E25-MP-4': s2 + 2, 'BIE-E25-MP-5': s2 + 3,
++  });
++  const v = validasiAtp(o, syaratP5(data));
++  assertEquals(kodeRds(v.errors), [], `RDS menyala padahal urutannya benar: ${v.errors.join('; ')}`);
++  assert(v.valid, v.errors.join('; '));
++});
++
++Deno.test('AM4: jauh_di_bawah — MP-4 dan MP-5 dalam satu TP ditolak', () => {
++  const data = cd(JAUH);
++  const o = taruh(keluaranKanonik(data), { 'BIE-E25-MP-4': 9, 'BIE-E25-MP-5': 9 });
++  const v = validasiAtp(o, syaratP5(data));
++  assert(!v.valid, 'MP-4+MP-5 satu TP lolos');
++  assert(kodeRds(v.errors).includes('RDS5'), `RDS5 tidak menyala: ${v.errors.join('; ')}`);
++});
++
++Deno.test('AM5: jauh_di_bawah — MP-5 di Semester 1 ditolak, dan urutan terbalik tertangkap', () => {
++  const data = cd(JAUH);
++  const dasar = keluaranKanonik(data);
++  const s1 = nomorDiSemester(dasar, 1);
++  const s2 = nomorDiSemester(dasar, 2);
++  // MP-5 mendahului MP-4 DAN berada di semester 1: dua pelanggaran berbeda.
++  const o = taruh(dasar, { 'BIE-E25-MP-5': s1 + 1, 'BIE-E25-MP-4': s2 + 1 });
++  const v = validasiAtp(o, syaratP5(data));
++  assert(!v.valid, 'MP-5 di semester 1 lolos');
++  const kode = kodeRds(v.errors);
++  assert(kode.includes('RDS6'), `RDS6 tidak menyala: ${v.errors.join('; ')}`);
++  assert(kode.includes('RDS4'), `RDS4 tidak menyala padahal MP-5 mendahului MP-4: ${v.errors.join('; ')}`);
++});
++
++Deno.test('AM6: jauh_di_bawah — MP-4 lebih dahulu, MP-5 Semester 2 diterima', () => {
++  const data = cd(JAUH);
++  const dasar = keluaranKanonik(data);
++  const s2 = nomorDiSemester(dasar, 2);
++  const o = taruh(dasar, {
++    'BIE-E25-MB-2': s2 - 1, 'BIE-E25-MB-3': s2,
++    'BIE-E25-MP-4': s2 + 1, 'BIE-E25-MP-5': s2 + 2,
++  });
++  const v = validasiAtp(o, syaratP5(data));
++  assertEquals(kodeRds(v.errors), [], `RDS menyala padahal urutannya benar: ${v.errors.join('; ')}`);
++  assert(v.valid, v.errors.join('; '));
++});
++
++Deno.test('AM7: sedikit_di_bawah — fixture yang sama TIDAK terkena aturan kesiapan', () => {
++  const jauh = cd(JAUH);
++  const biasa = cd();   // sedikit_di_bawah
++  assertEquals(
++    String((biasa.PROFIL_SISWA as Record<string, unknown>).tingkat_kemampuan_awal), 'sedikit_di_bawah');
++
++  const s1 = nomorDiSemester(keluaranKanonik(biasa), 1);
++  const penempatan = { 'BIE-E25-MB-2': s1 + 1, 'BIE-E25-MB-3': s1 };   // terbalik, keduanya semester 1
++
++  // jauh_di_bawah: ditolak.
++  const vJauh = validasiAtp(taruh(keluaranKanonik(jauh), penempatan), syaratP5(jauh));
++  assert(!vJauh.valid && kodeRds(vJauh.errors).length > 0, 'fixture tidak menjatuhkan jauh_di_bawah');
++
++  // sedikit_di_bawah: fixture yang SAMA lolos.
++  const vBiasa = validasiAtp(taruh(keluaranKanonik(biasa), penempatan), syaratP5(biasa));
++  assertEquals(kodeRds(vBiasa.errors), [], 'aturan kesiapan ikut mengunci sedikit_di_bawah');
++  assert(vBiasa.valid, vBiasa.errors.join('; '));
++
++  // Dan MB-2+MB-3 dalam satu TP pun tetap sah di luar jauh_di_bawah —
++  // fixture yang PERSIS sama dengan yang dijatuhkan AM1.
++  const gabung2 = validasiAtp(
++    taruh(keluaranKanonik(biasa), { 'BIE-E25-MB-2': 8, 'BIE-E25-MB-3': 8 }), syaratP5(biasa));
++  assertEquals(kodeRds(gabung2.errors), []);
++  assert(gabung2.valid, gabung2.errors.join('; '));
++});
++
++Deno.test('AM8: arahan untuk penyusun diturunkan dari tabel yang ditegakkan validator', () => {
++  // Satu sumber, dua pemakai: kalau tabelnya berubah, kalimat di prompt ikut
++  // berubah dengan sendirinya. Tidak ada kembar yang bisa menyimpang diam-diam.
++  const aturan = aturanProgresiUntuk('jauh_di_bawah', WAJIB_BI);
++  assertEquals(aturan.length, 2, 'kedua aturan progresi harus berlaku untuk Bahasa Inggris Fase E');
++
++  // gabung() menormalkan ke huruf kecil — bandingkan dalam bentuk yang sama.
++  const kirim = gabung(konteksDari(cd(JAUH)).kesiapan_murid);
++  for (const a of aturan) {
++    assert(kirim.includes(a.label_dasar.toLowerCase()), `arahan tidak menyebut "${a.label_dasar}"`);
++    assert(kirim.includes(a.label_lanjutan.toLowerCase()), `arahan tidak menyebut "${a.label_lanjutan}"`);
++    assert(kirim.includes(`semester ${a.semester_lanjutan}`), 'arahan tidak menyebut semester penempatan');
++  }
++  assert(kirim.includes('bukan satu tp'), 'arahan tidak melarang penggabungan TP');
++
++  // Kesiapan lain tidak menerima arahan ini.
++  assertEquals(aturanProgresiUntuk('sedikit_di_bawah', WAJIB_BI).length, 0);
++  const kirimBiasa = gabung(konteksDari(cd()).kesiapan_murid);
++  assert(!kirimBiasa.includes('wajib dipatuhi untuk kelas jauh di bawah'),
++    'arahan kesiapan ekstrem bocor ke kesiapan lain');
++
++  // Mapel yang tidak punya ID itu tidak terkena aturannya sama sekali.
++  assertEquals(aturanProgresiUntuk('jauh_di_bawah', ['XYZ-1', 'XYZ-2']).length, 0);
++});
+--- a/tests/atp-semantic-harness.ts
++++ b/tests/atp-semantic-harness.ts
+@@ -259,6 +259,7 @@
+   const syarat = bangunSyaratValidasi({
+     alokasi, target_tp: targetTp.target, elemen: ELEMEN_CP, wajib: WAJIB,
+     delegasi, dasar_tersedia: dasarBoleh, prioritas: prioritasDipilih(cd),
++    kesiapan,
+   });
+ 
+   return { cd, layanan, paritas, alokasi, delegasi, konteks, targetTp, jpOp, userMessage, anggaranToken, syarat };

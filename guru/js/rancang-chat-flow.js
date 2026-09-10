@@ -1,4 +1,4 @@
-// v=chat-20260906f12
+// v=chat-20260910-atp1
 'use strict';
 
 const opts = pairs => pairs.map(([value, label]) => ({ value, label }));
@@ -49,131 +49,178 @@ const PROGRAM_KEAHLIAN_PAIRS = [
 ];
 
 const RANCANG_FLOW = {
+  // ══════════════════════════════════════════════════════════════════════════
+  // ALUR PERTANYAAN ATP — 21 definisi (A1–A20 + A15a)
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // Sumber tunggal: docs/SPEC-ATP-MODUL-BERBASIS-TEKS.md §4. Teks, pilihan,
+  // percabangan, dan maksudnya diambil dari sana — bukan dirancang ulang.
+  //
+  // MENGGANTIKAN 48 pertanyaan ATP lama. Yang dibuang bukan sekadar dipangkas
+  // demi ringkas; masing-masing punya sebab:
+  //
+  //   kegiatan_sudah_dikurangi, kegiatan_khusus, jp_kegiatan_khusus
+  //     Kegiatan khusus ditanyakan dalam JP sementara cadangan ditanyakan dalam
+  //     minggu. Pengurang dalam minggu selalu kelipatan JP per minggu; pengurang
+  //     dalam JP tidak pernah dijamin begitu. SELURUH kelas masalah "ATP
+  //     mustahil dipenuhi" lahir dari perbedaan satuan itu. A12 menyelesaikannya
+  //     di hulu: yang ditanyakan adalah minggu pembelajaran BERSIH — libur,
+  //     kegiatan sekolah, dan ujian sudah dikurangi guru sebelum ia mengetik.
+  //
+  //   perlengkapan_kelas
+  //     ATP dan Modul berbasis teks (SPEC §1). Tidak ada alat yang perlu
+  //     ditanyakan, karena tidak ada alat yang boleh dituntut. Larangannya kini
+  //     mutlak dan diperiksa validator (kontrak.ts POLA_BAHAN_TERLARANG), bukan
+  //     bergantung pada apa yang kebetulan guru centang.
+  //
+  //   status_data_awal, tindakan_tanpa_data, sebagian_data_uraian,
+  //   perkiraan_kemampuan_awal, cara_pemetaan, jp_pemetaan
+  //     Enam layar yang berputar di tempat yang sama: guru menyebut keadaan
+  //     muridnya, lalu ditanya apakah ada datanya, lalu ditanya bagaimana
+  //     mengukurnya, lalu ditanya berapa jam untuk mengukurnya. A5 menanyakan
+  //     satu hal yang benar-benar dipakai — DASAR informasi kesiapan — karena
+  //     itulah yang menentukan apakah profil murid boleh ditampilkan sebagai
+  //     bukti atau harus ditandai sebagai asumsi (SPEC §2.1).
+  //
+  //   kesulitan_mode, kesulitan_teks_guru
+  //     Diganti A6 (kondisi yang perlu dicatat) dan A7 (bantuan konkret yang
+  //     diperlukan) — dua hal berbeda yang dulu tercampur jadi satu tebakan.
+  //
+  //   target_akhir_mode, target_akhir_teks, penguatan_elemen,
+  //   target_kemandirian, konfirmasi_target
+  //     Seluruh fase TARGET_FASE. Target akhir fase SUDAH dinyatakan CP; meminta
+  //     guru menuliskannya ulang berarti mengundang target yang bertentangan
+  //     dengan acuan resminya. Penekanan diatur A16.
+  //
+  //   timeline_tka, target_sekolah_detail, ranah_dunia_kerja, kebutuhan_bidang,
+  //   batas_konteks, konfirmasi_dudi
+  //     Empat daftar centang yang jawabannya hanya menjadi baris hiasan di
+  //     prompt. A17 dan A18 menggantikannya dengan dua keputusan yang benar-benar
+  //     mengubah isi TP.
+  //
+  // Setiap pertanyaan di bawah WAJIB punya entri di KONTRAK_PERTANYAAN
+  // (supabase/functions/generate-atp/kontrak.ts). tests/atp-kontrak.test.ts
+  // menggagalkan diri kalau ada yang tertinggal di salah satu sisi — supaya
+  // "pertanyaan yang berbohong" tidak bisa lahir lagi tanpa ketahuan.
+
   KONTEKS_CP: [
-    pilihan('konfirmasi_program_keahlian',
-      'MiClass menemukan data kelas dan CP berikut:\n\n{{mapel}} · {{nama_kelas}} · Fase {{fase}}\nProgram Keahlian: {{program_keahlian}}\n\nATP akan menggunakan konteks dunia kerja yang relevan dengan program keahlian tersebut.\n\nApakah pemahaman ini sudah benar?', [
-        ['ya', 'Ya, sudah benar'],
-        ['tidak', 'Tidak, program keahlian perlu dikoreksi'],
-      ], { helpText: 'Program keahlian menentukan konteks dunia kerja di seluruh ATP dan Modul Ajar.' }),
+    // A1 — satu layar, bukan dua.
+    //
+    // Dulu konfirmasi program keahlian dan konfirmasi CP adalah dua pertanyaan
+    // berurutan yang menampilkan blok identitas yang sama persis. A1
+    // menggabungkannya dan menambah satu rute yang sebelumnya tidak ada:
+    // MENGHENTIKAN proses. Sampai sekarang "CP yang muncul bukan yang saya
+    // gunakan" hanya menampilkan penjelasan lalu mengembalikan guru ke
+    // pertanyaan yang sama — ia tidak punya jalan keluar selain menyetujui CP
+    // yang ia sendiri nyatakan salah.
+    pilihan('konfirmasi_konteks',
+      'MiClass akan menyusun ATP untuk:\n\n{{mapel}} · {{nama_kelas}} · Fase {{fase}}\nProgram keahlian: {{program_keahlian}}\n\nCapaian Pembelajaran resmi untuk mata pelajaran dan fase inilah yang menjadi dasar seluruh Tujuan Pembelajaran.\n\nApakah data ini sudah sesuai?', [
+        ['sesuai',          'Ya, sudah sesuai — lanjutkan'],
+        ['perbaiki_data',   'Perbaiki data kelas atau program keahlian'],
+        ['lihat_cp',        'Lihat CP lengkap dulu'],
+        ['cp_tidak_sesuai', 'CP ini bukan yang saya gunakan'],
+      ], { helpText: 'ATP mencakup satu fase penuh dan seluruh tuntutan CP-nya.' }),
     pilihan('pilih_program_keahlian',
       'Pilih program keahlian kelas ini:',
       PROGRAM_KEAHLIAN_PAIRS,
-      { condition: { question_id: 'konfirmasi_program_keahlian', value: 'tidak' },
+      { condition: { question_id: 'konfirmasi_konteks', value: 'perbaiki_data' },
         helpText: 'Pilih dari daftar atau pilih opsi paling bawah jika tidak ada.' }),
     { id: 'program_keahlian_teks_bebas', kind: 'teks_bebas',
       prompt: 'Tuliskan nama program keahlian kelas ini:',
       helpText: 'Tulis nama lengkap sesuai kurikulum. Contoh: Kimia Analisis, Nautika Kapal Penangkap Ikan, Agribisnis Tanaman Pangan dan Hortikultura.',
       skippable: false,
       condition: { question_id: 'pilih_program_keahlian', value: '__lainnya__' } },
-    pilihan('konfirmasi_konteks',
-      'Data kelas dan CP yang akan digunakan:\n\n{{mapel}} · {{nama_kelas}} · Fase {{fase}}\nProgram keahlian: {{program_keahlian}}\n\nApakah Capaian Pembelajaran yang akan digunakan sudah sesuai?', [
-        ['sesuai', 'Ya, CP sudah sesuai — lanjutkan'],
-        ['lihat_cp', 'Lihat ringkasan isi CP terlebih dahulu'],
-        ['cp_tidak_sesuai', 'CP yang muncul bukan yang saya gunakan'],
-      ], { helpText: 'ATP mencakup satu fase penuh dan seluruh elemen CP.' }),
   ],
 
   // ── PROFIL KELAS ────────────────────────────────────────────────────────
-  // Tiga fakta yang melekat pada KELAS, bukan pada modul. Disimpan di
-  // rancang_settings (migration 20260908000001), ditanyakan SEKALI per kelas,
-  // lalu dipakai ulang oleh ATP maupun setiap Modul.
+  // Fakta yang melekat pada KELAS, bukan pada satu ATP atau satu modul.
+  // Disimpan di rancang_settings, ditanyakan sekali per kelas, dipakai ulang.
   //
-  // Sebelum 8 September 2026 perlengkapan dan jumlah murid ditanyakan di jalur
-  // Modul, sehingga guru dengan enam modul menjawabnya enam kali — dan bisa
-  // menjawab berbeda-beda untuk kelas yang sama. Lebih buruk: generate-atp
-  // tidak pernah menerimanya, sehingga ATP melahirkan TP seperti "Menyimak
-  // kosakata alat jahit dari video tutorial" untuk kelas yang mungkin tanpa
-  // proyektor — lalu mesin modul dilarang menyebut video.
+  // Perlengkapan kelas DIBUANG dari sini — lihat catatan di kepala blok ini.
   PROFIL_KELAS: [
-    jamak('perlengkapan_kelas', 'Perlengkapan apa yang benar-benar tersedia di kelas ini? Pilih semua yang ada.', [
-      ['proyektor',      'Proyektor / LCD'],
-      ['laptop_guru',    'Laptop atau komputer guru'],
-      ['komputer_murid', 'Komputer atau laptop untuk murid'],
-      ['hp_murid',       'HP murid boleh dipakai untuk belajar'],
-      ['internet',       'Koneksi internet yang bisa diandalkan'],
-      ['speaker',        'Speaker atau pengeras suara'],
-      ['lab',            'Lab atau bengkel praktik'],
-      ['printer',        'Printer atau mesin fotokopi untuk menggandakan lembar kerja'],
-      ['tidak_ada',      'Tidak ada — hanya papan tulis dan alat tulis'],
-    ], { constraints: { exclusive: ['tidak_ada'] },
-      helpText: 'Ditanyakan sekali untuk kelas ini. ATP dan semua Modul hanya akan menyebut alat yang Anda centang di sini.' }),
-    angka('jumlah_murid_kelas', 'Berapa murid di kelas ini?', 10, 60,
-      { helpText: 'Menentukan apakah kegiatan bisa dilakukan serentak atau bergantian.' }),
-    // Sebelum pertanyaan ini ada, language_policy di modul dihasilkan AI tanpa
-    // satu pun aturan di SYSTEM_PROMPT dan tanpa satu pun masukan guru. Pada
-    // modul 7 September 2026 ia memutuskan sendiri "Murid diarahkan menggunakan
-    // Bahasa Inggris penuh" untuk kelas yang gurunya menyatakan muridnya
-    // "sedikit di bawah". Kuncinya generik ("target"), bukan menyebut nama
-    // bahasa — label di layar yang menyesuaikan mapel.
-    pilihan('bahasa_pengantar', 'Bahasa apa yang Anda pakai saat mengajar kelas ini?', [
-      ['indonesia',         'Bahasa Indonesia sepenuhnya'],
-      ['indonesia_dominan', 'Bahasa Indonesia — bahasa target hanya untuk contoh dan latihan'],
-      ['campur',            'Campur — penjelasan Indonesia, instruksi kelas bahasa target'],
-      ['target_dominan',    'Bahasa target sebagian besar waktu, Indonesia saat murid kesulitan'],
-      ['target_penuh',      'Bahasa target sepenuhnya'],
-      ['rekomendasi',       'Minta rekomendasi MiClass'],
-    ], { aiRecommendation: true,
-      helpText: 'Menentukan bahasa naskah dan instruksi untuk murid di seluruh Modul kelas ini.' }),
+    // A2
+    angka('jumlah_murid_kelas', 'Berapa murid di kelas ini?', 1, 60,
+      { helpText: 'Menentukan apakah sebuah tujuan masih mungkin dicapai dan dinilai dalam jam yang tersedia.' }),
+    // A3 — dukungan bahasa, bukan hanya bahasa pengantar.
+    //
+    // Kunci SENGAJA generik ("target"), bukan menyebut nama bahasa: gerbang Tab
+    // Rancang berlaku untuk seluruh guru mapel umum SMK, dan menanam
+    // 'inggris_penuh' di sini berarti satu migration lagi begitu guru Bahasa
+    // Indonesia atau Bahasa Jepang masuk.
+    pilihan('bahasa_pengantar',
+      'Bahasa pengantar dan dukungan bahasa apa yang membantu murid memahami pelajaran ini?', [
+        ['indonesia',              'Bahasa Indonesia sepenuhnya'],
+        ['indonesia_dominan',      'Bahasa Indonesia — istilah dan contoh bahasa lain bila relevan'],
+        ['campur',                 'Campuran Bahasa Indonesia dan bahasa lain yang relevan'],
+        ['target_dominan',         'Sebagian besar bahasa lain yang relevan'],
+        ['target_penuh',           'Sepenuhnya bahasa lain yang relevan'],
+        ['tentukan_saat_menyusun', 'Tentukan saat menyusun'],
+      ], { helpText: 'Menentukan bahasa judul TP dan bahasa seluruh Modul kelas ini.' }),
   ],
 
-  PRIORITAS: [
-    // Cara mengurutkan TP sepanjang fase.
+  PROFIL_SISWA: [
+    // A4 — kunci nilai TIDAK BOLEH diubah.
     //
-    // Sampai 8 September 2026 generate-atp menanam SATU metode mati di
-    // index.ts:167 — "dari kompetensi dasar ke kompleks" — dan guru tidak
-    // pernah ditanya. Padahal Panduan Pembelajaran dan Asesmen 2025 hal. 23-24
-    // (Tabel 3.3 "Cara-Cara Menyusun Alur Tujuan Pembelajaran") menyediakan
-    // ENAM metode resmi beserta contohnya. Untuk Bahasa Inggris SMK, Prosedural
-    // dan Scaffolding sering justru lebih tepat daripada Mudah-ke-Sulit.
-    //
-    // Label memakai bahasa guru dengan contoh; istilah resminya tetap dicetak
-    // di dokumen ATP (§23.2 poin 3 — larangan jargon berlaku untuk pertanyaan
-    // di chat, bukan untuk dokumen yang guru arsipkan).
-    pilihan('metode_pengurutan', 'Bagaimana urutan materi disusun sepanjang fase ini?', [
-      ['mudah_sulit',      'Dari yang mudah ke yang lebih sulit — kata pendek dulu, baru kalimat panjang'],
-      ['scaffolding',      'Bertahap sampai mandiri — dibantu penuh dulu, bantuan dikurangi pelan-pelan'],
-      ['prosedural',       'Mengikuti langkah kerja — tahap demi tahap satu prosedur utuh'],
-      ['konkret_abstrak',  'Dari benda nyata ke konsep — praktik dulu, teorinya menyusul'],
-      ['hierarki',         'Kemampuan dasar dulu — yang sederhana jadi syarat yang kompleks'],
-      ['deduktif',         'Dari gambaran umum ke rincian'],
-      ['rekomendasi',      'Minta rekomendasi MiClass'],
-    ], { aiRecommendation: true,
-      helpText: 'Menentukan urutan TP, bukan jumlah jamnya. Mengacu Tabel 3.3 Panduan Pembelajaran dan Asesmen 2025.' }),
-    jamak('target_prioritas', 'Apa prioritas utama siswa selama fase ini? Pilih maksimal tiga.', [
-      ['fondasi_tka', 'Membangun fondasi TKA (Tes Kompetensi Akademik)'], ['dunia_kerja', 'Kesiapan memasuki dunia kerja'],
-      ['pkl', 'Kesiapan PKL'], ['sertifikasi', 'Kesiapan sertifikasi kompetensi'],
-      ['pendidikan_lanjut', 'Kesiapan melanjutkan pendidikan'],
-      ['literasi_numerasi', 'Literasi dan numerasi fungsional'],
-      ['target_sekolah', 'Target khusus sekolah'], ['tidak_ada', 'Tidak ada prioritas khusus'],
-      ['rekomendasi', 'Minta rekomendasi MiClass'],
-    ], { constraints: { maxSelections: 3, exclusive: ['tidak_ada', 'rekomendasi'] }, aiRecommendation: true,
-      helpText: 'Prioritas mengatur penekanan, bukan mengubah CP. Rekomendasi bersifat umum — Anda tetap bisa mengubahnya.' }),
-    pilihan('timeline_tka', 'Bagaimana fondasi TKA ditempatkan dalam ATP ini?', [
-      ['fase_ini', 'Dibangun selama fase ini'],
-      ['lintas_fase', 'Dibangun pada fase ini dan dilanjutkan pada fase berikutnya'],
-      ['lainnya', 'Tentukan target waktu lain'], ['rekomendasi', 'Minta rekomendasi MiClass'],
-    ], { condition: { question_id: 'target_prioritas', value: 'fondasi_tka' }, aiRecommendation: true,
-      helpText: 'Kelulusan TKA bukan hasil akhir langsung Fase E.' }),
-    { id: 'timeline_tka_lain', kind: 'teks_bebas',
-      prompt: 'Tuliskan target waktu untuk fondasi TKA:',
-      helpText: 'Contoh: Diperkuat mulai semester genap, atau Ditargetkan selesai sebelum PKL.',
+    // generate-modul membacanya untuk membagi menit antar tahap
+    // (ARAHAN_TITIK_AWAL). Kunci yang tidak cocok tidak menimbulkan galat; ia
+    // hanya membuat arahan itu diam-diam tidak pernah terpakai. 'belum_diketahui'
+    // adalah nilai BARU dan sengaja tidak punya arahan di sana — modul kembali
+    // ke perilaku lama, bukan menebak.
+    pilihan('tingkat_kemampuan_awal',
+      'Bagaimana kesiapan murid memulai fase ini?', [
+        ['sesuai',           'Sebagian besar sudah siap'],
+        ['sedikit_di_bawah', 'Perlu penyegaran singkat lebih dulu'],
+        ['jauh_di_bawah',    'Banyak kemampuan dasar yang perlu dibangun'],
+        ['sangat_beragam',   'Sangat beragam — ada yang siap, ada yang jauh tertinggal'],
+        ['belum_diketahui',  'Belum diketahui'],
+      ], { helpText: 'Perkiraan Anda sudah cukup — tidak perlu menunggu hasil tes.' }),
+    // A5 — inilah yang menentukan apakah profil murid boleh ditampilkan
+    // sebagai bukti atau harus ditandai sebagai asumsi (SPEC §2.1). Dilewati
+    // bila A4 belum diketahui: tidak ada gambaran yang perlu dicari dasarnya.
+    pilihan('dasar_informasi_kesiapan',
+      'Gambaran kesiapan tadi Anda dasarkan pada apa?', [
+        ['hasil_penilaian', 'Hasil penilaian atau pekerjaan murid'],
+        ['pengamatan',      'Pengamatan dan pengalaman mengajar'],
+        ['gabungan',        'Keduanya'],
+        ['belum_cukup',     'Belum cukup informasi'],
+      ], { condition: { question_id: 'tingkat_kemampuan_awal',
+                        values: ['sesuai', 'sedikit_di_bawah', 'jauh_di_bawah', 'sangat_beragam'] },
+        helpText: 'ATP akan menyebutkan dasar ini apa adanya. Gambaran yang berasal dari perkiraan tidak akan ditampilkan seolah berasal dari bukti.' }),
+    // A6 — KONDISI murid. Berbeda dari A7, dan SPEC §4 menegaskan keduanya
+    // tidak boleh diperlakukan sebagai pertanyaan yang sama.
+    pilihan('kondisi_murid',
+      'Adakah kondisi, kemampuan awal, atau kesulitan belajar yang perlu dicatat?', [
+        ['tidak_ada', 'Tidak ada'],
+        ['ada',       'Ada — saya uraikan'],
+      ]),
+    { id: 'kondisi_murid_uraian', kind: 'teks_bebas',
+      prompt: 'Tuliskan singkat kondisi atau kesulitan belajar yang perlu dicatat.',
+      helpText: 'Contoh: dua murid kesulitan membaca teks panjang; satu murid baru pindah dari sekolah lain.',
       skippable: false,
-      condition: { question_id: 'timeline_tka', value: 'lainnya' } },
-    { id: 'target_sekolah_detail', kind: 'teks_bebas',
-      prompt: 'Tuliskan target khusus sekolah yang perlu diperhatikan.',
-      helpText: 'MiClass memeriksa kesesuaiannya dengan CP dan fase.', skippable: false,
-      condition: { question_id: 'target_prioritas', value: 'target_sekolah' } },
+      condition: { question_id: 'kondisi_murid', value: 'ada' } },
+    // A7 — BANTUAN yang harus diberikan. Jawabannya menjadi syarat yang harus
+    // bisa dipenuhi di dalam TP, bukan catatan tambahan.
+    jamak('bantuan_konkret', 'Bantuan konkret apa yang diperlukan murid? Pilih semua yang berlaku.', [
+      ['memahami_bacaan',          'Memahami bacaan'],
+      ['menjawab_lisan',           'Menjawab secara lisan'],
+      ['menyusun_tulisan',         'Menyusun tulisan'],
+      ['mengikuti_urutan',         'Mengikuti urutan kegiatan'],
+      ['mempertahankan_perhatian', 'Mempertahankan perhatian'],
+      ['lainnya',                  'Kebutuhan lain — saya uraikan'],
+      ['tidak_ada',                'Tidak ada yang diketahui'],
+      ['belum_diketahui',          'Belum diketahui'],
+    ], { constraints: { exclusive: ['tidak_ada', 'belum_diketahui'] },
+      helpText: 'TP yang disusun harus tetap bisa dicapai dengan bantuan ini tersedia.' }),
+    { id: 'bantuan_konkret_lain', kind: 'teks_bebas',
+      prompt: 'Bantuan lain apa yang murid perlukan?',
+      helpText: 'Satu atau dua kalimat sudah cukup.',
+      skippable: false,
+      condition: { question_id: 'bantuan_konkret', value: 'lainnya' } },
   ],
 
   WAKTU: [
-    angka('jp_per_minggu', 'Berapa JP mata pelajaran ini per minggu?', 1, 20,
-      { helpText: 'Nilai dari jadwal ditampilkan otomatis jika tersedia.' }),
-    pilihan('durasi_jp', 'Berapa durasi satu JP di sekolah Anda?', [
-      ['45', '45 menit'], ['40', '40 menit'], ['35', '35 menit'], ['lain', 'Durasi lainnya'],
-    ]),
-    angka('durasi_jp_lain', 'Berapa menit durasi satu JP?', 30, 60,
-      { condition: { question_id: 'durasi_jp', value: 'lain' } }),
-    pilihan('tahun_pelajaran', 'ATP ini digunakan untuk tahun pelajaran berapa?', [
+    // A8
+    pilihan('tahun_pelajaran', 'ATP ini mulai digunakan tahun pelajaran berapa?', [
       ['2026/2027', '2026/2027'], ['2027/2028', '2027/2028'], ['lainnya', 'Tahun pelajaran lainnya'],
     ]),
     { id: 'tahun_pelajaran_lain', kind: 'teks_bebas',
@@ -181,264 +228,177 @@ const RANCANG_FLOW = {
       helpText: 'Contoh: 2028/2029',
       skippable: false,
       condition: { question_id: 'tahun_pelajaran', value: 'lainnya' } },
-    pilihan('minggu_efektif_mode', 'Bagaimana minggu efektif ditentukan?', [
-      ['isi_sendiri', 'Isi sendiri'],
-      ['cari_daerah', 'Dari kalender dinas pendidikan — isi jumlahnya sendiri'],
-      ['standar_36', 'Gunakan asumsi sementara 36 minggu (18+18)'],
-    ], { helpText: 'Data resmi dan asumsi disimpan dengan status berbeda.' }),
-    angka('minggu_sem1', 'Berapa minggu efektif semester pertama?', 10, 22,
-      { condition: { question_id: 'minggu_efektif_mode', values: ['isi_sendiri', 'cari_daerah'] },
-        helpText: 'Cek kalender pendidikan dari dinas pendidikan provinsi Anda.' }),
-    angka('minggu_sem2', 'Berapa minggu efektif semester kedua?', 10, 22,
-      { condition: { question_id: 'minggu_efektif_mode', values: ['isi_sendiri', 'cari_daerah'] },
-        helpText: 'Semester 2 biasanya 16–18 minggu efektif.' }),
-    pilihan('kegiatan_sudah_dikurangi',
-      'Apakah minggu efektif tersebut sudah mengurangi kegiatan khusus sekolah?', [
-        ['sudah', 'Sudah — tidak ada pengurangan tambahan'],
-        ['belum', 'Belum — ada kegiatan yang perlu dikurangi'],
-        ['tidak_tahu', 'Belum diketahui — gunakan asumsi sementara'],
-      ], { helpText: 'Mencegah pengurangan waktu dihitung dua kali.' }),
-    jamak('kegiatan_khusus', 'Kegiatan apa yang masih mengurangi pembelajaran?', [
-      ['pkl', 'PKL'], ['projek', 'Projek atau kegiatan sekolah'], ['asesmen', 'Ujian atau tes tambahan'],
-      ['program', 'Kegiatan program keahlian'], ['libur', 'Libur khusus sekolah'],
-      ['lainnya', 'Kegiatan lainnya'], ['belum_diketahui', 'Belum diketahui — sediakan cadangan umum'],
-      ['tidak_ada', 'Tidak ada pengurangan tambahan'],
-    ], { condition: { question_id: 'kegiatan_sudah_dikurangi', value: 'belum' },
-      constraints: { exclusive: ['tidak_ada'] } }),
-    angka('jp_kegiatan_khusus', 'Berapa total JP untuk kegiatan khusus tersebut?', 0, 200,
-      { condition: { question_id: 'kegiatan_sudah_dikurangi', value: 'belum' } }),
-    pilihan('cadangan_minggu', 'Berapa cadangan untuk gangguan tak terduga?', [
-      ['0', 'Tidak ada cadangan'], ['1', '1 minggu'], ['2', '2 minggu'], ['3', '3 minggu'],
-      ['lain', 'Tentukan sendiri'], ['rekomendasi', 'Minta rekomendasi MiClass'],
-    ], { aiRecommendation: true, helpText: 'Setiap minggu cadangan setara dengan JP per minggu Anda. Pilih sesuai kebiasaan sekolah.' }),
-    angka('cadangan_minggu_lain', 'Berapa minggu cadangan yang Anda tentukan?', 0, 10,
-      { condition: { question_id: 'cadangan_minggu', value: 'lain' } }),
-    pilihan('pola_jadwal', 'Bagaimana pola JP dalam satu minggu?', [
-      ['reguler_satu', 'Reguler — seluruh JP dalam satu pertemuan'],
-      ['reguler_bagi', 'Reguler — dibagi beberapa pertemuan'],
-      ['blok', 'Sistem blok'],
+    // A9 — JP per minggu.
+    //
+    // SPEC A9 menyebut kemungkinan JP berbeda menurut tahun atau periode.
+    // Bagian itu BELUM dilayani: ia bagian dari pekerjaan "fase lintas tahun"
+    // yang SPEC §2.3 nyatakan berlaku setelah pekerjaannya selesai. Yang
+    // ditanyakan sekarang satu angka untuk seluruh fase, dan perbedaan antar
+    // semester diserap A12 lewat jumlah minggu masing-masing.
+    angka('jp_per_minggu', 'Berapa JP mata pelajaran ini per minggu?', 1, 20,
+      { helpText: 'Nilai dari jadwal ditampilkan otomatis jika tersedia.' }),
+    // A10
+    pilihan('durasi_jp', 'Berapa menit satu JP di sekolah Anda?', [
+      ['45', '45 menit'], ['40', '40 menit'], ['35', '35 menit'], ['lain', 'Durasi lainnya'],
+    ]),
+    angka('durasi_jp_lain', 'Berapa menit durasi satu JP?', 30, 60,
+      { condition: { question_id: 'durasi_jp', value: 'lain' } }),
+    // A11 — satuan pertemuan. Angka ini menentukan kelipatan JP yang wajib
+    // dipatuhi setiap TP; tanpanya MiClass tidak bisa membagi materi ke
+    // pertemuan sama sekali.
+    pilihan('pola_jadwal', 'Bagaimana pola pertemuannya dalam satu minggu?', [
+      ['reguler_satu', 'Seluruh JP dalam satu pertemuan'],
+      ['reguler_bagi', 'Dibagi beberapa pertemuan'],
+      ['blok',         'Jadwal blok'],
     ]),
     angka('jp_per_sesi', 'Berapa JP dalam satu pertemuan atau sesi?', 1, 12,
       { condition: { question_id: 'pola_jadwal', values: ['reguler_bagi', 'blok'] },
         helpText: 'Contoh: jika 4 JP dibagi 2 pertemuan isi 2; jika satu sesi blok 8 JP isi 8.' }),
+    // A12 — minggu pembelajaran BERSIH.
+    //
+    // "Bersih" berarti minggu yang benar-benar tersedia untuk pembelajaran
+    // reguler setelah libur, kegiatan sekolah, ujian, dan pengurang kalender
+    // lain dihitung. Ia BELUM mengurangi JP untuk penguatan prasyarat dan
+    // cadangan — keduanya ditanyakan terpisah dan dipesan dari anggaran ini.
+    pilihan('minggu_efektif_mode', 'Bagaimana jumlah minggu itu ditentukan?', [
+      ['isi_sendiri',       'Saya isi sendiri dari kalender sekolah'],
+      ['perkiraan_miclass', 'Gunakan perkiraan sementara MiClass (18 + 18 minggu)'],
+    ], { helpText: 'Perkiraan sementara akan ditandai sebagai asumsi di hasil ATP, bukan disamarkan jadi data kalender.' }),
+    angka('minggu_sem1', 'Berapa minggu pembelajaran bersih di semester 1?', 1, 24,
+      { condition: { question_id: 'minggu_efektif_mode', value: 'isi_sendiri' },
+        helpText: 'Setelah libur, kegiatan sekolah, dan ujian dikurangi.' }),
+    angka('minggu_sem2', 'Berapa minggu pembelajaran bersih di semester 2?', 1, 24,
+      { condition: { question_id: 'minggu_efektif_mode', value: 'isi_sendiri' },
+        helpText: 'Setelah libur, kegiatan sekolah, dan ujian dikurangi.' }),
+    // A13 — cadangan, dalam MINGGU.
+    //
+    // Satuannya minggu dan bukan JP, dan itu bukan selera: cadangan dalam
+    // minggu selalu kelipatan JP per minggu sehingga tidak pernah merusak
+    // pembagian ke pertemuan. Pengurang dalam JP selalu bisa.
+    pilihan('cadangan_minggu', 'Apakah perlu menyisihkan waktu cadangan untuk gangguan tak terduga?', [
+      ['0',    'Tidak ada'], ['1', 'Kurangi 1 minggu'], ['2', 'Kurangi 2 minggu'],
+      ['lain', 'Tentukan sendiri'],
+    ], { helpText: 'Satu minggu cadangan setara dengan JP per minggu Anda.' }),
+    angka('cadangan_minggu_lain', 'Berapa minggu cadangan yang Anda tentukan?', 0, 10,
+      { condition: { question_id: 'cadangan_minggu', value: 'lain' } }),
+    // A14
     konfirmasi('konfirmasi_waktu',
-      'Perhitungan waktu deterministik:\n\n{{ringkasan_waktu}}\n\nApakah perhitungan ini sudah sesuai?', [
-        ['ya', 'Ya, gunakan perhitungan ini'], ['ubah', 'Ubah data waktu'],
-      ], { helpText: 'Perhitungan dilakukan di JS, bukan AI.' }),
-  ],
-
-  PROFIL_SISWA: [
-    // URUTAN: penilaian dulu, bukti kemudian.
-    //
-    // Semula pertanyaan ini diletakkan SESUDAH status_data_awal, dan hasilnya
-    // tiga layar yang berputar di tempat sama: guru bilang "belum ada data",
-    // lalu diminta menempatkan muridnya di skala empat titik, lalu ditanya
-    // bagaimana titik awalnya akan ditentukan — padahal ia baru saja
-    // menyebutkannya. Guru tahu keadaan muridnya tanpa data formal; yang
-    // ditanyakan berikutnya barulah apakah ada datanya, dan bagaimana
-    // mengukurnya kalau belum.
-    //
-    // Tanpa condition — SEMUA guru menjawabnya. Sebelum pertanyaan ini ada,
-    // lima dari delapan pertanyaan fase ini hanya terbuka bagi guru yang
-    // menjawab "belum ada data", sehingga guru yang justru paling tahu keadaan
-    // muridnya tidak punya tempat menyatakan muridnya jauh tertinggal.
-    pilihan('tingkat_kemampuan_awal',
-      'Dibandingkan kemampuan yang diharapkan di awal fase ini, di mana murid Anda sekarang?', [
-      ['sesuai',    'Sudah sesuai — bisa langsung masuk materi fase ini'],
-      ['sedikit_di_bawah', 'Sedikit di bawah — perlu penyegaran singkat di awal'],
-      ['jauh_di_bawah',    'Jauh di bawah — banyak kemampuan dasar yang harus dibangun dulu'],
-      ['sangat_beragam',   'Sangat beragam — ada yang siap, ada yang jauh tertinggal'],
-    ], { helpText: 'Perkiraan Anda sudah cukup — tidak perlu menunggu hasil tes.' }),
-    pilihan('status_data_awal', 'Apakah data kemampuan awal siswa tersedia?', [
-      ['aktual', 'Ya, saya sudah punya data kemampuan awal siswa'],
-      ['sebagian', 'Ada sebagian data kemampuan awal siswa'],
-      ['belum_ada', 'Belum ada data sama sekali'],
-    ]),
-    pilihan('tindakan_tanpa_data', 'Bagaimana titik awal kemampuan siswa ditentukan?', [
-      ['pemetaan', 'Buat soal atau tugas untuk mengukur kemampuan awal'],
-      ['observasi', 'Gunakan observasi pada pembelajaran awal'],
-      ['perkiraan_guru', 'Isi sendiri berdasarkan pengalaman mengajar'],
-      ['asumsi_cp', 'Anggap kemampuan awal sesuai deskripsi CP dan lanjutkan'],
-      ['simulasi', 'Gunakan data simulasi (tidak disimpan sebagai data siswa nyata)'],
-      ['rekomendasi', 'Minta rekomendasi MiClass'],
-    ], { condition: { question_id: 'status_data_awal', value: 'belum_ada' }, aiRecommendation: true,
-      helpText: 'Simulasi tidak disimpan sebagai data aktual.' }),
-    // Jalur "Ada sebagian data" sebelum ini BUNTU: ia bukan 'belum_ada',
-    // sehingga tindakan_tanpa_data dilewati, dan bukan 'aktual', sehingga tidak
-    // ada data yang benar-benar dipakai. Guru menjawab, lalu jawabannya tidak
-    // mengubah apa pun — satu-satunya dari ketiga pilihan yang begitu.
-    { id: 'sebagian_data_uraian', kind: 'teks_bebas',
-      prompt: 'Bagian mana yang sudah Anda ketahui, dan bagian mana yang belum?',
-      helpText: 'Contoh: nilai membaca sudah ada dari semester lalu, tapi kemampuan berbicara belum pernah diukur.',
-      skippable: false,
-      condition: { question_id: 'status_data_awal', value: 'sebagian' } },
-    { id: 'perkiraan_kemampuan_awal', kind: 'teks_bebas',
-      prompt: 'Bagaimana Anda menggambarkan kemampuan awal siswa saat ini?',
-      helpText: 'Contoh: Sebagian besar siswa bisa memahami teks pendek, tapi belum mampu menulis paragraf mandiri.',
-      skippable: false,
-      condition: { question_id: 'tindakan_tanpa_data', value: 'perkiraan_guru' } },
-    pilihan('cara_pemetaan', 'Bagaimana pemetaan awal dilakukan?', [
-      ['diagnostik', 'Tes singkat untuk mengetahui kemampuan awal'], ['observasi', 'Observasi awal'],
-      ['tugas_singkat', 'Tugas pemetaan singkat'], ['terpadu', 'Gabungan tes, observasi, dan tugas'],
-      ['rekomendasi', 'Minta rekomendasi paling efisien'],
-    ], { condition: { question_id: 'tindakan_tanpa_data', value: 'pemetaan' }, aiRecommendation: true }),
-    angka('jp_pemetaan', 'Berapa JP yang digunakan untuk pemetaan awal?', 1, 12,
-      { condition: { question_id: 'tindakan_tanpa_data', value: 'pemetaan' },
-        helpText: 'JP pemetaan diambil dari JP efektif yang tersedia — bukan tambahan. Semakin banyak JP pemetaan, semakin sedikit yang tersisa untuk mengajar TP.' }),
-    // 'tindakan_instrumen' dibuang seluruhnya (keputusan Romo, 5 September 2026).
-    // Opsi "Minta MiClass membuat soalnya saat ATP selesai" menjanjikan dokumen
-    // yang tidak ada mesin pembuatnya. Dua opsi tersisa efeknya identik — sama-sama
-    // hanya dicatat — jadi menyisakan pertanyaannya berarti meminta guru memilih
-    // antara dua hal yang tidak berbeda. Navigasi mundur tetap ada lewat
-    // "Ubah profil siswa" di layar persetujuan ATP.
-    pilihan('kesulitan_mode', 'Bagaimana kesulitan siswa yang perlu diantisipasi ditentukan?', [
-      ['asumsi_umum', 'Gunakan perkiraan umum untuk siswa kelas fase ini'],
-      ['perkiraan_guru', 'Isi sendiri berdasarkan pengalaman mengajar'],
-      ['belum_diketahui', 'Belum diketahui — jangan tetapkan kesulitan khusus'],
-      ['rekomendasi', 'Minta rekomendasi MiClass'],
-    ], { aiRecommendation: true, helpText: 'Tanpa hasil aktual, kesulitan berstatus asumsi.' }),
-    { id: 'kesulitan_teks_guru', kind: 'teks_bebas',
-      prompt: 'Tuliskan kesulitan yang Anda perkirakan akan dihadapi siswa. Pisahkan dengan koma jika lebih dari satu.',
-      helpText: 'Contoh: siswa kesulitan membaca teks panjang, kosakata terbatas.',
-      skippable: false,
-      condition: { question_id: 'kesulitan_mode', value: 'perkiraan_guru' } },
-  ],
-
-  TARGET_FASE: [
-    pilihan('target_akhir_mode', 'Bagaimana target akhir fase ditentukan?', [
-      ['rekomendasi', 'Minta rekomendasi berdasarkan CP dan profil siswa'],
-      ['target_guru', 'Masukkan target sendiri'],
-    ]),
-    { id: 'target_akhir_teks', kind: 'teks_bebas', prompt: 'Tuliskan target akhir fase yang ingin digunakan.',
-      helpText: 'Contoh: Siswa mampu membaca instruksi kerja sederhana dan meresponsnya secara mandiri. MiClass memeriksa kesesuaian dan keterukurannya.',
-      skippable: false,
-      condition: { question_id: 'target_akhir_mode', value: 'target_guru' } },
-    pilihan('penguatan_elemen', 'Elemen mana yang perlu mendapat penguatan lebih besar?', [
-      ['seimbang', 'Seimbang pada seluruh elemen'], ['menyimak_berbicara', 'Menyimak–Berbicara'],
-      ['membaca_memirsa', 'Membaca–Memirsa'], ['menulis_presentasi', 'Menulis–Mempresentasikan'],
-      ['setelah_pemetaan', 'Tentukan setelah hasil pemetaan'], ['rekomendasi', 'Minta rekomendasi MiClass'],
-    ], { aiRecommendation: true, helpText: 'Elemen adalah komponen Capaian Pembelajaran — misalnya Menyimak–Berbicara dan Membaca–Memirsa. Semua elemen tetap dicakup, hanya porsi penekanannya yang berbeda.' }),
-    pilihan('target_kemandirian', 'Di akhir fase ini, kemandirian seperti apa yang ingin Anda capai untuk siswa dalam menggunakan {{mapel}}?', [
-      ['panduan', 'Masih butuh contoh dan panduan guru'],
-      ['bantuan_terbatas', 'Bisa mandiri dengan sedikit bantuan'],
-      ['mandiri_dikenal', 'Mandiri di situasi yang sudah pernah dilatih'],
-      ['mandiri_baru', 'Mandiri meski di situasi baru yang belum pernah dilatih'],
-      ['rekomendasi', 'Minta rekomendasi berdasarkan CP dan profil'],
-    ], { aiRecommendation: true }),
-    konfirmasi('konfirmasi_target',
-      'Ringkasan target fase:\n\n{{ringkasan_target}}\n\nApakah arah target fase sudah sesuai?', [
-        ['ya', 'Ya, lanjutkan'], ['ubah', 'Ubah target fase'],
-      ]),
-  ],
-
-  KONTEKS_DUDI: [
-    pilihan('kekuatan_konteks', 'Seberapa kuat konteks program keahlian digunakan dalam ATP?', [
-      ['seimbang', 'Seimbang — dunia kerja dan kehidupan sehari-hari'], ['dominan', 'Dominan kejuruan'],
-      ['terbatas', 'Hanya pada bagian pelajaran yang memang relevan'], ['tidak_prioritas', 'Tidak diprioritaskan'],
-      ['rekomendasi', 'Minta rekomendasi MiClass'],
-    ], { aiRecommendation: true, helpText: 'Kontekstualisasi tidak mengubah CP.' }),
-    jamak('ranah_dunia_kerja', 'Dari dunia kerja {{program_keahlian}}, keterampilan apa yang ingin dikaitkan ke pelajaran ini?', [
-      ['k3', 'Keselamatan dan kesehatan kerja'], ['komunikasi_prof', 'Komunikasi profesional'],
-      ['kerja_tim', 'Kerja sama tim'], ['pelayanan', 'Pelayanan pelanggan'],
-      ['dokumentasi', 'Dokumentasi dan pelaporan'], ['literasi_digital', 'Literasi digital'],
-      ['pemecahan', 'Pemecahan masalah'], ['mutu', 'Mutu layanan'], ['etika', 'Etika kerja'],
-      ['wirausaha', 'Kewirausahaan'], ['data', 'Penggunaan data'],
-      ['tidak_ada', 'Tidak ada ranah khusus'], ['rekomendasi', 'Minta rekomendasi MiClass'],
-    ], { constraints: { maxSelections: 5, exclusive: ['tidak_ada', 'rekomendasi'] }, aiRecommendation: true,
-      condition: { question_id: 'kekuatan_konteks', values: ['seimbang', 'dominan', 'terbatas', 'rekomendasi'] } }),
-    jamak('kebutuhan_bidang', 'Dari dunia kerja, hal apa yang perlu masuk ke dalam pelajaran ini?', [
-      ['kosakata', 'Kosakata atau istilah yang dipakai di lapangan'], ['dokumen', 'Dokumen kerja sederhana'],
-      ['prosedur', 'Prosedur kerja'], ['teknologi', 'Perangkat atau teknologi yang dipakai di lapangan'],
-      ['komunikasi', 'Komunikasi dengan pelanggan atau rekan kerja'],
-      ['etika_data', 'Etika dan kerahasiaan informasi'], ['tidak_ada', 'Tidak ada kebutuhan khusus'],
-      ['rekomendasi', 'Minta rekomendasi MiClass'],
-    ], { constraints: { exclusive: ['tidak_ada', 'rekomendasi'] }, aiRecommendation: true,
-      condition: { question_id: 'kekuatan_konteks', values: ['seimbang', 'dominan', 'terbatas', 'rekomendasi'] } }),
-    jamak('batas_konteks', 'Batas apa yang diterapkan saat menggunakan konteks kejuruan?', [
-      ['tanpa_batas', 'Tidak ada batasan khusus'],
-      ['hindari_belum_dipelajari', 'Hindari materi produktif yang belum dipelajari'],
-      ['hindari_sensitif', 'Hindari data atau dokumen sensitif'],
-      ['penerapan_saja', 'Gunakan konteks dunia kerja hanya sebagai contoh, bukan target belajar'],
-      ['bukan_target_produktif', 'Jangan jadikan kompetensi produktif sebagai target mapel'],
-      ['rekomendasi', 'Minta rekomendasi MiClass'],
-    ], { constraints: { exclusive: ['tanpa_batas', 'rekomendasi'] }, aiRecommendation: true,
-      condition: { question_id: 'kekuatan_konteks', values: ['seimbang', 'dominan', 'terbatas', 'rekomendasi'] } }),
-    konfirmasi('konfirmasi_dudi',
-      'Ringkasan konteks kejuruan:\n\n{{ringkasan_dudi}}\n\nApakah pengaturan konteks sudah sesuai?', [
-        ['ya', 'Ya, lanjutkan'], ['ubah', 'Ubah konteks kejuruan'],
-      ], { condition: { question_id: 'kekuatan_konteks', values: ['seimbang', 'dominan', 'terbatas', 'rekomendasi'] } }),
+      'Perhitungan waktu:\n\n{{ringkasan_waktu}}\n\nApakah sudah sesuai?', [
+        ['ya',           'Ya, gunakan perhitungan ini'],
+        ['ubah_minggu',  'Perbaiki minggu atau cadangan'],
+        ['ubah_jp',      'Perbaiki JP atau pola pertemuan'],
+      ], { helpText: 'Perhitungan ini deterministik — dilakukan MiClass, bukan AI.' }),
   ],
 
   PENGUATAN_PRASYARAT: [
-    pilihan('strategi_prasyarat', 'Apakah ada kemampuan dasar yang perlu diulang sebelum masuk ke materi baru?', [
-      ['awal', 'Di awal semester, sebelum masuk materi baru'],
-      ['terintegrasi', 'Saat mengajar, tepat sebelum bagian yang membutuhkannya'],
-      ['kombinasi', 'Keduanya — di awal semester dan saat mengajar'],
-      ['tidak_perlu', 'Tidak perlu — siswa sudah siap'], ['rekomendasi', 'Minta rekomendasi MiClass'],
-    ], { aiRecommendation: true }),
-    // Syarat diperluas ke 'terintegrasi' pada 8 September 2026 (Catatan 8).
+    // A15
+    pilihan('strategi_prasyarat', 'Kapan kemampuan dasar dikuatkan?', [
+      ['awal',                   'Di awal, sebelum masuk materi fase'],
+      ['terintegrasi',           'Saat topik yang membutuhkannya tiba'],
+      ['kombinasi',              'Keduanya'],
+      ['tidak_perlu',            'Tidak diperlukan'],
+      ['tentukan_saat_menyusun', 'Tentukan saat menyusun'],
+    ]),
+    // A15a — hanya muncul bila A15 memang memerlukan penguatan.
     //
-    // Guru yang muridnya "jauh di bawah" lalu memilih mengulang SAAT MENGAJAR
-    // tidak pernah ditawari jam untuk itu — pertanyaannya dilewati, jatahnya
-    // nol, dan tidak ada satu kata pun yang memberitahunya. Ia merencanakan
-    // pengulangan yang tidak punya tempat di ATP-nya sendiri.
+    // Guru yang memilih menguatkan SAAT MENGAJAR dulu tidak pernah ditawari
+    // jam untuk itu: pertanyaannya dilewati, jatahnya nol, dan tidak ada satu
+    // kata pun yang memberitahunya. Ia merencanakan pengulangan yang tidak
+    // punya tempat di ATP-nya sendiri.
+    pilihan('alokasi_prasyarat', 'Apakah penguatan itu memerlukan alokasi jam tersendiri?', [
+      ['menyatu',    'Tidak — menyatu dengan jam topiknya'],
+      ['tersendiri', 'Ya — sisihkan jam khusus'],
+    ], { condition: { question_id: 'strategi_prasyarat', values: ['awal', 'terintegrasi', 'kombinasi'] },
+      helpText: 'Jam khusus diambil dari jam mengajar, jadi jam untuk TP berkurang sebanyak itu.' }),
+    angka('jp_prasyarat', 'Berapa JP disisihkan untuk penguatan kemampuan dasar?', 1, 24,
+      { condition: { question_id: 'alokasi_prasyarat', value: 'tersendiri' },
+        helpText: 'Jam ini dipesan lebih dulu dari anggaran, sebelum TP membagi sisanya.' }),
+    // A16 — maksimal DUA, bukan tiga.
     //
-    // helpText-nya pun menerangkan justru jalur yang tidak bisa ia lihat.
-    // Sekarang keterangannya menyesuaikan pilihan guru.
-    angka('jp_prasyarat', 'Berapa JP yang disediakan untuk mengulang kemampuan dasar?', 0, 24,
-      { condition: { question_id: 'strategi_prasyarat', values: ['awal', 'kombinasi', 'terintegrasi'] },
-        helpText: 'Jam ini diambil dari JP efektif — semakin besar, semakin sedikit yang tersisa untuk TP. Isi 0 kalau pengulangannya menyatu dengan jam topik yang sudah ada.' }),
+    // Angkanya dari SPEC dan bukan penyeragaman: prioritas yang terlalu banyak
+    // berhenti menjadi penekanan dan berubah jadi daftar keinginan yang tidak
+    // bisa dipenuhi sekaligus dalam jam yang sama.
+    jamak('target_prioritas', 'Bagian apa yang ingin lebih dikuatkan? Maksimal dua.', [
+      ['kemampuan_dasar',   'Kemampuan dasar'],
+      ['kehidupan_sehari',  'Penerapan di kehidupan sehari-hari'],
+      ['pkl_kerja',         'Kesiapan PKL dan dunia kerja'],
+      ['pendidikan_lanjut', 'Kesiapan pendidikan lanjut atau tes akademik'],
+      ['kebutuhan_sekolah', 'Kebutuhan khusus sekolah — saya uraikan'],
+      ['tidak_ada',         'Tidak ada yang perlu dikuatkan lebih'],
+    ], { constraints: { maxSelections: 2, exclusive: ['tidak_ada'] },
+      helpText: 'Penekanan mengatur porsi waktu dan urutan. Ia tidak menentukan bagian CP yang boleh diabaikan — seluruh tuntutan CP tetap dipetakan.' }),
+    { id: 'target_prioritas_uraian', kind: 'teks_bebas',
+      prompt: 'Tuliskan kebutuhan khusus sekolah yang perlu diperhatikan.',
+      helpText: 'MiClass memeriksa kesesuaiannya dengan CP dan fase.',
+      skippable: false,
+      condition: { question_id: 'target_prioritas', value: 'kebutuhan_sekolah' } },
+  ],
+
+  KONTEKS_DUDI: [
+    // A17
+    pilihan('konteks_tugas', 'Contoh dan tugas lebih banyak mengambil situasi apa?', [
+      ['seimbang',               'Seimbang antara kehidupan dan dunia kerja'],
+      ['kehidupan',              'Lebih banyak kehidupan sehari-hari dan sekolah'],
+      ['kerja',                  'Lebih banyak situasi kerja'],
+      ['tentukan_saat_menyusun', 'Tentukan saat menyusun'],
+    ], { helpText: 'Konteks kejuruan adalah arena penerapan. Ia tidak mengubah kompetensi yang dituntut mata pelajaran ini.' }),
+    // A18
+    pilihan('situasi_khusus', 'Adakah situasi yang ingin diutamakan atau justru dihindari?', [
+      ['tidak_ada', 'Tidak ada'],
+      ['ada',       'Ada — saya uraikan'],
+    ]),
+    { id: 'situasi_khusus_uraian', kind: 'teks_bebas',
+      prompt: 'Tuliskan situasi yang ingin diutamakan atau dihindari.',
+      helpText: 'Contoh: utamakan pelayanan pelanggan di toko; hindari situasi yang memakai data pribadi pelanggan.',
+      skippable: false,
+      condition: { question_id: 'situasi_khusus', value: 'ada' } },
+    // A19 — enam metode resmi Tabel 3.3 "Cara-Cara Menyusun Alur Tujuan
+    // Pembelajaran", Panduan Pembelajaran dan Asesmen 2025 hal. 23-24.
+    //
+    // Label memakai bahasa guru dengan contoh; istilah resminya tetap dicetak
+    // di dokumen ATP — larangan jargon berlaku untuk pertanyaan di chat, bukan
+    // untuk dokumen yang guru arsipkan (CLAUDE.md §23.2 poin 3).
+    pilihan('metode_pengurutan', 'Bagaimana urutan pembelajaran disusun sepanjang fase?', [
+      ['mudah_sulit',            'Dari yang mudah ke yang lebih sulit'],
+      ['hierarki',               'Kemampuan dasar dulu, baru yang membutuhkannya'],
+      ['konkret_abstrak',        'Dari contoh konkret ke konsep'],
+      ['deduktif',               'Dari gambaran umum ke rincian'],
+      ['prosedural',             'Mengikuti urutan satu prosedur kerja'],
+      ['scaffolding',            'Bantuan berkurang bertahap menuju mandiri'],
+      ['tentukan_saat_menyusun', 'Tentukan saat menyusun'],
+    ], { helpText: 'Menentukan urutan TP, bukan jumlah jamnya. Mengacu Tabel 3.3 Panduan Pembelajaran dan Asesmen 2025.' }),
   ],
 
   ATP_SUMMARY: [
+    // A20
     konfirmasi('persetujuan_atp_summary',
-      'Pratinjau arah ATP:\n\n{{atp_summary}}\n\nApakah arah ATP sudah sesuai?', [
-        ['generate', 'Ya, buat draf ATP'], ['ubah_prioritas', 'Ubah prioritas'],
-        ['ubah_waktu', 'Ubah alokasi waktu'], ['ubah_profil', 'Ubah profil siswa'],
-        ['ubah_target', 'Ubah target fase'], ['ubah_konteks', 'Ubah konteks kejuruan'],
-        ['ubah_prasyarat', 'Ubah pengulangan kemampuan dasar'],
-      ], { helpText: 'Generate hanya berjalan setelah persetujuan guru.' }),
+      'Ringkasan arah ATP:\n\n{{atp_summary}}\n\nApakah sudah sesuai?', [
+        ['generate',       'Ya, susun ATP'],
+        ['ubah_profil',    'Ubah profil murid'],
+        ['ubah_waktu',     'Ubah waktu'],
+        ['ubah_prasyarat', 'Ubah penguatan atau penekanan'],
+        ['ubah_konteks',   'Ubah konteks atau pengurutan'],
+      ], { helpText: 'Penyusunan hanya berjalan setelah persetujuan Anda.' }),
   ],
 
   ATP_GENERATE: [],
 
   ATP_REVIEW: [
-    // Tiga rute terakhir ditambahkan 8 September 2026 (Catatan 7).
-    //
-    // Menu ini muncul tepat pada saat guru PERTAMA KALI bisa melihat ATP-nya
-    // sebagai daftar TP yang nyata — dan di situlah ia baru sadar bahwa
-    // muridnya yang tertinggal tidak terakomodasi, atau konteks kejuruannya
-    // meleset. Tapi tiga fase yang mengatur persis hal itu — Profil Siswa,
-    // Konteks Kejuruan, Penguatan Prasyarat — tidak punya jalan masuk di sini,
-    // padahal ATP_SUMMARY (yang muncul SEBELUM guru melihat apa pun) punya
-    // keenamnya.
-    //
-    // Yang tersisa hanyalah "Buat ulang ATP", yang memakan satu dari tiga
-    // jatah harian guru dan mengulang dengan jawaban yang sama persis —
-    // sehingga hasilnya pun kurang lebih sama. Guru membakar jatahnya untuk
-    // sesuatu yang tidak bisa berubah.
-    //
-    // Ketiga tujuannya sudah ada di revisionDestination untuk
-    // persetujuan_atp_summary; di sini hanya perlu disambungkan.
-    pilihan('tindakan_review_atp', 'Bagaimana draf ATP ingin ditindaklanjuti?', [
-      ['terima',         'Terima ATP ini'],
-      ['waktu',          'Tinjau distribusi waktu'],
-      ['ubah_prioritas', 'Ubah prioritas'],
-      ['ubah_target',    'Ubah target fase'],
-      ['ubah_profil',    'Ubah profil siswa'],
-      ['ubah_konteks',   'Ubah konteks kejuruan'],
-      ['ubah_prasyarat', 'Ubah pengulangan kemampuan dasar'],
-      // Jumlah TP = jumlah modul yang harus guru susun dan ajarkan sepanjang
-      // fase. Sampai 8 September 2026 angka itu sepenuhnya keputusan AI dan
-      // guru tidak pernah tahu ia boleh berbeda: dua ATP dengan jam SAMA PERSIS
-      // menghasilkan 9 dan 10 TP, dan kepadatan antar-ATP merentang dua kali
-      // lipat. Ditanyakan di depan tidak masuk akal — guru hanya bisa menebak
-      // dari nol. Di sini ia sudah melihat daftarnya.
-      ['tp_lebih_banyak', 'Pecah jadi lebih banyak TP'],
-      ['tp_lebih_sedikit', 'Gabungkan jadi lebih sedikit TP'],
-      ['ulang',          'Buat ulang ATP'],
-    ], { helpText: 'Mengubah jawaban lalu menyusun ulang biasanya lebih tepat daripada membuat ulang dengan jawaban yang sama.' }),
+    // Tindakan pascahasil — BUKAN definisi pertanyaan tambahan (SPEC §4 akhir).
+    // Empat rute pertama diminta SPEC; tiga terakhir (pecah, gabung, buat
+    // ulang) adalah tindakan yang memakan jatah harian dan sudah ada.
+    pilihan('tindakan_review_atp', 'Bagaimana ATP ini ingin ditindaklanjuti?', [
+      ['terima',           'Gunakan ATP ini'],
+      ['tp_lebih_banyak',  'Perbaiki TP — pecah jadi lebih banyak'],
+      ['tp_lebih_sedikit', 'Perbaiki TP — gabungkan jadi lebih sedikit'],
+      ['ubah_konteks',     'Perbaiki urutan atau konteks'],
+      ['waktu',            'Perbaiki waktu'],
+      ['ubah_profil',      'Perbaiki profil murid'],
+      ['ubah_prasyarat',   'Perbaiki penguatan atau penekanan'],
+      ['ulang',            'Susun ulang dengan jawaban yang sama'],
+    ], { helpText: 'Mengubah jawaban lalu menyusun ulang biasanya lebih tepat daripada menyusun ulang dengan jawaban yang sama.' }),
   ],
+
 
   // PILIH_TP sengaja KOSONG.
   //
@@ -741,20 +701,28 @@ const RANCANG_FLOW = {
   MODUL_REVIEW: [],
 };
 
-// V1 AKTIF: KONTEKS_CP sampai ATP_REVIEW
+// V1 AKTIF: KONTEKS_CP sampai ATP_REVIEW.
+//
+// Urutannya mengikuti docs/SPEC-ATP-MODUL-BERBASIS-TEKS.md §4: identitas, kelas,
+// murid, waktu, penguatan dan penekanan, konteks dan pengurutan, persetujuan.
+//
+// DUA FASE DIBUANG. 'PRIORITAS' dilebur ke PENGUATAN_PRASYARAT karena A20
+// menyediakan SATU rute revisi untuk keduanya ("ubah penguatan atau
+// penekanan") — dua fase di balik satu tombol berarti guru mendarat di tempat
+// yang tidak ia minta. 'TARGET_FASE' dibuang seluruhnya: target akhir fase
+// sudah dinyatakan CP, dan meminta guru menuliskannya ulang mengundang target
+// yang bertentangan dengan acuan resminya.
 const FASE_URUTAN_V1 = [
-  'KONTEKS_CP',      // Identitas kelas + validasi CP
-  'PILIH_ATP',       // Pilih ATP yang ada (hanya mode sesuaikan) — skip otomatis jika susun baru
-  'PROFIL_KELAS',    // Perlengkapan, jumlah murid, bahasa pengantar — sekali per kelas
-  'PRIORITAS',       // Fondasi TKA, kerja, PKL, pendidikan, target sekolah
-  'WAKTU',           // JP, minggu efektif, kegiatan khusus, cadangan, pola jadwal
-  'PROFIL_SISWA',    // Kemampuan awal, diagnostik, kesulitan, status data
-  'TARGET_FASE',     // Target akhir, penguatan elemen, kemandirian
-  'KONTEKS_DUDI',    // Kekuatan konteks, ranah kerja, kebutuhan, batasan
-  'PENGUATAN_PRASYARAT', // Strategi dan alokasi prasyarat
-  'ATP_SUMMARY',     // Validasi kesiapan + persetujuan guru
-  'ATP_GENERATE',    // Otomatis — tidak ada pertanyaan ke guru
-  'ATP_REVIEW',      // Guru terima atau revisi ATP
+  'KONTEKS_CP',          // A1 — identitas kelas, program keahlian, gerbang CP
+  'PILIH_ATP',           // pilih ATP yang ada (hanya mode sesuaikan)
+  'PROFIL_KELAS',        // A2-A3 — jumlah murid, dukungan bahasa
+  'PROFIL_SISWA',        // A4-A7 — kesiapan, dasarnya, kondisi, bantuan konkret
+  'WAKTU',               // A8-A14 — tahun, JP, pola, minggu bersih, cadangan
+  'PENGUATAN_PRASYARAT', // A15, A15a, A16 — penguatan dan penekanan
+  'KONTEKS_DUDI',        // A17-A19 — konteks, situasi khusus, pengurutan
+  'ATP_SUMMARY',         // A20 — persetujuan guru
+  'ATP_GENERATE',        // otomatis — tidak ada pertanyaan
+  'ATP_REVIEW',          // tindakan pascahasil
   'DONE',
 ];
 

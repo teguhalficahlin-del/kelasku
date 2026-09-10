@@ -16,6 +16,7 @@
     conversation_history: [],     // hanya untuk display, cap 40
     session_phase:        'KONTEKS_CP',
     atp_draft:            [],
+    atp_hasil:            null,   // amplop ATP_HASIL — dasar penyusunan, cakupan CP, anggaran semester
     selected_tp:          null,
     modul_induk_id:       null,
     modul_updated_at:     null,
@@ -155,6 +156,7 @@
       conversation_history: _chat.conversation_history.slice(-HISTORY_CAP),
       session_phase:       _chat.session_phase,
       atp_draft:           _chat.atp_draft,
+      atp_hasil:           _chat.atp_hasil,
       selected_tp:         _chat.selected_tp,
       modul_induk_id:      _chat.modul_induk_id,
       modul_updated_at:    _chat.modul_updated_at,
@@ -205,6 +207,7 @@
         atp_induk_id:        saved.atp_induk_id        ?? null,
         atp_updated_at:      saved.atp_updated_at      ?? null,
         atp_draft:           saved.atp_draft           ?? [],
+        atp_hasil:           saved.atp_hasil           ?? null,
         selected_tp:         saved.selected_tp         ?? null,
         modul_induk_id:      saved.modul_induk_id      ?? null,
         modul_updated_at:    saved.modul_updated_at    ?? null,
@@ -282,6 +285,87 @@
     return Object.prototype.hasOwnProperty.call(data, kunci);
   }
 
+  // ─── GERBANG ACUAN CP ─────────────────────────────────────────────────────
+  //
+  // SPEC §2.3: "Untuk kombinasi yang belum memiliki acuan CP, MiClass
+  // menyampaikan bahwa layanan belum tersedia SEBELUM guru mulai menjawab
+  // pertanyaan dan sebelum kuota generate terpakai."
+  //
+  // Perbedaannya dengan mapelDikenali() di atas penting dan bukan pengulangan:
+  // cp-data.json memuat 220 mata pelajaran, yaitu TEKS CP-nya. Acuan CP memuat
+  // yang jauh lebih sedikit, yaitu kombinasi yang tuntutannya sudah diuraikan
+  // dan sudah dinilai layak dilayani lewat teks dan interaksi langsung. Punya
+  // teks CP tidak sama dengan sanggup melayaninya.
+  //
+  // Mengembalikan null kalau acuannya belum termuat — tidak tahu bukan berarti
+  // tidak tersedia, dan menghalangi guru atas dasar tebakan lebih buruk
+  // daripada membiarkannya lewat. Gerbang kedua di Edge Function tetap berdiri.
+  // Regulasi CP yang berlaku. Sisi Edge Function-nya adalah VERSI_CP_BERLAKU di
+  // supabase/functions/generate-atp/kontrak.ts — kalau salah satu diubah, ubah
+  // keduanya; tests/atp-kontrak.test.ts (CASE P) menjaganya.
+  const VERSI_CP_BERLAKU = '046/H/KR/2025';
+
+  // Gerbang layanan penuh, DIHITUNG DENGAN ATURAN YANG SAMA seperti di Edge
+  // Function. Sebelum Pass 3 klien hanya membaca satu kata status dari berkas
+  // acuan; kalau kata itu benar sementara acuannya berpangkal pada regulasi
+  // yang sudah dicabut, gerbangnya tetap terbuka.
+  //
+  // Tiga syarat, dan ketiganya wajib:
+  //   1. acuannya berpangkal pada CP yang berlaku;
+  //   2. penguraian tuntutannya sudah selesai ditinjau;
+  //   3. SELURUH tuntutannya dapat MiClass layani — tidak ada status sebagian,
+  //      karena membuka layanan dengan cakupan sebagian berarti menyerahkan
+  //      sisanya kepada guru sebagai pekerjaan yang tidak pernah disebutkan.
+  function statusLayananCp(mapel, fase) {
+    const acuan = window._cpAcuan;
+    if (!acuan || !acuan.acuan) return null;
+    const mapelKey = String(mapel || '').toLowerCase()
+      .replace(/[^a-z0-9]/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '');
+    const faseKey  = 'fase_' + String(fase || '').toLowerCase().trim();
+    const f = acuan.acuan[mapelKey] && acuan.acuan[mapelKey][faseKey];
+    if (!f) return { didukung: false, acuan: null };
+    if (f.versi_cp !== VERSI_CP_BERLAKU) return { didukung: false, acuan: f };
+    if (f.review_status !== 'diterima') return { didukung: false, acuan: f };
+    const elemen = f.elemen || {};
+    for (const kunci of Object.keys(elemen)) {
+      const daftar = (elemen[kunci] && elemen[kunci].tuntutan) || [];
+      for (const t of daftar) if (t.layanan !== 'dilayani') return { didukung: false, acuan: f };
+    }
+    return { didukung: true, acuan: f };
+  }
+
+  function acuanCpUntuk(mapel, fase) {
+    const st = statusLayananCp(mapel, fase);
+    if (st === null) return null;
+    return st.didukung ? st.acuan : false;
+  }
+
+  // Kalimat yang ditampilkan saat kombinasi kelas ini belum terlayani.
+  // Ia menyebut sebabnya apa adanya: yang belum ada bukan CP-nya, melainkan
+  // uraian tuntutannya — dan itu pekerjaan MiClass, bukan kekurangan guru.
+  function pesanAcuanBelumAda(mapel, fase) {
+    const tersedia = [];
+    const acuan = window._cpAcuan;
+    if (acuan && acuan.acuan) {
+      for (const m of Object.keys(acuan.acuan)) {
+        for (const f of Object.keys(acuan.acuan[m])) {
+          const st = statusLayananCp(m, f.replace('fase_', ''));
+          if (!st || !st.didukung) continue;
+          tersedia.push(m.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+            + ' Fase ' + f.replace('fase_', '').toUpperCase());
+        }
+      }
+    }
+    return 'Tab Rancang belum bisa menyusun ATP untuk ' + (mapel || 'mata pelajaran ini') +
+      ' Fase ' + (fase || '—') + '.\n\n' +
+      'MiClass menyusun ATP dari uraian tuntutan Capaian Pembelajaran yang sudah diperiksa satu per satu, ' +
+      'termasuk apakah tiap tuntutan bisa benar-benar dicapai lewat teks dan interaksi langsung. ' +
+      'Uraian untuk kombinasi ini belum selesai disusun.\n\n' +
+      'Menyusunnya sekarang berarti menghasilkan ATP yang tidak bisa MiClass pertanggungjawabkan, ' +
+      'jadi lebih baik Anda tidak menghabiskan waktu menjawab pertanyaannya.' +
+      (tersedia.length ? '\n\nYang sudah tersedia: ' + tersedia.join(', ') + '.' : '');
+  }
+
   function getCpUmum() {
     try {
       const data = window._cpData;
@@ -294,45 +378,17 @@
     } catch (_) { return ''; }
   }
 
-  // ─── Target fase helpers ──────────────────────────────────────────────────
-
-  function resolveTargetFaseText() {
-    const mode = answerValue('target_akhir_mode');
-    if (mode === 'target_guru' || mode === 'rekomendasi') return answerValue('target_akhir_teks') || '';
-    return getCpUmum();
-  }
-
-  // ─── Kesulitan helpers ────────────────────────────────────────────────────
-
-  function generateAsumsiKesulitan(mapel, fase) {
-    const ASUMSI = {
-      'Bahasa Inggris': {
-        E: ['Keterbatasan kosakata akademik dan kontekstual',
-            'Kesulitan menyimak dan memahami teks lisan autentik',
-            'Penulisan teks dengan struktur yang sesuai konteks'],
-        F: ['Pemahaman teks argumentatif dan diskusi yang kompleks',
-            'Penggunaan strategi koreksi diri dalam komunikasi',
-            'Penulisan teks mandiri dengan kesadaran tujuan komunikatif'],
-      },
-    };
-    return ASUMSI[mapel]?.[fase] || ['Kemampuan awal berbeda-beda antar siswa', 'Perlu adaptasi dari fase sebelumnya'];
-  }
-
-  function resolveKesulitanDiantisipasi() {
-    const stored = _chat.collected_answers['kesulitan_mode'];
-    const mode   = stored?.value ?? stored ?? '';
-    const src    = stored?.source ?? 'guru';
-    if (mode === 'belum_diketahui') return { value: [], source: 'belum_diketahui' };
-    if (mode === 'perkiraan_guru') {
-      const raw = answerValue('kesulitan_teks_guru') || '';
-      return { value: raw ? [raw] : [], source: 'guru' };
-    }
-    if (mode === 'asumsi_umum') {
-      const list = generateAsumsiKesulitan(answerValue('mapel') || '', answerValue('fase') || 'E');
-      return { value: list, source: src === 'ai_recommendation' ? 'ai_recommendation' : 'otomatis' };
-    }
-    return { value: [], source: 'otomatis' };
-  }
+  // resolveTargetFaseText(), generateAsumsiKesulitan(), dan
+  // resolveKesulitanDiantisipasi() DIBUANG 10 September 2026.
+  //
+  // Ketiganya melayani dua pertanyaan yang kini tidak ada: target akhir fase
+  // dan kesulitan yang diantisipasi. generateAsumsiKesulitan() adalah bentuk
+  // paling terang dari cacat yang SPEC §2.1 larang — ia MENGARANG daftar
+  // kesulitan per mapel ("Keterbatasan kosakata akademik dan kontekstual"),
+  // menyimpannya sebagai jawaban, lalu mengirimkannya ke penyusun ATP tanpa
+  // satu pun penanda bahwa isinya tidak berasal dari kelas guru mana pun.
+  // Sekarang yang tidak diketahui tetap kosong, dan yang berstatus perkiraan
+  // dinyatakan sebagai perkiraan di hasil ATP.
 
   // Buang sesi ATP yang tersimpan supaya funnel mulai dari nol. Wajib dipanggil
   // setelah guru_id terisi — LS_KEY() bergantung padanya, dan tanpa itu reset
@@ -345,6 +401,7 @@
       atp_updated_at:       null,
       atp_status:           null,
       atp_draft:            [],
+      atp_hasil:            null,
       selected_tp:          null,
       modul_induk_id:       null,
       modul_updated_at:     null,
@@ -370,7 +427,13 @@
     _chat.atp_status     = atp.status || null;
     _chat.atp_draft      = Array.isArray(atp.progresi_tp) ? atp.progresi_tp : [];
     const collected = atp.collected_data || {};
-    for (const phaseData of Object.values(collected)) {
+    // ATP_HASIL adalah amplop hasil, bukan kumpulan jawaban. Ia dibaca
+    // tersendiri dan TIDAK boleh ikut disalin ke collected_answers — isinya
+    // bukan jawaban pertanyaan mana pun, dan menyatukannya akan membuat
+    // ringkasan mencetak bagian-bagiannya sebagai jawaban guru.
+    _chat.atp_hasil = collected.ATP_HASIL || null;
+    for (const [namaFase, phaseData] of Object.entries(collected)) {
+      if (namaFase === 'ATP_HASIL') continue;
       if (phaseData && typeof phaseData === 'object') {
         Object.assign(_chat.collected_answers, phaseData);
       }
@@ -502,10 +565,11 @@
       _chat.collected_answers.fase = answer(inferFaseFromClassroom(), 'otomatis', false);
       _chat.collected_answers.jenjang = answer(window._classroomJenjang || 'SMK', 'otomatis', false);
       _chat.collected_answers.program_keahlian = answer(window._classroomProgram || '', 'otomatis', false);
-      // Jika program_keahlian belum tercatat, auto-jawab konfirmasi='tidak'
-      // sehingga pertanyaan pilih_program_keahlian langsung muncul.
+      // Jika program_keahlian belum tercatat, A1 diarahkan lebih dulu ke
+      // pemilih program keahlian: tidak ada gunanya meminta guru menyetujui
+      // identitas yang salah satu barisnya kosong.
       if (!window._classroomProgram) {
-        _chat.collected_answers.konfirmasi_program_keahlian = answer('tidak', 'otomatis', true);
+        _chat.collected_answers.konfirmasi_konteks = answer('perbaiki_data', 'otomatis', true);
       }
       startPhase('KONTEKS_CP');
     }
@@ -717,6 +781,35 @@
           'tidak masalah. Setelah itu buka kembali tab Rancang.';
 
         bungkus.append(p1, p2);
+        panel.replaceChildren(bungkus);
+        return;
+      }
+
+      // ── GERBANG ACUAN CP ──────────────────────────────────────────────────
+      //
+      // Ditempatkan DI SINI, sebelum layar sambutan dirender dan sebelum satu
+      // pun pertanyaan tampil. SPEC §2.3 menuntut guru diberi tahu "sebelum
+      // guru mulai menjawab pertanyaan dan sebelum kuota generate terpakai" —
+      // dan dua puluh satu pertanyaan yang berakhir di penolakan adalah bentuk
+      // pemborosan waktu guru yang paling mudah dihindari.
+      for (let i = 0; i < 15 && !window._cpAcuan; i++) {
+        await new Promise(r => setTimeout(r, 200));
+      }
+      const _faseKelas = inferFaseFromClassroom();
+      if (acuanCpUntuk(window._classroomSubject, _faseKelas) === false) {
+        const bungkus = document.createElement('div');
+        bungkus.style.cssText = 'padding:32px 24px;max-width:520px;margin:0 auto;';
+        // textContent, bukan innerHTML: nama mapel diketik guru dan tidak boleh
+        // ditafsirkan sebagai markup.
+        pesanAcuanBelumAda(window._classroomSubject, _faseKelas)
+          .split('\n\n').forEach(function (paragraf, idx) {
+            const p = document.createElement('p');
+            p.style.cssText = idx === 0
+              ? 'font-size:0.95rem;line-height:1.6;margin-bottom:12px;'
+              : 'color:var(--text-muted,#888);font-size:0.9rem;line-height:1.6;margin-bottom:10px;';
+            p.textContent = paragraf;
+            bungkus.appendChild(p);
+          });
         panel.replaceChildren(bungkus);
         return;
       }
@@ -1278,17 +1371,36 @@
     }
     const questions = RANCANG_FLOW[phase];
     if (!questions?.length) return;
-    // Jika phase KONTEKS_CP dan program_keahlian kosong, konfirmasi_program_keahlian
-    // sudah di-auto-jawab 'tidak' — mulai dari pertanyaan kedua langsung.
     let firstToAsk = questions[0];
     if (phase === 'PROFIL_KELAS') {
       const belum = questions.find(q => !_chat.collected_answers[q.id]);
       if (belum) firstToAsk = belum;
     }
+    // A14 punya DUA rute perbaikan, dan keduanya mendarat di tempat berbeda.
+    //
+    // Tanpa ini keduanya mengulang fase Waktu dari pertanyaan pertama — guru
+    // yang hanya ingin membetulkan jumlah minggu harus menjawab ulang tahun
+    // pelajaran, JP per minggu, durasi JP, dan pola pertemuan lebih dulu.
+    // Menawarkan dua pilihan yang berakhir di layar yang sama persis adalah
+    // bentuk lain dari pertanyaan yang berbohong.
+    if (phase === 'WAKTU') {
+      const rute = answerValue('konfirmasi_waktu');
+      const mulaiDari = rute === 'ubah_minggu' ? 'minggu_efektif_mode'
+                      : rute === 'ubah_jp'     ? 'jp_per_minggu' : null;
+      if (mulaiDari) {
+        const q = questions.find(x => x.id === mulaiDari);
+        if (q) firstToAsk = q;
+        // Dibersihkan supaya kunjungan berikutnya ke fase ini tidak melompat
+        // lagi ke tengah tanpa guru memintanya.
+        delete _chat.collected_answers.konfirmasi_waktu;
+      }
+    }
+    // Program keahlian belum tercatat: A1 sudah di-auto-jawab 'perbaiki_data',
+    // jadi mulai langsung dari pemilihnya.
     if (phase === 'KONTEKS_CP' &&
-        answerValue('konfirmasi_program_keahlian') === 'tidak' &&
+        answerValue('konfirmasi_konteks') === 'perbaiki_data' &&
         !window._classroomProgram) {
-      const skip = getNextQuestion('KONTEKS_CP', 'konfirmasi_program_keahlian', _chat.collected_answers);
+      const skip = getNextQuestion('KONTEKS_CP', 'konfirmasi_konteks', _chat.collected_answers);
       if (skip) firstToAsk = skip;
     }
     if (phase === 'KONTEKS_MODUL') {
@@ -1360,7 +1472,6 @@
       .replace('{{mapel}}', answerValue('mapel') || '—')
       .replace('{{fase}}', answerValue('fase') || '—')
       .replace('{{ringkasan_waktu}}', formatAllocationSummary())
-      .replace('{{ringkasan_target}}', formatPhaseAnswers('TARGET_FASE'))
       .replace('{{ringkasan_dudi}}', formatPhaseAnswers('KONTEKS_DUDI'))
       .replace('{{atp_summary}}', formatAtpSummary());
   }
@@ -1399,59 +1510,53 @@
   const LABEL_PERTANYAAN = {
     program_keahlian:     'Program keahlian',
     durasi_jp_lain:       'Durasi JP (kustom, menit)',
-    penguatan_elemen:     'Penguatan elemen',
-    target_kemandirian:   'Tingkat kemandirian target',
-    target_prioritas:     'Prioritas siswa',
-    timeline_tka:         'Target waktu TKA',
-    timeline_tka_lain:    'Target waktu TKA (kustom)',
-    target_sekolah_detail:'Target khusus sekolah',
+    target_prioritas:     'Bagian yang ingin lebih dikuatkan',
     jp_per_minggu:        'JP per minggu',
     durasi_jp:            'Durasi JP',
     tahun_pelajaran:      'Tahun pelajaran',
     tahun_pelajaran_lain: 'Tahun pelajaran (kustom)',
-    minggu_efektif_mode:  'Penetapan minggu efektif',
-    minggu_sem1:          'Minggu efektif semester 1',
-    minggu_sem2:          'Minggu efektif semester 2',
-    kegiatan_sudah_dikurangi: 'Kegiatan khusus',
-    kegiatan_khusus:      'Jenis kegiatan pengurangan',
-    jp_kegiatan_khusus:   'JP kegiatan khusus',
+    minggu_efektif_mode:  'Penetapan minggu pembelajaran bersih',
+    minggu_sem1:          'Minggu bersih semester 1',
+    minggu_sem2:          'Minggu bersih semester 2',
     cadangan_minggu:      'Cadangan gangguan',
     cadangan_minggu_lain: 'Cadangan (kustom, minggu)',
     pola_jadwal:          'Pola jadwal',
     jp_per_sesi:          'JP per pertemuan/sesi',
     dimensi_profil_lulusan: 'Dimensi Profil Lulusan',
-    status_data_awal:     'Data kemampuan awal',
-    tindakan_tanpa_data:       'Cara menentukan titik awal',
-    perkiraan_kemampuan_awal:  'Gambaran kemampuan awal siswa',
-    sebagian_data_uraian:      'Bagian yang sudah dan belum diketahui',
-    tingkat_kemampuan_awal:    'Tingkat kemampuan awal murid',
-    cara_pemetaan:        'Cara pemetaan',
-    jp_pemetaan:          'JP pemetaan',
-    kesulitan_mode:       'Antisipasi kesulitan',
-    kesulitan_teks_guru:  'Kesulitan (perkiraan guru)',
-    strategi_prasyarat:   'Pengulangan kemampuan dasar',
-    jp_prasyarat:         'JP pengulangan kemampuan dasar',
-    kekuatan_konteks:     'Kekuatan konteks kejuruan',
-    ranah_dunia_kerja:    'Keterampilan dunia kerja',
-    kebutuhan_bidang:     'Hal yang perlu masuk ke pelajaran',
-    batas_konteks:        'Batas penggunaan konteks',
+    // ── ATP (A1–A20 + A15a) ──
+    jumlah_murid_kelas:       'Jumlah murid',
+    bahasa_pengantar:         'Bahasa pengantar dan dukungan bahasa',
+    tingkat_kemampuan_awal:   'Kesiapan murid memulai fase',
+    dasar_informasi_kesiapan: 'Dasar informasi kesiapan',
+    kondisi_murid:            'Kondisi atau kesulitan belajar',
+    kondisi_murid_uraian:     'Kondisi yang guru catat',
+    bantuan_konkret:          'Bantuan konkret yang diperlukan murid',
+    bantuan_konkret_lain:     'Bantuan lain yang diperlukan',
+    strategi_prasyarat:       'Kapan kemampuan dasar dikuatkan',
+    alokasi_prasyarat:        'Alokasi penguatan kemampuan dasar',
+    jp_prasyarat:             'JP penguatan kemampuan dasar',
+    target_prioritas_uraian:  'Kebutuhan khusus sekolah',
+    konteks_tugas:            'Konteks contoh dan tugas',
+    situasi_khusus:           'Situasi khusus',
+    situasi_khusus_uraian:    'Situasi yang diutamakan atau dihindari',
+    metode_pengurutan:        'Urutan pembelajaran',
   };
 
   // Persetujuan bukan keputusan perencanaan. "konfirmasi_waktu: Ya, gunakan
   // perhitungan ini" memanjangkan ringkasan tanpa menambah isi, dan tiga di
   // antaranya bahkan tidak punya label sehingga id mentahnya tercetak ke layar
   // guru. Keduanya selesai dengan tidak mencetaknya sama sekali.
-  // 'target_akhir_mode' ikut dibuang: ia mencetak CARA memilih ("Minta
-  // rekomendasi berdasarkan CP dan profil siswa"), bukan targetnya — dan asal
-  // teksnya kini sudah disebut oleh label target_akhir_teks di bawah.
-  // 'pilih_program_keahlian' dan 'program_keahlian_teks_bebas' juga dibuang:
+  // 'pilih_program_keahlian' dan 'program_keahlian_teks_bebas' dibuang:
   // keduanya CARA memilih, sementara hasilnya sudah tampil sebagai
   // 'program_keahlian'. Menampilkan ketiganya berarti mencetak "Animasi"
   // dua kali — dan hanya salah satunya terisi tergantung jalur yang ditempuh
   // guru, sehingga barisnya berpindah-pindah tanpa sebab yang terlihat.
+  // 'alokasi_prasyarat' dan 'kondisi_murid' dan 'situasi_khusus' juga dibuang:
+  // ketiganya hanya membuka isian berikutnya, dan isian itulah yang bermakna.
   const RINGKASAN_DIBUANG = new Set([
-    'perhitungan', 'target_akhir_mode',
+    'perhitungan',
     'pilih_program_keahlian', 'program_keahlian_teks_bebas',
+    'alokasi_prasyarat', 'kondisi_murid', 'situasi_khusus',
   ]);
 
   function barisForRingkasan(key) {
@@ -1459,17 +1564,7 @@
     return !/^(konfirmasi_|persetujuan_)/.test(key);
   }
 
-  // Label yang mengikuti asal jawabannya. 'target_akhir_teks' diisi dua cara:
-  // guru mengetik sendiri, atau menerima rekomendasi AI (recordAnswer dengan
-  // source 'ai_recommendation'). Label mati 'Target (ditulis guru)' membuat
-  // ringkasan menyebut guru sebagai penulis teks yang ditulis model.
-  function labelUntuk(key, stored) {
-    if (key === 'target_akhir_teks') {
-      const sumber = stored && typeof stored === 'object' ? stored.source : null;
-      return sumber === 'ai_recommendation'
-        ? 'Target akhir fase (disusun MiClass, disetujui guru)'
-        : 'Target akhir fase (ditulis guru)';
-    }
+  function labelUntuk(key) {
     return LABEL_PERTANYAAN[key] || key;
   }
 
@@ -1480,7 +1575,7 @@
         const key    = _ref[0];
         const stored = _ref[1];
         const raw    = unwrapStored(stored);
-        const label  = labelUntuk(key, stored);
+        const label  = labelUntuk(key);
         const value  = resolveAnswerLabel(phase, key, raw);
         return label + ': ' + value;
       }).join('\n') || 'Belum lengkap.';
@@ -1491,19 +1586,37 @@
       ? stored.value : stored;
   }
 
+  // Perkiraan sementara MiClass — samakan dengan MINGGU_PERKIRAAN_PER_SEMESTER
+  // di supabase/functions/generate-atp/kontrak.ts. Kalau salah satu diubah,
+  // ubah keduanya; tests/atp-kontrak.test.ts memeriksanya.
+  const MINGGU_PERKIRAAN_PER_SEMESTER = 18;
+
+  // Kembaran hitungAlokasi() di supabase/functions/generate-atp/kontrak.ts.
+  //
+  // Kedua rumus HARUS memberi angka yang sama: yang ini menentukan apa yang
+  // guru lihat sebelum menyetujui, yang di sana menentukan apa yang benar-benar
+  // dikerjakan. Uji atp-kontrak menjalankan keduanya atas masukan yang sama dan
+  // membandingkan hasilnya, sehingga keduanya tidak bisa menyimpang diam-diam.
+  //
+  // KEGIATAN KHUSUS DAN JP PEMETAAN TIDAK LAGI DIKURANGKAN, dan itu disengaja.
+  // Minggu yang ditanyakan sekarang adalah minggu pembelajaran BERSIH — libur,
+  // kegiatan sekolah, dan ujian sudah dikurangi guru sebelum ia mengetikkan
+  // angkanya. Dulu kegiatan khusus ditanyakan dalam JP sementara cadangan
+  // ditanyakan dalam minggu, dan SELURUH kelas masalah "ATP mustahil dipenuhi"
+  // lahir dari perbedaan satuan itu.
   function calculateAllocation() {
     const jpPerMinggu = Number(answerValue('jp_per_minggu') || 0);
     const mode = answerValue('minggu_efektif_mode');
-    const minggu = mode === 'standar_36' ? 36
-      : Number(answerValue('minggu_sem1') || 0) + Number(answerValue('minggu_sem2') || 0);
+    const perkiraan = mode === 'perkiraan_miclass';
+    const sem1 = perkiraan ? MINGGU_PERKIRAAN_PER_SEMESTER : Number(answerValue('minggu_sem1') || 0);
+    const sem2 = perkiraan ? MINGGU_PERKIRAAN_PER_SEMESTER : Number(answerValue('minggu_sem2') || 0);
+    const minggu = sem1 + sem2;
     const kalender = jpPerMinggu * minggu;
-    const kegiatan = Number(answerValue('jp_kegiatan_khusus') || 0);
     const cadanganVal = answerValue('cadangan_minggu');
     const cadanganMinggu = cadanganVal === 'lain'
       ? Number(answerValue('cadangan_minggu_lain') || 0)
       : Number(cadanganVal || 0);
     const cadangan = cadanganMinggu * jpPerMinggu;
-    const pemetaan = Number(answerValue('jp_pemetaan') || 0);
     const prasyarat = Number(answerValue('jp_prasyarat') || 0);
 
     // Satuan pertemuan — ukuran satu pertemuan menurut pola jadwal guru.
@@ -1519,34 +1632,58 @@
     // kelipatan satuan pertemuan, tidak ada susunan TP yang bisa memenuhi
     // kedua syarat generate sekaligus — AI mana pun pasti gagal. Karena itu
     // pembulatan dilakukan di sini, bukan diserahkan ke guru untuk dihitung.
-    const mentah = Math.max(0, kalender - kegiatan - cadangan - pemetaan - prasyarat);
+    const mentah = Math.max(0, kalender - cadangan - prasyarat);
     const sisaBagi = satuan > 0 ? mentah % satuan : 0;
     const operasional = mentah - sisaBagi;
 
-    return { jp_per_minggu: jpPerMinggu, minggu_efektif: minggu, jp_kalender: kalender,
-      jp_kegiatan_khusus: kegiatan, jp_cadangan: cadangan, jp_pemetaan: pemetaan,
+    // Anggaran per semester. Keduanya kelipatan satuan pertemuan dan jumlahnya
+    // PERSIS jp_operasional, sehingga selalu ada susunan TP yang memenuhinya.
+    const anggaran = [];
+    if (minggu > 0 && operasional > 0) {
+      const langkah = satuan > 0 ? satuan : 1;
+      const kasar = (operasional * sem1) / minggu;
+      const jp1 = Math.max(0, Math.min(operasional, Math.floor(kasar / langkah) * langkah));
+      anggaran.push({ semester: 1, minggu: sem1, jp: jp1 });
+      anggaran.push({ semester: 2, minggu: sem2, jp: operasional - jp1 });
+    }
+
+    return { jp_per_minggu: jpPerMinggu, minggu_sem1: sem1, minggu_sem2: sem2,
+      minggu_efektif: minggu, jp_kalender: kalender,
+      jp_cadangan: cadangan,
       jp_prasyarat: prasyarat, jp_operasional: operasional,
       satuan_pertemuan: satuan,
       jp_tidak_terjadwal: sisaBagi,
-      jumlah_pertemuan: satuan > 0 ? operasional / satuan : 0 };
+      jumlah_pertemuan: satuan > 0 ? operasional / satuan : 0,
+      anggaran_semester: anggaran };
   }
 
   function formatAllocationSummary() {
     const a = calculateAllocation();
-    let s = `Alokasi kalender: ${a.jp_kalender} JP\nKegiatan khusus: ${a.jp_kegiatan_khusus} JP` +
-      `\nCadangan: ${a.jp_cadangan} JP\nSisa sementara: ${a.jp_operasional + a.jp_tidak_terjadwal} JP`;
+    let s = `Minggu pembelajaran bersih: ${a.minggu_sem1} + ${a.minggu_sem2} = ${a.minggu_efektif} minggu` +
+      `\nJam dari kalender: ${a.jp_kalender} JP`;
+    if (a.jp_cadangan > 0)  s += `\nCadangan disisihkan: ${a.jp_cadangan} JP`;
+    if (a.jp_prasyarat > 0) s += `\nPenguatan kemampuan dasar: ${a.jp_prasyarat} JP`;
     if (a.jp_tidak_terjadwal > 0) {
       s += `\nTidak terjadwal: ${a.jp_tidak_terjadwal} JP (kurang dari satu pertemuan penuh)`;
     }
     if (a.satuan_pertemuan > 0) {
       s += `\nJP untuk mengajar: ${a.jp_operasional} JP — ${a.jumlah_pertemuan} pertemuan`;
+    } else {
+      s += `\nJP untuk mengajar: ${a.jp_operasional} JP`;
+    }
+    // Anggaran semester ditampilkan SEBELUM guru menyetujui, bukan sesudah ATP
+    // jadi. Ia menentukan berapa TP yang boleh mendarat di tiap semester, dan
+    // guru berhak melihat pembagiannya selagi masih bisa mengubah minggunya.
+    for (const b of a.anggaran_semester) {
+      s += `\n  · Semester ${b.semester}: ${b.minggu} minggu → ${b.jp} JP` +
+        (a.satuan_pertemuan > 0 ? ` (${b.jp / a.satuan_pertemuan} pertemuan)` : '');
     }
     return s;
   }
 
-  // Kalimat yang ditampilkan saat guru baru saja mengisi JP pemetaan atau JP
-  // penguatan. Mengembalikan null kalau tidak ada yang perlu diberitahukan —
-  // pemanggilnya cukup memeriksa null, tidak perlu tahu aturannya.
+  // Kalimat yang ditampilkan saat guru baru saja mengisi JP penguatan.
+  // Mengembalikan null kalau tidak ada yang perlu diberitahukan — pemanggilnya
+  // cukup memeriksa null, tidak perlu tahu aturannya.
   function pesanPembulatanJp(labelAngka, nilaiAngka) {
     const a = calculateAllocation();
     if (a.satuan_pertemuan <= 0 || a.jp_tidak_terjadwal <= 0) return null;
@@ -1556,14 +1693,13 @@
   }
 
   const PHASE_DISPLAY = {
-    KONTEKS_CP:          'Konteks CP',
+    KONTEKS_CP:          'Dasar CP dan Identitas Kelas',
     PILIH_ATP:           'Pilih ATP',
-    PRIORITAS:           'Prioritas',
+    PROFIL_KELAS:        'Profil Kelas',
+    PROFIL_SISWA:        'Profil Murid',
     WAKTU:               'Waktu',
-    PROFIL_SISWA:        'Profil Siswa',
-    TARGET_FASE:         'Target Fase',
-    KONTEKS_DUDI:        'Konteks Kejuruan',
-    PENGUATAN_PRASYARAT: 'Penguatan Kemampuan Dasar',
+    PENGUATAN_PRASYARAT: 'Penguatan dan Penekanan',
+    KONTEKS_DUDI:        'Konteks dan Pengurutan',
   };
 
   function formatAtpSummary() {
@@ -1818,18 +1954,48 @@
       askQuestion(q);
       return;
     }
-    // CP tidak sesuai: beri penjelasan lalu kembali ke pertanyaan yang sama.
-    // CP ditentukan otomatis dari mapel + fase; guru tidak bisa menggantinya
-    // lewat funnel ini — solusinya adalah melanjutkan dan menyesuaikan TP/KKTP.
+    // A1 — "CP ini bukan yang saya gunakan" MENGHENTIKAN proses.
+    //
+    // Sampai sekarang pilihan ini hanya menampilkan penjelasan lalu
+    // mengembalikan guru ke pertanyaan yang sama, sehingga satu-satunya jalan
+    // keluar adalah menyetujui CP yang ia sendiri baru saja nyatakan salah.
+    // ATP yang berdiri di atas CP yang keliru adalah ATP yang salah seluruhnya
+    // — tidak ada gunanya menyusunnya, dan tidak ada gunanya memakai jatah
+    // harian guru untuk itu.
+    //
+    // SPEC §4 A1: "kembali memilih mata pelajaran/fase atau CP resmi yang
+    // benar, tanpa melanjutkan generate."
     if (q.id === 'konfirmasi_konteks' && value === 'cp_tidak_sesuai') {
-      const program = answerValue('program_keahlian') || '';
-      const pesanCp = 'Capaian Pembelajaran ditentukan oleh mata pelajaran dan fase yang tercatat di kelas ini'
-        + (program ? ` (${program})` : '') + '.'
-        + ' Isi CP tidak bisa diganti lewat Tab Rancang.'
-        + '\n\nJika CP yang muncul terasa tidak relevan, Anda bisa tetap melanjutkan'
-        + ' — TP dan KKTP yang dihasilkan akan disesuaikan dengan konteks program keahlian Anda.';
-      rcAppendBubble('ai', pesanCp);
-      addToHistory('ai', pesanCp);
+      const mapel = answerValue('mapel') || '(belum tercatat)';
+      const fase  = answerValue('fase')  || '(belum tercatat)';
+      const pesanCp =
+        'Penyusunan ATP dihentikan.\n\n' +
+        `Capaian Pembelajaran ditentukan oleh mata pelajaran dan fase yang tercatat di kelas ini — sekarang ${mapel}, Fase ${fase}. ` +
+        'Isinya tidak bisa diganti dari Tab Rancang, dan ATP yang berdiri di atas CP yang keliru akan salah seluruhnya.\n\n' +
+        'Yang perlu dilakukan: buka pengaturan kelas, perbaiki mata pelajaran atau fasenya, lalu buka kembali Tab Rancang. ' +
+        'Jawaban Anda tersimpan dan jatah menyusun ATP hari ini tidak terpakai.';
+      rcAppendBubble('sistem', pesanCp);
+      addToHistory('sistem', pesanCp);
+      rcClearChips();
+      rcSetComposerVisible(false);
+      rcRenderChips([
+        { value: '__kembali__', label: 'Kembali ke layar Rancang' },
+        { value: '__tetap__',   label: 'CP-nya ternyata benar — lanjutkan' },
+      ], function (v) {
+        rcClearChips();
+        if (v === '__tetap__') { askQuestion(q); return; }
+        kembaliKeLayarUtama();
+      });
+      return;
+    }
+    // A1 — "Perbaiki data kelas atau program keahlian": lanjut ke pemilih
+    // program keahlian. Jawabannya sengaja TIDAK direkam sebagai jawaban final
+    // konfirmasi_konteks; guru menjawab ulang pertanyaan itu setelah datanya
+    // diperbaiki, sehingga gerbang di server ("harus 'sesuai'") tetap berarti.
+    if (q.id === 'konfirmasi_konteks' && value === 'perbaiki_data') {
+      _chat.collected_answers['konfirmasi_konteks'] = answer('perbaiki_data', 'guru', true);
+      const next = getNextQuestion('KONTEKS_CP', 'konfirmasi_konteks', _chat.collected_answers);
+      if (next) { askQuestion(next); return; }
       askQuestion(q);
       return;
     }
@@ -1941,76 +2107,16 @@ Jatah menyusun ATP hari ini tidak terpakai. Silakan pilih tindakan lain.`);
       }
       return;
     }
-    // target_akhir_mode 'rekomendasi' → generate teks target, bukan rekomendasikan mode
-    if (q.id === 'target_akhir_mode' && value === 'rekomendasi') {
-      if (_chat.in_flight) return;
-      _chat.in_flight = true;
-      rcSetComposerDisabled(true);
-      rcShowTyping();
-      recordAnswer(q.id, 'rekomendasi', 'guru', true);
-      try {
-        const { data: { session } } = await window.supabaseClient.auth.getSession();
-        const token = session?.access_token ?? '';
-        const res = await fetch(EVAL_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-          body: JSON.stringify({
-            mode: 'recommendation',
-            classroom_id: _chat.classroom_id,
-            question_id: 'target_akhir_teks',
-            question_spec: {
-              kind: 'teks_bebas',
-              prompt: 'Tuliskan target akhir fase yang ingin digunakan.',
-              options: [{ value: '__teks__', label: 'Teks target' }],
-            },
-            context: {
-              session_phase: _chat.session_phase,
-              collected_answers: (typeof trimCollectedAnswers === 'function'
-                ? trimCollectedAnswers(_chat.collected_answers)
-                : _chat.collected_answers),
-            },
-          }),
-        });
-        const json = await res.json();
-        rcHideTyping();
-        if (!res.ok) throw new Error(json.error || 'EF error');
-        const teks = json?.recommendation?.label || json?.recommendation?.value || '';
-        if (!teks) throw new Error('Teks rekomendasi kosong.');
-        const rekMsg = 'Rekomendasi target akhir fase:\n\n' + teks + '\n\n' + (json.recommendation.reason || '');
-        rcAppendBubble('ai', rekMsg);
-        addToHistory('ai', rekMsg);
-        rcRenderChips([
-          { value: '__pakai__', label: 'Gunakan rekomendasi ini' },
-          { value: '__tulis__', label: 'Tulis sendiri' },
-        ], async function (v, chipLabel) {
-          rcClearChips();
-          rcAppendBubble('guru', chipLabel);
-          addToHistory('guru', chipLabel);
-          if (v === '__pakai__') {
-            recordAnswer('target_akhir_teks', teks, 'ai_recommendation', true);
-            await advanceToNext(q);
-          } else {
-            // Tampilkan input teks untuk guru isi sendiri
-            const teksQ = (RANCANG_FLOW['TARGET_FASE'] || []).find(x => x.id === 'target_akhir_teks');
-            if (teksQ) askQuestion(teksQ); else await advanceToNext(q);
-          }
-        });
-      } catch (err) {
-        rcHideTyping();
-        rcAppendBubble('sistem', 'Rekomendasi target belum dapat dimuat. Silakan tulis sendiri.');
-        addToHistory('sistem', 'Gagal ambil rekomendasi target.');
-        const teksQ = (RANCANG_FLOW['TARGET_FASE'] || []).find(x => x.id === 'target_akhir_teks');
-        if (teksQ) askQuestion(teksQ); else await advanceToNext(q);
-      } finally {
-        _chat.in_flight = false;
-        rcSetComposerDisabled(false);
-      }
-      return;
-    }
+    // Blok 'target_akhir_mode' DIBUANG bersama fase TARGET_FASE.
+    //
+    // Ia memanggil evaluate-answer untuk MENGARANG target akhir fase, lalu
+    // menyimpannya sebagai jawaban guru. Target akhir fase sudah dinyatakan CP
+    // resmi; target kedua yang disusun model di sampingnya hanya bisa
+    // bertentangan dengannya tanpa ada yang memeriksa.
     recordAnswer(q.id, value, 'guru', true);
     rcMakeBubbleEditable(guruBubble, q.id, phaseAtAsk, handleEditAnswer);
-    // konfirmasi_program_keahlian 'ya' → tandai program_keahlian sebagai confirmed
-    if ((q.id === 'konfirmasi_program_keahlian' || q.id === 'konfirmasi_program_keahlian_modul') && value === 'ya') {
+    // konfirmasi program keahlian jalur Modul 'ya' → tandai sebagai confirmed
+    if (q.id === 'konfirmasi_program_keahlian_modul' && value === 'ya') {
       if (_chat.collected_answers.program_keahlian) {
         _chat.collected_answers.program_keahlian.confirmed_by_teacher = true;
       }
@@ -2176,6 +2282,16 @@ Jatah menyusun ATP hari ini tidak terpakai. Silakan pilih tindakan lain.`);
   // sehingga satu fase tidak bisa muncul di dua jalur.
   const PROFIL_KELAS_IDS = ['perlengkapan_kelas', 'jumlah_murid_kelas', 'bahasa_pengantar'];
 
+  // Yang benar-benar ditanyakan corong ATP — A2 dan A3 saja.
+  //
+  // 'perlengkapan_kelas' SENGAJA tidak ada di sini. ATP dan Modul berbasis teks,
+  // jadi ATP tidak menanyakan alat apa pun. Ia MASIH ada di PROFIL_KELAS_IDS
+  // karena jalur Modul memakainya sebagai syarat jalur mundurnya sendiri, dan
+  // menyentuh jalur itu berada di luar pekerjaan ini. Memakai satu daftar untuk
+  // dua maksud berbeda akan membuat fase PROFIL_KELAS di corong ATP tidak
+  // pernah dianggap selesai — guru ditanya ulang tiap kali ia kembali.
+  const PROFIL_KELAS_ATP_IDS = ['jumlah_murid_kelas', 'bahasa_pengantar'];
+
   async function muatProfilKelas() {
     let setelan = null;
     try { setelan = await window.api.getRancangSettings(_chat.classroom_id); } catch (_) {}
@@ -2196,7 +2312,10 @@ Jatah menyusun ATP hari ini tidak terpakai. Silakan pilih tindakan lain.`);
     _chat.collected_answers.profil_kelas_lengkap =
       answer(lengkap ? 'ya' : 'tidak', 'otomatis', true);
     saveState();
-    return lengkap;
+    // Yang dikembalikan adalah kelengkapan menurut CORONG ATP, bukan menurut
+    // jalur Modul — pemanggilnya di startPhase('PROFIL_KELAS') memakainya untuk
+    // memutuskan apakah fase itu boleh dilewati.
+    return PROFIL_KELAS_ATP_IDS.every(id => ada[id] !== null);
   }
 
   // Ditulis ke rancang_settings, BUKAN hanya ke collected_data — supaya kelas
@@ -2246,17 +2365,13 @@ Jatah menyusun ATP hari ini tidak terpakai. Silakan pilih tindakan lain.`);
       ['mapel', 'nama_kelas', 'fase', 'jenjang', 'program_keahlian'].forEach(id => {
         if (_chat.collected_answers[id]) phaseData[id] = _chat.collected_answers[id];
       });
-    } else if (phase === 'TARGET_FASE') {
-      const targetText = resolveTargetFaseText();
-      const targetAns  = answer(targetText, 'otomatis', true);
-      phaseData.target_fase_resolved          = targetAns;
-      _chat.collected_answers.target_fase_resolved = targetAns;
-    } else if (phase === 'PROFIL_SISWA') {
-      const kesulitan    = resolveKesulitanDiantisipasi();
-      const kesulitanAns = answer(kesulitan.value, kesulitan.source, true);
-      phaseData.kesulitan_diantisipasi                 = kesulitanAns;
-      _chat.collected_answers.kesulitan_diantisipasi   = kesulitanAns;
     }
+    // 'kesulitan_diantisipasi' tidak lagi diturunkan di sini. Ia dulu dihitung
+    // dari kesulitan_mode — daftar kesulitan yang DIKARANG MiClass per mapel
+    // ketika guru menjawab "gunakan perkiraan umum", lalu dikirim ke AI seolah
+    // berasal dari kelas guru itu. Persis yang dilarang SPEC §2.1: perkiraan
+    // tidak boleh ditampilkan seolah berasal dari bukti. A6 menggantikannya
+    // dengan uraian guru sendiri, dan yang tidak diisi tetap kosong.
 
     const saved = await saveAtpPhaseOptimistic(
       _chat.atp_induk_id, phase, phaseData, _chat.atp_updated_at
@@ -2265,19 +2380,13 @@ Jatah menyusun ATP hari ini tidak terpakai. Silakan pilih tindakan lain.`);
 
     // Sejak 8 Sep 2026 tidak ada lagi tulisan ke atp_adaptasi: ATP sudah milik
     // satu kelas, dan seluruh isi lapisan kedua sudah ada di collected_data.
-    if (phase === 'TARGET_FASE') {
-      // Gabung update target_fase dengan optimistic lock menggunakan updated_at terbaru dari saved,
-      // agar _chat.atp_updated_at selalu sinkron dan tidak memicu false conflict di fase berikutnya.
-      const targetText = resolveTargetFaseText();
-      const { data: writtenTarget } = await window.supabaseClient
-        .from('atp_induk')
-        .update({ target_fase: targetText })
-        .eq('id', _chat.atp_induk_id)
-        .eq('updated_at', saved.updated_at)
-        .select('id, updated_at')
-        .maybeSingle();
-      if (writtenTarget) _chat.atp_updated_at = writtenTarget.updated_at;
-    }
+    // Kolom atp_induk.target_fase tidak lagi ditulis dari corong.
+    //
+    // Fase TARGET_FASE dibuang: target akhir fase SUDAH dinyatakan CP, dan
+    // meminta guru menuliskannya ulang mengundang target yang bertentangan
+    // dengan acuan resminya. Kolomnya sengaja dibiarkan di tabel — ATP lama
+    // masih menyimpannya, dan menghapus kolom adalah pekerjaan tersendiri
+    // yang tidak menambah keamanan apa pun di sini.
     saveState();
   }
 
@@ -2289,6 +2398,15 @@ Jatah menyusun ATP hari ini tidak terpakai. Silakan pilih tindakan lain.`);
     );
     if (next) {
       askQuestion(next);
+    } else if (_chat.session_phase === 'KONTEKS_CP'
+               && answerValue('konfirmasi_konteks') !== 'sesuai') {
+      // Guru baru saja memperbaiki program keahlian. A1 harus ditanyakan
+      // ULANG: gerbang di server menuntut jawabannya 'sesuai', dan tanpa
+      // langkah ini guru berjalan sampai layar persetujuan lalu ditolak di
+      // detik terakhir oleh syarat yang tidak pernah ia lihat.
+      const a1 = (RANCANG_FLOW['KONTEKS_CP'] || [])[0];
+      rcAppendBubble('ai', 'Data kelas sudah diperbarui. Mari periksa sekali lagi sebelum melanjutkan.');
+      askQuestion(a1);
     } else {
       try {
         await persistCompletedPhase(_chat.session_phase);
@@ -2309,7 +2427,7 @@ Jatah menyusun ATP hari ini tidak terpakai. Silakan pilih tindakan lain.`);
       }
       if (_chat.session_phase === 'WAKTU' && calculateAllocation().jp_operasional <= 0) {
         rcAppendBubble('sistem',
-          'JP yang tersisa untuk mengajar menjadi 0 — biasanya karena jumlah minggu efektif belum diisi atau terlalu banyak dikurangi kegiatan. Silakan isi ulang minggu efektif.');
+          'JP yang tersisa untuk mengajar menjadi 0 — biasanya karena jumlah minggu pembelajaran bersih belum diisi atau cadangannya terlalu besar. Silakan isi ulang jumlah minggunya.');
         const modeQ = (RANCANG_FLOW['WAKTU'] || []).find(q => q.id === 'minggu_efektif_mode');
         if (modeQ) askQuestion(modeQ);
         return;
@@ -2325,11 +2443,11 @@ Jatah menyusun ATP hari ini tidak terpakai. Silakan pilih tindakan lain.`);
         return;
       }
       // Pemberitahuan pembulatan — hanya memberi tahu, tidak menghentikan guru.
-      // Kedua angka ini ditanyakan di fase berbeda dan masing-masing mengubah
-      // sisa JP lagi, jadi kalimatnya muncul di tempat guru mengisinya.
-      if (currentQ.id === 'jp_pemetaan' || currentQ.id === 'jp_prasyarat') {
-        const labelAngka = currentQ.id === 'jp_pemetaan' ? 'pemetaan awal' : 'penguatan awal';
-        const pesan = pesanPembulatanJp(labelAngka, answerValue(currentQ.id) || 0);
+      // JP penguatan dijawab SESUDAH fase Waktu dan mengubah sisa JP lagi,
+      // jadi kalimatnya muncul di tempat guru mengisinya, bukan di layar waktu
+      // yang sudah ia tinggalkan.
+      if (currentQ.id === 'jp_prasyarat') {
+        const pesan = pesanPembulatanJp('penguatan kemampuan dasar', answerValue(currentQ.id) || 0);
         if (pesan) rcAppendBubble('sistem', pesan);
       }
       const revisionPhase = revisionDestination(currentQ.id, answerValue(currentQ.id));
@@ -2372,30 +2490,29 @@ Jatah menyusun ATP hari ini tidak terpakai. Silakan pilih tindakan lain.`);
   }
 
   function revisionDestination(questionId, value) {
-    if (questionId === 'konfirmasi_konteks' && value !== 'sesuai') return 'KONTEKS_CP';
-    if (questionId === 'konfirmasi_waktu' && value === 'ubah') return 'WAKTU';
-    if (questionId === 'konfirmasi_target' && value === 'ubah') return 'TARGET_FASE';
-    if (questionId === 'konfirmasi_dudi' && value === 'ubah') return 'KONTEKS_DUDI';
+    // 'perbaiki_data' dan 'lihat_cp' tidak sampai ke sini — keduanya ditangani
+    // di handleChipSelect. 'cp_tidak_sesuai' MENGHENTIKAN corong dan juga tidak
+    // sampai ke sini. Yang tersisa hanya 'sesuai', yang tidak butuh revisi.
+    if (questionId === 'konfirmasi_waktu' && value !== 'ya') return 'WAKTU';
+    // A20 — empat rute, sama persis dengan tindakan pascahasil di ATP_REVIEW.
+    // Keduanya memakai peta yang sama supaya tidak bisa lagi berbeda: sampai
+    // 8 September 2026 menu pascahasil kehilangan tiga tujuan yang justru
+    // paling ingin guru ubah setelah ia melihat daftar TP-nya untuk pertama
+    // kali, dan satu-satunya rute tersisa memakan jatah hariannya.
+    const RUTE_REVISI = {
+      ubah_profil:    'PROFIL_SISWA',
+      ubah_waktu:     'WAKTU',
+      waktu:          'WAKTU',
+      ubah_prasyarat: 'PENGUATAN_PRASYARAT',
+      ubah_konteks:   'KONTEKS_DUDI',
+    };
     if (questionId === 'persetujuan_atp_summary' && value !== 'generate') {
-      return ({
-        ubah_prioritas: 'PRIORITAS', ubah_waktu: 'WAKTU', ubah_profil: 'PROFIL_SISWA',
-        ubah_target: 'TARGET_FASE', ubah_konteks: 'KONTEKS_DUDI',
-        ubah_prasyarat: 'PENGUATAN_PRASYARAT',
-      })[value] || 'ATP_SUMMARY';
+      return RUTE_REVISI[value] || 'ATP_SUMMARY';
     }
     if (questionId === 'tindakan_review_atp') {
-      // Tiga tujuan terakhir ditambahkan 8 September 2026 (Catatan 7) — sama
-      // persis dengan yang sudah dipakai persetujuan_atp_summary di atas.
-      // Menu ini sebelumnya kehilangan justru tiga fase yang paling mungkin
-      // ingin guru ubah setelah ia melihat daftar TP-nya untuk pertama kali.
-      return ({
-        waktu:          'WAKTU',
-        ubah_prioritas: 'PRIORITAS',
-        ubah_target:    'TARGET_FASE',
-        ubah_profil:    'PROFIL_SISWA',
-        ubah_konteks:   'KONTEKS_DUDI',
-        ubah_prasyarat: 'PENGUATAN_PRASYARAT',
-      })[value] || null; // terima/ulang/rumusan/urutan ditangani di handleChipSelect
+      // terima / ulang / tp_lebih_banyak / tp_lebih_sedikit ditangani
+      // handleChipSelect, jadi null di sini berarti "bukan urusan fungsi ini".
+      return RUTE_REVISI[value] || null;
     }
     if (questionId === 'persetujuan_modul_summary' && value !== 'generate') {
       // 'ubah_pertemuan' dibuang 8 September 2026: tidak pernah ada di daftar
@@ -2493,7 +2610,12 @@ Jatah menyusun ATP hari ini tidak terpakai. Silakan pilih tindakan lain.`);
       : `${_chat.atp_draft.length} TP · ${total} JP`;
     text += '\n';
 
+    let semesterTerakhir = null;
     for (const tp of _chat.atp_draft) {
+      if (tp.semester && tp.semester !== semesterTerakhir) {
+        semesterTerakhir = tp.semester;
+        text += `\n— Semester ${tp.semester} —`;
+      }
       const jp         = tp.jp_alokasi || 0;
       const pertemuan  = Array.isArray(tp.jp_pertemuan) ? tp.jp_pertemuan : [];
       const nPertemuan = pertemuan.length || 1;
@@ -2504,6 +2626,88 @@ Jatah menyusun ATP hari ini tidak terpakai. Silakan pilih tindakan lain.`);
       text += `\n      ${jp} JP · ${nPertemuan} pertemuan${distribusi}`;
     }
     return text.trim();
+  }
+
+  // Dasar penyusunan ATP — bukti, keputusan MiClass, dan asumsi, TERPISAH.
+  //
+  // Sampai sekarang guru menerima daftar TP tanpa satu kalimat pun tentang atas
+  // dasar apa ia disusun. Tiga hal yang sangat berbeda tampak sama: konteks
+  // yang benar-benar ia berikan, keputusan yang MiClass ambil karena ia
+  // menyerahkannya, dan angka yang hanya perkiraan. SPEC §2.1 melarang yang
+  // ketiga ditampilkan seolah yang pertama.
+  // Kunci rujukan konteks → frasa guru. Sisi Edge Function-nya adalah
+  // DASAR_KETERANGAN di supabase/functions/generate-atp/kontrak.ts — kalau salah
+  // satu diubah, ubah keduanya.
+  const LABEL_DASAR_KEPUTUSAN = {
+    'cp_anchor.tuntutan': 'tuntutan CP fase ini',
+    'cp_anchor.elemen':   'teks CP per elemen',
+    'kesiapan_murid':     'kesiapan murid',
+    'prioritas_guru':     'bagian yang Anda ingin lebih dikuatkan',
+    'konteks_kejuruan':   'program keahlian kelas ini',
+    'situasi_khusus':     'situasi yang Anda minta diutamakan atau dihindari',
+    'jumlah_murid':       'jumlah murid',
+    'anggaran_waktu':     'jam dan pembagian semester',
+    'batas_mutlak':       'batas layanan teks dan interaksi langsung',
+  };
+
+  function renderDasarPenyusunan() {
+    const h = _chat.atp_hasil;
+    if (!h || !h.dasar_penyusunan) return;
+    const d = h.dasar_penyusunan;
+    let text = 'Atas dasar apa ATP ini disusun';
+
+    if (d.dasar_profil_murid) text += `\n\nProfil murid\n• ${d.dasar_profil_murid}`;
+
+    if (Array.isArray(d.konteks_dari_guru) && d.konteks_dari_guru.length) {
+      text += '\n\nKonteks yang Anda berikan\n' +
+        d.konteks_dari_guru.map(x => '• ' + x).join('\n');
+    }
+
+    if (Array.isArray(d.keputusan_miclass) && d.keputusan_miclass.length) {
+      text += '\n\nKeputusan yang MiClass ambil untuk Anda\n' +
+        d.keputusan_miclass.map(k => {
+          let baris = `• ${k.pertanyaan} → ${k.dipilih}\n  Alasan: ${k.alasan}`;
+          // Dasar hanya ada pada keputusan yang diambil saat penyusunan. Ia
+          // ditampilkan supaya guru dapat menilai apakah yang ditimbang memang
+          // hal yang ia berikan — bukan sekadar membaca kalimat yang meyakinkan.
+          const dasar = Array.isArray(k.dasar)
+            ? k.dasar.map(x => LABEL_DASAR_KEPUTUSAN[x] || LABEL_DASAR_KEPUTUSAN[String(x).split('.').slice(0, 2).join('.')] || x)
+            : [];
+          if (dasar.length) baris += `\n  Ditimbang dari: ${[...new Set(dasar)].join('; ')}`;
+          return baris;
+        }).join('\n');
+    }
+
+    // Jejak penekanan guru (Pass 5). Isinya sudah frasa manusia dari server —
+    // tidak ada kunci mesin. ATP yang disusun sebelumnya tidak memilikinya,
+    // dan bagian ini dilewati tanpa jejak.
+    if (Array.isArray(d.penerapan_prioritas) && d.penerapan_prioritas.length) {
+      text += '\n\nPenekanan yang Anda minta\n' +
+        d.penerapan_prioritas.map(p => {
+          const tp = Array.isArray(p.tp) && p.tp.length ? `TP ${p.tp.join(', ')}` : '-';
+          let baris = `• ${p.prioritas} → diterapkan terutama pada ${tp}`;
+          if (Array.isArray(p.pengaruh) && p.pengaruh.length) baris += ` (${p.pengaruh.join(', ')})`;
+          if (p.alasan) baris += `\n  ${p.alasan}`;
+          return baris;
+        }).join('\n');
+    }
+
+    if (Array.isArray(d.asumsi) && d.asumsi.length) {
+      text += '\n\nBagian yang masih berupa asumsi — belum berasal dari bukti\n' +
+        d.asumsi.map(a => `• ${a.hal}: ${a.sebab}`).join('\n');
+    }
+
+    if (h.cakupan_cp) {
+      const c = h.cakupan_cp;
+      text += c.diperiksa
+        ? (c.tuntutan_belum && c.tuntutan_belum.length
+            ? `\n\nCakupan CP\n• ${c.tuntutan_tercakup.length} dari ${c.tuntutan_wajib.length} tuntutan CP terpetakan. Belum terpetakan: ${c.tuntutan_belum.join(', ')}.`
+            : `\n\nCakupan CP\n• Seluruh ${c.tuntutan_wajib.length} tuntutan CP fase ini sudah terpetakan ke TP.`)
+        : '\n\nCakupan CP\n• Belum diperiksa — acuan CP untuk kombinasi ini belum tersedia.';
+    }
+
+    rcAppendBubble('ai', text.trim());
+    addToHistory('ai', 'Dasar penyusunan ATP ditampilkan.');
   }
 
   function renderAtpDraftPreview() {
@@ -2531,13 +2735,29 @@ Jatah menyusun ATP hari ini tidak terpakai. Silakan pilih tindakan lain.`);
     }
     if (elemenLabels.length) text += `\nElemen tercakup: ${elemenLabels.join(', ')}`;
     text += '\n';
+    let semesterTerakhir = null;
     for (const tp of _chat.atp_draft) {
+      // Penempatan semester ditampilkan sebagai pemisah, bukan sebagai kolom
+      // di tiap baris: guru membaca ATP sebagai perjalanan, dan yang ia perlu
+      // tahu adalah di mana tahun ajarannya terbelah.
+      if (tp.semester && tp.semester !== semesterTerakhir) {
+        semesterTerakhir = tp.semester;
+        const jpSem = _chat.atp_draft
+          .filter(t => t.semester === tp.semester)
+          .reduce((s, t) => s + (t.jp_alokasi || 0), 0);
+        text += `\n\n— Semester ${tp.semester} · ${jpSem} JP —`;
+      }
       const el = (tp.elemen || []).map(id => elemenMap[id] || id).join(', ');
       text += `\nTP ${tp.nomor}. ${tp.judul} (${tp.jp_alokasi} JP)`;
       if (el) text += `\n   Elemen: ${el}`;
+      // Jenis teks (Pass 5) — ada pada ATP baru, tidak ada pada ATP lama.
+      if (Array.isArray(tp.kategori_teks) && tp.kategori_teks.length) {
+        text += `\n   Jenis teks: ${tp.kategori_teks.join(' dan ')}`;
+      }
     }
     rcAppendBubble('ai', text.trim());
     addToHistory('ai', `Draf ATP — ${_chat.atp_draft.length} TP, total ${total} JP`);
+    renderDasarPenyusunan();
   }
 
   function renderModulPreview() {
@@ -3428,6 +3648,7 @@ Jatah menyusun ATP hari ini tidak terpakai. Silakan pilih tindakan lain.`);
       const result = await callGenerateAtp(_chat.atp_induk_id, _chat.atp_updated_at, _chat.sumber_flow, _chat.target_jumlah_tp);
       rcHideTyping();
       _chat.atp_draft      = result.progresi_tp;
+      _chat.atp_hasil      = result.atp_hasil || null;
       _chat.atp_updated_at = result.updated_at;
       saveState();
       const s = result.summary;
@@ -3443,14 +3664,20 @@ Jatah menyusun ATP hari ini tidak terpakai. Silakan pilih tindakan lain.`);
       let retryable = false;
       if (code === 'ATP_INPUT_INCOMPLETE') {
         const FIELD_LABELS = {
-          jp_per_minggu: 'JP per minggu', durasi_jp: 'durasi JP', minggu_sem1: 'minggu semester 1',
-          minggu_sem2: 'minggu semester 2', cadangan_minggu: 'cadangan minggu',
-          pola_jadwal: 'pola jadwal', target_prioritas: 'prioritas', timeline_tka: 'target waktu TKA',
-          status_data_awal: 'data kemampuan awal', kesulitan_mode: 'kesulitan siswa',
-          target_akhir_mode: 'target akhir fase', penguatan_elemen: 'elemen penguatan',
-          target_kemandirian: 'target kemandirian', kekuatan_konteks: 'kekuatan konteks kejuruan',
-          ranah_dunia_kerja: 'ranah dunia kerja', kebutuhan_bidang: 'kebutuhan bidang',
-          batas_konteks: 'batas konteks', strategi_prasyarat: 'pengulangan kemampuan dasar',
+          jp_per_minggu: 'JP per minggu', durasi_jp: 'durasi JP',
+          minggu_sem1: 'minggu bersih semester 1', minggu_sem2: 'minggu bersih semester 2',
+          cadangan_minggu: 'cadangan minggu', pola_jadwal: 'pola pertemuan',
+          target_prioritas: 'bagian yang ingin dikuatkan',
+          tingkat_kemampuan_awal: 'kesiapan murid',
+          strategi_prasyarat: 'penguatan kemampuan dasar',
+          konteks_tugas: 'konteks contoh dan tugas',
+          metode_pengurutan: 'urutan pembelajaran',
+          'WAKTU.jp_operasional': 'alokasi jam mengajar',
+          'WAKTU.minggu_efektif': 'jumlah minggu pembelajaran bersih',
+          'KONTEKS_CP.konfirmasi_konteks': 'persetujuan data kelas dan CP',
+          'ATP_SUMMARY.persetujuan_atp_summary': 'persetujuan ringkasan ATP',
+          elemen_cp: 'daftar elemen Capaian Pembelajaran',
+          acuan_cp: 'acuan CP untuk mata pelajaran dan fase ini',
         };
         const missing = (err.missing || []).map(f => FIELD_LABELS[f] || f);
         const list = missing.join(', ');
@@ -3483,6 +3710,14 @@ Jatah menyusun ATP hari ini tidak terpakai. Silakan pilih tindakan lain.`);
       } else if (code === 'ATP_GENERATION_TRUNCATED') {
         msg = '❌ MiClass belum berhasil menyusun ATP. Jawaban Anda tersimpan. Silakan coba lagi.';
         retryable = true;
+      } else if (code === 'ATP_ACUAN_CP_TIDAK_TERSEDIA') {
+        // Gerbang kedua. Guru seharusnya tidak pernah sampai ke sini — gerbang
+        // pertama menutup layar Rancang sebelum satu pertanyaan pun tampil.
+        // Kalau ia tetap sampai, berarti mapel atau fase kelas berubah di
+        // tengah jalan, dan yang penting adalah jatahnya TIDAK terpakai.
+        msg = '❌ ' + (err.message || 'Layanan belum tersedia untuk mata pelajaran dan fase kelas ini.')
+            + '\n\nJatah menyusun ATP hari ini tidak terpakai.';
+        retryable = false;
       } else if (code === 'RATE_LIMIT') {
         msg = '❌ Batas generate ATP harian (3×) untuk ATP ini tercapai. Coba lagi besok.';
       } else {

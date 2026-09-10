@@ -221,6 +221,9 @@ git push origin main                  → urutan TERAKHIR
 | Role valid | `GURU`, `SISWA`, `ORTU` — tidak ada yang lain, jangan tambah |
 | Deploy edge function | `--project-ref teccdzetrdjowqemnuuc` — CLI ini TOLAK `--linked` di sini |
 | `grade_recap` tanpa `teacher_id` | **Disengaja.** Ia satu-satunya tabel penilaian tanpa kolom itu; isolasinya lewat `fn_is_classroom_owner(classroom_id)`. Jangan tambahkan demi keseragaman — lihat catatan di bawah tabel. |
+| Menyentuh alur pertanyaan ATP | Baca `docs/SPEC-ATP-KONTRAK.md` dulu. Setiap pertanyaan WAJIB punya entri di `KONTRAK_PERTANYAAN` (`supabase/functions/generate-atp/kontrak.ts`); tanpa itu `tests/atp-kontrak.test.ts` gagal. |
+| Menyentuh hitungan waktu ATP | Ada DUA rumus kembar: `calculateAllocation()` (klien) dan `hitungAlokasi()` (kontrak.ts). Ubah keduanya — uji menjalankan kode kirim klien apa adanya dan membandingkan hasilnya. |
+| Membuka mapel/fase baru di Tab Rancang | Tambahkan acuannya di `shared/data/cp-acuan.json`, lalu `node tests/atp-acuan-sinkron.mjs --tulis`. Tanpa acuan, gerbang menutup layanan sebelum guru menjawab apa pun. |
 
 > **Catatan `grade_recap` vs §3.** §3 menyatakan `teacher_id` didenormalisasi ke
 > setiap tabel fitur. `grade_recap` — dan `student_groups` — adalah pengecualian:
@@ -238,7 +241,39 @@ git push origin main                  → urutan TERAKHIR
 ## 12. STATUS PROYEK
 
 **Fase saat ini: DEVELOPMENT AKTIF**
-**HEAD:** `1cb4cf9` (per 7 September 2026 — daftar di bawah direkonsiliasi ke kode aktual pada tanggal ini)
+**HEAD:** `e3323b5` (per 10 September 2026; daftar di bawah direkonsiliasi ke kode aktual per 7 September 2026 kecuali yang bertanggal lebih baru)
+
+> **10 September 2026 — ATP FINALIZATION, siap ditinjau, BELUM di-deploy.**
+> Alur pertanyaan ATP diganti seluruhnya ke 21 definisi SPEC (A1–A20 + A15a),
+> menggantikan 48 pertanyaan lama. Kontrak baru: `KONTRAK_PERTANYAAN`,
+> `bangunKonteksAtp()`, `resolveDelegasi()`, `validasiAtp()`, dan gerbang acuan
+> CP — semuanya di `supabase/functions/generate-atp/kontrak.ts` (murni, bisa
+> diuji tanpa menyentuh produksi).
+>
+> **Belum di-deploy dan belum di-push.** `generate-atp` yang berjalan di
+> produksi masih versi lama; klien di GitHub Pages juga. Jangan menganggap
+> perilaku di bawah sudah berlaku bagi guru sampai deploy dilakukan.
+> Jejak lengkap pertanyaan → data → keputusan: `docs/SPEC-ATP-KONTRAK.md`
+> (dibangkitkan, jangan disunting tangan).
+>
+> Perintah yang wajib lulus sebelum menyentuh ATP lagi:
+> ```
+> deno test --allow-read tests/atp-kontrak.test.ts    # 22 uji, Case A–J
+> node tests/atp-acuan-sinkron.mjs                    # salinan acuan CP di EF
+> node tests/atp-trace.mjs --periksa                  # dokumen jejak vs kode
+> ```
+
+> **10 September 2026 — Pass 5 (koreksi semantik), BELUM di-deploy, BELUM di-commit.**
+> Keluaran model kanonik kini SELALU satu objek
+> `{keputusan_didelegasikan, penerapan_prioritas, tp}`; array lama tetap dibaca.
+> Parser `parseKeluaranModel()` dan orkestrator `susunDenganSatuPerbaikan()`
+> tinggal di `kontrak.ts` — Edge Function, uji, dan harness memakai fungsi yang sama.
+> **Satu permintaan guru = PALING BANYAK DUA panggilan model** (utama + satu
+> perbaikan). Catatan sebelum Pass 5 yang menyebut "repair maksimum satu" keliru:
+> kodenya dulu bisa menempuh tiga panggilan. Aturan baru validator: maksimal 2
+> tuntutan per TP (K2), cakupan fiksi+nonfiksi dari `cakupan_wajib` di
+> `cp-acuan.json` (C6/C7), jejak prioritas guru (P1–P4). TP baru tidak lagi punya
+> `tipe`. Laporan: `docs/ATP-SEMANTIC-CORRECTION-RETEST-REPORT.md`.
 
 > **SUMBER TUNGGAL HASIL AKHIR — `docs/SPEC-ATP-MODUL-BERBASIS-TEKS.md`
 > (9 September 2026).** Dokumen itu menetapkan apa yang wajib dihasilkan ATP dan
@@ -1489,13 +1524,18 @@ Pengguna Tab Rancang adalah guru SMK Indonesia yang:
 
 > Sebagian daftar ini digantikan `docs/SPEC-ATP-MODUL-BERBASIS-TEKS.md`
 > (9 September 2026). Periksa ke sana sebelum mengerjakan butir mana pun di bawah.
-- Enam inkonsistensi alur pertanyaan yang masih terbuka —
-  `docs/DAFTAR-PERTANYAAN-RANCANG.md` §Catatan, tabel status di awal bagian itu.
-  Yang paling merugikan guru (Catatan 7): menu revisi setelah draf ATP terlihat
-  (#46, `rancang-chat-flow.js:322-330`) kehilangan rute ke Profil Siswa, Konteks
-  Kejuruan, dan Penguatan Prasyarat — tepat pada saat guru pertama kali bisa
-  melihat bahwa ATP-nya tidak mengakomodasi murid yang tertinggal. Yang tersisa
-  hanya "Buat ulang ATP", yang memakan satu dari tiga jatah hariannya.
+>
+> **BAGIAN ATP DARI DAFTAR INI SUDAH SELESAI 10 September 2026** — seluruh alur
+> pertanyaan ATP diganti ke 21 definisi SPEC. Yang tersisa di daftar ini
+> hanyalah butir Modul Ajar. Jangan mengerjakan ulang butir ATP mana pun tanpa
+> memeriksa `docs/SPEC-ATP-KONTRAK.md` lebih dulu.
+- ~~Enam inkonsistensi alur pertanyaan yang masih terbuka~~ — **SELESAI untuk
+  jalur ATP, 10 September 2026.** Seluruh alur pertanyaan ATP diganti, sehingga
+  daftar inkonsistensinya tidak lagi merujuk kode yang ada.
+  Termasuk Catatan 7: menu pascahasil (`tindakan_review_atp`) kini memakai peta
+  rute yang SAMA dengan layar persetujuan (`RUTE_REVISI` di `rancang-chat.js`),
+  jadi keduanya tidak bisa lagi berbeda. `docs/DAFTAR-PERTANYAAN-RANCANG.md`
+  menjadi arsip untuk jalur ATP; ia masih berlaku untuk jalur Modul.
 - ~~Perlengkapan kelas sebaiknya pindah ke `rancang_settings` per kelas~~ —
   **BATAL 9 September 2026. Pertanyaan perlengkapan kelas DIHAPUS seluruhnya**
   atas keputusan Romo: ATP dan Modul berbasis teks, jadi tidak ada alat yang
