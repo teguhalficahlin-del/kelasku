@@ -610,23 +610,32 @@ const RANCANG_FLOW = {
       helpText: 'Instrumen inilah yang akan MiClass susun isinya dan bisa Anda cetak.' }),
 
     // --- Formatif ---
-    pilihan('gunakan_formatif', 'Apakah guru ingin mengecek pemahaman murid selama proses belajar berlangsung?', [
-      ['ya',     'Ya — saya ingin memantau pemahaman murid di tengah pembelajaran'],
-      ['lewati', 'Lewati — tidak perlu asesmen selama proses'],
-    ], { helpText: 'Cek pemahaman di tengah pembelajaran, bukan penilaian akhir.' }),
-    // Sampai 8 September 2026 teknik formatif adalah SATU-SATUNYA dari ketiganya
-    // yang tidak pernah ditanyakan: instruksi_manifest berbunyi "Formatif: AI
-    // menentukan teknik dan penempatan". helpText pertanyaan di atas bahkan
-    // menyatakannya terang-terangan kepada guru.
-    pilihan('teknik_formatif', 'Bagaimana cara mengecek pemahaman murid di tengah pembelajaran?', [
+    //
+    // SATU pertanyaan, bukan dua — dan pertanyaannya PREFERENSI, bukan tombol.
+    //
+    // Sampai M3 di sini duduk `gunakan_formatif` (ya/lewati) disusul
+    // `teknik_formatif` yang hanya muncul kalau jawabannya 'ya'. Guru yang
+    // memilih 'lewati' mendapat modul tanpa satu pun pemeriksaan pemahaman
+    // selama pelajaran berlangsung.
+    //
+    // Reviewer menutup pilihan itu: memeriksa apakah murid mengerti SEBELUM
+    // pelajaran berakhir bukan fitur yang dimatikan, ia bagian dari mengajar.
+    // Yang tetap milik guru adalah CARANYA — termasuk menyerahkannya.
+    //
+    // Jumlah pertanyaan TURUN satu; tidak ada yang ditambahkan. Kunci yang
+    // dipakai tetap `teknik_formatif` dengan opsi yang sudah ada sebelumnya,
+    // jadi tidak ada teknik baru yang dijanjikan kepada guru. Jawaban lama
+    // `gunakan_formatif` yang sudah tersimpan tetap diterima backend lewat
+    // resolvePreferensiFormatif() — tidak ada backfill.
+    pilihan('teknik_formatif', 'Bagaimana Anda ingin MiClass memeriksa pemahaman murid selama proses belajar?', [
       ['tanya_jawab',     'Tanya jawab lisan di sela kegiatan'],
       ['observasi',       'Mengamati murid saat mereka bekerja'],
       ['latihan_singkat', 'Latihan singkat yang langsung dikoreksi'],
       ['refleksi',        'Murid menuliskan sendiri apa yang belum ia pahami'],
-      ['rekomendasi',     'Minta rekomendasi MiClass'],
+      ['rekomendasi',     'Serahkan kepada MiClass'],
     ], { aiRecommendation: true,
-      condition: { question_id: 'gunakan_formatif', value: 'ya' },
-      helpText: 'Penempatannya di pertemuan mana tetap diatur MiClass sesuai jumlah pertemuan.' }),
+      helpText: 'Pemeriksaan pemahaman di tengah pembelajaran selalu ada — yang Anda pilih di sini '
+              + 'caranya. Penempatannya di pertemuan mana tetap diatur MiClass sesuai jumlah pertemuan.' }),
     pilihan('instrumen_form_tanya', 'Dengan apa hasil tanya jawab itu dicatat?', [
       ['matriks_observasi', 'Lembar pengamatan — centang per murid'],
       ['dialog_model',      'Contoh percakapan sebagai acuan jawaban'],

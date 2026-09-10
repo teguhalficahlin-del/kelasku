@@ -60,12 +60,14 @@ export type FieldKontrak = {
 
 // NULLABILITY — KEADAAN SEKARANG, BUKAN CITA-CITA.
 //
-// `asesmen_formatif`, `asesmen_diagnostik`, dan `asesmen_sumatif` ditandai
-// nullable karena SEKARANG memang begitu bentuknya. Reviewer sudah menetapkan
-// bahwa asesmen formatif akhirnya WAJIB — tetapi perubahan itu M4, dan M3
-// mendahuluinya justru akan merusak buktinya: yang sedang dibuktikan di sini
-// adalah bahwa mengubah satu tempat cukup untuk mengubah validator DAN prompt
-// sekaligus. M4 nanti menguji mekanisme ini dengan memakainya.
+// `asesmen_diagnostik` dan `asesmen_sumatif` boleh null karena keduanya memang
+// pilihan guru. `asesmen_formatif` TIDAK lagi — M4 mencabut kebolehan itu.
+//
+// Dan inilah bukti bahwa M3 bekerja: pencabutannya dilakukan DI SINI SAJA, di
+// satu `bentuk` dan satu `catatan`. SYSTEM_PROMPT, pesan perbaikan per fase,
+// dan pesan perbaikan dokumen final ketiganya berubah tanpa disunting, karena
+// ketiganya dibangkitkan dari objek ini. Sebelum M3 perubahan sekecil ini
+// menuntut tiga suntingan tangan yang tidak pernah saling memeriksa.
 //
 // Menuliskan cita-cita di kontrak yang menggambarkan keadaan adalah cara
 // tercepat membuat kontrak berbohong.
@@ -88,8 +90,15 @@ export const KONTRAK_ROOT: Record<string, FieldKontrak> = {
   },
   kktp: {
     fase: 'A', kind: 'array', required: true, min: 1,
-    catatan: 'id_kktp WAJIB berurutan K1, K2, … sesuai posisinya.',
-    bentuk: `"kktp": [{"id_kktp":"K1","kriteria":string,"ambang_batas":string,"instrumen_bukti":[string]}]`,
+    catatan: 'id_kktp WAJIB berurutan K1, K2, … sesuai posisinya. '
+           + 'tuntutan_ref WAJIB memakai ID tuntutan CP dari warisan_atp.tp.tuntutan_cp — '
+           + 'jangan mengarang ID baru, dan gabungan seluruh tuntutan_ref WAJIB menutup SEMUA tuntutan TP ini. '
+           + 'keputusan_ketercapaian adalah bentuk TERUKUR dari ambang_batas: yang dipakai guru untuk memutuskan; '
+           + 'ambang_batas tetap ada sebagai penjelasan yang guru baca. '
+           + 'instrumen_bukti WAJIB berisi ID instrumen asesmen (ASM-xx) yang benar-benar mengumpulkan bukti KKTP ini.',
+    bentuk: `"kktp": [{"id_kktp":"K1","kriteria":string,"tuntutan_ref":["<ID tuntutan CP>"],
+    "keputusan_ketercapaian":{"jenis":<jenis_keputusan>,"nilai_minimum":number,"satuan":string,"deskripsi":string},
+    "ambang_batas":string,"instrumen_bukti":["ASM-01"]}]`,
   },
   konteks_murid: {
     fase: 'A', kind: 'object', required: true,
@@ -101,11 +110,29 @@ export const KONTRAK_ROOT: Record<string, FieldKontrak> = {
   },
   rencana_asesmen: {
     fase: 'A', kind: 'object', required: true,
-    catatan: 'Ketiga jenis asesmen boleh null sesuai pilihan guru — lihat input asesmen.',
+    // ASESMEN FORMATIF TIDAK LAGI NULLABLE (M4).
+    //
+    // Sampai M3 ketiganya boleh null, karena guru ditanya "pakai formatif atau
+    // tidak". Reviewer menutup pertanyaan itu: memeriksa pemahaman murid selama
+    // proses belajar bukan fitur pilihan, dan jawaban guru sekarang adalah
+    // PREFERENSI TEKNIK, bukan tombol nyala-mati. Diagnostik dan sumatif tetap
+    // boleh null — keduanya memang pilihan.
+    catatan: 'asesmen_formatif WAJIB berisi minimal 1 entri dan TIDAK BOLEH null — '
+           + 'memeriksa pemahaman murid selama proses belajar selalu ada. '
+           + 'Diagnostik dan sumatif boleh null sesuai pilihan guru. '
+           + 'id formatif WAJIB berurutan FMT-01, FMT-02, … '
+           + 'Setiap entri formatif WAJIB punya sub_langkah nyata di Fase B dengan asesmen_ref = id-nya. '
+           + 'cakupan_bukti="per_murid" berarti bukti terkumpul per individu; "kelompok" berarti per kelompok. '
+           + 'Setiap KKTP WAJIB punya minimal satu jalur bukti per_murid yang merujuknya. '
+           + 'Asesmen diagnostik TIDAK dihitung sebagai bukti ketercapaian TP.',
     bentuk: `"rencana_asesmen": {
     "asesmen_diagnostik": null | {"tujuan":string,"teknik":string,"instrumen_ref":[string],"waktu":string,"penggunaan_hasil":string},
-    "asesmen_formatif": null | [{"id":"F1","waktu_pertemuan":integer,"fase_langkah":<nama_langkah>,"teknik":string,"instrumen_ref":[string],"fungsi":string,"referensi_kktp":["K1"],"umpan_balik":string}],
-    "asesmen_sumatif": null | {"deskripsi":string,"teknik":string,"instrumen_ref":[string],"durasi_menit":integer,"placement":{"pertemuan":integer,"fase":<nama_langkah>}}
+    "asesmen_formatif": [{"id":"FMT-01","waktu_pertemuan":integer,"fase_langkah":<nama_langkah>,"teknik":string,
+      "instrumen_ref":["ASM-01"],"fungsi":string,"referensi_kktp":["K1"],
+      "cakupan_bukti":<cakupan_bukti>,"umpan_balik":string}],
+    "asesmen_sumatif": null | {"deskripsi":string,"teknik":string,"instrumen_ref":["ASM-01"],"durasi_menit":integer,
+      "referensi_kktp":["K1"],"cakupan_bukti":<cakupan_bukti>,
+      "placement":{"pertemuan":integer,"fase":<nama_langkah>}}
   }`,
   },
   rancangan: {
@@ -211,6 +238,10 @@ export const ENUM_KONTRAK: Record<string, readonly string[]> = {
   mode_pelaksanaan: ['simultan', 'bergantian', 'individual', 'kelompok_kecil'],
   mode_observasi:   ['semua', 'sampel', 'rotasi', 'mandiri'],
   jenis_instrumen_pembelajaran: ['dialog_baseline', 'dialog_model', 'teks_autentik', 'kartu_peran', 'custom'],
+  // M4 — bentuk keputusan ketercapaian dan cakupan bukti. Keduanya STRUKTURAL:
+  // validator menegakkannya dan prompt melihat daftar yang sama.
+  jenis_keputusan: ['jumlah', 'persentase', 'rubrik'],
+  cakupan_bukti:   ['per_murid', 'kelompok'],
   jenis_instrumen_asesmen: [
     'pemetaan_awal', 'matriks_observasi', 'lembar_refleksi', 'soal_latihan',
     'lembar_praktikum', 'panduan_proyek', 'custom',

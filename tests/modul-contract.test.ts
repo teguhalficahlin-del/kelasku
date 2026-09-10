@@ -120,9 +120,18 @@ Deno.test('M3-D: setiap bagian akar wajib yang dihapus menghasilkan temuan struk
 });
 
 Deno.test('M3-E: field yang SEKARANG nullable tetap sah bernilai null', async () => {
-  // Ini keadaan hari ini, dan sengaja: reviewer sudah menetapkan asesmen
-  // formatif akhirnya WAJIB, tetapi perubahannya M4. Uji ini AKAN dibalik di
-  // sana, dan pembalikannya justru buktinya bahwa mekanisme M3 bekerja.
+  // DIPERBARUI OLEH M4 — dan pembaruan inilah buktinya M3 bekerja.
+  //
+  // Versi M3 uji ini menuntut kontrak menyatakan `asesmen_formatif` boleh null,
+  // dengan catatan bahwa reviewer sudah menetapkan formatif akhirnya WAJIB dan
+  // "uji ini AKAN dibalik di M4". M4 membalikkannya, dan yang perlu disunting
+  // untuk membalikkannya hanya SATU tempat: `bentuk` di contract.ts. Prompt,
+  // pesan perbaikan per fase, dan pesan perbaikan dokumen final ketiganya ikut
+  // berubah tanpa disentuh — lihat M4-AH dan M4-AI.
+  //
+  // Yang uji ini jaga sekarang: diagnostik dan sumatif MASIH boleh null (
+  // keduanya memang pilihan guru), dan dokumen historis tanpa formatif tetap
+  // terbaca di modus historis.
   const k = await fixtureSehat();
   const ra = k.rencana_asesmen as Record<string, unknown>;
   ra.asesmen_formatif   = null;
@@ -131,11 +140,15 @@ Deno.test('M3-E: field yang SEKARANG nullable tetap sah bernilai null', async ()
   const v = validate(k, ...(await argsSehat()));
   assertEquals(v.errors.filter(e => /asesmen_(formatif|diagnostik|sumatif) tidak ada/.test(e)), []);
 
-  // Kontrak menyatakan keadaan itu apa adanya, bukan cita-citanya.
   const kontrakSrc = await Deno.readTextFile(
     new URL('../supabase/functions/generate-modul/contract.ts', import.meta.url));
-  assert(/asesmen_formatif": null \|/.test(kontrakSrc),
-    'kontrak tidak lagi menyatakan formatif boleh null — itu perubahan M4');
+  for (const jenis of ['asesmen_diagnostik', 'asesmen_sumatif']) {
+    assert(new RegExp(`${jenis}": null \\|`).test(kontrakSrc),
+      `kontrak tidak lagi menyatakan ${jenis} boleh null`);
+  }
+  // Dan formatif TIDAK lagi ditawarkan sebagai null (M4).
+  assert(!/asesmen_formatif": null \|/.test(kontrakSrc),
+    'kontrak masih membolehkan asesmen_formatif null — M4 mencabutnya');
 });
 
 Deno.test('M3-F: enum struktural yang salah ditolak validator', async () => {
@@ -192,10 +205,15 @@ Deno.test('M3-H: setiap bagian akar yang model hasilkan muncul di kerangka', () 
 
 Deno.test('M3-I: field nullable ditandai null di kerangka yang model terima', () => {
   const kerangka = kerangkaSeluruhFase();
-  for (const jenis of ['asesmen_diagnostik', 'asesmen_formatif', 'asesmen_sumatif']) {
+  // `asesmen_formatif` dikeluarkan dari daftar ini oleh M4: ia tidak nullable
+  // lagi. Perhatikan bahwa kerangkanya tidak disunting untuk itu — hanya
+  // `bentuk` di kontrak yang berubah.
+  for (const jenis of ['asesmen_diagnostik', 'asesmen_sumatif']) {
     assert(new RegExp(`"${jenis}":\\s*null \\|`).test(kerangka),
       `${jenis} tidak ditandai boleh null di kerangka`);
   }
+  assert(!/"asesmen_formatif":\s*null/.test(kerangka),
+    'kerangka masih menawarkan asesmen_formatif null — M4 mencabutnya');
   // Yang wajib TIDAK ditandai null.
   assert(!/"kktp":\s*null/.test(kerangka));
   assert(!/"pertemuan":\s*null/.test(kerangka));
@@ -346,8 +364,10 @@ Deno.test('M3-N: jejak M2 tetap ikut ke dokumen final, dan hash M1 tidak tersent
   for (const nama of ['tp_anchor', 'atp_context', 'alokasi_server']) {
     assert(blok.includes(nama), `${nama} hilang dari dokumen final`);
   }
-  // Penyusunan menyalakan tuntutan jejak; jalur lain tidak.
-  assert(/perangkatDigitalDiizinkan\(cd\), true\)/.test(src),
+  // Penyusunan menyalakan tuntutan jejak; jalur lain tidak. Sejak M4 argumen
+  // sesudahnya adalah kontrak rantai bukti, jadi jalur penyusunan berbunyi
+  // `true, true` — keduanya menyala. Lihat M4-AK.
+  assert(/perangkatDigitalDiizinkan\(cd\), true(, true)?\)/.test(src),
     'jalur penyusunan tidak menuntut jejak pewarisan');
 
   // Semantik tp_snapshot_hash tidak disentuh M3.

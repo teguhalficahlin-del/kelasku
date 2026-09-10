@@ -274,9 +274,31 @@ type Identitas = {
 type KktpItem = {
   id_kktp:         string;
   kriteria:        string;
+  /** ID tuntutan CP yang KKTP ini ukur. Otoritasnya `tp_anchor.tuntutan_id` —
+   *  bukan daftar yang model karang. Gabungan seluruh KKTP wajib menutupinya. */
+  tuntutan_ref:    string[];
+  /** Bentuk TERUKUR dari ambang. Inilah otoritas keputusan runtime; ambang_batas
+   *  di bawah tinggal penjelasan yang guru baca (M4 §6). */
+  keputusan_ketercapaian: KeputusanKetercapaian;
   ambang_batas:    string;
   instrumen_bukti: string[];
 };
+
+/** Ambang yang bisa dihitung, bukan dibaca. Sampai M3 satu-satunya ambang adalah
+ *  `ambang_batas: string`, dan satu-satunya penjaganya cocok-mencocokkan kata
+ *  ("mandiri", "%", "minimal"). Kalimat lolos gerbang itu tanpa pernah memberi
+ *  guru angka untuk memutuskan. */
+type KeputusanKetercapaian = {
+  jenis:         'jumlah' | 'persentase' | 'rubrik';
+  nilai_minimum: number;
+  satuan:        string;
+  deskripsi:     string;
+};
+
+/** Seberapa jauh bukti turun ke individu. Bukti kelompok boleh ada, tapi tidak
+ *  boleh menjadi SATU-SATUNYA bukti sebuah KKTP: keputusan ketercapaian TP
+ *  diambil per murid, bukan per meja. */
+type CakupanBukti = 'per_murid' | 'kelompok';
 
 // ── C. KONTEKS MURID ──────────────────────────────────────────────────────────
 type KonteksMurid = {
@@ -301,6 +323,8 @@ type RencanaAsesmen = {
     waktu:            string;
     penggunaan_hasil: string;
   } | null;
+  // TIDAK NULLABLE (M4). Lihat catatan nullability di contract.ts: asesmen
+  // formatif bukan fitur pilihan, dan jawaban guru adalah preferensi teknik.
   asesmen_formatif: Array<{
     id:              string;
     waktu_pertemuan: number;
@@ -309,13 +333,16 @@ type RencanaAsesmen = {
     instrumen_ref:   string[];
     fungsi:          string;
     referensi_kktp:  string[];
+    cakupan_bukti:   CakupanBukti;
     umpan_balik:     string;
-  }> | null;
+  }>;
   asesmen_sumatif: {
-    deskripsi:     string;
-    teknik:        string;
-    instrumen_ref: string[];
-    durasi_menit:  number;
+    deskripsi:      string;
+    teknik:         string;
+    instrumen_ref:  string[];
+    durasi_menit:   number;
+    referensi_kktp: string[];
+    cakupan_bukti:  CakupanBukti;
     placement: { pertemuan: number; fase: NamaLangkah };
   } | null;
 };
@@ -632,6 +659,17 @@ function validateModulOutputV400(
    *  karena Modul pra-M2 memang tidak memilikinya dan menghakiminya secara
    *  surut bukan pemeriksaan melainkan perubahan aturan ke belakang. */
   wajibJejakWarisan = false,
+  /** Menuntut RANTAI BUKTI M4: KKTP terpetakan ke tuntutan CP, ambang yang bisa
+   *  dihitung, rencana formatif yang berlabuh di pertemuan nyata, dan setiap
+   *  KKTP punya bukti per murid.
+   *
+   *  SATU bendera, bukan lima. Jalur PENYUSUNAN selalu menyalakannya; pembacaan
+   *  dokumen lama tidak, dengan alasan yang sama seperti `wajibJejakWarisan`:
+   *  modul pra-M4 tidak punya field-field ini, dan menuntutnya secara surut
+   *  bukan pemeriksaan melainkan mengubah aturan ke belakang. Yang TIDAK boleh
+   *  dilakukan adalah kebalikannya — melemahkan penyusunan baru agar dokumen
+   *  lama ikut lolos. */
+  wajibKontrakAsesmenCurrent = false,
 ): { valid: boolean; errors: string[]; output: ModulOutput | null } {
   const errors: string[] = [];
 
@@ -1172,6 +1210,306 @@ function validateModulOutputV400(
   if (!Array.isArray(o.catatan_guru) || (o.catatan_guru as unknown[]).length < 3)
     errors.push('catatan_guru harus array ≥ 3 butir');
 
+  // ── M4: RANTAI BUKTI ────────────────────────────────────────────────────
+  //
+  // TP → tuntutan CP → KKTP → asesmen → instrumen → bukti per murid → keputusan.
+  //
+  // Sampai M3 rantai ini ada di dokumen tetapi tidak pernah diperiksa satu
+  // sambungan pun kecuali penempatan sumatif (V5). Akibatnya terukur, dan
+  // kelimanya direproduksi lebih dulu sebagai uji yang gagal:
+  //
+  //   1. `asesmen_formatif: null` lolos — modul tanpa pemeriksaan pemahaman;
+  //   2. KKTP tidak punya kaitan apa pun ke tuntutan CP yang TP pikul;
+  //   3. rencana formatif boleh menyebut pertemuan dan langkah yang tidak
+  //      pernah memuat asesmen itu — rencana tanpa peristiwa;
+  //   4. sebuah KKTP boleh tidak punya bukti per murid sama sekali;
+  //   5. `instrumen_bukti` boleh menunjuk instrumen yang tidak dipakai jalur
+  //      bukti mana pun untuk KKTP itu.
+  //
+  // Yang diperiksa di sini seluruhnya DETERMINISTIK: keberadaan, ID, pemetaan,
+  // cakupan, ambang terstruktur, penempatan, dan identitas instrumen. Apakah
+  // sebuah kriteria BENAR-BENAR mengukur kompetensinya adalah pertanyaan
+  // semantik, dan itu M9 — bukan sesuatu yang boleh dipura-purakan dengan
+  // daftar kata kerja.
+  if (wajibKontrakAsesmenCurrent) {
+    const kktpArr = Array.isArray(o.kktp) ? o.kktp as Array<Record<string, unknown>> : [];
+    const kktpIds = new Set(kktpArr.map(k => String(k.id_kktp)));
+
+    // Otoritas instrumen asesmen: manifest (bila dikirim) DAN array final.
+    const asFinal = Array.isArray(o.instrumen_asesmen)
+      ? (o.instrumen_asesmen as Array<Record<string, unknown>>).map(i => String(i.id)) : [];
+    const asFinalSet = new Set(asFinal);
+    const asManifestSet = manifest ? new Set(manifest.asesmen_manifest.map(m => m.id)) : null;
+    const instrumenAsing = (id: string): string | null => {
+      if (asManifestSet && !asManifestSet.has(id)) return 'manifest asesmen';
+      if (!asFinalSet.has(id)) return 'instrumen_asesmen[]';
+      return null;
+    };
+
+    // ── Tuntutan CP: otoritasnya tp_anchor, bukan daftar yang model karang ───
+    const anchor = o.tp_anchor as Record<string, unknown> | undefined;
+    const tuntutanSah = Array.isArray(anchor?.tuntutan_id)
+      ? (anchor!.tuntutan_id as unknown[]).map(String) : null;
+
+    const terpakaiTuntutan = new Set<string>();
+    kktpArr.forEach((k, i) => {
+      const ref = k.tuntutan_ref;
+      if (!Array.isArray(ref) || ref.length < 1) {
+        errors.push(`kktp[${i}].tuntutan_ref kosong — setiap KKTP harus menyebut tuntutan CP yang ia ukur`);
+      } else {
+        for (const t of ref.map(String)) {
+          terpakaiTuntutan.add(t);
+          if (tuntutanSah && !tuntutanSah.includes(t))
+            errors.push(`kktp[${i}].tuntutan_ref='${t}' bukan tuntutan TP ini (sah: ${tuntutanSah.join(', ')})`);
+        }
+      }
+
+      // Ambang yang bisa DIHITUNG, bukan dibaca. `ambang_batas` tetap ada dan
+      // tetap diperiksa V10/V14 di atas — tapi sebagai penjelasan bagi guru,
+      // bukan sebagai dasar keputusan runtime.
+      const kk = k.keputusan_ketercapaian as Record<string, unknown> | undefined;
+      if (!kk || typeof kk !== 'object' || Array.isArray(kk)) {
+        errors.push(`kktp[${i}].keputusan_ketercapaian tidak ada — ambang_batas berupa kalimat tidak cukup untuk memutuskan`);
+      } else {
+        const jenisSah = ENUM_KONTRAK.jenis_keputusan;
+        if (typeof kk.jenis !== 'string' || !jenisSah.includes(kk.jenis))
+          errors.push(`kktp[${i}].keputusan_ketercapaian.jenis='${kk.jenis}', harus salah satu dari ${jenisSah.join('|')}`);
+        if (typeof kk.nilai_minimum !== 'number' || !Number.isFinite(kk.nilai_minimum) || kk.nilai_minimum <= 0)
+          errors.push(`kktp[${i}].keputusan_ketercapaian.nilai_minimum='${kk.nilai_minimum}' harus angka berhingga > 0`);
+        if (!nonEmpty(kk.satuan))    errors.push(`kktp[${i}].keputusan_ketercapaian.satuan kosong`);
+        if (!nonEmpty(kk.deskripsi)) errors.push(`kktp[${i}].keputusan_ketercapaian.deskripsi kosong`);
+      }
+
+      // instrumen_bukti: ada, dan bukan ID hantu.
+      const ib = k.instrumen_bukti;
+      if (!Array.isArray(ib) || ib.length < 1) {
+        errors.push(`kktp[${i}].instrumen_bukti kosong — KKTP tanpa instrumen tidak bisa dibuktikan`);
+      } else {
+        for (const id of ib.map(String)) {
+          const asing = instrumenAsing(id);
+          if (asing) errors.push(`kktp[${i}].instrumen_bukti='${id}' tidak ada di ${asing}`);
+        }
+      }
+    });
+
+    // Gabungan pemetaan WAJIB menutup seluruh tuntutan TP. Satu tuntutan yang
+    // tidak terpetakan berarti Modul mengajarkan lebih sedikit daripada yang
+    // TP-nya pikul — dan tidak ada yang memberitahu guru.
+    if (tuntutanSah) {
+      const tak = tuntutanSah.filter(t => !terpakaiTuntutan.has(t));
+      if (tak.length)
+        errors.push(`tuntutan CP tidak terpetakan ke KKTP mana pun: ${tak.join(', ')} — setiap tuntutan TP wajib punya KKTP yang mengukurnya`);
+    }
+
+    // ── Rencana asesmen ──────────────────────────────────────────────────
+    const ra = (o.rencana_asesmen && typeof o.rencana_asesmen === 'object')
+      ? o.rencana_asesmen as Record<string, unknown> : null;
+
+    /** Jalur bukti: entri asesmen yang boleh menjadi dasar keputusan
+     *  ketercapaian. Diagnostik TIDAK termasuk — ia memetakan titik awal, bukan
+     *  membuktikan hasil. */
+    type JalurBukti = { label: string; kktp: string[]; perMurid: boolean; instrumen: string[] };
+    const jalurBukti: JalurBukti[] = [];
+
+    const formatif = ra?.asesmen_formatif;
+    if (!Array.isArray(formatif) || formatif.length < 1) {
+      errors.push(
+        'rencana_asesmen.asesmen_formatif harus array ≥ 1 entri dan tidak boleh null — ' +
+        'memeriksa pemahaman murid selama proses belajar tidak dapat dimatikan',
+      );
+    } else {
+      const idTerpakai = new Set<string>();
+      (formatif as Array<Record<string, unknown>>).forEach((f, i) => {
+        const id = String(f.id ?? '');
+        const idHarap = `FMT-${String(i + 1).padStart(2, '0')}`;
+        if (!id) errors.push(`asesmen_formatif[${i}].id kosong`);
+        else if (idTerpakai.has(id)) errors.push(`asesmen_formatif[${i}].id='${id}' ganda`);
+        else if (id !== idHarap) errors.push(`asesmen_formatif[${i}].id='${id}', diharapkan '${idHarap}'`);
+        idTerpakai.add(id);
+
+        // Formatif tanpa jalan tindak lanjut hanyalah pengukuran. Yang diperiksa
+        // di sini KEBERADAANNYA; apakah umpan baliknya bermutu adalah M9.
+        if (!nonEmpty(f.umpan_balik))
+          errors.push(`asesmen_formatif[${i}] (${id}).umpan_balik kosong — formatif tanpa umpan balik hanya mengukur, tidak membantu murid`);
+
+        const cakupanSah = ENUM_KONTRAK.cakupan_bukti;
+        if (typeof f.cakupan_bukti !== 'string' || !cakupanSah.includes(f.cakupan_bukti))
+          errors.push(`asesmen_formatif[${i}] (${id}).cakupan_bukti='${f.cakupan_bukti}', harus salah satu dari ${cakupanSah.join('|')}`);
+
+        const rk = Array.isArray(f.referensi_kktp) ? (f.referensi_kktp as unknown[]).map(String) : [];
+        if (!rk.length) errors.push(`asesmen_formatif[${i}] (${id}).referensi_kktp kosong`);
+        for (const r of rk) {
+          if (!kktpIds.has(r)) errors.push(`asesmen_formatif[${i}] (${id}).referensi_kktp='${r}' bukan KKTP di modul ini`);
+        }
+
+        const ir = Array.isArray(f.instrumen_ref) ? (f.instrumen_ref as unknown[]).map(String) : [];
+        if (!ir.length) errors.push(`asesmen_formatif[${i}] (${id}).instrumen_ref kosong`);
+        for (const id2 of ir) {
+          const asing = instrumenAsing(id2);
+          if (asing) errors.push(`asesmen_formatif[${i}] (${id}).instrumen_ref='${id2}' tidak ada di ${asing}`);
+        }
+
+        jalurBukti.push({ label: `asesmen_formatif ${id}`, kktp: rk,
+                          perMurid: f.cakupan_bukti === 'per_murid', instrumen: ir });
+
+        // ── RENCANA HARUS MENJADI PERISTIWA ──────────────────────────────
+        //
+        // Sebuah entri formatif yang tidak punya sub_langkah dengan
+        // asesmen_ref = id-nya adalah metadata yatim: ia muncul di halaman
+        // rencana asesmen, dan tidak pernah terjadi di kelas.
+        const pIdx = Number(f.waktu_pertemuan ?? 0) - 1;
+        const namaLangkah = String(f.fase_langkah ?? '');
+        const pertemuanArr = Array.isArray(o.pertemuan) ? o.pertemuan as Array<Record<string, unknown>> : [];
+        if (pIdx < 0 || pIdx >= pertemuanArr.length) {
+          errors.push(`asesmen_formatif[${i}] (${id}).waktu_pertemuan=${f.waktu_pertemuan} di luar jangkauan (1..${pertemuanArr.length})`);
+        } else {
+          const langkahArr = Array.isArray(pertemuanArr[pIdx].langkah)
+            ? pertemuanArr[pIdx].langkah as Array<Record<string, unknown>> : [];
+          const lk = langkahArr.find(l => l.nama === namaLangkah);
+          if (!lk) {
+            errors.push(`asesmen_formatif[${i}] (${id}).fase_langkah='${namaLangkah}' tidak ada di pertemuan ${f.waktu_pertemuan}`);
+          } else {
+            const slArr = Array.isArray(lk.sub_langkah) ? lk.sub_langkah as Array<Record<string, unknown>> : [];
+            const cocok = slArr.filter(sl => sl.asesmen_ref === id);
+            if (cocok.length === 0) {
+              errors.push(
+                `asesmen_formatif[${i}] (${id}) tidak punya sub_langkah dengan asesmen_ref='${id}' ` +
+                `di pertemuan ${f.waktu_pertemuan} langkah ${namaLangkah} — rencana asesmen tanpa peristiwa di kelas`,
+              );
+            } else if (cocok.length > 1) {
+              errors.push(`asesmen_formatif[${i}] (${id}): ditemukan ${cocok.length} sub_langkah dengan asesmen_ref='${id}', harus tepat 1`);
+            } else {
+              // Peristiwanya harus memakai instrumen yang ia sendiri klaim pakai.
+              const slRef = Array.isArray(cocok[0].instrumen_ref)
+                ? (cocok[0].instrumen_ref as unknown[]).map(String) : [];
+              const kurang = ir.filter(x => !slRef.includes(x));
+              if (kurang.length)
+                errors.push(
+                  `asesmen_formatif[${i}] (${id}): sub_langkah pelaksananya tidak memakai instrumen ${kurang.join(', ')} ` +
+                  `yang entri ini nyatakan dipakai`,
+                );
+            }
+          }
+        }
+      });
+    }
+
+    // Sumatif tetap OPSIONAL sebagai label formal — yang tidak opsional adalah
+    // BUKTI ketercapaian. Kalau ia ada, kaitannya harus sah.
+    const sumatif = ra?.asesmen_sumatif;
+    if (sumatif && typeof sumatif === 'object' && !Array.isArray(sumatif)) {
+      const sm = sumatif as Record<string, unknown>;
+      const rk = Array.isArray(sm.referensi_kktp) ? (sm.referensi_kktp as unknown[]).map(String) : [];
+      if (!rk.length) errors.push('asesmen_sumatif.referensi_kktp kosong — penilaian akhir harus menyebut KKTP yang diukurnya');
+      for (const r of rk) {
+        if (!kktpIds.has(r)) errors.push(`asesmen_sumatif.referensi_kktp='${r}' bukan KKTP di modul ini`);
+      }
+      const cakupanSah = ENUM_KONTRAK.cakupan_bukti;
+      if (typeof sm.cakupan_bukti !== 'string' || !cakupanSah.includes(sm.cakupan_bukti))
+        errors.push(`asesmen_sumatif.cakupan_bukti='${sm.cakupan_bukti}', harus salah satu dari ${cakupanSah.join('|')}`);
+      const ir = Array.isArray(sm.instrumen_ref) ? (sm.instrumen_ref as unknown[]).map(String) : [];
+      if (!ir.length) errors.push('asesmen_sumatif.instrumen_ref kosong');
+      for (const id2 of ir) {
+        const asing = instrumenAsing(id2);
+        if (asing) errors.push(`asesmen_sumatif.instrumen_ref='${id2}' tidak ada di ${asing}`);
+      }
+      jalurBukti.push({ label: 'asesmen_sumatif', kktp: rk,
+                        perMurid: sm.cakupan_bukti === 'per_murid', instrumen: ir });
+    } else if (Array.isArray(o.pertemuan)) {
+      // Sumatif null: tidak boleh ada penanda SUMATIF yatim di pertemuan.
+      let yatim = 0;
+      for (const p of o.pertemuan as Array<Record<string, unknown>>) {
+        for (const lk of (Array.isArray(p.langkah) ? p.langkah as Array<Record<string, unknown>> : [])) {
+          for (const sl of (Array.isArray(lk.sub_langkah) ? lk.sub_langkah as Array<Record<string, unknown>> : [])) {
+            if (sl.asesmen_ref === 'SUMATIF') yatim++;
+          }
+        }
+      }
+      if (yatim)
+        errors.push(`ditemukan ${yatim} sub_langkah dengan asesmen_ref='SUMATIF' padahal asesmen_sumatif=null`);
+    }
+
+    // Diagnostik: instrumennya harus nyata, tetapi ia SENGAJA tidak masuk
+    // jalurBukti. Memetakan titik awal murid bukan membuktikan ia sampai.
+    const diag = ra?.asesmen_diagnostik;
+    if (diag && typeof diag === 'object' && !Array.isArray(diag)) {
+      const ir = Array.isArray((diag as Record<string, unknown>).instrumen_ref)
+        ? ((diag as Record<string, unknown>).instrumen_ref as unknown[]).map(String) : [];
+      for (const id2 of ir) {
+        const asing = instrumenAsing(id2);
+        if (asing) errors.push(`asesmen_diagnostik.instrumen_ref='${id2}' tidak ada di ${asing}`);
+      }
+    }
+
+    // ── CAKUPAN BUKTI PER MURID ───────────────────────────────────────
+    //
+    // Bukti kelompok boleh ada dan sering berguna. Yang tidak boleh adalah
+    // bukti kelompok sebagai SATU-SATUNYA bukti sebuah KKTP: keputusan
+    // ketercapaian diambil untuk setiap murid, dan satu lembar per meja tidak
+    // pernah bisa memberitahu guru murid mana yang belum sampai.
+    for (const id of kktpIds) {
+      const perMurid = jalurBukti.filter(j => j.perMurid && j.kktp.includes(id));
+      if (!perMurid.length) {
+        const adaKelompok = jalurBukti.some(j => j.kktp.includes(id));
+        errors.push(adaKelompok
+          ? `KKTP ${id} hanya punya bukti kelompok — ketercapaian TP diputuskan per murid, jadi butuh minimal satu jalur bukti per_murid`
+          : `KKTP ${id} tidak punya jalur bukti apa pun — tidak ada asesmen yang merujuknya`);
+      }
+    }
+
+    // ── KKTP.instrumen_bukti HARUS DIPAKAI JALUR BUKTINYA SENDIRI ────────────
+    //
+    // Menyebut ASM-02 di instrumen_bukti sementara tidak ada asesmen per murid
+    // untuk KKTP itu yang memakai ASM-02 berarti KKTP menunjuk instrumen yang
+    // tidak pernah mengumpulkan buktinya.
+    kktpArr.forEach((k, i) => {
+      const id = String(k.id_kktp);
+      const ib = Array.isArray(k.instrumen_bukti) ? (k.instrumen_bukti as unknown[]).map(String) : [];
+      if (!ib.length) return;
+      const dipakai = jalurBukti.some(j => j.perMurid && j.kktp.includes(id) &&
+                                           j.instrumen.some(x => ib.includes(x)));
+      if (!dipakai)
+        errors.push(
+          `kktp[${i}] (${id}).instrumen_bukti=[${ib.join(', ')}] tidak dipakai jalur bukti per murid mana pun ` +
+          `yang merujuk ${id} — instrumen buktinya terputus dari asesmennya`,
+        );
+    });
+
+    // ── INTEGRITAS BALIK ───────────────────────────────────────────────
+    //
+    // Instrumen asesmen di dokumen final yang tidak dipakai jalur asesmen mana
+    // pun adalah lembar yang guru cetak tanpa pernah tahu kapan memakainya.
+    // Diagnostik, KKTP.instrumen_bukti, dan sub_langkah asesmen ikut dihitung
+    // sebagai pemakai — yang dicari di sini PEMAKAIAN, bukan bukti ketercapaian.
+    if (asFinal.length) {
+      const dipakai = new Set<string>();
+      for (const j of jalurBukti) for (const x of j.instrumen) dipakai.add(x);
+      if (diag && typeof diag === 'object') {
+        for (const x of (Array.isArray((diag as Record<string, unknown>).instrumen_ref)
+          ? ((diag as Record<string, unknown>).instrumen_ref as unknown[]).map(String) : [])) dipakai.add(x);
+      }
+      for (const k of kktpArr) {
+        for (const x of (Array.isArray(k.instrumen_bukti) ? (k.instrumen_bukti as unknown[]).map(String) : [])) {
+          dipakai.add(x);
+        }
+      }
+      if (Array.isArray(o.pertemuan)) {
+        for (const p of o.pertemuan as Array<Record<string, unknown>>) {
+          for (const lk of (Array.isArray(p.langkah) ? p.langkah as Array<Record<string, unknown>> : [])) {
+            for (const sl of (Array.isArray(lk.sub_langkah) ? lk.sub_langkah as Array<Record<string, unknown>> : [])) {
+              if (!sl.asesmen_ref) continue;
+              for (const x of (Array.isArray(sl.instrumen_ref) ? (sl.instrumen_ref as unknown[]).map(String) : [])) dipakai.add(x);
+            }
+          }
+        }
+      }
+      for (const id of asFinal) {
+        if (!dipakai.has(id))
+          errors.push(`instrumen_asesmen '${id}' tidak dipakai jalur asesmen mana pun — instrumen tanpa tempat pemakaian`);
+      }
+    }
+  }
+
   if (errors.length) return { valid: false, errors, output: null };
   return { valid: true, errors: [], output: o as unknown as ModulOutput };
 }
@@ -1322,13 +1660,76 @@ function sumberStrategiManusiawi(cd: Record<string, unknown>): Record<string, un
   };
 }
 
+// ── PREFERENSI FORMATIF — TIDAK ADA JALAN KE "MATI" (M4 §8) ──────────────────
+//
+// Sampai M3 `gunakan_formatif` adalah tombol nyala-mati: `=== 'ya'` menyala,
+// apa pun yang lain mati, dan mati berarti `asesmen_formatif: null` — modul
+// tanpa satu pun pemeriksaan pemahaman selama proses belajar.
+//
+// Reviewer menutup pilihan itu. Memeriksa apakah murid mengerti SEBELUM
+// pelajaran berakhir bukan fitur yang guru matikan; ia bagian dari mengajar.
+// Yang tetap milik guru adalah CARANYA.
+//
+// Karena itu jawaban lama tidak dibaca sebagai "tanpa formatif" melainkan
+// sebagai "MiClass yang menentukan tekniknya". Tidak ada backfill: fungsi ini
+// membacanya di titik pakai, sehingga jawaban tersimpan mana pun — 'lewati',
+// null, atau tidak ada field-nya sama sekali — bermuara ke AUTO.
+//
+// SATU-SATUNYA nilai yang TIDAK PERNAH dihasilkan fungsi ini adalah "mati".
+type PreferensiFormatif = {
+  /** Selalu true. Ada di bentuknya supaya pemanggil tidak perlu mengingatnya,
+   *  dan supaya uji bisa menyatakan sifat itu secara langsung. */
+  wajib:  true;
+  /** Teknik yang guru minta, atau null bila ia menyerahkannya ke MiClass. */
+  teknik: string | null;
+  /** 'AUTO' = MiClass memilih; 'GURU' = teknik pilihan guru dipertahankan. */
+  sumber: 'AUTO' | 'GURU';
+};
+
+/** Teknik formatif yang benar-benar bisa MiClass hasilkan. Sengaja diturunkan
+ *  dari pilihan yang SUDAH ada di klien — M4 tidak mengarang teknik baru. */
+const TEKNIK_FORMATIF_DIDUKUNG = [
+  'tanya_jawab', 'observasi', 'latihan_singkat', 'refleksi',
+] as const;
+
+/** Penanda "serahkan kepada MiClass" di jawaban guru. `rekomendasi` sudah
+ *  dipakai lama untuk arti yang sama di ketiga jenis asesmen. */
+const FORMATIF_AUTO = 'rekomendasi';
+
+function resolvePreferensiFormatif(am: Record<string, unknown> | null | undefined): PreferensiFormatif {
+  const auto: PreferensiFormatif = { wajib: true, teknik: null, sumber: 'AUTO' };
+  if (!am) return auto;
+
+  const teknik = unwrap(am.teknik_formatif);
+  const teknikStr = typeof teknik === 'string' ? teknik.trim() : '';
+
+  // Jawaban BARU: pertanyaannya sendiri sudah berupa preferensi teknik, jadi
+  // `gunakan_formatif` tidak lagi ditanyakan dan tidak perlu ada.
+  //
+  // Jawaban LAMA: `gunakan_formatif='ya'` disertai teknik yang didukung berarti
+  // guru memang menyatakan pilihannya — itu dipertahankan. Nilai lain apa pun,
+  // termasuk 'lewati' beserta teknik yang menempel padanya, jatuh ke AUTO:
+  // tekniknya dulu tidak pernah ditanyakan ketika formatif dilewati.
+  const gunakan = unwrap(am.gunakan_formatif);
+  const dilewatiDulu = gunakan !== undefined && gunakan !== null && gunakan !== 'ya';
+  if (dilewatiDulu) return auto;
+
+  if (teknikStr && teknikStr !== FORMATIF_AUTO &&
+      (TEKNIK_FORMATIF_DIDUKUNG as readonly string[]).includes(teknikStr)) {
+    return { wajib: true, teknik: teknikStr, sumber: 'GURU' };
+  }
+  return auto;
+}
+
 function asesmenModulManusiawi(cd: Record<string, unknown>): Record<string, unknown> | null {
   const am = cd.ASESMEN_MODUL as Record<string, unknown> | undefined;
   if (!am) return null;
   return {
     gunakan_diagnostik: unwrap(am.gunakan_diagnostik) === 'ya',
     teknik_diagnostik:  terjemahkan(ISTILAH_TEKNIK, am.teknik_diagnostik),
-    gunakan_formatif:   unwrap(am.gunakan_formatif)   === 'ya',
+    // Formatif tidak punya bentuk nyala-mati lagi (M4): yang dilaporkan adalah
+    // tekniknya, dan null di situ berarti MiClass yang memilih — bukan tiada.
+    teknik_formatif:    terjemahkan(ISTILAH_TEKNIK, resolvePreferensiFormatif(am).teknik),
     gunakan_sumatif:    unwrap(am.gunakan_sumatif)    === 'ya',
     teknik_sumatif:     terjemahkan(ISTILAH_TEKNIK, am.teknik_sumatif),
   };
@@ -1705,11 +2106,19 @@ PRINSIP LANGKAH:
 - PENUTUP: simpulkan bersama, apresiasi, beri tindak lanjut ringan.
 
 ASESMEN:
+- Formatif SELALU ADA — minimal 1 entri, dan asesmen_formatif TIDAK BOLEH null.
+  Guru tidak dapat mematikannya; yang guru pilih hanyalah tekniknya.
 - Formatif harus terdistribusi di langkah berbeda — bukan semuanya di akhir.
+- Setiap entri formatif WAJIB punya TEPAT 1 sub_langkah dengan asesmen_ref = id entri itu
+  (FMT-01, FMT-02, …) di pertemuan dan langkah yang entri itu sebutkan, dan sub_langkah
+  itu WAJIB memuat seluruh instrumen_ref yang entri itu nyatakan dipakai.
 - Sumatif: jika ada, HARUS ada tepat 1 sub_langkah dengan asesmen_ref="SUMATIF" dan
   durasi_menit identik dengan asesmen_sumatif.durasi_menit. Tempatkan di fase = placement.fase.
-- asesmen_diagnostik = null jika gunakan_diagnostik=false, asesmen_formatif = null jika gunakan_formatif=false,
-  asesmen_sumatif = null jika gunakan_sumatif=false.
+  Jika asesmen_sumatif = null, JANGAN ada sub_langkah dengan asesmen_ref="SUMATIF".
+- asesmen_diagnostik = null jika gunakan_diagnostik=false, asesmen_sumatif = null jika
+  gunakan_sumatif=false. Diagnostik BUKAN bukti ketercapaian TP — ia memetakan titik awal.
+- Setiap KKTP WAJIB punya minimal satu jalur bukti dengan cakupan_bukti="per_murid" yang
+  merujuknya. Bukti kelompok boleh ada, tapi tidak boleh menjadi satu-satunya bukti.
 
 INKLUSIVITAS:
 - Jangan gunakan label kemampuan global ("murid lemah", "murid pandai").
@@ -2167,7 +2576,8 @@ function buildUserMessageFaseA(params: {
   gunakanDiagnostik:  boolean;
   teknikDiagnostik:   string | null;
   instrumenDiagnostik: string | null;
-  gunakanFormatif:    boolean;
+  /** Preferensi teknik formatif. TIDAK ada bentuk "mati" — lihat
+   *  resolvePreferensiFormatif(). null berarti MiClass yang memilih. */
   teknikFormatif:     string | null;
   instrumenFormatif:  string | null;
   instrumenSumatif:   string | null;
@@ -2219,7 +2629,14 @@ function buildUserMessageFaseA(params: {
       'Setiap KKTP mengukur tuntutan CP yang TP ini pikul (lihat warisan_atp.tp.tuntutan_cp beserta ' +
       'kompetensi dan lingkup materinya), bukan kemampuan lain di kelas yang sama. ' +
       'Beri id_kktp berurutan K1, K2, … Gunakan kriteria yang dapat diamati guru dan ambang_batas ' +
-      'yang cukup jelas untuk memutuskan tercapai atau belum.',
+      'yang cukup jelas untuk memutuskan tercapai atau belum. ' +
+      // M4: pemetaan ke tuntutan CP tidak lagi tersirat dari kalimat kriteria.
+      'Setiap KKTP WAJIB menyebut tuntutan_ref — ID tuntutan CP dari ' +
+      'warisan_atp.tp.tuntutan_cp yang KKTP itu ukur. Jangan mengarang ID baru, dan ' +
+      'pastikan GABUNGAN seluruh tuntutan_ref menutup SEMUA tuntutan TP ini: tuntutan ' +
+      'yang tidak punya KKTP berarti Modul mengukur lebih sedikit daripada yang TP pikul. ' +
+      'Sertakan juga keputusan_ketercapaian — bentuk TERUKUR dari ambang itu, yang guru ' +
+      'pakai untuk memutuskan tercapai atau belum tanpa menafsirkan kalimat.',
     pilihan_asesmen:      params.pilanAsesmen,
     konteks_pembelajaran: konteksModulManusiawi(params.cd),
     sumber_strategi:      sumberStrategiManusiawi(params.cd),
@@ -2228,7 +2645,9 @@ function buildUserMessageFaseA(params: {
       gunakan_diagnostik: params.gunakanDiagnostik,
       teknik_diagnostik:  terjemahkan(ISTILAH_TEKNIK, params.teknikDiagnostik),
       instrumen_diagnostik: params.instrumenDiagnostik,
-      gunakan_formatif:   params.gunakanFormatif,
+      // Formatif tidak punya field nyala-mati lagi (M4): ia selalu wajib, dan
+      // yang dikirim hanyalah preferensi tekniknya.
+      formatif_wajib:     true,
       teknik_formatif:    terjemahkan(ISTILAH_TEKNIK, params.teknikFormatif),
       instrumen_formatif: params.instrumenFormatif,
       gunakan_sumatif:    params.gunakanSumatif,
@@ -2244,9 +2663,11 @@ function buildUserMessageFaseA(params: {
       // teknik seperti sebelumnya.
       'Diagnostik: kalau instrumen_diagnostik berisi nilai, PAKAI jenis itu persis; ' +
       'kalau null, turunkan dari teknik_diagnostik. ' +
-      'Formatif: kalau teknik_formatif berisi nilai, PAKAI teknik itu; kalau null, tentukan sendiri. ' +
+      'Formatif SELALU ADA (formatif_wajib=true) — asesmen_manifest wajib memuat instrumennya ' +
+      'walaupun pilihan_asesmen tidak menyebut jenis lain. ' +
+      'Kalau teknik_formatif berisi nilai, PAKAI teknik itu; kalau null, tentukan sendiri. ' +
       'Kalau instrumen_formatif berisi nilai, PAKAI jenis itu persis; kalau null, turunkan dari tekniknya. ' +
-      'Penempatan per entri F1/F2/F3 tetap kamu yang atur berdasarkan jumlah pertemuan. ' +
+      'Penempatan per entri FMT-01, FMT-02, … tetap kamu yang atur berdasarkan jumlah pertemuan. ' +
       'Sumatif: kalau instrumen_sumatif berisi nilai, PAKAI jenis itu persis; ' +
       'kalau null, turunkan dari teknik_sumatif. ' +
       'Nilai instrumen_* adalah nama jenis di manifest — salin apa adanya ke field "jenis". ' +
@@ -2899,14 +3320,16 @@ Deno.serve(async (req) => {
   // gunakan_* dari ASESMEN_MODUL (field baru menggantikan pilihan_asesmen)
   const asesmenModul = (cd.ASESMEN_MODUL as Record<string, unknown>) || {};
   const gunakanDiagnostik = unwrap(asesmenModul.gunakan_diagnostik) === 'ya';
-  const gunakanFormatif   = unwrap(asesmenModul.gunakan_formatif)   === 'ya';
+  // FORMATIF: preferensi, bukan tombol (M4). Jawaban lama apa pun — 'lewati',
+  // null, atau tidak ada — bermuara ke AUTO, tidak pernah ke "mati".
+  const prefFormatif      = resolvePreferensiFormatif(asesmenModul);
   const gunakanSumatif    = unwrap(asesmenModul.gunakan_sumatif)    === 'ya';
   const teknikDiagnostik  = gunakanDiagnostik ? String(unwrap(asesmenModul.teknik_diagnostik) ?? 'rekomendasi') : null;
   const teknikSumatif     = gunakanSumatif     ? String(unwrap(asesmenModul.teknik_sumatif)    ?? 'rekomendasi') : null;
   // Teknik formatif: sampai 8 September 2026 ini SATU-SATUNYA dari ketiganya
   // yang tidak pernah ditanyakan — instruksi_manifest berbunyi "Formatif: AI
   // menentukan teknik dan penempatan".
-  const teknikFormatif    = gunakanFormatif    ? String(unwrap(asesmenModul.teknik_formatif)   ?? 'rekomendasi') : null;
+  const teknikFormatif    = prefFormatif.teknik;
 
   // Instrumen per jenis asesmen. Pertanyaannya dipecah per teknik di klien
   // supaya guru tidak bisa memasangkan teknik dan instrumen yang bertengkar,
@@ -2929,15 +3352,16 @@ Deno.serve(async (req) => {
   };
   const instrumenDiagnostik = gunakanDiagnostik
     ? instrumenPilihan(['instrumen_diag_pemetaan', 'instrumen_diag_tanya']) : null;
-  const instrumenFormatif = gunakanFormatif
-    ? instrumenPilihan(['instrumen_form_tanya', 'instrumen_form_latihan']) : null;
+  // Instrumen formatif tetap boleh null (= MiClass menurunkannya dari teknik),
+  // tetapi tidak lagi dibungkam oleh sebuah tombol yang sudah tidak ada.
+  const instrumenFormatif = instrumenPilihan(['instrumen_form_tanya', 'instrumen_form_latihan']);
   const instrumenSumatif = gunakanSumatif
     ? instrumenPilihan(['instrumen_sum_unjuk', 'instrumen_sum_proyek',
                         'instrumen_sum_praktikum', 'instrumen_sum_presentasi']) : null;
   // pilanAsesmen: dipertahankan untuk instruksi manifest ke AI
   const pilanAsesmen: string[] = [
     ...(gunakanDiagnostik ? ['diagnostik'] : []),
-    ...(gunakanFormatif   ? ['formatif']   : []),
+    'formatif',   // selalu ada — M4
     ...(gunakanSumatif    ? ['sumatif']    : []),
   ];
 
@@ -3225,7 +3649,7 @@ Deno.serve(async (req) => {
     try {
       faseAOutput = await callPhase(
         'Fase A',
-        buildUserMessageFaseA({ identitasDB, jumlahMurid, nomorTp, tpJudul, jumlahPertemuan, jpPerPertemuan, durasiJp, elemenCp, warisan, cd, pilanAsesmen, gunakanDiagnostik, teknikDiagnostik, instrumenDiagnostik, gunakanFormatif, teknikFormatif, instrumenFormatif, gunakanSumatif, teknikSumatif, instrumenSumatif }),
+        buildUserMessageFaseA({ identitasDB, jumlahMurid, nomorTp, tpJudul, jumlahPertemuan, jpPerPertemuan, durasiJp, elemenCp, warisan, cd, pilanAsesmen, gunakanDiagnostik, teknikDiagnostik, instrumenDiagnostik, teknikFormatif, instrumenFormatif, gunakanSumatif, teknikSumatif, instrumenSumatif }),
         90_000, anggaranTokenFaseA(perkiraanKktp(tpAnchor), elemenCp.length), 'A',
       );
     } catch (e) {
@@ -3577,7 +4001,10 @@ Deno.serve(async (req) => {
       alokasi_server: alokasiTp,
     };
 
-    let validation = validateModulOutputV400(merged, nomorTp, jumlahPertemuan, jpPerPertemuan, durasiJp, jumlahMurid, manifestFaseD, perangkatDigitalDiizinkan(cd), true);
+    // Kedua argumen terakhir: jejak warisan (M2) dan rantai bukti (M4). Jalur
+    // PENYUSUNAN selalu menyalakan keduanya — dokumen baru tidak pernah lolos
+    // dengan aturan dokumen lama.
+    let validation = validateModulOutputV400(merged, nomorTp, jumlahPertemuan, jpPerPertemuan, durasiJp, jumlahMurid, manifestFaseD, perangkatDigitalDiizinkan(cd), true, true);
 
     if (!validation.valid) {
       const errorList = validation.errors.join('; ');
@@ -3605,7 +4032,19 @@ Deno.serve(async (req) => {
         const mergedFixed = hasDurasiError
           ? { ...(merged as Record<string, unknown>), pertemuan: (repairParsed as Record<string, unknown>).pertemuan }
           : repairParsed;
-        validation = validateModulOutputV400(mergedFixed, nomorTp, jumlahPertemuan, jpPerPertemuan, durasiJp, jumlahMurid, undefined, perangkatDigitalDiizinkan(cd), true);
+        // MANIFEST YANG SAMA DENGAN VALIDASI PERTAMA — bukan `undefined`.
+        //
+        // Sampai M4.1 baris ini mengirim `undefined`, dan akibatnya satu lubang
+        // yang hanya terlihat di putaran perbaikan: seluruh aturan yang
+        // berpangkal pada manifest Fase A dilewati, sehingga keluaran perbaikan
+        // boleh memperkenalkan instrumen yang ada di `instrumen_asesmen[]` final
+        // tetapi tidak pernah ada di manifest — lalu lolos.
+        //
+        // Manifest adalah kontrak IDENTITAS instrumen dan tidak berubah karena
+        // sebuah perbaikan: ia keluaran Fase A, sedangkan yang diperbaiki di
+        // sini keluaran fase sesudahnya. Menghilangkannya justru membuat
+        // gerbangnya paling lemah tepat ketika model baru saja salah sekali.
+        validation = validateModulOutputV400(mergedFixed, nomorTp, jumlahPertemuan, jpPerPertemuan, durasiJp, jumlahMurid, manifestFaseD, perangkatDigitalDiizinkan(cd), true, true);
         if (!validation.valid) {
           return json({ error: `Validasi gagal setelah repair: ${validation.errors.join('; ')}`, code: 'MODUL_GENERATION_INVALID_SCHEMA', retryable: true }, 422);
         }
