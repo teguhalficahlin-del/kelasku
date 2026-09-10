@@ -1,0 +1,1017 @@
+diff --git a/supabase/functions/generate-modul/index.ts b/supabase/functions/generate-modul/index.ts
+index afc2c37..b09e352 100644
+--- a/supabase/functions/generate-modul/index.ts
++++ b/supabase/functions/generate-modul/index.ts
+@@ -4,6 +4,11 @@ import {
+   punyaRiwayatPenyusunan, judulSama,
+   type TpAnchor,
+ } from './anchor.ts';
++import {
++  MODUL_SCHEMA_VERSION, KONTRAK_ROOT, ENUM_KONTRAK, URUTAN_LANGKAH_KONTRAK,
++  rootWajib, kerangkaSeluruhFase, ringkasanTanggungJawabFase,
++  perintahPerbaikanStruktural,
++} from './contract.ts';
+ import {
+   uraikanTuntutan, kategoriWajibDariTuntutan, alokasiPertemuanDariAnchor,
+   bangunAtpContext, periksaLayananCp,
+@@ -512,8 +517,12 @@ type InstrumentManifest = {
+ };
+ 
+ // ── ROOT TYPE V4.0 ────────────────────────────────────────────────────────────
++// OTORITAS RUNTIME ADALAH contract.ts + validateModulOutputV400().
++// Tipe di bawah adalah BANTUAN WAKTU KOMPILASI, bukan sumber kebenaran: ia
++// dihapus saat runtime dan tidak pernah menolak apa pun. Kalau keduanya
++// berbeda, yang berlaku kontrak dan validator.
+ type ModulOutput = {
+-  schema_version:         '4.0.0';
++  schema_version:         typeof MODUL_SCHEMA_VERSION;
+   identitas:              Identitas;
+   kktp:                   KktpItem[];
+   konteks_murid:          KonteksMurid;
+@@ -527,6 +536,16 @@ type ModulOutput = {
+   tindak_lanjut:          TindakLanjut;
+   catatan_guru:           string[];
+   metadata_pedagogis:     MetadataPedagogis;
++  // Jejak pewarisan ATP yang backend pakukan (M2). Dokumen final memilikinya,
++  // dan sampai M3 tipe ini tidak — salah satu drift yang M3 tutup. Bentuknya
++  // sudah diketahui, jadi tidak ada `any` di sini.
++  tp_anchor?:             TpAnchor & {
++                            tuntutan: TuntutanTerurai[];
++                            tuntutan_id: string[];
++                            kategori_teks_wajib: string[];
++                          };
++  atp_context?:           AtpContext;
++  alokasi_server?:        AlokasiPertemuan;
+ };
+ 
+ // ── PARSE JSON DARI TEKS AI ───────────────────────────────────────────────────
+@@ -588,9 +607,8 @@ function collectRefs(pertemuanArr: unknown[]): Set<string> {
+ 
+ // ── VALIDASI V4.0 ─────────────────────────────────────────────────────────────
+ 
+-const URUTAN_LANGKAH: NamaLangkah[] = [
+-  'PEMBUKA', 'ASESMEN_AWAL', 'MEMAHAMI', 'MENGAPLIKASI', 'MEREFLEKSI', 'PENUTUP',
+-];
++// Diturunkan dari kontrak — daftar yang sama yang disisipkan ke kerangka prompt.
++const URUTAN_LANGKAH = URUTAN_LANGKAH_KONTRAK as readonly NamaLangkah[];
+ 
+ function nonEmpty(v: unknown): boolean {
+   return typeof v === 'string' && v.trim().length > 0;
+@@ -609,6 +627,11 @@ function validateModulOutputV400(
+   jumlahMurid: number | null,
+   manifest?: InstrumentManifest,
+   perangkatDigitalOk = true,
++  /** Menuntut jejak pewarisan ATP (tp_anchor, atp_context, alokasi_server).
++   *  Jalur PENYUSUNAN selalu menyalakannya; pembacaan dokumen lama tidak,
++   *  karena Modul pra-M2 memang tidak memilikinya dan menghakiminya secara
++   *  surut bukan pemeriksaan melainkan perubahan aturan ke belakang. */
++  wajibJejakWarisan = false,
+ ): { valid: boolean; errors: string[]; output: ModulOutput | null } {
+   const errors: string[] = [];
+ 
+@@ -618,7 +641,40 @@ function validateModulOutputV400(
+   const o = raw as Record<string, unknown>;
+ 
+   // V1: schema_version
+-  if (o.schema_version !== '4.0.0') errors.push(`schema_version='${o.schema_version}', diharapkan '4.0.0'`);
++  if (o.schema_version !== MODUL_SCHEMA_VERSION) {
++    errors.push(`schema_version='${o.schema_version}', diharapkan '${MODUL_SCHEMA_VERSION}'`);
++  }
++
++  // ── BENTUK AKAR — DARI KONTRAK, BUKAN DITULIS ULANG ────────────────────────
++  //
++  // Sampai M3 empat bagian akar yang SYSTEM_PROMPT jelaskan panjang lebar —
++  // konteks_murid, materi_esensial, rancangan, metadata_pedagogis — tidak
++  // diperiksa validator sama sekali. Model boleh menghilangkannya seluruhnya
++  // dan dokumennya tetap lolos.
++  //
++  // Yang diperiksa di sini hanya BENTUK: ada, jenisnya benar, panjang minimum
++  // struktural. Mutu isinya tetap urusan pemeriksaan imperatif di bawah, yang
++  // tidak disentuh M3.
++  for (const [nama, f] of Object.entries(KONTRAK_ROOT)) {
++    if (!f.required || nama === 'schema_version') continue;
++    if (f.fase === 'server' && !wajibJejakWarisan) continue;
++    const v = o[nama];
++    if (v === undefined || v === null) {
++      // Bagian yang backend isi dilaporkan terpisah supaya sebabnya jelas:
++      // hilangnya bukan kesalahan model.
++      errors.push(f.fase === 'server'
++        ? `${nama} tidak ada — jejak pewarisan ATP wajib ikut di dokumen final`
++        : `${nama} tidak ada`);
++      continue;
++    }
++    if (f.kind === 'array' && !Array.isArray(v)) {
++      errors.push(`${nama} harus array`);
++    } else if (f.kind === 'object' && (typeof v !== 'object' || Array.isArray(v))) {
++      errors.push(`${nama} harus object`);
++    } else if (f.kind === 'array' && f.min && (v as unknown[]).length < f.min) {
++      errors.push(`${nama} harus array ≥ ${f.min} item`);
++    }
++  }
+ 
+   // V1: identitas deterministik
+   const targetTotalMenit = jumlahPertemuan * jpPerPertemuan * durasiJp;
+@@ -1589,127 +1645,13 @@ KONTRAK OUTPUT — WAJIB DIPATUHI
+ EMPAT FASE GENERATE — BACA FIELD "fase" DI USER MESSAGE
+ ═════════════════════════════════════════════════════════════════
+ 
+-FASE "A" — hasilkan object dengan field:
+-  schema_version, identitas, kktp, konteks_murid, materi_esensial,
+-  rencana_asesmen, rancangan, metadata_pedagogis, manifest
+-  (manifest = { pembelajaran_manifest: [...], asesmen_manifest: [...] })
+-
+-FASE "B" — hasilkan object dengan field:
+-  pertemuan  ← array, length HARUS === jumlah_pertemuan dari input
+-  CATATAN: JANGAN tulis field "ref" di sub_langkah — backend yang menulis ref
+-           secara deterministik. Tulis sub_langkah TANPA field ref.
+-
+-FASE "C" — hasilkan object dengan field:
+-  instrumen_pembelajaran, instrumen_asesmen
+-  CATATAN: Isi HANYA instrumen dari manifest yang dikirim. Jangan buat ID baru.
+-           Jika manifest kosong, hasilkan array kosong [].
+-
+-FASE "B2" — hasilkan object dengan field:
+-  naskah_fasilitasi  ← array, length === jumlah_pertemuan
+-  CATATAN: field "ref" WAJIB ditulis di setiap NaskahSubLangkah.
+-           Salin persis dari sub_langkah[].ref di pertemuan[] yang dikirim dalam input.
+-           Jumlah sub_langkah di naskah HARUS sama dengan di pertemuan.langkah yang sesuai.
+-           Setiap elemen naskah.langkah[j] harus identik dengan pertemuan.langkah[j].nama.
+-
+-FASE "D" — hasilkan object dengan field:
+-  tindak_lanjut, catatan_guru
++${ringkasanTanggungJawabFase()}
+ 
+ ═════════════════════════════════════════════════════════════════
+-SCHEMA SKELETON V4.0 — REFERENSI FIELD
++KERANGKA KELUARAN PER FASE — REFERENSI FIELD
+ ═════════════════════════════════════════════════════════════════
+ 
+-FASE A:
+-{
+-  "schema_version": "4.0.0",
+-  "identitas": {
+-    "mata_pelajaran":string,"jenjang":string,"fase":string,
+-    "nomor_tp":integer,"jumlah_pertemuan":integer,"jp_per_pertemuan":integer,
+-    "durasi_jp_menit":integer,"alokasi_waktu_total_menit":integer,
+-    "elemen_cp":[string],"jenis_dokumen":string,
+-    "konteks_kejuruan":{"bidang_keahlian":string|null,"program_keahlian":string|null,"konsentrasi_keahlian":null},
+-    "dasar_cp":string,"tujuan_pembelajaran":string
+-  },
+-  "kktp": [{"id_kktp":"K1","kriteria":string,"ambang_batas":string,"instrumen_bukti":[string]}],
+-  "konteks_murid": {"kesiapan_awal":[string,string,string],"variasi_kemampuan":string,"kebutuhan_dukungan":[string,string]},
+-  "materi_esensial": {"lingkup_materi":[string],"kosakata_kunci":[string],"konsep_utama":[string]},
+-  "rencana_asesmen": {
+-    "asesmen_diagnostik": null | {"tujuan":string,"teknik":string,"instrumen_ref":[string],"waktu":string,"penggunaan_hasil":string},
+-    "asesmen_formatif": null | [{"id":"F1","waktu_pertemuan":integer,"fase_langkah":"ASESMEN_AWAL","teknik":string,"instrumen_ref":[string],"fungsi":string,"referensi_kktp":["K1"],"umpan_balik":string}],
+-    "asesmen_sumatif": null | {"deskripsi":string,"teknik":string,"instrumen_ref":[string],"durasi_menit":integer,"placement":{"pertemuan":integer,"fase":"MENGAPLIKASI"}}
+-  },
+-  "rancangan": {
+-    "strategi_pedagogis":string,"sumber_belajar":[{"sumber":string,"kategori":string,"fungsi":string}],
+-    "pemanfaatan_digital":string,"lingkungan_pembelajaran":string,
+-    "kemitraan_pembelajaran":string|null,"keselamatan_k3":string|null
+-  },
+-  "metadata_pedagogis": {
+-    "dimensi_profil_lulusan":[{"dimensi":string,"alasan":string,"indikator":string}],
+-    "karakteristik_materi":{"faktual":string,"konseptual":string,"prosedural":string},
+-    "language_policy":{"teacher_instruction":string,"student_instruction":string,"target_language":string|null}
+-  },
+-  "manifest": {
+-    "pembelajaran_manifest":[{"id":"PBL-01","jenis":"kartu_peran","untuk_murid":true,"digunakan_pada":["P1.MENGAPLIKASI"]}],
+-    "asesmen_manifest":[{"id":"ASM-01","jenis":"matriks_observasi","untuk_murid":false,"digunakan_pada":["P1.ASESMEN_AWAL"]}]
+-  }
+-}
+-
+-FASE B:
+-{
+-  "pertemuan":[
+-    {
+-      "nomor":1,"tujuan_pertemuan":string,"media_dan_alat":[string],
+-      "langkah":[
+-        {"nama":"PEMBUKA","durasi_menit":integer,"prinsip":[string],"sub_langkah":[{"nomor":1,"deskripsi":string,"durasi_menit":integer}]},
+-        {"nama":"ASESMEN_AWAL","durasi_menit":integer,"prinsip":[string],"sub_langkah":[{"nomor":1,"deskripsi":string,"durasi_menit":integer,"instrumen_ref":["ASM-01"]}]},
+-        {"nama":"MEMAHAMI","durasi_menit":integer,"prinsip":[string],"sub_langkah":[{"nomor":1,"deskripsi":string,"durasi_menit":integer,"instrumen_ref":["PBL-01"]}]},
+-        {"nama":"MENGAPLIKASI","durasi_menit":integer,"prinsip":[string],"sub_langkah":[{"nomor":1,"deskripsi":string,"durasi_menit":integer,"mode_pelaksanaan":"simultan"}]},
+-        {"nama":"MEREFLEKSI","durasi_menit":integer,"prinsip":[string],"sub_langkah":[{"nomor":1,"deskripsi":string,"durasi_menit":integer}]},
+-        {"nama":"PENUTUP","durasi_menit":integer,"prinsip":[string],"sub_langkah":[{"nomor":1,"deskripsi":string,"durasi_menit":integer}]}
+-      ]
+-    }
+-  ]
+-}
+-
+-FASE C:
+-{
+-  "instrumen_pembelajaran":[
+-    {
+-      "id":"PBL-01","judul":string,"jenis":"kartu_peran","untuk_murid":true,"digunakan_pada":["P1.MENGAPLIKASI"],
+-      "konten_murid":{"set":[{"nama_set":string,"nama_entitas":string,"peran_a":{"instruksi_peran":string},"peran_b":{"instruksi_peran":string}}]},
+-      "panduan_guru":{"fokus_pengamatan":string,"catatan_fasilitasi":string}
+-    }
+-  ],
+-  "instrumen_asesmen":[
+-    {
+-      "id":"ASM-01","judul":string,"jenis":"matriks_observasi","untuk_murid":false,"digunakan_pada":["P1.ASESMEN_AWAL"],
+-      "konten_murid":null,
+-      "panduan_guru":{"kode_legend":"BT = Belum Tampak | DD = Dengan Dukungan | M = Mandiri","kolom_indikator":[{"id":"K1","label":string}],"catatan_kritis":string}
+-    }
+-  ]
+-}
+-
+-FASE B2:
+-{
+-  "naskah_fasilitasi":[
+-    {
+-      "nomor":1,
+-      "langkah":[
+-        {"nama":"PEMBUKA","sub_langkah":[{"ref":"P1.PEMBUKA.1","ucapan_guru":[string],"aksi_guru":[string],"pertanyaan_kunci":[string],"jika_kesulitan":[string]}]},
+-        {"nama":"ASESMEN_AWAL","sub_langkah":[...]},
+-        {"nama":"MEMAHAMI","sub_langkah":[...]},
+-        {"nama":"MENGAPLIKASI","sub_langkah":[...]},
+-        {"nama":"MEREFLEKSI","sub_langkah":[...]},
+-        {"nama":"PENUTUP","sub_langkah":[...]}
+-      ]
+-    }
+-  ]
+-}
+-
+-FASE D:
+-{
+-  "tindak_lanjut":{"pilihan_dukungan":[string,string,string],"dukungan_terstruktur":[string,string],"tantangan_lanjutan":[string,string]},
+-  "catatan_guru":[string]
+-}
++${kerangkaSeluruhFase()}
+ 
+ ═════════════════════════════════════════════════════════════════
+ INSTRUMENT MANIFEST — KONTRAK WAJIB
+@@ -3189,7 +3131,9 @@ Deno.serve(async (req) => {
+         const repairText = await callAI([
+           { role: 'user', content: userMsg },
+           { role: 'assistant', content: rawText },
+-          { role: 'user', content: `JSON tidak valid. Hasilkan ulang HANYA JSON object untuk ${label} yang valid.` },
++          { role: 'user', content:
++            `JSON tidak valid. Hasilkan ulang HANYA JSON object untuk ${label} yang valid. `
++            + perintahPerbaikanStruktural() },
+         ], 60_000, maxTokens, `${label} (perbaikan JSON)`);
+         parsed = extractJson(repairText);
+       } catch (e2) {
+@@ -3597,7 +3541,7 @@ Deno.serve(async (req) => {
+       tujuan_pembelajaran:       identitasAI.tujuan_pembelajaran,
+     };
+     const merged: unknown = {
+-      schema_version:         '4.0.0',
++      schema_version:         MODUL_SCHEMA_VERSION,
+       identitas:              identitasFinal,
+       kktp:                   faseAOutput.kktp,
+       konteks_murid:          faseAOutput.konteks_murid,
+@@ -3625,7 +3569,7 @@ Deno.serve(async (req) => {
+       alokasi_server: alokasiTp,
+     };
+ 
+-    let validation = validateModulOutputV400(merged, nomorTp, jumlahPertemuan, jpPerPertemuan, durasiJp, jumlahMurid, manifestFaseD, perangkatDigitalDiizinkan(cd));
++    let validation = validateModulOutputV400(merged, nomorTp, jumlahPertemuan, jpPerPertemuan, durasiJp, jumlahMurid, manifestFaseD, perangkatDigitalDiizinkan(cd), true);
+ 
+     if (!validation.valid) {
+       const errorList = validation.errors.join('; ');
+@@ -3638,7 +3582,12 @@ Deno.serve(async (req) => {
+           `Σlangkah[].durasi_menit HARUS = ${jpPerPertemuan * durasiJp}. ` +
+           `Σsub_langkah[].durasi_menit HARUS = durasi_menit langkah induk.`
+         : JSON.stringify(merged) +
+-          `\n\nERROR yang harus diperbaiki: ${errorList}. Hasilkan JSON object penuh yang sudah benar.`;
++          `\n\nERROR yang harus diperbaiki: ${errorList}. Hasilkan JSON object penuh yang sudah benar. ` +
++          // M3: perintah strukturalnya BERASAL DARI KONTRAK YANG SAMA dengan
++          // SYSTEM_PROMPT. Sampai M3 pesan ini tidak menyebut bentuk sama sekali,
++          // sehingga model harus mengingatnya dari panggilan sebelumnya — dan kalau
++          // ia salah ingat, perbaikannya justru merusak bentuk.
++          perintahPerbaikanStruktural();
+ 
+       try {
+         const repairText  = await callAI([{ role: 'user', content: repairMsg }], 50_000,
+@@ -3648,7 +3597,7 @@ Deno.serve(async (req) => {
+         const mergedFixed = hasDurasiError
+           ? { ...(merged as Record<string, unknown>), pertemuan: (repairParsed as Record<string, unknown>).pertemuan }
+           : repairParsed;
+-        validation = validateModulOutputV400(mergedFixed, nomorTp, jumlahPertemuan, jpPerPertemuan, durasiJp, jumlahMurid, undefined, perangkatDigitalDiizinkan(cd));
++        validation = validateModulOutputV400(mergedFixed, nomorTp, jumlahPertemuan, jpPerPertemuan, durasiJp, jumlahMurid, undefined, perangkatDigitalDiizinkan(cd), true);
+         if (!validation.valid) {
+           return json({ error: `Validasi gagal setelah repair: ${validation.errors.join('; ')}`, code: 'MODUL_GENERATION_INVALID_SCHEMA', retryable: true }, 422);
+         }
+@@ -3702,7 +3651,7 @@ Deno.serve(async (req) => {
+       updated_at:    (writtenD as { updated_at: string }).updated_at,
+       elapsed_ms:    elapsed,
+       summary: {
+-        schema_version:   '4.0.0',
++        schema_version:   MODUL_SCHEMA_VERSION,
+         jumlah_pertemuan: jumlahPertemuan,
+         jp_per_pertemuan: jpPerPertemuan,
+         total_jp:         jumlahPertemuan * jpPerPertemuan,
+--- /dev/null
++++ b/supabase/functions/generate-modul/contract.ts
+@@ -0,0 +1,289 @@
++// KONTRAK BENTUK KELUARAN MODUL AJAR — M3.
++//
++// Berkas ini MURNI dan tidak memanggil apa pun: ia hanya mendeskripsikan bentuk
++// dokumen Modul, dan menghasilkan kerangka yang diminta dari model. Sama
++// alasannya dengan anchor.ts dan warisan.ts — yang paling mahal kalau salah
++// adalah hal yang dipakai di dua tempat sekaligus.
++//
++// MASALAH YANG DITUTUP (docs/MODULE-NASKAH-CONTRACT-LOCK.md §R).
++// Sampai M2 ada EMPAT gambaran Modul yang hidup bersamaan:
++//
++//   1. `type ModulOutput`                — dihapus saat runtime, nol penegakan
++//   2. `validateModulOutputV400()`       — satu-satunya yang benar-benar menegakkan
++//   3. kerangka JSON di SYSTEM_PROMPT    — yang model lihat
++//   4. renderer                          — yang guru lihat
++//
++// Keempatnya ditulis tangan dan tidak pernah saling memeriksa. Akibatnya nyata
++// dan terukur (lihat docs/MODULE-M3-SCHEMA-AUTHORITY-REPORT.md §B): empat
++// bagian akar yang prompt jelaskan panjang lebar tidak pernah diperiksa
++// validator sama sekali, satu batas jumlah yang validator tuntut tidak pernah
++// disebut prompt, dan tiga bagian yang M2 tambahkan ke dokumen final tidak
++// pernah masuk ke tipenya.
++//
++// M3 menyatukan nomor 1–3. Nomor 4 — renderer — adalah M8.
++//
++// APA YANG BERKAS INI MILIKI, DAN APA YANG TIDAK.
++// Ia memiliki BENTUK: versi schema, bagian akar mana yang ada, fase mana yang
++// menghasilkannya, mana yang boleh null, batas jumlah yang bersifat struktural,
++// enum yang bersifat struktural, dan kerangka JSON yang dikirim ke model.
++// Ia TIDAK memiliki MUTU: kelayakan waktu, aritmetika durasi, rotasi kelompok,
++// beban pengamatan guru, dan seluruh pemeriksaan semantik lain tetap imperatif
++// di validator, tempatnya sudah terbukti bekerja. M3 tidak menggantinya dengan
++// mesin schema generik — itu akan membuang yang berhasil demi yang rapi.
++
++/** Versi bentuk dokumen Modul. SATU-SATUNYA tempat angka ini ditulis.
++ *  M3 TIDAK menaikkannya: refactor bukan perubahan semantik keluaran. */
++export const MODUL_SCHEMA_VERSION = '4.0.0';
++
++/** Fase yang benar-benar menghasilkan sebuah bagian akar. `server` berarti
++ *  backend yang mengisinya, bukan model — dan karena itu ia tidak pernah muncul
++ *  di kerangka yang diminta. */
++export type FasePenghasil = 'A' | 'B' | 'C' | 'B2' | 'D' | 'server';
++
++export type FieldKontrak = {
++  fase:      FasePenghasil;
++  kind:      'object' | 'array' | 'string';
++  /** Wajib ada di dokumen FINAL. */
++  required:  boolean;
++  /** Boleh bernilai null — dan itu KEADAAN SEKARANG, bukan cita-cita.
++   *  Lihat catatan nullability di bawah. */
++  nullable?: boolean;
++  /** Panjang minimum array, bila memang struktural. */
++  min?:      number;
++  /** Kerangka JSON yang dikirim ke model. Inilah satu-satunya salinan:
++   *  SYSTEM_PROMPT dan pesan perbaikan sama-sama dibangkitkan dari sini, jadi
++   *  mengubah bentuk di sini mengubah keduanya sekaligus. Kosong untuk bagian
++   *  yang backend isi sendiri. */
++  bentuk?:   string;
++  catatan?:  string;
++};
++
++// NULLABILITY — KEADAAN SEKARANG, BUKAN CITA-CITA.
++//
++// `asesmen_formatif`, `asesmen_diagnostik`, dan `asesmen_sumatif` ditandai
++// nullable karena SEKARANG memang begitu bentuknya. Reviewer sudah menetapkan
++// bahwa asesmen formatif akhirnya WAJIB — tetapi perubahan itu M4, dan M3
++// mendahuluinya justru akan merusak buktinya: yang sedang dibuktikan di sini
++// adalah bahwa mengubah satu tempat cukup untuk mengubah validator DAN prompt
++// sekaligus. M4 nanti menguji mekanisme ini dengan memakainya.
++//
++// Menuliskan cita-cita di kontrak yang menggambarkan keadaan adalah cara
++// tercepat membuat kontrak berbohong.
++
++export const KONTRAK_ROOT: Record<string, FieldKontrak> = {
++  schema_version: {
++    fase: 'A', kind: 'string', required: true,
++    bentuk: `"schema_version": ${JSON.stringify(MODUL_SCHEMA_VERSION)}`,
++  },
++  identitas: {
++    fase: 'A', kind: 'object', required: true,
++    bentuk: `"identitas": {
++    "mata_pelajaran":string,"jenjang":string,"fase":string,
++    "nomor_tp":integer,"jumlah_pertemuan":integer,"jp_per_pertemuan":integer,
++    "durasi_jp_menit":integer,"alokasi_waktu_total_menit":integer,
++    "elemen_cp":[string],"jenis_dokumen":string,
++    "konteks_kejuruan":{"bidang_keahlian":string|null,"program_keahlian":string|null,"konsentrasi_keahlian":string|null},
++    "dasar_cp":string,"tujuan_pembelajaran":string
++  }`,
++  },
++  kktp: {
++    fase: 'A', kind: 'array', required: true, min: 1,
++    catatan: 'id_kktp WAJIB berurutan K1, K2, … sesuai posisinya.',
++    bentuk: `"kktp": [{"id_kktp":"K1","kriteria":string,"ambang_batas":string,"instrumen_bukti":[string]}]`,
++  },
++  konteks_murid: {
++    fase: 'A', kind: 'object', required: true,
++    bentuk: `"konteks_murid": {"kesiapan_awal":[string],"variasi_kemampuan":string,"kebutuhan_dukungan":[string]}`,
++  },
++  materi_esensial: {
++    fase: 'A', kind: 'object', required: true,
++    bentuk: `"materi_esensial": {"lingkup_materi":[string],"kosakata_kunci":[string],"konsep_utama":[string]}`,
++  },
++  rencana_asesmen: {
++    fase: 'A', kind: 'object', required: true,
++    catatan: 'Ketiga jenis asesmen boleh null sesuai pilihan guru — lihat input asesmen.',
++    bentuk: `"rencana_asesmen": {
++    "asesmen_diagnostik": null | {"tujuan":string,"teknik":string,"instrumen_ref":[string],"waktu":string,"penggunaan_hasil":string},
++    "asesmen_formatif": null | [{"id":"F1","waktu_pertemuan":integer,"fase_langkah":<nama_langkah>,"teknik":string,"instrumen_ref":[string],"fungsi":string,"referensi_kktp":["K1"],"umpan_balik":string}],
++    "asesmen_sumatif": null | {"deskripsi":string,"teknik":string,"instrumen_ref":[string],"durasi_menit":integer,"placement":{"pertemuan":integer,"fase":<nama_langkah>}}
++  }`,
++  },
++  rancangan: {
++    fase: 'A', kind: 'object', required: true,
++    bentuk: `"rancangan": {
++    "strategi_pedagogis":string,"sumber_belajar":[{"sumber":string,"kategori":string,"fungsi":string}],
++    "pemanfaatan_digital":string,"lingkungan_pembelajaran":string,
++    "kemitraan_pembelajaran":string|null,"keselamatan_k3":string|null
++  }`,
++  },
++  metadata_pedagogis: {
++    fase: 'A', kind: 'object', required: true,
++    bentuk: `"metadata_pedagogis": {
++    "dimensi_profil_lulusan":[{"dimensi":string,"alasan":string,"indikator":string}],
++    "karakteristik_materi":{"faktual":string,"konseptual":string,"prosedural":string},
++    "language_policy":{"teacher_instruction":string,"student_instruction":string,"target_language":string|null}
++  }`,
++  },
++  manifest: {
++    fase: 'A', kind: 'object', required: false,
++    catatan: 'Kontrak internal pipeline: dipakai Fase B dan C, TIDAK ikut ke dokumen final.',
++    bentuk: `"manifest": {
++    "pembelajaran_manifest":[{"id":"PBL-01","jenis":<jenis_instrumen_pembelajaran>,"untuk_murid":true,"digunakan_pada":["P1.MENGAPLIKASI"]}],
++    "asesmen_manifest":[{"id":"ASM-01","jenis":<jenis_instrumen_asesmen>,"untuk_murid":false,"digunakan_pada":["P1.ASESMEN_AWAL"]}]
++  }`,
++  },
++  pertemuan: {
++    fase: 'B', kind: 'array', required: true, min: 1,
++    catatan: 'Panjangnya WAJIB sama dengan jumlah_pertemuan. Tulis sub_langkah TANPA field ref — backend yang mengisinya.',
++    bentuk: `"pertemuan":[
++    {
++      "nomor":1,"tujuan_pertemuan":string,"media_dan_alat":[string],
++      "langkah":[
++        {"nama":<nama_langkah>,"durasi_menit":integer,"prinsip":[string],
++         "sub_langkah":[{"nomor":1,"deskripsi":string,"durasi_menit":integer,
++                         "instrumen_ref":[string],"asesmen_ref":"SUMATIF",
++                         "mode_pelaksanaan":<mode_pelaksanaan>,"mode_observasi":<mode_observasi>,
++                         "ukuran_kelompok":integer}]}
++      ]
++    }
++  ]`,
++  },
++  instrumen_pembelajaran: {
++    fase: 'C', kind: 'array', required: true,
++    catatan: 'Isi HANYA ID yang ada di manifest. Array kosong bila manifestnya kosong.',
++    bentuk: `"instrumen_pembelajaran":[
++    {"id":"PBL-01","judul":string,"jenis":<jenis_instrumen_pembelajaran>,"untuk_murid":true,
++     "digunakan_pada":["P1.MENGAPLIKASI"],"konten_murid":object|null,"panduan_guru":object|null}
++  ]`,
++  },
++  instrumen_asesmen: {
++    fase: 'C', kind: 'array', required: true,
++    catatan: 'Isi HANYA ID yang ada di manifest. Array kosong bila manifestnya kosong.',
++    bentuk: `"instrumen_asesmen":[
++    {"id":"ASM-01","judul":string,"jenis":<jenis_instrumen_asesmen>,"untuk_murid":false,
++     "digunakan_pada":["P1.ASESMEN_AWAL"],"konten_murid":object|null,"panduan_guru":object|null}
++  ]`,
++  },
++  naskah_fasilitasi: {
++    fase: 'B2', kind: 'array', required: true,
++    catatan: 'Panjangnya WAJIB sama dengan jumlah_pertemuan. field "ref" disalin PERSIS dari sub_langkah[].ref yang dikirim.',
++    bentuk: `"naskah_fasilitasi":[
++    {"nomor":1,
++     "langkah":[{"nama":<nama_langkah>,
++                 "sub_langkah":[{"ref":"P1.PEMBUKA.1","ucapan_guru":[string],"aksi_guru":[string],
++                                 "pertanyaan_kunci":[string],"jika_kesulitan":[string]}]}]}
++  ]`,
++  },
++  tindak_lanjut: {
++    fase: 'D', kind: 'object', required: true,
++    bentuk: `"tindak_lanjut":{"pilihan_dukungan":[string](minimal 3),"dukungan_terstruktur":[string](minimal 2),"tantangan_lanjutan":[string]}`,
++  },
++  catatan_guru: {
++    fase: 'D', kind: 'array', required: true, min: 3,
++    bentuk: `"catatan_guru":[string](minimal 3 butir)`,
++  },
++
++  // ── DIISI BACKEND, BUKAN MODEL (M2) ─────────────────────────────────────────
++  // Ketiganya jejak pewarisan ATP yang M2 pakukan ke dokumen. Mereka BUKAN
++  // metadata hiasan yang kebetulan menempel: dokumen Modul yang baru wajib
++  // memilikinya, dan itulah yang membuat modul dapat membuktikan sendiri dari
++  // CP versi apa dan tuntutan mana ia disusun. Model tidak pernah diminta
++  // menghasilkannya — karena itu tanpa `bentuk`.
++  //
++  // `required: true` berlaku untuk DOKUMEN BARU. Modul yang disusun sebelum M2
++  // tidak memilikinya, dan menuntutnya secara surut berarti menghakimi dokumen
++  // lama dengan aturan yang belum ada ketika ia dibuat — persis yang M1 dan
++  // M2.1 tolak lakukan. Karena itu penegakannya dinyalakan pemanggil
++  // (`wajibJejakWarisan`), dan jalur penyusunan selalu menyalakannya.
++  tp_anchor:      { fase: 'server', kind: 'object', required: true,
++                    catatan: 'Potret TP dari ATP (M1/M2). Backend yang mengisi.' },
++  atp_context:    { fase: 'server', kind: 'object', required: true,
++                    catatan: 'Keputusan dan keadaan ATP yang diwarisi (M2). Backend yang mengisi.' },
++  alokasi_server: { fase: 'server', kind: 'object', required: true,
++                    catatan: 'Alokasi pertemuan sisi server (M2). Backend yang mengisi.' },
++};
++
++/** Enum yang bersifat STRUKTURAL — bentuk, bukan mutu. Nilai-nilainya dipakai
++ *  validator DAN disisipkan ke kerangka prompt lewat penanda `<nama_enum>`,
++ *  sehingga daftar yang model lihat tidak bisa berbeda dari yang ditegakkan. */
++export const ENUM_KONTRAK: Record<string, readonly string[]> = {
++  nama_langkah: ['PEMBUKA', 'ASESMEN_AWAL', 'MEMAHAMI', 'MENGAPLIKASI', 'MEREFLEKSI', 'PENUTUP'],
++  mode_pelaksanaan: ['simultan', 'bergantian', 'individual', 'kelompok_kecil'],
++  mode_observasi:   ['semua', 'sampel', 'rotasi', 'mandiri'],
++  jenis_instrumen_pembelajaran: ['dialog_baseline', 'dialog_model', 'teks_autentik', 'kartu_peran', 'custom'],
++  jenis_instrumen_asesmen: [
++    'pemetaan_awal', 'matriks_observasi', 'lembar_refleksi', 'soal_latihan',
++    'lembar_praktikum', 'panduan_proyek', 'custom',
++  ],
++};
++
++/** Urutan langkah pembelajaran, diturunkan dari enum yang sama. */
++export const URUTAN_LANGKAH_KONTRAK = ENUM_KONTRAK.nama_langkah;
++
++/** Bagian akar yang WAJIB ada di dokumen final. */
++export function rootWajib(): string[] {
++  return Object.entries(KONTRAK_ROOT)
++    .filter(([, f]) => f.required)
++    .map(([k]) => k);
++}
++
++/** Bagian akar yang dihasilkan sebuah fase — dasar tanggung jawab tiap fase. */
++export function rootFase(fase: FasePenghasil): string[] {
++  return Object.entries(KONTRAK_ROOT).filter(([, f]) => f.fase === fase).map(([k]) => k);
++}
++
++/** Mengganti penanda `<nama_enum>` dengan daftar nilainya. Ini yang membuat
++ *  enum di prompt mustahil menyimpang dari enum yang divalidasi. */
++function sisipkanEnum(teks: string): string {
++  return teks.replace(/<([a-z_]+)>/g, (cocok, nama: string) => {
++    const nilai = ENUM_KONTRAK[nama];
++    return nilai ? nilai.map(v => JSON.stringify(v)).join('|') : cocok;
++  });
++}
++
++/**
++ * Kerangka keluaran satu fase, DIBANGKITKAN dari kontrak.
++ *
++ * Sampai M3 teks seperti ini ditulis tangan di SYSTEM_PROMPT, di samping
++ * validator yang juga ditulis tangan. Sekarang keduanya berpangkal pada objek
++ * yang sama: menambah bagian akar, mengubah namanya, menjadikannya wajib, atau
++ * mengubah enumnya otomatis mengubah apa yang model lihat.
++ */
++export function kerangkaFase(fase: FasePenghasil): string {
++  const bagian = Object.entries(KONTRAK_ROOT)
++    .filter(([, f]) => f.fase === fase && f.bentuk);
++  if (!bagian.length) return '';
++  const isi = bagian.map(([, f]) => '  ' + sisipkanEnum(f.bentuk!)).join(',\n');
++  const catatan = bagian
++    .filter(([, f]) => f.catatan)
++    .map(([k, f]) => `  - ${k}: ${f.catatan}`);
++  return `FASE ${fase}:\n{\n${isi}\n}`
++    + (catatan.length ? `\nCATATAN FASE ${fase}:\n${catatan.join('\n')}` : '');
++}
++
++/** Seluruh kerangka untuk kelima fase penghasil. */
++export function kerangkaSeluruhFase(): string {
++  return (['A', 'B', 'C', 'B2', 'D'] as const)
++    .map(kerangkaFase).filter(Boolean).join('\n\n');
++}
++
++/** Daftar bagian akar per fase — ringkas, untuk bagian "hasilkan field apa". */
++export function ringkasanTanggungJawabFase(): string {
++  return (['A', 'B', 'C', 'B2', 'D'] as const)
++    .map(f => `FASE "${f}" — hasilkan object dengan field: ${rootFase(f).join(', ')}`)
++    .join('\n');
++}
++
++/**
++ * Perintah struktural untuk pesan PERBAIKAN. Sengaja fungsi yang sama sumbernya
++ * dengan kerangka di atas: sampai M3 pesan perbaikan hanya berbunyi "hasilkan
++ * JSON object penuh yang sudah benar", tanpa menyebut bentuk apa pun, sehingga
++ * model harus mengingat kerangka dari panggilan sebelumnya.
++ */
++export function perintahPerbaikanStruktural(): string {
++  return [
++    `Bentuk dokumen tidak berubah. schema_version tetap ${JSON.stringify(MODUL_SCHEMA_VERSION)}.`,
++    `Field akar yang WAJIB ada: ${rootWajib().filter(k => KONTRAK_ROOT[k].fase !== 'server').join(', ')}.`,
++    'Jangan menghapus, mengganti nama, atau menambah field akar.',
++  ].join(' ');
++}
+--- /dev/null
++++ b/tests/modul-contract.test.ts
+@@ -0,0 +1,417 @@
++// M3 — SATU OTORITAS BENTUK KELUARAN MODUL.
++//
++// Sampai M2 ada empat gambaran Modul yang ditulis tangan dan tidak pernah
++// saling memeriksa: tipe TypeScript, validator runtime, kerangka JSON di
++// SYSTEM_PROMPT, dan renderer. M3 menyatukan tiga yang pertama; renderer M8.
++//
++// M3-A..M3-F menguji kontrak dan validator.
++// M3-G..M3-L menguji bahwa yang DIMINTA dari model berasal dari kontrak yang sama.
++// M3-M..M3-R menjaga agar M2 dan pemeriksaan mutu yang sudah ada tidak hilang.
++//
++// TIDAK ADA panggilan model di berkas ini.
++
++import { assert, assertEquals, assertNotEquals } from 'jsr:@std/assert@1';
++import {
++  MODUL_SCHEMA_VERSION, KONTRAK_ROOT, ENUM_KONTRAK, URUTAN_LANGKAH_KONTRAK,
++  rootWajib, rootFase, kerangkaFase, kerangkaSeluruhFase,
++  ringkasanTanggungJawabFase, perintahPerbaikanStruktural,
++  type FieldKontrak,
++} from '../supabase/functions/generate-modul/contract.ts';
++
++const EF_MODUL = new URL('../supabase/functions/generate-modul/index.ts', import.meta.url);
++const FIXTURES = new URL('./fixtures/modul/', import.meta.url);
++
++type Validator = (
++  raw: unknown, nomorTp: number, jumlahPertemuan: number, jpPerPertemuan: number,
++  durasiJp: number, jumlahMurid: number | null, manifest?: unknown,
++  perangkatDigitalOk?: boolean, wajibJejakWarisan?: boolean,
++) => { valid: boolean; errors: string[] };
++
++/** Validator diambil dari SUMBER Edge Function, bukan disalin — pola yang sama
++ *  dengan tests/validator-modul.ts. Berkas sementara ditaruh di samping
++ *  sumbernya karena index.ts mengimpor modul tetangga secara relatif. */
++async function muatValidator(): Promise<Validator> {
++  const penuh = await Deno.readTextFile(EF_MODUL);
++  const batas = penuh.indexOf('// ── EDGE FUNCTION ─');
++  assert(batas > 0, 'penanda EDGE FUNCTION tidak ada di index.ts');
++  const dir = new URL('.', EF_MODUL);
++  const tmp = new URL(`._modul-contract-${crypto.randomUUID()}.ts`, dir);
++  try {
++    await Deno.writeTextFile(tmp, penuh.slice(0, batas) + '\nexport { validateModulOutputV400 };\n');
++    const mod = await import(tmp.href);
++    return mod.validateModulOutputV400 as Validator;
++  } finally {
++    await Deno.remove(tmp).catch(() => {});
++  }
++}
++
++const validate = await muatValidator();
++
++/** Modul produksi yang memang sehat, dipakai sebagai titik berangkat. */
++async function fixtureSehat(): Promise<Record<string, unknown>> {
++  const raw = JSON.parse(await Deno.readTextFile(new URL('tp02.json', FIXTURES)));
++  return structuredClone(raw.konten) as Record<string, unknown>;
++}
++async function harapanFixture(nama: string) {
++  const raw = JSON.parse(await Deno.readTextFile(new URL(nama, FIXTURES)));
++  return { konten: raw.konten, harapan: raw._harapan };
++}
++
++/** Argumen validasi yang cocok dengan fixture tp02. */
++async function argsSehat(nama = 'tp02.json') {
++  const raw = JSON.parse(await Deno.readTextFile(new URL(nama, FIXTURES)));
++  const h = raw._harapan;
++  return [
++    h.nomor_tp, h.jumlah_pertemuan, h.jp_per_pertemuan, h.durasi_jp,
++    h.jumlah_murid, undefined, h.perangkat_digital_ok,
++  ] as const;
++}
++
++// ═════════════════════════════════════════════════════════════════════════════
++// KONTRAK DAN VALIDATOR
++// ═════════════════════════════════════════════════════════════════════════════
++
++Deno.test('M3-A: versi schema punya satu otoritas, dan tidak ada literal kedua', async () => {
++  assertEquals(MODUL_SCHEMA_VERSION, '4.0.0', 'M3 tidak boleh menaikkan versi — ini refactor');
++
++  const bersih = (await Deno.readTextFile(EF_MODUL))
++    .replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
++  const literal = [...bersih.matchAll(/'4\.0\.0'|"4\.0\.0"/g)];
++  assertEquals(literal.length, 0,
++    `masih ada ${literal.length} literal versi di generate-modul — otoritasnya MODUL_SCHEMA_VERSION`);
++
++  // Dan kontraknya sendiri yang menuliskannya, sekali.
++  const kontrakSrc = await Deno.readTextFile(
++    new URL('../supabase/functions/generate-modul/contract.ts', import.meta.url));
++  assertEquals([...kontrakSrc.matchAll(/'4\.0\.0'/g)].length, 1);
++});
++
++Deno.test('M3-B: fixture produksi yang sehat lolos dengan versi dari otoritas', async () => {
++  const k = await fixtureSehat();
++  assertEquals(k.schema_version, MODUL_SCHEMA_VERSION);
++  const v = validate(k, ...(await argsSehat()));
++  assertEquals(v.errors, []);
++  assert(v.valid);
++});
++
++Deno.test('M3-C: versi salah ditolak, sesuai kebijakan yang sudah ada', async () => {
++  const k = await fixtureSehat();
++  k.schema_version = '3.2.0';
++  const v = validate(k, ...(await argsSehat()));
++  assert(!v.valid);
++  assert(v.errors.some(e => e.includes('schema_version') && e.includes(MODUL_SCHEMA_VERSION)),
++    `pesan tidak menyebut versi yang diharapkan: ${v.errors.join('; ')}`);
++});
++
++Deno.test('M3-D: setiap bagian akar wajib yang dihapus menghasilkan temuan struktural', async () => {
++  const args = await argsSehat();
++  const wajibModel = Object.entries(KONTRAK_ROOT)
++    .filter(([, f]) => f.required && f.fase !== 'server');
++  assert(wajibModel.length >= 10, 'daftar bagian akar wajib mencurigakan pendek');
++
++  for (const [nama] of wajibModel) {
++    const k = await fixtureSehat();
++    delete k[nama];
++    const v = validate(k, ...args);
++    assert(!v.valid, `menghapus ${nama} tetap lolos validasi`);
++    assert(v.errors.some(e => e.includes(nama)),
++      `menghapus ${nama} tidak menghasilkan temuan yang menyebutnya: ${v.errors.join('; ')}`);
++  }
++});
++
++Deno.test('M3-E: field yang SEKARANG nullable tetap sah bernilai null', async () => {
++  // Ini keadaan hari ini, dan sengaja: reviewer sudah menetapkan asesmen
++  // formatif akhirnya WAJIB, tetapi perubahannya M4. Uji ini AKAN dibalik di
++  // sana, dan pembalikannya justru buktinya bahwa mekanisme M3 bekerja.
++  const k = await fixtureSehat();
++  const ra = k.rencana_asesmen as Record<string, unknown>;
++  ra.asesmen_formatif   = null;
++  ra.asesmen_diagnostik = null;
++  ra.asesmen_sumatif    = null;
++  const v = validate(k, ...(await argsSehat()));
++  assertEquals(v.errors.filter(e => /asesmen_(formatif|diagnostik|sumatif) tidak ada/.test(e)), []);
++
++  // Kontrak menyatakan keadaan itu apa adanya, bukan cita-citanya.
++  const kontrakSrc = await Deno.readTextFile(
++    new URL('../supabase/functions/generate-modul/contract.ts', import.meta.url));
++  assert(/asesmen_formatif": null \|/.test(kontrakSrc),
++    'kontrak tidak lagi menyatakan formatif boleh null — itu perubahan M4');
++});
++
++Deno.test('M3-F: enum struktural yang salah ditolak validator', async () => {
++  const args = await argsSehat();
++
++  // nama_langkah di luar enum.
++  const k1 = await fixtureSehat();
++  ((k1.pertemuan as Array<Record<string, unknown>>)[0].langkah as Array<Record<string, unknown>>)[0].nama = 'PEMANASAN';
++  const v1 = validate(k1, ...args);
++  assert(!v1.valid, 'nama langkah di luar enum tetap lolos');
++
++  // Enum yang divalidasi memang enum yang kontrak sebut.
++  for (const nama of URUTAN_LANGKAH_KONTRAK) {
++    assert(ENUM_KONTRAK.nama_langkah.includes(nama));
++  }
++  assertEquals(URUTAN_LANGKAH_KONTRAK.length, 6);
++});
++
++// ═════════════════════════════════════════════════════════════════════════════
++// YANG DIMINTA DARI MODEL BERASAL DARI KONTRAK YANG SAMA
++// ═════════════════════════════════════════════════════════════════════════════
++
++Deno.test('M3-G: kerangka prompt DIBANGKITKAN dari kontrak, bukan ditulis tangan', async () => {
++  const src = await Deno.readTextFile(EF_MODUL);
++  assert(src.includes('${kerangkaSeluruhFase()}'),
++    'SYSTEM_PROMPT tidak memakai kerangka yang dibangkitkan');
++  assert(src.includes('${ringkasanTanggungJawabFase()}'),
++    'daftar tanggung jawab fase tidak dibangkitkan');
++
++  // Bukan sekadar dipanggil: isinya memang berubah kalau kontraknya berubah.
++  const sebelum = kerangkaSeluruhFase();
++  assert(sebelum.includes('"catatan_guru"'));
++  assert(sebelum.includes('FASE A:') && sebelum.includes('FASE D:'));
++});
++
++Deno.test('M3-H: setiap bagian akar yang model hasilkan muncul di kerangka', () => {
++  const kerangka = kerangkaSeluruhFase();
++  for (const [nama, f] of Object.entries(KONTRAK_ROOT)) {
++    if (f.fase === 'server') {
++      assert(!kerangka.includes(`"${nama}"`),
++        `${nama} diisi backend tetapi tetap diminta dari model`);
++      continue;
++    }
++    assert(kerangka.includes(`"${nama}"`), `${nama} tidak muncul di kerangka prompt`);
++  }
++  // Ringkasan tanggung jawab pun konsisten dengan kontrak.
++  for (const fase of ['A', 'B', 'C', 'B2', 'D'] as const) {
++    for (const nama of rootFase(fase)) {
++      assert(ringkasanTanggungJawabFase().includes(nama),
++        `${nama} tidak disebut di tanggung jawab fase ${fase}`);
++    }
++  }
++});
++
++Deno.test('M3-I: field nullable ditandai null di kerangka yang model terima', () => {
++  const kerangka = kerangkaSeluruhFase();
++  for (const jenis of ['asesmen_diagnostik', 'asesmen_formatif', 'asesmen_sumatif']) {
++    assert(new RegExp(`"${jenis}":\\s*null \\|`).test(kerangka),
++      `${jenis} tidak ditandai boleh null di kerangka`);
++  }
++  // Yang wajib TIDAK ditandai null.
++  assert(!/"kktp":\s*null/.test(kerangka));
++  assert(!/"pertemuan":\s*null/.test(kerangka));
++});
++
++Deno.test('M3-J: enum yang validator tegakkan sama persis dengan yang prompt beri', async () => {
++  const kerangka = kerangkaSeluruhFase();
++  for (const [nama, nilai] of Object.entries(ENUM_KONTRAK)) {
++    for (const v of nilai) {
++      assert(kerangka.includes(JSON.stringify(v)),
++        `enum ${nama} nilai "${v}" tidak sampai ke kerangka prompt`);
++    }
++  }
++  // Penanda enum benar-benar tergantikan — tidak ada <nama_enum> yang tersisa.
++  assert(!/<[a-z_]+>/.test(kerangka), 'ada penanda enum yang tidak tergantikan di kerangka');
++
++  // Dan validator memakai daftar yang sama, bukan salinannya.
++  const bersih = (await Deno.readTextFile(EF_MODUL))
++    .replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
++  assert(/URUTAN_LANGKAH = URUTAN_LANGKAH_KONTRAK/.test(bersih),
++    'urutan langkah validator tidak berpangkal pada kontrak');
++  assert(!/'PEMBUKA',\s*'ASESMEN_AWAL',\s*'MEMAHAMI'/.test(bersih),
++    'daftar langkah masih ditulis ulang di generate-modul');
++});
++
++Deno.test('M3-K: perintah struktural pada PERBAIKAN berasal dari kontrak yang sama', async () => {
++  const teks = perintahPerbaikanStruktural();
++  assert(teks.includes(MODUL_SCHEMA_VERSION), 'perintah perbaikan tidak menyebut versi dari otoritas');
++  for (const nama of rootWajib()) {
++    if (KONTRAK_ROOT[nama].fase === 'server') {
++      assert(!teks.includes(nama), `${nama} diisi backend tetapi diminta di pesan perbaikan`);
++      continue;
++    }
++    assert(teks.includes(nama), `${nama} tidak disebut di perintah perbaikan`);
++  }
++
++  // Kedua jalur perbaikan memakainya: perbaikan validasi dan perbaikan JSON.
++  const src = await Deno.readTextFile(EF_MODUL);
++  assertEquals([...src.matchAll(/perintahPerbaikanStruktural\(\)/g)].length, 2,
++    'tidak kedua jalur perbaikan memakai kontrak yang sama');
++});
++
++Deno.test('M3-L: tidak ada blok kerangka final yang ditulis tangan di SYSTEM_PROMPT', async () => {
++  const src = await Deno.readTextFile(EF_MODUL);
++  assert(!/SCHEMA SKELETON/.test(src), 'blok skeleton lama masih ada');
++
++  // Bagian akar tidak lagi didaftar manual di dalam string prompt. Yang boleh
++  // menyebutnya hanyalah kontrak dan kode yang membacanya.
++  const iPrompt = src.indexOf('const SYSTEM_PROMPT = `');
++  const iAkhir  = src.indexOf("pelanggaran aturan.';", iPrompt);
++  const prompt  = src.slice(iPrompt, iAkhir > 0 ? iAkhir : undefined);
++  for (const nama of ['konteks_murid', 'materi_esensial', 'rancangan', 'metadata_pedagogis']) {
++    assert(!new RegExp(`"${nama}":\\s*\\{`).test(prompt),
++      `kerangka ${nama} masih ditulis tangan di SYSTEM_PROMPT`);
++  }
++});
++
++// ═════════════════════════════════════════════════════════════════════════════
++// PENJAGA DRIFT — YANG MEMBUAT MASALAH EMPAT-SCHEMA TIDAK KEMBALI
++// ═════════════════════════════════════════════════════════════════════════════
++
++Deno.test('DRIFT-1: bagian akar baru di kontrak otomatis muncul di kerangka prompt', () => {
++  // Bukan menguji string yang sama dua kali: kontraknya benar-benar diubah,
++  // lalu kerangkanya dibangkitkan ulang dari objek yang sama.
++  const sebelum = kerangkaSeluruhFase();
++  const kunci = '__uji_drift__';
++  const tambahan: FieldKontrak = {
++    fase: 'D', kind: 'array', required: true,
++    bentuk: `"${kunci}":[string]`,
++  };
++  KONTRAK_ROOT[kunci] = tambahan;
++  try {
++    const sesudah = kerangkaSeluruhFase();
++    assertNotEquals(sesudah, sebelum,
++      'menambah bagian akar ke kontrak tidak mengubah kerangka — prompt punya salinan sendiri');
++    assert(sesudah.includes(`"${kunci}"`), 'bagian akar baru tidak sampai ke kerangka');
++    assert(rootWajib().includes(kunci));
++    assert(perintahPerbaikanStruktural().includes(kunci),
++      'bagian akar baru tidak sampai ke perintah perbaikan');
++  } finally {
++    delete KONTRAK_ROOT[kunci];
++  }
++  assertEquals(kerangkaSeluruhFase(), sebelum, 'kontrak tidak pulih setelah uji');
++});
++
++Deno.test('DRIFT-2: enum baru di kontrak otomatis sampai ke kerangka', () => {
++  const asli = [...ENUM_KONTRAK.mode_observasi];
++  ENUM_KONTRAK.mode_observasi = [...asli, 'uji_drift'];
++  try {
++    assert(kerangkaSeluruhFase().includes('"uji_drift"'),
++      'menambah nilai enum tidak mengubah kerangka — prompt punya daftar sendiri');
++  } finally {
++    ENUM_KONTRAK.mode_observasi = asli;
++  }
++  assert(!kerangkaSeluruhFase().includes('uji_drift'));
++});
++
++Deno.test('DRIFT-3: nilai enum di kerangka tidak boleh ada di luar kontrak', () => {
++  // Setiap nilai enum yang dipakai di dalam bentuk kontrak ditulis lewat
++  // penanda <nama_enum>. Kalau seseorang menuliskan nilainya langsung, ia
++  // muncul di kerangka tanpa pernah lewat ENUM_KONTRAK — dan itu drift.
++  const semua = new Set(Object.values(ENUM_KONTRAK).flat());
++  for (const [nama, f] of Object.entries(KONTRAK_ROOT)) {
++    if (!f.bentuk) continue;
++    for (const nilai of semua) {
++      assert(!f.bentuk.includes(`"${nilai}"`),
++        `bentuk ${nama} menuliskan nilai enum "${nilai}" langsung — pakai penanda <nama_enum>`);
++    }
++  }
++});
++
++// ═════════════════════════════════════════════════════════════════════════════
++// YANG TIDAK BOLEH HILANG
++// ═════════════════════════════════════════════════════════════════════════════
++
++Deno.test('M3-M: jejak pewarisan M2 dikenal kontrak dan dituntut untuk dokumen baru', async () => {
++  for (const nama of ['tp_anchor', 'atp_context', 'alokasi_server']) {
++    const f = KONTRAK_ROOT[nama];
++    assert(f, `${nama} tidak dikenal kontrak`);
++    assertEquals(f.fase, 'server', `${nama} seharusnya diisi backend`);
++    assertEquals(f.required, true);
++    assertEquals(f.bentuk, undefined, `${nama} tidak boleh diminta dari model`);
++  }
++
++  // Dokumen BARU wajib membawanya …
++  const k = await fixtureSehat();
++  const args = await argsSehat();
++  const vBaru = validate(k, args[0], args[1], args[2], args[3], args[4], undefined, args[6], true);
++  assert(!vBaru.valid);
++  for (const nama of ['tp_anchor', 'atp_context', 'alokasi_server']) {
++    assert(vBaru.errors.some(e => e.includes(nama)), `${nama} tidak dituntut untuk dokumen baru`);
++  }
++  // … tetapi dokumen LAMA tidak dihakimi surut.
++  assertEquals(validate(k, ...args).valid, true);
++});
++
++Deno.test('M3-N: jejak M2 tetap ikut ke dokumen final, dan hash M1 tidak tersentuh', async () => {
++  const src = await Deno.readTextFile(EF_MODUL);
++  const iMerge = src.indexOf('const merged: unknown = {');
++  const blok = src.slice(iMerge, iMerge + 1800);
++  for (const nama of ['tp_anchor', 'atp_context', 'alokasi_server']) {
++    assert(blok.includes(nama), `${nama} hilang dari dokumen final`);
++  }
++  // Penyusunan menyalakan tuntutan jejak; jalur lain tidak.
++  assert(/perangkatDigitalDiizinkan\(cd\), true\)/.test(src),
++    'jalur penyusunan tidak menuntut jejak pewarisan');
++
++  // Semantik tp_snapshot_hash tidak disentuh M3.
++  const anchorSrc = await Deno.readTextFile(
++    new URL('../supabase/functions/generate-modul/anchor.ts', import.meta.url));
++  assert(/export const FIELD_HASH/.test(anchorSrc));
++  assert(!/atp_context/.test(anchorSrc), 'atp_context bocor ke perhitungan hash');
++});
++
++Deno.test('M3-O: metadata tambahan pada dokumen lama tidak menggagalkan validasi', async () => {
++  const k = await fixtureSehat();
++  k._draft = { fase_a: { catatan: 'sisa draft lama' } };
++  k.metadata_tak_dikenal = { apa_saja: true };
++  (k.identitas as Record<string, unknown>).field_lama = 'x';
++  const v = validate(k, ...(await argsSehat()));
++  assertEquals(v.errors, [], 'field tak dikenal ditolak — M3 bukan migrasi parser ketat');
++  assert(v.valid);
++});
++
++Deno.test('M3-P: kelima contoh produksi memberi jumlah temuan yang sama dengan baseline M2', async () => {
++  const baseline: Record<string, number> = {
++    'tp02.json': 0, 'tp03.json': 0, 'tp04.json': 0, 'tp05.json': 1, 'tp06.json': 1,
++  };
++  for (const [nama, jumlah] of Object.entries(baseline)) {
++    const { konten, harapan } = await harapanFixture(nama);
++    const v = validate(
++      konten, harapan.nomor_tp, harapan.jumlah_pertemuan, harapan.jp_per_pertemuan,
++      harapan.durasi_jp, harapan.jumlah_murid, undefined, harapan.perangkat_digital_ok);
++    assertEquals(v.errors.length, jumlah,
++      `${nama}: ${v.errors.length} temuan, baseline ${jumlah} — ${v.errors.join('; ')}`);
++    assertEquals(v.errors.length, harapan.jumlah_temuan, `${nama}: menyimpang dari _harapan berkasnya`);
++  }
++});
++
++Deno.test('M3-Q: pemeriksaan kelayakan waktu tetap hidup — tidak terhapus saat refactor', async () => {
++  const bersih = (await Deno.readTextFile(EF_MODUL))
++    .replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
++  for (const penanda of [
++    'waktuPerKelompok(', 'MIN_MENIT_KELOMPOK_SUMATIF', 'MIN_MENIT_KELOMPOK_LATIHAN',
++    "mode_pelaksanaan === 'bergantian'", "mode_pelaksanaan === 'individual'",
++    'alokasi_waktu_total_menit', 'sum(sub_langkah',
++  ]) {
++    assert(bersih.includes(penanda), `pemeriksaan waktu hilang: ${penanda}`);
++  }
++
++  // Dan ia benar-benar menembak: kegiatan bergantian yang tidak muat ditolak.
++  const k = await fixtureSehat();
++  const sl = ((k.pertemuan as Array<Record<string, unknown>>)[0].langkah as Array<Record<string, unknown>>)
++    .flatMap(l => l.sub_langkah as Array<Record<string, unknown>>)[0];
++  sl.mode_pelaksanaan = 'bergantian';
++  sl.ukuran_kelompok = 2;
++  const v = validate(k, ...(await argsSehat()));
++  assert(!v.valid && v.errors.some(e => /bergantian/.test(e)),
++    `kelayakan waktu tidak lagi menembak: ${v.errors.join('; ')}`);
++});
++
++Deno.test('M3-R: seluruh M3 berjalan tanpa satu pun panggilan model', async () => {
++  // Berkas kontrak murni: tidak ada jaringan, tidak ada env, tidak ada DB.
++  const kontrakSrc = await Deno.readTextFile(
++    new URL('../supabase/functions/generate-modul/contract.ts', import.meta.url));
++  for (const terlarang of ['fetch(', 'Deno.env', 'createClient', 'generativelanguage']) {
++    assert(!kontrakSrc.includes(terlarang), `contract.ts menyentuh ${terlarang}`);
++  }
++  // Berkas uji ini pun tidak menghubungi apa pun: satu-satunya izin yang ia
++  // butuhkan adalah baca berkas dan tulis berkas sementara di samping sumber
++  // Edge Function. Tidak ada --allow-net di perintah menjalankannya, jadi
++  // panggilan jaringan apa pun akan gagal keras, bukan lolos diam-diam.
++  let adaNet = true;
++  try {
++    await Deno.permissions.query({ name: 'net' });
++    adaNet = (await Deno.permissions.query({ name: 'net' })).state === 'granted';
++  } catch { adaNet = false; }
++  assertEquals(adaNet, false, 'uji M3 dijalankan dengan izin jaringan — seharusnya tidak perlu');
++});

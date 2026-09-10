@@ -5,6 +5,11 @@ import {
   type TpAnchor,
 } from './anchor.ts';
 import {
+  MODUL_SCHEMA_VERSION, KONTRAK_ROOT, ENUM_KONTRAK, URUTAN_LANGKAH_KONTRAK,
+  rootWajib, kerangkaSeluruhFase, ringkasanTanggungJawabFase,
+  perintahPerbaikanStruktural, type FasePenghasil,
+} from './contract.ts';
+import {
   uraikanTuntutan, kategoriWajibDariTuntutan, alokasiPertemuanDariAnchor,
   bangunAtpContext, periksaLayananCp,
   KODE_TUNTUTAN_ASING, KODE_LAYANAN_CP,
@@ -512,8 +517,12 @@ type InstrumentManifest = {
 };
 
 // ── ROOT TYPE V4.0 ────────────────────────────────────────────────────────────
+// OTORITAS RUNTIME ADALAH contract.ts + validateModulOutputV400().
+// Tipe di bawah adalah BANTUAN WAKTU KOMPILASI, bukan sumber kebenaran: ia
+// dihapus saat runtime dan tidak pernah menolak apa pun. Kalau keduanya
+// berbeda, yang berlaku kontrak dan validator.
 type ModulOutput = {
-  schema_version:         '4.0.0';
+  schema_version:         typeof MODUL_SCHEMA_VERSION;
   identitas:              Identitas;
   kktp:                   KktpItem[];
   konteks_murid:          KonteksMurid;
@@ -527,6 +536,16 @@ type ModulOutput = {
   tindak_lanjut:          TindakLanjut;
   catatan_guru:           string[];
   metadata_pedagogis:     MetadataPedagogis;
+  // Jejak pewarisan ATP yang backend pakukan (M2). Dokumen final memilikinya,
+  // dan sampai M3 tipe ini tidak — salah satu drift yang M3 tutup. Bentuknya
+  // sudah diketahui, jadi tidak ada `any` di sini.
+  tp_anchor?:             TpAnchor & {
+                            tuntutan: TuntutanTerurai[];
+                            tuntutan_id: string[];
+                            kategori_teks_wajib: string[];
+                          };
+  atp_context?:           AtpContext;
+  alokasi_server?:        AlokasiPertemuan;
 };
 
 // ── PARSE JSON DARI TEKS AI ───────────────────────────────────────────────────
@@ -588,9 +607,8 @@ function collectRefs(pertemuanArr: unknown[]): Set<string> {
 
 // ── VALIDASI V4.0 ─────────────────────────────────────────────────────────────
 
-const URUTAN_LANGKAH: NamaLangkah[] = [
-  'PEMBUKA', 'ASESMEN_AWAL', 'MEMAHAMI', 'MENGAPLIKASI', 'MEREFLEKSI', 'PENUTUP',
-];
+// Diturunkan dari kontrak — daftar yang sama yang disisipkan ke kerangka prompt.
+const URUTAN_LANGKAH = URUTAN_LANGKAH_KONTRAK as readonly NamaLangkah[];
 
 function nonEmpty(v: unknown): boolean {
   return typeof v === 'string' && v.trim().length > 0;
@@ -609,6 +627,11 @@ function validateModulOutputV400(
   jumlahMurid: number | null,
   manifest?: InstrumentManifest,
   perangkatDigitalOk = true,
+  /** Menuntut jejak pewarisan ATP (tp_anchor, atp_context, alokasi_server).
+   *  Jalur PENYUSUNAN selalu menyalakannya; pembacaan dokumen lama tidak,
+   *  karena Modul pra-M2 memang tidak memilikinya dan menghakiminya secara
+   *  surut bukan pemeriksaan melainkan perubahan aturan ke belakang. */
+  wajibJejakWarisan = false,
 ): { valid: boolean; errors: string[]; output: ModulOutput | null } {
   const errors: string[] = [];
 
@@ -618,7 +641,40 @@ function validateModulOutputV400(
   const o = raw as Record<string, unknown>;
 
   // V1: schema_version
-  if (o.schema_version !== '4.0.0') errors.push(`schema_version='${o.schema_version}', diharapkan '4.0.0'`);
+  if (o.schema_version !== MODUL_SCHEMA_VERSION) {
+    errors.push(`schema_version='${o.schema_version}', diharapkan '${MODUL_SCHEMA_VERSION}'`);
+  }
+
+  // ── BENTUK AKAR — DARI KONTRAK, BUKAN DITULIS ULANG ────────────────────────
+  //
+  // Sampai M3 empat bagian akar yang SYSTEM_PROMPT jelaskan panjang lebar —
+  // konteks_murid, materi_esensial, rancangan, metadata_pedagogis — tidak
+  // diperiksa validator sama sekali. Model boleh menghilangkannya seluruhnya
+  // dan dokumennya tetap lolos.
+  //
+  // Yang diperiksa di sini hanya BENTUK: ada, jenisnya benar, panjang minimum
+  // struktural. Mutu isinya tetap urusan pemeriksaan imperatif di bawah, yang
+  // tidak disentuh M3.
+  for (const [nama, f] of Object.entries(KONTRAK_ROOT)) {
+    if (!f.required || nama === 'schema_version') continue;
+    if (f.fase === 'server' && !wajibJejakWarisan) continue;
+    const v = o[nama];
+    if (v === undefined || v === null) {
+      // Bagian yang backend isi dilaporkan terpisah supaya sebabnya jelas:
+      // hilangnya bukan kesalahan model.
+      errors.push(f.fase === 'server'
+        ? `${nama} tidak ada — jejak pewarisan ATP wajib ikut di dokumen final`
+        : `${nama} tidak ada`);
+      continue;
+    }
+    if (f.kind === 'array' && !Array.isArray(v)) {
+      errors.push(`${nama} harus array`);
+    } else if (f.kind === 'object' && (typeof v !== 'object' || Array.isArray(v))) {
+      errors.push(`${nama} harus object`);
+    } else if (f.kind === 'array' && f.min && (v as unknown[]).length < f.min) {
+      errors.push(`${nama} harus array ≥ ${f.min} item`);
+    }
+  }
 
   // V1: identitas deterministik
   const targetTotalMenit = jumlahPertemuan * jpPerPertemuan * durasiJp;
@@ -1589,127 +1645,13 @@ KONTRAK OUTPUT — WAJIB DIPATUHI
 EMPAT FASE GENERATE — BACA FIELD "fase" DI USER MESSAGE
 ═════════════════════════════════════════════════════════════════
 
-FASE "A" — hasilkan object dengan field:
-  schema_version, identitas, kktp, konteks_murid, materi_esensial,
-  rencana_asesmen, rancangan, metadata_pedagogis, manifest
-  (manifest = { pembelajaran_manifest: [...], asesmen_manifest: [...] })
-
-FASE "B" — hasilkan object dengan field:
-  pertemuan  ← array, length HARUS === jumlah_pertemuan dari input
-  CATATAN: JANGAN tulis field "ref" di sub_langkah — backend yang menulis ref
-           secara deterministik. Tulis sub_langkah TANPA field ref.
-
-FASE "C" — hasilkan object dengan field:
-  instrumen_pembelajaran, instrumen_asesmen
-  CATATAN: Isi HANYA instrumen dari manifest yang dikirim. Jangan buat ID baru.
-           Jika manifest kosong, hasilkan array kosong [].
-
-FASE "B2" — hasilkan object dengan field:
-  naskah_fasilitasi  ← array, length === jumlah_pertemuan
-  CATATAN: field "ref" WAJIB ditulis di setiap NaskahSubLangkah.
-           Salin persis dari sub_langkah[].ref di pertemuan[] yang dikirim dalam input.
-           Jumlah sub_langkah di naskah HARUS sama dengan di pertemuan.langkah yang sesuai.
-           Setiap elemen naskah.langkah[j] harus identik dengan pertemuan.langkah[j].nama.
-
-FASE "D" — hasilkan object dengan field:
-  tindak_lanjut, catatan_guru
+${ringkasanTanggungJawabFase()}
 
 ═════════════════════════════════════════════════════════════════
-SCHEMA SKELETON V4.0 — REFERENSI FIELD
+KERANGKA KELUARAN PER FASE — REFERENSI FIELD
 ═════════════════════════════════════════════════════════════════
 
-FASE A:
-{
-  "schema_version": "4.0.0",
-  "identitas": {
-    "mata_pelajaran":string,"jenjang":string,"fase":string,
-    "nomor_tp":integer,"jumlah_pertemuan":integer,"jp_per_pertemuan":integer,
-    "durasi_jp_menit":integer,"alokasi_waktu_total_menit":integer,
-    "elemen_cp":[string],"jenis_dokumen":string,
-    "konteks_kejuruan":{"bidang_keahlian":string|null,"program_keahlian":string|null,"konsentrasi_keahlian":null},
-    "dasar_cp":string,"tujuan_pembelajaran":string
-  },
-  "kktp": [{"id_kktp":"K1","kriteria":string,"ambang_batas":string,"instrumen_bukti":[string]}],
-  "konteks_murid": {"kesiapan_awal":[string,string,string],"variasi_kemampuan":string,"kebutuhan_dukungan":[string,string]},
-  "materi_esensial": {"lingkup_materi":[string],"kosakata_kunci":[string],"konsep_utama":[string]},
-  "rencana_asesmen": {
-    "asesmen_diagnostik": null | {"tujuan":string,"teknik":string,"instrumen_ref":[string],"waktu":string,"penggunaan_hasil":string},
-    "asesmen_formatif": null | [{"id":"F1","waktu_pertemuan":integer,"fase_langkah":"ASESMEN_AWAL","teknik":string,"instrumen_ref":[string],"fungsi":string,"referensi_kktp":["K1"],"umpan_balik":string}],
-    "asesmen_sumatif": null | {"deskripsi":string,"teknik":string,"instrumen_ref":[string],"durasi_menit":integer,"placement":{"pertemuan":integer,"fase":"MENGAPLIKASI"}}
-  },
-  "rancangan": {
-    "strategi_pedagogis":string,"sumber_belajar":[{"sumber":string,"kategori":string,"fungsi":string}],
-    "pemanfaatan_digital":string,"lingkungan_pembelajaran":string,
-    "kemitraan_pembelajaran":string|null,"keselamatan_k3":string|null
-  },
-  "metadata_pedagogis": {
-    "dimensi_profil_lulusan":[{"dimensi":string,"alasan":string,"indikator":string}],
-    "karakteristik_materi":{"faktual":string,"konseptual":string,"prosedural":string},
-    "language_policy":{"teacher_instruction":string,"student_instruction":string,"target_language":string|null}
-  },
-  "manifest": {
-    "pembelajaran_manifest":[{"id":"PBL-01","jenis":"kartu_peran","untuk_murid":true,"digunakan_pada":["P1.MENGAPLIKASI"]}],
-    "asesmen_manifest":[{"id":"ASM-01","jenis":"matriks_observasi","untuk_murid":false,"digunakan_pada":["P1.ASESMEN_AWAL"]}]
-  }
-}
-
-FASE B:
-{
-  "pertemuan":[
-    {
-      "nomor":1,"tujuan_pertemuan":string,"media_dan_alat":[string],
-      "langkah":[
-        {"nama":"PEMBUKA","durasi_menit":integer,"prinsip":[string],"sub_langkah":[{"nomor":1,"deskripsi":string,"durasi_menit":integer}]},
-        {"nama":"ASESMEN_AWAL","durasi_menit":integer,"prinsip":[string],"sub_langkah":[{"nomor":1,"deskripsi":string,"durasi_menit":integer,"instrumen_ref":["ASM-01"]}]},
-        {"nama":"MEMAHAMI","durasi_menit":integer,"prinsip":[string],"sub_langkah":[{"nomor":1,"deskripsi":string,"durasi_menit":integer,"instrumen_ref":["PBL-01"]}]},
-        {"nama":"MENGAPLIKASI","durasi_menit":integer,"prinsip":[string],"sub_langkah":[{"nomor":1,"deskripsi":string,"durasi_menit":integer,"mode_pelaksanaan":"simultan"}]},
-        {"nama":"MEREFLEKSI","durasi_menit":integer,"prinsip":[string],"sub_langkah":[{"nomor":1,"deskripsi":string,"durasi_menit":integer}]},
-        {"nama":"PENUTUP","durasi_menit":integer,"prinsip":[string],"sub_langkah":[{"nomor":1,"deskripsi":string,"durasi_menit":integer}]}
-      ]
-    }
-  ]
-}
-
-FASE C:
-{
-  "instrumen_pembelajaran":[
-    {
-      "id":"PBL-01","judul":string,"jenis":"kartu_peran","untuk_murid":true,"digunakan_pada":["P1.MENGAPLIKASI"],
-      "konten_murid":{"set":[{"nama_set":string,"nama_entitas":string,"peran_a":{"instruksi_peran":string},"peran_b":{"instruksi_peran":string}}]},
-      "panduan_guru":{"fokus_pengamatan":string,"catatan_fasilitasi":string}
-    }
-  ],
-  "instrumen_asesmen":[
-    {
-      "id":"ASM-01","judul":string,"jenis":"matriks_observasi","untuk_murid":false,"digunakan_pada":["P1.ASESMEN_AWAL"],
-      "konten_murid":null,
-      "panduan_guru":{"kode_legend":"BT = Belum Tampak | DD = Dengan Dukungan | M = Mandiri","kolom_indikator":[{"id":"K1","label":string}],"catatan_kritis":string}
-    }
-  ]
-}
-
-FASE B2:
-{
-  "naskah_fasilitasi":[
-    {
-      "nomor":1,
-      "langkah":[
-        {"nama":"PEMBUKA","sub_langkah":[{"ref":"P1.PEMBUKA.1","ucapan_guru":[string],"aksi_guru":[string],"pertanyaan_kunci":[string],"jika_kesulitan":[string]}]},
-        {"nama":"ASESMEN_AWAL","sub_langkah":[...]},
-        {"nama":"MEMAHAMI","sub_langkah":[...]},
-        {"nama":"MENGAPLIKASI","sub_langkah":[...]},
-        {"nama":"MEREFLEKSI","sub_langkah":[...]},
-        {"nama":"PENUTUP","sub_langkah":[...]}
-      ]
-    }
-  ]
-}
-
-FASE D:
-{
-  "tindak_lanjut":{"pilihan_dukungan":[string,string,string],"dukungan_terstruktur":[string,string],"tantangan_lanjutan":[string,string]},
-  "catatan_guru":[string]
-}
+${kerangkaSeluruhFase()}
 
 ═════════════════════════════════════════════════════════════════
 INSTRUMENT MANIFEST — KONTRAK WAJIB
@@ -3156,6 +3098,11 @@ Deno.serve(async (req) => {
     userMsg: string,
     timeoutMs: number,
     maxTokens = 4000,
+    // Lingkup perbaikan diberikan pemanggil, TIDAK ditebak dari `label` (M3.1).
+    // Label adalah kalimat untuk manusia — "Fase B2 (naskah)", "Fase A" — dan
+    // menyimpulkan kontrak dari kalimat adalah cara pelan-pelan salah: satu
+    // suntingan redaksi pada label akan mengubah bentuk yang diminta model.
+    fase?: FasePenghasil,
   ): Promise<Record<string, unknown>> {
     let rawText: string;
     try {
@@ -3189,7 +3136,12 @@ Deno.serve(async (req) => {
         const repairText = await callAI([
           { role: 'user', content: userMsg },
           { role: 'assistant', content: rawText },
-          { role: 'user', content: `JSON tidak valid. Hasilkan ulang HANYA JSON object untuk ${label} yang valid.` },
+          { role: 'user', content:
+            `JSON tidak valid. Hasilkan ulang HANYA JSON object untuk ${label} yang valid. `
+            // Lingkup fase, bukan dokumen: meminta "hanya object fase ini" lalu
+            // mendaftar seluruh bagian akar dokumen membuat pesannya membantah
+            // dirinya sendiri.
+            + perintahPerbaikanStruktural(fase) },
         ], 60_000, maxTokens, `${label} (perbaikan JSON)`);
         parsed = extractJson(repairText);
       } catch (e2) {
@@ -3217,7 +3169,7 @@ Deno.serve(async (req) => {
         faseAOutput, pertemuanWithRef, instrumenPembelajaran, instrumenAsesmen,
         jumlahPertemuan, jumlahMurid,
       }),
-      120_000, anggaranTokenNaskah(jumlahPertemuan),
+      120_000, anggaranTokenNaskah(jumlahPertemuan), 'B2',
     );
     return Array.isArray(out.naskah_fasilitasi) ? out.naskah_fasilitasi : [];
   }
@@ -3274,7 +3226,7 @@ Deno.serve(async (req) => {
       faseAOutput = await callPhase(
         'Fase A',
         buildUserMessageFaseA({ identitasDB, jumlahMurid, nomorTp, tpJudul, jumlahPertemuan, jpPerPertemuan, durasiJp, elemenCp, warisan, cd, pilanAsesmen, gunakanDiagnostik, teknikDiagnostik, instrumenDiagnostik, gunakanFormatif, teknikFormatif, instrumenFormatif, gunakanSumatif, teknikSumatif, instrumenSumatif }),
-        90_000, anggaranTokenFaseA(perkiraanKktp(tpAnchor), elemenCp.length),
+        90_000, anggaranTokenFaseA(perkiraanKktp(tpAnchor), elemenCp.length), 'A',
       );
     } catch (e) {
       const err = e as { message?: string; code?: string; retryable?: boolean };
@@ -3361,7 +3313,7 @@ Deno.serve(async (req) => {
       faseBRaw = await callPhase(
         'Fase B',
         buildUserMessageFaseB({ faseAOutput, manifest, jumlahPertemuan, jpPerPertemuan, durasiJp, jumlahMurid, cd, arahanTitikAwal: arahanWaktu, warisan }),
-        90_000, anggaranToken(jumlahPertemuan),
+        90_000, anggaranToken(jumlahPertemuan), 'B',
       );
     } catch (e) {
       const err = e as { message?: string; code?: string; retryable?: boolean };
@@ -3412,7 +3364,7 @@ Deno.serve(async (req) => {
       faseCOutput = await callPhase(
         'Fase C',
         buildUserMessageFaseC({ faseAOutput, manifest, cd, warisan }),
-        120_000, anggaranTokenInstrumen(jumlahInstrumen),
+        120_000, anggaranTokenInstrumen(jumlahInstrumen), 'C',
       );
     } catch (e) {
       const err = e as { message?: string; code?: string; retryable?: boolean };
@@ -3555,7 +3507,7 @@ Deno.serve(async (req) => {
         120_000, anggaranTokenFaseD(
           Array.isArray(faseAOutput.kktp) ? (faseAOutput.kktp as unknown[]).length : 3,
           jumlahPertemuan,
-        ),
+        ), 'D',
       );
     } catch (e) {
       const err = e as { message?: string; code?: string; retryable?: boolean };
@@ -3597,7 +3549,7 @@ Deno.serve(async (req) => {
       tujuan_pembelajaran:       identitasAI.tujuan_pembelajaran,
     };
     const merged: unknown = {
-      schema_version:         '4.0.0',
+      schema_version:         MODUL_SCHEMA_VERSION,
       identitas:              identitasFinal,
       kktp:                   faseAOutput.kktp,
       konteks_murid:          faseAOutput.konteks_murid,
@@ -3625,7 +3577,7 @@ Deno.serve(async (req) => {
       alokasi_server: alokasiTp,
     };
 
-    let validation = validateModulOutputV400(merged, nomorTp, jumlahPertemuan, jpPerPertemuan, durasiJp, jumlahMurid, manifestFaseD, perangkatDigitalDiizinkan(cd));
+    let validation = validateModulOutputV400(merged, nomorTp, jumlahPertemuan, jpPerPertemuan, durasiJp, jumlahMurid, manifestFaseD, perangkatDigitalDiizinkan(cd), true);
 
     if (!validation.valid) {
       const errorList = validation.errors.join('; ');
@@ -3638,7 +3590,12 @@ Deno.serve(async (req) => {
           `Σlangkah[].durasi_menit HARUS = ${jpPerPertemuan * durasiJp}. ` +
           `Σsub_langkah[].durasi_menit HARUS = durasi_menit langkah induk.`
         : JSON.stringify(merged) +
-          `\n\nERROR yang harus diperbaiki: ${errorList}. Hasilkan JSON object penuh yang sudah benar.`;
+          `\n\nERROR yang harus diperbaiki: ${errorList}. Hasilkan JSON object penuh yang sudah benar. ` +
+          // M3: perintah strukturalnya BERASAL DARI KONTRAK YANG SAMA dengan
+          // SYSTEM_PROMPT. Sampai M3 pesan ini tidak menyebut bentuk sama sekali,
+          // sehingga model harus mengingatnya dari panggilan sebelumnya — dan kalau
+          // ia salah ingat, perbaikannya justru merusak bentuk.
+          perintahPerbaikanStruktural();
 
       try {
         const repairText  = await callAI([{ role: 'user', content: repairMsg }], 50_000,
@@ -3648,7 +3605,7 @@ Deno.serve(async (req) => {
         const mergedFixed = hasDurasiError
           ? { ...(merged as Record<string, unknown>), pertemuan: (repairParsed as Record<string, unknown>).pertemuan }
           : repairParsed;
-        validation = validateModulOutputV400(mergedFixed, nomorTp, jumlahPertemuan, jpPerPertemuan, durasiJp, jumlahMurid, undefined, perangkatDigitalDiizinkan(cd));
+        validation = validateModulOutputV400(mergedFixed, nomorTp, jumlahPertemuan, jpPerPertemuan, durasiJp, jumlahMurid, undefined, perangkatDigitalDiizinkan(cd), true);
         if (!validation.valid) {
           return json({ error: `Validasi gagal setelah repair: ${validation.errors.join('; ')}`, code: 'MODUL_GENERATION_INVALID_SCHEMA', retryable: true }, 422);
         }
@@ -3702,7 +3659,7 @@ Deno.serve(async (req) => {
       updated_at:    (writtenD as { updated_at: string }).updated_at,
       elapsed_ms:    elapsed,
       summary: {
-        schema_version:   '4.0.0',
+        schema_version:   MODUL_SCHEMA_VERSION,
         jumlah_pertemuan: jumlahPertemuan,
         jp_per_pertemuan: jpPerPertemuan,
         total_jp:         jumlahPertemuan * jpPerPertemuan,

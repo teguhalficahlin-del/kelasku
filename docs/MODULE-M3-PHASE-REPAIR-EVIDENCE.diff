@@ -1,0 +1,349 @@
+--- a/supabase/functions/generate-modul/contract.ts
++++ b/supabase/functions/generate-modul/contract.ts
+@@ -279,8 +279,37 @@
+  * dengan kerangka di atas: sampai M3 pesan perbaikan hanya berbunyi "hasilkan
+  * JSON object penuh yang sudah benar", tanpa menyebut bentuk apa pun, sehingga
+  * model harus mengingat kerangka dari panggilan sebelumnya.
++ *
++ * DUA LINGKUP, SATU KONTRAK (M3.1).
++ *
++ * M3 memakai satu bentuk untuk kedua jalur perbaikan, dan itu keliru pada satu
++ * di antaranya. Perbaikan JSON di `callPhase()` bekerja PER FASE: ia meminta
++ * model menghasilkan ulang object satu fase saja. Menyertakan daftar seluruh
++ * bagian akar dokumen di situ membuat pesannya membantah dirinya sendiri —
++ * "hasilkan ulang HANYA object Fase B" disusul "field akar yang wajib ada:
++ * schema_version, identitas, kktp, …, catatan_guru".
++ *
++ * Sekarang lingkupnya diberikan pemanggil, bukan ditebak. Tanpa argumen ia
++ * berbicara tentang DOKUMEN FINAL (jalur perbaikan validasi); dengan `fase` ia
++ * berbicara tentang keluaran fase itu saja.
++ *
++ * Perhatikan bedanya dari `rootWajib()`: lingkup fase memakai TANGGUNG JAWAB
++ * fase, bukan daftar wajib dokumen final. `manifest` adalah contohnya — ia
++ * keluaran nyata Fase A dan dipakai Fase B dan C, tetapi tidak ikut ke dokumen
++ * final, sehingga daftar wajib final tidak memuatnya. Perbaikan Fase A yang
++ * tidak menyebut manifest akan menghasilkan Fase A yang lumpuh.
+  */
+-export function perintahPerbaikanStruktural(): string {
++export function perintahPerbaikanStruktural(fase?: FasePenghasil): string {
++  if (fase) {
++    const milikFase = rootFase(fase).filter(k => KONTRAK_ROOT[k].fase !== 'server');
++    const kerangka = kerangkaFase(fase);
++    return [
++      `Bentuk keluaran fase ini tidak berubah.`,
++      `Field yang WAJIB ada di object Fase ${fase}: ${milikFase.join(', ')}.`,
++      'Jangan menambahkan field akar milik fase lain, dan jangan menghapus atau mengganti nama field.',
++      ...(kerangka ? ['Kerangka yang diminta:\n' + kerangka] : []),
++    ].join(' ');
++  }
+   return [
+     `Bentuk dokumen tidak berubah. schema_version tetap ${JSON.stringify(MODUL_SCHEMA_VERSION)}.`,
+     `Field akar yang WAJIB ada: ${rootWajib().filter(k => KONTRAK_ROOT[k].fase !== 'server').join(', ')}.`,
+--- a/supabase/functions/generate-modul/index.ts
++++ b/supabase/functions/generate-modul/index.ts
+@@ -7,7 +7,7 @@
+ import {
+   MODUL_SCHEMA_VERSION, KONTRAK_ROOT, ENUM_KONTRAK, URUTAN_LANGKAH_KONTRAK,
+   rootWajib, kerangkaSeluruhFase, ringkasanTanggungJawabFase,
+-  perintahPerbaikanStruktural,
++  perintahPerbaikanStruktural, type FasePenghasil,
+ } from './contract.ts';
+ import {
+   uraikanTuntutan, kategoriWajibDariTuntutan, alokasiPertemuanDariAnchor,
+@@ -3098,6 +3098,11 @@
+     userMsg: string,
+     timeoutMs: number,
+     maxTokens = 4000,
++    // Lingkup perbaikan diberikan pemanggil, TIDAK ditebak dari `label` (M3.1).
++    // Label adalah kalimat untuk manusia — "Fase B2 (naskah)", "Fase A" — dan
++    // menyimpulkan kontrak dari kalimat adalah cara pelan-pelan salah: satu
++    // suntingan redaksi pada label akan mengubah bentuk yang diminta model.
++    fase?: FasePenghasil,
+   ): Promise<Record<string, unknown>> {
+     let rawText: string;
+     try {
+@@ -3133,7 +3138,10 @@
+           { role: 'assistant', content: rawText },
+           { role: 'user', content:
+             `JSON tidak valid. Hasilkan ulang HANYA JSON object untuk ${label} yang valid. `
+-            + perintahPerbaikanStruktural() },
++            // Lingkup fase, bukan dokumen: meminta "hanya object fase ini" lalu
++            // mendaftar seluruh bagian akar dokumen membuat pesannya membantah
++            // dirinya sendiri.
++            + perintahPerbaikanStruktural(fase) },
+         ], 60_000, maxTokens, `${label} (perbaikan JSON)`);
+         parsed = extractJson(repairText);
+       } catch (e2) {
+@@ -3161,7 +3169,7 @@
+         faseAOutput, pertemuanWithRef, instrumenPembelajaran, instrumenAsesmen,
+         jumlahPertemuan, jumlahMurid,
+       }),
+-      120_000, anggaranTokenNaskah(jumlahPertemuan),
++      120_000, anggaranTokenNaskah(jumlahPertemuan), 'B2',
+     );
+     return Array.isArray(out.naskah_fasilitasi) ? out.naskah_fasilitasi : [];
+   }
+@@ -3218,7 +3226,7 @@
+       faseAOutput = await callPhase(
+         'Fase A',
+         buildUserMessageFaseA({ identitasDB, jumlahMurid, nomorTp, tpJudul, jumlahPertemuan, jpPerPertemuan, durasiJp, elemenCp, warisan, cd, pilanAsesmen, gunakanDiagnostik, teknikDiagnostik, instrumenDiagnostik, gunakanFormatif, teknikFormatif, instrumenFormatif, gunakanSumatif, teknikSumatif, instrumenSumatif }),
+-        90_000, anggaranTokenFaseA(perkiraanKktp(tpAnchor), elemenCp.length),
++        90_000, anggaranTokenFaseA(perkiraanKktp(tpAnchor), elemenCp.length), 'A',
+       );
+     } catch (e) {
+       const err = e as { message?: string; code?: string; retryable?: boolean };
+@@ -3305,7 +3313,7 @@
+       faseBRaw = await callPhase(
+         'Fase B',
+         buildUserMessageFaseB({ faseAOutput, manifest, jumlahPertemuan, jpPerPertemuan, durasiJp, jumlahMurid, cd, arahanTitikAwal: arahanWaktu, warisan }),
+-        90_000, anggaranToken(jumlahPertemuan),
++        90_000, anggaranToken(jumlahPertemuan), 'B',
+       );
+     } catch (e) {
+       const err = e as { message?: string; code?: string; retryable?: boolean };
+@@ -3356,7 +3364,7 @@
+       faseCOutput = await callPhase(
+         'Fase C',
+         buildUserMessageFaseC({ faseAOutput, manifest, cd, warisan }),
+-        120_000, anggaranTokenInstrumen(jumlahInstrumen),
++        120_000, anggaranTokenInstrumen(jumlahInstrumen), 'C',
+       );
+     } catch (e) {
+       const err = e as { message?: string; code?: string; retryable?: boolean };
+@@ -3499,7 +3507,7 @@
+         120_000, anggaranTokenFaseD(
+           Array.isArray(faseAOutput.kktp) ? (faseAOutput.kktp as unknown[]).length : 3,
+           jumlahPertemuan,
+-        ),
++        ), 'D',
+       );
+     } catch (e) {
+       const err = e as { message?: string; code?: string; retryable?: boolean };
+--- a/tests/modul-contract.test.ts
++++ b/tests/modul-contract.test.ts
+@@ -233,9 +233,16 @@
+   }
+ 
+   // Kedua jalur perbaikan memakainya: perbaikan validasi dan perbaikan JSON.
++  // Sejak M3.1 keduanya memakai fungsi yang sama pada LINGKUP yang berbeda —
++  // dokumen final tanpa argumen, per fase dengan `fase`. Yang dijaga di sini
++  // tetap sama dan kini lebih ketat: dua jalur, satu kontrak, lingkup benar.
+   const src = await Deno.readTextFile(EF_MODUL);
+-  assertEquals([...src.matchAll(/perintahPerbaikanStruktural\(\)/g)].length, 2,
++  assertEquals([...src.matchAll(/perintahPerbaikanStruktural\([^)]*\)/g)].length, 2,
+     'tidak kedua jalur perbaikan memakai kontrak yang sama');
++  assertEquals([...src.matchAll(/perintahPerbaikanStruktural\(\)/g)].length, 1,
++    'jalur dokumen final tidak memakai lingkup final');
++  assertEquals([...src.matchAll(/perintahPerbaikanStruktural\(fase\)/g)].length, 1,
++    'jalur perbaikan JSON per fase tidak memakai lingkup fase');
+ });
+ 
+ Deno.test('M3-L: tidak ada blok kerangka final yang ditulis tangan di SYSTEM_PROMPT', async () => {
+@@ -415,3 +422,207 @@
+   } catch { adaNet = false; }
+   assertEquals(adaNet, false, 'uji M3 dijalankan dengan izin jaringan — seharusnya tidak perlu');
+ });
++
++// ═════════════════════════════════════════════════════════════════════════════
++// M3.1 — PERBAIKAN YANG SADAR LINGKUPNYA
++// ═════════════════════════════════════════════════════════════════════════════
++//
++// M3 memakai satu bentuk perintah perbaikan untuk dua jalur yang berbeda
++// lingkupnya. Pada perbaikan JSON per fase hasilnya membantah dirinya sendiri:
++// "hasilkan ulang HANYA object Fase B" disusul daftar seluruh bagian akar
++// dokumen. Sekarang lingkupnya diberikan pemanggil, bukan ditebak dari label.
++
++/** Bagian akar milik model (bukan yang diisi backend). */
++const ROOT_MODEL = Object.entries(KONTRAK_ROOT)
++  .filter(([, f]) => f.fase !== 'server').map(([k]) => k);
++
++Deno.test('M3-S: perbaikan Fase A hanya menyebut bagian akar milik Fase A', () => {
++  const teks = perintahPerbaikanStruktural('A');
++  const milikA = rootFase('A');
++  for (const nama of milikA) {
++    assert(teks.includes(nama), `${nama} tidak disebut di perbaikan Fase A`);
++  }
++  // Dan tidak menyeret milik fase lain.
++  for (const nama of ROOT_MODEL.filter(k => !milikA.includes(k))) {
++    assert(!new RegExp(`\\b${nama}\\b`).test(teks.split('Kerangka yang diminta:')[0]),
++      `perbaikan Fase A menuntut ${nama}, milik fase lain`);
++  }
++});
++
++Deno.test('M3-T: perbaikan Fase A menyertakan manifest, meski ia bukan root wajib final', () => {
++  // manifest keluaran nyata Fase A dan dipakai Fase B serta C, tetapi tidak ikut
++  // ke dokumen final — sehingga daftar wajib final tidak memuatnya. Perbaikan
++  // yang memakai daftar final akan menghasilkan Fase A yang lumpuh.
++  assertEquals(KONTRAK_ROOT.manifest.required, false, 'manifest ternyata wajib di dokumen final');
++  assertEquals(KONTRAK_ROOT.manifest.fase, 'A');
++  assert(!rootWajib().includes('manifest'));
++
++  assert(perintahPerbaikanStruktural('A').includes('manifest'),
++    'perbaikan Fase A tidak menyebut manifest');
++  assert(!perintahPerbaikanStruktural().includes('manifest'),
++    'perbaikan dokumen final justru menuntut manifest');
++});
++
++Deno.test('M3-U: perbaikan Fase B hanya pertemuan', () => {
++  const teks = perintahPerbaikanStruktural('B');
++  const kepala = teks.split('Kerangka yang diminta:')[0];
++  assert(kepala.includes('pertemuan'));
++  for (const asing of ['kktp', 'instrumen_asesmen', 'naskah_fasilitasi', 'tindak_lanjut',
++                       'identitas', 'catatan_guru', 'schema_version']) {
++    assert(!new RegExp(`\\b${asing}\\b`).test(kepala),
++      `perbaikan Fase B menuntut ${asing}`);
++  }
++});
++
++Deno.test('M3-V: perbaikan Fase C hanya instrumen', () => {
++  const kepala = perintahPerbaikanStruktural('C').split('Kerangka yang diminta:')[0];
++  assertEquals(rootFase('C'), ['instrumen_pembelajaran', 'instrumen_asesmen']);
++  for (const nama of rootFase('C')) assert(kepala.includes(nama));
++  for (const asing of ['pertemuan', 'kktp', 'naskah_fasilitasi', 'tindak_lanjut']) {
++    assert(!new RegExp(`\\b${asing}\\b`).test(kepala), `perbaikan Fase C menuntut ${asing}`);
++  }
++});
++
++Deno.test('M3-W: perbaikan Fase B2 hanya naskah_fasilitasi', () => {
++  const kepala = perintahPerbaikanStruktural('B2').split('Kerangka yang diminta:')[0];
++  assertEquals(rootFase('B2'), ['naskah_fasilitasi']);
++  assert(kepala.includes('naskah_fasilitasi'));
++  for (const asing of ['pertemuan', 'instrumen_pembelajaran', 'tindak_lanjut', 'identitas']) {
++    assert(!new RegExp(`\\b${asing}\\b`).test(kepala), `perbaikan Fase B2 menuntut ${asing}`);
++  }
++});
++
++Deno.test('M3-X: perbaikan Fase D hanya tindak_lanjut dan catatan_guru', () => {
++  const kepala = perintahPerbaikanStruktural('D').split('Kerangka yang diminta:')[0];
++  assertEquals(rootFase('D'), ['tindak_lanjut', 'catatan_guru']);
++  for (const nama of rootFase('D')) assert(kepala.includes(nama));
++  for (const asing of ['pertemuan', 'kktp', 'naskah_fasilitasi', 'instrumen_asesmen']) {
++    assert(!new RegExp(`\\b${asing}\\b`).test(kepala), `perbaikan Fase D menuntut ${asing}`);
++  }
++});
++
++Deno.test('M3-Y: perbaikan dokumen final tetap menyebut seluruh akar wajib milik model', () => {
++  const teks = perintahPerbaikanStruktural();
++  for (const nama of rootWajib()) {
++    if (KONTRAK_ROOT[nama].fase === 'server') continue;
++    assert(teks.includes(nama), `${nama} hilang dari perbaikan dokumen final`);
++  }
++  assert(teks.includes(MODUL_SCHEMA_VERSION), 'perbaikan final tidak menyebut versi');
++  // Lingkup final berbeda dari lingkup fase mana pun.
++  for (const f of ['A', 'B', 'C', 'B2', 'D'] as const) {
++    assertNotEquals(teks, perintahPerbaikanStruktural(f));
++  }
++});
++
++Deno.test('M3-Z: callPhase menerima fase secara eksplisit dan bertipe, bukan menebak label', async () => {
++  const src = await Deno.readTextFile(EF_MODUL);
++
++  assert(/async function callPhase\([\s\S]{0,600}fase\?: FasePenghasil,/.test(src),
++    'callPhase tidak menerima fase bertipe FasePenghasil');
++  assert(/perintahPerbaikanStruktural\(fase\)/.test(src),
++    'perbaikan JSON tidak memakai lingkup fase');
++
++  // Tidak ada yang menyimpulkan fase dari kalimat untuk manusia.
++  const bersih = src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
++  for (const pola of [/label\.includes\(/, /label\.match\(/, /label\.startsWith\(/,
++                      /label\.slice\(/, /\/Fase [ABCD]\//]) {
++    assert(!pola.test(bersih), `fase disimpulkan dari label: ${pola}`);
++  }
++});
++
++Deno.test('M3-AA: setiap panggilan fase di produksi memberi lingkup yang benar', async () => {
++  const src = await Deno.readTextFile(EF_MODUL);
++  const panggilan = [...src.matchAll(/await callPhase\(([\s\S]*?)\n\s*\);/g)].map(m => m[1]);
++  assertEquals(panggilan.length, 5, `jumlah panggilan fase berubah: ${panggilan.length}`);
++
++  const harapan: Record<string, string> = {
++    'Fase A': 'A', 'Fase B': 'B', 'Fase C': 'C', 'Fase D': 'D', 'Fase B2 (naskah)': 'B2',
++  };
++  const terlihat = new Set<string>();
++  for (const blok of panggilan) {
++    const label = blok.match(/'(Fase [^']*)'/)?.[1];
++    assert(label && label in harapan, `label panggilan tidak dikenal: ${label}`);
++    const fase = blok.match(/'(A|B|C|B2|D)',\s*$/m)?.[1];
++    assertEquals(fase, harapan[label], `panggilan ${label} memberi lingkup ${fase}`);
++    terlihat.add(harapan[label]);
++  }
++  assertEquals([...terlihat].sort(), ['A', 'B', 'B2', 'C', 'D'],
++    'ada fase yang tidak punya panggilan produksi');
++});
++
++Deno.test('M3-AB: bagian akar baru pada satu fase hanya mengubah perbaikan fase ITU', () => {
++  const sebelumB = perintahPerbaikanStruktural('B');
++  const sebelumC = perintahPerbaikanStruktural('C');
++  const sebelumFinal = perintahPerbaikanStruktural();
++
++  KONTRAK_ROOT.__uji_b = {
++    fase: 'B', kind: 'array', required: true, bentuk: `"__uji_b":[string]`,
++  };
++  try {
++    const sesudahB = perintahPerbaikanStruktural('B');
++    assertNotEquals(sesudahB, sebelumB, 'perbaikan Fase B tidak mengikuti kontrak');
++    assert(sesudahB.includes('__uji_b'));
++
++    // Fase lain TIDAK ikut berubah — inilah bukti bahwa lingkupnya benar-benar
++    // per fase, bukan satu daftar yang kebetulan disaring.
++    assertEquals(perintahPerbaikanStruktural('C'), sebelumC,
++      'perbaikan Fase C ikut berubah oleh bagian akar milik Fase B');
++    assert(!perintahPerbaikanStruktural('C').includes('__uji_b'));
++
++    // Dokumen final ikut, karena ia memang wajib di dokumen final.
++    assert(perintahPerbaikanStruktural().includes('__uji_b'));
++  } finally {
++    delete KONTRAK_ROOT.__uji_b;
++  }
++  assertEquals(perintahPerbaikanStruktural('B'), sebelumB, 'kontrak tidak pulih');
++  assertEquals(perintahPerbaikanStruktural(), sebelumFinal);
++});
++
++Deno.test('M3-AC: nilai enum baru ikut ke perbaikan fase yang kerangkanya memakainya', () => {
++  const asli = [...ENUM_KONTRAK.mode_pelaksanaan];
++  ENUM_KONTRAK.mode_pelaksanaan = [...asli, 'uji_lingkup'];
++  try {
++    // Fase B memakai <mode_pelaksanaan> di kerangkanya.
++    assert(perintahPerbaikanStruktural('B').includes('"uji_lingkup"'),
++      'enum baru tidak sampai ke perbaikan Fase B');
++    // Fase D tidak memakainya, jadi tidak ikut.
++    assert(!perintahPerbaikanStruktural('D').includes('uji_lingkup'));
++  } finally {
++    ENUM_KONTRAK.mode_pelaksanaan = asli;
++  }
++  assert(!perintahPerbaikanStruktural('B').includes('uji_lingkup'));
++});
++
++Deno.test('M3-AD: bagian yang diisi backend tidak pernah diminta di perbaikan mana pun', () => {
++  const server = Object.entries(KONTRAK_ROOT)
++    .filter(([, f]) => f.fase === 'server').map(([k]) => k);
++  assertEquals(server.sort(), ['alokasi_server', 'atp_context', 'tp_anchor']);
++
++  const semua = [perintahPerbaikanStruktural(),
++    ...(['A', 'B', 'C', 'B2', 'D'] as const).map(f => perintahPerbaikanStruktural(f))];
++  for (const teks of semua) {
++    for (const nama of server) {
++      assert(!teks.includes(nama), `${nama} diminta dari model di salah satu pesan perbaikan`);
++    }
++  }
++});
++
++Deno.test('M3-AE: perbaikan khusus durasi tetap berlingkup Fase B', async () => {
++  const src = await Deno.readTextFile(EF_MODUL);
++  const i = src.indexOf('const repairMsg = hasDurasiError');
++  assert(i > 0, 'cabang perbaikan durasi tidak ditemukan');
++  const cabang = src.slice(i, src.indexOf('const repairText', i));
++
++  // Cabang durasi membangun ulang pesan Fase B — yang kerangkanya sudah datang
++  // dari kontrak — dan hanya menambahkan aturan durasi.
++  assert(/buildUserMessageFaseB\(/.test(cabang), 'cabang durasi tidak lagi memakai pesan Fase B');
++  assert(/durasi_menit HARUS/.test(cabang), 'aturan durasi hilang');
++
++  // Ia TIDAK berubah menjadi perbaikan dokumen penuh.
++  const bagianDurasi = cabang.slice(0, cabang.indexOf(': JSON.stringify(merged)'));
++  assert(!/perintahPerbaikanStruktural\(/.test(bagianDurasi),
++    'cabang durasi ikut menuntut bentuk dokumen penuh');
++
++  // Dan aturan kelayakan waktu tidak disentuh M3.1.
++  assert(src.includes('waktuPerKelompok('), 'pemeriksaan kelayakan waktu hilang');
++});
