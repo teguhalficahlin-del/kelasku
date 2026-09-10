@@ -1,0 +1,386 @@
+--- a/supabase/functions/generate-modul/anchor.ts
++++ b/supabase/functions/generate-modul/anchor.ts
+@@ -149,6 +149,38 @@
+ // GERBANG — apakah Modul ini boleh disusun terhadap ATP yang sekarang
+ // ─────────────────────────────────────────────────────────────────────────────
+ 
++/** Kunci draft yang BENAR-BENAR dipakai pipeline sekarang — diambil dari
++ *  penulisan di index.ts (fase A/B/C/B2), bukan ditebak. Kalau pipeline
++ *  menambah fase, daftar ini ikut, dan uji M1-T menjaganya. */
++export const KUNCI_DRAFT: readonly string[] = ['fase_a', 'fase_b', 'fase_c', 'fase_b2'];
++
++/**
++ * Apakah baris Modul ini SUDAH PERNAH DISUSUN terhadap suatu potret TP.
++ *
++ * M1.1. Sampai M1, pembedanya hanya `konten.schema_version` — dokumen final.
++ * Itu tidak cukup: Modul pra-M1 yang berhenti di tengah jalan punya
++ * `_draft.fase_a` tanpa `schema_version`, dan karena itu dibaca sebagai baris
++ * baru. Konsekuensinya nyata: ATP berubah, permintaan berikutnya masuk,
++ * gerbang mengizinkan, dan Fase B menyusun pertemuan dari draft milik TP LAMA
++ * dengan potret TP BARU. Dua TP dijahit jadi satu dokumen tanpa satu pun galat.
++ *
++ * Riwayat dibaca dari BEKAS PENYUSUNAN, bukan dari kelengkapannya.
++ */
++export function punyaRiwayatPenyusunan(konten: unknown): boolean {
++  const k = (konten ?? {}) as Record<string, unknown>;
++  if (typeof k.schema_version === 'string' && k.schema_version) return true;
++  const draft = (k._draft ?? {}) as Record<string, unknown>;
++  return KUNCI_DRAFT.some(f => {
++    const v = draft[f];
++    return v !== undefined && v !== null;
++  });
++}
++
++/** Perbandingan judul yang mengabaikan spasi dan bentuk normalisasi saja. */
++export function judulSama(a: unknown, b: unknown): boolean {
++  return teksRapi(a) === teksRapi(b);
++}
++
+ export type StatusAnchor =
+   /** Modul baru, atau modul yang belum punya isi final: boleh memakai potret sekarang. */
+   | 'BARU'
+@@ -176,12 +208,31 @@
+ export function periksaAnchor(p: {
+   hashTersimpan:  string | null;
+   hashSekarang:   string;
++  /** Dokumen final pernah ditulis. Dipertahankan sebagai bentuk ringkas
++   *  `adaRiwayat` untuk pemanggil lama. */
+   adaKontenFinal: boolean;
++  /** M1.1. Ada bekas penyusunan apa pun — dokumen final ATAU draft fase.
++   *  Bawaannya `adaKontenFinal`, sehingga pemanggil lama tidak berubah arti. */
++  adaRiwayat?:    boolean;
++  /** M1.1. Untuk baris yang benar-benar kosong: apakah judul TP yang tersimpan
++   *  saat baris dibuat masih sama dengan judul TP di ATP sekarang.
++   *  Bawaannya true — pemanggil yang tidak memeriksanya berperilaku seperti M1. */
++  judulCocok?:    boolean;
+ }): { status: StatusAnchor; kode: string | null; boleh_generate: boolean } {
+   if (!p.hashTersimpan) {
+-    return p.adaKontenFinal
+-      ? { status: 'LEGACY_UNVERIFIED', kode: KODE_LEGACY, boleh_generate: false }
+-      : { status: 'BARU',              kode: null,        boleh_generate: true };
++    // Pernah disusun terhadap potret yang tidak tercatat: potret sekarang TIDAK
++    // boleh diadopsi diam-diam. Yang ada di draft berasal dari TP yang lain.
++    if (p.adaRiwayat ?? p.adaKontenFinal) {
++      return { status: 'LEGACY_UNVERIFIED', kode: KODE_LEGACY, boleh_generate: false };
++    }
++    // Baris benar-benar kosong, tetapi ia tetap membawa identitas minimum yang
++    // dicatat SAAT GURU MEMILIH TP: nomor dan judul. Kalau judul itu tidak lagi
++    // cocok, guru memilih potret yang sekarang sudah tidak ada — dan mengambil
++    // potret baru berarti mengganti TP-nya tanpa ia tahu.
++    if ((p.judulCocok ?? true) === false) {
++      return { status: 'STALE', kode: KODE_STALE, boleh_generate: false };
++    }
++    return { status: 'BARU', kode: null, boleh_generate: true };
+   }
+   return p.hashTersimpan === p.hashSekarang
+     ? { status: 'COCOK', kode: null,        boleh_generate: true }
+--- a/supabase/functions/generate-modul/index.ts
++++ b/supabase/functions/generate-modul/index.ts
+@@ -1,6 +1,7 @@
+ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+ import {
+   bangunTpAnchor, hitungTpSnapshotHash, periksaAnchor, keteranganKonflik,
++  punyaRiwayatPenyusunan, judulSama,
+   type TpAnchor,
+ } from './anchor.ts';
+ 
+@@ -2176,7 +2177,9 @@
+     tp_nomor:            params.nomorTp,
+     tp_judul:            params.tpJudul,
+     tp_anchor: {
+-      tp_teks:       params.tpJudul,
++      // Judul BERASAL DARI ANCHOR SERVER (M1.1), bukan dari salinan baris
++      // modul_induk yang bisa saja potret lama.
++      tp_teks:       params.tpAnchor.tp_judul,
+       // Potret dari ATP yang diterima. Dikirim apa adanya supaya KKTP yang
+       // disusun mengukur TP ini, bukan kelas ini.
+       tuntutan_cp:   params.tpAnchor.tuntutan,
+@@ -2693,13 +2696,29 @@
+   const kontenObj   = ((modul as Record<string, unknown>).konten as Record<string, unknown>) || {};
+   const cd          = ((modul as Record<string, unknown>).collected_data as Record<string, unknown>) || {};
+ 
+-  // 6b. GERBANG POTRET TP (M1)
++  // 6b. GERBANG POTRET TP (M1, dikeraskan M1.1)
+   //
+-  // "Berisi final" = Fase D pernah menuliskan dokumen utuh (schema_version ada
+-  // di konten). Draft setengah jalan TIDAK dihitung: modul yang belum pernah
+-  // jadi boleh mengambil potret sekarang tanpa merugikan siapa pun.
++  // M1 memakai satu pembeda saja: `konten.schema_version` — dokumen final. Itu
++  // membiarkan dua lubang, keduanya pada Modul PRA-M1 yang hash-nya NULL:
++  //
++  //   (A) Modul yang berhenti di tengah jalan punya `_draft.fase_a` tanpa
++  //       `schema_version`, jadi terbaca sebagai baris baru. ATP berubah,
++  //       gerbang mengizinkan, dan Fase B menyusun pertemuan dari draft milik
++  //       TP LAMA dengan potret TP BARU — dua TP dijahit jadi satu dokumen.
++  //
++  //   (B) Baris yang benar-benar kosong tetap membawa nomor dan judul yang
++  //       dicatat SAAT GURU MEMILIH TP. Kalau ATP disusun ulang sebelum
++  //       penyusunan dimulai, judul itu tidak lagi cocok, dan mengambil potret
++  //       sekarang berarti mengganti TP-nya tanpa guru tahu.
++  //
++  // Riwayat dibaca dari BEKAS PENYUSUNAN (dokumen final atau draft fase mana
++  // pun), bukan dari kelengkapannya.
+   const adaKontenFinal = typeof kontenObj.schema_version === 'string';
+-  const gerbang = periksaAnchor({ hashTersimpan, hashSekarang, adaKontenFinal });
++  const adaRiwayat     = punyaRiwayatPenyusunan(kontenObj);
++  const judulCocok     = judulSama(judulTpModul, tpAnchor.tp_judul);
++  const gerbang = periksaAnchor({
++    hashTersimpan, hashSekarang, adaKontenFinal, adaRiwayat, judulCocok,
++  });
+ 
+   if (!gerbang.boleh_generate) {
+     // TIDAK menyusun, TIDAK menimpa, TIDAK mengalihkan Modul ke TP lain.
+@@ -2822,8 +2841,18 @@
+   }
+ 
+   // 8. NORMALISASI
+-  const nomorTp  = Number((modul as Record<string, unknown>).nomor_tp);
+-  const tpJudul  = String((modul as Record<string, unknown>).tp_judul || '');
++  //
++  // OTORITAS TUNGGAL (M1.1). Begitu gerbang di §6b lolos, seluruh data TP yang
++  // dianggap otoritas berasal dari SATU objek: tpAnchor, yang dihitung server
++  // dari ATP. Sampai M1.1 kedua nilai di bawah dibaca dari baris modul_induk,
++  // sehingga Fase A dapat menerima JUDUL LAMA bersama TUNTUTAN BARU — satu
++  // dokumen dengan dua TP di dalamnya.
++  //
++  // Field baris modul_induk (nomorTpModul, judulTpModul) tetap dipakai, tetapi
++  // HANYA untuk tiga hal: mendeteksi ketidakcocokan, menampilkan potret lama,
++  // dan menyusun pesan konflik. Bukan untuk membangun TP yang sedang disusun.
++  const nomorTp  = tpAnchor.nomor_tp;
++  const tpJudul  = tpAnchor.tp_judul;
+ 
+   const identitasDB: Record<string, string> = {
+     mapel:            settings?.mapel            ?? '',
+--- a/guru/js/rancang-chat.js
++++ b/guru/js/rancang-chat.js
+@@ -2257,10 +2257,22 @@
+   // berubah — dan itu memang tidak apa-apa: yang menolak menyusun ulang adalah
+   // server, yang menghitung potretnya sendiri. Klien hanya bertugas berhenti
+   // menganggap nomor sebagai identitas.
++  // M1.1: "sudah pernah disusun" BUKAN hanya dokumen final. Modul pra-M1 yang
++  // berhenti di tengah jalan punya _draft.fase_a tanpa schema_version, dan
++  // membacanya sebagai baris baru adalah persis lubang yang ditutup di server.
++  // Daftar fase mengikuti pipeline nyata (A, B, C, B2).
++  var KUNCI_DRAFT_MODUL = ['fase_a', 'fase_b', 'fase_c', 'fase_b2'];
++
++  function punyaRiwayatModul(konten) {
++    if (!konten) return false;
++    if (konten.schema_version) return true;
++    var d = konten._draft || {};
++    return KUNCI_DRAFT_MODUL.some(function (k) { return d[k] !== undefined && d[k] !== null; });
++  }
++
+   function statusAnchorModul(modul, tpSekarang) {
+     if (!modul) return null;
+-    var berisi = !!(modul.konten && modul.konten.schema_version);
+-    if (!modul.tp_snapshot_hash && berisi) return 'LEGACY_UNVERIFIED';
++    if (!modul.tp_snapshot_hash && punyaRiwayatModul(modul.konten)) return 'LEGACY_UNVERIFIED';
+     if (!tpSekarang) return 'STALE';
+     var a = String(modul.tp_judul || '').replace(/\s+/g, ' ').trim();
+     var b = String(tpSekarang.judul || '').replace(/\s+/g, ' ').trim();
+--- a/tests/modul-anchor.test.ts
++++ b/tests/modul-anchor.test.ts
+@@ -14,6 +14,7 @@
+ import {
+   bangunTpAnchor, kanonikAnchor, hitungTpSnapshotHash, periksaAnchor,
+   keteranganKonflik, FIELD_HASH, KODE_STALE, KODE_LEGACY,
++  punyaRiwayatPenyusunan, judulSama, KUNCI_DRAFT,
+   type TpAnchor,
+ } from '../supabase/functions/generate-modul/anchor.ts';
+ 
+@@ -303,3 +304,195 @@
+   // Rollback dijelaskan.
+   assert(/Rollback/i.test(sql), 'migration tidak menjelaskan rollback');
+ });
++
++// ═════════════════════════════════════════════════════════════════════════════
++// M1.1 — MENUTUP ADOPSI POTRET OLEH MODUL PRA-M1
++// ═════════════════════════════════════════════════════════════════════════════
++//
++// M1 memakai satu pembeda: konten.schema_version. Dua kasus lolos karenanya:
++//
++//   CASE A  Modul pra-M1 yang berhenti di tengah jalan punya _draft.fase_a
++//           tanpa schema_version → terbaca BARU → potret TP baru diadopsi di
++//           atas draft milik TP lama.
++//   CASE B  Baris yang benar-benar kosong tetap membawa judul yang dicatat saat
++//           guru memilih TP. ATP disusun ulang lebih dulu → judul tidak cocok →
++//           potret baru diadopsi, dan guru mendapat TP yang bukan pilihannya.
++
++/** Baris modul_induk tiruan. */
++function modulRow(p: { hash?: string | null; konten?: Record<string, unknown> } = {}) {
++  return { tp_snapshot_hash: p.hash ?? null, konten: p.konten ?? {} };
++}
++
++Deno.test('M1-S: hash NULL + _draft.fase_a → LEGACY_UNVERIFIED', () => {
++  const konten = { _draft: { fase_a: { identitas: {}, kktp: [] } } };
++  assertEquals(punyaRiwayatPenyusunan(konten), true, 'draft fase_a tidak terbaca sebagai riwayat');
++  assertEquals(typeof (konten as Record<string, unknown>).schema_version, 'undefined',
++    'fixture harus BELUM final — itu inti CASE A');
++
++  const g = periksaAnchor({
++    hashTersimpan: null, hashSekarang: 'xyz',
++    adaKontenFinal: false, adaRiwayat: punyaRiwayatPenyusunan(konten), judulCocok: true,
++  });
++  assertEquals(g.status, 'LEGACY_UNVERIFIED');
++  assertEquals(g.kode, KODE_LEGACY);
++  assertEquals(g.boleh_generate, false, 'draft pra-M1 boleh mengadopsi potret baru');
++});
++
++Deno.test('M1-T: hash NULL + fase_b / fase_c / fase_b2 → LEGACY_UNVERIFIED', () => {
++  // Daftar fase mengikuti pipeline nyata dan tidak boleh menyusut diam-diam.
++  assertEquals([...KUNCI_DRAFT].sort(), ['fase_a', 'fase_b', 'fase_b2', 'fase_c']);
++
++  for (const f of KUNCI_DRAFT) {
++    const konten = { _draft: { [f]: f === 'fase_b2' ? { naskah_fasilitasi: [] } : [{}] } };
++    assertEquals(punyaRiwayatPenyusunan(konten), true, `${f} tidak terbaca sebagai riwayat`);
++    const g = periksaAnchor({
++      hashTersimpan: null, hashSekarang: 'xyz',
++      adaKontenFinal: false, adaRiwayat: true, judulCocok: true,
++    });
++    assertEquals(g.status, 'LEGACY_UNVERIFIED', `${f} lolos gerbang`);
++  }
++
++  // Draft kosong atau null BUKAN riwayat — jangan menjebak baris yang bersih.
++  assertEquals(punyaRiwayatPenyusunan({ _draft: {} }), false);
++  assertEquals(punyaRiwayatPenyusunan({ _draft: { fase_a: null } }), false);
++  assertEquals(punyaRiwayatPenyusunan({}), false);
++  assertEquals(punyaRiwayatPenyusunan(null), false);
++  // Fase yang tidak dikenal tidak dihitung — daftarnya sengaja eksplisit.
++  assertEquals(punyaRiwayatPenyusunan({ _draft: { fase_z: {} } }), false);
++});
++
++Deno.test('M1-U: hash NULL + dokumen final → tetap LEGACY_UNVERIFIED', () => {
++  const konten = { schema_version: '4.0.0', kktp: [] };
++  assertEquals(punyaRiwayatPenyusunan(konten), true);
++  const g = periksaAnchor({
++    hashTersimpan: null, hashSekarang: 'xyz',
++    adaKontenFinal: true, adaRiwayat: true, judulCocok: true,
++  });
++  assertEquals(g.status, 'LEGACY_UNVERIFIED');
++  assertEquals(g.boleh_generate, false);
++});
++
++Deno.test('M1-V: hash NULL + benar-benar kosong + judul cocok → BARU', () => {
++  const konten = {};
++  assertEquals(punyaRiwayatPenyusunan(konten), false);
++  const g = periksaAnchor({
++    hashTersimpan: null, hashSekarang: 'xyz',
++    adaKontenFinal: false, adaRiwayat: false, judulCocok: true,
++  });
++  assertEquals(g.status, 'BARU');
++  assertEquals(g.boleh_generate, true);
++
++  // Judul dibandingkan setelah dinormalkan — beda spasi bukan beda TP.
++  assert(judulSama('  Menyimak dialog   pelayanan butik ', 'Menyimak dialog pelayanan butik'));
++});
++
++Deno.test('M1-W: hash NULL + kosong + judul BERBEDA → STALE, hash tidak diadopsi', () => {
++  const g = periksaAnchor({
++    hashTersimpan: null, hashSekarang: 'xyz',
++    adaKontenFinal: false, adaRiwayat: false, judulCocok: false,
++  });
++  assertEquals(g.status, 'STALE');
++  assertEquals(g.kode, KODE_STALE);
++  assertEquals(g.boleh_generate, false,
++    'baris kosong dengan judul tersimpan yang sudah berubah mengadopsi potret baru');
++
++  assert(!judulSama('Judul lama', 'Judul baru'));
++});
++
++Deno.test('M1-X: Fase A memakai judul dari anchor server, bukan salinan baris Modul', async () => {
++  const src = await Deno.readTextFile(EF_MODUL);
++
++  // tp_teks di dalam tp_anchor berasal dari anchor.
++  assert(/tp_teks:\s*params\.tpAnchor\.tp_judul/.test(src),
++    'tp_teks masih memakai params.tpJudul');
++  assert(!/tp_teks:\s*params\.tpJudul/.test(src), 'jalur lama tp_teks masih ada');
++
++  // Dan sumber tpJudul itu sendiri kini anchor, sehingga tidak ada jalan lain
++  // bagi judul lama untuk masuk ke Fase A.
++  assert(/const nomorTp\s*=\s*tpAnchor\.nomor_tp/.test(src),
++    'nomorTp tidak berasal dari anchor server');
++  assert(/const tpJudul\s*=\s*tpAnchor\.tp_judul/.test(src),
++    'tpJudul tidak berasal dari anchor server');
++  assert(!/const tpJudul\s*=\s*String\(\(modul/.test(src),
++    'tpJudul masih dibaca dari baris modul_induk');
++
++  // Nilai baris modul_induk tetap ada — untuk deteksi dan pesan konflik saja.
++  assert(/const judulTpModul\s*=/.test(src) && /judulTpModul, anchorSekarang/.test(src),
++    'judul tersimpan tidak lagi dipakai untuk pesan konflik');
++});
++
++Deno.test('M1-Y: Modul pasca-M1 dengan draft parsial + hash sama → boleh dilanjutkan', () => {
++  const row = modulRow({ hash: 'abc', konten: { _draft: { fase_a: {} } } });
++  const g = periksaAnchor({
++    hashTersimpan: row.tp_snapshot_hash, hashSekarang: 'abc',
++    adaKontenFinal: false, adaRiwayat: punyaRiwayatPenyusunan(row.konten), judulCocok: true,
++  });
++  assertEquals(g.status, 'COCOK');
++  assertEquals(g.boleh_generate, true, 'resume Modul pasca-M1 rusak');
++});
++
++Deno.test('M1-Z: Modul pasca-M1 dengan draft parsial + hash berbeda → STALE', () => {
++  const row = modulRow({ hash: 'abc', konten: { _draft: { fase_a: {} } } });
++  const g = periksaAnchor({
++    hashTersimpan: row.tp_snapshot_hash, hashSekarang: 'xyz',
++    adaKontenFinal: false, adaRiwayat: true, judulCocok: true,
++  });
++  assertEquals(g.status, 'STALE');
++  assertEquals(g.kode, KODE_STALE);
++  assertEquals(g.boleh_generate, false);
++});
++
++Deno.test('M1-AA: klien membaca _draft lama + hash NULL sebagai LEGACY_UNVERIFIED', async () => {
++  const src = await Deno.readTextFile(KLIEN_CHAT);
++
++  // Pembeda klien bukan lagi schema_version saja.
++  assert(/function punyaRiwayatModul\(/.test(src), 'klien tidak punya pembaca riwayat draft');
++  assert(/KUNCI_DRAFT_MODUL\s*=\s*\['fase_a', 'fase_b', 'fase_c', 'fase_b2'\]/.test(src),
++    'daftar fase draft di klien tidak mengikuti pipeline nyata');
++  assert(/if \(!modul\.tp_snapshot_hash && punyaRiwayatModul\(modul\.konten\)\) return 'LEGACY_UNVERIFIED'/.test(src),
++    'klien masih memakai schema_version saja sebagai pembeda');
++  assert(!/var berisi = !!\(modul\.konten && modul\.konten\.schema_version\)/.test(src),
++    'pembeda lama masih ada di klien');
++
++  // Tetap tidak menghitung hash sendiri.
++  assert(!/sha-?256/i.test(src) && !/crypto\.subtle/.test(src),
++    'klien menghitung hash sendiri');
++});
++
++Deno.test('M1-AB: hash tidak pernah ditulis sebelum gerbang lolos, dan tidak ada model call mendahuluinya', async () => {
++  const src = await Deno.readTextFile(EF_MODUL);
++
++  const iGerbang = src.indexOf('const gerbang = periksaAnchor({');
++  const iTolak   = src.indexOf('if (!gerbang.boleh_generate) {');
++  const iTulis   = src.indexOf('tp_snapshot_hash: hashSekarang');
++  const iModel   = src.indexOf('await callPhase(');
++
++  assert(iGerbang > 0 && iTolak > iGerbang, 'gerbang atau penolakannya tidak ditemukan');
++  assert(iTulis > iTolak, 'hash ditulis sebelum gerbang menolak');
++  assert(iModel > iTolak, 'model dipanggil sebelum gerbang menolak');
++
++  // Hanya SATU tempat yang menulis hash, dan ia berada di jalur Fase A.
++  assertEquals([...src.matchAll(/tp_snapshot_hash:\s*\w+/g)].length, 1,
++    'lebih dari satu jalur menulis tp_snapshot_hash');
++
++  // Penolakan benar-benar mengakhiri permintaan.
++  const blokTolak = src.slice(iTolak, iTolak + 1200);
++  assert(/return json\(\{[\s\S]*\}, 409\);/.test(blokTolak),
++    'gerbang tidak mengembalikan konflik 409');
++});
++
++Deno.test('M1-AC: gerbang membaca keadaan draft dari baris Modul yang sebenarnya', async () => {
++  const src = await Deno.readTextFile(EF_MODUL);
++
++  // Riwayat dihitung dari konten baris, bukan dari badan permintaan.
++  assert(/const adaRiwayat\s*=\s*punyaRiwayatPenyusunan\(kontenObj\)/.test(src),
++    'riwayat tidak dihitung dari kontenObj');
++  assert(/const judulCocok\s*=\s*judulSama\(judulTpModul, tpAnchor\.tp_judul\)/.test(src),
++    'kecocokan judul tidak diperiksa terhadap anchor server');
++  assert(/periksaAnchor\(\{[\s\S]{0,160}adaRiwayat[\s\S]{0,80}judulCocok/.test(src),
++    'gerbang tidak menerima kedua tanda baru');
++
++  // kontenObj memang berasal dari kolom konten baris modul_induk.
++  assert(/const kontenObj\s*=\s*\(\(modul as Record<string, unknown>\)\.konten/.test(src),
++    'kontenObj bukan konten baris Modul');
++});

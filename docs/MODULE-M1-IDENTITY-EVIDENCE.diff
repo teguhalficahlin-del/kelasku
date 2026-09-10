@@ -1,0 +1,1032 @@
+diff --git a/guru/classroom.html b/guru/classroom.html
+index 11c886f..bf06d51 100644
+--- a/guru/classroom.html
++++ b/guru/classroom.html
+@@ -236,9 +236,9 @@
+     }());
+   </script>
+   <script src="js/rancang-chat-flow.js?v=chat-20260910a1"></script>
+-  <script src="js/rancang-chat-api.js?v=chat-20260905a3"></script>
++  <script src="js/rancang-chat-api.js?v=chat-20260910m1"></script>
+   <script src="js/rancang-chat-ui.js?v=chat-20260903u4"></script>
+-  <script src="js/rancang-chat.js?v=chat-20260910a4"></script>
++  <script src="js/rancang-chat.js?v=chat-20260910m1"></script>
+ 
+   <script src="js/classroom-unduh.js?v=unduh-20260910a3"></script>
+   <script src="../shared/js/pwa.js"></script>
+diff --git a/guru/js/rancang-chat-api.js b/guru/js/rancang-chat-api.js
+index 2d01968..b70a6e3 100644
+--- a/guru/js/rancang-chat-api.js
++++ b/guru/js/rancang-chat-api.js
+@@ -378,7 +378,7 @@ async function cleanupAbandonedDrafts(currentAtpId, scope) {
+ async function fetchAllModulAktifGuru() {
+   const { data, error } = await window.supabaseClient
+     .from('modul_induk')
+-    .select('id, atp_induk_id, nomor_tp, tp_judul, updated_at, atp_induk(mapel, fase)')
++    .select('id, atp_induk_id, nomor_tp, tp_judul, tp_snapshot_hash, updated_at, atp_induk(mapel, fase)')
+     .eq('status', 'aktif')
+     .order('updated_at', { ascending: false })
+     .limit(10);
+@@ -399,7 +399,7 @@ async function fetchModulAktifByAtpId(atpIndukId) {
+   if (!atpIndukId) return [];
+   const { data, error } = await window.supabaseClient
+     .from('modul_induk')
+-    .select('id, atp_induk_id, nomor_tp, tp_judul, konten, status, updated_at')
++    .select('id, atp_induk_id, nomor_tp, tp_judul, tp_snapshot_hash, konten, status, updated_at')
+     .eq('atp_induk_id', atpIndukId)
+     .eq('status', 'aktif')
+     .order('nomor_tp');
+diff --git a/guru/js/rancang-chat.js b/guru/js/rancang-chat.js
+index 7c45e4e..16a892f 100644
+--- a/guru/js/rancang-chat.js
++++ b/guru/js/rancang-chat.js
+@@ -18,6 +18,7 @@
+     atp_draft:            [],
+     atp_hasil:            null,   // amplop ATP_HASIL — dasar penyusunan, cakupan CP, anggaran semester
+     selected_tp:          null,
++    tp_anchor_status:     null,   // 'CURRENT' | 'STALE' | 'LEGACY_UNVERIFIED' — lihat statusAnchorModul()
+     modul_induk_id:       null,
+     modul_updated_at:     null,
+     in_flight:            false,
+@@ -158,6 +159,7 @@
+       atp_draft:           _chat.atp_draft,
+       atp_hasil:           _chat.atp_hasil,
+       selected_tp:         _chat.selected_tp,
++      tp_anchor_status:    _chat.tp_anchor_status,
+       modul_induk_id:      _chat.modul_induk_id,
+       modul_updated_at:    _chat.modul_updated_at,
+       teaching_context_id: _chat.teaching_context_id,
+@@ -209,6 +211,7 @@
+         atp_draft:           saved.atp_draft           ?? [],
+         atp_hasil:           saved.atp_hasil           ?? null,
+         selected_tp:         saved.selected_tp         ?? null,
++        tp_anchor_status:    saved.tp_anchor_status    ?? null,
+         modul_induk_id:      saved.modul_induk_id      ?? null,
+         modul_updated_at:    saved.modul_updated_at    ?? null,
+         teaching_context_id: saved.teaching_context_id ?? null,
+@@ -403,6 +406,7 @@
+       atp_draft:            [],
+       atp_hasil:            null,
+       selected_tp:          null,
++      tp_anchor_status:     null,
+       modul_induk_id:       null,
+       modul_updated_at:     null,
+       active_question_id:      null,
+@@ -557,6 +561,7 @@
+       _chat.collected_answers = {};
+       _chat.atp_draft = [];
+       _chat.selected_tp = null;
++      _chat.tp_anchor_status = null;
+ 
+       _chat.atp_induk_id = null;
+       _chat.atp_updated_at = null;
+@@ -887,8 +892,20 @@
+                 .single();
+               if (atpErr) throw atpErr;
+               hydrateFromAtp(atpFull);
++              // Nomor TP BUKAN identitas (M1). Sampai 10 September 2026 baris
++              // ini menerima TP mana pun yang kebetulan menempati nomor itu,
++              // tanpa membandingkan apa pun — dan ATP yang disusun ulang
++              // menimpa progresi_tp di baris yang sama, jadi nomornya selalu
++              // resolve, ke kemampuan yang lain.
+               const tp = (atpFull.progresi_tp || []).find(function (t) { return t.nomor === modul.nomor_tp; });
+-              _chat.selected_tp = tp || { nomor: modul.nomor_tp, judul: modul.tp_judul };
++              _chat.tp_anchor_status = statusAnchorModul(modul, tp);
++              // Modul yang potretnya tidak lagi cocok TIDAK dialihkan ke TP
++              // sekarang: yang ditampilkan tetap TP yang Modul ini dibuat
++              // untuknya. Server tetap penjaga sebenarnya — ia menghitung ulang
++              // potretnya dan menolak menyusun ulang (MODULE_TP_ANCHOR_STALE).
++              _chat.selected_tp = (_chat.tp_anchor_status === 'CURRENT' && tp)
++                ? tp
++                : { nomor: modul.nomor_tp, judul: modul.tp_judul };
+               _chat.modul_induk_id = modul.id;
+               _chat.viewing_existing_modul = true;
+               _chat.modul_source = 'katalog';
+@@ -900,6 +917,16 @@
+               if (!mErr && mFull) {
+                 _chat.modul_konten = mFull.konten;
+                 _chat.modul_updated_at = mFull.updated_at;
++                // Daftar katalog tidak membawa `konten` (sengaja — ia besar),
++                // sehingga "sudah berisi" baru diketahui di sini. Status dihitung
++                // ulang dengan baris utuh supaya Modul lama berisi tanpa potret
++                // benar-benar terbaca LEGACY_UNVERIFIED, bukan CURRENT.
++                _chat.tp_anchor_status = statusAnchorModul(
++                  { tp_snapshot_hash: modul.tp_snapshot_hash, tp_judul: modul.tp_judul, konten: mFull.konten },
++                  tp);
++                if (_chat.tp_anchor_status !== 'CURRENT') {
++                  _chat.selected_tp = { nomor: modul.nomor_tp, judul: modul.tp_judul };
++                }
+               }
+               saveState();
+               await initChatShell(cId, panel, 'modul');
+@@ -1299,7 +1326,11 @@
+               list.remove();
+               rcClearChips();
+               const matchTp = tpList.find(function (t) { return t.nomor === tp.nomor; });
+-              _chat.selected_tp            = matchTp || { nomor: tp.nomor, judul: tp.judul };
++              // Sama seperti di katalog: nomor bukan identitas (M1).
++              _chat.tp_anchor_status       = statusAnchorModul(m, matchTp);
++              _chat.selected_tp            = (_chat.tp_anchor_status === 'CURRENT' && matchTp)
++                ? matchTp
++                : { nomor: m.nomor_tp, judul: m.tp_judul || tp.judul };
+               _chat.modul_induk_id         = m.id;
+               _chat.modul_updated_at       = m.updated_at;
+               _chat.modul_konten           = m.konten;
+@@ -2210,6 +2241,42 @@ Jatah menyusun ATP hari ini tidak terpakai. Silakan pilih tindakan lain.`);
+     }
+   }
+ 
++  // ── IDENTITAS TP DI KLIEN (M1) ──────────────────────────────────────────────
++  //
++  // Klien BUKAN otoritas dan sengaja tidak menghitung ulang potret TP: aturan
++  // kanonikalisasinya tinggal di satu tempat, supabase/functions/generate-modul/
++  // anchor.ts, dan menyalinnya ke sini berarti membuat kembar yang menyimpang
++  // diam-diam — kelas cacat yang sudah dua kali dibayar di repo ini.
++  //
++  // Yang dilakukan klien hanyalah membaca dua tanda yang sudah ada di data:
++  //
++  //   tp_snapshot_hash kosong pada Modul yang SUDAH berisi  → LEGACY_UNVERIFIED
++  //   judul TP di ATP sekarang berbeda dari judul tersimpan → STALE
++  //
++  // Tanda kedua tidak lengkap — tuntutan atau JP bisa berubah tanpa judulnya
++  // berubah — dan itu memang tidak apa-apa: yang menolak menyusun ulang adalah
++  // server, yang menghitung potretnya sendiri. Klien hanya bertugas berhenti
++  // menganggap nomor sebagai identitas.
++  function statusAnchorModul(modul, tpSekarang) {
++    if (!modul) return null;
++    var berisi = !!(modul.konten && modul.konten.schema_version);
++    if (!modul.tp_snapshot_hash && berisi) return 'LEGACY_UNVERIFIED';
++    if (!tpSekarang) return 'STALE';
++    var a = String(modul.tp_judul || '').replace(/\s+/g, ' ').trim();
++    var b = String(tpSekarang.judul || '').replace(/\s+/g, ' ').trim();
++    if (a && b && a !== b) return 'STALE';
++    return 'CURRENT';
++  }
++
++  const PESAN_ANCHOR = {
++    STALE:
++      'ATP kelas ini sudah disusun ulang sejak Modul ini dibuat, jadi TP-nya tidak lagi sama. '
++      + 'Modul ini tetap tersimpan dan tetap bisa dibuka serta diunduh, tetapi belum bisa disusun ulang.',
++    LEGACY_UNVERIFIED:
++      'Modul ini dibuat sebelum MiClass mencatat identitas TP, jadi kecocokannya dengan ATP sekarang '
++      + 'belum dapat dipastikan. Modul ini tetap tersimpan dan tetap bisa dibuka serta diunduh.',
++  };
++
+   const FASE_V2 = new Set(['PILIH_TP', 'KONTEKS_MODUL', 'SUMBER_STRATEGI', 'ASESMEN_MODUL', 'MODUL_SUMMARY']);
+ 
+   async function ensureModulDraft() {
+@@ -2766,6 +2833,12 @@ Jatah menyusun ATP hari ini tidak terpakai. Silakan pilih tindakan lain.`);
+       rcAppendBubble('sistem', '⚠ Konten modul tidak ditemukan. Coba generate ulang.');
+       return;
+     }
++    // Modul yang potretnya tidak lagi cocok tetap ditampilkan utuh — yang
++    // dikatakan hanyalah bahwa ia tidak dapat disusun ulang. Teks penuh menunggu
++    // M8; yang penting sekarang guru tidak menganggapnya masih sinkron.
++    if (PESAN_ANCHOR[_chat.tp_anchor_status]) {
++      rcAppendBubble('sistem', '⚠ ' + PESAN_ANCHOR[_chat.tp_anchor_status]);
++    }
+     try {
+       if (konten.schema_version === '4.0.0') {
+         _renderModulPreviewV400(konten);
+@@ -3879,6 +3952,18 @@ Jatah menyusun ATP hari ini tidak terpakai. Silakan pilih tindakan lain.`);
+       } else if (code === 'MODUL_NOT_FOUND') {
+         msg = 'Modul tidak ditemukan. Muat ulang halaman.';
+         needsReload = true;
++      } else if (code === 'MODULE_TP_ANCHOR_STALE' || code === 'MODULE_TP_ANCHOR_LEGACY') {
++        // Bukan kegagalan penyusunan: server menolak menyusun ulang karena TP
++        // yang Modul ini dibuat untuknya tidak lagi sama. Jangan tawarkan
++        // "coba lagi" — mencoba lagi tidak akan pernah berhasil, dan Modul yang
++        // sudah ada tidak hilang.
++        msg = err.message || PESAN_ANCHOR[code === 'MODULE_TP_ANCHOR_STALE' ? 'STALE' : 'LEGACY_UNVERIFIED'];
++        var k = err.konflik || {};
++        if (k.tp_modul && k.tp_atp_kini && k.tp_modul.judul !== k.tp_atp_kini.judul) {
++          msg += '\n\nModul ini: TP ' + k.tp_modul.nomor + ' — ' + k.tp_modul.judul
++               + '\nATP sekarang: TP ' + k.tp_atp_kini.nomor + ' — ' + k.tp_atp_kini.judul;
++        }
++        _chat.tp_anchor_status = code === 'MODULE_TP_ANCHOR_STALE' ? 'STALE' : 'LEGACY_UNVERIFIED';
+       } else if (['MODUL_GENERATION_INVALID_JSON', 'MODUL_GENERATION_INVALID_SCHEMA', 'MODUL_GENERATION_FAILED'].includes(code)) {
+         msg = 'MiClass belum berhasil menyusun modul. Jawaban Anda tersimpan. Silakan coba lagi.';
+         retryable = true;
+diff --git a/supabase/functions/generate-modul/index.ts b/supabase/functions/generate-modul/index.ts
+index ad85423..349ad88 100644
+--- a/supabase/functions/generate-modul/index.ts
++++ b/supabase/functions/generate-modul/index.ts
+@@ -1,4 +1,8 @@
+ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
++import {
++  bangunTpAnchor, hitungTpSnapshotHash, periksaAnchor, keteranganKonflik,
++  type TpAnchor,
++} from './anchor.ts';
+ 
+ const CORS_HEADERS = {
+   'Access-Control-Allow-Origin': '*',
+@@ -140,6 +144,21 @@ function anggaranTokenFaseA(jumlahKktp: number, jumlahElemen: number): number {
+   return Math.max(12000, Math.min(2000 * (jumlahKktp + jumlahElemen), 24000));
+ }
+ 
++// Sejak M1, KKTP DISUSUN Fase A dan tidak lagi dikirim sebagai masukan — jadi
++// jumlahnya tidak diketahui sebelum panggilan. Anggaran token tetap harus
++// turunan, bukan angka mati (pelajaran 5 September: plafon yang tidak ikut
++// tumbuh roboh lima kali dalam satu hari).
++//
++// Perkiraannya: dua KKTP per tuntutan CP yang TP pikul, dengan lantai 3 untuk
++// ATP lama yang belum mencatat tuntutan. Untuk TP berdua tuntutan hasilnya 4 —
++// sama dengan jumlah KKTP yang benar-benar dipakai modul produksi selama ini,
++// jadi anggaran fase ini tidak menyempit oleh perubahan M1.
++const KKTP_PER_TUNTUTAN = 2;
++const MIN_PERKIRAAN_KKTP = 3;
++function perkiraanKktp(a: TpAnchor): number {
++  return Math.max(MIN_PERKIRAAN_KKTP, a.tuntutan.length * KKTP_PER_TUNTUTAN);
++}
++
+ // Waktu yang benar-benar didapat setiap kelompok pada kegiatan bergantian.
+ // Angka ini dihitung backend lalu dipakai DUA KALI: oleh validator untuk menolak
+ // alokasi yang mustahil, dan oleh Fase B2 sebagai angka yang wajib diucapkan
+@@ -2126,7 +2145,10 @@ function buildUserMessageFaseA(params: {
+   jpPerPertemuan:   number;
+   durasiJp:         number;
+   elemenCp:         ElemenCp[];
+-  kktpList:           Array<{ judul: string; konten: string | null; batas_bawah: number | null; batas_atas: number | null }>;
++  /** Potret TP dari ATP yang diterima. Sejak M1 ia menggantikan daftar KKTP
++   *  kelas sebagai otoritas: KKTP disusun DARI sini, bukan diambil dari
++   *  Tab Penilaian. */
++  tpAnchor:           TpAnchor;
+   cd:                 Record<string, unknown>;
+   pilanAsesmen:       string[];
+   gunakanDiagnostik:  boolean;
+@@ -2154,7 +2176,13 @@ function buildUserMessageFaseA(params: {
+     tp_nomor:            params.nomorTp,
+     tp_judul:            params.tpJudul,
+     tp_anchor: {
+-      tp_teks:   params.tpJudul,
++      tp_teks:       params.tpJudul,
++      // Potret dari ATP yang diterima. Dikirim apa adanya supaya KKTP yang
++      // disusun mengukur TP ini, bukan kelas ini.
++      tuntutan_cp:   params.tpAnchor.tuntutan,
++      kategori_teks: params.tpAnchor.kategori_teks,
++      semester:      params.tpAnchor.semester,
++      jp_alokasi:    params.tpAnchor.jp_alokasi,
+       instruksi: 'SEMUA komponen modul (KKTP, pertemuan, materi, instrumen) HARUS ' +
+                  'mengajarkan atau mengukur kemampuan ini persis. ' +
+                  'Bukan variasi, bukan prasyarat, bukan topik terkait.',
+@@ -2164,13 +2192,18 @@ function buildUserMessageFaseA(params: {
+     durasi_jp:           params.durasiJp,
+     alokasi_total_menit: params.jumlahPertemuan * params.jpPerPertemuan * params.durasiJp,
+     elemen_cp: params.elemenCp.map(e => ({ id: e.id, label: e.label, cp_text: e.cp_text })),
+-    kktp: params.kktpList.map((k, i) => ({
+-      id_kktp:     `K${i + 1}`,
+-      judul:       k.judul,
+-      konten:      k.konten      ?? null,
+-      batas_bawah: k.batas_bawah ?? null,
+-      batas_atas:  k.batas_atas  ?? null,
+-    })),
++    // KKTP TIDAK LAGI DIKIRIM SEBAGAI MASUKAN.
++    //
++    // Sampai M1 di sini duduk seluruh KKTP kelas, diambil tanpa satu pun ikatan
++    // ke TP ini. Sekarang KKTP DISUSUN dari tp_anchor di atas, dan hidup di
++    // dokumen Modul ini saja — tidak dibaca dari Tab Penilaian, tidak ditulis
++    // kembali ke sana. Bentuk keluarannya tidak berubah (id_kktp, kriteria,
++    // ambang_batas, instrumen_bukti), supaya fase berikutnya tetap utuh.
++    instruksi_kktp:
++      'Susun KKTP untuk TP ini sendiri, dari tp_anchor — JANGAN mengandaikan ada daftar KKTP yang dikirim. ' +
++      'Setiap KKTP mengukur tuntutan CP yang TP ini pikul, bukan kemampuan lain di kelas yang sama. ' +
++      'Beri id_kktp berurutan K1, K2, … Gunakan kriteria yang dapat diamati guru dan ambang_batas ' +
++      'yang cukup jelas untuk memutuskan tercapai atau belum.',
+     pilihan_asesmen:      params.pilanAsesmen,
+     konteks_pembelajaran: konteksModulManusiawi(params.cd),
+     sumber_strategi:      sumberStrategiManusiawi(params.cd),
+@@ -2563,7 +2596,7 @@ Deno.serve(async (req) => {
+   // 3. BACA modul_induk
+   const { data: modul, error: modulErr } = await userClient
+     .from('modul_induk')
+-    .select('id, guru_id, atp_induk_id, nomor_tp, tp_judul, collected_data, konten, status, updated_at')
++    .select('id, guru_id, atp_induk_id, nomor_tp, tp_judul, tp_snapshot_hash, collected_data, konten, status, updated_at')
+     .eq('id', modul_induk_id)
+     .maybeSingle();
+ 
+@@ -2614,25 +2647,76 @@ Deno.serve(async (req) => {
+   // null = kelas ini belum pernah menjawabnya — perilaku lama dipertahankan.
+   const languagePolicy = kebijakanBahasa(settings?.bahasa_pengantar, settings?.mapel);
+ 
+-  // 6. BACA tp_kktp
+-  const { data: kktp, error: kktpErr } = await userClient
+-    .from('tp_kktp')
+-    .select('id, judul, konten, batas_bawah, batas_atas')
+-    .eq('classroom_id', classroom_id)
+-    .eq('tipe', 'KKTP')
+-    .eq('is_active', true)
+-    .order('urutan', { ascending: true });
++  // 6. IDENTITAS TP — potret, gerbang, dan otoritas KKTP (M1)
++  //
++  // SAMPAI 10 SEPTEMBER 2026 DI SINI ADA QUERY YANG DINYATAKAN INVALID:
++  //
++  //   .from('tp_kktp').eq('classroom_id', …).eq('tipe','KKTP').eq('is_active', true)
++  //
++  // Tanpa satu pun filter yang menghubungkannya ke TP yang sedang dibuatkan
++  // Modul — bukan parent_id, bukan nomor_tp, bukan mapel, bukan semester —
++  // sehingga SELURUH KKTP kelas diserahkan sebagai KKTP milik TP ini. Guru yang
++  // punya KKTP untuk beberapa TP menerima semuanya di setiap Modul, dan kalau
++  // kelasnya memuat lebih dari satu mapel, KKTP mapel lain ikut.
++  //
++  // Sekarang: Tab Penilaian BUKAN sumber kebenaran generate-modul. KKTP Modul
++  // disusun dari tp_anchor yang diterima ATP. `tp_kktp` tidak dibaca sama
++  // sekali di jalur ini — tidak juga sebagai cadangan diam-diam — dan tidak
++  // ditulisi. Datanya tetap utuh; Penilaian tetap hidup sebagai fitur sendiri.
++  const nomorTpModul = Number((modul as Record<string, unknown>).nomor_tp);
++  const judulTpModul = String((modul as Record<string, unknown>).tp_judul || '');
++  const hashTersimpan = ((modul as Record<string, unknown>).tp_snapshot_hash as string | null) ?? null;
++
++  // Potret DIHITUNG ULANG dari ATP sisi server, apa pun yang klien kirim.
++  // Klien boleh menyertakan tp_snapshot_hash, tetapi itu hanya nilai harapan
++  // yang dibandingkan — bukan otoritas.
++  const tpAnchor: TpAnchor | null = bangunTpAnchor(
++    atp as Record<string, unknown>,
++    String((modul as Record<string, unknown>).atp_induk_id ?? ''),
++    nomorTpModul,
++  );
+ 
+-  if (kktpErr) {
+-    console.warn('[generate-modul] tp_kktp error:', kktpErr.message);
++  // Nomor TP tidak lagi ada di ATP: Modul sudah yatim. Ini konflik, bukan
++  // keadaan yang boleh ditambal dengan judul lama yang tersimpan.
++  if (!tpAnchor) {
++    return json({
++      error: 'ATP sudah berubah dan TP untuk Modul ini tidak ada lagi di dalamnya.',
++      code:  'MODULE_TP_ANCHOR_STALE',
++      konflik: keteranganKonflik({ nomorTpModul, judulTpModul, anchorSekarang: null }),
++    }, 409);
+   }
+-  const kktpList = Array.isArray(kktp) ? kktp : [];
++
++  const hashSekarang = await hitungTpSnapshotHash(tpAnchor);
+ 
+   // 7. VALIDASI INPUT
+   const modulStatus = (modul as Record<string, unknown>).status as string;
+   const kontenObj   = ((modul as Record<string, unknown>).konten as Record<string, unknown>) || {};
+   const cd          = ((modul as Record<string, unknown>).collected_data as Record<string, unknown>) || {};
+ 
++  // 6b. GERBANG POTRET TP (M1)
++  //
++  // "Berisi final" = Fase D pernah menuliskan dokumen utuh (schema_version ada
++  // di konten). Draft setengah jalan TIDAK dihitung: modul yang belum pernah
++  // jadi boleh mengambil potret sekarang tanpa merugikan siapa pun.
++  const adaKontenFinal = typeof kontenObj.schema_version === 'string';
++  const gerbang = periksaAnchor({ hashTersimpan, hashSekarang, adaKontenFinal });
++
++  if (!gerbang.boleh_generate) {
++    // TIDAK menyusun, TIDAK menimpa, TIDAK mengalihkan Modul ke TP lain.
++    // Modulnya tetap utuh dan tetap dapat dibuka serta diunduh — yang berhenti
++    // hanyalah penyusunan ulang terhadap ATP yang sudah berbeda.
++    return json({
++      error: gerbang.status === 'STALE'
++        ? 'ATP sudah disusun ulang sejak Modul ini dibuat, jadi TP-nya tidak lagi sama. '
++          + 'Modul yang sudah ada tetap tersimpan dan tetap bisa dibuka.'
++        : 'Modul ini dibuat sebelum MiClass mencatat identitas TP, jadi kecocokannya dengan ATP '
++          + 'sekarang tidak dapat dipastikan. Modul yang sudah ada tetap tersimpan dan tetap bisa dibuka.',
++      code:    gerbang.kode,
++      status_anchor: gerbang.status,
++      konflik: keteranganKonflik({ nomorTpModul, judulTpModul, anchorSekarang: tpAnchor }),
++    }, 409);
++  }
++
+   // input_guru untuk konteks_murid — fakta eksplisit dari guru (bukan inferensi AI)
+   const konteksMod = (cd.KONTEKS_MODUL as Record<string, unknown>) || {};
+   const kondisiKelasKode = String(unwrap(konteksMod.kondisi_kelas_modul) ?? '');
+@@ -2986,8 +3070,8 @@ Deno.serve(async (req) => {
+     try {
+       faseAOutput = await callPhase(
+         'Fase A',
+-        buildUserMessageFaseA({ identitasDB, jumlahMurid, nomorTp, tpJudul, jumlahPertemuan, jpPerPertemuan, durasiJp, elemenCp, kktpList, cd, pilanAsesmen, gunakanDiagnostik, teknikDiagnostik, instrumenDiagnostik, gunakanFormatif, teknikFormatif, instrumenFormatif, gunakanSumatif, teknikSumatif, instrumenSumatif }),
+-        90_000, anggaranTokenFaseA(kktpList.length, elemenCp.length),
++        buildUserMessageFaseA({ identitasDB, jumlahMurid, nomorTp, tpJudul, jumlahPertemuan, jpPerPertemuan, durasiJp, elemenCp, tpAnchor, cd, pilanAsesmen, gunakanDiagnostik, teknikDiagnostik, instrumenDiagnostik, gunakanFormatif, teknikFormatif, instrumenFormatif, gunakanSumatif, teknikSumatif, instrumenSumatif }),
++        90_000, anggaranTokenFaseA(perkiraanKktp(tpAnchor), elemenCp.length),
+       );
+     } catch (e) {
+       const err = e as { message?: string; code?: string; retryable?: boolean };
+@@ -3013,11 +3097,17 @@ Deno.serve(async (req) => {
+     }
+ 
+     const draftA = { ...kontenObj, _draft: { fase_a: faseAOutput } };
++    // Potret TP dipaku di sini, di awal penyusunan — bukan di Fase D. Modul
++    // yang gagal di tengah jalan tetap membawa potret yang dipakai Fase A,
++    // sehingga percobaan berikutnya dibandingkan terhadap potret yang benar.
++    // Nilainya SELALU hasil hitungan server (hashSekarang); apa pun yang klien
++    // kirim tidak pernah dipakai menulis.
++    const tulisA = { konten: draftA, tp_snapshot_hash: hashSekarang };
+     const writeResult = expected_updated_at
+-      ? await userClient.from('modul_induk').update({ konten: draftA })
++      ? await userClient.from('modul_induk').update(tulisA)
+           .eq('id', modul_induk_id).eq('updated_at', expected_updated_at)
+           .select('id, updated_at').maybeSingle()
+-      : await userClient.from('modul_induk').update({ konten: draftA })
++      : await userClient.from('modul_induk').update(tulisA)
+           .eq('id', modul_induk_id)
+           .select('id, updated_at').maybeSingle();
+ 
+diff --git a/sw.js b/sw.js
+index 80334d6..00876fd 100644
+--- a/sw.js
++++ b/sw.js
+@@ -17,7 +17,7 @@
+  */
+ 'use strict';
+ 
+-const CACHE_NAME = 'miclass-v27';
++const CACHE_NAME = 'miclass-v28';
+ 
+ // Relatif terhadap lokasi sw.js, sehingga tidak bergantung pada nama repo.
+ //
+diff --git a/tests/validator-modul.ts b/tests/validator-modul.ts
+index 96b2939..29f7de3 100644
+--- a/tests/validator-modul.ts
++++ b/tests/validator-modul.ts
+@@ -63,10 +63,15 @@ async function muatValidator(): Promise<Validator> {
+   const batas = penuh.indexOf('// ── EDGE FUNCTION ─');
+   if (batas < 0) throw new Error('Penanda "── EDGE FUNCTION ─" tidak ada di index.ts');
+ 
+-  const tmp = await Deno.makeTempFile({ suffix: '.ts' });
++  // Berkas sementara ditaruh DI SAMPING sumbernya, bukan di direktori temp
++  // sistem: sejak M1 index.ts mengimpor './anchor.ts', dan impor relatif hanya
++  // dapat diselesaikan dari folder yang sama. Menyalin anchor.ts ke temp akan
++  // membuat kembar yang menyimpang — yang diuji harus modul aslinya.
++  const dir = new URL('.', SUMBER_EF);
++  const tmp = new URL(`._validator-modul-${crypto.randomUUID()}.ts`, dir);
+   try {
+     await Deno.writeTextFile(tmp, penuh.slice(0, batas) + '\nexport { validateModulOutputV400 };\n');
+-    const mod = await import('file://' + tmp.replace(/\\/g, '/'));
++    const mod = await import(tmp.href);
+     return mod.validateModulOutputV400 as Validator;
+   } finally {
+     await Deno.remove(tmp).catch(() => {});
+--- /dev/null
++++ b/supabase/functions/generate-modul/anchor.ts
+@@ -0,0 +1,207 @@
++// IDENTITAS TP UNTUK MODUL AJAR — M1.
++//
++// Berkas ini MURNI: tidak menyentuh jaringan, database, maupun Deno.env. Ia
++// dapat diimpor uji apa adanya, dan itu disengaja — identitas TP adalah hal
++// yang paling mahal kalau salah dan paling murah kalau diuji.
++//
++// MASALAH YANG DITUTUP (docs/MODULE-NASKAH-CONTRACT-LOCK.md §P).
++// `modul_induk` terikat ke ATP hanya lewat (atp_induk_id, nomor_tp) — sebuah
++// bilangan posisi — sementara `generate-atp` menimpa `progresi_tp` DI BARIS
++// YANG SAMA setiap kali ATP disusun ulang. Nomornya tetap resolve, ke TP yang
++// berbeda. Modul lalu dibangun untuk TP yang bukan miliknya, tanpa satu pun
++// galat, di klien maupun di server.
++//
++// YANG DIPILIH: SNAPSHOT HASH, BUKAN ID TP LINTAS REGENERASI.
++// Keduanya menjawab pertanyaan yang berbeda. Id lintas regenerasi menjawab
++// "apakah ini TP yang sama?" — pertanyaan yang tidak punya jawaban jujur, sebab
++// TP nomor 5 setelah penyusunan ulang bisa saja kemampuan yang sama sekali
++// lain. Snapshot hash menjawab "apakah ini POTRET TP yang persis dipakai Modul
++// ini?" — dan itu selalu dapat dijawab dengan pasti. Kalau berubah, Modul
++// berhenti dan bertanya, bukan menebak.
++
++/** Potret TP yang dipakai satu Modul. Seluruh isinya berasal dari data ATP
++ *  sisi server — klien tidak pernah menjadi otoritas (§12 M1). */
++export type TpAnchor = {
++  atp_induk_id:  string;
++  nomor_tp:      number;
++  tp_judul:      string;
++  /** ID tuntutan CP yang TP ini pikul. Himpunan — urutannya tidak bermakna. */
++  tuntutan:      string[];
++  /** Kategori teks yang wajib tercakup. Himpunan — urutannya tidak bermakna. */
++  kategori_teks: string[];
++  semester:      number | null;
++  jp_alokasi:    number | null;
++  /** Distribusi JP per pertemuan. URUTANNYA BERMAKNA — jangan pernah disortir. */
++  jp_pertemuan:  number[];
++  /** Versi CP yang berlaku saat ATP disusun, dari ATP_HASIL.acuan_cp. */
++  versi_cp:      string | null;
++};
++
++/** Baris ATP apa adanya, sebagaimana dibaca dari `atp_induk`. */
++export type BarisAtp = {
++  id?:             unknown;
++  progresi_tp?:    unknown;
++  collected_data?: unknown;
++};
++
++function teksRapi(v: unknown): string {
++  return String(v ?? '').normalize('NFC').replace(/\s+/g, ' ').trim();
++}
++
++function angkaAtauNull(v: unknown): number | null {
++  const n = Number(v);
++  return Number.isFinite(n) ? n : null;
++}
++
++function daftarTeks(v: unknown): string[] {
++  return Array.isArray(v) ? v.map(teksRapi).filter(Boolean) : [];
++}
++
++/**
++ * Membangun potret TP dari data ATP sisi server.
++ *
++ * Mengembalikan null bila nomor TP itu TIDAK ADA di `progresi_tp` — keadaan
++ * yang berarti Modul sudah yatim, dan pemanggilnya wajib menanganinya sebagai
++ * konflik, bukan menambalnya dengan judul lama yang tersimpan.
++ */
++export function bangunTpAnchor(atp: BarisAtp, atpIndukId: string, nomorTp: number): TpAnchor | null {
++  const progresi = Array.isArray(atp.progresi_tp)
++    ? (atp.progresi_tp as Array<Record<string, unknown>>) : [];
++  const tp = progresi.find(x => Number(x?.nomor) === Number(nomorTp));
++  if (!tp) return null;
++
++  const cd     = (atp.collected_data ?? {}) as Record<string, unknown>;
++  const hasil  = (cd.ATP_HASIL ?? {}) as Record<string, unknown>;
++  const acuan  = (hasil.acuan_cp ?? {}) as Record<string, unknown>;
++  const versi  = teksRapi(acuan.versi_cp);
++
++  return {
++    atp_induk_id:  teksRapi(atpIndukId),
++    nomor_tp:      Number(nomorTp),
++    tp_judul:      teksRapi(tp.judul),
++    tuntutan:      daftarTeks(tp.tuntutan),
++    kategori_teks: daftarTeks(tp.kategori_teks),
++    semester:      angkaAtauNull(tp.semester),
++    jp_alokasi:    angkaAtauNull(tp.jp_alokasi),
++    jp_pertemuan:  Array.isArray(tp.jp_pertemuan)
++      ? (tp.jp_pertemuan as unknown[]).map(n => Number(n)).filter(n => Number.isFinite(n))
++      : [],
++    versi_cp:      versi || null,
++  };
++}
++
++// ─────────────────────────────────────────────────────────────────────────────
++// KANONIKALISASI — apa yang MASUK hash, dan bagaimana bentuknya
++// ─────────────────────────────────────────────────────────────────────────────
++//
++// Sembilan field, dalam urutan tetap di bawah, tanpa kecuali:
++//
++//   atp_induk_id   apa adanya
++//   nomor_tp       angka
++//   tp_judul       NFC, spasi beruntun jadi satu, dipangkas ujungnya
++//   tuntutan       DISORTIR — himpunan, urutan model tidak bermakna
++//   kategori_teks  DISORTIR — himpunan, urutan model tidak bermakna
++//   semester       angka atau null
++//   jp_alokasi     angka atau null
++//   jp_pertemuan   TIDAK DISORTIR — urutannya adalah rancangan pertemuan
++//   versi_cp       teks atau null
++//
++// Yang SENGAJA TIDAK masuk: `konteks`, `catatan`, `elemen`, dan `tipe` warisan.
++// Ketiganya keterangan yang dapat berubah tanpa mengubah apa yang dituntut dari
++// murid, dan memasukkannya berarti menghentikan Modul karena suntingan redaksi.
++//
++// Hash TIDAK PERNAH boleh berasal dari nomor atau judul saja: judul dapat
++// dipoles sementara tuntutannya diganti diam-diam, dan itu justru perubahan
++// yang paling berbahaya bagi Modul yang sudah jadi.
++export const FIELD_HASH: readonly string[] = [
++  'atp_induk_id', 'nomor_tp', 'tp_judul', 'tuntutan',
++  'kategori_teks', 'semester', 'jp_alokasi', 'jp_pertemuan', 'versi_cp',
++];
++
++/** Bentuk kanonik anchor — satu string, deterministik untuk isi yang sama. */
++export function kanonikAnchor(a: TpAnchor): string {
++  const pasangan: Array<[string, unknown]> = [
++    ['atp_induk_id',  a.atp_induk_id],
++    ['nomor_tp',      Number(a.nomor_tp)],
++    ['tp_judul',      teksRapi(a.tp_judul)],
++    ['tuntutan',      [...a.tuntutan].map(teksRapi).sort()],
++    ['kategori_teks', [...a.kategori_teks].map(teksRapi).sort()],
++    ['semester',      a.semester ?? null],
++    ['jp_alokasi',    a.jp_alokasi ?? null],
++    ['jp_pertemuan',  [...a.jp_pertemuan]],   // urutan dipertahankan
++    ['versi_cp',      a.versi_cp ?? null],
++  ];
++  if (pasangan.length !== FIELD_HASH.length
++      || pasangan.some(([k], i) => k !== FIELD_HASH[i])) {
++    throw new Error('kanonikAnchor: daftar field menyimpang dari FIELD_HASH');
++  }
++  return JSON.stringify(pasangan);
++}
++
++/** SHA-256 heksadesimal atas bentuk kanonik. */
++export async function hitungTpSnapshotHash(a: TpAnchor): Promise<string> {
++  const buf = await crypto.subtle.digest(
++    'SHA-256', new TextEncoder().encode(kanonikAnchor(a)));
++  return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
++}
++
++// ─────────────────────────────────────────────────────────────────────────────
++// GERBANG — apakah Modul ini boleh disusun terhadap ATP yang sekarang
++// ─────────────────────────────────────────────────────────────────────────────
++
++export type StatusAnchor =
++  /** Modul baru, atau modul yang belum punya isi final: boleh memakai potret sekarang. */
++  | 'BARU'
++  /** Potret Modul sama dengan ATP sekarang: lanjut. */
++  | 'COCOK'
++  /** ATP berubah sejak Modul disusun: berhenti dan beri tahu guru. */
++  | 'STALE'
++  /** Modul lama tanpa potret, sudah berisi: boleh dibuka dan diunduh, tidak boleh
++   *  dianggap cocok, dan tidak boleh disusun ulang tanpa keputusan eksplisit. */
++  | 'LEGACY_UNVERIFIED';
++
++export const KODE_STALE = 'MODULE_TP_ANCHOR_STALE';
++export const KODE_LEGACY = 'MODULE_TP_ANCHOR_LEGACY';
++
++/**
++ * Keputusan gerbang. Sengaja fungsi murni tanpa I/O supaya seluruh tabel
++ * kebenarannya diuji tanpa database (M1-J sampai M1-M).
++ *
++ * `hashTersimpan === null` pada modul yang SUDAH berisi TIDAK berarti cocok.
++ * Ia berarti tidak diketahui — dan tidak diketahui bukan sinonim aman. Karena
++ * itu ia tidak pernah di-backfill dari ATP sekarang: menghitungkan hash hari
++ * ini untuk modul yang disusun dari potret kemarin justru memberi identitas
++ * palsu kepada ketidakcocokan yang nyata.
++ */
++export function periksaAnchor(p: {
++  hashTersimpan:  string | null;
++  hashSekarang:   string;
++  adaKontenFinal: boolean;
++}): { status: StatusAnchor; kode: string | null; boleh_generate: boolean } {
++  if (!p.hashTersimpan) {
++    return p.adaKontenFinal
++      ? { status: 'LEGACY_UNVERIFIED', kode: KODE_LEGACY, boleh_generate: false }
++      : { status: 'BARU',              kode: null,        boleh_generate: true };
++  }
++  return p.hashTersimpan === p.hashSekarang
++    ? { status: 'COCOK', kode: null,        boleh_generate: true }
++    : { status: 'STALE', kode: KODE_STALE,  boleh_generate: false };
++}
++
++/**
++ * Keterangan konflik untuk guru. Hanya yang ia perlukan untuk memutuskan —
++ * bukan hash, bukan id, bukan nama field.
++ */
++export function keteranganKonflik(p: {
++  nomorTpModul:  number;
++  judulTpModul:  string;
++  anchorSekarang: TpAnchor | null;
++}): Record<string, unknown> {
++  return {
++    tp_modul:   { nomor: p.nomorTpModul, judul: p.judulTpModul },
++    tp_atp_kini: p.anchorSekarang
++      ? { nomor: p.anchorSekarang.nomor_tp, judul: p.anchorSekarang.tp_judul }
++      : null,
++    atp_berubah: true,
++  };
++}
+--- /dev/null
++++ b/supabase/migrations/20260910000001_modul-tp-snapshot-hash.sql
+@@ -0,0 +1,51 @@
++-- Migration: 20260910000001_modul-tp-snapshot-hash.sql
++-- Tujuan  : identitas TP untuk Modul Ajar (M1).
++--
++-- MASALAH (docs/MODULE-NASKAH-CONTRACT-LOCK.md §P).
++-- modul_induk terikat ke ATP hanya lewat (atp_induk_id, nomor_tp) — bilangan
++-- posisi — sementara generate-atp menimpa atp_induk.progresi_tp DI BARIS YANG
++-- SAMA setiap penyusunan ulang. Nomornya tetap resolve, ke TP yang berbeda,
++-- dan Modul lama diam-diam menempel ke kemampuan yang bukan miliknya.
++--
++-- YANG DITAMBAHKAN: satu kolom. tp_snapshot_hash adalah SHA-256 heksadesimal
++-- atas potret TP yang persis dipakai Modul — atp_induk_id, nomor_tp, judul,
++-- tuntutan, kategori_teks, semester, jp_alokasi, jp_pertemuan, versi_cp.
++-- Definisi dan kanonikalisasinya tinggal di satu tempat:
++-- supabase/functions/generate-modul/anchor.ts (FIELD_HASH). Jangan menuliskan
++-- ulang aturannya di SQL — kembar yang menyimpang diam-diam sudah dibayar dua
++-- kali di repo ini.
++--
++-- NULL BERARTI "TIDAK DIKETAHUI", BUKAN "COCOK".
++-- Baris lama sengaja dibiarkan NULL. TIDAK ADA BACKFILL: menghitung hash hari
++-- ini untuk Modul yang disusun dari potret kemarin justru memberi identitas
++-- palsu kepada ketidakcocokan yang nyata — persis kebalikan dari tujuan kolom
++-- ini. Modul lama berisi + hash NULL dibaca sebagai LEGACY_UNVERIFIED: boleh
++-- dibuka, dilihat, dan diunduh; tidak boleh disusun ulang tanpa keputusan
++-- eksplisit guru.
++--
++-- Idempotent : IF NOT EXISTS.
++-- Additive   : tidak ada DROP, tidak ada UPDATE, tidak ada perubahan constraint,
++--              tidak ada perubahan RLS. Kolom nullable tanpa default, sehingga
++--              seluruh INSERT dan UPDATE yang sudah ada tetap sah apa adanya.
++-- Rollback   : ALTER TABLE public.modul_induk DROP COLUMN IF EXISTS tp_snapshot_hash;
++--              Aman kapan pun. Tidak ada baris yang hilang dan tidak ada kolom
++--              lain yang bergantung padanya; yang kembali hanyalah keadaan
++--              sebelum M1, yaitu seluruh Modul menjadi tak terverifikasi lagi.
++
++BEGIN;
++
++ALTER TABLE public.modul_induk
++  ADD COLUMN IF NOT EXISTS tp_snapshot_hash text;
++
++COMMENT ON COLUMN public.modul_induk.tp_snapshot_hash IS
++  'SHA-256 potret TP yang dipakai Modul ini. NULL = tidak diketahui '
++  '(Modul sebelum M1), BUKAN berarti cocok. Kanonikalisasi: '
++  'supabase/functions/generate-modul/anchor.ts.';
++
++-- Tidak ada index. Kolom ini hanya pernah dibaca lewat baris modul_induk yang
++-- sudah ditemukan lebih dulu lewat primary key atau
++-- idx_modul_induk_lookup (guru_id, atp_induk_id, status, updated_at) — tidak
++-- ada satu pun jalur pencarian yang memakainya sebagai predikat. Index tanpa
++-- pembaca adalah beban tulis tanpa imbalan.
++
++COMMIT;
+--- /dev/null
++++ b/tests/modul-anchor.test.ts
+@@ -0,0 +1,305 @@
++// M1 — IDENTITAS TP UNTUK MODUL AJAR.
++//
++// Menutup blocker yang terbukti di docs/MODULE-NASKAH-CONTRACT-LOCK.md §P:
++// Modul terikat ke ATP hanya lewat nomor, sementara generate-atp menimpa
++// progresi_tp di baris yang sama. Nomornya tetap resolve, ke TP yang berbeda.
++//
++// M1-A sampai M1-I menguji fungsi murni di anchor.ts.
++// M1-J sampai M1-M menguji tabel kebenaran gerbang.
++// M1-N sampai M1-Q menguji SUMBER generate-modul dan klien apa adanya — bukan
++// salinan logikanya — dengan pola yang sama yang dipakai tests/atp-trace.mjs
++// dan harness semantik ATP: yang diperiksa kode kirimnya sendiri.
++
++import { assert, assertEquals, assertNotEquals } from 'jsr:@std/assert@1';
++import {
++  bangunTpAnchor, kanonikAnchor, hitungTpSnapshotHash, periksaAnchor,
++  keteranganKonflik, FIELD_HASH, KODE_STALE, KODE_LEGACY,
++  type TpAnchor,
++} from '../supabase/functions/generate-modul/anchor.ts';
++
++const EF_MODUL   = new URL('../supabase/functions/generate-modul/index.ts', import.meta.url);
++const KLIEN_CHAT = new URL('../guru/js/rancang-chat.js', import.meta.url);
++
++/** Baris ATP tiruan berbentuk sama persis dengan yang generate-atp tuliskan. */
++function atpRow(ubah: Record<string, unknown> = {}) {
++  return {
++    progresi_tp: [
++      {
++        nomor: 5, judul: 'Menyimak dialog pelayanan butik dan memahami gagasan utama',
++        elemen: ['menyimak_berbicara'],
++        tuntutan: ['BIE-E25-MB-1', 'BIE-E25-MB-2'],
++        kategori_teks: ['fiksi', 'nonfiksi'],
++        jp_alokasi: 12, jp_pertemuan: [2, 2, 2, 2, 2, 2], semester: 1,
++        konteks: ['dialog pelayanan pelanggan'],
++        catatan: 'keterangan yang boleh berubah tanpa mengubah tuntutan',
++        ...ubah,
++      },
++    ],
++    collected_data: { ATP_HASIL: { acuan_cp: { versi_cp: '046/H/KR/2025' } } },
++  };
++}
++
++const ANCHOR = () => bangunTpAnchor(atpRow(), 'atp-1', 5)!;
++
++/** Salinan anchor dengan satu field diubah. */
++function ubah(a: TpAnchor, p: Partial<TpAnchor>): TpAnchor {
++  return { ...a, ...p };
++}
++
++Deno.test('M1-A: potret kanonik yang sama menghasilkan hash yang sama', async () => {
++  const a = ANCHOR();
++  // Dibangun ulang dari baris ATP yang berbeda objek, isinya sama.
++  const b = bangunTpAnchor(atpRow(), 'atp-1', 5)!;
++  assertEquals(kanonikAnchor(a), kanonikAnchor(b));
++  assertEquals(await hitungTpSnapshotHash(a), await hitungTpSnapshotHash(b));
++
++  // Hash berbentuk SHA-256 heksadesimal, bukan kebetulan string kosong.
++  const h = await hitungTpSnapshotHash(a);
++  assertEquals(h.length, 64);
++  assert(/^[0-9a-f]{64}$/.test(h), `bukan sha-256 hex: ${h}`);
++
++  // Keterangan yang SENGAJA di luar hash: mengubahnya tidak menghentikan Modul.
++  const dgnKonteksLain = bangunTpAnchor(
++    atpRow({ konteks: ['latar lain'], catatan: 'disunting', elemen: ['membaca_memirsa'] }), 'atp-1', 5)!;
++  assertEquals(await hitungTpSnapshotHash(dgnKonteksLain), h,
++    'perubahan keterangan di luar FIELD_HASH ikut mengubah hash');
++
++  // Daftar field yang masuk hash terdokumentasi dan tidak diam-diam bertambah.
++  assertEquals(FIELD_HASH.length, 9);
++});
++
++Deno.test('M1-B: urutan tuntutan[] tidak mengubah hash', async () => {
++  const a = ANCHOR();
++  const b = ubah(a, { tuntutan: ['BIE-E25-MB-2', 'BIE-E25-MB-1'] });
++  assertEquals(await hitungTpSnapshotHash(a), await hitungTpSnapshotHash(b));
++});
++
++Deno.test('M1-C: urutan kategori_teks[] tidak mengubah hash', async () => {
++  const a = ANCHOR();
++  const b = ubah(a, { kategori_teks: ['nonfiksi', 'fiksi'] });
++  assertEquals(await hitungTpSnapshotHash(a), await hitungTpSnapshotHash(b));
++});
++
++Deno.test('M1-D: judul berubah → hash berubah', async () => {
++  const a = ANCHOR();
++  const b = ubah(a, { tp_judul: 'Menyimak dialog pelayanan butik dan mencatat detail' });
++  assertNotEquals(await hitungTpSnapshotHash(a), await hitungTpSnapshotHash(b));
++
++  // Tetapi perbedaan yang hanya spasi/normalisasi BUKAN perubahan.
++  const c = ubah(a, { tp_judul: '  Menyimak dialog pelayanan butik   dan memahami gagasan utama ' });
++  assertEquals(await hitungTpSnapshotHash(a), await hitungTpSnapshotHash(c));
++});
++
++Deno.test('M1-E: tuntutan berubah → hash berubah', async () => {
++  const a = ANCHOR();
++  for (const t of [
++    ['BIE-E25-MB-1'],                                    // dikurangi
++    ['BIE-E25-MB-1', 'BIE-E25-MB-3'],                    // diganti
++    ['BIE-E25-MB-1', 'BIE-E25-MB-2', 'BIE-E25-MM-1'],    // ditambah
++  ]) {
++    assertNotEquals(await hitungTpSnapshotHash(a),
++      await hitungTpSnapshotHash(ubah(a, { tuntutan: t })), `tuntutan ${t.join(',')}`);
++  }
++});
++
++Deno.test('M1-F: kategori_teks berubah → hash berubah', async () => {
++  const a = ANCHOR();
++  assertNotEquals(await hitungTpSnapshotHash(a),
++    await hitungTpSnapshotHash(ubah(a, { kategori_teks: ['nonfiksi'] })));
++  assertNotEquals(await hitungTpSnapshotHash(a),
++    await hitungTpSnapshotHash(ubah(a, { kategori_teks: [] })));
++});
++
++Deno.test('M1-G: semester berubah → hash berubah', async () => {
++  const a = ANCHOR();
++  assertNotEquals(await hitungTpSnapshotHash(a),
++    await hitungTpSnapshotHash(ubah(a, { semester: 2 })));
++  assertNotEquals(await hitungTpSnapshotHash(a),
++    await hitungTpSnapshotHash(ubah(a, { semester: null })));
++});
++
++Deno.test('M1-H: jp_alokasi berubah → hash berubah', async () => {
++  const a = ANCHOR();
++  assertNotEquals(await hitungTpSnapshotHash(a),
++    await hitungTpSnapshotHash(ubah(a, { jp_alokasi: 14 })));
++});
++
++Deno.test('M1-I: jp_pertemuan berubah → hash berubah, dan urutannya BERMAKNA', async () => {
++  const a = ANCHOR();
++  // Jumlah pertemuan berubah.
++  assertNotEquals(await hitungTpSnapshotHash(a),
++    await hitungTpSnapshotHash(ubah(a, { jp_pertemuan: [2, 2, 2, 2, 2] })));
++  // Total sama, sebarannya berbeda — ini rancangan pertemuan yang berbeda.
++  const b = bangunTpAnchor(atpRow({ jp_alokasi: 12, jp_pertemuan: [4, 4, 4] }), 'atp-1', 5)!;
++  assertNotEquals(await hitungTpSnapshotHash(a), await hitungTpSnapshotHash(b));
++  // Urutan TIDAK disortir: [2,4] dan [4,2] adalah dua rancangan berbeda.
++  assertNotEquals(
++    await hitungTpSnapshotHash(ubah(a, { jp_pertemuan: [2, 4] })),
++    await hitungTpSnapshotHash(ubah(a, { jp_pertemuan: [4, 2] })));
++
++  // versi CP juga masuk hash — CP yang berbeda adalah TP yang berbeda.
++  const cpLain = bangunTpAnchor(
++    { ...atpRow(), collected_data: { ATP_HASIL: { acuan_cp: { versi_cp: '032/H/KR/2024' } } } },
++    'atp-1', 5)!;
++  assertNotEquals(await hitungTpSnapshotHash(a), await hitungTpSnapshotHash(cpLain));
++});
++
++Deno.test('M1-J: Modul baru menerima hash hitungan server', () => {
++  const g = periksaAnchor({ hashTersimpan: null, hashSekarang: 'abc', adaKontenFinal: false });
++  assertEquals(g.status, 'BARU');
++  assertEquals(g.boleh_generate, true);
++  assertEquals(g.kode, null);
++});
++
++Deno.test('M1-K: Modul lama dengan hash sama → boleh lanjut', () => {
++  const g = periksaAnchor({ hashTersimpan: 'abc', hashSekarang: 'abc', adaKontenFinal: true });
++  assertEquals(g.status, 'COCOK');
++  assertEquals(g.boleh_generate, true);
++});
++
++Deno.test('M1-L: Modul lama dengan hash berbeda → MODULE_TP_ANCHOR_STALE', () => {
++  const g = periksaAnchor({ hashTersimpan: 'abc', hashSekarang: 'xyz', adaKontenFinal: true });
++  assertEquals(g.status, 'STALE');
++  assertEquals(g.kode, KODE_STALE);
++  assertEquals(g.boleh_generate, false);
++
++  // Berlaku juga untuk modul yang belum final: potret yang sudah dipaku tidak
++  // boleh berpindah diam-diam di tengah penyusunan.
++  assertEquals(
++    periksaAnchor({ hashTersimpan: 'abc', hashSekarang: 'xyz', adaKontenFinal: false }).status,
++    'STALE');
++
++  // Keterangan konflik memuat yang guru perlukan, dan TIDAK memuat hash.
++  const k = keteranganKonflik({
++    nomorTpModul: 5, judulTpModul: 'Judul lama',
++    anchorSekarang: ANCHOR(),
++  });
++  assertEquals((k.tp_modul as Record<string, unknown>).nomor, 5);
++  assertEquals((k.tp_atp_kini as Record<string, unknown>).nomor, 5);
++  assertEquals(k.atp_berubah, true);
++  assert(!JSON.stringify(k).includes('hash'), 'keterangan konflik membocorkan hash');
++});
++
++Deno.test('M1-M: Modul lama berisi tanpa hash → LEGACY_UNVERIFIED, bukan cocok', () => {
++  const g = periksaAnchor({ hashTersimpan: null, hashSekarang: 'abc', adaKontenFinal: true });
++  assertEquals(g.status, 'LEGACY_UNVERIFIED');
++  assertEquals(g.kode, KODE_LEGACY);
++  assertEquals(g.boleh_generate, false, 'modul warisan tidak boleh disusun ulang diam-diam');
++
++  // Hash kosong (string kosong) diperlakukan sama dengan tidak ada.
++  assertEquals(
++    periksaAnchor({ hashTersimpan: '', hashSekarang: 'abc', adaKontenFinal: true }).status,
++    'LEGACY_UNVERIFIED');
++});
++
++Deno.test('M1-N: generate-modul tidak lagi menanyai tp_kktp seluruh kelas', async () => {
++  // Komentar dibuang lebih dulu: berkas itu MENJELASKAN query lama yang dicabut,
++  // dan penjelasan bukan pemakaian.
++  const src = (await Deno.readTextFile(EF_MODUL))
++    .replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
++
++  // Tidak ada satu pun query ke tabel itu di jalur generate — baca maupun tulis.
++  assert(!/from\(\s*['"]tp_kktp['"]\s*\)/.test(src),
++    'generate-modul masih membaca tabel tp_kktp');
++  assert(!src.includes('tp_kktp'),
++    'nama tabel tp_kktp masih dipakai di kode generate-modul');
++
++  // Bentuk query lama yang dinyatakan invalid tidak boleh kembali.
++  assert(!/eq\(\s*['"]tipe['"]\s*,\s*['"]KKTP['"]\s*\)/.test(src),
++    'penyaring tipe=KKTP classroom-wide masih ada');
++  assert(!/kktpList/.test(src), 'daftar KKTP kelas masih dirakit');
++});
++
++Deno.test('M1-O: Fase A menerima potret TP sekarang, dan potret itu dihitung server', async () => {
++  const src = await Deno.readTextFile(EF_MODUL);
++
++  // Anchor dibangun dari baris ATP sisi server, bukan dari badan permintaan.
++  assert(/const tpAnchor[\s\S]{0,200}bangunTpAnchor\(/.test(src),
++    'tpAnchor tidak dibangun dari bangunTpAnchor()');
++  assert(/const hashSekarang = await hitungTpSnapshotHash\(tpAnchor\)/.test(src),
++    'hash tidak dihitung ulang di server');
++
++  // Fase A menerimanya.
++  assert(/buildUserMessageFaseA\(\{[^)]*tpAnchor/.test(src),
++    'Fase A tidak menerima tpAnchor');
++  // Dan tuntutan CP benar-benar dikirim ke penyusun — bukan hanya judul.
++  assert(/tuntutan_cp:\s*params\.tpAnchor\.tuntutan/.test(src),
++    'tuntutan CP tidak dikirim ke Fase A');
++  assert(/kategori_teks:\s*params\.tpAnchor\.kategori_teks/.test(src),
++    'kategori_teks tidak dikirim ke Fase A');
++
++  // Yang ditulis ke basis data SELALU hitungan server.
++  assert(/tp_snapshot_hash: hashSekarang/.test(src),
++    'hash yang ditulis bukan hitungan server');
++  // Tidak ada satu pun tempat yang menulis hash dari badan permintaan klien.
++  assert(!/tp_snapshot_hash:\s*(body|payload|req)/.test(src),
++    'hash dari klien dipakai menulis');
++});
++
++Deno.test('M1-P: KKTP hasil Modul tetap milik Modul — tidak ditulis balik', async () => {
++  const src = await Deno.readTextFile(EF_MODUL);
++
++  // Tabel yang generate-modul tulisi: dokumen Modul, dan catatan pemakaian AI.
++  // `tp_kktp` TIDAK termasuk — KKTP hasil Modul hidup di dokumen Modul saja.
++  // NO AUTO SYNC, NO DUAL WRITE.
++  const ditulis = [...new Set(
++    [...src.matchAll(/from\(\s*['"]([a-z_]+)['"]\s*\)\s*\n?\s*\.(update|insert|upsert|delete)/g)]
++      .map(m => m[1]))].sort();
++  assertEquals(ditulis, ['ai_usage', 'modul_induk'],
++    `daftar tabel yang ditulisi berubah: ${ditulis.join(', ')}`);
++
++  // KKTP disusun, bukan diterima: instruksinya ada dan menyebut tp_anchor.
++  assert(/instruksi_kktp:/.test(src), 'instruksi menyusun KKTP tidak ada');
++  assert(/Susun KKTP untuk TP ini sendiri, dari tp_anchor/.test(src),
++    'Fase A tidak diperintahkan menyusun KKTP dari tp_anchor');
++
++  // Bentuk keluarannya tidak berubah, supaya fase berikutnya tidak pecah.
++  assert(/type KktpItem = \{[\s\S]*?id_kktp:[\s\S]*?kriteria:[\s\S]*?ambang_batas:[\s\S]*?instrumen_bukti:/.test(src),
++    'schema KktpItem berubah — di luar lingkup M1');
++});
++
++Deno.test('M1-Q: klien tidak lagi mengikat ulang Modul hanya karena nomornya cocok', async () => {
++  const src = await Deno.readTextFile(KLIEN_CHAT);
++
++  // Pola lama — menerima TP mana pun yang menempati nomor itu — sudah tidak ada.
++  assert(!/_chat\.selected_tp\s*=\s*tp\s*\|\|\s*\{/.test(src),
++    'klien masih mengikat selected_tp ke nomor tanpa pemeriksaan');
++  assert(!/_chat\.selected_tp\s*=\s*matchTp\s*\|\|\s*\{/.test(src),
++    'jalur daftar TP masih mengikat tanpa pemeriksaan');
++
++  // Penggantinya memeriksa status potret lebih dulu.
++  assertEquals(
++    [...src.matchAll(/statusAnchorModul\(/g)].length >= 3, true,
++    'statusAnchorModul tidak dipakai di kedua jalur pembukaan modul');
++  assert(/_chat\.tp_anchor_status === 'CURRENT'/.test(src),
++    'klien tidak menuntut status CURRENT sebelum memakai TP sekarang');
++
++  // Ketiga keadaan punya nama, dan dua di antaranya punya kalimat untuk guru.
++  for (const s of ['CURRENT', 'STALE', 'LEGACY_UNVERIFIED']) {
++    assert(src.includes(s), `status ${s} tidak ada di klien`);
++  }
++  assert(/PESAN_ANCHOR\s*=\s*\{[\s\S]*STALE:[\s\S]*LEGACY_UNVERIFIED:/.test(src),
++    'tidak ada kalimat untuk guru pada kedua status');
++
++  // Klien TIDAK menghitung ulang hash — aturan kanoniknya satu tempat saja.
++  assert(!/sha-?256/i.test(src) && !/crypto\.subtle/.test(src),
++    'klien menghitung hash sendiri — kembar yang akan menyimpang');
++
++  // Kode konflik dari server ditangani, dan tidak ditawari "coba lagi".
++  assert(src.includes('MODULE_TP_ANCHOR_STALE') && src.includes('MODULE_TP_ANCHOR_LEGACY'),
++    'klien tidak menangani konflik potret dari server');
++});
++
++Deno.test('M1-R: migration additif dan tidak pernah mengisi hash modul lama', async () => {
++  const sql = await Deno.readTextFile(
++    new URL('../supabase/migrations/20260910000001_modul-tp-snapshot-hash.sql', import.meta.url));
++
++  assert(/ADD COLUMN IF NOT EXISTS tp_snapshot_hash text/i.test(sql), 'kolom tidak ditambahkan idempoten');
++  // Additif: tidak ada yang dibuang, tidak ada baris yang disentuh.
++  for (const terlarang of [/\bDROP\s+TABLE\b/i, /\bDROP\s+COLUMN\b/i, /\bDELETE\s+FROM\b/i, /\bUPDATE\s+public\.modul_induk\b/i]) {
++    assert(!terlarang.test(sql.replace(/--.*$/gm, '')),
++      `migration memuat perintah merusak: ${terlarang}`);
++  }
++  // Rollback dijelaskan.
++  assert(/Rollback/i.test(sql), 'migration tidak menjelaskan rollback');
++});

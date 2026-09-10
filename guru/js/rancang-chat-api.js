@@ -378,7 +378,7 @@ async function cleanupAbandonedDrafts(currentAtpId, scope) {
 async function fetchAllModulAktifGuru() {
   const { data, error } = await window.supabaseClient
     .from('modul_induk')
-    .select('id, atp_induk_id, nomor_tp, tp_judul, updated_at, atp_induk(mapel, fase)')
+    .select('id, atp_induk_id, nomor_tp, tp_judul, tp_snapshot_hash, updated_at, atp_induk(mapel, fase)')
     .eq('status', 'aktif')
     .order('updated_at', { ascending: false })
     .limit(10);
@@ -399,7 +399,7 @@ async function fetchModulAktifByAtpId(atpIndukId) {
   if (!atpIndukId) return [];
   const { data, error } = await window.supabaseClient
     .from('modul_induk')
-    .select('id, atp_induk_id, nomor_tp, tp_judul, konten, status, updated_at')
+    .select('id, atp_induk_id, nomor_tp, tp_judul, tp_snapshot_hash, konten, status, updated_at')
     .eq('atp_induk_id', atpIndukId)
     .eq('status', 'aktif')
     .order('nomor_tp');

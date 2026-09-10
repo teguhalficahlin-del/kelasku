@@ -18,6 +18,7 @@
     atp_draft:            [],
     atp_hasil:            null,   // amplop ATP_HASIL — dasar penyusunan, cakupan CP, anggaran semester
     selected_tp:          null,
+    tp_anchor_status:     null,   // 'CURRENT' | 'STALE' | 'LEGACY_UNVERIFIED' — lihat statusAnchorModul()
     modul_induk_id:       null,
     modul_updated_at:     null,
     in_flight:            false,
@@ -158,6 +159,7 @@
       atp_draft:           _chat.atp_draft,
       atp_hasil:           _chat.atp_hasil,
       selected_tp:         _chat.selected_tp,
+      tp_anchor_status:    _chat.tp_anchor_status,
       modul_induk_id:      _chat.modul_induk_id,
       modul_updated_at:    _chat.modul_updated_at,
       teaching_context_id: _chat.teaching_context_id,
@@ -209,6 +211,7 @@
         atp_draft:           saved.atp_draft           ?? [],
         atp_hasil:           saved.atp_hasil           ?? null,
         selected_tp:         saved.selected_tp         ?? null,
+        tp_anchor_status:    saved.tp_anchor_status    ?? null,
         modul_induk_id:      saved.modul_induk_id      ?? null,
         modul_updated_at:    saved.modul_updated_at    ?? null,
         teaching_context_id: saved.teaching_context_id ?? null,
@@ -403,6 +406,7 @@
       atp_draft:            [],
       atp_hasil:            null,
       selected_tp:          null,
+      tp_anchor_status:     null,
       modul_induk_id:       null,
       modul_updated_at:     null,
       active_question_id:      null,
@@ -557,6 +561,7 @@
       _chat.collected_answers = {};
       _chat.atp_draft = [];
       _chat.selected_tp = null;
+      _chat.tp_anchor_status = null;
 
       _chat.atp_induk_id = null;
       _chat.atp_updated_at = null;
@@ -887,8 +892,20 @@
                 .single();
               if (atpErr) throw atpErr;
               hydrateFromAtp(atpFull);
+              // Nomor TP BUKAN identitas (M1). Sampai 10 September 2026 baris
+              // ini menerima TP mana pun yang kebetulan menempati nomor itu,
+              // tanpa membandingkan apa pun — dan ATP yang disusun ulang
+              // menimpa progresi_tp di baris yang sama, jadi nomornya selalu
+              // resolve, ke kemampuan yang lain.
               const tp = (atpFull.progresi_tp || []).find(function (t) { return t.nomor === modul.nomor_tp; });
-              _chat.selected_tp = tp || { nomor: modul.nomor_tp, judul: modul.tp_judul };
+              _chat.tp_anchor_status = statusAnchorModul(modul, tp);
+              // Modul yang potretnya tidak lagi cocok TIDAK dialihkan ke TP
+              // sekarang: yang ditampilkan tetap TP yang Modul ini dibuat
+              // untuknya. Server tetap penjaga sebenarnya — ia menghitung ulang
+              // potretnya dan menolak menyusun ulang (MODULE_TP_ANCHOR_STALE).
+              _chat.selected_tp = (_chat.tp_anchor_status === 'CURRENT' && tp)
+                ? tp
+                : { nomor: modul.nomor_tp, judul: modul.tp_judul };
               _chat.modul_induk_id = modul.id;
               _chat.viewing_existing_modul = true;
               _chat.modul_source = 'katalog';
@@ -900,6 +917,16 @@
               if (!mErr && mFull) {
                 _chat.modul_konten = mFull.konten;
                 _chat.modul_updated_at = mFull.updated_at;
+                // Daftar katalog tidak membawa `konten` (sengaja — ia besar),
+                // sehingga "sudah berisi" baru diketahui di sini. Status dihitung
+                // ulang dengan baris utuh supaya Modul lama berisi tanpa potret
+                // benar-benar terbaca LEGACY_UNVERIFIED, bukan CURRENT.
+                _chat.tp_anchor_status = statusAnchorModul(
+                  { tp_snapshot_hash: modul.tp_snapshot_hash, tp_judul: modul.tp_judul, konten: mFull.konten },
+                  tp);
+                if (_chat.tp_anchor_status !== 'CURRENT') {
+                  _chat.selected_tp = { nomor: modul.nomor_tp, judul: modul.tp_judul };
+                }
               }
               saveState();
               await initChatShell(cId, panel, 'modul');
@@ -1299,7 +1326,11 @@
               list.remove();
               rcClearChips();
               const matchTp = tpList.find(function (t) { return t.nomor === tp.nomor; });
-              _chat.selected_tp            = matchTp || { nomor: tp.nomor, judul: tp.judul };
+              // Sama seperti di katalog: nomor bukan identitas (M1).
+              _chat.tp_anchor_status       = statusAnchorModul(m, matchTp);
+              _chat.selected_tp            = (_chat.tp_anchor_status === 'CURRENT' && matchTp)
+                ? matchTp
+                : { nomor: m.nomor_tp, judul: m.tp_judul || tp.judul };
               _chat.modul_induk_id         = m.id;
               _chat.modul_updated_at       = m.updated_at;
               _chat.modul_konten           = m.konten;
@@ -2210,6 +2241,54 @@ Jatah menyusun ATP hari ini tidak terpakai. Silakan pilih tindakan lain.`);
     }
   }
 
+  // ── IDENTITAS TP DI KLIEN (M1) ──────────────────────────────────────────────
+  //
+  // Klien BUKAN otoritas dan sengaja tidak menghitung ulang potret TP: aturan
+  // kanonikalisasinya tinggal di satu tempat, supabase/functions/generate-modul/
+  // anchor.ts, dan menyalinnya ke sini berarti membuat kembar yang menyimpang
+  // diam-diam — kelas cacat yang sudah dua kali dibayar di repo ini.
+  //
+  // Yang dilakukan klien hanyalah membaca dua tanda yang sudah ada di data:
+  //
+  //   tp_snapshot_hash kosong pada Modul yang SUDAH berisi  → LEGACY_UNVERIFIED
+  //   judul TP di ATP sekarang berbeda dari judul tersimpan → STALE
+  //
+  // Tanda kedua tidak lengkap — tuntutan atau JP bisa berubah tanpa judulnya
+  // berubah — dan itu memang tidak apa-apa: yang menolak menyusun ulang adalah
+  // server, yang menghitung potretnya sendiri. Klien hanya bertugas berhenti
+  // menganggap nomor sebagai identitas.
+  // M1.1: "sudah pernah disusun" BUKAN hanya dokumen final. Modul pra-M1 yang
+  // berhenti di tengah jalan punya _draft.fase_a tanpa schema_version, dan
+  // membacanya sebagai baris baru adalah persis lubang yang ditutup di server.
+  // Daftar fase mengikuti pipeline nyata (A, B, C, B2).
+  var KUNCI_DRAFT_MODUL = ['fase_a', 'fase_b', 'fase_c', 'fase_b2'];
+
+  function punyaRiwayatModul(konten) {
+    if (!konten) return false;
+    if (konten.schema_version) return true;
+    var d = konten._draft || {};
+    return KUNCI_DRAFT_MODUL.some(function (k) { return d[k] !== undefined && d[k] !== null; });
+  }
+
+  function statusAnchorModul(modul, tpSekarang) {
+    if (!modul) return null;
+    if (!modul.tp_snapshot_hash && punyaRiwayatModul(modul.konten)) return 'LEGACY_UNVERIFIED';
+    if (!tpSekarang) return 'STALE';
+    var a = String(modul.tp_judul || '').replace(/\s+/g, ' ').trim();
+    var b = String(tpSekarang.judul || '').replace(/\s+/g, ' ').trim();
+    if (a && b && a !== b) return 'STALE';
+    return 'CURRENT';
+  }
+
+  const PESAN_ANCHOR = {
+    STALE:
+      'ATP kelas ini sudah disusun ulang sejak Modul ini dibuat, jadi TP-nya tidak lagi sama. '
+      + 'Modul ini tetap tersimpan dan tetap bisa dibuka serta diunduh, tetapi belum bisa disusun ulang.',
+    LEGACY_UNVERIFIED:
+      'Modul ini dibuat sebelum MiClass mencatat identitas TP, jadi kecocokannya dengan ATP sekarang '
+      + 'belum dapat dipastikan. Modul ini tetap tersimpan dan tetap bisa dibuka serta diunduh.',
+  };
+
   const FASE_V2 = new Set(['PILIH_TP', 'KONTEKS_MODUL', 'SUMBER_STRATEGI', 'ASESMEN_MODUL', 'MODUL_SUMMARY']);
 
   async function ensureModulDraft() {
@@ -2765,6 +2844,12 @@ Jatah menyusun ATP hari ini tidak terpakai. Silakan pilih tindakan lain.`);
     if (!konten) {
       rcAppendBubble('sistem', '⚠ Konten modul tidak ditemukan. Coba generate ulang.');
       return;
+    }
+    // Modul yang potretnya tidak lagi cocok tetap ditampilkan utuh — yang
+    // dikatakan hanyalah bahwa ia tidak dapat disusun ulang. Teks penuh menunggu
+    // M8; yang penting sekarang guru tidak menganggapnya masih sinkron.
+    if (PESAN_ANCHOR[_chat.tp_anchor_status]) {
+      rcAppendBubble('sistem', '⚠ ' + PESAN_ANCHOR[_chat.tp_anchor_status]);
     }
     try {
       if (konten.schema_version === '4.0.0') {
@@ -3879,6 +3964,18 @@ Jatah menyusun ATP hari ini tidak terpakai. Silakan pilih tindakan lain.`);
       } else if (code === 'MODUL_NOT_FOUND') {
         msg = 'Modul tidak ditemukan. Muat ulang halaman.';
         needsReload = true;
+      } else if (code === 'MODULE_TP_ANCHOR_STALE' || code === 'MODULE_TP_ANCHOR_LEGACY') {
+        // Bukan kegagalan penyusunan: server menolak menyusun ulang karena TP
+        // yang Modul ini dibuat untuknya tidak lagi sama. Jangan tawarkan
+        // "coba lagi" — mencoba lagi tidak akan pernah berhasil, dan Modul yang
+        // sudah ada tidak hilang.
+        msg = err.message || PESAN_ANCHOR[code === 'MODULE_TP_ANCHOR_STALE' ? 'STALE' : 'LEGACY_UNVERIFIED'];
+        var k = err.konflik || {};
+        if (k.tp_modul && k.tp_atp_kini && k.tp_modul.judul !== k.tp_atp_kini.judul) {
+          msg += '\n\nModul ini: TP ' + k.tp_modul.nomor + ' — ' + k.tp_modul.judul
+               + '\nATP sekarang: TP ' + k.tp_atp_kini.nomor + ' — ' + k.tp_atp_kini.judul;
+        }
+        _chat.tp_anchor_status = code === 'MODULE_TP_ANCHOR_STALE' ? 'STALE' : 'LEGACY_UNVERIFIED';
       } else if (['MODUL_GENERATION_INVALID_JSON', 'MODUL_GENERATION_INVALID_SCHEMA', 'MODUL_GENERATION_FAILED'].includes(code)) {
         msg = 'MiClass belum berhasil menyusun modul. Jawaban Anda tersimpan. Silakan coba lagi.';
         retryable = true;

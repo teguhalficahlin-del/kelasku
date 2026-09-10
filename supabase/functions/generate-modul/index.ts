@@ -1,4 +1,9 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import {
+  bangunTpAnchor, hitungTpSnapshotHash, periksaAnchor, keteranganKonflik,
+  punyaRiwayatPenyusunan, judulSama,
+  type TpAnchor,
+} from './anchor.ts';
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
@@ -138,6 +143,21 @@ function anggaranTokenInstrumen(jumlahInstrumen: number): number {
 // keluaran fase ini.
 function anggaranTokenFaseA(jumlahKktp: number, jumlahElemen: number): number {
   return Math.max(12000, Math.min(2000 * (jumlahKktp + jumlahElemen), 24000));
+}
+
+// Sejak M1, KKTP DISUSUN Fase A dan tidak lagi dikirim sebagai masukan — jadi
+// jumlahnya tidak diketahui sebelum panggilan. Anggaran token tetap harus
+// turunan, bukan angka mati (pelajaran 5 September: plafon yang tidak ikut
+// tumbuh roboh lima kali dalam satu hari).
+//
+// Perkiraannya: dua KKTP per tuntutan CP yang TP pikul, dengan lantai 3 untuk
+// ATP lama yang belum mencatat tuntutan. Untuk TP berdua tuntutan hasilnya 4 —
+// sama dengan jumlah KKTP yang benar-benar dipakai modul produksi selama ini,
+// jadi anggaran fase ini tidak menyempit oleh perubahan M1.
+const KKTP_PER_TUNTUTAN = 2;
+const MIN_PERKIRAAN_KKTP = 3;
+function perkiraanKktp(a: TpAnchor): number {
+  return Math.max(MIN_PERKIRAAN_KKTP, a.tuntutan.length * KKTP_PER_TUNTUTAN);
 }
 
 // Waktu yang benar-benar didapat setiap kelompok pada kegiatan bergantian.
@@ -2126,7 +2146,10 @@ function buildUserMessageFaseA(params: {
   jpPerPertemuan:   number;
   durasiJp:         number;
   elemenCp:         ElemenCp[];
-  kktpList:           Array<{ judul: string; konten: string | null; batas_bawah: number | null; batas_atas: number | null }>;
+  /** Potret TP dari ATP yang diterima. Sejak M1 ia menggantikan daftar KKTP
+   *  kelas sebagai otoritas: KKTP disusun DARI sini, bukan diambil dari
+   *  Tab Penilaian. */
+  tpAnchor:           TpAnchor;
   cd:                 Record<string, unknown>;
   pilanAsesmen:       string[];
   gunakanDiagnostik:  boolean;
@@ -2154,7 +2177,15 @@ function buildUserMessageFaseA(params: {
     tp_nomor:            params.nomorTp,
     tp_judul:            params.tpJudul,
     tp_anchor: {
-      tp_teks:   params.tpJudul,
+      // Judul BERASAL DARI ANCHOR SERVER (M1.1), bukan dari salinan baris
+      // modul_induk yang bisa saja potret lama.
+      tp_teks:       params.tpAnchor.tp_judul,
+      // Potret dari ATP yang diterima. Dikirim apa adanya supaya KKTP yang
+      // disusun mengukur TP ini, bukan kelas ini.
+      tuntutan_cp:   params.tpAnchor.tuntutan,
+      kategori_teks: params.tpAnchor.kategori_teks,
+      semester:      params.tpAnchor.semester,
+      jp_alokasi:    params.tpAnchor.jp_alokasi,
       instruksi: 'SEMUA komponen modul (KKTP, pertemuan, materi, instrumen) HARUS ' +
                  'mengajarkan atau mengukur kemampuan ini persis. ' +
                  'Bukan variasi, bukan prasyarat, bukan topik terkait.',
@@ -2164,13 +2195,18 @@ function buildUserMessageFaseA(params: {
     durasi_jp:           params.durasiJp,
     alokasi_total_menit: params.jumlahPertemuan * params.jpPerPertemuan * params.durasiJp,
     elemen_cp: params.elemenCp.map(e => ({ id: e.id, label: e.label, cp_text: e.cp_text })),
-    kktp: params.kktpList.map((k, i) => ({
-      id_kktp:     `K${i + 1}`,
-      judul:       k.judul,
-      konten:      k.konten      ?? null,
-      batas_bawah: k.batas_bawah ?? null,
-      batas_atas:  k.batas_atas  ?? null,
-    })),
+    // KKTP TIDAK LAGI DIKIRIM SEBAGAI MASUKAN.
+    //
+    // Sampai M1 di sini duduk seluruh KKTP kelas, diambil tanpa satu pun ikatan
+    // ke TP ini. Sekarang KKTP DISUSUN dari tp_anchor di atas, dan hidup di
+    // dokumen Modul ini saja — tidak dibaca dari Tab Penilaian, tidak ditulis
+    // kembali ke sana. Bentuk keluarannya tidak berubah (id_kktp, kriteria,
+    // ambang_batas, instrumen_bukti), supaya fase berikutnya tetap utuh.
+    instruksi_kktp:
+      'Susun KKTP untuk TP ini sendiri, dari tp_anchor — JANGAN mengandaikan ada daftar KKTP yang dikirim. ' +
+      'Setiap KKTP mengukur tuntutan CP yang TP ini pikul, bukan kemampuan lain di kelas yang sama. ' +
+      'Beri id_kktp berurutan K1, K2, … Gunakan kriteria yang dapat diamati guru dan ambang_batas ' +
+      'yang cukup jelas untuk memutuskan tercapai atau belum.',
     pilihan_asesmen:      params.pilanAsesmen,
     konteks_pembelajaran: konteksModulManusiawi(params.cd),
     sumber_strategi:      sumberStrategiManusiawi(params.cd),
@@ -2563,7 +2599,7 @@ Deno.serve(async (req) => {
   // 3. BACA modul_induk
   const { data: modul, error: modulErr } = await userClient
     .from('modul_induk')
-    .select('id, guru_id, atp_induk_id, nomor_tp, tp_judul, collected_data, konten, status, updated_at')
+    .select('id, guru_id, atp_induk_id, nomor_tp, tp_judul, tp_snapshot_hash, collected_data, konten, status, updated_at')
     .eq('id', modul_induk_id)
     .maybeSingle();
 
@@ -2614,24 +2650,91 @@ Deno.serve(async (req) => {
   // null = kelas ini belum pernah menjawabnya — perilaku lama dipertahankan.
   const languagePolicy = kebijakanBahasa(settings?.bahasa_pengantar, settings?.mapel);
 
-  // 6. BACA tp_kktp
-  const { data: kktp, error: kktpErr } = await userClient
-    .from('tp_kktp')
-    .select('id, judul, konten, batas_bawah, batas_atas')
-    .eq('classroom_id', classroom_id)
-    .eq('tipe', 'KKTP')
-    .eq('is_active', true)
-    .order('urutan', { ascending: true });
+  // 6. IDENTITAS TP — potret, gerbang, dan otoritas KKTP (M1)
+  //
+  // SAMPAI 10 SEPTEMBER 2026 DI SINI ADA QUERY YANG DINYATAKAN INVALID:
+  //
+  //   .from('tp_kktp').eq('classroom_id', …).eq('tipe','KKTP').eq('is_active', true)
+  //
+  // Tanpa satu pun filter yang menghubungkannya ke TP yang sedang dibuatkan
+  // Modul — bukan parent_id, bukan nomor_tp, bukan mapel, bukan semester —
+  // sehingga SELURUH KKTP kelas diserahkan sebagai KKTP milik TP ini. Guru yang
+  // punya KKTP untuk beberapa TP menerima semuanya di setiap Modul, dan kalau
+  // kelasnya memuat lebih dari satu mapel, KKTP mapel lain ikut.
+  //
+  // Sekarang: Tab Penilaian BUKAN sumber kebenaran generate-modul. KKTP Modul
+  // disusun dari tp_anchor yang diterima ATP. `tp_kktp` tidak dibaca sama
+  // sekali di jalur ini — tidak juga sebagai cadangan diam-diam — dan tidak
+  // ditulisi. Datanya tetap utuh; Penilaian tetap hidup sebagai fitur sendiri.
+  const nomorTpModul = Number((modul as Record<string, unknown>).nomor_tp);
+  const judulTpModul = String((modul as Record<string, unknown>).tp_judul || '');
+  const hashTersimpan = ((modul as Record<string, unknown>).tp_snapshot_hash as string | null) ?? null;
 
-  if (kktpErr) {
-    console.warn('[generate-modul] tp_kktp error:', kktpErr.message);
+  // Potret DIHITUNG ULANG dari ATP sisi server, apa pun yang klien kirim.
+  // Klien boleh menyertakan tp_snapshot_hash, tetapi itu hanya nilai harapan
+  // yang dibandingkan — bukan otoritas.
+  const tpAnchor: TpAnchor | null = bangunTpAnchor(
+    atp as Record<string, unknown>,
+    String((modul as Record<string, unknown>).atp_induk_id ?? ''),
+    nomorTpModul,
+  );
+
+  // Nomor TP tidak lagi ada di ATP: Modul sudah yatim. Ini konflik, bukan
+  // keadaan yang boleh ditambal dengan judul lama yang tersimpan.
+  if (!tpAnchor) {
+    return json({
+      error: 'ATP sudah berubah dan TP untuk Modul ini tidak ada lagi di dalamnya.',
+      code:  'MODULE_TP_ANCHOR_STALE',
+      konflik: keteranganKonflik({ nomorTpModul, judulTpModul, anchorSekarang: null }),
+    }, 409);
   }
-  const kktpList = Array.isArray(kktp) ? kktp : [];
+
+  const hashSekarang = await hitungTpSnapshotHash(tpAnchor);
 
   // 7. VALIDASI INPUT
   const modulStatus = (modul as Record<string, unknown>).status as string;
   const kontenObj   = ((modul as Record<string, unknown>).konten as Record<string, unknown>) || {};
   const cd          = ((modul as Record<string, unknown>).collected_data as Record<string, unknown>) || {};
+
+  // 6b. GERBANG POTRET TP (M1, dikeraskan M1.1)
+  //
+  // M1 memakai satu pembeda saja: `konten.schema_version` — dokumen final. Itu
+  // membiarkan dua lubang, keduanya pada Modul PRA-M1 yang hash-nya NULL:
+  //
+  //   (A) Modul yang berhenti di tengah jalan punya `_draft.fase_a` tanpa
+  //       `schema_version`, jadi terbaca sebagai baris baru. ATP berubah,
+  //       gerbang mengizinkan, dan Fase B menyusun pertemuan dari draft milik
+  //       TP LAMA dengan potret TP BARU — dua TP dijahit jadi satu dokumen.
+  //
+  //   (B) Baris yang benar-benar kosong tetap membawa nomor dan judul yang
+  //       dicatat SAAT GURU MEMILIH TP. Kalau ATP disusun ulang sebelum
+  //       penyusunan dimulai, judul itu tidak lagi cocok, dan mengambil potret
+  //       sekarang berarti mengganti TP-nya tanpa guru tahu.
+  //
+  // Riwayat dibaca dari BEKAS PENYUSUNAN (dokumen final atau draft fase mana
+  // pun), bukan dari kelengkapannya.
+  const adaKontenFinal = typeof kontenObj.schema_version === 'string';
+  const adaRiwayat     = punyaRiwayatPenyusunan(kontenObj);
+  const judulCocok     = judulSama(judulTpModul, tpAnchor.tp_judul);
+  const gerbang = periksaAnchor({
+    hashTersimpan, hashSekarang, adaKontenFinal, adaRiwayat, judulCocok,
+  });
+
+  if (!gerbang.boleh_generate) {
+    // TIDAK menyusun, TIDAK menimpa, TIDAK mengalihkan Modul ke TP lain.
+    // Modulnya tetap utuh dan tetap dapat dibuka serta diunduh — yang berhenti
+    // hanyalah penyusunan ulang terhadap ATP yang sudah berbeda.
+    return json({
+      error: gerbang.status === 'STALE'
+        ? 'ATP sudah disusun ulang sejak Modul ini dibuat, jadi TP-nya tidak lagi sama. '
+          + 'Modul yang sudah ada tetap tersimpan dan tetap bisa dibuka.'
+        : 'Modul ini dibuat sebelum MiClass mencatat identitas TP, jadi kecocokannya dengan ATP '
+          + 'sekarang tidak dapat dipastikan. Modul yang sudah ada tetap tersimpan dan tetap bisa dibuka.',
+      code:    gerbang.kode,
+      status_anchor: gerbang.status,
+      konflik: keteranganKonflik({ nomorTpModul, judulTpModul, anchorSekarang: tpAnchor }),
+    }, 409);
+  }
 
   // input_guru untuk konteks_murid — fakta eksplisit dari guru (bukan inferensi AI)
   const konteksMod = (cd.KONTEKS_MODUL as Record<string, unknown>) || {};
@@ -2738,8 +2841,18 @@ Deno.serve(async (req) => {
   }
 
   // 8. NORMALISASI
-  const nomorTp  = Number((modul as Record<string, unknown>).nomor_tp);
-  const tpJudul  = String((modul as Record<string, unknown>).tp_judul || '');
+  //
+  // OTORITAS TUNGGAL (M1.1). Begitu gerbang di §6b lolos, seluruh data TP yang
+  // dianggap otoritas berasal dari SATU objek: tpAnchor, yang dihitung server
+  // dari ATP. Sampai M1.1 kedua nilai di bawah dibaca dari baris modul_induk,
+  // sehingga Fase A dapat menerima JUDUL LAMA bersama TUNTUTAN BARU — satu
+  // dokumen dengan dua TP di dalamnya.
+  //
+  // Field baris modul_induk (nomorTpModul, judulTpModul) tetap dipakai, tetapi
+  // HANYA untuk tiga hal: mendeteksi ketidakcocokan, menampilkan potret lama,
+  // dan menyusun pesan konflik. Bukan untuk membangun TP yang sedang disusun.
+  const nomorTp  = tpAnchor.nomor_tp;
+  const tpJudul  = tpAnchor.tp_judul;
 
   const identitasDB: Record<string, string> = {
     mapel:            settings?.mapel            ?? '',
@@ -2986,8 +3099,8 @@ Deno.serve(async (req) => {
     try {
       faseAOutput = await callPhase(
         'Fase A',
-        buildUserMessageFaseA({ identitasDB, jumlahMurid, nomorTp, tpJudul, jumlahPertemuan, jpPerPertemuan, durasiJp, elemenCp, kktpList, cd, pilanAsesmen, gunakanDiagnostik, teknikDiagnostik, instrumenDiagnostik, gunakanFormatif, teknikFormatif, instrumenFormatif, gunakanSumatif, teknikSumatif, instrumenSumatif }),
-        90_000, anggaranTokenFaseA(kktpList.length, elemenCp.length),
+        buildUserMessageFaseA({ identitasDB, jumlahMurid, nomorTp, tpJudul, jumlahPertemuan, jpPerPertemuan, durasiJp, elemenCp, tpAnchor, cd, pilanAsesmen, gunakanDiagnostik, teknikDiagnostik, instrumenDiagnostik, gunakanFormatif, teknikFormatif, instrumenFormatif, gunakanSumatif, teknikSumatif, instrumenSumatif }),
+        90_000, anggaranTokenFaseA(perkiraanKktp(tpAnchor), elemenCp.length),
       );
     } catch (e) {
       const err = e as { message?: string; code?: string; retryable?: boolean };
@@ -3013,11 +3126,17 @@ Deno.serve(async (req) => {
     }
 
     const draftA = { ...kontenObj, _draft: { fase_a: faseAOutput } };
+    // Potret TP dipaku di sini, di awal penyusunan — bukan di Fase D. Modul
+    // yang gagal di tengah jalan tetap membawa potret yang dipakai Fase A,
+    // sehingga percobaan berikutnya dibandingkan terhadap potret yang benar.
+    // Nilainya SELALU hasil hitungan server (hashSekarang); apa pun yang klien
+    // kirim tidak pernah dipakai menulis.
+    const tulisA = { konten: draftA, tp_snapshot_hash: hashSekarang };
     const writeResult = expected_updated_at
-      ? await userClient.from('modul_induk').update({ konten: draftA })
+      ? await userClient.from('modul_induk').update(tulisA)
           .eq('id', modul_induk_id).eq('updated_at', expected_updated_at)
           .select('id, updated_at').maybeSingle()
-      : await userClient.from('modul_induk').update({ konten: draftA })
+      : await userClient.from('modul_induk').update(tulisA)
           .eq('id', modul_induk_id)
           .select('id, updated_at').maybeSingle();
 

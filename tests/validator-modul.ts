@@ -63,10 +63,15 @@ async function muatValidator(): Promise<Validator> {
   const batas = penuh.indexOf('// ── EDGE FUNCTION ─');
   if (batas < 0) throw new Error('Penanda "── EDGE FUNCTION ─" tidak ada di index.ts');
 
-  const tmp = await Deno.makeTempFile({ suffix: '.ts' });
+  // Berkas sementara ditaruh DI SAMPING sumbernya, bukan di direktori temp
+  // sistem: sejak M1 index.ts mengimpor './anchor.ts', dan impor relatif hanya
+  // dapat diselesaikan dari folder yang sama. Menyalin anchor.ts ke temp akan
+  // membuat kembar yang menyimpang — yang diuji harus modul aslinya.
+  const dir = new URL('.', SUMBER_EF);
+  const tmp = new URL(`._validator-modul-${crypto.randomUUID()}.ts`, dir);
   try {
     await Deno.writeTextFile(tmp, penuh.slice(0, batas) + '\nexport { validateModulOutputV400 };\n');
-    const mod = await import('file://' + tmp.replace(/\\/g, '/'));
+    const mod = await import(tmp.href);
     return mod.validateModulOutputV400 as Validator;
   } finally {
     await Deno.remove(tmp).catch(() => {});
