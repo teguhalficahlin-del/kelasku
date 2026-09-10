@@ -220,13 +220,16 @@ Deno.test('M1-O: Fase A menerima potret TP sekarang, dan potret itu dihitung ser
   assert(/const hashSekarang = await hitungTpSnapshotHash\(tpAnchor\)/.test(src),
     'hash tidak dihitung ulang di server');
 
-  // Fase A menerimanya.
-  assert(/buildUserMessageFaseA\(\{[^)]*tpAnchor/.test(src),
-    'Fase A tidak menerima tpAnchor');
-  // Dan tuntutan CP benar-benar dikirim ke penyusun — bukan hanya judul.
-  assert(/tuntutan_cp:\s*params\.tpAnchor\.tuntutan/.test(src),
+  // Fase A menerimanya. Sejak M2 pembawanya amplop `warisan` — isinya sama
+  // ditambah makna tuntutan; yang dijaga di sini tetap sama: potret server
+  // sampai ke Fase A, dan ia membawa tuntutan serta kategori, bukan judul saja.
+  assert(/buildUserMessageFaseA\(\{[^)]*warisan/.test(src),
+    'Fase A tidak menerima potret TP server');
+  assert(/const warisan: WarisanAtp = \{[\s\S]{0,300}tpAnchor: tpAnchor/.test(src),
+    'amplop warisan tidak berpangkal pada anchor server');
+  assert(/tuntutan_cp: w\.tuntutan\.map/.test(src),
     'tuntutan CP tidak dikirim ke Fase A');
-  assert(/kategori_teks:\s*params\.tpAnchor\.kategori_teks/.test(src),
+  assert(/kategori_teks_tp:\s*w\.tpAnchor\.kategori_teks/.test(src),
     'kategori_teks tidak dikirim ke Fase A');
 
   // Yang ditulis ke basis data SELALU hitungan server.
@@ -249,10 +252,11 @@ Deno.test('M1-P: KKTP hasil Modul tetap milik Modul — tidak ditulis balik', as
   assertEquals(ditulis, ['ai_usage', 'modul_induk'],
     `daftar tabel yang ditulisi berubah: ${ditulis.join(', ')}`);
 
-  // KKTP disusun, bukan diterima: instruksinya ada dan menyebut tp_anchor.
+  // KKTP disusun, bukan diterima: instruksinya ada dan menyebut potret TP.
+  // Sejak M2 potret itu bernama warisan_atp.tp dan membawa makna tuntutannya.
   assert(/instruksi_kktp:/.test(src), 'instruksi menyusun KKTP tidak ada');
-  assert(/Susun KKTP untuk TP ini sendiri, dari tp_anchor/.test(src),
-    'Fase A tidak diperintahkan menyusun KKTP dari tp_anchor');
+  assert(/Susun KKTP untuk TP ini sendiri, dari warisan_atp\.tp/.test(src),
+    'Fase A tidak diperintahkan menyusun KKTP dari potret TP');
 
   // Bentuk keluarannya tidak berubah, supaya fase berikutnya tidak pecah.
   assert(/type KktpItem = \{[\s\S]*?id_kktp:[\s\S]*?kriteria:[\s\S]*?ambang_batas:[\s\S]*?instrumen_bukti:/.test(src),
@@ -402,9 +406,11 @@ Deno.test('M1-W: hash NULL + kosong + judul BERBEDA → STALE, hash tidak diadop
 Deno.test('M1-X: Fase A memakai judul dari anchor server, bukan salinan baris Modul', async () => {
   const src = await Deno.readTextFile(EF_MODUL);
 
-  // tp_teks di dalam tp_anchor berasal dari anchor.
-  assert(/tp_teks:\s*params\.tpAnchor\.tp_judul/.test(src),
-    'tp_teks masih memakai params.tpJudul');
+  // tp_teks berasal dari anchor server. Sejak M2 pembawanya amplop `warisan`,
+  // jadi rujukannya params.warisan.tpAnchor.tp_judul — sumber yang sama.
+  assert(/tp_teks:\s*params\.warisan\.tpAnchor\.tp_judul/.test(src)
+      || /tp_teks:\s*w\.tpAnchor\.tp_judul/.test(src),
+    'tp_teks tidak berasal dari anchor server');
   assert(!/tp_teks:\s*params\.tpJudul/.test(src), 'jalur lama tp_teks masih ada');
 
   // Dan sumber tpJudul itu sendiri kini anchor, sehingga tidak ada jalan lain

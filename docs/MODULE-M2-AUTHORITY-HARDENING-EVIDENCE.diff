@@ -1,0 +1,693 @@
+--- a/supabase/functions/generate-modul/warisan.ts
++++ b/supabase/functions/generate-modul/warisan.ts
+@@ -20,6 +20,7 @@
+ 
+ import {
+   acuanUntuk, tuntutanWajib, resolveDelegasi, prioritasDipilih,
++  statusLayanan, jawaban, dasarProfilMurid,
+   DELEGASI_SEMANTIK, LABEL_KONTEKS_TUGAS, LABEL_KESIAPAN,
+   type PenerapanPrioritasTersimpan, type KeputusanMiClass,
+ } from '../generate-atp/kontrak.ts';
+@@ -56,8 +57,10 @@
+   cakupan_wajib?: TuntutanCp['cakupan_wajib'];
+ };
+ 
+-export const KODE_TUNTUTAN_ASING = 'MODUL_TUNTUTAN_TIDAK_DIKENAL';
+-export const KODE_ACUAN_HILANG   = 'MODUL_ACUAN_CP_TIDAK_TERSEDIA';
++export const KODE_TUNTUTAN_ASING  = 'MODUL_TUNTUTAN_TIDAK_DIKENAL';
++export const KODE_ACUAN_HILANG    = 'MODUL_ACUAN_CP_TIDAK_TERSEDIA';
++export const KODE_TUNTUTAN_KOSONG = 'MODULE_TP_TUNTUTAN_TIDAK_TERSEDIA';
++export const KODE_LAYANAN_CP      = 'MODUL_CP_TIDAK_DILAYANI';
+ 
+ /**
+  * Menguraikan ID tuntutan TP menjadi kompetensi dan lingkup materinya, dari
+@@ -68,11 +71,23 @@
+  * persis kelas cacat yang M1 tutup di sisi identitas, dan tidak ada gunanya
+  * ditutup di sana lalu dibuka lagi di sini.
+  *
+- * Daftar kosong dikembalikan apa adanya: ATP lama yang disusun sebelum acuan CP
+- * ada memang tidak punya `tuntutan`, dan Modulnya tetap boleh dibuka.
++ * DAFTAR KOSONG JUGA KEGAGALAN (M2.1). Sampai M2 daftar kosong dikembalikan apa
++ * adanya, dengan alasan "ATP lama tetap boleh dibuka". Alasan itu benar untuk
++ * MEMBACA dokumen lama, tetapi fungsi ini hanya dipanggil di jalur MENYUSUN
++ * Modul baru — dan menyusun Modul dari TP yang tidak punya kontrak tuntutan
++ * berarti KKTP, materi, dan instrumennya diturunkan dari JUDUL. Itu persis
++ * pengetahuan-nol yang M1 dan M2 tutup. Membuka dokumen lama tidak melewati
++ * fungsi ini sama sekali (klien membaca `modul_induk` langsung), jadi menutup
++ * jalur penyusunan tidak menutup jalur pembacaan.
+  */
+ export function uraikanTuntutan(mapel: string, fase: string, ids: string[]): TuntutanTerurai[] {
+-  if (!ids.length) return [];
++  if (!ids.length) {
++    throw Object.assign(
++      new Error(
++        'ATP ini tidak mencatat tuntutan Capaian Pembelajaran untuk TP tersebut, sehingga Modul Ajar '
++        + 'belum dapat disusun darinya. Susun ulang ATP-nya lebih dulu agar tuntutan CP tiap TP tercatat.'),
++      { code: KODE_TUNTUTAN_KOSONG });
++  }
+   const acuan = acuanUntuk(mapel, fase);
+   if (!acuan) {
+     throw Object.assign(
+@@ -106,6 +121,31 @@
+   return [...out].sort();
+ }
+ 
++/**
++ * Gerbang layanan CP untuk PENYUSUNAN Modul baru (M2.1).
++ *
++ * Tidak ada daftar versi yang disalin ke sini: `statusLayanan()` milik ATP sudah
++ * memeriksa versi berlaku, versi tercabut, status telaah, dan cakupan layanan.
++ * Menyalinnya berarti dua gerbang yang suatu hari berbeda pendapat.
++ *
++ * Yang ditambahkan hanya satu pemeriksaan yang memang milik Modul: versi CP yang
++ * DIWARISI dari ATP harus sama dengan versi acuan yang berlaku sekarang. ATP
++ * yang disusun di atas CP lama boleh tetap dibaca, tetapi Modul baru tidak boleh
++ * lahir darinya diam-diam.
++ */
++export function periksaLayananCp(
++  mapel: string, fase: string, versiCpDiwarisi: string | null,
++): { didukung: boolean; alasan: string[]; versi_acuan: string | null } {
++  const s = statusLayanan(mapel, fase);
++  const alasan = [...s.alasan];
++  const versiAcuan = s.acuan?.versi_cp ?? null;
++  if (s.didukung && versiCpDiwarisi && versiAcuan && versiCpDiwarisi !== versiAcuan) {
++    alasan.push(
++      `ATP ini disusun di atas CP ${versiCpDiwarisi}, sedangkan acuan yang berlaku sekarang ${versiAcuan}.`);
++  }
++  return { didukung: alasan.length === 0, alasan, versi_acuan: versiAcuan };
++}
++
+ // ─────────────────────────────────────────────────────────────────────────────
+ // 2. ALOKASI PERTEMUAN — satu otoritas, yaitu potret server
+ // ─────────────────────────────────────────────────────────────────────────────
+@@ -200,7 +240,10 @@
+ export type AtpContext = {
+   versi_cp:  string | null;
+   semester:  number | null;
+-  kesiapan_murid:   Bernilai<string> & { arti: string };
++  /** Keadaan yang guru laporkan, BUKAN keputusan pedagogis (M2.1). `dasar`
++   *  menyebut dari mana gambaran itu berasal — hasil penilaian, pengamatan, atau
++   *  pengakuan guru bahwa informasinya belum cukup. */
++  kesiapan_murid:   Bernilai<string> & { arti: string; dasar: string | null };
+   jumlah_murid:     Bernilai<number | null>;
+   program_keahlian: Bernilai<string | null>;
+   konteks_tugas:    Bernilai<string | null> & { arti: string | null };
+@@ -214,6 +257,14 @@
+   };
+ };
+ 
++/** Jawaban guru di ATP sebagai teks rapi, memakai pembaca amplop milik ATP
++ *  (`jawaban()` sudah menangani bentuk { value, … } maupun nilai telanjang). */
++function teksJawaban(cd: Record<string, unknown>, fase: string, id: string): string | null {
++  const v = jawaban(cd, fase, id);
++  const t = String(v ?? '').trim();
++  return t || null;
++}
++
+ /** Membaca amplop hasil ATP apa adanya, tanpa mengarang bagian yang tidak ada. */
+ export function bacaAtpHasil(cd: Record<string, unknown>): {
+   keputusan: KeputusanMiClass[];
+@@ -236,8 +287,10 @@
+   /** collected_data milik atp_induk — jawaban guru di alur ATP. */
+   cd:               Record<string, unknown>;
+   anchor:           TpAnchor;
++  /** Fakta operasional kelas SEKARANG, dari rancang_settings. Sengaja current:
++   *  validator waktu Modul memakai angka yang sama, dan jumlah murid memang
++   *  keadaan hari ini, bukan keputusan yang ATP ambil. */
+   jumlahMurid:      number | null;
+-  programKeahlian:  string | null;
+ }): AtpContext {
+   const { keputusan, penerapan } = bacaAtpHasil(p.cd);
+   // Jawaban guru dapat tersimpan sebagai nilai telanjang atau dalam amplop
+@@ -255,10 +308,21 @@
+     kesiapan_murid: {
+       nilai: kesiapanKunci,
+       arti:  LABEL_KESIAPAN[kesiapanKunci] ?? LABEL_KESIAPAN.belum_diketahui,
+-      asal:  'keputusan_guru',
++      // M2.1: KEADAAN yang guru laporkan, bukan keputusan pedagogis seperti A17.
++      // Menandainya 'keputusan_guru' menyamakan dua hal yang berbeda jenis —
++      // persis yang taksonomi ini dibuat untuk mencegah. 'fakta' di sini berarti
++      // "keadaan yang tercatat menurut informasi guru", bukan klaim kebenaran
++      // objektif; seberapa kuat dasarnya dinyatakan terpisah di `dasar`.
++      asal:  'fakta',
++      dasar: dasarProfilMurid(p.cd) || null,
+     },
+-    jumlah_murid:     { nilai: p.jumlahMurid ?? null,     asal: 'fakta' },
+-    program_keahlian: { nilai: p.programKeahlian || null, asal: 'fakta' },
++    jumlah_murid: { nilai: p.jumlahMurid ?? null, asal: 'fakta' },
++    // M2.1: POTRET ATP, bukan rancang_settings sekarang. Program keahlian yang
++    // benar-benar dipakai menyusun ATP ini tersimpan di jawaban gurunya sendiri;
++    // kelas yang programnya kemudian diganti tidak boleh mengubah arti ATP yang
++    // sudah diterima. Tidak ada jalan mundur ke settings: menebak bahwa nilai
++    // sekarang adalah nilai yang dulu dipakai justru memalsukan riwayat.
++    program_keahlian: { nilai: teksJawaban(p.cd, 'KONTEKS_CP', 'program_keahlian'), asal: 'fakta' },
+     konteks_tugas:    konteksTugasEfektif(p.cd, keputusan),
+     prioritas_guru:   prioritasDipilih(p.cd).map(x => ({
+       kunci: x.prioritas, arti: x.arti, arahan: x.arahan,
+--- a/supabase/functions/generate-modul/index.ts
++++ b/supabase/functions/generate-modul/index.ts
+@@ -6,7 +6,8 @@
+ } from './anchor.ts';
+ import {
+   uraikanTuntutan, kategoriWajibDariTuntutan, alokasiPertemuanDariAnchor,
+-  bangunAtpContext, KODE_TUNTUTAN_ASING, KODE_ACUAN_HILANG,
++  bangunAtpContext, periksaLayananCp,
++  KODE_TUNTUTAN_ASING, KODE_LAYANAN_CP,
+   type TuntutanTerurai, type AtpContext, type AlokasiPertemuan,
+ } from './warisan.ts';
+ 
+@@ -2419,7 +2420,6 @@
+   faseAOutput:     Record<string, unknown>;
+   manifest:        InstrumentManifest;
+   cd:              Record<string, unknown>;
+-  programKeahlian: string;
+   /** Warisan ATP (M2). Fase C menyusun ISI instrumen, jadi ia perlu tahu
+    *  kompetensi yang diukur dan kategori teks yang wajib tercakup — bukan
+    *  alokasi waktu, yang bukan urusannya. */
+@@ -2452,7 +2452,10 @@
+       'untuk_murid=false → konten_murid harus null. ' +
+       'Ringkas: deskripsi 1-2 kalimat, dialog 1 baris per giliran. ' +
+       `Total output di bawah ${Math.max(3000, 1000 * allManifest.length)} token.`,
+-    program_keahlian: params.programKeahlian,
++    // M2.1: program keahlian TIDAK LAGI dikirim terpisah di sini. Sampai M2 ia
++    // datang dari rancang_settings sementara Fase A dan B memakai potret ATP —
++    // dua nilai untuk satu hal. Sekarang satu-satunya sumbernya
++    // warisan_atp.konteks.program_keahlian, sama dengan fase lain.
+     identitas_ringkas: {
+       mata_pelajaran:      (params.faseAOutput.identitas as Record<string, unknown>)?.mata_pelajaran,
+       fase:                (params.faseAOutput.identitas as Record<string, unknown>)?.fase,
+@@ -2706,7 +2709,7 @@
+   // 4. BACA atp_induk
+   const { data: atp, error: atpErr } = await userClient
+     .from('atp_induk')
+-    .select('elemen_cp, collected_data, progresi_tp')
++    .select('mapel, fase, jenjang, elemen_cp, collected_data, progresi_tp')
+     .eq('id', (modul as Record<string, unknown>).atp_induk_id as string)
+     .maybeSingle();
+ 
+@@ -2885,10 +2888,40 @@
+   // Definisi tuntutan diambil dari acuan CP yang SAMA yang dipakai ATP, lewat
+   // helper miliknya — tidak ada teks yang disalin ke sini, dan tidak ada mapel
+   // atau fase yang ditulis keras.
++  // OTORITAS CP ADALAH BARIS ATP, BUKAN rancang_settings (M2.1).
++  //
++  // Sampai M2 arti tuntutan diuraikan memakai `settings.mapel` dan
++  // `settings.fase` — keadaan kelas SEKARANG. TP anchor berasal dari ATP; arti
++  // ID tuntutannya harus berasal dari identitas ATP yang sama. Kelas yang mapel
++  // atau fasenya kemudian diubah akan membuat ID yang sama berarti lain, atau
++  // tidak berarti apa-apa.
++  const atpMapel = String((atp as Record<string, unknown>).mapel ?? '').trim();
++  const atpFase  = String((atp as Record<string, unknown>).fase  ?? '').trim();
++  if (!atpMapel || !atpFase) {
++    // Tidak ada jalan mundur ke settings: menebak identitas ATP dari keadaan
++    // kelas sekarang adalah persis kekeliruan yang sedang ditutup.
++    return json({
++      error: 'ATP ini tidak mencatat mata pelajaran atau fasenya, sehingga tuntutan CP-nya '
++           + 'tidak dapat diuraikan. Susun ulang ATP-nya lebih dulu.',
++      code:  KODE_LAYANAN_CP,
++    }, 422);
++  }
++
++  // Gerbang layanan CP untuk PENYUSUNAN baru. Memakai statusLayanan() milik ATP
++  // — versi berlaku, versi tercabut, status telaah, cakupan — tanpa menyalin
++  // satu pun daftar versi ke sini.
++  const layananCp = periksaLayananCp(atpMapel, atpFase, tpAnchor.versi_cp);
++  if (!layananCp.didukung) {
++    return json({
++      error: `Modul Ajar belum dapat disusun dari ATP ini: ${layananCp.alasan.join(' ')}`,
++      code:  KODE_LAYANAN_CP,
++      alasan: layananCp.alasan,
++    }, 422);
++  }
++
+   let tuntutanTerurai: TuntutanTerurai[];
+   try {
+-    tuntutanTerurai = uraikanTuntutan(
+-      settings?.mapel ?? '', settings?.fase ?? '', tpAnchor.tuntutan);
++    tuntutanTerurai = uraikanTuntutan(atpMapel, atpFase, tpAnchor.tuntutan);
+   } catch (e) {
+     // ID yang tidak dikenal adalah kegagalan keras, bukan sesuatu yang dilewati:
+     // melewatinya berarti menyusun modul untuk tuntutan yang tidak ada isinya.
+@@ -2902,10 +2935,12 @@
+   const kategoriWajib = kategoriWajibDariTuntutan(tuntutanTerurai);
+ 
+   const atpContext: AtpContext = bangunAtpContext({
+-    cd:              atpCd,
+-    anchor:          tpAnchor,
++    cd:     atpCd,
++    anchor: tpAnchor,
++    // Hanya jumlah murid yang sengaja diambil dari keadaan kelas SEKARANG:
++    // ia fakta operasional dan dipakai validator waktu. Program keahlian,
++    // kesiapan, A17, dan penekanan guru seluruhnya dibaca dari potret ATP.
+     jumlahMurid,
+-    programKeahlian: settings?.program_keahlian ?? null,
+   });
+ 
+   // Satu amplop warisan, dipakai fase A, B, dan C. Tiap fase menerima irisan
+@@ -2987,11 +3022,17 @@
+   const nomorTp  = tpAnchor.nomor_tp;
+   const tpJudul  = tpAnchor.tp_judul;
+ 
++  // M2.1: mapel, fase, dan program keahlian berasal dari POTRET ATP — bukan dari
++  // keadaan kelas sekarang. SYSTEM_PROMPT menyatakan program_keahlian di sini
++  // "menentukan seluruh konteks dunia kerja modul", jadi membiarkannya dari
++  // rancang_settings berarti otoritas kedua yang diam-diam mengalahkan ATP.
++  // Sisanya (nama guru, tahun ajaran, semester administratif) memang keadaan
++  // kelas dan tetap dari settings.
+   const identitasDB: Record<string, string> = {
+-    mapel:            settings?.mapel            ?? '',
+-    jenjang:          settings?.jenjang          ?? '',
+-    fase:             settings?.fase             ?? '',
+-    program_keahlian: settings?.program_keahlian ?? '',
++    mapel:            atpMapel,
++    jenjang:          String((atp as Record<string, unknown>).jenjang ?? settings?.jenjang ?? ''),
++    fase:             atpFase,
++    program_keahlian: atpContext.program_keahlian.nilai ?? '',
+     bidang_keahlian:  settings?.bidang_keahlian  ?? '',
+     nama_guru:        settings?.nama_guru        ?? '',
+     tahun_ajaran:     settings?.tahun_ajaran     ?? '',
+@@ -3370,7 +3411,7 @@
+     try {
+       faseCOutput = await callPhase(
+         'Fase C',
+-        buildUserMessageFaseC({ faseAOutput, manifest, cd, programKeahlian: settings?.program_keahlian ?? '', warisan }),
++        buildUserMessageFaseC({ faseAOutput, manifest, cd, warisan }),
+         120_000, anggaranTokenInstrumen(jumlahInstrumen),
+       );
+     } catch (e) {
+--- a/tests/modul-warisan.test.ts
++++ b/tests/modul-warisan.test.ts
+@@ -15,13 +15,14 @@
+ import {
+   uraikanTuntutan, kategoriWajibDariTuntutan, alokasiPertemuanDariAnchor,
+   konteksTugasEfektif, bangunAtpContext, bacaAtpHasil,
+-  KODE_TUNTUTAN_ASING, KODE_ACUAN_HILANG,
++  KODE_TUNTUTAN_ASING, KODE_ACUAN_HILANG, KODE_TUNTUTAN_KOSONG,
++  periksaLayananCp,
+ } from '../supabase/functions/generate-modul/warisan.ts';
+ import {
+   bangunTpAnchor, hitungTpSnapshotHash, periksaAnchor,
+ } from '../supabase/functions/generate-modul/anchor.ts';
+ import {
+-  acuanUntuk, tuntutanWajib, LABEL_KONTEKS_TUGAS,
++  acuanUntuk, tuntutanWajib, LABEL_KONTEKS_TUGAS, LABEL_DASAR_KESIAPAN,
+ } from '../supabase/functions/generate-atp/kontrak.ts';
+ 
+ const EF_MODUL = new URL('../supabase/functions/generate-modul/index.ts', import.meta.url);
+@@ -42,6 +43,7 @@
+       ...ubahTp,
+     }],
+     collected_data: {
++      KONTEKS_CP:   { konfirmasi_konteks: 'sesuai', program_keahlian: 'Tata Busana' },
+       KONTEKS_DUDI: { konteks_tugas: 'kehidupan', situasi_khusus: 'tidak_ada', metode_pengurutan: 'scaffolding' },
+       PROFIL_SISWA: { tingkat_kemampuan_awal: 'jauh_di_bawah', dasar_informasi_kesiapan: 'hasil_penilaian' },
+       PENGUATAN_PRASYARAT: { strategi_prasyarat: 'terintegrasi', target_prioritas: ['pendidikan_lanjut'] },
+@@ -122,8 +124,9 @@
+   assertEquals(t[0].cakupan_wajib?.kategori_teks, ['fiksi', 'nonfiksi']);
+   assertEquals(t[1].cakupan_wajib, undefined, 'cakupan dikarang untuk tuntutan yang tidak menuntutnya');
+ 
+-  // ATP lama tanpa tuntutan tetap boleh: daftar kosong bukan galat.
+-  assertEquals(uraikanTuntutan(MAPEL, FASE, []), []);
++  // M2.1: daftar kosong TIDAK lagi lolos di jalur penyusunan — lihat M2-AB.
++  // Sampai M2 baris ini berbunyi `assertEquals(uraikanTuntutan(…, []), [])`,
++  // dan itulah cacat D yang correction ini balik dengan sengaja.
+ });
+ 
+ Deno.test('M2-D: ID tuntutan yang tidak dikenal adalah kegagalan keras', () => {
+@@ -164,7 +167,7 @@
+ 
+   const ctx = bangunAtpContext({
+     cd: atpServer().collected_data, anchor: anchorDari(atpServer()),
+-    jumlahMurid: 32, programKeahlian: 'Tata Busana',
++    jumlahMurid: 32,
+   });
+   assertEquals(ctx.versi_cp, '046/H/KR/2025');
+ });
+@@ -222,7 +225,7 @@
+ Deno.test('M2-I: penekanan guru diteruskan apa adanya — tidak ditambah, tidak dihapus', () => {
+   const ctx = bangunAtpContext({
+     cd: atpServer().collected_data, anchor: anchorDari(atpServer()),
+-    jumlahMurid: 32, programKeahlian: 'Tata Busana',
++    jumlahMurid: 32,
+   });
+   assertEquals(ctx.prioritas_guru.map(p => p.kunci), ['pendidikan_lanjut']);
+   assert(ctx.prioritas_guru[0].arti.length > 0);
+@@ -231,7 +234,7 @@
+   // Guru tanpa penekanan tidak mendapat penekanan karangan.
+   const tanpa = bangunAtpContext({
+     cd: atpServer({}, { PENGUATAN_PRASYARAT: { strategi_prasyarat: 'terintegrasi', target_prioritas: [] } }).collected_data,
+-    anchor: anchorDari(atpServer()), jumlahMurid: 32, programKeahlian: 'Tata Busana',
++    anchor: anchorDari(atpServer()), jumlahMurid: 32,
+   });
+   assertEquals(tanpa.prioritas_guru, []);
+ });
+@@ -239,7 +242,7 @@
+ Deno.test('M2-J: penerapan penekanan disaring ke TP ini, dengan jejak asalnya utuh', () => {
+   const ctx = bangunAtpContext({
+     cd: atpServer().collected_data, anchor: anchorDari(atpServer()),
+-    jumlahMurid: 32, programKeahlian: 'Tata Busana',
++    jumlahMurid: 32,
+   });
+   const untukTp = ctx.penerapan_prioritas.untuk_tp_ini;
+   assertEquals(untukTp.length, 1, 'penyaringan ke TP 5 salah');
+@@ -255,23 +258,25 @@
+ Deno.test('M2-K: kesiapan murid diteruskan tanpa tafsir baru', () => {
+   const ctx = bangunAtpContext({
+     cd: atpServer().collected_data, anchor: anchorDari(atpServer()),
+-    jumlahMurid: 32, programKeahlian: 'Tata Busana',
++    jumlahMurid: 32,
+   });
+   assertEquals(ctx.kesiapan_murid.nilai, 'jauh_di_bawah');
+-  assertEquals(ctx.kesiapan_murid.asal, 'keputusan_guru');
++  // M2.1: kesiapan adalah KEADAAN yang guru laporkan, bukan keputusan pedagogis.
++  // Sampai M2 nilainya 'keputusan_guru', yang menyamakannya dengan A17.
++  assertEquals(ctx.kesiapan_murid.asal, 'fakta');
+   assert(ctx.kesiapan_murid.arti.length > 0, 'kesiapan tidak punya arti manusia');
+ 
+   // Amplop { value, … } juga dibaca.
+   const amplop = bangunAtpContext({
+     cd: atpServer({}, { PROFIL_SISWA: { tingkat_kemampuan_awal: { value: 'sesuai' } } }).collected_data,
+-    anchor: anchorDari(atpServer()), jumlahMurid: 32, programKeahlian: 'X',
++    anchor: anchorDari(atpServer()), jumlahMurid: 32,
+   });
+   assertEquals(amplop.kesiapan_murid.nilai, 'sesuai');
+ 
+   // Tidak dijawab → belum_diketahui, bukan tebakan.
+   const kosong = bangunAtpContext({
+     cd: atpServer({}, { PROFIL_SISWA: {} }).collected_data,
+-    anchor: anchorDari(atpServer()), jumlahMurid: 32, programKeahlian: 'X',
++    anchor: anchorDari(atpServer()), jumlahMurid: 32,
+   });
+   assertEquals(kosong.kesiapan_murid.nilai, 'belum_diketahui');
+ });
+@@ -279,8 +284,10 @@
+ Deno.test('M2-L: program keahlian diteruskan sebagai fakta, bukan sebagai perintah', () => {
+   const ctx = bangunAtpContext({
+     cd: atpServer().collected_data, anchor: anchorDari(atpServer()),
+-    jumlahMurid: 32, programKeahlian: 'Tata Busana',
++    jumlahMurid: 32,
+   });
++  // M2.1: nilainya berasal dari POTRET ATP (KONTEKS_CP), bukan lagi dari
++  // rancang_settings sekarang — pembuktian penuhnya di M2-W dan M2-AD.
+   assertEquals(ctx.program_keahlian.nilai, 'Tata Busana');
+   assertEquals(ctx.program_keahlian.asal, 'fakta',
+     'program keahlian dicatat sebagai keputusan, padahal ia keadaan');
+@@ -292,14 +299,14 @@
+ Deno.test('M2-M: jumlah murid satu sumber, dan asalnya ditandai fakta', () => {
+   const ctx = bangunAtpContext({
+     cd: atpServer().collected_data, anchor: anchorDari(atpServer()),
+-    jumlahMurid: 32, programKeahlian: 'Tata Busana',
++    jumlahMurid: 32,
+   });
+   assertEquals(ctx.jumlah_murid.nilai, 32);
+   assertEquals(ctx.jumlah_murid.asal, 'fakta');
+   // Kelas yang belum mengisi jumlah murid tetap null, bukan angka bawaan.
+   const nul = bangunAtpContext({
+     cd: atpServer().collected_data, anchor: anchorDari(atpServer()),
+-    jumlahMurid: null, programKeahlian: null,
++    jumlahMurid: null,
+   });
+   assertEquals(nul.jumlah_murid.nilai, null);
+ });
+@@ -439,3 +446,281 @@
+   const wBersih = warisanSrc.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+   assert(!/BIE-E25-/.test(wBersih), 'warisan.ts menyalin ID tuntutan');
+ });
++
++// ═════════════════════════════════════════════════════════════════════════════
++// M2.1 — OTORITAS DAN ASAL-USUL
++// ═════════════════════════════════════════════════════════════════════════════
++//
++// Empat cacat yang reviewer temukan, keempatnya satu bentuk yang sama: KEADAAN
++// KELAS SEKARANG dipakai menentukan ARTI ATP YANG SUDAH DITERIMA, atau asal
++// sebuah nilai dicatat keliru.
++
++/** rancang_settings yang sengaja BERBEDA dari potret ATP. */
++const SETTINGS_BASI = {
++  mapel: 'Matematika', fase: 'F', jenjang: 'SMK',
++  program_keahlian: 'Teknik Otomotif',
++};
++
++Deno.test('M2-U: arti tuntutan diuraikan dari baris ATP, bukan dari settings kelas', () => {
++  const atp = atpServer();
++  const anchor = anchorDari(atp);
++
++  // ATP: Bahasa Inggris / E. Settings sengaja Matematika / F.
++  const dariAtp = uraikanTuntutan(MAPEL, FASE, anchor.tuntutan);
++  assertEquals(dariAtp.length, 2);
++  assert(dariAtp[0].kompetensi.length > 10);
++
++  // Kalau settings yang dipakai, hasilnya bukan sekadar berbeda — ia GAGAL,
++  // karena acuan untuk kombinasi itu tidak ada. Itulah yang membuat cacat ini
++  // berbahaya: ia mengubah arti ID yang sama.
++  let kode: string | undefined;
++  try {
++    uraikanTuntutan(SETTINGS_BASI.mapel, SETTINGS_BASI.fase, anchor.tuntutan);
++  } catch (e) { kode = (e as { code?: string }).code; }
++  assertEquals(kode, KODE_ACUAN_HILANG,
++    'kombinasi settings ternyata punya acuan — fixture tidak lagi membuktikan apa pun');
++});
++
++Deno.test('M2-V: mapel/fase ATP tidak tersedia → gagal keras, tanpa mundur ke settings', async () => {
++  const bersih = (await Deno.readTextFile(EF_MODUL))
++    .replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
++
++  // Identitas CP dibaca dari baris ATP …
++  assert(/const atpMapel = String\(\(atp as Record<string, unknown>\)\.mapel/.test(bersih),
++    'mapel tidak dibaca dari baris ATP');
++  assert(/const atpFase\s*= String\(\(atp as Record<string, unknown>\)\.fase/.test(bersih),
++    'fase tidak dibaca dari baris ATP');
++  assert(/\.select\('mapel, fase, jenjang, elemen_cp, collected_data, progresi_tp'\)/.test(bersih),
++    'baris ATP tidak lagi mengambil mapel dan fase');
++
++  // … dan ketiadaannya menghentikan penyusunan.
++  assert(/if \(!atpMapel \|\| !atpFase\) \{[\s\S]{0,400}\}, 422\);/.test(bersih),
++    'ATP tanpa mapel/fase tidak dihentikan');
++
++  // Tidak ada satu pun jalur yang menguraikan tuntutan memakai settings.
++  assert(/uraikanTuntutan\(atpMapel, atpFase, tpAnchor\.tuntutan\)/.test(bersih),
++    'penguraian tuntutan tidak memakai identitas ATP');
++  assert(!/uraikanTuntutan\([^)]*settings/.test(bersih),
++    'settings masih dipakai menguraikan tuntutan');
++
++  // Gerbang layanan CP memakai helper ATP, bukan daftar versi yang disalin.
++  assert(/periksaLayananCp\(atpMapel, atpFase, tpAnchor\.versi_cp\)/.test(bersih),
++    'gerbang layanan CP tidak dijalankan atas identitas ATP');
++  assert(!/046\/H\/KR\/2025/.test(bersih), 'daftar versi CP disalin ke generate-modul');
++});
++
++Deno.test('M2-V2: gerbang layanan CP memakai statusLayanan() ATP, dan menangkap versi warisan yang berbeda', () => {
++  // Kombinasi yang benar-benar dilayani.
++  const ok = periksaLayananCp(MAPEL, FASE, '046/H/KR/2025');
++  assertEquals(ok.didukung, true, ok.alasan.join('; '));
++  assertEquals(ok.versi_acuan, '046/H/KR/2025');
++
++  // Kombinasi tanpa acuan.
++  assertEquals(periksaLayananCp('Matematika', 'F', null).didukung, false);
++
++  // ATP yang disusun di atas CP lain tidak boleh melahirkan Modul baru diam-diam.
++  const beda = periksaLayananCp(MAPEL, FASE, '032/H/KR/2024');
++  assertEquals(beda.didukung, false);
++  assert(beda.alasan.some(a => a.includes('032/H/KR/2024')),
++    'versi warisan yang berbeda tidak disebut alasannya');
++
++  // Versi warisan kosong (ATP lama) tidak menambah alasan sendiri — yang
++  // menentukan tetap statusLayanan().
++  assertEquals(periksaLayananCp(MAPEL, FASE, null).didukung, true);
++});
++
++Deno.test('M2-W: program keahlian diwarisi dari potret ATP, bukan dari settings sekarang', () => {
++  const ctx = bangunAtpContext({
++    cd: atpServer().collected_data, anchor: anchorDari(atpServer()), jumlahMurid: 32,
++  });
++  assertEquals(ctx.program_keahlian.nilai, 'Tata Busana');
++  assertNotEquals(ctx.program_keahlian.nilai, SETTINGS_BASI.program_keahlian);
++
++  // Builder tidak lagi punya pintu masuk untuk nilai dari settings.
++  assert(!('programKeahlian' in (bangunAtpContext as unknown as Record<string, unknown>)),
++    'builder masih mengenal parameter program dari settings');
++
++  // ATP lama tanpa KONTEKS_CP → null, BUKAN ditebak dari keadaan sekarang.
++  const tanpaSnapshot = bangunAtpContext({
++    cd: atpServer({}, { KONTEKS_CP: {} }).collected_data,
++    anchor: anchorDari(atpServer()), jumlahMurid: 32,
++  });
++  assertEquals(tanpaSnapshot.program_keahlian.nilai, null,
++    'program keahlian ditebak dari keadaan sekarang');
++});
++
++Deno.test('M2-X: Fase C tidak lagi punya otoritas program keahlian sendiri', async () => {
++  const src = await Deno.readTextFile(EF_MODUL);
++
++  // Parameter paralelnya hilang seluruhnya — bukan sekadar tidak dipakai.
++  assert(!/programKeahlian/.test(src),
++    'jalur otoritas program keahlian yang paralel masih ada');
++  assert(!/program_keahlian: settings\?\.program_keahlian/.test(src),
++    'settings masih menjadi sumber program keahlian');
++
++  // Satu-satunya jalannya lewat warisan, sama dengan fase lain.
++  assert(/program_keahlian: \{ nilai: c\.program_keahlian\.nilai, asal: c\.program_keahlian\.asal \}/.test(src),
++    'program keahlian tidak lagi dibawa warisanKonteks()');
++
++  // identitas_db — yang SYSTEM_PROMPT sebut menentukan seluruh konteks dunia
++  // kerja modul — kini juga berpangkal pada potret ATP.
++  assert(/program_keahlian: atpContext\.program_keahlian\.nilai/.test(src),
++    'identitas_db masih memakai program keahlian dari settings');
++  assert(/mapel:\s*atpMapel/.test(src) && /fase:\s*atpFase/.test(src),
++    'identitas_db masih memakai mapel/fase dari settings');
++});
++
++Deno.test('M2-Y: kesiapan murid dicatat sebagai keadaan, bukan keputusan', () => {
++  const ctx = bangunAtpContext({
++    cd: atpServer().collected_data, anchor: anchorDari(atpServer()), jumlahMurid: 32,
++  });
++  assertEquals(ctx.kesiapan_murid.asal, 'fakta');
++  assertNotEquals(ctx.kesiapan_murid.asal, ctx.konteks_tugas.asal,
++    'kesiapan dan A17 masih punya jenis asal yang sama');
++});
++
++Deno.test('M2-Z: A17 eksplisit tetap keputusan guru', () => {
++  const ctx = bangunAtpContext({
++    cd: atpServer().collected_data, anchor: anchorDari(atpServer()), jumlahMurid: 32,
++  });
++  assertEquals(ctx.konteks_tugas.nilai, 'kehidupan');
++  assertEquals(ctx.konteks_tugas.asal, 'keputusan_guru');
++});
++
++Deno.test('M2-AA: A17 yang didelegasikan tetap keputusan ATP', () => {
++  const server = atpServer({}, {
++    KONTEKS_DUDI: { konteks_tugas: 'tentukan_saat_menyusun', situasi_khusus: 'tidak_ada' },
++    ATP_HASIL: {
++      acuan_cp: { versi_cp: '046/H/KR/2025' },
++      dasar_penyusunan: {
++        keputusan_miclass: [{
++          pertanyaan: 'Konteks contoh dan tugas',
++          didelegasikan_karena: 'guru memilih tentukan saat menyusun',
++          dipilih: LABEL_KONTEKS_TUGAS.kerja, alasan: 'a', sumber: 'penyusunan', kunci: 'kerja',
++        }],
++        penerapan_prioritas: [],
++      },
++    },
++  });
++  const ctx = bangunAtpContext({
++    cd: server.collected_data, anchor: anchorDari(server), jumlahMurid: 32,
++  });
++  assertEquals(ctx.konteks_tugas.nilai, 'kerja');
++  assertEquals(ctx.konteks_tugas.asal, 'keputusan_atp');
++});
++
++Deno.test('M2-AB: TP tanpa tuntutan → penyusunan Modul GAGAL, tidak menebak dari judul', async () => {
++  let kode: string | undefined;
++  let pesan = '';
++  try {
++    uraikanTuntutan(MAPEL, FASE, []);
++  } catch (e) {
++    kode  = (e as { code?: string }).code;
++    pesan = (e as Error).message;
++  }
++  assertEquals(kode, KODE_TUNTUTAN_KOSONG, 'daftar tuntutan kosong masih lolos');
++  assertEquals(kode, 'MODULE_TP_TUNTUTAN_TIDAK_TERSEDIA', 'nama kode tidak stabil');
++  assert(/tuntutan Capaian Pembelajaran/i.test(pesan),
++    'pesan tidak menjelaskan bahwa kontrak tuntutan yang hilang');
++
++  // Anchor TP tanpa tuntutan memang mungkin ada (ATP pra-acuan), dan justru itu
++  // yang harus dihentikan di jalur penyusunan.
++  const anchorTanpa = anchorDari(atpServer({ tuntutan: [] }));
++  assertEquals(anchorTanpa.tuntutan, []);
++  let kode2: string | undefined;
++  try { uraikanTuntutan(MAPEL, FASE, anchorTanpa.tuntutan); }
++  catch (e) { kode2 = (e as { code?: string }).code; }
++  assertEquals(kode2, KODE_TUNTUTAN_KOSONG);
++
++  // Dan galatnya benar-benar diteruskan sebagai penolakan, bukan ditelan.
++  const src = await Deno.readTextFile(EF_MODUL);
++  assert(/code:\s*err\.code \?\? KODE_TUNTUTAN_ASING/.test(src),
++    'kode galat penguraian tuntutan tidak diteruskan ke pemanggil');
++});
++
++Deno.test('M2-AC: jalur MEMBACA Modul historis tidak ikut terblokir', async () => {
++  // Gerbang §10 hanya hidup di generate-modul. Klien membuka, melihat, dan
++  // mengunduh Modul lama lewat query langsung ke modul_induk — tidak satu pun
++  // di antaranya memanggil Edge Function ini.
++  const klien = await Deno.readTextFile(
++    new URL('../guru/js/rancang-chat.js', import.meta.url));
++  const api = await Deno.readTextFile(
++    new URL('../guru/js/rancang-chat-api.js', import.meta.url));
++  const unduh = await Deno.readTextFile(
++    new URL('../guru/js/classroom-unduh.js', import.meta.url));
++
++  for (const [nama, src] of [['rancang-chat', klien], ['rancang-chat-api', api], ['classroom-unduh', unduh]] as const) {
++    assert(!/uraikanTuntutan|periksaLayananCp/.test(src),
++      `${nama} ikut menjalankan gerbang penyusunan`);
++  }
++  // Pembacaan modul memang lewat select biasa.
++  assert(/from\('modul_induk'\)[\s\S]{0,120}\.select\(/.test(api),
++    'jalur baca Modul tidak lagi berupa select langsung');
++
++  // Dan gerbangnya memang hanya ada di satu berkas.
++  const ef = await Deno.readTextFile(EF_MODUL);
++  assertEquals([...ef.matchAll(/uraikanTuntutan\(/g)].length, 1,
++    'penguraian tuntutan dipanggil di lebih dari satu tempat di EF');
++});
++
++Deno.test('M2-AD: fixture otoritas negatif — potret ATP menang atas settings di kedua sumbu', () => {
++  const atp = atpServer();                       // Bahasa Inggris / E, Tata Busana
++  const anchor = anchorDari(atp);
++
++  // Sumbu 1 — konteks kejuruan.
++  const ctx = bangunAtpContext({ cd: atp.collected_data, anchor, jumlahMurid: 32 });
++  assertEquals(ctx.program_keahlian.nilai, 'Tata Busana');
++  assertNotEquals(ctx.program_keahlian.nilai, SETTINGS_BASI.program_keahlian);
++
++  // Sumbu 2 — identitas CP.
++  const t = uraikanTuntutan(MAPEL, FASE, anchor.tuntutan);
++  assertEquals(t.map(x => x.id), anchor.tuntutan);
++  assertEquals(periksaLayananCp(MAPEL, FASE, ctx.versi_cp).didukung, true);
++  assertEquals(periksaLayananCp(SETTINGS_BASI.mapel, SETTINGS_BASI.fase, ctx.versi_cp).didukung, false,
++    'kombinasi settings ternyata dilayani — fixture tidak kontras');
++
++  // Keduanya berasal dari satu baris ATP yang sama, bukan dua sumber.
++  assertEquals(anchor.atp_induk_id, 'atp-1');
++});
++
++Deno.test('M2-AE: jumlah murid tetap fakta operasional current, satu angka dengan validator', async () => {
++  const ctx = bangunAtpContext({
++    cd: atpServer().collected_data, anchor: anchorDari(atpServer()), jumlahMurid: 28,
++  });
++  assertEquals(ctx.jumlah_murid.nilai, 28);
++  assertEquals(ctx.jumlah_murid.asal, 'fakta');
++
++  const src = await Deno.readTextFile(EF_MODUL);
++  // Satu variabel, dari rancang_settings, dipakai prompt DAN validator waktu.
++  assert(/const jumlahMurid = settings\?\.jumlah_murid \?\? null/.test(src),
++    'jumlah murid tidak lagi satu sumber dari rancang_settings');
++  assert(/validateModulOutputV400\([^)]*jumlahMurid/.test(src),
++    'validator waktu tidak memakai angka yang sama');
++  assert(/bangunAtpContext\(\{[\s\S]{0,400}jumlahMurid,/.test(src),
++    'atp_context tidak memakai angka yang sama');
++});
++
++Deno.test('M2-AF: dasar kesiapan diwarisi dari field ATP yang nyata, bukan kalimat buatan', () => {
++  const ctx = bangunAtpContext({
++    cd: atpServer().collected_data, anchor: anchorDari(atpServer()), jumlahMurid: 32,
++  });
++  // Fixture menjawab 'hasil_penilaian'; kalimatnya berasal dari kamus ATP.
++  assertEquals(ctx.kesiapan_murid.dasar, LABEL_DASAR_KESIAPAN.hasil_penilaian);
++
++  // Dasar yang berbeda menghasilkan kalimat yang berbeda — nilainya benar-benar
++  // dibaca, bukan tetap.
++  const pengamatan = bangunAtpContext({
++    cd: atpServer({}, { PROFIL_SISWA: { tingkat_kemampuan_awal: 'sesuai', dasar_informasi_kesiapan: 'pengamatan' } }).collected_data,
++    anchor: anchorDari(atpServer()), jumlahMurid: 32,
++  });
++  assertEquals(pengamatan.kesiapan_murid.dasar, LABEL_DASAR_KESIAPAN.pengamatan);
++  assertNotEquals(pengamatan.kesiapan_murid.dasar, ctx.kesiapan_murid.dasar);
++
++  // Kesiapan yang belum diketahui dinyatakan sebagai asumsi, bukan disembunyikan.
++  const belum = bangunAtpContext({
++    cd: atpServer({}, { PROFIL_SISWA: {} }).collected_data,
++    anchor: anchorDari(atpServer()), jumlahMurid: 32,
++  });
++  assert(/asumsi/i.test(belum.kesiapan_murid.dasar ?? ''),
++    'kesiapan tanpa informasi tidak ditandai sebagai asumsi');
++});

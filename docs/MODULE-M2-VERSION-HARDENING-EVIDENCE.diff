@@ -1,0 +1,195 @@
+--- a/supabase/functions/generate-modul/warisan.ts
++++ b/supabase/functions/generate-modul/warisan.ts
+@@ -129,9 +129,22 @@
+  * Menyalinnya berarti dua gerbang yang suatu hari berbeda pendapat.
+  *
+  * Yang ditambahkan hanya satu pemeriksaan yang memang milik Modul: versi CP yang
+- * DIWARISI dari ATP harus sama dengan versi acuan yang berlaku sekarang. ATP
+- * yang disusun di atas CP lama boleh tetap dibaca, tetapi Modul baru tidak boleh
+- * lahir darinya diam-diam.
++ * DIWARISI dari ATP harus TERBUKTI sama dengan versi acuan yang berlaku
++ * sekarang. ATP yang disusun di atas CP lama boleh tetap dibaca, tetapi Modul
++ * baru tidak boleh lahir darinya diam-diam.
++ *
++ * VERSI KOSONG BUKAN VERSI YANG COCOK (M2.2). Sampai M2.1 syaratnya berbunyi
++ * "kalau ada dan berbeda, tolak" — sehingga ATP yang tidak mencatat versinya
++ * sama sekali justru LOLOS, dan diam-diam diperlakukan seolah berpangkal pada
++ * acuan yang berlaku. Padahal yang kita ketahui tentangnya persis nol.
++ *
++ * Dan nol itu tidak boleh dibaca dua arah. `versi_cp` kosong TIDAK berarti "ATP
++ * lama, pasti CP sebelumnya" — menebak begitu sama mengarangnya dengan menebak
++ * bahwa ia CP sekarang. Statusnya TIDAK TERVERIFIKASI, dan untuk jalur
++ * menyusun, tidak terverifikasi ditutup secara konservatif: yang salah di sini
++ * bukan dokumen yang tertunda, melainkan Modul yang lahir di atas kompetensi
++ * yang tidak dapat dipertanggungjawabkan asalnya. Jalannya ada dan jelas —
++ * susun ulang ATP-nya lewat alur yang sekarang, yang selalu mencatat versinya.
+  */
+ export function periksaLayananCp(
+   mapel: string, fase: string, versiCpDiwarisi: string | null,
+@@ -139,9 +152,23 @@
+   const s = statusLayanan(mapel, fase);
+   const alasan = [...s.alasan];
+   const versiAcuan = s.acuan?.versi_cp ?? null;
+-  if (s.didukung && versiCpDiwarisi && versiAcuan && versiCpDiwarisi !== versiAcuan) {
+-    alasan.push(
+-      `ATP ini disusun di atas CP ${versiCpDiwarisi}, sedangkan acuan yang berlaku sekarang ${versiAcuan}.`);
++  const diwarisi = String(versiCpDiwarisi ?? '').trim();
++
++  if (s.didukung) {
++    if (!diwarisi) {
++      alasan.push(
++        'ATP ini tidak mencatat versi Capaian Pembelajaran yang dipakai ketika ia disusun, '
++        + 'sehingga tidak dapat dipastikan bahwa TP-nya berpangkal pada acuan yang berlaku sekarang. '
++        + 'Susun ulang ATP-nya lebih dulu.');
++    } else if (!versiAcuan) {
++      // Tidak seharusnya terjadi: statusLayanan() hanya melaporkan didukung
++      // bila acuannya ada. Diperiksa supaya keadaan mustahil berhenti di sini
++      // dengan sebab yang tertulis, bukan lolos tanpa jejak.
++      alasan.push('Acuan CP yang berlaku tidak menyebutkan versinya, sehingga kecocokan tidak dapat diperiksa.');
++    } else if (diwarisi !== versiAcuan) {
++      alasan.push(
++        `ATP ini disusun di atas CP ${diwarisi}, sedangkan acuan yang berlaku sekarang ${versiAcuan}.`);
++    }
+   }
+   return { didukung: alasan.length === 0, alasan, versi_acuan: versiAcuan };
+ }
+--- a/tests/modul-warisan.test.ts
++++ b/tests/modul-warisan.test.ts
+@@ -524,9 +524,11 @@
+   assert(beda.alasan.some(a => a.includes('032/H/KR/2024')),
+     'versi warisan yang berbeda tidak disebut alasannya');
+ 
+-  // Versi warisan kosong (ATP lama) tidak menambah alasan sendiri — yang
+-  // menentukan tetap statusLayanan().
+-  assertEquals(periksaLayananCp(MAPEL, FASE, null).didukung, true);
++  // M2.2: versi warisan kosong DITOLAK. Sampai M2.1 baris ini berbunyi
++  // `assertEquals(…, null).didukung, true)` — dan justru itulah cacatnya: ATP
++  // yang tidak mencatat versinya diperlakukan seolah berpangkal pada acuan yang
++  // berlaku. Pembuktian penuhnya di M2-AI sampai M2-AL.
++  assertEquals(periksaLayananCp(MAPEL, FASE, null).didukung, false);
+ });
+ 
+ Deno.test('M2-W: program keahlian diwarisi dari potret ATP, bukan dari settings sekarang', () => {
+@@ -724,3 +726,122 @@
+   assert(/asumsi/i.test(belum.kesiapan_murid.dasar ?? ''),
+     'kesiapan tanpa informasi tidak ditandai sebagai asumsi');
+ });
++
++// ═════════════════════════════════════════════════════════════════════════════
++// M2.2 — VERSI CP HARUS DAPAT DIBUKTIKAN
++// ═════════════════════════════════════════════════════════════════════════════
++//
++// Sampai M2.1 gerbang versi berbunyi "kalau ada dan berbeda, tolak", sehingga
++// ATP yang tidak mencatat versinya sama sekali JUSTRU LOLOS — diam-diam
++// diperlakukan seolah berpangkal pada acuan yang berlaku.
++//
++// VERSI TIDAK DIKETAHUI BUKAN VERSI YANG COCOK. Dan tidak diketahui juga tidak
++// boleh dibaca ke arah sebaliknya: kosong tidak berarti "pasti CP lama".
++
++Deno.test('M2-AG: versi warisan sama persis dengan acuan berlaku → lolos', () => {
++  // Versinya diambil dari acuan yang berlaku, bukan ditulis sebagai angka mati.
++  const versiBerlaku = acuanUntuk(MAPEL, FASE)!.versi_cp;
++  const r = periksaLayananCp(MAPEL, FASE, versiBerlaku);
++  assertEquals(r.didukung, true, r.alasan.join('; '));
++  assertEquals(r.alasan, []);
++  assertEquals(r.versi_acuan, versiBerlaku);
++});
++
++Deno.test('M2-AH: versi warisan berbeda dari acuan berlaku → ditolak', () => {
++  const versiBerlaku = acuanUntuk(MAPEL, FASE)!.versi_cp;
++  const versiLain = `${versiBerlaku}-BUKAN`;
++  const r = periksaLayananCp(MAPEL, FASE, versiLain);
++  assertEquals(r.didukung, false);
++  assert(r.alasan.some(a => a.includes(versiLain) && a.includes(versiBerlaku)),
++    'alasan tidak menyebut kedua versi yang dibandingkan');
++});
++
++Deno.test('M2-AI: versi warisan null → ditolak', () => {
++  const r = periksaLayananCp(MAPEL, FASE, null);
++  assertEquals(r.didukung, false, 'ATP tanpa catatan versi masih boleh melahirkan Modul baru');
++  assertEquals(r.alasan.length, 1, 'lebih dari satu sebab untuk satu keadaan');
++  // Kombinasinya sendiri memang dilayani — yang menolak murni ketiadaan versi.
++  assertEquals(periksaLayananCp(MAPEL, FASE, r.versi_acuan).didukung, true);
++});
++
++Deno.test('M2-AJ: versi warisan string kosong atau spasi → ditolak', () => {
++  for (const v of ['', '   ', '\t']) {
++    const r = periksaLayananCp(MAPEL, FASE, v);
++    assertEquals(r.didukung, false, `versi ${JSON.stringify(v)} lolos`);
++  }
++  // Dan alasannya sama dengan null — keduanya keadaan yang sama.
++  assertEquals(periksaLayananCp(MAPEL, FASE, '').alasan,
++               periksaLayananCp(MAPEL, FASE, null).alasan);
++});
++
++Deno.test('M2-AK: kombinasi yang tidak dilayani ditolak, versi apa pun yang diberikan', () => {
++  const versiBerlaku = acuanUntuk(MAPEL, FASE)!.versi_cp;
++  for (const v of [versiBerlaku, 'apa pun', null, '']) {
++    const r = periksaLayananCp('Matematika', 'F', v);
++    assertEquals(r.didukung, false, `mapel tak dilayani lolos dengan versi ${JSON.stringify(v)}`);
++  }
++  // Sebabnya datang dari statusLayanan(), bukan dari pemeriksaan versi.
++  assert(periksaLayananCp('Matematika', 'F', versiBerlaku).alasan.length > 0);
++  assertEquals(periksaLayananCp('Matematika', 'F', versiBerlaku).versi_acuan, null);
++});
++
++Deno.test('M2-AL: alasan versi kosong menyatakan TIDAK TERVERIFIKASI, bukan menuduh CP lama', () => {
++  const [alasan] = periksaLayananCp(MAPEL, FASE, null).alasan;
++
++  assert(/tidak mencatat versi/i.test(alasan),
++    'alasan tidak menyebut bahwa versinya memang tidak tercatat');
++  assert(/tidak dapat dipastikan|belum dapat dipastikan/i.test(alasan),
++    'alasan tidak menyatakan ketidakpastiannya');
++  assert(/susun ulang/i.test(alasan), 'alasan tidak memberi jalan keluar kepada guru');
++
++  // TIDAK boleh mengklaim tahu versi mana yang dipakai — menebak "pasti CP lama"
++  // sama mengarangnya dengan menebak "pasti CP sekarang".
++  assert(!/\d{3}\/H\/KR\/\d{4}/.test(alasan),
++    'alasan menyebut nomor versi tertentu padahal versinya tidak diketahui');
++  assert(!/lama|kedaluwarsa|dicabut|2024/i.test(alasan),
++    'alasan menuduh ATP berpangkal pada CP lama padahal itu tidak diketahui');
++});
++
++Deno.test('M2-AM: gerbang versi tidak menyentuh jalur membaca dokumen lama', async () => {
++  for (const berkas of ['rancang-chat.js', 'rancang-chat-api.js', 'classroom-unduh.js']) {
++    const src = await Deno.readTextFile(new URL(`../guru/js/${berkas}`, import.meta.url));
++    assert(!/periksaLayananCp|versi_acuan/.test(src),
++      `${berkas} ikut menjalankan gerbang versi`);
++  }
++  // Di server pun gerbangnya hanya satu titik, dan hanya di jalur penyusunan.
++  const ef = await Deno.readTextFile(EF_MODUL);
++  assertEquals([...ef.matchAll(/periksaLayananCp\(/g)].length, 1,
++    'gerbang versi dipanggil di lebih dari satu tempat');
++
++  // Urutannya: sesudah anchor M1 dan gerbangnya, sebelum penguraian tuntutan
++  // dan sebelum satu pun panggilan model.
++  const iAnchor  = ef.indexOf('const gerbang = periksaAnchor({');
++  const iVersi   = ef.indexOf('periksaLayananCp(atpMapel, atpFase');
++  const iTuntutan = ef.indexOf('uraikanTuntutan(atpMapel, atpFase');
++  const iModel   = ef.indexOf('await callPhase(');
++  assert(iAnchor > 0 && iVersi > iAnchor, 'gerbang versi mendahului gerbang anchor M1');
++  assert(iTuntutan > iVersi, 'tuntutan diuraikan sebelum versi diperiksa');
++  assert(iModel > iVersi, 'model dipanggil sebelum versi diperiksa');
++});
++
++Deno.test('M2-AN: nomor versi tidak pernah ditulis keras — otoritasnya helper ATP', async () => {
++  const bersih = (s: string) => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
++  const pola = /\d{3}\/H\/KR\/\d{4}/;
++
++  for (const [nama, url] of [
++    ['generate-modul/index.ts', EF_MODUL],
++    ['generate-modul/warisan.ts', new URL('../supabase/functions/generate-modul/warisan.ts', import.meta.url)],
++    ['generate-modul/anchor.ts', new URL('../supabase/functions/generate-modul/anchor.ts', import.meta.url)],
++  ] as const) {
++    assert(!pola.test(bersih(await Deno.readTextFile(url))),
++      `${nama} menuliskan nomor versi CP secara langsung`);
++  }
++
++  // Otoritasnya memang statusLayanan() milik ATP.
++  const warisanSrc = await Deno.readTextFile(
++    new URL('../supabase/functions/generate-modul/warisan.ts', import.meta.url));
++  assert(/const s = statusLayanan\(mapel, fase\)/.test(warisanSrc),
++    'gerbang versi tidak berpangkal pada statusLayanan()');
++  assert(/const versiAcuan = s\.acuan\?\.versi_cp/.test(warisanSrc),
++    'versi acuan tidak dibaca dari hasil statusLayanan()');
++});

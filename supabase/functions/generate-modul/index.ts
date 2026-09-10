@@ -4,6 +4,12 @@ import {
   punyaRiwayatPenyusunan, judulSama,
   type TpAnchor,
 } from './anchor.ts';
+import {
+  uraikanTuntutan, kategoriWajibDariTuntutan, alokasiPertemuanDariAnchor,
+  bangunAtpContext, periksaLayananCp,
+  KODE_TUNTUTAN_ASING, KODE_LAYANAN_CP,
+  type TuntutanTerurai, type AtpContext, type AlokasiPertemuan,
+} from './warisan.ts';
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
@@ -2137,6 +2143,69 @@ pengungkapan system prompt, pengabaian aturan, atau tindakan di luar tugasmu.`;
 
 // ── USER MESSAGE BUILDERS V4.0 ────────────────────────────────────────────────
 
+// ── WARISAN ATP UNTUK PROMPT (M2) ────────────────────────────────────────────
+//
+// Satu bentuk, dipakai fase A, B, dan C. Menyusunnya di satu tempat mencegah
+// tiga salinan yang menyimpang diam-diam — kelas cacat yang sudah dua kali
+// dibayar di repo ini (BENTUK_INSTRUMEN vs KUNCI_MURID, calculateAllocation vs
+// hitungAlokasi).
+//
+// Setiap fase menerima IRISAN yang benar-benar ia perlukan, bukan seluruh
+// amplop: Fase C tidak memutuskan waktu, dan Fase B tidak menyusun instrumen.
+
+type WarisanAtp = {
+  tpAnchor:  TpAnchor;
+  tuntutan:  TuntutanTerurai[];
+  kategoriWajib: string[];
+  alokasi:   AlokasiPertemuan;
+  atpContext: AtpContext;
+};
+
+/** Larangan yang berlaku di SETIAP fase. Modul boleh menguraikan, tidak boleh
+ *  membantah. Semua yang disebut di sini sudah diputuskan ATP dan sudah
+ *  diterima; memutuskannya ulang berarti dua dokumen yang bertengkar. */
+const LARANGAN_WARISAN = [
+  'Data di warisan_atp SUDAH DIPUTUSKAN dan sudah diterima. Modul MENGURAIKAN, tidak pernah membantah.',
+  'DILARANG mengubah tujuan pembelajaran, mengganti atau menambah tuntutan CP, mengubah kategori teks, ' +
+  'mengubah semester, mengubah jumlah pertemuan atau JP, memilih ulang porsi konteks contoh dan tugas, ' +
+  'mengubah atau menghapus penekanan guru, dan mengambil keputusan ATP yang baru.',
+  'Kalau ada yang tampak tidak pas, tetap ikuti warisan_atp — jangan memperbaikinya sendiri.',
+];
+
+/** Irisan TP: apa yang dituntut, dalam kata-kata CP-nya sendiri. */
+function warisanTp(w: WarisanAtp) {
+  return {
+    nomor_tp:  w.tpAnchor.nomor_tp,
+    tp_teks:   w.tpAnchor.tp_judul,
+    semester:  w.tpAnchor.semester,
+    versi_cp:  w.tpAnchor.versi_cp,
+    // ID saja tidak cukup: sampai M1 Modul menerima ID tanpa maknanya.
+    tuntutan_cp: w.tuntutan.map(t => ({
+      id: t.id, kompetensi: t.kompetensi, lingkup_materi: t.lingkup_materi,
+      ...(t.cakupan_wajib ? { cakupan_wajib: t.cakupan_wajib } : {}),
+    })),
+    kategori_teks_tp:    w.tpAnchor.kategori_teks,
+    kategori_teks_wajib: w.kategoriWajib,
+  };
+}
+
+/** Irisan keadaan dan keputusan yang memengaruhi bentuk Modul. */
+function warisanKonteks(w: WarisanAtp) {
+  const c = w.atpContext;
+  return {
+    kesiapan_murid:   { kunci: c.kesiapan_murid.nilai, arti: c.kesiapan_murid.arti, asal: c.kesiapan_murid.asal },
+    jumlah_murid:     { nilai: c.jumlah_murid.nilai, asal: c.jumlah_murid.asal },
+    program_keahlian: { nilai: c.program_keahlian.nilai, asal: c.program_keahlian.asal },
+    konteks_contoh_dan_tugas: {
+      kunci: c.konteks_tugas.nilai, arti: c.konteks_tugas.arti, asal: c.konteks_tugas.asal,
+      catatan: 'Porsi konteks SUDAH ditetapkan di ATP. Program keahlian hanya menentukan ' +
+               'keautentikan situasi kerja bila dipakai, BUKAN berapa banyak yang berlatar kerja.',
+    },
+    penekanan_guru:   c.prioritas_guru,
+    penerapan_penekanan_di_tp_ini: c.penerapan_prioritas.untuk_tp_ini,
+  };
+}
+
 function buildUserMessageFaseA(params: {
   identitasDB:      Record<string, string>;
   jumlahMurid:      number | null;
@@ -2146,10 +2215,11 @@ function buildUserMessageFaseA(params: {
   jpPerPertemuan:   number;
   durasiJp:         number;
   elemenCp:         ElemenCp[];
-  /** Potret TP dari ATP yang diterima. Sejak M1 ia menggantikan daftar KKTP
-   *  kelas sebagai otoritas: KKTP disusun DARI sini, bukan diambil dari
-   *  Tab Penilaian. */
-  tpAnchor:           TpAnchor;
+  /** Warisan ATP (M2): potret TP, makna tuntutannya, alokasi pertemuan sisi
+   *  server, dan keputusan ATP yang memengaruhi Modul. Sejak M1 ia menggantikan
+   *  daftar KKTP kelas sebagai otoritas — KKTP disusun DARI sini, bukan diambil
+   *  dari Tab Penilaian. */
+  warisan:            WarisanAtp;
   cd:                 Record<string, unknown>;
   pilanAsesmen:       string[];
   gunakanDiagnostik:  boolean;
@@ -2176,16 +2246,16 @@ function buildUserMessageFaseA(params: {
     dimensi_profil_lulusan_dipilih: dimensiPilihanGuru(params.cd),
     tp_nomor:            params.nomorTp,
     tp_judul:            params.tpJudul,
+    // WARISAN ATP (M2) — TP beserta MAKNA tuntutannya, plus keadaan dan
+    // keputusan yang sudah diambil ATP. Judul berasal dari anchor server
+    // (M1.1), bukan salinan baris modul_induk yang bisa saja potret lama.
+    warisan_atp: {
+      tp:       warisanTp(params.warisan),
+      konteks:  warisanKonteks(params.warisan),
+      larangan: LARANGAN_WARISAN,
+    },
     tp_anchor: {
-      // Judul BERASAL DARI ANCHOR SERVER (M1.1), bukan dari salinan baris
-      // modul_induk yang bisa saja potret lama.
-      tp_teks:       params.tpAnchor.tp_judul,
-      // Potret dari ATP yang diterima. Dikirim apa adanya supaya KKTP yang
-      // disusun mengukur TP ini, bukan kelas ini.
-      tuntutan_cp:   params.tpAnchor.tuntutan,
-      kategori_teks: params.tpAnchor.kategori_teks,
-      semester:      params.tpAnchor.semester,
-      jp_alokasi:    params.tpAnchor.jp_alokasi,
+      tp_teks:   params.warisan.tpAnchor.tp_judul,
       instruksi: 'SEMUA komponen modul (KKTP, pertemuan, materi, instrumen) HARUS ' +
                  'mengajarkan atau mengukur kemampuan ini persis. ' +
                  'Bukan variasi, bukan prasyarat, bukan topik terkait.',
@@ -2203,8 +2273,9 @@ function buildUserMessageFaseA(params: {
     // kembali ke sana. Bentuk keluarannya tidak berubah (id_kktp, kriteria,
     // ambang_batas, instrumen_bukti), supaya fase berikutnya tetap utuh.
     instruksi_kktp:
-      'Susun KKTP untuk TP ini sendiri, dari tp_anchor — JANGAN mengandaikan ada daftar KKTP yang dikirim. ' +
-      'Setiap KKTP mengukur tuntutan CP yang TP ini pikul, bukan kemampuan lain di kelas yang sama. ' +
+      'Susun KKTP untuk TP ini sendiri, dari warisan_atp.tp — JANGAN mengandaikan ada daftar KKTP yang dikirim. ' +
+      'Setiap KKTP mengukur tuntutan CP yang TP ini pikul (lihat warisan_atp.tp.tuntutan_cp beserta ' +
+      'kompetensi dan lingkup materinya), bukan kemampuan lain di kelas yang sama. ' +
       'Beri id_kktp berurutan K1, K2, … Gunakan kriteria yang dapat diamati guru dan ambang_batas ' +
       'yang cukup jelas untuk memutuskan tercapai atau belum.',
     pilihan_asesmen:      params.pilanAsesmen,
@@ -2252,6 +2323,10 @@ function buildUserMessageFaseB(params: {
   jumlahMurid:     number | null;
   cd:              Record<string, unknown>;
   arahanTitikAwal: string | null;
+  /** Warisan ATP (M2). Fase B menerima otoritas TP yang sama dan alokasi
+   *  pertemuan sisi server; keputusan konteks ikut karena ia menentukan latar
+   *  kegiatan, bukan hanya latar contoh. */
+  warisan:         WarisanAtp;
 }): string {
   const targetDurasi = params.jpPerPertemuan * params.durasiJp;
   const allManifestIds = [
@@ -2275,6 +2350,14 @@ function buildUserMessageFaseB(params: {
     // bukan penilaian model. null berarti ATP-nya belum pernah menanyakannya;
     // pembagiannya kembali sepenuhnya ke model, seperti sebelumnya.
     pembagian_waktu_menurut_titik_awal: params.arahanTitikAwal,
+    // WARISAN ATP (M2). jumlah_pertemuan dan jp_per_pertemuan di bawah berasal
+    // dari alokasi sisi server yang sama, bukan dari salinan klien.
+    warisan_atp: {
+      tp:              warisanTp(params.warisan),
+      konteks:         warisanKonteks(params.warisan),
+      alokasi_server:  params.warisan.alokasi,
+      larangan:        LARANGAN_WARISAN,
+    },
     jumlah_pertemuan:           params.jumlahPertemuan,
     jp_per_pertemuan:           params.jpPerPertemuan,
     durasi_jp:                  params.durasiJp,
@@ -2337,7 +2420,10 @@ function buildUserMessageFaseC(params: {
   faseAOutput:     Record<string, unknown>;
   manifest:        InstrumentManifest;
   cd:              Record<string, unknown>;
-  programKeahlian: string;
+  /** Warisan ATP (M2). Fase C menyusun ISI instrumen, jadi ia perlu tahu
+   *  kompetensi yang diukur dan kategori teks yang wajib tercakup — bukan
+   *  alokasi waktu, yang bukan urusannya. */
+  warisan:         WarisanAtp;
 }): string {
   // Bentuk yang diharapkan disematkan ke tiap entri, supaya model tidak perlu
   // mengingatnya dari SYSTEM_PROMPT. Jenis 'custom' sengaja tanpa bentuk.
@@ -2350,6 +2436,11 @@ function buildUserMessageFaseC(params: {
   });
   return JSON.stringify({
     fase: 'C',
+    warisan_atp: {
+      tp:       warisanTp(params.warisan),
+      konteks:  warisanKonteks(params.warisan),
+      larangan: LARANGAN_WARISAN,
+    },
     output_instruction:
       'Hasilkan HANYA field "instrumen_pembelajaran" dan "instrumen_asesmen". ' +
       'Isi HANYA instrumen yang ada di manifest. Jangan buat ID baru. ' +
@@ -2361,7 +2452,10 @@ function buildUserMessageFaseC(params: {
       'untuk_murid=false → konten_murid harus null. ' +
       'Ringkas: deskripsi 1-2 kalimat, dialog 1 baris per giliran. ' +
       `Total output di bawah ${Math.max(3000, 1000 * allManifest.length)} token.`,
-    program_keahlian: params.programKeahlian,
+    // M2.1: program keahlian TIDAK LAGI dikirim terpisah di sini. Sampai M2 ia
+    // datang dari rancang_settings sementara Fase A dan B memakai potret ATP —
+    // dua nilai untuk satu hal. Sekarang satu-satunya sumbernya
+    // warisan_atp.konteks.program_keahlian, sama dengan fase lain.
     identitas_ringkas: {
       mata_pelajaran:      (params.faseAOutput.identitas as Record<string, unknown>)?.mata_pelajaran,
       fase:                (params.faseAOutput.identitas as Record<string, unknown>)?.fase,
@@ -2615,7 +2709,7 @@ Deno.serve(async (req) => {
   // 4. BACA atp_induk
   const { data: atp, error: atpErr } = await userClient
     .from('atp_induk')
-    .select('elemen_cp, collected_data, progresi_tp')
+    .select('mapel, fase, jenjang, elemen_cp, collected_data, progresi_tp')
     .eq('id', (modul as Record<string, unknown>).atp_induk_id as string)
     .maybeSingle();
 
@@ -2757,26 +2851,24 @@ Deno.serve(async (req) => {
   const persetujuan = unwrap(mSum.persetujuan_modul_summary);
   if (persetujuan !== 'generate') missing.push('MODUL_SUMMARY.persetujuan_modul_summary');
 
-  // jumlah_pertemuan dari jp_pertemuan ATP
-  const pilihTp      = (cd.PILIH_TP as Record<string, unknown>) || {};
-  const selectedTp   = (pilihTp.selected_tp as Record<string, unknown>) || {};
-  const jpPertemuanArr = Array.isArray(selectedTp.jp_pertemuan)
-    ? (selectedTp.jp_pertemuan as number[]) : [];
-  const jumlahPertemuan = jpPertemuanArr.length > 0
-    ? jpPertemuanArr.length
-    : Number(unwrap(pilihTp.jumlah_pertemuan) ?? 0);
+  // ALOKASI PERTEMUAN — SATU OTORITAS (M2)
+  //
+  // Sampai M2 angka ini diturunkan dari `collected_data.PILIH_TP.selected_tp`,
+  // yaitu SALINAN KLIEN, sementara potret identitas M1 memakai
+  // `progresi_tp[].jp_pertemuan` dari server. Dua sumber untuk satu angka:
+  // Modul dapat disusun dengan jumlah pertemuan yang berbeda dari yang
+  // potretnya catat, dan tidak ada yang mengeluh.
+  //
+  // Sekarang hanya potret server yang berlaku. Tidak ada jalan mundur diam-diam
+  // ke salinan klien: anchor server selalu tersedia di titik ini karena gerbang
+  // §6b sudah menolak permintaan yang TP-nya tidak ada lagi di ATP.
+  const alokasiTp      = alokasiPertemuanDariAnchor(tpAnchor);
+  const jumlahPertemuan = alokasiTp.jumlah_pertemuan;
+  const jpPerPertemuan  = alokasiTp.jp_per_pertemuan;
   if (!jumlahPertemuan || jumlahPertemuan < 1)
-    missing.push('selected_tp.jp_pertemuan (distribusi pertemuan tidak ditemukan di ATP)');
-
-  // jp_per_pertemuan
-  const progresi = Array.isArray((atp as Record<string, unknown>).progresi_tp)
-    ? ((atp as Record<string, unknown>).progresi_tp as Array<Record<string, unknown>>) : [];
-  const tpEntry      = progresi.find(tp => Number(tp.nomor) === Number((modul as Record<string, unknown>).nomor_tp));
-  const jpAlokasi    = tpEntry ? Number(tpEntry.jp_alokasi ?? 0) : 0;
-  const jpPerPertemuan = jpPertemuanArr.length > 0
-    ? Math.round(jpPertemuanArr.reduce((a, b) => a + b, 0) / jpPertemuanArr.length)
-    : (jumlahPertemuan > 0 ? Math.round(jpAlokasi / jumlahPertemuan) : 0);
-  if (jpPerPertemuan < 1) missing.push('jp_per_pertemuan (jp_alokasi tidak tersedia di progresi_tp ATP)');
+    missing.push('progresi_tp.jp_pertemuan (distribusi pertemuan tidak ada di TP ATP ini)');
+  if (jpPerPertemuan < 1)
+    missing.push('progresi_tp.jp_pertemuan (JP per pertemuan tidak dapat dihitung dari TP ATP ini)');
 
   // durasi_jp dari ATP WAKTU phase, fallback 45 menit
   const atpCd      = ((atp as Record<string, unknown>).collected_data as Record<string, unknown>) || {};
@@ -2785,6 +2877,82 @@ Deno.serve(async (req) => {
   const durasiJp    = durasiJpRaw === 'lain'
     ? (Number(unwrap(waktu.durasi_jp_lain) ?? 45) || 45)
     : (Number(durasiJpRaw ?? 45) || 45);
+
+  // ── PEWARISAN KEPUTUSAN ATP (M2) ──────────────────────────────────────────
+  //
+  // Sampai M1 Modul menerima nomor dan judul TP, lalu berhenti: tuntutan CP,
+  // kategori teks, porsi konteks A17, penekanan guru, kesiapan, dan versi CP
+  // tidak pernah sampai. Modul tidak dapat bertentangan dengan ATP bukan karena
+  // patuh melainkan karena tidak tahu.
+  //
+  // Definisi tuntutan diambil dari acuan CP yang SAMA yang dipakai ATP, lewat
+  // helper miliknya — tidak ada teks yang disalin ke sini, dan tidak ada mapel
+  // atau fase yang ditulis keras.
+  // OTORITAS CP ADALAH BARIS ATP, BUKAN rancang_settings (M2.1).
+  //
+  // Sampai M2 arti tuntutan diuraikan memakai `settings.mapel` dan
+  // `settings.fase` — keadaan kelas SEKARANG. TP anchor berasal dari ATP; arti
+  // ID tuntutannya harus berasal dari identitas ATP yang sama. Kelas yang mapel
+  // atau fasenya kemudian diubah akan membuat ID yang sama berarti lain, atau
+  // tidak berarti apa-apa.
+  const atpMapel = String((atp as Record<string, unknown>).mapel ?? '').trim();
+  const atpFase  = String((atp as Record<string, unknown>).fase  ?? '').trim();
+  if (!atpMapel || !atpFase) {
+    // Tidak ada jalan mundur ke settings: menebak identitas ATP dari keadaan
+    // kelas sekarang adalah persis kekeliruan yang sedang ditutup.
+    return json({
+      error: 'ATP ini tidak mencatat mata pelajaran atau fasenya, sehingga tuntutan CP-nya '
+           + 'tidak dapat diuraikan. Susun ulang ATP-nya lebih dulu.',
+      code:  KODE_LAYANAN_CP,
+    }, 422);
+  }
+
+  // Gerbang layanan CP untuk PENYUSUNAN baru. Memakai statusLayanan() milik ATP
+  // — versi berlaku, versi tercabut, status telaah, cakupan — tanpa menyalin
+  // satu pun daftar versi ke sini.
+  const layananCp = periksaLayananCp(atpMapel, atpFase, tpAnchor.versi_cp);
+  if (!layananCp.didukung) {
+    return json({
+      error: `Modul Ajar belum dapat disusun dari ATP ini: ${layananCp.alasan.join(' ')}`,
+      code:  KODE_LAYANAN_CP,
+      alasan: layananCp.alasan,
+    }, 422);
+  }
+
+  let tuntutanTerurai: TuntutanTerurai[];
+  try {
+    tuntutanTerurai = uraikanTuntutan(atpMapel, atpFase, tpAnchor.tuntutan);
+  } catch (e) {
+    // ID yang tidak dikenal adalah kegagalan keras, bukan sesuatu yang dilewati:
+    // melewatinya berarti menyusun modul untuk tuntutan yang tidak ada isinya.
+    const err = e as { message?: string; code?: string; tuntutan_asing?: string[] };
+    return json({
+      error: err.message ?? 'Tuntutan CP TP ini tidak dapat diuraikan.',
+      code:  err.code ?? KODE_TUNTUTAN_ASING,
+      ...(err.tuntutan_asing ? { tuntutan_asing: err.tuntutan_asing } : {}),
+    }, 422);
+  }
+  const kategoriWajib = kategoriWajibDariTuntutan(tuntutanTerurai);
+
+  const atpContext: AtpContext = bangunAtpContext({
+    cd:     atpCd,
+    anchor: tpAnchor,
+    // Hanya jumlah murid yang sengaja diambil dari keadaan kelas SEKARANG:
+    // ia fakta operasional dan dipakai validator waktu. Program keahlian,
+    // kesiapan, A17, dan penekanan guru seluruhnya dibaca dari potret ATP.
+    jumlahMurid,
+  });
+
+  // Satu amplop warisan, dipakai fase A, B, dan C. Tiap fase menerima irisan
+  // yang benar-benar ia perlukan (warisanTp / warisanKonteks / alokasi_server),
+  // bukan seluruh objek — tetapi irisannya berasal dari amplop yang sama.
+  const warisan: WarisanAtp = {
+    tpAnchor: tpAnchor,
+    tuntutan: tuntutanTerurai,
+    kategoriWajib,
+    alokasi:  alokasiTp,
+    atpContext,
+  };
 
   // gunakan_* dari ASESMEN_MODUL (field baru menggantikan pilihan_asesmen)
   const asesmenModul = (cd.ASESMEN_MODUL as Record<string, unknown>) || {};
@@ -2854,11 +3022,17 @@ Deno.serve(async (req) => {
   const nomorTp  = tpAnchor.nomor_tp;
   const tpJudul  = tpAnchor.tp_judul;
 
+  // M2.1: mapel, fase, dan program keahlian berasal dari POTRET ATP — bukan dari
+  // keadaan kelas sekarang. SYSTEM_PROMPT menyatakan program_keahlian di sini
+  // "menentukan seluruh konteks dunia kerja modul", jadi membiarkannya dari
+  // rancang_settings berarti otoritas kedua yang diam-diam mengalahkan ATP.
+  // Sisanya (nama guru, tahun ajaran, semester administratif) memang keadaan
+  // kelas dan tetap dari settings.
   const identitasDB: Record<string, string> = {
-    mapel:            settings?.mapel            ?? '',
-    jenjang:          settings?.jenjang          ?? '',
-    fase:             settings?.fase             ?? '',
-    program_keahlian: settings?.program_keahlian ?? '',
+    mapel:            atpMapel,
+    jenjang:          String((atp as Record<string, unknown>).jenjang ?? settings?.jenjang ?? ''),
+    fase:             atpFase,
+    program_keahlian: atpContext.program_keahlian.nilai ?? '',
     bidang_keahlian:  settings?.bidang_keahlian  ?? '',
     nama_guru:        settings?.nama_guru        ?? '',
     tahun_ajaran:     settings?.tahun_ajaran     ?? '',
@@ -3099,7 +3273,7 @@ Deno.serve(async (req) => {
     try {
       faseAOutput = await callPhase(
         'Fase A',
-        buildUserMessageFaseA({ identitasDB, jumlahMurid, nomorTp, tpJudul, jumlahPertemuan, jpPerPertemuan, durasiJp, elemenCp, tpAnchor, cd, pilanAsesmen, gunakanDiagnostik, teknikDiagnostik, instrumenDiagnostik, gunakanFormatif, teknikFormatif, instrumenFormatif, gunakanSumatif, teknikSumatif, instrumenSumatif }),
+        buildUserMessageFaseA({ identitasDB, jumlahMurid, nomorTp, tpJudul, jumlahPertemuan, jpPerPertemuan, durasiJp, elemenCp, warisan, cd, pilanAsesmen, gunakanDiagnostik, teknikDiagnostik, instrumenDiagnostik, gunakanFormatif, teknikFormatif, instrumenFormatif, gunakanSumatif, teknikSumatif, instrumenSumatif }),
         90_000, anggaranTokenFaseA(perkiraanKktp(tpAnchor), elemenCp.length),
       );
     } catch (e) {
@@ -3125,7 +3299,26 @@ Deno.serve(async (req) => {
       (faseAOutput.metadata_pedagogis as Record<string, unknown>).language_policy = languagePolicy;
     }
 
-    const draftA = { ...kontenObj, _draft: { fase_a: faseAOutput } };
+    // JEJAK WARISAN (M2). Pewarisan tidak boleh hanya hidup di prompt yang
+    // sekali pakai: tanpa jejak tersimpan, tidak ada yang bisa membuktikan
+    // sesudahnya bahwa modul ini disusun dari CP versi apa, tuntutan apa, dan
+    // keputusan ATP yang mana. Disimpan berdampingan dengan draft, di kolom
+    // `konten` yang sudah jsonb — tanpa menuntut migration.
+    //
+    // Perhatikan: `tuntutan` di sini objek yang sudah diuraikan (id, kompetensi,
+    // lingkup materi), sedangkan tp_snapshot_hash tetap dihitung dari ID-nya
+    // saja sebagaimana M1. Representasi yang lebih kaya TIDAK mengubah hash.
+    const jejakWarisan = {
+      tp_anchor: {
+        ...tpAnchor,
+        tuntutan: tuntutanTerurai,
+        tuntutan_id: tpAnchor.tuntutan,
+        kategori_teks_wajib: kategoriWajib,
+      },
+      atp_context:    atpContext,
+      alokasi_server: alokasiTp,
+    };
+    const draftA = { ...kontenObj, ...jejakWarisan, _draft: { fase_a: faseAOutput } };
     // Potret TP dipaku di sini, di awal penyusunan — bukan di Fase D. Modul
     // yang gagal di tengah jalan tetap membawa potret yang dipakai Fase A,
     // sehingga percobaan berikutnya dibandingkan terhadap potret yang benar.
@@ -3167,7 +3360,7 @@ Deno.serve(async (req) => {
     try {
       faseBRaw = await callPhase(
         'Fase B',
-        buildUserMessageFaseB({ faseAOutput, manifest, jumlahPertemuan, jpPerPertemuan, durasiJp, jumlahMurid, cd, arahanTitikAwal: arahanWaktu }),
+        buildUserMessageFaseB({ faseAOutput, manifest, jumlahPertemuan, jpPerPertemuan, durasiJp, jumlahMurid, cd, arahanTitikAwal: arahanWaktu, warisan }),
         90_000, anggaranToken(jumlahPertemuan),
       );
     } catch (e) {
@@ -3218,7 +3411,7 @@ Deno.serve(async (req) => {
     try {
       faseCOutput = await callPhase(
         'Fase C',
-        buildUserMessageFaseC({ faseAOutput, manifest, cd, programKeahlian: settings?.program_keahlian ?? '' }),
+        buildUserMessageFaseC({ faseAOutput, manifest, cd, warisan }),
         120_000, anggaranTokenInstrumen(jumlahInstrumen),
       );
     } catch (e) {
@@ -3418,6 +3611,18 @@ Deno.serve(async (req) => {
       tindak_lanjut:          faseDOutput.tindak_lanjut,
       catatan_guru:           faseDOutput.catatan_guru,
       metadata_pedagogis:     faseAOutput.metadata_pedagogis,
+      // JEJAK WARISAN (M2). Fase D menyusun `konten` final dari nol, jadi jejak
+      // yang dipaku di Fase A harus ikut dibawa ke sini — kalau tidak, ia hilang
+      // persis pada dokumen yang paling lama hidup. Validator tidak menolak
+      // field di luar daftarnya; ia memeriksa yang ada, bukan melarang yang lain.
+      tp_anchor: {
+        ...tpAnchor,
+        tuntutan: tuntutanTerurai,
+        tuntutan_id: tpAnchor.tuntutan,
+        kategori_teks_wajib: kategoriWajib,
+      },
+      atp_context:    atpContext,
+      alokasi_server: alokasiTp,
     };
 
     let validation = validateModulOutputV400(merged, nomorTp, jumlahPertemuan, jpPerPertemuan, durasiJp, jumlahMurid, manifestFaseD, perangkatDigitalDiizinkan(cd));
@@ -3428,7 +3633,7 @@ Deno.serve(async (req) => {
 
       const hasDurasiError = validation.errors.some(e => e.includes('durasi'));
       const repairMsg = hasDurasiError
-        ? buildUserMessageFaseB({ faseAOutput, manifest: { pembelajaran_manifest: [], asesmen_manifest: [] }, jumlahPertemuan, jpPerPertemuan, durasiJp, jumlahMurid, cd, arahanTitikAwal: arahanWaktu }) +
+        ? buildUserMessageFaseB({ faseAOutput, manifest: { pembelajaran_manifest: [], asesmen_manifest: [] }, jumlahPertemuan, jpPerPertemuan, durasiJp, jumlahMurid, cd, arahanTitikAwal: arahanWaktu, warisan }) +
           `\n\nERROR yang harus diperbaiki: ${errorList}. ` +
           `Σlangkah[].durasi_menit HARUS = ${jpPerPertemuan * durasiJp}. ` +
           `Σsub_langkah[].durasi_menit HARUS = durasi_menit langkah induk.`
