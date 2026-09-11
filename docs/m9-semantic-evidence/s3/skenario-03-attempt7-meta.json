@@ -1,0 +1,57 @@
+{
+  "skenario": 3,
+  "nama": "Konteks kejuruan relevan",
+  "attempt": 7,
+  "model": "gemini-3.8-flash",
+  "waktu": "2026-09-11T06:37:54.396Z",
+  "arahan_titik_awal": "Murid sudah siap memasuki materi fase ini. MEMAHAMI cukup ringkas — mulai sekitar seperempat waktu pertemuan pertama dan boleh cepat mengecil. MENGAPLIKASI mendapat porsi terbesar sejak awal.",
+  "pemakaian_token": [
+    {
+      "fase": "Fase A",
+      "masuk": 13567,
+      "keluar": 2885,
+      "penalaran": 2714,
+      "total": 19166,
+      "ms": 21447
+    },
+    {
+      "fase": "Fase B",
+      "masuk": 13551,
+      "keluar": 3784,
+      "penalaran": 2843,
+      "total": 20178,
+      "ms": 22416
+    },
+    {
+      "fase": "Fase C",
+      "masuk": 12924,
+      "keluar": 1618,
+      "penalaran": 565,
+      "total": 15107,
+      "ms": 7977
+    },
+    {
+      "fase": "Fase B2 (naskah)",
+      "masuk": 16141,
+      "keluar": 6412,
+      "penalaran": 1617,
+      "total": 24170,
+      "ms": 29561
+    },
+    {
+      "fase": "Fase D",
+      "masuk": 11772,
+      "keluar": 601,
+      "penalaran": 1409,
+      "total": 13782,
+      "ms": 9518
+    }
+  ],
+  "validasi": {
+    "valid": false,
+    "jumlah_galat": 1,
+    "galat": [
+      "pertemuan 3: Σlangkah.durasi_menit=185, diharapkan 180 (4 JP × 45 menit)"
+    ]
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "skenario": 1,
+  "nama": "Kesiapan sangat rendah",
+  "attempt": 6,
+  "model": "gemini-3.8-flash",
+  "waktu": "2026-09-11T04:13:41.566Z",
+  "arahan_titik_awal": "Murid jauh di bawah — banyak kemampuan dasar yang harus dibangun dulu. MEMAHAMI HARUS mendapat porsi paling besar di pertemuan pertama, sekitar separuh waktu pertemuan, dan menyusutnya PELAN — di pertemuan terakhir pun ia masih layak mendapat sekitar seperempat waktu. Jangan memindahkan waktu ke MENGAPLIKASI terlalu cepat: murid yang belum paham tidak bisa berlatih.",
+  "pemakaian_token": [
+    {
+      "fase": "Fase A",
+      "masuk": 13544,
+      "keluar": 3788,
+      "penalaran": 2481,
+      "total": 19813,
+      "ms": 19970
+    },
+    {
+      "fase": "Fase B",
+      "masuk": 14148,
+      "keluar": 4164,
+      "penalaran": 2181,
+      "total": 20493,
+      "ms": 19690
+    },
+    {
+      "fase": "Fase C",
+      "masuk": 13459,
+      "keluar": 3603,
+      "penalaran": 1280,
+      "total": 18342,
+      "ms": 13932
+    },
+    {
+      "fase": "Fase B2",
+      "masuk": 17300,
+      "keluar": 8393,
+      "penalaran": 1271,
+      "total": 26964,
+      "ms": 34065
+    },
+    {
+      "fase": "Fase D",
+      "masuk": 12095,
+      "keluar": 543,
+      "penalaran": 1022,
+      "total": 13660,
+      "ms": 12201
+    }
+  ],
+  "validasi": {
+    "valid": false,
+    "jumlah_galat": 3,
+    "galat": [
+      "instrumen_asesmen[2] (ASM-03, soal_latihan): 14 soal tetapi 15 kunci jawaban — guru berhenti di soal ke-15 tanpa jawabannya",
+      "keputusan_kontekstual[0].komponen_terdampak[1]='rancangan' tidak berbentuk '<jenis>:<id>' (jenis yang sah: pertemuan, sub_langkah, kktp, asesmen, instrumen)",
+      "keputusan_kontekstual[3].komponen_terdampak[0]='materi_esensial' tidak berbentuk '<jenis>:<id>' (jenis yang sah: pertemuan, sub_langkah, kktp, asesmen, instrumen)"
+    ]
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "skenario": 4,
+  "nama": "Penekanan guru + A17",
+  "attempt": 4,
+  "model": "gemini-3.8-flash",
+  "waktu": "2026-09-11T04:13:48.777Z",
+  "arahan_titik_awal": "Murid sedikit di bawah dan perlu penyegaran singkat. MEMAHAMI sekitar sepertiga waktu di pertemuan pertama, lalu menyusut bertahap sementara MENGAPLIKASI membesar.",
+  "pemakaian_token": [
+    {
+      "fase": "Fase A",
+      "masuk": 13472,
+      "keluar": 3563,
+      "penalaran": 3224,
+      "total": 20259,
+      "ms": 22217
+    },
+    {
+      "fase": "Fase B",
+      "masuk": 13966,
+      "keluar": 4067,
+      "penalaran": 1710,
+      "total": 19743,
+      "ms": 17378
+    },
+    {
+      "fase": "Fase C",
+      "masuk": 13256,
+      "keluar": 1562,
+      "penalaran": 598,
+      "total": 15416,
+      "ms": 8244
+    },
+    {
+      "fase": "Fase B2",
+      "masuk": 16565,
+      "keluar": 7086,
+      "penalaran": 1089,
+      "total": 24740,
+      "ms": 26075
+    },
+    {
+      "fase": "Fase D",
+      "masuk": 12058,
+      "keluar": 567,
+      "penalaran": 1459,
+      "total": 14084,
+      "ms": 9465
+    }
+  ],
+  "validasi": {
+    "valid": true,
+    "jumlah_galat": 0,
+    "galat": []
+  }
+}

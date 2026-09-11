@@ -1,0 +1,508 @@
+{
+  "skenario": 4,
+  "attempt": 4,
+  "faseAOutput": {
+    "schema_version": "4.0.0",
+    "identitas": {
+      "mata_pelajaran": "Bahasa Inggris",
+      "jenjang": "SMK",
+      "fase": "E",
+      "nomor_tp": 1,
+      "jumlah_pertemuan": 3,
+      "jp_per_pertemuan": 4,
+      "durasi_jp_menit": 45,
+      "alokasi_waktu_total_menit": 540,
+      "elemen_cp": [
+        "Membaca - Memirsa"
+      ],
+      "jenis_dokumen": "Modul Induk; guru mengadaptasi konteks kelas dan program keahlian",
+      "konteks_kejuruan": {
+        "bidang_keahlian": "Seni dan Ekonomi Kreatif",
+        "program_keahlian": "Tata Busana",
+        "konsentrasi_keahlian": null
+      },
+      "dasar_cp": "046/H/KR/2025",
+      "tujuan_pembelajaran": "Peserta didik mengomunikasikan gagasan dan pengalaman secara tertulis dalam teks nonfiksi sederhana berbahasa Inggris."
+    },
+    "kktp": [
+      {
+        "id_kktp": "K1",
+        "kriteria": "Menyusun kerangka alur pengalaman pribadi nonfiksi dengan urutan kronologis yang runtut mencakup orientasi, rentetan peristiwa, dan kesimpulan penutup.",
+        "tuntutan_ref": [
+          "BIE-E25-MP-1"
+        ],
+        "keputusan_ketercapaian": {
+          "jenis": "jumlah",
+          "nilai_minimum": 3,
+          "satuan": "bagian struktur teks",
+          "deskripsi": "Menuliskan 3 bagian kerangka teks nonfiksi secara berurutan mulai dari pembuka orientasi, peristiwa utama, hingga penutup."
+        },
+        "ambang_batas": "3 dari 3 bagian struktur teks (orientasi, rentetan peristiwa, dan penutup) tersusun runut",
+        "instrumen_bukti": [
+          "ASM-01",
+          "ASM-02"
+        ]
+      },
+      {
+        "id_kktp": "K2",
+        "kriteria": "Menuliskan kalimat pengalaman menggunakan kata kerja bentuk lampau sederhana dan kata penghubung urutan waktu dengan makna yang jelas.",
+        "tuntutan_ref": [
+          "BIE-E25-MP-1"
+        ],
+        "keputusan_ketercapaian": {
+          "jenis": "jumlah",
+          "nilai_minimum": 4,
+          "satuan": "kalimat benar",
+          "deskripsi": "Menuliskan minimal 4 dari 5 kalimat menggunakan bentuk past tense dan penanda waktu yang tepat."
+        },
+        "ambang_batas": "4 dari 5 kalimat menggunakan bentuk past tense dan penanda waktu dengan tepat",
+        "instrumen_bukti": [
+          "ASM-01",
+          "ASM-02"
+        ]
+      },
+      {
+        "id_kktp": "K3",
+        "kriteria": "Menghasilkan draf teks nonfiksi sederhana utuh tentang pengalaman pribadi sehari-hari yang komunikatif dan dapat dipahami pembaca.",
+        "tuntutan_ref": [
+          "BIE-E25-MP-1"
+        ],
+        "keputusan_ketercapaian": {
+          "jenis": "rubrik",
+          "nilai_minimum": 3,
+          "satuan": "level capaian",
+          "deskripsi": "Mencapai minimal level Mandiri pada aspek kejelasan gagasan dan kelengkapan pesan teks nonfiksi."
+        },
+        "ambang_batas": "Mencapai minimal level Mandiri pada rubrik keterbacaan dan keutuhan pesan teks",
+        "instrumen_bukti": [
+          "ASM-02"
+        ]
+      }
+    ],
+    "konteks_murid": {
+      "kesiapan_awal": [
+        "Sebagian murid telah mengenal kata kerja dasar namun masih sering keliru menggunakan perubahan bentuk lampau sederhana (regular dan irregular verbs).",
+        "Murid terbiasa menyusun kalimat tunggal pendek tetapi masih memerlukan panduan untuk merangkai beberapa kalimat menjadi paragraf kronologis yang padu."
+      ],
+      "variasi_kemampuan": "Kemampuan murid beragam dengan sebagian besar berada sedikit di bawah penguasaan kalimat lampau mandiri, sehingga membutuhkan pemodelan dan penguatan kosakata sebelum menulis mandiri.",
+      "kebutuhan_dukungan": [
+        "Penyediaan bank kata kerja bentuk lampau dan penanda urutan waktu sederhana di papan tulis.",
+        "Pendampingan bertahap melalui penyusunan kerangka tulisan terbimbing sebelum penulisan teks utuh."
+      ]
+    },
+    "materi_esensial": {
+      "lingkup_materi": [
+        "Struktur teks nonfiksi pengalaman pribadi (orientation, sequence of events, re-orientation)",
+        "Unsur kebahasaan teks cerita pengalaman: simple past tense dan chronological connectors (first, next, after that, finally)",
+        "Pengembangan draf tulisan pengalaman sehari-hari yang runtut dan bermakna"
+      ],
+      "kosakata_kunci": [
+        "yesterday",
+        "last week",
+        "arrived",
+        "prepared",
+        "made",
+        "bought",
+        "first",
+        "then",
+        "after that",
+        "finally",
+        "experience"
+      ],
+      "konsep_utama": [
+        "Teks nonfiksi pengalaman pribadi berfungsi membagikan peristiwa nyata secara kronologis agar pembaca memahami alur kejadian.",
+        "Ketepatan penggunaan kata kerja lampau dan kata hubung waktu menentukan kejelasan urutan peristiwa yang disampaikan."
+      ]
+    },
+    "rencana_asesmen": {
+      "asesmen_diagnostik": null,
+      "asesmen_formatif": [
+        {
+          "id": "FMT-01",
+          "waktu_pertemuan": 1,
+          "fase_langkah": "MENGAPLIKASI",
+          "teknik": "observasi dan umpan balik berkala saat latihan terbimbing",
+          "instrumen_ref": [
+            "ASM-01"
+          ],
+          "fungsi": "Mengetahui kemampuan awal murid dalam menyusun kerangka alur peristiwa dan kalimat lampau sederhana guna memberikan masukan perbaikan langsung.",
+          "referensi_kktp": [
+            "K1",
+            "K2"
+          ],
+          "cakupan_bukti": "per_murid",
+          "umpan_balik": "Memberikan koreksi langsung terhadap pemilihan kata kerja lampau dan kelengkapan urutan peristiwa pada kerangka tulisan murid."
+        },
+        {
+          "id": "FMT-02",
+          "waktu_pertemuan": 2,
+          "fase_langkah": "MENGAPLIKASI",
+          "teknik": "penelaahan draf tulisan bertahap",
+          "instrumen_ref": [
+            "ASM-01"
+          ],
+          "fungsi": "Memeriksa perkembangan draf paragraf murid sebelum penulisan akhir mandiri.",
+          "referensi_kktp": [
+            "K2",
+            "K3"
+          ],
+          "cakupan_bukti": "per_murid",
+          "umpan_balik": "Menunjukkan bagian kalimat yang belum padu serta memandu perbaikan struktur kalimat lampau secara individual."
+        }
+      ],
+      "asesmen_sumatif": {
+        "deskripsi": "Penilaian unjuk kerja menulis mandiri teks nonfiksi sederhana tentang pengalaman pribadi sehari-hari tanpa bantuan templat.",
+        "teknik": "unjuk kerja",
+        "instrumen_ref": [
+          "ASM-02"
+        ],
+        "durasi_menit": 60,
+        "referensi_kktp": [
+          "K1",
+          "K2",
+          "K3"
+        ],
+        "cakupan_bukti": "per_murid",
+        "placement": {
+          "pertemuan": 3,
+          "fase": "MENGAPLIKASI"
+        }
+      }
+    },
+    "keputusan_kontekstual": [
+      {
+        "id": "KTX-01",
+        "sumber": {
+          "jenis": "kesiapan_murid",
+          "kunci": "sedikit_di_bawah"
+        },
+        "keputusan": "Menyediakan pemodelan teks secara bertahap dan membedah kosakata kata kerja bentuk lampau di papan tulis sebelum murid diminta menulis draf secara mandiri.",
+        "komponen_terdampak": [
+          "pertemuan:1",
+          "kktp:K2"
+        ],
+        "penerapan": "Guru mengawali kegiatan penulisan dengan analisis bersama contoh teks sederhana dan mendaftar perubahan bentuk kata kerja bantu agar murid memiliki rujukan yang jelas."
+      },
+      {
+        "id": "KTX-02",
+        "sumber": {
+          "jenis": "konteks_tugas",
+          "kunci": "dominan_sehari_hari"
+        },
+        "keputusan": "Menetapkan tema contoh teks dan tugas menulis pada peristiwa nyata sehari-hari murid, seperti pengalaman perjalanan ke sekolah, membantu keluarga, atau kegiatan di rumah.",
+        "komponen_terdampak": [
+          "pertemuan:1",
+          "pertemuan:2",
+          "pertemuan:3"
+        ],
+        "penerapan": "Teks model dan tugas penulisan berpusat pada rutinitas dan pengalaman nyata sehari-hari yang dekat dengan keseharian murid SMK Tata Busana."
+      },
+      {
+        "id": "KTX-03",
+        "sumber": {
+          "jenis": "prioritas_guru",
+          "kunci": "kemandirian"
+        },
+        "keputusan": "Mengurangi bantuan penulisan secara bertahap dari kegiatan terbimbing bersama pada pertemuan awal menuju penulisan teks utuh secara mandiri pada pertemuan akhir.",
+        "komponen_terdampak": [
+          "pertemuan:2",
+          "pertemuan:3"
+        ],
+        "penerapan": "Pada pertemuan pertama dan kedua murid dibantu pengatur grafis, sedangkan pada pertemuan ketiga murid menyusun teks secara mandiri tanpa lembar bantuan."
+      }
+    ],
+    "rancangan": {
+      "strategi_pedagogis": "Pendekatan berbasis genre melalui tahapan pemodelan teks bersama, penulisan terbimbing berpasangan, hingga penulisan mandiri utuh.",
+      "sumber_belajar": [
+        {
+          "sumber": "PBL-01",
+          "kategori": "teks cetak",
+          "fungsi": "Teks model bacaan nonfiksi sederhana tentang pengalaman sehari-hari untuk dibedah struktur dan bahasanya."
+        },
+        {
+          "sumber": "PBL-02",
+          "kategori": "lembar panduan",
+          "fungsi": "Pengatur grafis alur peristiwa untuk membantu perencanaan kerangka tulisan murid."
+        },
+        {
+          "sumber": "Buku tulis murid dan papan tulis kelas",
+          "kategori": "sarana fisik",
+          "fungsi": "Media menuliskan bank kata kerja dan tempat murid mencatat draf tulisan pengalaman."
+        }
+      ],
+      "pemanfaatan_digital": "Tidak memerlukan perangkat digital khusus.",
+      "lingkungan_pembelajaran": "Ruang kelas dengan susunan meja fleksibel yang mendukung kerja berpasangan maupun penulisan mandiri yang tenang.",
+      "kemitraan_pembelajaran": null,
+      "keselamatan_k3": null
+    },
+    "metadata_pedagogis": {
+      "dimensi_profil_lulusan": [
+        {
+          "dimensi": "Kemandirian",
+          "alasan": "Murid secara bertahap mengelola proses belajarnya sendiri dari latihan terbimbing hingga mampu menulis teks secara berdikari.",
+          "indikator": "Murid mampu menyelesaikan penulisan teks pengalaman pribadi secara mandiri tanpa bergantung pada bantuan terus-menerus."
+        },
+        {
+          "dimensi": "Komunikasi",
+          "alasan": "Fokus pembelajaran adalah menyampaikan gagasan dan pengalaman nyata kepada orang lain melalui ragam tulisan berbahasa Inggris.",
+          "indikator": "Murid menuangkan alur kejadian secara runtut dan menggunakan ungkapan tertulis yang dapat dipahami pembaca."
+        },
+        {
+          "dimensi": "Penalaran Kritis",
+          "alasan": "Murid perlu menyeleksi peristiwa penting, menyusun kronologi waktu, dan memilih bentuk kata kerja lampau yang tepat.",
+          "indikator": "Murid memeriksa dan memperbaiki urutan logis peristiwa serta ketepatan bentuk kebahasaan dalam draf tulisannya."
+        }
+      ],
+      "karakteristik_materi": {
+        "faktual": "Bentuk perubahan kata kerja reguler dan ireguler lampau sederhana serta penanda waktu lampau dalam bahasa Inggris.",
+        "konseptual": "Fungsi sosial penulisan teks nonfiksi pengalaman pribadi dan struktur generik teks (pembuka orientasi, peristiwa berurutan, dan simpulan).",
+        "prosedural": "Langkah merancang gagasan, membuat kerangka urutan waktu, menyusun draf kalimat lampau, dan menyunting keterbacaan teks."
+      },
+      "language_policy": {
+        "teacher_instruction": "Bahasa Indonesia digunakan sebagai bahasa pengantar utama dengan penyisipan instruksi kelas sederhana dalam Bahasa Inggris.",
+        "student_instruction": "Bahasa Inggris sederhana digunakan dalam penyusunan draf teks dan latihan kalimat tertulis.",
+        "target_language": "Bahasa Inggris"
+      }
+    },
+    "manifest": {
+      "pembelajaran_manifest": [
+        {
+          "id": "PBL-01",
+          "jenis": "teks_autentik",
+          "untuk_murid": true,
+          "digunakan_pada": [
+            "P1.MEMAHAMI",
+            "P2.MEMAHAMI"
+          ]
+        },
+        {
+          "id": "PBL-02",
+          "jenis": "custom",
+          "untuk_murid": true,
+          "digunakan_pada": [
+            "P1.MENGAPLIKASI",
+            "P2.MENGAPLIKASI"
+          ]
+        }
+      ],
+      "asesmen_manifest": [
+        {
+          "id": "ASM-01",
+          "jenis": "matriks_observasi",
+          "untuk_murid": false,
+          "digunakan_pada": [
+            "P1.MENGAPLIKASI",
+            "P2.MENGAPLIKASI"
+          ]
+        },
+        {
+          "id": "ASM-02",
+          "jenis": "matriks_observasi",
+          "untuk_murid": false,
+          "digunakan_pada": [
+            "P3.MENGAPLIKASI"
+          ]
+        }
+      ]
+    }
+  },
+  "manifestFaseD": {
+    "pembelajaran_manifest": [
+      {
+        "id": "PBL-01",
+        "jenis": "teks_autentik",
+        "untuk_murid": true,
+        "digunakan_pada": [
+          "P1.MEMAHAMI",
+          "P2.MEMAHAMI"
+        ]
+      },
+      {
+        "id": "PBL-02",
+        "jenis": "custom",
+        "untuk_murid": true,
+        "digunakan_pada": [
+          "P1.MENGAPLIKASI",
+          "P2.MENGAPLIKASI"
+        ]
+      }
+    ],
+    "asesmen_manifest": [
+      {
+        "id": "ASM-01",
+        "jenis": "matriks_observasi",
+        "untuk_murid": false,
+        "digunakan_pada": [
+          "P1.MENGAPLIKASI",
+          "P2.MENGAPLIKASI"
+        ]
+      },
+      {
+        "id": "ASM-02",
+        "jenis": "matriks_observasi",
+        "untuk_murid": false,
+        "digunakan_pada": [
+          "P3.MENGAPLIKASI"
+        ]
+      }
+    ]
+  },
+  "arahanWaktu": "Murid sedikit di bawah dan perlu penyegaran singkat. MEMAHAMI sekitar sepertiga waktu di pertemuan pertama, lalu menyusut bertahap sementara MENGAPLIKASI membesar.",
+  "warisan": {
+    "tpAnchor": {
+      "atp_induk_id": "m9-skenario-4",
+      "nomor_tp": 1,
+      "tp_judul": "Peserta didik mengomunikasikan gagasan dan pengalaman secara tertulis dalam teks nonfiksi sederhana berbahasa Inggris.",
+      "tuntutan": [
+        "BIE-E25-MP-1"
+      ],
+      "kategori_teks": [
+        "nonfiksi"
+      ],
+      "semester": 1,
+      "jp_alokasi": 12,
+      "jp_pertemuan": [
+        4,
+        4,
+        4
+      ],
+      "versi_cp": "046/H/KR/2025"
+    },
+    "tuntutan": [
+      {
+        "id": "BIE-E25-MP-1",
+        "kompetensi": "mengomunikasikan gagasan dan pengalaman secara tertulis atau multimodal untuk mencapai tujuan tertentu dengan struktur teks dan unsur kebahasaan yang tepat",
+        "lingkup_materi": "berbagai jenis teks fiksi dan nonfiksi",
+        "cakupan_wajib": {
+          "kategori_teks": [
+            "fiksi",
+            "nonfiksi"
+          ]
+        }
+      }
+    ],
+    "kategoriWajib": [
+      "nonfiksi"
+    ],
+    "alokasi": {
+      "pertemuan": [
+        4,
+        4,
+        4
+      ]
+    },
+    "atpContext": {
+      "versi_cp": "046/H/KR/2025",
+      "semester": 1,
+      "kesiapan_murid": {
+        "nilai": "sedikit_di_bawah",
+        "asal": "keputusan_guru",
+        "arti": "sebagian murid sedikit di bawah prasyarat TP ini",
+        "dasar": "hasil penilaian sebelumnya"
+      },
+      "jumlah_murid": {
+        "nilai": 28,
+        "asal": "fakta"
+      },
+      "program_keahlian": {
+        "nilai": "Tata Busana",
+        "asal": "fakta"
+      },
+      "konteks_tugas": {
+        "nilai": "dominan_sehari_hari",
+        "asal": "keputusan_guru",
+        "arti": "sebagian besar contoh dan tugas berlatar kehidupan sehari-hari"
+      },
+      "prioritas_guru": [
+        {
+          "kunci": "kemandirian",
+          "arti": "kemandirian belajar",
+          "arahan": "kurangi bantuan secara bertahap"
+        },
+        {
+          "kunci": "literasi",
+          "arti": "penguatan literasi",
+          "arahan": "perbanyak membaca teks utuh"
+        }
+      ],
+      "penerapan_prioritas": {
+        "untuk_tp_ini": [
+          {
+            "prioritas": "kemandirian",
+            "kunci": "kemandirian",
+            "tp": [
+              1
+            ],
+            "pengaruh": [
+              "kegiatan"
+            ],
+            "alasan": "ATP menyatakan penekanan ini berlaku untuk TP ini."
+          }
+        ],
+        "seluruh_atp": [
+          {
+            "prioritas": "kemandirian",
+            "kunci": "kemandirian",
+            "tp": [
+              1
+            ],
+            "pengaruh": [
+              "kegiatan"
+            ],
+            "alasan": "Penekanan guru pada ATP."
+          },
+          {
+            "prioritas": "literasi",
+            "kunci": "literasi",
+            "tp": [
+              1
+            ],
+            "pengaruh": [
+              "kegiatan"
+            ],
+            "alasan": "Penekanan guru pada ATP."
+          }
+        ]
+      }
+    }
+  },
+  "cd": {
+    "KONTEKS_MODUL": {
+      "jumlah_murid": {
+        "value": 28
+      },
+      "kondisi_kelas": {
+        "value": "diferensiasi"
+      }
+    },
+    "SUMBER_STRATEGI": {
+      "strategi_pembelajaran": {
+        "value": "kolaboratif"
+      },
+      "bahan_guru": {
+        "value": [
+          "tidak_ada"
+        ]
+      }
+    },
+    "ASESMEN_MODUL": {
+      "gunakan_diagnostik": {
+        "value": "lewati"
+      },
+      "teknik_formatif": {
+        "value": "rekomendasi"
+      },
+      "gunakan_sumatif": {
+        "value": "ya"
+      },
+      "teknik_sumatif": {
+        "value": "unjuk_kerja"
+      }
+    }
+  },
+  "jumlahPertemuan": 3,
+  "jpPerPertemuan": 4,
+  "durasiJp": 45,
+  "jumlahMurid": 28,
+  "nomorTp": 1
+}

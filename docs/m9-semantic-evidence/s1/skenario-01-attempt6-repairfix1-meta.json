@@ -1,0 +1,28 @@
+{
+  "prefix": "skenario-01-attempt6",
+  "percobaan": "fix1",
+  "model": "gemini-3.8-flash",
+  "waktu": "2026-09-11T04:17:19.090Z",
+  "hasil": "LOLOS",
+  "has_durasi_error": false,
+  "anggaran_token": 32000,
+  "galat_sebelum": [
+    "instrumen_asesmen[2] (ASM-03, soal_latihan): 14 soal tetapi 15 kunci jawaban — guru berhenti di soal ke-15 tanpa jawabannya",
+    "keputusan_kontekstual[0].komponen_terdampak[1]='rancangan' tidak berbentuk '<jenis>:<id>' (jenis yang sah: pertemuan, sub_langkah, kktp, asesmen, instrumen)",
+    "keputusan_kontekstual[3].komponen_terdampak[0]='materi_esensial' tidak berbentuk '<jenis>:<id>' (jenis yang sah: pertemuan, sub_langkah, kktp, asesmen, instrumen)"
+  ],
+  "galat_dikirim_ke_model": "instrumen_asesmen[2] (ASM-03, soal_latihan): 14 soal tetapi 15 kunci jawaban — guru berhenti di soal ke-15 tanpa jawabannya; keputusan_kontekstual[0].komponen_terdampak[1]='rancangan' tidak berbentuk '<jenis>:<id>' (jenis yang sah: pertemuan, sub_langkah, kktp, asesmen, instrumen); keputusan_kontekstual[3].komponen_terdampak[0]='materi_esensial' tidak berbentuk '<jenis>:<id>' (jenis yang sah: pertemuan, sub_langkah, kktp, asesmen, instrumen)",
+  "panjang_permintaan": 63657,
+  "galat_sesudah": [],
+  "valid_sesudah": true,
+  "pemakaian_token": [
+    {
+      "fase": "perbaikan validasi",
+      "masuk": 27352,
+      "keluar": 20469,
+      "penalaran": 995,
+      "total": 48816,
+      "ms": 49616
+    }
+  ]
+}

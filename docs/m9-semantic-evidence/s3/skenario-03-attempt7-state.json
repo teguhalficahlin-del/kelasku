@@ -1,0 +1,442 @@
+{
+  "skenario": 3,
+  "attempt": 7,
+  "faseAOutput": {
+    "schema_version": "4.0.0",
+    "identitas": {
+      "mata_pelajaran": "Bahasa Inggris",
+      "jenjang": "SMK",
+      "fase": "E",
+      "nomor_tp": 1,
+      "jumlah_pertemuan": 3,
+      "jp_per_pertemuan": 4,
+      "durasi_jp_menit": 45,
+      "alokasi_waktu_total_menit": 540,
+      "elemen_cp": [
+        "Membaca - Memirsa"
+      ],
+      "jenis_dokumen": "Modul Induk; guru mengadaptasi konteks kelas dan program keahlian",
+      "konteks_kejuruan": {
+        "bidang_keahlian": "Seni dan Ekonomi Kreatif",
+        "program_keahlian": "Tata Busana",
+        "konsentrasi_keahlian": "Tata Busana"
+      },
+      "dasar_cp": "Keputusan Kepala BSKAP No. 046/H/KR/2025",
+      "tujuan_pembelajaran": "Peserta didik menggunakan bahasa Inggris untuk mengungkapkan pendapat dan mempertahankan argumen dalam percakapan tentang topik yang dibahas."
+    },
+    "kktp": [
+      {
+        "id_kktp": "K1",
+        "kriteria": "Mengungkapkan pendapat dalam bahasa Inggris menggunakan frasa opini yang sesuai konteks konsultasi rancangan atau pemilihan bahan busana.",
+        "tuntutan_ref": [
+          "BIE-E25-MB-2"
+        ],
+        "keputusan_ketercapaian": {
+          "jenis": "rubrik",
+          "nilai_minimum": 3,
+          "satuan": "level",
+          "deskripsi": "Mencapai minimal kategori Mandiri pada indikator ketepatan pengungkapan pendapat lisan"
+        },
+        "ambang_batas": "Minimal kategori Mandiri pada rubrik pengamatan",
+        "instrumen_bukti": [
+          "ASM-01",
+          "ASM-02"
+        ]
+      },
+      {
+        "id_kktp": "K2",
+        "kriteria": "Menyampaikan dan mempertahankan argumen logis disertai alasan pendukung saat menanggapi sanggahan dalam percakapan kerja tata busana.",
+        "tuntutan_ref": [
+          "BIE-E25-MB-3"
+        ],
+        "keputusan_ketercapaian": {
+          "jenis": "rubrik",
+          "nilai_minimum": 3,
+          "satuan": "level",
+          "deskripsi": "Mencapai minimal kategori Mandiri pada indikator pemberian alasan pendukung dan respons sanggahan"
+        },
+        "ambang_batas": "Minimal kategori Mandiri pada rubrik pengamatan",
+        "instrumen_bukti": [
+          "ASM-01",
+          "ASM-02"
+        ]
+      }
+    ],
+    "konteks_murid": {
+      "kesiapan_awal": [
+        "Murid telah mengenal kosakata dasar jenis kain dan busana",
+        "Murid telah mampu menyusun kalimat sederhana berpola subjek dan predikat"
+      ],
+      "variasi_kemampuan": "Sebagian besar murid siap berdialog secara kontekstual, sementara beberapa murid memerlukan contoh frasa lisan sebelum percaya diri berbicara.",
+      "kebutuhan_dukungan": [
+        "Penyediaan contoh percakapan nyata dunia kerja busana sebagai acuan",
+        "Daftar frasa kunci pembuka pendapat dan penyampaian alasan pada papan tulis"
+      ]
+    },
+    "materi_esensial": {
+      "lingkup_materi": [
+        "Ungkapan menyatakan pendapat (giving opinions) dalam bahasa Inggris",
+        "Ungkapan menyetujui, menyanggah, dan mempertahankan argumen (defending arguments)",
+        "Diskusi pemilihan bahan, warna, dan konsep busana berkelanjutan (sustainable fashion)"
+      ],
+      "kosakata_kunci": [
+        "fabric texture",
+        "sustainable textile",
+        "durability",
+        "drape",
+        "client preference",
+        "cost-effective",
+        "aesthetic value",
+        "in my opinion",
+        "I strongly believe",
+        "on the contrary"
+      ],
+      "konsep_utama": [
+        "Pola penyampaian opini profesional disertai alasan logis dan relevan",
+        "Etika menyanggah secara santun serta strategi mempertahankan pilihan desain di depan klien"
+      ]
+    },
+    "rencana_asesmen": {
+      "asesmen_diagnostik": null,
+      "asesmen_formatif": [
+        {
+          "id": "FMT-01",
+          "waktu_pertemuan": 2,
+          "fase_langkah": "MENGAPLIKASI",
+          "teknik": "observasi",
+          "instrumen_ref": [
+            "ASM-01"
+          ],
+          "fungsi": "Mengecek kemampuan murid dalam menyusun argumen dan mempertahankan pilihan bahan saat simulasi diskusi",
+          "referensi_kktp": [
+            "K1",
+            "K2"
+          ],
+          "cakupan_bukti": "per_murid",
+          "umpan_balik": "Guru memberikan masukan langsung terhadap pilihan kata argumentatif dan kelogisan alasan murid."
+        }
+      ],
+      "asesmen_sumatif": {
+        "deskripsi": "Unjuk kerja percakapan berpasangan bermain peran antara desainer busana dan klien dalam memutuskan konsep rancangan.",
+        "teknik": "unjuk kerja",
+        "instrumen_ref": [
+          "ASM-02"
+        ],
+        "durasi_menit": 70,
+        "referensi_kktp": [
+          "K1",
+          "K2"
+        ],
+        "cakupan_bukti": "per_murid",
+        "placement": {
+          "pertemuan": 3,
+          "fase": "MENGAPLIKASI"
+        }
+      }
+    },
+    "keputusan_kontekstual": [
+      {
+        "id": "KTX-01",
+        "sumber": {
+          "jenis": "kesiapan_murid",
+          "kunci": "sesuai"
+        },
+        "keputusan": "Pembelajaran langsung difokuskan pada praktik dialog kontekstual tanpa pengulangan tata bahasa dasar yang berlebihan.",
+        "komponen_terdampak": [
+          "pertemuan:1"
+        ],
+        "penerapan": "Murid langsung menganalisis model percakapan konsultasi butik sejak pertemuan pertama."
+      },
+      {
+        "id": "KTX-02",
+        "sumber": {
+          "jenis": "konteks_tugas",
+          "kunci": "dominan_kerja"
+        },
+        "keputusan": "Seluruh tugas percakapan menggunakan latar situasi nyata di butik busana atau studio perancang busana.",
+        "komponen_terdampak": [
+          "instrumen:PBL-01",
+          "instrumen:PBL-02"
+        ],
+        "penerapan": "Latihan dan penilaian dirancang berupa konsultasi busana antara staf desainer dengan pelanggan."
+      },
+      {
+        "id": "KTX-03",
+        "sumber": {
+          "jenis": "prioritas_guru",
+          "kunci": "komunikasi"
+        },
+        "keputusan": "Memaksimalkan porsi waktu untuk interaksi lisan berpasangan daripada penjelasan materi satu arah.",
+        "komponen_terdampak": [
+          "pertemuan:2",
+          "pertemuan:3"
+        ],
+        "penerapan": "Setiap pertemuan mengalokasikan latihan simulasi bertukar peran secara aktif."
+      }
+    ],
+    "rancangan": {
+      "strategi_pedagogis": "Pendekatan berbasis genre dan bermain peran interaktif berpasangan yang menekankan komunikasi lisan profesional di bidang tata busana.",
+      "sumber_belajar": [
+        {
+          "sumber": "Teks model percakapan konsultasi butik busana (PBL-01)",
+          "kategori": "bahan cetak",
+          "fungsi": "Bahan telaah struktur pengungkapan opini dan argumentasi kerja"
+        },
+        {
+          "sumber": "Kartu peran skenario butik busana (PBL-02)",
+          "kategori": "media cetak",
+          "fungsi": "Pemicu situasi untuk simulasi dan unjuk kerja percakapan"
+        }
+      ],
+      "pemanfaatan_digital": "Tidak memerlukan perangkat digital khusus.",
+      "lingkungan_pembelajaran": "Ruang kelas atau bengkel tata busana yang ditata menyerupai sudut konsultasi butik busana.",
+      "kemitraan_pembelajaran": null,
+      "keselamatan_k3": "Menjaga kerapian ruang kelas dan penempatan meja kursi agar jalur simulasi percakapan aman dan leluasa."
+    },
+    "metadata_pedagogis": {
+      "dimensi_profil_lulusan": [
+        {
+          "dimensi": "Komunikasi",
+          "alasan": "Kemampuan menyampaikan ide desain dan mempertahankan pilihan konsep busana kepada orang lain adalah kompetensi inti pembelajaran ini.",
+          "indikator": "Murid berbicara dengan jelas menggunakan ungkapan opini dan argumen yang relevan dalam percakapan."
+        },
+        {
+          "dimensi": "Penalaran Kritis",
+          "alasan": "Murid dituntut menyusun alasan logis berdasarkan karakteristik bahan busana saat menghadapi sanggahan.",
+          "indikator": "Murid memberikan penjelasan masuk akal untuk memperkuat posisinya saat mitra bicara mengajukan keraguan."
+        },
+        {
+          "dimensi": "Kolaborasi",
+          "alasan": "Percakapan kerja butik membutuhkan kerja sama dua arah yang saling menyimak dan menanggapi secara profesional.",
+          "indikator": "Murid saling mendengarkan dan merespons pandangan mitra bicara secara bergiliran dengan santun."
+        }
+      ],
+      "karakteristik_materi": {
+        "faktual": "Istilah teknis bahan kain, warna, dan gaya busana yang umum digunakan di industri busana.",
+        "konseptual": "Struktur pembentukan opini, frasa persetujuan, sanggahan santun, dan alasan pendukung dalam bahasa Inggris.",
+        "prosedural": "Tahapan mengemukakan pendapat, mendengarkan tanggapan, serta menyampaikan argumen penguat dalam simulasi konsultasi butik."
+      },
+      "language_policy": {
+        "teacher_instruction": "Bahasa Indonesia digunakan untuk instruksi pengelolaan kelas, diselingi bahasa Inggris untuk contoh frasa dan pemodelan.",
+        "student_instruction": "Murid menggunakan bahasa Inggris selama latihan percakapan, bermain peran, dan penilaian unjuk kerja.",
+        "target_language": "Bahasa Inggris"
+      }
+    },
+    "manifest": {
+      "pembelajaran_manifest": [
+        {
+          "id": "PBL-01",
+          "jenis": "dialog_model",
+          "untuk_murid": true,
+          "digunakan_pada": [
+            "P1.MEMAHAMI"
+          ]
+        },
+        {
+          "id": "PBL-02",
+          "jenis": "kartu_peran",
+          "untuk_murid": true,
+          "digunakan_pada": [
+            "P2.MENGAPLIKASI",
+            "P3.MENGAPLIKASI"
+          ]
+        }
+      ],
+      "asesmen_manifest": [
+        {
+          "id": "ASM-01",
+          "jenis": "matriks_observasi",
+          "untuk_murid": false,
+          "digunakan_pada": [
+            "P2.MENGAPLIKASI"
+          ]
+        },
+        {
+          "id": "ASM-02",
+          "jenis": "matriks_observasi",
+          "untuk_murid": false,
+          "digunakan_pada": [
+            "P3.MENGAPLIKASI"
+          ]
+        }
+      ]
+    }
+  },
+  "manifestFaseD": {
+    "pembelajaran_manifest": [
+      {
+        "id": "PBL-01",
+        "jenis": "dialog_model",
+        "untuk_murid": true,
+        "digunakan_pada": [
+          "P1.MEMAHAMI"
+        ]
+      },
+      {
+        "id": "PBL-02",
+        "jenis": "kartu_peran",
+        "untuk_murid": true,
+        "digunakan_pada": [
+          "P2.MENGAPLIKASI",
+          "P3.MENGAPLIKASI"
+        ]
+      }
+    ],
+    "asesmen_manifest": [
+      {
+        "id": "ASM-01",
+        "jenis": "matriks_observasi",
+        "untuk_murid": false,
+        "digunakan_pada": [
+          "P2.MENGAPLIKASI"
+        ]
+      },
+      {
+        "id": "ASM-02",
+        "jenis": "matriks_observasi",
+        "untuk_murid": false,
+        "digunakan_pada": [
+          "P3.MENGAPLIKASI"
+        ]
+      }
+    ]
+  },
+  "arahanWaktu": "Murid sudah siap memasuki materi fase ini. MEMAHAMI cukup ringkas — mulai sekitar seperempat waktu pertemuan pertama dan boleh cepat mengecil. MENGAPLIKASI mendapat porsi terbesar sejak awal.",
+  "warisan": {
+    "tpAnchor": {
+      "atp_induk_id": "m9-skenario-3",
+      "nomor_tp": 1,
+      "tp_judul": "Peserta didik menggunakan bahasa Inggris untuk mengungkapkan pendapat dan mempertahankan argumen dalam percakapan tentang topik yang dibahas.",
+      "tuntutan": [
+        "BIE-E25-MB-2",
+        "BIE-E25-MB-3"
+      ],
+      "kategori_teks": [],
+      "semester": 1,
+      "jp_alokasi": 12,
+      "jp_pertemuan": [
+        4,
+        4,
+        4
+      ],
+      "versi_cp": "046/H/KR/2025"
+    },
+    "tuntutan": [
+      {
+        "id": "BIE-E25-MB-2",
+        "kompetensi": "menggunakan bahasa Inggris untuk mengungkapkan pendapat",
+        "lingkup_materi": "topik yang dibahas"
+      },
+      {
+        "id": "BIE-E25-MB-3",
+        "kompetensi": "mempertahankan argumen",
+        "lingkup_materi": "topik yang dibahas"
+      }
+    ],
+    "kategoriWajib": [],
+    "alokasi": {
+      "pertemuan": [
+        4,
+        4,
+        4
+      ]
+    },
+    "atpContext": {
+      "versi_cp": "046/H/KR/2025",
+      "semester": 1,
+      "kesiapan_murid": {
+        "nilai": "sesuai",
+        "asal": "keputusan_guru",
+        "arti": "sebagian besar murid sudah memenuhi prasyarat TP ini",
+        "dasar": "hasil penilaian sebelumnya"
+      },
+      "jumlah_murid": {
+        "nilai": 30,
+        "asal": "fakta"
+      },
+      "program_keahlian": {
+        "nilai": "Tata Busana",
+        "asal": "fakta"
+      },
+      "konteks_tugas": {
+        "nilai": "dominan_kerja",
+        "asal": "keputusan_guru",
+        "arti": "sebagian besar contoh dan tugas berlatar dunia kerja"
+      },
+      "prioritas_guru": [
+        {
+          "kunci": "komunikasi",
+          "arti": "penguatan komunikasi lisan",
+          "arahan": "perbanyak kesempatan berbicara"
+        }
+      ],
+      "penerapan_prioritas": {
+        "untuk_tp_ini": [
+          {
+            "prioritas": "komunikasi",
+            "kunci": "komunikasi",
+            "tp": [
+              1
+            ],
+            "pengaruh": [
+              "kegiatan"
+            ],
+            "alasan": "ATP menyatakan penekanan ini berlaku untuk TP ini."
+          }
+        ],
+        "seluruh_atp": [
+          {
+            "prioritas": "komunikasi",
+            "kunci": "komunikasi",
+            "tp": [
+              1
+            ],
+            "pengaruh": [
+              "kegiatan"
+            ],
+            "alasan": "Penekanan guru pada ATP."
+          }
+        ]
+      }
+    }
+  },
+  "cd": {
+    "KONTEKS_MODUL": {
+      "jumlah_murid": {
+        "value": 30
+      },
+      "kondisi_kelas": {
+        "value": "diferensiasi"
+      }
+    },
+    "SUMBER_STRATEGI": {
+      "strategi_pembelajaran": {
+        "value": "kolaboratif"
+      },
+      "bahan_guru": {
+        "value": [
+          "tidak_ada"
+        ]
+      }
+    },
+    "ASESMEN_MODUL": {
+      "gunakan_diagnostik": {
+        "value": "lewati"
+      },
+      "teknik_formatif": {
+        "value": "rekomendasi"
+      },
+      "gunakan_sumatif": {
+        "value": "ya"
+      },
+      "teknik_sumatif": {
+        "value": "unjuk_kerja"
+      }
+    }
+  },
+  "jumlahPertemuan": 3,
+  "jpPerPertemuan": 4,
+  "durasiJp": 45,
+  "jumlahMurid": 30,
+  "nomorTp": 1
+}

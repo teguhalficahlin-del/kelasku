@@ -1,0 +1,527 @@
+{
+  "skenario": 1,
+  "attempt": 6,
+  "faseAOutput": {
+    "schema_version": "4.0.0",
+    "identitas": {
+      "mata_pelajaran": "Bahasa Inggris",
+      "jenjang": "SMK",
+      "fase": "E",
+      "nomor_tp": 1,
+      "jumlah_pertemuan": 3,
+      "jp_per_pertemuan": 4,
+      "durasi_jp_menit": 45,
+      "alokasi_waktu_total_menit": 540,
+      "elemen_cp": [
+        "Membaca - Memirsa"
+      ],
+      "jenis_dokumen": "Modul Induk; guru mengadaptasi konteks kelas dan program keahlian",
+      "konteks_kejuruan": {
+        "bidang_keahlian": "Seni dan Ekonomi Kreatif",
+        "program_keahlian": "Tata Busana",
+        "konsentrasi_keahlian": "Tata Busana"
+      },
+      "dasar_cp": "Peserta didik memahami alur informasi keseluruhan dan menganalisis serta menyimpulkan informasi tersurat dan tersirat pada berbagai jenis teks fiksi dan nonfiksi.",
+      "tujuan_pembelajaran": "Peserta didik memahami alur informasi keseluruhan dan gagasan utama teks prosedur nonfiksi sederhana berbahasa Inggris, serta menyimpulkan informasi tersurat di dalamnya."
+    },
+    "kktp": [
+      {
+        "id_kktp": "K1",
+        "kriteria": "Menemukan gagasan utama dan tujuan komunikasi dari teks prosedur nonfiksi sederhana.",
+        "tuntutan_ref": [
+          "BIE-E25-MM-1"
+        ],
+        "keputusan_ketercapaian": {
+          "jenis": "jumlah",
+          "nilai_minimum": 3,
+          "satuan": "butir benar dari 4 butir",
+          "deskripsi": "Menjawab dengan benar minimal 3 dari 4 pertanyaan penentuan gagasan utama dan tujuan penulisan teks prosedur."
+        },
+        "ambang_batas": "Minimal 3 dari 4 butir pertanyaan gagasan utama dan tujuan teks dijawab dengan benar.",
+        "instrumen_bukti": [
+          "ASM-01",
+          "ASM-03"
+        ]
+      },
+      {
+        "id_kktp": "K2",
+        "kriteria": "Menjelaskan alur urutan tahapan kerja pada teks prosedur nonfiksi secara runtut.",
+        "tuntutan_ref": [
+          "BIE-E25-MM-1"
+        ],
+        "keputusan_ketercapaian": {
+          "jenis": "jumlah",
+          "nilai_minimum": 4,
+          "satuan": "langkah runtut dari 5 langkah",
+          "deskripsi": "Mengurutkan atau menjabarkan alur kerja minimal 4 dari 5 tahapan prosedur dengan tepat."
+        },
+        "ambang_batas": "Minimal 4 dari 5 tahapan langkah kerja diurutkan dan dijelaskan alurnya secara runtut dan tepat.",
+        "instrumen_bukti": [
+          "ASM-01",
+          "ASM-03"
+        ]
+      },
+      {
+        "id_kktp": "K3",
+        "kriteria": "Menyimpulkan informasi tersurat mengenai alat, bahan, dan instruksi spesifik di dalam teks prosedur.",
+        "tuntutan_ref": [
+          "BIE-E25-MM-2"
+        ],
+        "keputusan_ketercapaian": {
+          "jenis": "jumlah",
+          "nilai_minimum": 4,
+          "satuan": "butir benar dari 5 butir",
+          "deskripsi": "Menemukan dan menyimpulkan secara tepat minimal 4 dari 5 informasi tersurat terkait alat, bahan, atau rincian tindakan."
+        },
+        "ambang_batas": "Minimal 4 dari 5 informasi tersurat pada rincian instruksi ditemukan dan disimpulkan dengan benar.",
+        "instrumen_bukti": [
+          "ASM-01",
+          "ASM-03"
+        ]
+      }
+    ],
+    "konteks_murid": {
+      "kesiapan_awal": [
+        "Sebagian besar murid berada jauh di bawah prasyarat awal dan masih kesulitan mengartikan kosakata dasar bahasa Inggris secara mandiri.",
+        "Murid mengenali beberapa nama peralatan busana sederhana dalam bahasa Indonesia namun belum terbiasa dengan teks petunjuk kerja berbahasa Inggris."
+      ],
+      "variasi_kemampuan": "Kemampuan membaca murid sangat beragam; sebagian kecil dapat menebak arti kata dari konteks, sementara mayoritas memerlukan pendampingan bertahap dan pengenalan kosakata kunci di papan tulis.",
+      "kebutuhan_dukungan": [
+        "Bimbingan membaca bersama secara perlahan sebelum tugas mandiri.",
+        "Daftar padanan kosakata kerja busana yang dituliskan guru di papan tulis.",
+        "Penjelasan alur informasi menggunakan petunjuk visual sederhana atau peragaan alat nyata di bengkel busana."
+      ]
+    },
+    "materi_esensial": {
+      "lingkup_materi": [
+        "Teks prosedur nonfiksi sederhana tentang petunjuk perawatan pakaian dan pengoperasian alat jahit.",
+        "Struktur teks prosedur: tujuan kerja, bahan dan peralatan yang diperlukan, serta urutan langkah pelaksanaan.",
+        "Unsur kebahasaan penanda urutan langkah kerja dan kalimat perintah sederhana."
+      ],
+      "kosakata_kunci": [
+        "fabric care",
+        "ironing",
+        "thread",
+        "stitch",
+        "needle",
+        "sewing machine",
+        "presser foot",
+        "step"
+      ],
+      "konsep_utama": [
+        "Teks prosedur menyajikan langkah-langkah kerja yang tersusun runtut untuk mencapai hasil tertentu secara aman dan benar.",
+        "Gagasan utama teks prosedur terletak pada tujuan yang ingin dicapai melalui serangkaian instruksi kerja.",
+        "Informasi tersurat dapat ditemukan langsung pada bagian penyebutan alat, takaran, dan larangan teknis."
+      ]
+    },
+    "rencana_asesmen": {
+      "asesmen_diagnostik": null,
+      "asesmen_formatif": [
+        {
+          "id": "FMT-01",
+          "waktu_pertemuan": 1,
+          "fase_langkah": "MEMAHAMI",
+          "teknik": "tanya jawab dan pengecekan pemahaman teks",
+          "instrumen_ref": [
+            "ASM-01"
+          ],
+          "fungsi": "Mengetahui pemahaman awal murid mengenai tujuan teks dan kosakata pokok dari teks petunjuk perawatan pakaian.",
+          "referensi_kktp": [
+            "K1"
+          ],
+          "cakupan_bukti": "per_murid",
+          "umpan_balik": "Guru langsung mengoreksi pelafalan dan arti istilah serta mencatat kata kerja yang masih membingungkan murid."
+        },
+        {
+          "id": "FMT-02",
+          "waktu_pertemuan": 2,
+          "fase_langkah": "MENGAPLIKASI",
+          "teknik": "latihan membaca terpandu dan analisis alur instruksi",
+          "instrumen_ref": [
+            "ASM-01"
+          ],
+          "fungsi": "Memeriksa kemampuan murid dalam mengurutkan tahapan kerja dan menemukan informasi tersurat pada petunjuk mesin jahit.",
+          "referensi_kktp": [
+            "K2",
+            "K3"
+          ],
+          "cakupan_bukti": "per_murid",
+          "umpan_balik": "Guru memberikan koreksi langsung pada urutan langkah yang tertukar dan menunjukkan letak informasi pada lembar teks."
+        }
+      ],
+      "asesmen_sumatif": {
+        "deskripsi": "Penilaian unjuk kerja membaca dan menganalisis teks prosedur instruksi kerja bengkel busana secara mandiri.",
+        "teknik": "unjuk kerja — murid menunjukkan kemampuan secara langsung",
+        "instrumen_ref": [
+          "ASM-02",
+          "ASM-03"
+        ],
+        "durasi_menit": 70,
+        "referensi_kktp": [
+          "K1",
+          "K2",
+          "K3"
+        ],
+        "cakupan_bukti": "per_murid",
+        "placement": {
+          "pertemuan": 3,
+          "fase": "MENGAPLIKASI"
+        }
+      }
+    },
+    "keputusan_kontekstual": [
+      {
+        "id": "KTX-01",
+        "sumber": {
+          "jenis": "kesiapan_murid",
+          "kunci": "jauh_di_bawah"
+        },
+        "keputusan": "Pembelajaran diawali dengan membaca bersama secara terbimbing serta menuliskan kata kunci di papan tulis sebelum murid diminta menganalisis teks.",
+        "komponen_terdampak": [
+          "pertemuan:1",
+          "rancangan"
+        ],
+        "penerapan": "Guru membedah teks baris demi baris bersama kelas untuk membangun pemahaman kosakata sebelum memberikan lembar latihan."
+      },
+      {
+        "id": "KTX-02",
+        "sumber": {
+          "jenis": "konteks_tugas",
+          "kunci": "seimbang"
+        },
+        "keputusan": "Bahan bacaan memadukan contoh perawatan sandang dalam kehidupan sehari-hari dan petunjuk teknis peralatan di bengkel busana.",
+        "komponen_terdampak": [
+          "instrumen:PBL-01",
+          "instrumen:PBL-02"
+        ],
+        "penerapan": "Pertemuan awal mengkaji teks petunjuk mencuci dan menyetrika busana, dilanjutkan dengan petunjuk memasang benang pada mesin jahit."
+      },
+      {
+        "id": "KTX-03",
+        "sumber": {
+          "jenis": "prioritas_guru",
+          "kunci": "literasi"
+        },
+        "keputusan": "Setiap kegiatan membaca menggunakan teks prosedur nonfiksi yang disajikan secara utuh dan terstruktur lengkap.",
+        "komponen_terdampak": [
+          "kktp:K1",
+          "kktp:K2",
+          "kktp:K3",
+          "instrumen:PBL-01"
+        ],
+        "penerapan": "Murid dibiasakan menelusuri teks utuh mulai dari judul, daftar alat dan bahan, hingga langkah-langkah kerja tanpa dipotong menjadi kalimat lepas."
+      },
+      {
+        "id": "KTX-04",
+        "sumber": {
+          "jenis": "program_keahlian",
+          "kunci": "Tata Busana"
+        },
+        "keputusan": "Seluruh istilah teknis dan konteks teks prosedur disesuaikan dengan lingkungan kerja busana dan garmen.",
+        "komponen_terdampak": [
+          "materi_esensial",
+          "instrumen:ASM-03"
+        ],
+        "penerapan": "Teks dan tugas membaca menggunakan petunjuk praktis seperti mengoperasikan mesin jahit dan prosedur pemeliharaan kain."
+      }
+    ],
+    "rancangan": {
+      "strategi_pedagogis": "Pembelajaran berpusat pada literasi terbimbing melalui pemodelan membaca, bedah kosakata bersama, dan latihan analisis mandiri bertahap.",
+      "sumber_belajar": [
+        {
+          "sumber": "PBL-01 Teks Petunjuk Perawatan Pakaian dan Pengoperasian Mesin Jahit",
+          "kategori": "bahan ajar cetak",
+          "fungsi": "Bahan bacaan utama untuk latihan memahami alur kerja dan kosakata inti"
+        },
+        {
+          "sumber": "PBL-02 Lembar Teks Prosedur Pemeliharaan Alat Jahit",
+          "kategori": "bahan ajar cetak",
+          "fungsi": "Bahan latihan terbimbing untuk menganalisis urutan langkah dan informasi tersurat"
+        }
+      ],
+      "pemanfaatan_digital": "Tidak memerlukan perangkat digital khusus.",
+      "lingkungan_pembelajaran": "Ruang kelas atau bengkel praktik tata busana yang dilengkapi papan tulis dan mesin jahit manual sebagai benda peraga kontekstual.",
+      "kemitraan_pembelajaran": null,
+      "keselamatan_k3": "Pengenalan simbol kehati-hatian pada petunjuk pemakaian alat panas dan tajam di bengkel tata busana."
+    },
+    "metadata_pedagogis": {
+      "dimensi_profil_lulusan": [
+        {
+          "dimensi": "Penalaran Kritis",
+          "alasan": "Murid perlu menelaah urutan langkah kerja dan membedakan informasi pokok dari rincian instruksi pada teks prosedur.",
+          "indikator": "Murid mampu mengidentifikasi urutan langkah kerja yang logis serta menemukan informasi tersurat yang ditanyakan."
+        },
+        {
+          "dimensi": "Kemandirian",
+          "alasan": "Murid dilatih membaca dan menyimpulkan instruksi kerja berbahasa Inggris secara percaya diri tanpa bergantung penuh pada terjemahan teman.",
+          "indikator": "Murid menyelesaikan lembar tugas membaca dan menentukan gagasan utama teks secara mandiri."
+        },
+        {
+          "dimensi": "Komunikasi",
+          "alasan": "Murid menyampaikan kembali informasi dan alur prosedur kerja dengan bahasa yang jelas dan runtut.",
+          "indikator": "Murid dapat menjelaskan kembali alur tahapan kerja teks prosedur saat sesi tanya jawab di kelas."
+        }
+      ],
+      "karakteristik_materi": {
+        "faktual": "Istilah nama komponen mesin jahit, jenis kain, dan simbol petunjuk perawatan busana yang tertulis dalam teks nonfiksi.",
+        "konseptual": "Ciri khas struktur teks prosedur nonfiksi yang mencakup pernyataan tujuan, penyebutan bahan/alat, dan urutan instruksi kerja.",
+        "prosedural": "Tata cara membaca memindai untuk menemukan informasi tersurat dan merangkai urutan alur informasi dari awal hingga akhir."
+      },
+      "language_policy": {
+        "teacher_instruction": "Guru memberi instruksi kerja utama dalam bahasa Indonesia yang diselingi frasa teknis bahasa Inggris secara bertahap.",
+        "student_instruction": "Murid merespons dan menjawab pertanyaan lembar kerja menggunakan kosakata bahasa Inggris yang dikutip dari teks.",
+        "target_language": "Bahasa Inggris"
+      }
+    },
+    "manifest": {
+      "pembelajaran_manifest": [
+        {
+          "id": "PBL-01",
+          "jenis": "teks_autentik",
+          "untuk_murid": true,
+          "digunakan_pada": [
+            "P1.MEMAHAMI",
+            "P2.MEMAHAMI"
+          ]
+        },
+        {
+          "id": "PBL-02",
+          "jenis": "teks_autentik",
+          "untuk_murid": true,
+          "digunakan_pada": [
+            "P2.MENGAPLIKASI"
+          ]
+        }
+      ],
+      "asesmen_manifest": [
+        {
+          "id": "ASM-01",
+          "jenis": "soal_latihan",
+          "untuk_murid": true,
+          "digunakan_pada": [
+            "P1.MEMAHAMI",
+            "P2.MENGAPLIKASI"
+          ]
+        },
+        {
+          "id": "ASM-02",
+          "jenis": "matriks_observasi",
+          "untuk_murid": false,
+          "digunakan_pada": [
+            "P3.MENGAPLIKASI"
+          ]
+        },
+        {
+          "id": "ASM-03",
+          "jenis": "soal_latihan",
+          "untuk_murid": true,
+          "digunakan_pada": [
+            "P3.MENGAPLIKASI"
+          ]
+        }
+      ]
+    }
+  },
+  "manifestFaseD": {
+    "pembelajaran_manifest": [
+      {
+        "id": "PBL-01",
+        "jenis": "teks_autentik",
+        "untuk_murid": true,
+        "digunakan_pada": [
+          "P1.MEMAHAMI",
+          "P2.MEMAHAMI"
+        ]
+      },
+      {
+        "id": "PBL-02",
+        "jenis": "teks_autentik",
+        "untuk_murid": true,
+        "digunakan_pada": [
+          "P2.MENGAPLIKASI"
+        ]
+      }
+    ],
+    "asesmen_manifest": [
+      {
+        "id": "ASM-01",
+        "jenis": "soal_latihan",
+        "untuk_murid": true,
+        "digunakan_pada": [
+          "P1.MEMAHAMI",
+          "P2.MENGAPLIKASI"
+        ]
+      },
+      {
+        "id": "ASM-02",
+        "jenis": "matriks_observasi",
+        "untuk_murid": false,
+        "digunakan_pada": [
+          "P3.MENGAPLIKASI"
+        ]
+      },
+      {
+        "id": "ASM-03",
+        "jenis": "soal_latihan",
+        "untuk_murid": true,
+        "digunakan_pada": [
+          "P3.MENGAPLIKASI"
+        ]
+      }
+    ]
+  },
+  "arahanWaktu": "Murid jauh di bawah — banyak kemampuan dasar yang harus dibangun dulu. MEMAHAMI HARUS mendapat porsi paling besar di pertemuan pertama, sekitar separuh waktu pertemuan, dan menyusutnya PELAN — di pertemuan terakhir pun ia masih layak mendapat sekitar seperempat waktu. Jangan memindahkan waktu ke MENGAPLIKASI terlalu cepat: murid yang belum paham tidak bisa berlatih.",
+  "warisan": {
+    "tpAnchor": {
+      "atp_induk_id": "m9-skenario-1",
+      "nomor_tp": 1,
+      "tp_judul": "Peserta didik memahami alur informasi keseluruhan dan gagasan utama teks prosedur nonfiksi sederhana berbahasa Inggris, serta menyimpulkan informasi tersurat di dalamnya.",
+      "tuntutan": [
+        "BIE-E25-MM-1",
+        "BIE-E25-MM-2"
+      ],
+      "kategori_teks": [
+        "nonfiksi"
+      ],
+      "semester": 1,
+      "jp_alokasi": 12,
+      "jp_pertemuan": [
+        4,
+        4,
+        4
+      ],
+      "versi_cp": "046/H/KR/2025"
+    },
+    "tuntutan": [
+      {
+        "id": "BIE-E25-MM-1",
+        "kompetensi": "memahami alur informasi secara keseluruhan",
+        "lingkup_materi": "berbagai jenis teks fiksi dan non fiksi tertulis atau teks multimodal tentang topik sehari-hari atau isu terkini",
+        "cakupan_wajib": {
+          "kategori_teks": [
+            "fiksi",
+            "nonfiksi"
+          ]
+        }
+      },
+      {
+        "id": "BIE-E25-MM-2",
+        "kompetensi": "menganalisis dan menyimpulkan informasi tersurat dan tersirat",
+        "lingkup_materi": "berbagai jenis teks fiksi dan non fiksi tertulis atau teks multimodal tentang topik sehari-hari atau isu terkini",
+        "cakupan_wajib": {
+          "kategori_teks": [
+            "fiksi",
+            "nonfiksi"
+          ]
+        }
+      }
+    ],
+    "kategoriWajib": [
+      "nonfiksi"
+    ],
+    "alokasi": {
+      "pertemuan": [
+        4,
+        4,
+        4
+      ]
+    },
+    "atpContext": {
+      "versi_cp": "046/H/KR/2025",
+      "semester": 1,
+      "kesiapan_murid": {
+        "nilai": "jauh_di_bawah",
+        "asal": "keputusan_guru",
+        "arti": "sebagian besar murid jauh di bawah prasyarat TP ini",
+        "dasar": "hasil penilaian sebelumnya"
+      },
+      "jumlah_murid": {
+        "nilai": 32,
+        "asal": "fakta"
+      },
+      "program_keahlian": {
+        "nilai": "Tata Busana",
+        "asal": "fakta"
+      },
+      "konteks_tugas": {
+        "nilai": "seimbang",
+        "asal": "keputusan_guru",
+        "arti": "contoh dan tugas seimbang antara kehidupan sehari-hari dan dunia kerja"
+      },
+      "prioritas_guru": [
+        {
+          "kunci": "literasi",
+          "arti": "penguatan literasi",
+          "arahan": "perbanyak membaca teks utuh"
+        }
+      ],
+      "penerapan_prioritas": {
+        "untuk_tp_ini": [
+          {
+            "prioritas": "literasi",
+            "kunci": "literasi",
+            "tp": [
+              1
+            ],
+            "pengaruh": [
+              "kegiatan"
+            ],
+            "alasan": "ATP menyatakan penekanan ini berlaku untuk TP ini."
+          }
+        ],
+        "seluruh_atp": [
+          {
+            "prioritas": "literasi",
+            "kunci": "literasi",
+            "tp": [
+              1
+            ],
+            "pengaruh": [
+              "kegiatan"
+            ],
+            "alasan": "Penekanan guru pada ATP."
+          }
+        ]
+      }
+    }
+  },
+  "cd": {
+    "KONTEKS_MODUL": {
+      "jumlah_murid": {
+        "value": 32
+      },
+      "kondisi_kelas": {
+        "value": "diferensiasi"
+      }
+    },
+    "SUMBER_STRATEGI": {
+      "strategi_pembelajaran": {
+        "value": "kolaboratif"
+      },
+      "bahan_guru": {
+        "value": [
+          "tidak_ada"
+        ]
+      }
+    },
+    "ASESMEN_MODUL": {
+      "gunakan_diagnostik": {
+        "value": "lewati"
+      },
+      "teknik_formatif": {
+        "value": "rekomendasi"
+      },
+      "gunakan_sumatif": {
+        "value": "ya"
+      },
+      "teknik_sumatif": {
+        "value": "unjuk_kerja"
+      }
+    }
+  },
+  "jumlahPertemuan": 3,
+  "jpPerPertemuan": 4,
+  "durasiJp": 45,
+  "jumlahMurid": 32,
+  "nomorTp": 1
+}

@@ -1,0 +1,38 @@
+{
+  "prefix": "skenario-03-attempt7",
+  "percobaan": "scoped1",
+  "model": "gemini-3.8-flash",
+  "waktu": "2026-09-11T06:55:35.548Z",
+  "hasil": "LOLOS",
+  "batas_waktu_ms": [
+    100000,
+    80000
+  ],
+  "has_durasi_error": true,
+  "anggaran_token": 32000,
+  "galat_sebelum": [
+    "pertemuan 3: Σlangkah.durasi_menit=185, diharapkan 180 (4 JP × 45 menit)"
+  ],
+  "galat_dikirim_ke_model": "pertemuan 3: Σlangkah.durasi_menit=185, diharapkan 180 (4 JP × 45 menit)",
+  "panjang_permintaan": 19702,
+  "galat_sesudah": [],
+  "valid_sesudah": true,
+  "pemakaian_token": [
+    {
+      "fase": "perbaikan validasi",
+      "masuk": 16738,
+      "keluar": 3941,
+      "penalaran": 587,
+      "total": 21266,
+      "ms": 11662
+    },
+    {
+      "fase": "Fase B2 (naskah)",
+      "masuk": 16141,
+      "keluar": 5790,
+      "penalaran": 1029,
+      "total": 22960,
+      "ms": 25233
+    }
+  ]
+}

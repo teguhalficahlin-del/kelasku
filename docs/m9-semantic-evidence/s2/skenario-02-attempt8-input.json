@@ -1,0 +1,161 @@
+{
+  "skenario": {
+    "nomor": 2,
+    "nama": "Kesiapan lebih tinggi — pembanding Skenario 1",
+    "fokusReview": "Dibandingkan Skenario 1: apakah rancangannya berbeda secara SUBSTANSI (bantuan, kompleksitas, kemandirian, progresi), bukan sekadar berbeda kalimat?",
+    "kesiapan": "sesuai",
+    "kesiapanArti": "sebagian besar murid sudah memenuhi prasyarat TP ini",
+    "konteksTugas": "seimbang",
+    "konteksTugasArti": "contoh dan tugas seimbang antara kehidupan sehari-hari dan dunia kerja",
+    "programKeahlian": "Tata Busana",
+    "jumlahMurid": 32,
+    "prioritas": [
+      {
+        "kunci": "literasi",
+        "arti": "penguatan literasi",
+        "arahan": "perbanyak membaca teks utuh"
+      }
+    ],
+    "prioritasUntukTpIni": [
+      "literasi"
+    ],
+    "tpJudul": "Peserta didik memahami alur informasi keseluruhan dan gagasan utama teks prosedur nonfiksi sederhana berbahasa Inggris, serta menyimpulkan informasi tersurat di dalamnya.",
+    "tuntutan": [
+      "BIE-E25-MM-1",
+      "BIE-E25-MM-2"
+    ],
+    "kategoriTeks": [
+      "nonfiksi"
+    ],
+    "jumlahPertemuan": 3,
+    "jpPerPertemuan": 4
+  },
+  "tp_anchor": {
+    "atp_induk_id": "m9-skenario-2",
+    "nomor_tp": 1,
+    "tp_judul": "Peserta didik memahami alur informasi keseluruhan dan gagasan utama teks prosedur nonfiksi sederhana berbahasa Inggris, serta menyimpulkan informasi tersurat di dalamnya.",
+    "tuntutan": [
+      "BIE-E25-MM-1",
+      "BIE-E25-MM-2"
+    ],
+    "kategori_teks": [
+      "nonfiksi"
+    ],
+    "semester": 1,
+    "jp_alokasi": 12,
+    "jp_pertemuan": [
+      4,
+      4,
+      4
+    ],
+    "versi_cp": "046/H/KR/2025"
+  },
+  "atp_context": {
+    "versi_cp": "046/H/KR/2025",
+    "semester": 1,
+    "kesiapan_murid": {
+      "nilai": "sesuai",
+      "asal": "keputusan_guru",
+      "arti": "sebagian besar murid sudah memenuhi prasyarat TP ini",
+      "dasar": "hasil penilaian sebelumnya"
+    },
+    "jumlah_murid": {
+      "nilai": 32,
+      "asal": "fakta"
+    },
+    "program_keahlian": {
+      "nilai": "Tata Busana",
+      "asal": "fakta"
+    },
+    "konteks_tugas": {
+      "nilai": "seimbang",
+      "asal": "keputusan_guru",
+      "arti": "contoh dan tugas seimbang antara kehidupan sehari-hari dan dunia kerja"
+    },
+    "prioritas_guru": [
+      {
+        "kunci": "literasi",
+        "arti": "penguatan literasi",
+        "arahan": "perbanyak membaca teks utuh"
+      }
+    ],
+    "penerapan_prioritas": {
+      "untuk_tp_ini": [
+        {
+          "prioritas": "literasi",
+          "kunci": "literasi",
+          "tp": [
+            1
+          ],
+          "pengaruh": [
+            "kegiatan"
+          ],
+          "alasan": "ATP menyatakan penekanan ini berlaku untuk TP ini."
+        }
+      ],
+      "seluruh_atp": [
+        {
+          "prioritas": "literasi",
+          "kunci": "literasi",
+          "tp": [
+            1
+          ],
+          "pengaruh": [
+            "kegiatan"
+          ],
+          "alasan": "Penekanan guru pada ATP."
+        }
+      ]
+    }
+  },
+  "alokasi_server": {
+    "pertemuan": [
+      4,
+      4,
+      4
+    ]
+  },
+  "collected_data": {
+    "KONTEKS_MODUL": {
+      "jumlah_murid": {
+        "value": 32
+      },
+      "kondisi_kelas": {
+        "value": "diferensiasi"
+      }
+    },
+    "SUMBER_STRATEGI": {
+      "strategi_pembelajaran": {
+        "value": "kolaboratif"
+      },
+      "bahan_guru": {
+        "value": [
+          "tidak_ada"
+        ]
+      }
+    },
+    "ASESMEN_MODUL": {
+      "gunakan_diagnostik": {
+        "value": "lewati"
+      },
+      "teknik_formatif": {
+        "value": "rekomendasi"
+      },
+      "gunakan_sumatif": {
+        "value": "ya"
+      },
+      "teknik_sumatif": {
+        "value": "unjuk_kerja"
+      }
+    }
+  },
+  "identitas": {
+    "mapel": "Bahasa Inggris",
+    "jenjang": "SMK",
+    "fase": "E",
+    "program_keahlian": "Tata Busana",
+    "nama_guru": "Guru MiClass",
+    "tahun_ajaran": "2026/2027",
+    "semester": "1"
+  }
+}

@@ -1,0 +1,19 @@
+M9 — pengukuran calon invarian struktural untuk cacat S2 (keluaran VERBATIM).
+
+Calon: setiap KKTP penghitung (keputusan_ketercapaian.jenis jumlah/persentase)
+yang dirujuk sumatif harus punya instrumen untuk_murid=true di
+asesmen_sumatif.instrumen_ref.
+
+S1 final (PASS)        sumatif_ref=["ASM-02","ASM-03"]      ada_untuk_murid=true  kktp_penghitung=K1,K2,K3  → lolos
+S2 final (MAJOR)       sumatif_ref=["ASM-02"]               ada_untuk_murid=false kktp_penghitung=K1,K2,K3  → DITOLAK
+S2 sebelum perbaikan   sumatif_ref=["ASM-02","PBL-03"]      ada_untuk_murid=true  kktp_penghitung=K1,K2,K3  → lolos
+S3 attempt3 (PASS)     sumatif_ref=["ASM-02"]               ada_untuk_murid=false kktp_penghitung=K1,K2     → DITOLAK
+S4 final (PASS)        sumatif_ref=["ASM-02"]               ada_untuk_murid=false kktp_penghitung=K1,K2     → DITOLAK
+
+Kesimpulan: TIDAK DIPASANG. Ia menolak dua skenario sah (S3 menghitung ujaran
+yang diamati, S4 menghitung kalimat di tulisan murid sendiri — keduanya tanpa
+lembar butir) dan meloloskan S2 sebelum perbaikan (teks PBL dihitung sebagai
+bahan murid). Struktur yang ada tidak memuat klaim "murid mengerjakan butir yang
+dihitung": 'jumlah' dipakai untuk butir terjawab maupun ujaran yang diamati, dan
+satu-satunya angka terstruktur (nilai_minimum) bukan penyebut. Varian S2 yang
+PUNYA jejak struktural dikunci otoritas yang sudah ada — RC-7a..RC-7e.

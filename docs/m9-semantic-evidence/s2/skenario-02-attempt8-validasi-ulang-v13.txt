@@ -1,0 +1,28 @@
+S2 attempt 8 — validasi ulang sesudah koreksi V13 (keluaran VERBATIM).
+
+BEFORE (validator lama, saat generate — skenario-02-attempt8-meta.json):
+  DITOLAK (1 galat)
+  - guru menyatakan kelas tanpa perangkat digital, tapi dokumen menyebut: ponsel. Ganti dengan kegiatan yang memakai bahan cetak, papan tulis, atau alat fisik.
+
+  Kalimat yang memicunya (naskah): "Katakan: Kerjakan secara mandiri di lembar
+  masing-masing tanpa membuka kamus ponsel atau bertanya kepada teman."
+  — melarang ponsel, bukan menuntutnya.
+
+AFTER (validator sekarang, state produksi attempt 8, seluruh bendera kontrak):
+  S1 attempt6-repairfix1         valid=true galat=0 []
+  S2 attempt8 (tanpa perbaikan)  valid=true galat=0 []
+  S4 attempt4                    valid=true galat=0 []
+
+Dokumen attempt 8 TIDAK disusun ulang dan TIDAK diperbaiki. Tidak ada generate
+baru untuk S2.
+
+──────────────────────────────────────────────────────────────────────────────
+Bukti batas waktu perbaikan (skenario-01-attempt6-repairwaktu1-meta.json):
+  galat validator sekarang = 3 | sama dengan meta: true
+  hasDurasiError = false  → jalur SUSUN ULANG DOKUMEN
+  anggaran token = 32000, panjang permintaan = 63657 karakter
+  AFTER: LOLOS — 0 galat
+  hasil LOLOS batas_waktu_ms [100000]
+  pemakaian: perbaikan validasi 57119 ms, 20561 token keluaran
+
+  Dengan batas lama 50.000 ms panggilan ini dibatalkan pada detik ke-50.

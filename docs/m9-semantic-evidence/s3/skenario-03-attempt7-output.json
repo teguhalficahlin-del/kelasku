@@ -1,0 +1,1395 @@
+{
+  "schema_version": "4.0.0",
+  "identitas": {
+    "mata_pelajaran": "Bahasa Inggris",
+    "jenjang": "SMK",
+    "fase": "E",
+    "nomor_tp": 1,
+    "jumlah_pertemuan": 3,
+    "jp_per_pertemuan": 4,
+    "durasi_jp_menit": 45,
+    "alokasi_waktu_total_menit": 540,
+    "elemen_cp": [
+      "Membaca - Memirsa"
+    ],
+    "jenis_dokumen": "Modul Induk; guru mengadaptasi konteks kelas dan program keahlian",
+    "konteks_kejuruan": {
+      "bidang_keahlian": "Seni dan Ekonomi Kreatif",
+      "program_keahlian": "Tata Busana",
+      "konsentrasi_keahlian": "Tata Busana"
+    },
+    "dasar_cp": "Membaca - Memirsa: Peserta didik memahami alur informasi keseluruhan dan menganalisis serta menyimpulkan informasi tersurat dan tersirat pada berbagai jenis teks fiksi dan nonfiksi.",
+    "tujuan_pembelajaran": "Peserta didik menggunakan bahasa Inggris untuk mengungkapkan pendapat dan mempertahankan argumen dalam percakapan tentang topik yang dibahas."
+  },
+  "kktp": [
+    {
+      "id_kktp": "K1",
+      "kriteria": "Mengungkapkan pendapat dalam bahasa Inggris menggunakan frasa opini yang sesuai konteks konsultasi rancangan atau pemilihan bahan busana.",
+      "tuntutan_ref": [
+        "BIE-E25-MB-2"
+      ],
+      "keputusan_ketercapaian": {
+        "jenis": "rubrik",
+        "nilai_minimum": 3,
+        "satuan": "level",
+        "deskripsi": "Mencapai minimal kategori Mandiri pada indikator ketepatan pengungkapan pendapat lisan"
+      },
+      "ambang_batas": "Minimal kategori Mandiri pada rubrik pengamatan",
+      "instrumen_bukti": [
+        "ASM-01",
+        "ASM-02"
+      ]
+    },
+    {
+      "id_kktp": "K2",
+      "kriteria": "Menyampaikan dan mempertahankan argumen logis disertai alasan pendukung saat menanggapi sanggahan dalam percakapan kerja tata busana.",
+      "tuntutan_ref": [
+        "BIE-E25-MB-3"
+      ],
+      "keputusan_ketercapaian": {
+        "jenis": "rubrik",
+        "nilai_minimum": 3,
+        "satuan": "level",
+        "deskripsi": "Mencapai minimal kategori Mandiri pada indikator pemberian alasan pendukung dan respons sanggahan"
+      },
+      "ambang_batas": "Minimal kategori Mandiri pada rubrik pengamatan",
+      "instrumen_bukti": [
+        "ASM-01",
+        "ASM-02"
+      ]
+    }
+  ],
+  "keputusan_kontekstual": [
+    {
+      "id": "KTX-01",
+      "sumber": {
+        "jenis": "kesiapan_murid",
+        "kunci": "sesuai"
+      },
+      "keputusan": "Pembelajaran langsung difokuskan pada praktik dialog kontekstual tanpa pengulangan tata bahasa dasar yang berlebihan.",
+      "komponen_terdampak": [
+        "pertemuan:1"
+      ],
+      "penerapan": "Murid langsung menganalisis model percakapan konsultasi butik sejak pertemuan pertama."
+    },
+    {
+      "id": "KTX-02",
+      "sumber": {
+        "jenis": "konteks_tugas",
+        "kunci": "dominan_kerja"
+      },
+      "keputusan": "Seluruh tugas percakapan menggunakan latar situasi nyata di butik busana atau studio perancang busana.",
+      "komponen_terdampak": [
+        "instrumen:PBL-01",
+        "instrumen:PBL-02"
+      ],
+      "penerapan": "Latihan dan penilaian dirancang berupa konsultasi busana antara staf desainer dengan pelanggan."
+    },
+    {
+      "id": "KTX-03",
+      "sumber": {
+        "jenis": "prioritas_guru",
+        "kunci": "komunikasi"
+      },
+      "keputusan": "Memaksimalkan porsi waktu untuk interaksi lisan berpasangan daripada penjelasan materi satu arah.",
+      "komponen_terdampak": [
+        "pertemuan:2",
+        "pertemuan:3"
+      ],
+      "penerapan": "Setiap pertemuan mengalokasikan latihan simulasi bertukar peran secara aktif."
+    }
+  ],
+  "konteks_murid": {
+    "kesiapan_awal": [
+      "Murid telah mengenal kosakata dasar jenis kain dan busana",
+      "Murid telah mampu menyusun kalimat sederhana berpola subjek dan predikat"
+    ],
+    "variasi_kemampuan": "Sebagian besar murid siap berdialog secara kontekstual, sementara beberapa murid memerlukan contoh frasa lisan sebelum percaya diri berbicara.",
+    "kebutuhan_dukungan": [
+      "Penyediaan contoh percakapan nyata dunia kerja busana sebagai acuan",
+      "Daftar frasa kunci pembuka pendapat dan penyampaian alasan pada papan tulis"
+    ]
+  },
+  "materi_esensial": {
+    "lingkup_materi": [
+      "Ungkapan menyatakan pendapat (giving opinions) dalam bahasa Inggris",
+      "Ungkapan menyetujui, menyanggah, dan mempertahankan argumen (defending arguments)",
+      "Diskusi pemilihan bahan, warna, dan konsep busana berkelanjutan (sustainable fashion)"
+    ],
+    "kosakata_kunci": [
+      "fabric texture",
+      "sustainable textile",
+      "durability",
+      "drape",
+      "client preference",
+      "cost-effective",
+      "aesthetic value",
+      "in my opinion",
+      "I strongly believe",
+      "on the contrary"
+    ],
+    "konsep_utama": [
+      "Pola penyampaian opini profesional disertai alasan logis dan relevan",
+      "Etika menyanggah secara santun serta strategi mempertahankan pilihan desain di depan klien"
+    ]
+  },
+  "rencana_asesmen": {
+    "asesmen_diagnostik": null,
+    "asesmen_formatif": [
+      {
+        "id": "FMT-01",
+        "waktu_pertemuan": 2,
+        "fase_langkah": "MENGAPLIKASI",
+        "teknik": "observasi",
+        "instrumen_ref": [
+          "ASM-01"
+        ],
+        "fungsi": "Mengecek kemampuan murid dalam menyusun argumen dan mempertahankan pilihan bahan saat simulasi diskusi",
+        "referensi_kktp": [
+          "K1",
+          "K2"
+        ],
+        "cakupan_bukti": "per_murid",
+        "umpan_balik": "Guru memberikan masukan langsung terhadap pilihan kata argumentatif dan kelogisan alasan murid."
+      }
+    ],
+    "asesmen_sumatif": {
+      "deskripsi": "Unjuk kerja percakapan berpasangan bermain peran antara desainer busana dan klien dalam memutuskan konsep rancangan.",
+      "teknik": "unjuk kerja",
+      "instrumen_ref": [
+        "ASM-02"
+      ],
+      "durasi_menit": 70,
+      "referensi_kktp": [
+        "K1",
+        "K2"
+      ],
+      "cakupan_bukti": "per_murid",
+      "placement": {
+        "pertemuan": 3,
+        "fase": "MENGAPLIKASI"
+      }
+    }
+  },
+  "rancangan": {
+    "strategi_pedagogis": "Pendekatan berbasis genre dan bermain peran interaktif berpasangan yang menekankan komunikasi lisan profesional di bidang tata busana.",
+    "sumber_belajar": [
+      {
+        "sumber": "Teks model percakapan konsultasi butik busana (PBL-01)",
+        "kategori": "bahan cetak",
+        "fungsi": "Bahan telaah struktur pengungkapan opini dan argumentasi kerja"
+      },
+      {
+        "sumber": "Kartu peran skenario butik busana (PBL-02)",
+        "kategori": "media cetak",
+        "fungsi": "Pemicu situasi untuk simulasi dan unjuk kerja percakapan"
+      }
+    ],
+    "pemanfaatan_digital": "Tidak memerlukan perangkat digital khusus.",
+    "lingkungan_pembelajaran": "Ruang kelas atau bengkel tata busana yang ditata menyerupai sudut konsultasi butik busana.",
+    "kemitraan_pembelajaran": null,
+    "keselamatan_k3": "Menjaga kerapian ruang kelas dan penempatan meja kursi agar jalur simulasi percakapan aman dan leluasa."
+  },
+  "pertemuan": [
+    {
+      "nomor": 1,
+      "tujuan_pertemuan": "Peserta didik mampu mengidentifikasi serta mempraktikkan ungkapan menyatakan pendapat dan memberi alasan sederhana dalam konteks pemilihan bahan dan model busana.",
+      "media_dan_alat": [
+        "Papan tulis dan spidol",
+        "Lembar cetak dialog model konsultasi butik (PBL-01)"
+      ],
+      "langkah": [
+        {
+          "nama": "PEMBUKA",
+          "durasi_menit": 15,
+          "prinsip": [
+            "Berkesadaran",
+            "Menggembirakan"
+          ],
+          "sub_langkah": [
+            {
+              "nomor": 1,
+              "deskripsi": "Guru menyapa murid dengan ramah, mengajak berdoa, memeriksa kehadiran, serta mengondisikan ruang kelas agar tertata rapi menyerupai suasana ruang kerja butik.",
+              "durasi_menit": 7,
+              "mode_pelaksanaan": "simultan",
+              "mode_observasi": "mandiri",
+              "ref": "P1.PEMBUKA.1"
+            },
+            {
+              "nomor": 2,
+              "deskripsi": "Guru menyampaikan tujuan pembelajaran mengenai cara menyatakan pendapat dalam bahasa Inggris pada situasi kerja tata busana serta menyampaikan manfaat kompetensi ini bagi calon perancang busana.",
+              "durasi_menit": 8,
+              "mode_pelaksanaan": "simultan",
+              "mode_observasi": "mandiri",
+              "ref": "P1.PEMBUKA.2"
+            }
+          ]
+        },
+        {
+          "nama": "ASESMEN_AWAL",
+          "durasi_menit": 15,
+          "prinsip": [
+            "Berkesadaran"
+          ],
+          "sub_langkah": [
+            {
+              "nomor": 1,
+              "deskripsi": "Guru memperlihatkan dua sketsa potongan busana di papan tulis dan memantik respons murid secara lisan untuk mengecek sejauh mana murid telah mampu menyampaikan pilihan dan alasan sederhana dalam bahasa Inggris.",
+              "durasi_menit": 15,
+              "mode_pelaksanaan": "simultan",
+              "mode_observasi": "sampel",
+              "ref": "P1.ASESMEN_AWAL.1"
+            }
+          ]
+        },
+        {
+          "nama": "MEMAHAMI",
+          "durasi_menit": 45,
+          "prinsip": [
+            "Bermakna"
+          ],
+          "sub_langkah": [
+            {
+              "nomor": 1,
+              "deskripsi": "Murid secara berpasangan mencermati teks cetak dialog percakapan butik (PBL-01) untuk menemukan ungkapan menyatakan pendapat dan frasa penghubung alasan yang digunakan oleh penjahit dan pelanggan.",
+              "durasi_menit": 20,
+              "instrumen_ref": [
+                "PBL-01"
+              ],
+              "mode_pelaksanaan": "kelompok_kecil",
+              "mode_observasi": "rotasi",
+              "ukuran_kelompok": 2,
+              "ref": "P1.MEMAHAMI.1"
+            },
+            {
+              "nomor": 2,
+              "deskripsi": "Guru bersama murid membedah struktur ungkapan pendapat dan alasan pendukung dari teks dialog di papan tulis, lalu melafalkan frasa kunci secara bersama-sama.",
+              "durasi_menit": 25,
+              "mode_pelaksanaan": "simultan",
+              "mode_observasi": "mandiri",
+              "ref": "P1.MEMAHAMI.2"
+            }
+          ]
+        },
+        {
+          "nama": "MENGAPLIKASI",
+          "durasi_menit": 80,
+          "prinsip": [
+            "Bermakna",
+            "Menggembirakan"
+          ],
+          "sub_langkah": [
+            {
+              "nomor": 1,
+              "deskripsi": "Murid dalam pasangan berlatih menyusun kalimat pendapat mengenai kecocokan jenis kain busana pesta menggunakan pola kalimat yang telah dibahas pada buku tulis masing-masing.",
+              "durasi_menit": 40,
+              "mode_pelaksanaan": "kelompok_kecil",
+              "mode_observasi": "rotasi",
+              "ukuran_kelompok": 2,
+              "ref": "P1.MENGAPLIKASI.1"
+            },
+            {
+              "nomor": 2,
+              "deskripsi": "Setiap pasangan mempraktikkan percakapan tanya jawab singkat saling bertukar pendapat tentang rancangan busana kerja secara langsung di hadapan pasangan lain secara serempak.",
+              "durasi_menit": 40,
+              "mode_pelaksanaan": "simultan",
+              "mode_observasi": "rotasi",
+              "ukuran_kelompok": 2,
+              "ref": "P1.MENGAPLIKASI.2"
+            }
+          ]
+        },
+        {
+          "nama": "MEREFLEKSI",
+          "durasi_menit": 15,
+          "prinsip": [
+            "Berkesadaran"
+          ],
+          "sub_langkah": [
+            {
+              "nomor": 1,
+              "deskripsi": "Murid mengidentifikasi frasa mana yang dirasa paling mudah diucapkan dan bagian mana saat mempertahankan argumen yang masih terasa menantang dengan menuliskannya di buku catatan.",
+              "durasi_menit": 15,
+              "mode_pelaksanaan": "individual",
+              "mode_observasi": "mandiri",
+              "ref": "P1.MEREFLEKSI.1"
+            }
+          ]
+        },
+        {
+          "nama": "PENUTUP",
+          "durasi_menit": 10,
+          "prinsip": [
+            "Bermakna"
+          ],
+          "sub_langkah": [
+            {
+              "nomor": 1,
+              "deskripsi": "Guru memberikan apresiasi atas partisipasi aktif murid, menyimpulkan poin penting penggunaan ungkapan pendapat, dan menginformasikan rencana latihan simulasi butik untuk pertemuan berikutnya.",
+              "durasi_menit": 10,
+              "mode_pelaksanaan": "simultan",
+              "mode_observasi": "mandiri",
+              "ref": "P1.PENUTUP.1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "nomor": 2,
+      "tujuan_pertemuan": "Peserta didik mampu mempertahankan argumen dengan alasan logis dalam situasi simulasi diskusi pemilihan bahan busana dan menerima umpan balik perbaikan.",
+      "media_dan_alat": [
+        "Papan tulis dan spidol",
+        "Kartu peran skenario butik busana (PBL-02)",
+        "Lembar matriks observasi cek pemahaman guru (ASM-01)"
+      ],
+      "langkah": [
+        {
+          "nama": "PEMBUKA",
+          "durasi_menit": 15,
+          "prinsip": [
+            "Berkesadaran"
+          ],
+          "sub_langkah": [
+            {
+              "nomor": 1,
+              "deskripsi": "Guru membuka pelajaran, memeriksa kesiapan ruang dan kehadiran murid, serta mengingatkan kembali frasa kunci menyatakan pendapat yang telah dipelajari sebelumnya.",
+              "durasi_menit": 15,
+              "mode_pelaksanaan": "simultan",
+              "mode_observasi": "mandiri",
+              "ref": "P2.PEMBUKA.1"
+            }
+          ]
+        },
+        {
+          "nama": "ASESMEN_AWAL",
+          "durasi_menit": 10,
+          "prinsip": [
+            "Berkesadaran"
+          ],
+          "sub_langkah": [
+            {
+              "nomor": 1,
+              "deskripsi": "Guru memberikan satu situasi pertentangan ide rancangan busana secara lisan, lalu meminta dua murid memberikan sanggahan dan alasan spontan untuk melihat kesiapan berargumen.",
+              "durasi_menit": 10,
+              "mode_pelaksanaan": "simultan",
+              "mode_observasi": "sampel",
+              "ref": "P2.ASESMEN_AWAL.1"
+            }
+          ]
+        },
+        {
+          "nama": "MEMAHAMI",
+          "durasi_menit": 25,
+          "prinsip": [
+            "Bermakna"
+          ],
+          "sub_langkah": [
+            {
+              "nomor": 1,
+              "deskripsi": "Guru memodelkan teknik mempertahankan argumen secara santun saat klien meragukan pemilihan bahan pakaian, memperlihatkan frasa penegas alasan di papan tulis.",
+              "durasi_menit": 25,
+              "mode_pelaksanaan": "simultan",
+              "mode_observasi": "mandiri",
+              "ref": "P2.MEMAHAMI.1"
+            }
+          ]
+        },
+        {
+          "nama": "MENGAPLIKASI",
+          "durasi_menit": 105,
+          "prinsip": [
+            "Bermakna",
+            "Menggembirakan"
+          ],
+          "sub_langkah": [
+            {
+              "nomor": 1,
+              "deskripsi": "Murid secara berpasangan menerima kartu peran skenario butik (PBL-02) dan merancang alur argumen pembelaan konsep busana masing-masing selama sesi latihan bersama pasangan.",
+              "durasi_menit": 50,
+              "instrumen_ref": [
+                "PBL-02"
+              ],
+              "mode_pelaksanaan": "kelompok_kecil",
+              "mode_observasi": "rotasi",
+              "ukuran_kelompok": 2,
+              "ref": "P2.MENGAPLIKASI.1"
+            },
+            {
+              "nomor": 2,
+              "deskripsi": "Murid melakukan simulasi percakapan berpasangan dengan saling bertukar peran secara bergantian agar setiap murid dinilai kemampuannya dalam menyatakan pendapat dan mempertahankan argumen, sementara guru mengamati dan mencatat capaian pada matriks observasi (ASM-01).",
+              "durasi_menit": 55,
+              "instrumen_ref": [
+                "ASM-01",
+                "PBL-02"
+              ],
+              "asesmen_ref": "FMT-01",
+              "mode_pelaksanaan": "bergantian",
+              "mode_observasi": "rotasi",
+              "ukuran_kelompok": 2,
+              "ref": "P2.MENGAPLIKASI.2"
+            }
+          ]
+        },
+        {
+          "nama": "MEREFLEKSI",
+          "durasi_menit": 15,
+          "prinsip": [
+            "Berkesadaran"
+          ],
+          "sub_langkah": [
+            {
+              "nomor": 1,
+              "deskripsi": "Murid bersama pasangannya mendiskusikan masukan yang diberikan guru mengenai kekuatan argumen dan ketepatan kosakata busana yang digunakan saat simulasi.",
+              "durasi_menit": 15,
+              "mode_pelaksanaan": "kelompok_kecil",
+              "mode_observasi": "mandiri",
+              "ukuran_kelompok": 2,
+              "ref": "P2.MEREFLEKSI.1"
+            }
+          ]
+        },
+        {
+          "nama": "PENUTUP",
+          "durasi_menit": 10,
+          "prinsip": [
+            "Bermakna"
+          ],
+          "sub_langkah": [
+            {
+              "nomor": 1,
+              "deskripsi": "Guru memberikan ringkasan perkembangan kemampuan berbicara kelas, mengumumkan kriteria penilaian unjuk kerja pada pertemuan berikutnya, dan menutup kelas dengan salam.",
+              "durasi_menit": 10,
+              "mode_pelaksanaan": "simultan",
+              "mode_observasi": "mandiri",
+              "ref": "P2.PENUTUP.1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "nomor": 3,
+      "tujuan_pertemuan": "Peserta didik mampu mendemonstrasikan kemampuan menyatakan pendapat dan mempertahankan argumen secara mandiri dalam penilaian unjuk kerja percakapan konsultasi butik busana.",
+      "media_dan_alat": [
+        "Papan tulis dan spidol",
+        "Kartu peran skenario butik busana (PBL-02)",
+        "Lembar rubrik penilaian unjuk kerja (ASM-02)"
+      ],
+      "langkah": [
+        {
+          "nama": "PEMBUKA",
+          "durasi_menit": 15,
+          "prinsip": [
+            "Berkesadaran",
+            "Menggembirakan"
+          ],
+          "sub_langkah": [
+            {
+              "nomor": 1,
+              "deskripsi": "Guru membuka pertemuan, memotivasi murid, serta menjelaskan tata tertib dan prosedur pelaksanaan unjuk kerja penilaian akhir berpasangan.",
+              "durasi_menit": 15,
+              "mode_pelaksanaan": "simultan",
+              "mode_observasi": "mandiri",
+              "ref": "P3.PEMBUKA.1"
+            }
+          ]
+        },
+        {
+          "nama": "ASESMEN_AWAL",
+          "durasi_menit": 10,
+          "prinsip": [
+            "Berkesadaran"
+          ],
+          "sub_langkah": [
+            {
+              "nomor": 1,
+              "deskripsi": "Guru mengecek kesiapan mental dan penguasaan istilah teknis busana murid melalui pertanyaan pemanasan singkat sebelum penilaian unjuk kerja dimulai.",
+              "durasi_menit": 10,
+              "mode_pelaksanaan": "simultan",
+              "mode_observasi": "sampel",
+              "ref": "P3.ASESMEN_AWAL.1"
+            }
+          ]
+        },
+        {
+          "nama": "MEMAHAMI",
+          "durasi_menit": 15,
+          "prinsip": [
+            "Bermakna"
+          ],
+          "sub_langkah": [
+            {
+              "nomor": 1,
+              "deskripsi": "Guru menegaskan kembali poin-poin yang diamati dalam rubrik penilaian unjuk kerja, seperti kejelasan opini, kelogisan alasan, serta kesantunan dalam mempertahankan pendapat.",
+              "durasi_menit": 15,
+              "mode_pelaksanaan": "simultan",
+              "mode_observasi": "mandiri",
+              "ref": "P3.MEMAHAMI.1"
+            }
+          ]
+        },
+        {
+          "nama": "MENGAPLIKASI",
+          "durasi_menit": 115,
+          "prinsip": [
+            "Bermakna",
+            "Menggembirakan"
+          ],
+          "sub_langkah": [
+            {
+              "nomor": 1,
+              "deskripsi": "Murid secara berpasangan mengambil kartu peran skenario butik busana (PBL-02) dan melakukan persiapan singkat menyelaraskan poin argumen sebelum unjuk kerja.",
+              "durasi_menit": 45,
+              "instrumen_ref": [
+                "PBL-02"
+              ],
+              "mode_pelaksanaan": "kelompok_kecil",
+              "mode_observasi": "rotasi",
+              "ukuran_kelompok": 2,
+              "ref": "P3.MENGAPLIKASI.1"
+            },
+            {
+              "nomor": 2,
+              "deskripsi": "Setiap pasangan tampil bergantian memperagakan percakapan konsultasi butik busana dengan bertukar peran sebagai desainer dan klien sehingga seluruh murid dinilai secara perorangan dalam menyatakan pendapat dan mempertahankan argumen, sementara guru menilai menggunakan rubrik observasi (ASM-02).",
+              "durasi_menit": 70,
+              "instrumen_ref": [
+                "ASM-02",
+                "PBL-02"
+              ],
+              "asesmen_ref": "SUMATIF",
+              "mode_pelaksanaan": "bergantian",
+              "mode_observasi": "rotasi",
+              "ukuran_kelompok": 2,
+              "ref": "P3.MENGAPLIKASI.2"
+            }
+          ]
+        },
+        {
+          "nama": "MEREFLEKSI",
+          "durasi_menit": 15,
+          "prinsip": [
+            "Berkesadaran"
+          ],
+          "sub_langkah": [
+            {
+              "nomor": 1,
+              "deskripsi": "Murid menuliskan refleksi pribadi di buku catatan mengenai pengalaman mereka mempertahankan argumen dalam bahasa Inggris dan menetapkan target pengembangan diri selanjutnya.",
+              "durasi_menit": 15,
+              "mode_pelaksanaan": "individual",
+              "mode_observasi": "mandiri",
+              "ref": "P3.MEREFLEKSI.1"
+            }
+          ]
+        },
+        {
+          "nama": "PENUTUP",
+          "durasi_menit": 15,
+          "prinsip": [
+            "Bermakna",
+            "Menggembirakan"
+          ],
+          "sub_langkah": [
+            {
+              "nomor": 1,
+              "deskripsi": "Guru memberikan apresiasi menyeluruh atas usaha dan keberanian seluruh murid dalam berkomunikasi lisan bahasa Inggris, mengumumkan selesainya rangkaian tujuan pembelajaran ini, dan menutup pertemuan.",
+              "durasi_menit": 15,
+              "mode_pelaksanaan": "simultan",
+              "mode_observasi": "mandiri",
+              "ref": "P3.PENUTUP.1"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "naskah_fasilitasi": [
+    {
+      "nomor": 1,
+      "langkah": [
+        {
+          "nama": "PEMBUKA",
+          "sub_langkah": [
+            {
+              "ref": "P1.PEMBUKA.1",
+              "aksi_guru": [
+                "Menyapa murid dengan hangat dan memimpin doa pembuka",
+                "Memeriksa kehadiran murid dan kerapian tata letak meja kursi agar ruangan siap untuk simulasi butik",
+                "Menyiapkan papan tulis dan spidol untuk mencatat poin penting"
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Good morning everyone! Bagaimana kabar kalian hari ini? Sebelum kita mulai kegiatan, mari kita berdoa sejenak.'",
+                "Katakan: 'Pastikan meja dan kursi kalian rapi agar ruang kelas kita nyaman layaknya sebuah studio busana.'"
+              ],
+              "pertanyaan_kunci": [],
+              "jika_kesulitan": []
+            },
+            {
+              "ref": "P1.PEMBUKA.2",
+              "aksi_guru": [
+                "Menjelaskan tujuan pembelajaran dan skenario kegiatan hari ini",
+                "Memberikan gambaran pentingnya keterampilan berdiskusi dan mempertahankan pendapat bagi seorang penata busana saat menghadapi klien"
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Hari ini kita akan belajar bagaimana menyatakan pendapat dan memberikan alasan logis dalam bahasa Inggris saat berkonsultasi mengenai pilihan bahan dan rancangan busana.'",
+                "Katakan: 'Di dunia kerja busana, seorang desainer tidak hanya menggambar, tetapi juga harus meyakinkan klien mengapa bahan tertentu paling pas untuk rancangan mereka.'"
+              ],
+              "pertanyaan_kunci": [
+                "Pernahkah kalian berbeda pendapat dengan orang lain saat memilih model atau jenis kain pakaian?"
+              ],
+              "jika_kesulitan": []
+            }
+          ]
+        },
+        {
+          "nama": "ASESMEN_AWAL",
+          "sub_langkah": [
+            {
+              "ref": "P1.ASESMEN_AWAL.1",
+              "aksi_guru": [
+                "Menggambar atau menuliskan dua opsi rancangan busana di papan tulis, misalnya jas musim panas berbahan linen versus wol",
+                "Meminta beberapa murid secara acak mengutarakan pilihan dan alasannya dalam bahasa Inggris tanpa menyalahkan struktur kalimat mereka",
+                "Mencatat variasi jawaban murid untuk memetakan kesiapan awal kelas"
+              ],
+              "ucapan_guru": [
+                "Tanyakan: 'If you have to design a summer jacket, which fabric do you prefer: linen or wool? Why?'",
+                "Katakan: 'Coba sampaikan pendapat kalian secara bebas, gunakan kata-kata yang sudah kalian ketahui.'"
+              ],
+              "pertanyaan_kunci": [
+                "Which one is better for summer clothing, and why?"
+              ],
+              "jika_kesulitan": [
+                "Tuliskan bantuan kosakata sederhana di papan tulis: cool, light, warm, heavy untuk membantu murid yang ragu memilih kata."
+              ]
+            }
+          ]
+        },
+        {
+          "nama": "MEMAHAMI",
+          "sub_langkah": [
+            {
+              "ref": "P1.MEMAHAMI.1",
+              "aksi_guru": [
+                "Membagikan lembar dialog model PBL-01 kepada setiap pasangan murid",
+                "Menginstruksikan murid membaca percakapan antara Rina (Desainer) dan Maya (Klien) secara berpasangan",
+                "Berkeliling memastikan murid menandai kalimat yang berisi pendapat dan alasan di lembar PBL-01"
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Silakan cermati dialog PBL-01 bersama teman sebangku kalian. Perhatikan percakapan antara Rina sebagai desainer dan Maya sebagai klien.'",
+                "Katakan: 'Garis bawahi kalimat saat Rina menyampaikan pendapat dan bagaimana Rina merespons kekhawatiran Maya.'"
+              ],
+              "pertanyaan_kunci": [
+                "Kalimat mana yang digunakan Rina saat pertama kali mengusulkan bahan linen kepada Maya?"
+              ],
+              "jika_kesulitan": [
+                "Arahkan murid membaca ucapan pertama Rina: 'In my opinion, linen is the most suitable fabric for your summer blazer.'"
+              ]
+            },
+            {
+              "ref": "P1.MEMAHAMI.2",
+              "aksi_guru": [
+                "Menuliskan pola ungkapan pendapat di papan tulis: 'In my opinion...', 'I understand your concern, but...'",
+                "Membedah fungsi frasa alasan seperti 'because' dan 'retains crispness while maintaining breathability'",
+                "Mengajak seluruh kelas menirukan pelafalan frasa-frasa kunci tersebut secara bersama-sama"
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Perhatikan papan tulis. Ketika kita ingin menyampaikan pendapat secara profesional, kita bisa membuka dengan: In my opinion...'",
+                "Katakan: 'Saat klien ragu, jangan langsung membantah. Tirukan ucapan ini bersama-sama: I understand your concern, but linen absorbs sweat exceptionally well.'"
+              ],
+              "pertanyaan_kunci": [
+                "Mengapa penting mengucapkan 'I understand your concern' sebelum memberikan sanggahan balik kepada klien?"
+              ],
+              "jika_kesulitan": [
+                "Ulangi pelafalan frasa kata per kata dengan intonasi jelas dan minta murid menirukan secara serempak."
+              ]
+            }
+          ]
+        },
+        {
+          "nama": "MENGAPLIKASI",
+          "sub_langkah": [
+            {
+              "ref": "P1.MENGAPLIKASI.1",
+              "aksi_guru": [
+                "Meminta murid membuka buku tulis masing-masing untuk menyusun draf pendapat tentang pemilihan bahan busana pesta",
+                "Memantau pengerjaan dan memberikan panduan bagi pasangan yang memerlukan bantuan pemilihan kosa kata kain",
+                "Memastikan setiap murid menuliskan minimal dua kalimat opini beserta alasannya di buku catatan"
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Sekarang di buku tulis kalian, tuliskan rancangan pendapat kalian bersama pasangan mengenai bahan yang cocok untuk busana pesta.'",
+                "Katakan: 'Gunakan pola yang ada di papan tulis: sebutkan jenis kain pilihan kalian dan sertakan alasan logisnya.'"
+              ],
+              "pertanyaan_kunci": [
+                "What fabric do you choose for the party dress, and what is the reason?"
+              ],
+              "jika_kesulitan": [
+                "Berikan pilihan kata sifat bahan di papan tulis seperti elegant, shiny, stiff, atau soft untuk memicu ide murid."
+              ]
+            },
+            {
+              "ref": "P1.MENGAPLIKASI.2",
+              "aksi_guru": [
+                "Menginstruksikan setiap pasangan saling berhadapan untuk mempraktikkan percakapan tanya jawab secara serempak",
+                "Mengamati interaksi antar-murid sambil berkeliling di antara meja",
+                "Memberikan dorongan semangat agar murid berani berbicara tanpa takut membuat kesalahan tata bahasa"
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Saatnya mempraktikkan percakapan! Satu orang berperan menyampaikan pendapat tentang rancangan busana kerja, dan pasangannya menanyakan alasannya.'",
+                "Katakan: 'Lakukan secara serentak di meja masing-masing. Fokuslah pada keberanian berbicara dan kejelasan pengucapan frasa opini.'"
+              ],
+              "pertanyaan_kunci": [
+                "Do you agree with your partner's fabric recommendation?"
+              ],
+              "jika_kesulitan": [
+                "Minta pasangan yang kesulitan untuk membaca draf kalimat yang telah mereka tulis di buku catatan secara perlahan."
+              ]
+            }
+          ]
+        },
+        {
+          "nama": "MEREFLEKSI",
+          "sub_langkah": [
+            {
+              "ref": "P1.MEREFLEKSI.1",
+              "aksi_guru": [
+                "Meminta murid merenungkan proses latihan berbicara hari ini",
+                "Menugaskan murid menuliskan satu kalimat refleksi di buku catatan mengenai bagian yang paling mudah dan bagian yang masih sulit"
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Ambil buku catatan kalian. Tuliskan satu frasa bahasa Inggris yang paling mudah kalian ucapkan hari ini.'",
+                "Katakan: 'Tuliskan juga tantangan apa yang paling kalian rasakan saat mencoba menjelaskan alasan kepada pasangan kalian.'"
+              ],
+              "pertanyaan_kunci": [
+                "Bagian mana dari dialog yang paling menantang ketika kalian mengucapkannya secara lisan?"
+              ],
+              "jika_kesulitan": [
+                "Berikan contoh refleksi singkat di papan tulis: 'Saya mudah mengucap In my opinion, tapi masih sulit menjelaskan keunggulan bahan.'"
+              ]
+            }
+          ]
+        },
+        {
+          "nama": "PENUTUP",
+          "sub_langkah": [
+            {
+              "ref": "P1.PENUTUP.1",
+              "aksi_guru": [
+                "Memberikan apresiasi atas keberanian seluruh murid berlatih berbicara bahasa Inggris",
+                "Menyimpulkan fungsi frasa menyatakan pendapat dalam situasi konsultasi busana",
+                "Menyampaikan agenda pertemuan berikutnya yaitu simulasi mempertahankan argumen dengan kartu peran skenario butik"
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Luar biasa usaha kalian hari ini! Kalian sudah mulai terbiasa menggunakan ungkapan opini profesional.'",
+                "Katakan: 'Di pertemuan mendatang, kita akan meningkatkan tantangan dengan kartu peran skenario butik di mana kalian harus mempertahankan argumen saat klien ragu.'",
+                "Katakan: 'Mari kita akhiri sesi hari ini dengan bersyukur dan merapikan kembali ruang kelas. Good job and see you next meeting!'"
+              ],
+              "pertanyaan_kunci": [],
+              "jika_kesulitan": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "nomor": 2,
+      "langkah": [
+        {
+          "nama": "PEMBUKA",
+          "sub_langkah": [
+            {
+              "ref": "P2.PEMBUKA.1",
+              "aksi_guru": [
+                "Menyapa murid, memimpin doa, dan mengecek kehadiran",
+                "Mengingatkan kembali frasa kunci menyatakan pendapat yang telah dipelajari pada pertemuan sebelumnya dengan menuliskan kata kunci di papan tulis"
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Good morning everyone! Siap melanjutkan petualangan kita di studio butik busana?'",
+                "Katakan: 'Siapa yang masih ingat bagaimana cara membuka kalimat ketika ingin menyampaikan saran bahan kepada klien?'"
+              ],
+              "pertanyaan_kunci": [
+                "Who remembers how Rina responded when Maya worried about wrinkled linen?"
+              ],
+              "jika_kesulitan": [
+                "Tunjuk kembali catatan frasa 'In my opinion...' dan 'I understand your concern, but...' di pojok papan tulis."
+              ]
+            }
+          ]
+        },
+        {
+          "nama": "ASESMEN_AWAL",
+          "sub_langkah": [
+            {
+              "ref": "P2.ASESMEN_AWAL.1",
+              "aksi_guru": [
+                "Menyampaikan satu studi kasus singkat secara lisan: klien menolak bahan sutra karena takut perawatannya sulit",
+                "Meminta dua relawan murid menanggapi keraguan tersebut secara langsung dalam bahasa Inggris",
+                "Memeriksa sejauh mana murid siap mempertahankan pilihan bahan dengan alasan logis"
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Bayangkan saya adalah klien yang berkata: I don't want silk because it is too delicate to wash. Bagaimana kalian menjawabnya?'",
+                "Tanyakan: 'Ada yang berani mencoba merespons sanggahan saya?'"
+              ],
+              "pertanyaan_kunci": [
+                "How would you convince the client that silk is still worth choosing?"
+              ],
+              "jika_kesulitan": [
+                "Bantu murid memancing alasan dengan pertanyaan sederhana: 'What makes silk special for evening wear?'"
+              ]
+            }
+          ]
+        },
+        {
+          "nama": "MEMAHAMI",
+          "sub_langkah": [
+            {
+              "ref": "P2.MEMAHAMI.1",
+              "aksi_guru": [
+                "Mendemonstrasikan cara mempertahankan argumen dengan tenang dan santun menggunakan teknik 'Acknowledge and Explain'",
+                "Menuliskan contoh frasa penopang argumen di papan tulis: 'Even though it seems delicate, the fabric gives an elegant drape that other materials cannot match.'",
+                "Menjelaskan bahwa mempertahankan argumen bukan berarti mendebat, melainkan memberi solusi teknis bahan tekstil"
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Perhatikan cara saya merespons klien. Pertama, akui kekhawatiran mereka. Kedua, berikan keunggulan spesifik bahan tersebut.'",
+                "Katakan: 'Kita gunakan ungkapan seperti: I understand that point, however this fabric retains its shape exceptionally well.'",
+                "Katakan: 'Di dunia kerja tata busana, alasan yang kuat selalu bersandar pada sifat atau karakteristik kain.'"
+              ],
+              "pertanyaan_kunci": [
+                "Mengapa kita perlu menyebutkan sifat fisik kain saat mempertahankan pilihan rancangan kita?"
+              ],
+              "jika_kesulitan": [
+                "Tuliskan kata kunci sifat kain di papan tulis: durable, breathable, wrinkle-resistant, lightweight."
+              ]
+            }
+          ]
+        },
+        {
+          "nama": "MENGAPLIKASI",
+          "sub_langkah": [
+            {
+              "ref": "P2.MENGAPLIKASI.1",
+              "aksi_guru": [
+                "Membagikan kartu peran PBL-02 kepada pasangan murid dan meminta mereka memilih salah satu skenario",
+                "Menjelaskan instruksi skenario Set 1: Gaun Pesta Ramah Lingkungan dan Set 2: Seragam Kerja Kantor Butik",
+                "Mendampingi pasangan saat merancang poin pembelaan konsep dan membagi peran A dan peran B"
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Setiap pasangan memegang instrumen PBL-02. Kalian bisa memilih Set 1: Gaun Pesta Ramah Lingkungan atau Set 2: Seragam Kerja Kantor Butik.'",
+                "Katakan: 'Di Set 1, Peran A bertugas meyakinkan bahwa kain serat tencel ramah lingkungan dan jatuh anggun, sedangkan Peran B menyuarakan keraguan tentang kekuatan serat alami.'",
+                "Katakan: 'Gunakan waktu persiapan ini untuk mencatat poin argumen kalian di buku catatan.'"
+              ],
+              "pertanyaan_kunci": [
+                "What specific reason will you provide to defend tencel or cotton drill fabric?"
+              ],
+              "jika_kesulitan": [
+                "Arahkan murid membaca kembali teks instruksi peran pada PBL-02 untuk menemukan kata kunci argumen."
+              ]
+            },
+            {
+              "ref": "P2.MENGAPLIKASI.2",
+              "aksi_guru": [
+                "Mengumumkan giliran simulasi percakapan berpasangan dan alokasi waktu per kelompok",
+                "Memanggil pasangan murid secara bergantian untuk memperagakan simulasi di area depan kelas atau meja konsultasi yang disiapkan",
+                "Memastikan setiap pasangan bertukar peran sehingga kedua murid memerankan posisi desainer yang dinilai kemampuannya berargumen",
+                "Mengamati performa setiap murid dan mencatat capaian pada matriks observasi ASM-01",
+                "Memberikan umpan balik langsung secara ringkas setelah pasangan selesai bertukar peran"
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Sekarang kita mulai simulasi berpasangan secara bergantian. Setiap kelompok beranggotakan dua orang memiliki jatah waktu 3,1 menit untuk menampilkan percakapan dan saling bertukar peran.'",
+                "Katakan: 'Pastikan kalian bertukar peran: murid pertama menjadi desainer lalu bertukar menjadi klien, sehingga kedua orang dinilai saat mempertahankan pendapat.'",
+                "Katakan: 'Saya akan mengamati dua hal utama pada lembar pengamatan ASM-01: pertama, ketepatan penggunaan frasa menyatakan pendapat lisan dalam konteks rancangan busana; kedua, kelogisan penyampaian alasan pendukung dan ketahanan argumen saat menanggapi sanggahan.'"
+              ],
+              "pertanyaan_kunci": [
+                "Why do you believe this material is the perfect choice for the client's needs?"
+              ],
+              "jika_kesulitan": [
+                "Jika murid terdiam saat disanggah, guru menunjuk daftar frasa penyambung di papan tulis: 'I see your point, but...'"
+              ],
+              "yang_diamati": [
+                "Ketepatan penggunaan frasa menyatakan pendapat lisan dalam konteks rancangan busana sesuai indikator IND-01 pada ASM-01",
+                "Kelogisan penyampaian alasan pendukung dan ketahanan argumen saat menanggapi sanggahan sesuai indikator IND-02 pada ASM-01"
+              ],
+              "putusan_lanjut": {
+                "jika_tercapai": "Murid yang telah mencapai kategori Mandiri dipersilakan melanjutkan latihan mandiri mencoba skenario kedua pada PBL-02 bersama pasangan tanpa melihat catatan.",
+                "jika_belum": "Murid yang capaiannya masih di bawah kategori Mandiri diminta menuliskan kembali pola kalimat sanggahan di buku catatan dan diberi kesempatan berlatih satu putaran singkat dengan bantuan panduan frasa di papan tulis."
+              }
+            }
+          ]
+        },
+        {
+          "nama": "MEREFLEKSI",
+          "sub_langkah": [
+            {
+              "ref": "P2.MEREFLEKSI.1",
+              "aksi_guru": [
+                "Meminta murid duduk kembali bersama pasangannya dan mencermati catatan umpan balik yang baru saja diberikan guru",
+                "Mengarahkan murid mendiskusikan apa yang perlu diperbaiki sebelum pelaksanaan penilaian unjuk kerja pada pertemuan berikutnya"
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Diskusikan bersama pasangan kalian: masukan apa yang tadi saya sampaikan mengenai kekuatan alasan dan pilihan kosakata kalian?'",
+                "Katakan: 'Catat satu hal penting yang akan kalian tingkatkan pada penampilan penilaian akhir pertemuan depan.'"
+              ],
+              "pertanyaan_kunci": [
+                "Apakah alasan yang kalian berikan tadi sudah cukup meyakinkan klien kalian?"
+              ],
+              "jika_kesulitan": [
+                "Bantu murid mengidentifikasi kelemahan mereka: 'Apakah tadi kalian kesulitan menemukan kata dalam bahasa Inggris atau ragu menyampaikan alasan?'"
+              ]
+            }
+          ]
+        },
+        {
+          "nama": "PENUTUP",
+          "sub_langkah": [
+            {
+              "ref": "P2.PENUTUP.1",
+              "aksi_guru": [
+                "Merangkum kemajuan kemampuan berargumen seluruh murid di kelas",
+                "Mengingatkan bahwa pertemuan berikutnya adalah penilaian unjuk kerja percakapan butik busana menggunakan instrumen ASM-02",
+                "Menutup kelas dengan doa dan salam"
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Kerja yang sangat baik hari ini! Banyak dari kalian sudah mampu mempertahankan pilihan bahan dengan alasan logis.'",
+                "Katakan: 'Pertemuan depan adalah saatnya penilaian unjuk kerja percakapan klien butik. Siapkan penguasaan istilah bahan busana dan rasa percaya diri kalian.'",
+                "Katakan: 'Terima kasih atas kerja keras kalian hari ini. Have a great day and see you next meeting!'"
+              ],
+              "pertanyaan_kunci": [],
+              "jika_kesulitan": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "nomor": 3,
+      "langkah": [
+        {
+          "nama": "PEMBUKA",
+          "sub_langkah": [
+            {
+              "ref": "P3.PEMBUKA.1",
+              "aksi_guru": [
+                "Membuka kelas dengan salam dan doa pembuka",
+                "Memeriksa kehadiran murid dan menciptakan suasana yang tenang namun bersemangat",
+                "Menjelaskan alur dan tata tertib pelaksanaan unjuk kerja penilaian akhir berpasangan"
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Good morning everyone! Hari ini adalah hari unjuk kerja percakapan konsultasi butik busana.'",
+                "Katakan: 'Kita akan melakukan unjuk kerja berpasangan secara tertib. Saat satu pasangan tampil, pasangan lain menyimak dan mempersiapkan diri dengan tenang.'"
+              ],
+              "pertanyaan_kunci": [],
+              "jika_kesulitan": []
+            }
+          ]
+        },
+        {
+          "nama": "ASESMEN_AWAL",
+          "sub_langkah": [
+            {
+              "ref": "P3.ASESMEN_AWAL.1",
+              "aksi_guru": [
+                "Melakukan pemanasan singkat dengan melemparkan pertanyaan seputar istilah bahan tekstil kepada beberapa murid",
+                "Memastikan kondisi kesiapan mental murid sebelum penilaian dimulai"
+              ],
+              "ucapan_guru": [
+                "Tanyakan: 'Who can tell me the main advantage of cotton drill for daily uniforms?'",
+                "Katakan: 'Tarik napas dalam-dalam, rileks, dan bayangkan kalian benar-benar berada di studio perancang busana profesional.'"
+              ],
+              "pertanyaan_kunci": [
+                "Are you ready to convince your client today?"
+              ],
+              "jika_kesulitan": [
+                "Berikan senyuman dan kata penyemangat agar murid yang tegang merasa lebih rileks."
+              ]
+            }
+          ]
+        },
+        {
+          "nama": "MEMAHAMI",
+          "sub_langkah": [
+            {
+              "ref": "P3.MEMAHAMI.1",
+              "aksi_guru": [
+                "Menjelaskan kriteria yang dinilai pada instrumen ASM-02 secara rinci di papan tulis",
+                "Menegaskan kembali pentingnya pengungkapan pendapat yang jelas dan ketahanan argumen saat menghadapi sanggahan klien"
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Perhatikan kriteria penilaian pada ASM-02 yang akan saya gunakan hari ini.'",
+                "Katakan: 'Kriteria pertama adalah pengungkapan pendapat secara jelas menggunakan ragam frasa opini bahasa Inggris yang sesuai situasi kerja.'",
+                "Katakan: 'Kriteria kedua adalah kemampuan mempertahankan argumen dengan bukti karakteristik bahan tekstil saat menghadapi sanggahan klien.'"
+              ],
+              "pertanyaan_kunci": [
+                "Apakah seluruh kriteria penilaian sudah jelas bagi kalian?"
+              ],
+              "jika_kesulitan": []
+            }
+          ]
+        },
+        {
+          "nama": "MENGAPLIKASI",
+          "sub_langkah": [
+            {
+              "ref": "P3.MENGAPLIKASI.1",
+              "aksi_guru": [
+                "Membagikan kartu skenario PBL-02 kepada pasangan murid yang belum memegang kartu",
+                "Memberi waktu kepada pasangan murid untuk berlatih mandiri dan memantapkan alur dialog sebelum tampil",
+                "Memantau pasangan yang sedang berlatih dan memastikan pembagian peran disepakati dengan baik"
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Gunakan waktu ini bersama pasangan kalian untuk menyelaraskan kembali skenario yang kalian pilih pada PBL-02.'",
+                "Katakan: 'Lakukan gladi bersih singkat, pastikan urutan argumen dan sanggahan sudah mengalir dengan lancar.'"
+              ],
+              "pertanyaan_kunci": [
+                "Which scenario from PBL-02 are you going to present?"
+              ],
+              "jika_kesulitan": [
+                "Ingatkan murid untuk berfokus pada alur percakapan alami daripada menghafal kata demi kata secara kaku."
+              ]
+            },
+            {
+              "ref": "P3.MENGAPLIKASI.2",
+              "aksi_guru": [
+                "Memanggil pasangan murid secara bergantian ke area simulasi percakapan",
+                "Mengatur waktu penampilan sesuai jatah waktu yang telah ditentukan",
+                "Menginstruksikan pertukaran peran di tengah penampilan agar setiap murid menjalankan peran desainer yang dinilai",
+                "Menilai unjuk kerja setiap individu secara cermat menggunakan matriks observasi ASM-02 tanpa memotong percakapan murid"
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Kita mulai sesi unjuk kerja bergantian. Setiap kelompok beranggotakan dua orang memiliki jatah waktu 4,1 menit untuk menampilkan percakapan dan saling bertukar peran.'",
+                "Katakan: 'Tampilkan percakapan dengan percaya diri. Ingat, saat bel berbunyi tanda separuh waktu, kalian harus langsung bertukar peran agar performa kedua murid dapat saya nilai pada lembar ASM-02.'",
+                "Katakan: 'Silakan mulai percakapan kalian.'"
+              ],
+              "pertanyaan_kunci": [],
+              "jika_kesulitan": [
+                "Jika murid mengalami kebuntuan saat berbicara, guru memberikan isyarat anggukan ramah atau menunjuk kartu peran tanpa menyela alur percakapan."
+              ]
+            }
+          ]
+        },
+        {
+          "nama": "MEREFLEKSI",
+          "sub_langkah": [
+            {
+              "ref": "P3.MEREFLEKSI.1",
+              "aksi_guru": [
+                "Meminta seluruh murid kembali ke tempat duduk masing-masing",
+                "Menugaskan murid menuliskan refleksi pencapaian pribadi di buku catatan mereka"
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Buka buku catatan kalian. Tuliskan bagaimana perasaan kalian setelah berhasil melakukan konsultasi busana dalam bahasa Inggris.'",
+                "Katakan: 'Tuliskan juga satu keterampilan berbicara yang paling berkembang sejak pertemuan pertama hingga hari ini.'"
+              ],
+              "pertanyaan_kunci": [
+                "Sejauh mana kalian merasa lebih percaya diri dalam berargumen menggunakan bahasa Inggris dibandingkan minggu lalu?"
+              ],
+              "jika_kesulitan": [
+                "Bimbing murid dengan pertanyaan pemicu: 'Apakah kalian merasa lebih mudah mencari alasan dalam bahasa Inggris hari ini?'"
+              ]
+            }
+          ]
+        },
+        {
+          "nama": "PENUTUP",
+          "sub_langkah": [
+            {
+              "ref": "P3.PENUTUP.1",
+              "aksi_guru": [
+                "Memberikan apresiasi penuh atas keberanian, kesungguhan, dan pencapaian seluruh murid selama tiga pertemuan",
+                "Mengumumkan bahwa rangkaian kompetensi menyatakan pendapat dan mempertahankan argumen pada topik tata busana telah tuntas",
+                "Memimpin doa penutup dan mengucapkan salam perpisahan"
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Saya sangat bangga dengan penampilan kalian hari ini. Kalian membuktikan bahwa calon desainer busana mampu berkomunikasi dan mempertahankan argumen secara profesional dalam bahasa Inggris!'",
+                "Katakan: 'Rangkaian tujuan pembelajaran ini resmi selesai. Teruslah melatih kemampuan berbicara kalian di kehidupan sehari-hari.'",
+                "Katakan: 'Mari kita tutup pertemuan hari ini dengan doa bersama. Thank you for your amazing effort, and congratulations!'"
+              ],
+              "pertanyaan_kunci": [],
+              "jika_kesulitan": []
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "instrumen_pembelajaran": [
+    {
+      "id": "PBL-01",
+      "judul": "Contoh Percakapan Konsultasi Pemilihan Bahan Busana",
+      "jenis": "dialog_model",
+      "untuk_murid": true,
+      "digunakan_pada": [
+        "P1.MEMAHAMI"
+      ],
+      "konten_murid": {
+        "petunjuk": "Bacalah percakapan antara seorang desainer busana dan klien berikut. Cermati bagaimana desainer menyampaikan pendapat dan mempertahankan sarannya dengan alasan yang jelas.",
+        "giliran": [
+          {
+            "pembicara": "Rina (Desainer)",
+            "ucapan": "Good morning, Mrs. Maya. In my opinion, linen is the most suitable fabric for your summer blazer."
+          },
+          {
+            "pembicara": "Maya (Klien)",
+            "ucapan": "I see, but I am worried that linen wrinkles too easily during outdoor events."
+          },
+          {
+            "pembicara": "Rina (Desainer)",
+            "ucapan": "I understand your concern, but linen absorbs sweat exceptionally well and keeps you cool all day."
+          },
+          {
+            "pembicara": "Maya (Klien)",
+            "ucapan": "That sounds reasonable, but won't it look messy after sitting for hours?"
+          },
+          {
+            "pembicara": "Rina (Desainer)",
+            "ucapan": "We can use a blended linen-cotton blend that retains crispness while maintaining breathability."
+          },
+          {
+            "pembicara": "Maya (Klien)",
+            "ucapan": "That makes sense. I agree with your recommendation."
+          }
+        ]
+      },
+      "panduan_guru": {
+        "catatan_fasilitasi": "Minta dua murid membacakan percakapan di depan kelas dengan intonasi wajar. Arahkan perhatian murid pada penggunaan frasa pengungkap pendapat dan kata penghubung alasan seperti 'in my opinion' dan 'because'."
+      }
+    },
+    {
+      "id": "PBL-02",
+      "judul": "Kartu Skenario Diskusi Rancangan Busana",
+      "jenis": "kartu_peran",
+      "untuk_murid": true,
+      "digunakan_pada": [
+        "P2.MENGAPLIKASI",
+        "P3.MENGAPLIKASI"
+      ],
+      "konten_murid": {
+        "set": [
+          {
+            "nama_set": "Set 1: Gaun Pesta Ramah Lingkungan",
+            "nama_entitas": "Butik Busana Lestari",
+            "peran_a": {
+              "jabatan": "Desainer Busana",
+              "instruksi_peran": "Ungkapkan pendapat bahwa kain serat tencel lebih ramah lingkungan dan jatuh anggun untuk gaun malam. Pertahankan pendapat Anda saat klien mengkhawatirkan daya tahan kain."
+            },
+            "peran_b": {
+              "jabatan": "Klien Butik",
+              "instruksi_peran": "Sampaikan keraguan terhadap kekuatan serat alami dan tanyakan apakah kain satin sutra konvensional lebih awet dan berkilau."
+            }
+          },
+          {
+            "nama_set": "Set 2: Seragam Kerja Kantor Butik",
+            "nama_entitas": "Studio Mode Kencana",
+            "peran_a": {
+              "jabatan": "Konsultan Busana",
+              "instruksi_peran": "Ungkapkan pendapat bahwa bahan drill katun lebih profesional dan awet untuk seragam harian. Pertahankan argumen ketika klien menginginkan bahan kaus spandex."
+            },
+            "peran_b": {
+              "jabatan": "Manajer Operasional Klien",
+              "instruksi_peran": "Sampaikan bahwa bahan kaus lebih nyaman dan lentur untuk staf yang sering bergerak aktif di lapangan."
+            }
+          }
+        ]
+      },
+      "panduan_guru": {
+        "fokus_pengamatan": "Amati keberanian murid dalam mengawali opini kerja serta ketepatan menyertakan alasan logis saat merespons sanggahan mitra bicara.",
+        "catatan_fasilitasi": "Pastikan kedua murid bertukar peran setelah putaran pertama selesai agar setiap murid memperoleh giliran berperan sebagai desainer yang dinilai."
+      }
+    }
+  ],
+  "instrumen_asesmen": [
+    {
+      "id": "ASM-01",
+      "judul": "Lembar Pengamatan Diskusi Percakapan Busana",
+      "jenis": "matriks_observasi",
+      "untuk_murid": false,
+      "digunakan_pada": [
+        "P2.MENGAPLIKASI"
+      ],
+      "konten_murid": null,
+      "panduan_guru": {
+        "kode_legend": "Tingkat capaian: Perlu Bimbingan (1), Cukup (2), Mandiri (3), Mahir (4).",
+        "kolom_indikator": [
+          {
+            "id": "IND-01",
+            "label": "Ketepatan penggunaan frasa menyatakan pendapat lisan dalam konteks rancangan busana"
+          },
+          {
+            "id": "IND-02",
+            "label": "Kelogisan penyampaian alasan pendukung dan ketahanan argumen saat menanggapi sanggahan"
+          }
+        ],
+        "catatan_kritis": "Fokuskan pengamatan pada kelancaran murid menghubungkan fakta bahan busana dengan alasan logis saat menanggapi pendapat lawan bicara."
+      }
+    },
+    {
+      "id": "ASM-02",
+      "judul": "Matriks Penilaian Unjuk Kerja Percakapan Klien Butik",
+      "jenis": "matriks_observasi",
+      "untuk_murid": false,
+      "digunakan_pada": [
+        "P3.MENGAPLIKASI"
+      ],
+      "konten_murid": null,
+      "panduan_guru": {
+        "kode_legend": "Tingkat capaian: Perlu Bimbingan (1), Cukup (2), Mandiri (3), Mahir (4).",
+        "kolom_indikator": [
+          {
+            "id": "IND-01",
+            "label": "Pengungkapan pendapat secara jelas menggunakan ragam frasa opini bahasa Inggris yang sesuai situasi kerja"
+          },
+          {
+            "id": "IND-02",
+            "label": "Kemampuan mempertahankan argumen dengan bukti karakteristik bahan tekstil saat menghadapi sanggahan klien"
+          }
+        ],
+        "catatan_kritis": "Pastikan pengamatan dilakukan secara perorangan ketika murid memainkan peran desainer. Catat frasa argumentasi spesifik yang digunakan murid sebagai bukti autentik unjuk kerja."
+      }
+    }
+  ],
+  "tindak_lanjut": {
+    "pilihan_dukungan": [
+      "Bagi murid yang masih ragu mengawali percakapan, guru menuliskan contoh pola kalimat ungkapan pendapat di papan tulis sebagai acuan cepat saat berbicara.",
+      "Murid yang kesulitan menemukan padanan kata teknis busana dapat merujuk kembali daftar kosakata bahan dan sifat kain yang telah dipelajari bersama.",
+      "Guru mendampingi kelompok kecil dengan memandu pelafalan ungkapan persetujuan dan sanggahan secara bersama-sama sebelum murid berlatih berpasangan secara mandiri."
+    ],
+    "dukungan_terstruktur": [
+      "Guru memberikan latihan bertahap dengan memandu murid menuliskan kerangka argumen sederhana di buku tulis: satu kalimat pendapat, satu alasan pemilihan bahan, dan satu contoh kegunaan busana.",
+      "Guru memfasilitasi latihan berpasangan berulang dengan skenario terpandu, di mana murid bergantian mengutarakan satu pilihan desain dan menanggapi sanggahan rekan sebelum mencoba percakapan yang lebih panjang."
+    ],
+    "tantangan_lanjutan": [
+      "Murid yang sudah lancar ditantang menyimulasikan situasi negosiasi sulit, seperti menghadapi klien yang meminta penggantian bahan mewah dengan anggaran terbatas tanpa mengurangi keindahan busana.",
+      "Murid diminta mempertahankan argumen penggunaan konsep busana berkelanjutan (sustainable fashion) dengan membandingkan ketahanan serat alami dan sintetis dalam diskusi kerja butik."
+    ]
+  },
+  "catatan_guru": [
+    "Seluruh catatan argumen, draf dialog, dan perbandingan bahan busana pada kegiatan ini menggunakan buku tulis atau kertas biasa milik murid. Murid cukup mencatat poin pendapat dan alasan pemilihan rancangan sehingga tidak memerlukan lembar formulir cetak khusus.",
+    "Saat pelaksanaan penilaian akhir unjuk kerja bermain peran, pastikan setiap murid bertukar peran antara menjadi perancang busana dan klien. Pertukaran ini wajib dilakukan agar setiap murid memperoleh kesempatan yang sama untuk dinilai kemampuan menyampaikan argumennya.",
+    "Fokuskan perhatian pengamatan pada kelogisan alasan dan ketepatan penggunaan frasa opini dalam konteks konsultasi busana, bukan semata-mata pada kesempurnaan tata bahasa. Berikan apresiasi terhadap keberanian murid dalam mempertahankan pilihan desainnya.",
+    "Bila tersedia perca kain atau contoh busana dari ruang praktik, guru dapat membawanya ke kelas sebagai bahan peragaan langsung. Namun bila tidak tersedia, kegiatan tetap berjalan lancar menggunakan situasi kerja yang telah dirancang.",
+    "Kelola pembagian waktu latihan berpasangan dengan memberi aba-aba pergantian peran yang jelas di kelas. Hal ini memastikan seluruh pasangan sempat mempraktikkan dialog tanpa ada murid yang mendominasi percakapan."
+  ],
+  "metadata_pedagogis": {
+    "dimensi_profil_lulusan": [
+      {
+        "dimensi": "Komunikasi",
+        "alasan": "Kemampuan menyampaikan ide desain dan mempertahankan pilihan konsep busana kepada orang lain adalah kompetensi inti pembelajaran ini.",
+        "indikator": "Murid berbicara dengan jelas menggunakan ungkapan opini dan argumen yang relevan dalam percakapan."
+      },
+      {
+        "dimensi": "Penalaran Kritis",
+        "alasan": "Murid dituntut menyusun alasan logis berdasarkan karakteristik bahan busana saat menghadapi sanggahan.",
+        "indikator": "Murid memberikan penjelasan masuk akal untuk memperkuat posisinya saat mitra bicara mengajukan keraguan."
+      },
+      {
+        "dimensi": "Kolaborasi",
+        "alasan": "Percakapan kerja butik membutuhkan kerja sama dua arah yang saling menyimak dan menanggapi secara profesional.",
+        "indikator": "Murid saling mendengarkan dan merespons pandangan mitra bicara secara bergiliran dengan santun."
+      }
+    ],
+    "karakteristik_materi": {
+      "faktual": "Istilah teknis bahan kain, warna, dan gaya busana yang umum digunakan di industri busana.",
+      "konseptual": "Struktur pembentukan opini, frasa persetujuan, sanggahan santun, dan alasan pendukung dalam bahasa Inggris.",
+      "prosedural": "Tahapan mengemukakan pendapat, mendengarkan tanggapan, serta menyampaikan argumen penguat dalam simulasi konsultasi butik."
+    },
+    "language_policy": {
+      "teacher_instruction": "Bahasa Indonesia digunakan untuk instruksi pengelolaan kelas, diselingi bahasa Inggris untuk contoh frasa dan pemodelan.",
+      "student_instruction": "Murid menggunakan bahasa Inggris selama latihan percakapan, bermain peran, dan penilaian unjuk kerja.",
+      "target_language": "Bahasa Inggris"
+    }
+  },
+  "tp_anchor": {
+    "atp_induk_id": "m9-skenario-3",
+    "nomor_tp": 1,
+    "tp_judul": "Peserta didik menggunakan bahasa Inggris untuk mengungkapkan pendapat dan mempertahankan argumen dalam percakapan tentang topik yang dibahas.",
+    "tuntutan": [
+      {
+        "id": "BIE-E25-MB-2",
+        "kompetensi": "menggunakan bahasa Inggris untuk mengungkapkan pendapat",
+        "lingkup_materi": "topik yang dibahas"
+      },
+      {
+        "id": "BIE-E25-MB-3",
+        "kompetensi": "mempertahankan argumen",
+        "lingkup_materi": "topik yang dibahas"
+      }
+    ],
+    "kategori_teks": [],
+    "semester": 1,
+    "jp_alokasi": 12,
+    "jp_pertemuan": [
+      4,
+      4,
+      4
+    ],
+    "versi_cp": "046/H/KR/2025",
+    "tuntutan_id": [
+      "BIE-E25-MB-2",
+      "BIE-E25-MB-3"
+    ],
+    "kategori_teks_wajib": []
+  },
+  "atp_context": {
+    "versi_cp": "046/H/KR/2025",
+    "semester": 1,
+    "kesiapan_murid": {
+      "nilai": "sesuai",
+      "asal": "keputusan_guru",
+      "arti": "sebagian besar murid sudah memenuhi prasyarat TP ini",
+      "dasar": "hasil penilaian sebelumnya"
+    },
+    "jumlah_murid": {
+      "nilai": 30,
+      "asal": "fakta"
+    },
+    "program_keahlian": {
+      "nilai": "Tata Busana",
+      "asal": "fakta"
+    },
+    "konteks_tugas": {
+      "nilai": "dominan_kerja",
+      "asal": "keputusan_guru",
+      "arti": "sebagian besar contoh dan tugas berlatar dunia kerja"
+    },
+    "prioritas_guru": [
+      {
+        "kunci": "komunikasi",
+        "arti": "penguatan komunikasi lisan",
+        "arahan": "perbanyak kesempatan berbicara"
+      }
+    ],
+    "penerapan_prioritas": {
+      "untuk_tp_ini": [
+        {
+          "prioritas": "komunikasi",
+          "kunci": "komunikasi",
+          "tp": [
+            1
+          ],
+          "pengaruh": [
+            "kegiatan"
+          ],
+          "alasan": "ATP menyatakan penekanan ini berlaku untuk TP ini."
+        }
+      ],
+      "seluruh_atp": [
+        {
+          "prioritas": "komunikasi",
+          "kunci": "komunikasi",
+          "tp": [
+            1
+          ],
+          "pengaruh": [
+            "kegiatan"
+          ],
+          "alasan": "Penekanan guru pada ATP."
+        }
+      ]
+    }
+  },
+  "alokasi_server": {
+    "pertemuan": [
+      4,
+      4,
+      4
+    ]
+  }
+}

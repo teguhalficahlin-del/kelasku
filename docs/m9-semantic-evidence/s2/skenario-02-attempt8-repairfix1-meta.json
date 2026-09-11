@@ -1,0 +1,15 @@
+{
+  "prefix": "skenario-02-attempt8",
+  "percobaan": "fix1",
+  "model": "gemini-3.8-flash",
+  "waktu": "2026-09-11T05:14:59.710Z",
+  "has_durasi_error": false,
+  "anggaran_token": 32000,
+  "galat_sebelum": [
+    "guru menyatakan kelas tanpa perangkat digital, tapi dokumen menyebut: ponsel. Ganti dengan kegiatan yang memakai bahan cetak, papan tulis, atau alat fisik."
+  ],
+  "galat_dikirim_ke_model": "guru menyatakan kelas tanpa perangkat digital, tapi dokumen menyebut: ponsel. Ganti dengan kegiatan yang memakai bahan cetak, papan tulis, atau alat fisik.",
+  "hasil": "GAGAL_SEBELUM_VALIDASI",
+  "sebab": "The signal has been aborted",
+  "pemakaian_token": []
+}

@@ -494,6 +494,9 @@ export type SpesifikasiResource = {
   /** Yang guru perlukan untuk MENJALANKAN atau MENILAI. Diperiksa hanya bila
    *  instrumennya benar-benar dipakai jalur asesmen — lihat catatan di bawah. */
   guru?: FieldResource[];
+  /** M9: lembar yang MURID kerjakan — tanpa konten muridnya, tidak ada yang
+   *  dapat dikerjakan. Jenis ini wajib untuk_murid=true pada dokumen baru. */
+  muridWajib?: boolean;
 };
 
 // MENGAPA `guru` HANYA DIPERIKSA UNTUK INSTRUMEN ASESMEN YANG DIPAKAI.
@@ -572,6 +575,10 @@ export const RESOURCE_WAJIB: Record<string, SpesifikasiResource> = {
     ],
   },
   soal_latihan: {
+    // M9 (Skenario 1): soal_latihan bertanda untuk_murid=false lolos M5 dengan
+    // kunci jawaban saja — pemeriksaan `murid` hanya berjalan bila untuk_murid
+    // true, jadi soal yang murid kerjakan tidak pernah ada.
+    muridWajib: true,
     murid: [
       { field: 'petunjuk', bentuk: 'teks' },
       { field: 'soal', bentuk: 'daftar_objek', min: 1, wajib: ['pertanyaan'] },

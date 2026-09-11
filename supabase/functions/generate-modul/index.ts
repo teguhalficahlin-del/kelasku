@@ -110,6 +110,38 @@ function anggaranTokenPerbaikan(jumlahPertemuan: number): number {
   return Math.min(60000, Math.max(32000, 10000 * jumlahPertemuan));
 }
 
+// ── BATAS WAKTU PANGGILAN PERBAIKAN (M9) ─────────────────────────────────────
+//
+// Sampai M9 panggilan perbaikan memakai angka mati 50.000 ms, sementara
+// anggarannya 32.000–60.000 token. Perbaikan dokumen utuh yang BERHASIL selama
+// M9 butuh 32,7–49,6 detik (15–20 ribu token keluaran) — satu di antaranya 0,4
+// detik dari batas — dan Skenario 2 attempt 8 melewatinya: AbortSignal, "Repair
+// gagal", 422 ke guru. Pelajaran yang sama dengan plafon token: batas yang tidak
+// ikut tumbuh bersama anggarannya.
+//
+// Kebijakannya turunan dari anggaran, dengan dua batas atas:
+//   - BATAS_PERMINTAAN_MS: Supabase menutup permintaan Edge Function yang belum
+//     membalas dalam 150 detik (request idle timeout, semua paket). Fase D,
+//     perbaikan, dan penyusunan ulang naskah berbagi SATU permintaan, jadi yang
+//     dibatasi adalah SISA waktu permintaan — 15 detik disisakan untuk menulis
+//     modul dan membalas.
+//   - LANTAI_WAKTU_PERBAIKAN_MS: angka lama; panggilan kecil tidak pernah
+//     mendapat batas lebih pendek dari sebelumnya.
+// MS_PER_TOKEN diukur dari perbaikan M9 (≈ 2,4–2,9 ms per token keluaran,
+// penalaran ikut); DASAR menampung pembacaan prompt sepanjang 50–60 ribu karakter.
+const BATAS_PERMINTAAN_MS       = 135_000;
+const LANTAI_WAKTU_PERBAIKAN_MS = 50_000;
+const DASAR_WAKTU_PERBAIKAN_MS  = 20_000;
+const MS_PER_TOKEN_KELUARAN     = 2.5;
+
+function batasWaktuPerbaikan(maxTokens: number, sisaPermintaanMs: number): number {
+  const turunan = Math.max(LANTAI_WAKTU_PERBAIKAN_MS, DASAR_WAKTU_PERBAIKAN_MS + maxTokens * MS_PER_TOKEN_KELUARAN);
+  // Tidak pernah melebihi sisa permintaan, dan tidak pernah tak berbatas. Bila
+  // waktunya sudah habis, panggilan dibatalkan seketika — gagal dengan pesan,
+  // bukan 504 dari gateway.
+  return Math.max(1_000, Math.min(turunan, sisaPermintaanMs, BATAS_PERMINTAAN_MS));
+}
+
 // Anggaran token khusus Naskah Fasilitasi (Fase B2).
 //
 // Naskah adalah keluaran TERBESAR di seluruh pipeline — pada TP 6 panjangnya
@@ -204,6 +236,48 @@ function waktuPerKelompok(
 const MIN_MENIT_KELOMPOK_SUMATIF = 4;
 const MIN_MENIT_KELOMPOK_LATIHAN = 3;
 
+// Menit pengamatan per murid bila guru mengamati SETIAP murid satu per satu
+// (individual + mode_observasi 'semua'). Satu otoritas: validator V4 menolak
+// dengannya, dan batasWaktuKelas() menghitung angka konkret dari sini.
+const MENIT_OBSERVASI_PER_MURID = 2;
+
+// M9: model diberi RUMUS dan diharapkan menghitung sendiri. Di kelas 32 murid
+// ia berulang kali menaruh blok 60 menit untuk kebutuhan 64 (Skenario 2: tiga
+// percobaan perbaikan, tidak satu pun lolos). Backend sudah tahu angkanya, jadi
+// yang dikirim ke Fase A, Fase B, dan perbaikan Fase B adalah ANGKANYA —
+// dihitung dengan fungsi dan konstanta yang sama dengan validator, supaya tidak
+// ada rumus kedua yang bisa menyimpang.
+function batasWaktuKelas(jumlahMurid: number | null): Record<string, unknown> | null {
+  if (!jumlahMurid || jumlahMurid < 1) return null;
+  const individu = jumlahMurid * MENIT_OBSERVASI_PER_MURID;
+  const bergantian: Record<string, { latihan: number; sumatif: number }> = {};
+  for (const k of [2, 3, 4, 5]) {
+    const w = waktuPerKelompok(0, jumlahMurid, k);
+    bergantian[String(k)] = {
+      latihan: Math.ceil(w.nKelompok * MIN_MENIT_KELOMPOK_LATIHAN + w.transisiMenit),
+      sumatif: Math.ceil(w.nKelompok * MIN_MENIT_KELOMPOK_SUMATIF + w.transisiMenit),
+    };
+  }
+  return {
+    jumlah_murid: jumlahMurid,
+    individual_semua_minimal_menit: individu,
+    bergantian_minimal_menit_per_ukuran_kelompok: bergantian,
+    aturan:
+      `Kelas ini ${jumlahMurid} murid. Sub_langkah dengan mode_pelaksanaan 'individual' dan ` +
+      `mode_observasi 'semua' WAJIB berdurasi minimal ${individu} menit — termasuk slot SUMATIF. ` +
+      `Kalau slotnya lebih pendek dari ${individu} menit, JANGAN pakai 'semua': pakai ` +
+      `mode_observasi 'rotasi' (slot SUMATIF dilarang 'sampel'), atau ubah mode_pelaksanaan. ` +
+      `Untuk 'bergantian', durasi minimal per ukuran_kelompok ada di ` +
+      `bergantian_minimal_menit_per_ukuran_kelompok (latihan / sumatif). Angka ini dihitung ` +
+      `dengan aturan yang sama yang memeriksa hasilmu.`,
+  };
+}
+
+// Jenis instrumen yang MURID kerjakan — diturunkan dari kontrak M5, bukan
+// ditulis tangan di prompt maupun validator.
+const JENIS_WAJIB_UNTUK_MURID = Object.entries(RESOURCE_WAJIB)
+  .filter(([, s]) => s.muridWajib).map(([k]) => k);
+
 // Kata yang menandakan perangkat digital. Dipakai untuk menegakkan pilihan guru
 // di SELURUH keluaran, termasuk prosa naskah — larangan di SYSTEM_PROMPT hanya
 // menyebut media_dan_alat, sumber_belajar, dan pemanfaatan_digital, sehingga
@@ -213,13 +287,41 @@ const MIN_MENIT_KELOMPOK_LATIHAN = 3;
 // "aplikasi". Kata yang punya makna non-digital yang lazim di kelas — "aplikasi"
 // (penerapan), "video" (bisa muncul dalam kalimat penyangkalan) — sengaja tidak
 // masuk daftar; menuduh secara keliru lebih merugikan daripada melewatkan satu.
-const RE_PERANGKAT_DIGITAL = new RegExp(
-  '\\b(' + [
-    'memotret', 'difoto', 'kamera', 'ponsel', 'smartphone', 'proyektor', 'lcd',
-    'laptop', 'komputer', 'internet', 'wifi', 'wi-fi', 'daring', 'youtube',
-    'unduh', 'diunduh', 'mengunduh',
-  ].join('|') + ')\\b', 'gi',
-);
+const ISTILAH_PERANGKAT_DIGITAL = new Set([
+  'memotret', 'difoto', 'kamera', 'ponsel', 'smartphone', 'proyektor', 'lcd',
+  'laptop', 'komputer', 'internet', 'wifi', 'wi-fi', 'daring', 'youtube',
+  'unduh', 'diunduh', 'mengunduh',
+  // M9: sebutan sehari-hari guru untuk ponsel.
+  'hp', 'handphone',
+]);
+
+// V13 (koreksi M9): sebutan perangkat yang DILARANG bukan tuntutan perangkat.
+//
+// Naskah S2 berbunyi "kerjakan … tanpa membuka kamus ponsel" — melarang ponsel —
+// dan V13 lama menolak seluruh modul karena ia hanya melihat kata "ponsel".
+//
+// Aturannya sengaja sempit: sebutan dilewati hanya bila kata penyangkal berada
+// di KLAUSA yang sama dan paling jauh JARAK_PENYANGKAL kata SEBELUM istilahnya.
+// "Jangan bertanya kepada teman. Gunakan ponsel …" tetap ditolak: penyangkalnya
+// ada di klausa lain. Kalimat bernada larangan tidak menghapus tuntutan
+// perangkat yang berdiri sendiri di dekatnya.
+const PENYANGKAL = new Set(['tanpa', 'jangan', 'tidak', 'tak', 'dilarang', 'bukan', 'hindari', 'larang', 'melarang']);
+const JARAK_PENYANGKAL = 4;
+
+function sebutanPerangkatDigital(teks: string): string[] {
+  const hasil = new Set<string>();
+  const bersih = (k: string) => k.replace(/[^\p{L}\p{N}-]/gu, '').toLowerCase();
+  // `\n` literal ikut dipisah: teks datang dari JSON.stringify.
+  for (const klausa of teks.split(/[.!?;:,]+|\\n/)) {
+    const kata = klausa.split(/\s+/).map(bersih).filter(Boolean);
+    kata.forEach((k, i) => {
+      if (!ISTILAH_PERANGKAT_DIGITAL.has(k)) return;
+      if (kata.slice(Math.max(0, i - JARAK_PENYANGKAL), i).some(x => PENYANGKAL.has(x))) return;
+      hasil.add(k);
+    });
+  }
+  return [...hasil];
+}
 
 // Samakan bentuk tanda kutip dan spasi sebelum dibandingkan. Model kerap menukar
 // petik lurus dengan petik keriting di antara dua fase, dan perbedaan sepele itu
@@ -242,6 +344,36 @@ function ambilKutipanInggris(teks: string): string[] {
     if (isi.split(/\s+/).length < 4) continue;
     if ((isi.match(KATA_FUNGSI_INGGRIS) ?? []).length < 2) continue;
     hasil.push(isi);
+  }
+  return hasil;
+}
+
+// V15 (koreksi M9): bagian yang benar-benar DIKLAIM ada di instrumen.
+//
+// Kutipan di naskah sering berupa UCAPAN guru utuh:
+//   Katakan: 'Perhatikan lembar PBL-01. Judul teksnya adalah How to Iron a Cotton Shirt.'
+// Yang diklaim ada di instrumen hanyalah bagian Inggrisnya. Sampai M9 seluruh
+// ucapan — bingkai Indonesia ikut — dicari di instrumen, sehingga 8 dari 8
+// temuan V15 di bukti M9 adalah positif palsu: teks Inggrisnya ADA persis.
+//
+// Klaim diambil per kalimat/klausa: kata sebelum kata fungsi Inggris pertama
+// dibuang (itulah bingkainya), lalu sisanya harus tetap memenuhi syarat kutipan
+// Inggris yang sama dengan ambilKutipanInggris, dan tidak boleh memuat dua kata
+// fungsi Indonesia atau lebih — kalimat Indonesia yang kebetulan menyebut
+// "how to" bukan klaim kutipan. Pencocokan ke instrumen tetap verbatim.
+const KATA_FUNGSI_INDONESIA = /\b(yang|dan|di|ke|dari|ini|itu|apa|akan|untuk|pada|dengan|adalah|kita|kalian|kamu|ada|tidak|sudah|bisa|lalu|juga|agar|atau)\b/gi;
+const KATA_FUNGSI_INGGRIS_SATU = new RegExp(KATA_FUNGSI_INGGRIS.source, 'i');
+
+function klaimInggris(kutipan: string): string[] {
+  const hasil: string[] = [];
+  for (const bagian of kutipan.split(/[.!?:;,]+(?:\s+|$)/)) {
+    const kata = bagian.trim().split(/\s+/).filter(Boolean);
+    const awal = kata.findIndex(k => KATA_FUNGSI_INGGRIS_SATU.test(k));
+    if (awal < 0 || kata.length - awal < 4) continue;
+    const klaim = kata.slice(awal).join(' ');
+    if ((klaim.match(KATA_FUNGSI_INGGRIS) ?? []).length < 2) continue;
+    if ((klaim.match(KATA_FUNGSI_INDONESIA) ?? []).length >= 2) continue;
+    hasil.push(klaim);
   }
   return hasil;
 }
@@ -920,7 +1052,7 @@ function validateModulOutputV400(
 
           // V4: Time-feasibility (individual sequential)
           if (s.mode_pelaksanaan === 'individual' && s.mode_observasi === 'semua' && jumlahMurid && intPos(s.durasi_menit)) {
-            const mntPerMurid = 2;
+            const mntPerMurid = MENIT_OBSERVASI_PER_MURID;
             const diperlukan  = jumlahMurid * mntPerMurid;
             if (diperlukan > (s.durasi_menit as number)) {
               errors.push(
@@ -1181,9 +1313,11 @@ function validateModulOutputV400(
           for (const b of baris) {
             if (!PENUNJUK.test(b)) continue;
             for (const kutipan of ambilKutipanInggris(b)) {
-              const bersih = normalKutip(kutipan);
-              if (dirujuk.some(id => (isiInstrumen.get(id) ?? '').includes(bersih))) continue;
-              temuan.push(`"${kutipan.slice(0, 65)}" (${sl.ref}, diakui ada di ${dirujuk.join('/')})`);
+              for (const klaim of klaimInggris(kutipan)) {
+                const bersih = normalKutip(klaim);
+                if (dirujuk.some(id => (isiInstrumen.get(id) ?? '').includes(bersih))) continue;
+                temuan.push(`"${klaim.slice(0, 65)}" (${sl.ref}, diakui ada di ${dirujuk.join('/')})`);
+              }
             }
           }
         }
@@ -1240,8 +1374,7 @@ function validateModulOutputV400(
 
   // V13: Larangan perangkat digital berlaku ke SELURUH dokumen
   if (!perangkatDigitalOk) {
-    const ketemu = [...new Set((JSON.stringify(o).match(RE_PERANGKAT_DIGITAL) ?? [])
-      .map(x => x.toLowerCase()))];
+    const ketemu = sebutanPerangkatDigital(JSON.stringify(o));
     if (ketemu.length)
       errors.push(
         `guru menyatakan kelas tanpa perangkat digital, tapi dokumen menyebut: ${ketemu.join(', ')}. ` +
@@ -1697,6 +1830,13 @@ function validateModulOutputV400(
           // dilaporkan dua kali di sini.
           return;
         }
+
+        // M9: lembar yang MURID kerjakan tidak boleh bertanda milik guru.
+        // Pemeriksaan di bawah hanya berjalan bila untuk_murid=true, sehingga
+        // tanda yang keliru menghilangkan soalnya tanpa satu keluhan pun
+        // (Skenario 1: ASM-01/ASM-02 hanya berisi kunci jawaban).
+        if (spec.muridWajib && ins.untuk_murid !== true)
+          errors.push(`${jalur}: ${jenis} adalah lembar yang murid kerjakan — untuk_murid wajib true, kalau tidak soal yang murid kerjakan tidak pernah ada`);
 
         // ── Yang murid perlukan ────────────────────────────────────────────
         if (ins.untuk_murid === true) {
@@ -2686,7 +2826,9 @@ di input, cocokkan dengan kata kunci di kolom kiri:
   - "observasi"                    → matriks_observasi
   - "tanya jawab lisan"            → pemetaan_awal
   - "tes tertulis"                 → soal_latihan
-  - "unjuk kerja"                  → matriks_observasi
+  - "unjuk kerja"                  → matriks_observasi; bila unjuk kerjanya menjawab soal
+                                     atau mengurutkan langkah tentang teks, TAMBAHKAN
+                                     soal_latihan untuk_murid=true yang memuat butirnya
   - "presentasi"                   → matriks_observasi
   - "praktikum"                    → lembar_praktikum
   - "proyek atau produk"           → panduan_proyek
@@ -2848,7 +2990,10 @@ dan pertemuan[].media_dan_alat. Ketiganya hanya boleh menyebut:
   (1) instrumen yang ADA di manifest — sebut kodenya (PBL-xx / ASM-xx);
   (2) bahan yang guru sendiri nyatakan akan ia bawa (bahan_disiapkan_guru);
   (3) benda fisik atau lingkungan yang memang ada di sekolah — papan tulis,
-      ruang praktik, alat ukur, kain, contoh produk;
+      ruang kelas. Benda yang TIDAK dikonfirmasi guru (kain, perca, contoh
+      produk, alat ukur) hanya boleh muncul sebagai PILIHAN TAMBAHAN: kegiatannya
+      WAJIB tetap dapat berjalan penuh dengan instrumen di manifest bila benda
+      itu tidak ada;
   (4) alat yang tercantum di perlengkapan_tersedia.
 DILARANG menyebut REKAMAN AUDIOVISUAL — video, klip, rekaman audio, tayangan —
 kecuali guru menyatakannya di bahan_disiapkan_guru. MiClass tidak membuat video,
@@ -2897,6 +3042,12 @@ MODE PELAKSANAAN (mode_pelaksanaan di sub_langkah):
 - Gunakan mode_pelaksanaan dan ukuran_kelompok jika kegiatan melibatkan pengelompokan.
 - 'bergantian': hitung apakah cukup waktu (n_kelompok × 3 mnt + transisi).
   Jika tidak cukup, gunakan 'simultan' atau mode_observasi='sampel'.
+- 'individual' + mode_observasi='semua' berarti guru mengamati SETIAP murid satu
+  per satu: butuh minimal jumlah_murid × 2 menit. Di kelas 30 murid itu 60 menit
+  untuk SATU sub_langkah. Hitung dulu; kalau tidak muat, pakai
+  mode_observasi='sampel' atau 'rotasi', atau ubah mode_pelaksanaan.
+  Ini aturan yang sama yang dipakai memeriksa hasilmu, jadi melanggarnya membuat
+  seluruh modul ditolak.
 - 'bergantian' wajib ada ukuran_kelompok.
 - 'kelompok_kecil' wajib ada ukuran_kelompok ≥ 2.
 - Slot SUMATIF: dilarang mode_observasi='sampel'.
@@ -3248,11 +3399,54 @@ function buildUserMessageFaseA(params: {
       'pastikan GABUNGAN seluruh tuntutan_ref menutup SEMUA tuntutan TP ini: tuntutan ' +
       'yang tidak punya KKTP berarti Modul mengukur lebih sedikit daripada yang TP pikul. ' +
       'Sertakan juga keputusan_ketercapaian — bentuk TERUKUR dari ambang itu, yang guru ' +
-      'pakai untuk memutuskan tercapai atau belum tanpa menafsirkan kalimat.',
+      'pakai untuk memutuskan tercapai atau belum tanpa menafsirkan kalimat. ' +
+      // M9/D3: ambang yang terstruktur tetapi HAMPA.
+      //
+      // Sampai di sini instruksinya hanya menuntut ambang yang "terukur", dan
+      // `jumlah 1 teks` memenuhinya: berhingga, > 0, satuan terisi. Yang tidak
+      // pernah dikatakan adalah APA yang boleh dihitung. Generate nyata M9
+      // memakainya untuk menghitung ARTEFAK — berapa teks dikerjakan — bukan
+      // ketepatan bukti, sehingga murid yang mengerjakan satu teks asal-asalan
+      // lolos ambang yang sama dengan murid yang benar-benar menemukan gagasan
+      // utamanya. Validator tidak dapat menangkap ini tanpa menebak makna
+      // satuan, jadi perbaikannya harus di sini.
+      'Ambang itu mengukur MUTU bukti, bukan banyaknya tugas atau objek yang ' +
+      'dikerjakan. Yang dihitung adalah unsur atau indikator yang BENAR — bukan ' +
+      'berapa teks dibaca, berapa lembar dikumpulkan, atau berapa dialog dibuat. ' +
+      'Uji sendiri ambangmu sebelum menuliskannya: kalau murid yang mengerjakan ' +
+      'tugas asal-asalan tetap melewatinya, ambang itu hampa dan harus diganti. ' +
+      'Bentuk yang memadai: sekian dari sekian unsur diidentifikasi dengan tepat; ' +
+      'sekian persen dari sejumlah langkah dikenali benar — sebut penyebutnya; ' +
+      'mencapai level tertentu pada rubrik. Bentuk yang TIDAK memadai: ' +
+      '"mengerjakan 1 teks", "membuat 1 dialog", "mengumpulkan 1 lembar" — ' +
+      'ketiganya hanya menghitung artefak dan tidak memisahkan murid yang sudah ' +
+      'menunjukkan kompetensi dari yang belum. ' +
+      'Jika jenis berupa "jumlah", nilai_minimum dan satuan WAJIB merujuk unsur atau ' +
+      'indikator yang benar, bukan jumlah tugas atau objek yang dikerjakan. ' +
+      // M9: penyebut ambang harus lahir dari tugas buktinya. Skenario 1 menulis
+      // "3 dari 4 langkah" untuk teks 5 langkah; Skenario 4 "dari 8 kalimat"
+      // untuk tugas menulis paragraf tanpa jumlah kalimat; Skenario 2 menulis
+      // "5 dari 6" di ambang tetapi "75%" di keputusannya.
+      'PENYEBUT ambang (Y pada "X dari Y") WAJIB sama dengan jumlah butir, langkah, atau ' +
+      'indikator yang benar-benar ada di tugas bukti pada instrumen_bukti-nya — Fase C menyusun ' +
+      'instrumen dengan jumlah itu persis. Jangan menyebut satuan yang tidak dikerjakan murid ' +
+      '(misalnya "dari 8 kalimat" padahal tugasnya menulis paragraf tanpa jumlah kalimat). ' +
+      'ambang_batas dan keputusan_ketercapaian WAJIB menyatakan batas yang SAMA: kalau ambang ' +
+      '"5 dari 6", keputusannya jenis "jumlah" nilai_minimum 5 — bukan persentase yang tidak setara. ' +
+      // M9 (rerun kanonik S1/S2): sumatif "unjuk kerja" menjadi matriks
+      // observasi, dan instrumen_bukti KKTP hanya menyebut matriks itu. Matriks
+      // mencatat HASIL; ia tidak memuat pertanyaan. KKTP "3 dari 4 pertanyaan"
+      // karena itu tidak punya satu pun pertanyaan di sumatif.
+      'Kalau keputusan_ketercapaian menghitung butir yang MURID kerjakan (pertanyaan, soal, ' +
+      'langkah yang diurutkan), instrumen_bukti WAJIB memuat instrumen untuk_murid=true yang ' +
+      'berisi butir-butir itu — di SETIAP asesmen yang memakai KKTP ini, termasuk sumatif. ' +
+      'Matriks observasi hanya mencatat hasil; ia tidak memuat butirnya.',
     pilihan_asesmen:      params.pilanAsesmen,
     konteks_pembelajaran: konteksModulManusiawi(params.cd),
     sumber_strategi:      sumberStrategiManusiawi(params.cd),
     perangkat_digital_diizinkan: perangkatDigitalDiizinkan(params.cd),
+    // Angka waktu konkret kelas ini (M9) — Fase A menentukan durasi sumatif.
+    batas_waktu_kelas: batasWaktuKelas(params.jumlahMurid),
     asesmen: {
       gunakan_diagnostik: params.gunakanDiagnostik,
       teknik_diagnostik:  terjemahkan(ISTILAH_TEKNIK, params.teknikDiagnostik),
@@ -3285,7 +3479,29 @@ function buildUserMessageFaseA(params: {
       'Nilai instrumen_* adalah nama jenis di manifest — salin apa adanya ke field "jenis". ' +
       'Instrumen pembelajaran (PBL-xx): buat berdasarkan sumber_strategi dan konteks_pembelajaran. ' +
       'Instrumen asesmen (ASM-xx): buat sesuai teknik — satu ID per instrumen unik. ' +
-      'Setiap ID di manifest harus diisi kontennya di Fase C.',
+      'Setiap ID di manifest harus diisi kontennya di Fase C. ' +
+      // M9: Fase C hanya mengisi entri manifest. Bahan yang tugas butuhkan
+      // tetapi tidak dijadikan entri — "teks prosedur baru" untuk sumatif, soal
+      // yang murid jawab — karena itu tidak pernah ada, dan guru harus
+      // membuatnya sendiri. Skenario 1 dan 2 M9 menunjukkan keduanya.
+      'SETIAP bahan yang murid perlukan untuk mengerjakan tugas mana pun — teks yang dibaca, ' +
+      'soal yang dijawab, kartu langkah yang diurutkan, stimulus yang dianalisis — WAJIB menjadi ' +
+      'entri manifest; Fase C hanya mengisi entri manifest, jadi bahan di luar manifest tidak akan ' +
+      'pernah ada. Ini berlaku juga untuk sumatif: kalau murid membaca atau menganalisis teks saat ' +
+      'sumatif, teks itu entri manifest untuk_murid=true yang digunakan_pada slot sumatif itu — atau ' +
+      'pakai ulang instrumen yang sudah ada. Jangan merancang "teks baru" yang tidak ada di manifest. ' +
+      'Kalau sumatif meminta murid menjawab pertanyaan atau mengurutkan langkah, lembar butir itu ' +
+      'entri manifest untuk_murid=true tersendiri untuk slot sumatif — matriks observasi penilaian ' +
+      'tidak menggantikannya. ' +
+      // M9 (S2 final): model memasukkan teks bacaan PBL-03 ke instrumen_ref
+      // sumatif alih-alih membuat lembar soal; perbaikan lalu menghapus rujukan
+      // yang tidak sah itu dan lembar soalnya tetap tidak pernah ada.
+      'Teks bacaan (PBL-xx) BUKAN instrumen asesmen — jangan pernah memasukkannya ke ' +
+      'asesmen_sumatif.instrumen_ref. Lembar butir sumatif itu entri asesmen_manifest jenis ' +
+      'soal_latihan (untuk_murid=true) dan WAJIB disebut di asesmen_sumatif.instrumen_ref serta di ' +
+      'instrumen_bukti KKTP yang dihitungnya, berdampingan dengan matriks_observasi bila guru ' +
+      'memilih unjuk kerja. ' +
+      `Jenis berikut adalah lembar yang MURID kerjakan dan WAJIB untuk_murid=true: ${JENIS_WAJIB_UNTUK_MURID.join(', ')}.`,
   });
 }
 
@@ -3312,6 +3528,20 @@ function buildUserMessageFaseB(params: {
     fase: 'B',
     output_instruction:
       `Hasilkan HANYA field "pertemuan" (array length HARUS === ${params.jumlahPertemuan}). ` +
+      // ENAM LANGKAH, SETIAP PERTEMUAN, URUTAN TETAP.
+      //
+      // Aturan ini sudah ditegakkan validator sejak V4.0 tetapi TIDAK PERNAH
+      // dikatakan kepada model. Generate nyata M9 membuktikan akibatnya: model
+      // menilai ASESMEN_AWAL tidak perlu diulang di pertemuan 2 dan 3,
+      // menghilangkannya, dan satu keputusan itu menghasilkan 20 dari 27 galat
+      // karena seluruh nama langkah sesudahnya ikut bergeser.
+      //
+      // Daftarnya diturunkan dari URUTAN_LANGKAH (kontrak), bukan ditulis
+      // tangan — supaya yang model lihat tidak dapat menyimpang dari yang
+      // validator tegakkan.
+      `SETIAP pertemuan WAJIB memuat KEENAM langkah ini, lengkap dan dalam urutan ini: ` +
+      `${URUTAN_LANGKAH.join(' → ')}. Jangan menghilangkan salah satunya walau kamu menilai ` +
+      `tidak diperlukan di pertemuan itu — beri porsi waktu kecil dan isi yang sesuai. ` +
       `JANGAN tulis field "ref" di sub_langkah — backend yang menulis ref. ` +
       `Setiap sub_langkah WAJIB ada durasi_menit (integer > 0). ` +
       `Σsub_langkah.durasi_menit HARUS = durasi_menit langkah induk. ` +
@@ -3338,11 +3568,17 @@ function buildUserMessageFaseB(params: {
     durasi_jp:                  params.durasiJp,
     durasi_menit_per_pertemuan: targetDurasi,
     jumlah_murid:               params.jumlahMurid,
+    // Angka waktu konkret kelas ini (M9). Perbaikan Fase B memakai builder ini
+    // juga, jadi generate dan perbaikan menerima batas yang sama.
+    batas_waktu_kelas_ini:      batasWaktuKelas(params.jumlahMurid),
     instrumen_tersedia:         allManifestIds,
     instruksi_instrumen_ref:
       'instrumen_ref di sub_langkah HANYA boleh menggunakan ID dari instrumen_tersedia. ' +
       'Gunakan instrumen_ref jika sub_langkah menggunakan instrumen pembelajaran atau asesmen tersebut. ' +
-      'Jika tidak ada instrumen di sub_langkah, field instrumen_ref tidak perlu ditulis.',
+      'Jika tidak ada instrumen di sub_langkah, field instrumen_ref tidak perlu ditulis. ' +
+      'Kalau murid membaca, menjawab, mengurutkan, atau menganalisis sesuatu di sub_langkah itu ' +
+      '(termasuk sumatif), instrumen_ref WAJIB menunjuk instrumen yang memuat bahannya — jangan ' +
+      'menyebut teks, soal, atau kartu yang tidak ada di instrumen_tersedia.',
     identitas:           params.faseAOutput.identitas,
     kktp:                params.faseAOutput.kktp,
     konteks_murid:       params.faseAOutput.konteks_murid,
@@ -3425,6 +3661,14 @@ function buildUserMessageFaseC(params: {
       'diterjemahkan, disingkat, atau ditambah. ' +
       'untuk_murid=true → konten_murid wajib ada (bukan null). ' +
       'untuk_murid=false → konten_murid harus null. ' +
+      // M9: KKTP (Fase A) dan isi instrumen (di sini) disusun terpisah; tanpa
+      // kalimat ini penyebut ambang dan jumlah butir tidak pernah didamaikan.
+      'Jumlah butir soal, langkah/kartu yang diurutkan, atau indikator di instrumen yang disebut ' +
+      'instrumen_bukti sebuah KKTP WAJIB sama dengan penyebut ambang_batas KKTP itu — kalau KKTP ' +
+      'menyebut "4 dari 5 langkah", instrumennya memuat tepat 5 langkah. Setiap bahan yang tugas ' +
+      'sebut (teks, soal, kartu) ditulis LENGKAP di instrumen, bukan dirujuk. ' +
+      'Lembar butir untuk sumatif memuat pertanyaan tentang teks SUMATIF itu sendiri, sebanyak ' +
+      'penyebut KKTP-nya — bukan pertanyaan umum yang dipakai ulang untuk teks lain. ' +
       'Ringkas: deskripsi 1-2 kalimat, dialog 1 baris per giliran. ' +
       `Total output di bawah ${Math.max(3000, 1000 * allManifest.length)} token.`,
     // M2.1: program keahlian TIDAK LAGI dikirim terpisah di sini. Sampai M2 ia
@@ -3618,6 +3862,154 @@ function buildUserMessageFaseD(params: {
     rencana_asesmen:     params.faseAOutput.rencana_asesmen,
     konteks_pembelajaran: konteksModulManusiawi(params.cd),
   });
+}
+
+// ── LIFECYCLE PERBAIKAN SETELAH VALIDASI (M9/D2) ─────────────────────────────
+//
+// Sampai M9 jalur perbaikan untuk galat durasi melakukan tiga hal yang, masing-
+// masing sendirian, sudah cukup untuk menggagalkan modul yang sebenarnya bisa
+// diselamatkan. Generate nyata M9 (Skenario 1 attempt 4) membuktikannya: model
+// BERHASIL membereskan seluruh galat waktu, lalu validasi ulang menolak 43 galat
+// yang dibuat pipeline sendiri.
+//
+//   1. Fase B perbaikan menerima MANIFEST KOSONG → model tidak tahu instrumen
+//      apa yang sah, sehingga seluruh instrumen_ref hilang (7 → 0) dan setiap
+//      entri formatif kehilangan sub_langkah pelaksananya.
+//   2. `pertemuan` hasil perbaikan TIDAK melewati injectSubLangkahRef() → nol ref
+//      (21 → 0), padahal di jalur normal backend-lah yang menulis ref.
+//   3. Naskah LAMA tetap dipakai bersama pertemuan BARU → setiap rujukan naskah
+//      menunjuk sub_langkah yang tidak ada. Ini persis kasus yang
+//      gugurkanNaskah() cegah di jalur Fase B/C, tetapi tidak di sini.
+//   4. Anggarannya anggaranToken() — plafon satu fase normal — sehingga satu
+//      dari tiga percobaan terpotong dengan 11.517 token penalaran.
+//
+// Karena itu lifecycle-nya dipindah ke satu fungsi murni. Edge Function, uji
+// deterministik, dan harness M9 memanggil fungsi YANG SAMA; ketiga dependensi
+// yang menyentuh dunia luar (model, penyusun naskah, validator) disuntikkan.
+//
+// Jalur 'pertemuan':  Fase B perbaikan (manifest asli)
+//                     → injectSubLangkahRef
+//                     → naskah lama digugurkan, B2 disusun ulang dari pertemuan baru
+//                     → validasi akhir
+// Jalur 'dokumen':    tidak berubah — model menyusun ulang seluruh dokumen,
+//                     termasuk naskah, dalam satu keluaran.
+type HasilValidasiModul = { valid: boolean; errors: string[]; output: ModulOutput | null };
+
+// M9 (S3 attempt 7): perbaikan durasi mengirim pesan GENERATE Fase B — tanpa
+// pertemuan yang sedang diperbaiki. Model menyusun ulang semua pertemuan dari
+// nol tanpa pernah melihat pertemuan yang salah: P1 dan P2 berubah, P3 lahir
+// kembali persis 185 menit dari 180.
+//
+// Panduan ini memberi model pertemuan yang ada sekarang dan, untuk setiap
+// pertemuan yang totalnya meleset, angka yang backend SUDAH tahu: nomor, total
+// sekarang, total wajib, dan selisihnya. Semuanya dihitung dari struktur
+// `pertemuan[].langkah[].durasi_menit` — bukan dibaca dari kalimat galat.
+function panduanPerbaikanDurasi(pertemuan: unknown, targetMenit: number): string {
+  const arr = Array.isArray(pertemuan) ? pertemuan as Array<Record<string, unknown>> : [];
+  if (!arr.length) return '';
+  const total = (p: Record<string, unknown>) =>
+    (Array.isArray(p.langkah) ? p.langkah as Array<Record<string, unknown>> : [])
+      .reduce((a, l) => a + (Number(l.durasi_menit) || 0), 0);
+  const bermasalah = arr
+    .map(p => ({ nomor: Number(p.nomor), total_sekarang: total(p), total_wajib: targetMenit,
+                 selisih: targetMenit - total(p) }))
+    .filter(b => b.selisih !== 0);
+  const utuh = arr.map(p => Number(p.nomor)).filter(n => !bermasalah.some(b => b.nomor === n));
+  return (
+    `\n\nPERTEMUAN_SEKARANG (hasil yang sedang diperbaiki): ${JSON.stringify(arr)}` +
+    `\n\nPANDUAN_PERBAIKAN_WAKTU: ${JSON.stringify({ pertemuan_bermasalah: bermasalah, pertemuan_tanpa_galat_total: utuh })}. ` +
+    bermasalah.map(b =>
+      `Pertemuan ${b.nomor}: total sekarang ${b.total_sekarang} menit, wajib ${b.total_wajib} menit — ` +
+      `${b.selisih < 0 ? 'kurangi' : 'tambah'} tepat ${Math.abs(b.selisih)} menit di pertemuan ${b.nomor} saja, ` +
+      `sambil menjaga batas_waktu_kelas_ini, urutan keenam langkah, asesmen, instrumen_ref, dan tujuan kegiatannya. `,
+    ).join('') +
+    (utuh.length
+      ? `Pertemuan ${utuh.join(', ')} tidak punya galat total waktu: kembalikan PERSIS seperti di ` +
+        `PERTEMUAN_SEKARANG, kecuali ada galat lain di daftar ERROR yang menyebut pertemuan itu. `
+      : '') +
+    `Kembalikan field "pertemuan" lengkap (${arr.length} pertemuan).`
+  );
+}
+
+async function perbaikiModulSetelahValidasi(p: {
+  merged:          Record<string, unknown>;
+  errors:          string[];
+  faseAOutput:     Record<string, unknown>;
+  /** Manifest Fase A — otoritas yang SAMA dengan jalur normal dan validator. */
+  manifest:        InstrumentManifest;
+  jumlahPertemuan: number;
+  jpPerPertemuan:  number;
+  durasiJp:        number;
+  jumlahMurid:     number | null;
+  cd:              Record<string, unknown>;
+  arahanTitikAwal: string | null;
+  warisan:         WarisanAtp;
+  panggilAI:   (pesan: string, maxTokens: number) => Promise<string>;
+  susunNaskah: (pertemuanWithRef: unknown[], instrumenPembelajaran: unknown[], instrumenAsesmen: unknown[]) => Promise<unknown[]>;
+  validasi:    (dokumen: unknown) => HasilValidasiModul;
+}): Promise<{
+  jalur: 'pertemuan' | 'dokumen';
+  permintaan: string;
+  anggaran: number;
+  mergedFixed: Record<string, unknown>;
+  validation: HasilValidasiModul;
+}> {
+  const { merged } = p;
+  const errorList = p.errors.join('; ');
+  const hasDurasiError = p.errors.some(e => e.includes('durasi'));
+  const repairMsg = hasDurasiError
+    // Cabang durasi: pesan Fase B dengan MANIFEST FASE A YANG ASLI.
+    ? buildUserMessageFaseB({
+        faseAOutput: p.faseAOutput, manifest: p.manifest,
+        jumlahPertemuan: p.jumlahPertemuan, jpPerPertemuan: p.jpPerPertemuan,
+        durasiJp: p.durasiJp, jumlahMurid: p.jumlahMurid, cd: p.cd,
+        arahanTitikAwal: p.arahanTitikAwal, warisan: p.warisan,
+      }) +
+      `\n\nERROR yang harus diperbaiki: ${errorList}. ` +
+      `Σlangkah[].durasi_menit HARUS = ${p.jpPerPertemuan * p.durasiJp}. ` +
+      `Σsub_langkah[].durasi_menit HARUS = durasi_menit langkah induk.` +
+      // Pertemuan yang ada sekarang + panduan per pertemuan (M9/S3).
+      panduanPerbaikanDurasi(merged.pertemuan, p.jpPerPertemuan * p.durasiJp)
+    : JSON.stringify(merged) +
+      `\n\nERROR yang harus diperbaiki: ${errorList}. Hasilkan JSON object penuh yang sudah benar. ` +
+      // M3: perintah strukturalnya BERASAL DARI KONTRAK YANG SAMA dengan
+      // SYSTEM_PROMPT, supaya perbaikan tidak merusak bentuk yang tidak diingat.
+      perintahPerbaikanStruktural() +
+      // rootWajib() sengaja tidak memuat field yang wajib hanya untuk dokumen
+      // BARU (keputusan_kontekstual, M6) — supaya dokumen lama tetap terbaca.
+      // Akibatnya perintah di atas tidak pernah menyebutnya, dan generate nyata
+      // M9 (Skenario 3) membuktikan model menghapusnya persis karena itu. Daftar
+      // di sini diturunkan dari DOKUMEN INI, bukan ditulis tangan.
+      ` Field akar dokumen ini yang WAJIB tetap ada: ${
+        Object.keys(merged).filter(k => KONTRAK_ROOT[k]?.fase !== 'server').join(', ')}.`;
+  // Satu otoritas anggaran untuk kedua jalur: perbaikan butuh ruang penalaran
+  // untuk memahami galatnya, bukan hanya ruang menulis ulang.
+  const anggaran = anggaranTokenPerbaikan(p.jumlahPertemuan);
+  const repairText = await p.panggilAI(repairMsg, anggaran);
+  const repairParsed = extractJson(repairText) as Record<string, unknown>;
+
+  if (!hasDurasiError) {
+    // Bagian milik SERVER (tp_anchor, atp_context, alokasi_server) tidak pernah
+    // diminta dari model (M3-AD), jadi dokumen perbaikan tidak akan memuatnya.
+    // Backend memasangnya kembali dari dokumen asal — otoritasnya KONTRAK_ROOT,
+    // sama seperti ref yang disuntik backend di jalur pertemuan.
+    const mergedFixed: Record<string, unknown> = { ...repairParsed };
+    for (const [k, f] of Object.entries(KONTRAK_ROOT))
+      if (f.fase === 'server' && k in merged) mergedFixed[k] = merged[k];
+    return { jalur: 'dokumen', permintaan: repairMsg, anggaran,
+             mergedFixed, validation: p.validasi(mergedFixed) };
+  }
+
+  // Backend tetap otoritas ref — sama dengan jalur Fase B normal.
+  const pertemuanWithRef = injectSubLangkahRef(Array.isArray(repairParsed.pertemuan) ? repairParsed.pertemuan : []);
+  // Naskah lama TIDAK ikut: ia disusun dari pertemuan yang baru saja diganti.
+  const naskahBaru = await p.susunNaskah(
+    pertemuanWithRef,
+    Array.isArray(merged.instrumen_pembelajaran) ? merged.instrumen_pembelajaran as unknown[] : [],
+    Array.isArray(merged.instrumen_asesmen) ? merged.instrumen_asesmen as unknown[] : [],
+  );
+  const mergedFixed = { ...merged, pertemuan: pertemuanWithRef, naskah_fasilitasi: naskahBaru };
+  return { jalur: 'pertemuan', permintaan: repairMsg, anggaran, mergedFixed, validation: p.validasi(mergedFixed) };
 }
 
 // ── EDGE FUNCTION ─────────────────────────────────────────────────────────────
@@ -4205,6 +4597,10 @@ Deno.serve(async (req) => {
     pertemuanWithRef: unknown[],
     instrumenPembelajaran: unknown[],
     instrumenAsesmen: unknown[],
+    // Jalur normal B2 punya permintaan sendiri (120 detik). Di dalam lifecycle
+    // perbaikan ia berbagi permintaan dengan Fase D, jadi pemanggil memberi
+    // batas dari batasWaktuPerbaikan().
+    timeoutMs = 120_000,
   ): Promise<unknown[]> {
     const out = await callPhase(
       'Fase B2 (naskah)',
@@ -4212,7 +4608,7 @@ Deno.serve(async (req) => {
         faseAOutput, pertemuanWithRef, instrumenPembelajaran, instrumenAsesmen,
         jumlahPertemuan, jumlahMurid,
       }),
-      120_000, anggaranTokenNaskah(jumlahPertemuan), 'B2',
+      timeoutMs, anggaranTokenNaskah(jumlahPertemuan), 'B2',
     );
     return Array.isArray(out.naskah_fasilitasi) ? out.naskah_fasilitasi : [];
   }
@@ -4629,41 +5025,30 @@ Deno.serve(async (req) => {
       const errorList = validation.errors.join('; ');
       console.warn('[generate-modul] V4.0 validation failed, attempting repair:', errorList);
 
-      const hasDurasiError = validation.errors.some(e => e.includes('durasi'));
-      const repairMsg = hasDurasiError
-        ? buildUserMessageFaseB({ faseAOutput, manifest: { pembelajaran_manifest: [], asesmen_manifest: [] }, jumlahPertemuan, jpPerPertemuan, durasiJp, jumlahMurid, cd, arahanTitikAwal: arahanWaktu, warisan }) +
-          `\n\nERROR yang harus diperbaiki: ${errorList}. ` +
-          `Σlangkah[].durasi_menit HARUS = ${jpPerPertemuan * durasiJp}. ` +
-          `Σsub_langkah[].durasi_menit HARUS = durasi_menit langkah induk.`
-        : JSON.stringify(merged) +
-          `\n\nERROR yang harus diperbaiki: ${errorList}. Hasilkan JSON object penuh yang sudah benar. ` +
-          // M3: perintah strukturalnya BERASAL DARI KONTRAK YANG SAMA dengan
-          // SYSTEM_PROMPT. Sampai M3 pesan ini tidak menyebut bentuk sama sekali,
-          // sehingga model harus mengingatnya dari panggilan sebelumnya — dan kalau
-          // ia salah ingat, perbaikannya justru merusak bentuk.
-          perintahPerbaikanStruktural();
-
       try {
-        const repairText  = await callAI([{ role: 'user', content: repairMsg }], 50_000,
-          hasDurasiError ? anggaranToken(jumlahPertemuan) : anggaranTokenPerbaikan(jumlahPertemuan),
-          'perbaikan validasi');
-        const repairParsed = extractJson(repairText);
-        const mergedFixed = hasDurasiError
-          ? { ...(merged as Record<string, unknown>), pertemuan: (repairParsed as Record<string, unknown>).pertemuan }
-          : repairParsed;
-        // MANIFEST YANG SAMA DENGAN VALIDASI PERTAMA — bukan `undefined`.
+        // Lifecycle perbaikan — lihat perbaikiModulSetelahValidasi (M9/D2).
         //
-        // Sampai M4.1 baris ini mengirim `undefined`, dan akibatnya satu lubang
-        // yang hanya terlihat di putaran perbaikan: seluruh aturan yang
-        // berpangkal pada manifest Fase A dilewati, sehingga keluaran perbaikan
-        // boleh memperkenalkan instrumen yang ada di `instrumen_asesmen[]` final
-        // tetapi tidak pernah ada di manifest — lalu lolos.
-        //
-        // Manifest adalah kontrak IDENTITAS instrumen dan tidak berubah karena
-        // sebuah perbaikan: ia keluaran Fase A, sedangkan yang diperbaiki di
-        // sini keluaran fase sesudahnya. Menghilangkannya justru membuat
-        // gerbangnya paling lemah tepat ketika model baru saja salah sekali.
-        validation = validateModulOutputV400(mergedFixed, nomorTp, jumlahPertemuan, jpPerPertemuan, durasiJp, jumlahMurid, manifestFaseD, perangkatDigitalDiizinkan(cd), true, true, true, true, true);
+        // Validasi akhir memakai MANIFEST YANG SAMA dengan validasi pertama —
+        // bukan `undefined` (M4.1): manifest adalah kontrak IDENTITAS instrumen
+        // dan tidak berubah karena sebuah perbaikan.
+        ({ validation } = await perbaikiModulSetelahValidasi({
+          merged: merged as Record<string, unknown>,
+          errors: validation.errors,
+          faseAOutput, manifest: manifestFaseD,
+          jumlahPertemuan, jpPerPertemuan, durasiJp, jumlahMurid, cd,
+          arahanTitikAwal: arahanWaktu, warisan,
+          // Batas waktu dari satu kebijakan, dihitung terhadap SISA permintaan
+          // ini (startTime) — Fase D sudah memakai sebagian.
+          panggilAI: (pesan, maxTokens) =>
+            callAI([{ role: 'user', content: pesan }],
+              batasWaktuPerbaikan(maxTokens, BATAS_PERMINTAAN_MS - (Date.now() - startTime)),
+              maxTokens, 'perbaikan validasi'),
+          susunNaskah: (pw, ip, ia) => susunNaskah(faseAOutput, pw, ip, ia,
+            batasWaktuPerbaikan(anggaranTokenNaskah(jumlahPertemuan), BATAS_PERMINTAAN_MS - (Date.now() - startTime))),
+          validasi: (mergedFixed) => {
+            return validateModulOutputV400(mergedFixed, nomorTp, jumlahPertemuan, jpPerPertemuan, durasiJp, jumlahMurid, manifestFaseD, perangkatDigitalDiizinkan(cd), true, true, true, true, true);
+          },
+        }));
         if (!validation.valid) {
           return json({ error: `Validasi gagal setelah repair: ${validation.errors.join('; ')}`, code: 'MODUL_GENERATION_INVALID_SCHEMA', retryable: true }, 422);
         }

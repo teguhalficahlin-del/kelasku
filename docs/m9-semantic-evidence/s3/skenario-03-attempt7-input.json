@@ -1,0 +1,157 @@
+{
+  "skenario": {
+    "nomor": 3,
+    "nama": "Konteks kejuruan relevan",
+    "fokusReview": "Apakah konteks kejuruan dipakai secara AUTENTIK, bukan sekadar menempelkan kata jurusan pada tugas generik?",
+    "kesiapan": "sesuai",
+    "kesiapanArti": "sebagian besar murid sudah memenuhi prasyarat TP ini",
+    "konteksTugas": "dominan_kerja",
+    "konteksTugasArti": "sebagian besar contoh dan tugas berlatar dunia kerja",
+    "programKeahlian": "Tata Busana",
+    "jumlahMurid": 30,
+    "prioritas": [
+      {
+        "kunci": "komunikasi",
+        "arti": "penguatan komunikasi lisan",
+        "arahan": "perbanyak kesempatan berbicara"
+      }
+    ],
+    "prioritasUntukTpIni": [
+      "komunikasi"
+    ],
+    "tpJudul": "Peserta didik menggunakan bahasa Inggris untuk mengungkapkan pendapat dan mempertahankan argumen dalam percakapan tentang topik yang dibahas.",
+    "tuntutan": [
+      "BIE-E25-MB-2",
+      "BIE-E25-MB-3"
+    ],
+    "kategoriTeks": [],
+    "jumlahPertemuan": 3,
+    "jpPerPertemuan": 4
+  },
+  "tp_anchor": {
+    "atp_induk_id": "m9-skenario-3",
+    "nomor_tp": 1,
+    "tp_judul": "Peserta didik menggunakan bahasa Inggris untuk mengungkapkan pendapat dan mempertahankan argumen dalam percakapan tentang topik yang dibahas.",
+    "tuntutan": [
+      "BIE-E25-MB-2",
+      "BIE-E25-MB-3"
+    ],
+    "kategori_teks": [],
+    "semester": 1,
+    "jp_alokasi": 12,
+    "jp_pertemuan": [
+      4,
+      4,
+      4
+    ],
+    "versi_cp": "046/H/KR/2025"
+  },
+  "atp_context": {
+    "versi_cp": "046/H/KR/2025",
+    "semester": 1,
+    "kesiapan_murid": {
+      "nilai": "sesuai",
+      "asal": "keputusan_guru",
+      "arti": "sebagian besar murid sudah memenuhi prasyarat TP ini",
+      "dasar": "hasil penilaian sebelumnya"
+    },
+    "jumlah_murid": {
+      "nilai": 30,
+      "asal": "fakta"
+    },
+    "program_keahlian": {
+      "nilai": "Tata Busana",
+      "asal": "fakta"
+    },
+    "konteks_tugas": {
+      "nilai": "dominan_kerja",
+      "asal": "keputusan_guru",
+      "arti": "sebagian besar contoh dan tugas berlatar dunia kerja"
+    },
+    "prioritas_guru": [
+      {
+        "kunci": "komunikasi",
+        "arti": "penguatan komunikasi lisan",
+        "arahan": "perbanyak kesempatan berbicara"
+      }
+    ],
+    "penerapan_prioritas": {
+      "untuk_tp_ini": [
+        {
+          "prioritas": "komunikasi",
+          "kunci": "komunikasi",
+          "tp": [
+            1
+          ],
+          "pengaruh": [
+            "kegiatan"
+          ],
+          "alasan": "ATP menyatakan penekanan ini berlaku untuk TP ini."
+        }
+      ],
+      "seluruh_atp": [
+        {
+          "prioritas": "komunikasi",
+          "kunci": "komunikasi",
+          "tp": [
+            1
+          ],
+          "pengaruh": [
+            "kegiatan"
+          ],
+          "alasan": "Penekanan guru pada ATP."
+        }
+      ]
+    }
+  },
+  "alokasi_server": {
+    "pertemuan": [
+      4,
+      4,
+      4
+    ]
+  },
+  "collected_data": {
+    "KONTEKS_MODUL": {
+      "jumlah_murid": {
+        "value": 30
+      },
+      "kondisi_kelas": {
+        "value": "diferensiasi"
+      }
+    },
+    "SUMBER_STRATEGI": {
+      "strategi_pembelajaran": {
+        "value": "kolaboratif"
+      },
+      "bahan_guru": {
+        "value": [
+          "tidak_ada"
+        ]
+      }
+    },
+    "ASESMEN_MODUL": {
+      "gunakan_diagnostik": {
+        "value": "lewati"
+      },
+      "teknik_formatif": {
+        "value": "rekomendasi"
+      },
+      "gunakan_sumatif": {
+        "value": "ya"
+      },
+      "teknik_sumatif": {
+        "value": "unjuk_kerja"
+      }
+    }
+  },
+  "identitas": {
+    "mapel": "Bahasa Inggris",
+    "jenjang": "SMK",
+    "fase": "E",
+    "program_keahlian": "Tata Busana",
+    "nama_guru": "Guru MiClass",
+    "tahun_ajaran": "2026/2027",
+    "semester": "1"
+  }
+}

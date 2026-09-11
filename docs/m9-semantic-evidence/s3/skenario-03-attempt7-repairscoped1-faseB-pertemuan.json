@@ -1,0 +1,413 @@
+[
+  {
+    "nomor": 1,
+    "tujuan_pertemuan": "Peserta didik mampu mengidentifikasi serta mempraktikkan ungkapan menyatakan pendapat dan memberi alasan sederhana dalam konteks pemilihan bahan dan model busana.",
+    "media_dan_alat": [
+      "Papan tulis dan spidol",
+      "Lembar cetak dialog model konsultasi butik (PBL-01)"
+    ],
+    "langkah": [
+      {
+        "nama": "PEMBUKA",
+        "durasi_menit": 15,
+        "prinsip": [
+          "Berkesadaran",
+          "Menggembirakan"
+        ],
+        "sub_langkah": [
+          {
+            "nomor": 1,
+            "deskripsi": "Guru menyapa murid dengan ramah, mengajak berdoa, memeriksa kehadiran, serta mengondisikan ruang kelas agar tertata rapi menyerupai suasana ruang kerja butik.",
+            "durasi_menit": 7,
+            "mode_pelaksanaan": "simultan",
+            "mode_observasi": "mandiri",
+            "ref": "P1.PEMBUKA.1"
+          },
+          {
+            "nomor": 2,
+            "deskripsi": "Guru menyampaikan tujuan pembelajaran mengenai cara menyatakan pendapat dalam bahasa Inggris pada situasi kerja tata busana serta menyampaikan manfaat kompetensi ini bagi calon perancang busana.",
+            "durasi_menit": 8,
+            "mode_pelaksanaan": "simultan",
+            "mode_observasi": "mandiri",
+            "ref": "P1.PEMBUKA.2"
+          }
+        ]
+      },
+      {
+        "nama": "ASESMEN_AWAL",
+        "durasi_menit": 15,
+        "prinsip": [
+          "Berkesadaran"
+        ],
+        "sub_langkah": [
+          {
+            "nomor": 1,
+            "deskripsi": "Guru memperlihatkan dua sketsa potongan busana di papan tulis dan memantik respons murid secara lisan untuk mengecek sejauh mana murid telah mampu menyampaikan pilihan dan alasan sederhana dalam bahasa Inggris.",
+            "durasi_menit": 15,
+            "mode_pelaksanaan": "simultan",
+            "mode_observasi": "sampel",
+            "ref": "P1.ASESMEN_AWAL.1"
+          }
+        ]
+      },
+      {
+        "nama": "MEMAHAMI",
+        "durasi_menit": 45,
+        "prinsip": [
+          "Bermakna"
+        ],
+        "sub_langkah": [
+          {
+            "nomor": 1,
+            "deskripsi": "Murid secara berpasangan mencermati teks cetak dialog percakapan butik (PBL-01) untuk menemukan ungkapan menyatakan pendapat dan frasa penghubung alasan yang digunakan oleh penjahit dan pelanggan.",
+            "durasi_menit": 20,
+            "instrumen_ref": [
+              "PBL-01"
+            ],
+            "mode_pelaksanaan": "kelompok_kecil",
+            "mode_observasi": "rotasi",
+            "ukuran_kelompok": 2,
+            "ref": "P1.MEMAHAMI.1"
+          },
+          {
+            "nomor": 2,
+            "deskripsi": "Guru bersama murid membedah struktur ungkapan pendapat dan alasan pendukung dari teks dialog di papan tulis, lalu melafalkan frasa kunci secara bersama-sama.",
+            "durasi_menit": 25,
+            "mode_pelaksanaan": "simultan",
+            "mode_observasi": "mandiri",
+            "ref": "P1.MEMAHAMI.2"
+          }
+        ]
+      },
+      {
+        "nama": "MENGAPLIKASI",
+        "durasi_menit": 80,
+        "prinsip": [
+          "Bermakna",
+          "Menggembirakan"
+        ],
+        "sub_langkah": [
+          {
+            "nomor": 1,
+            "deskripsi": "Murid dalam pasangan berlatih menyusun kalimat pendapat mengenai kecocokan jenis kain busana pesta menggunakan pola kalimat yang telah dibahas pada buku tulis masing-masing.",
+            "durasi_menit": 40,
+            "mode_pelaksanaan": "kelompok_kecil",
+            "mode_observasi": "rotasi",
+            "ukuran_kelompok": 2,
+            "ref": "P1.MENGAPLIKASI.1"
+          },
+          {
+            "nomor": 2,
+            "deskripsi": "Setiap pasangan mempraktikkan percakapan tanya jawab singkat saling bertukar pendapat tentang rancangan busana kerja secara langsung di hadapan pasangan lain secara serempak.",
+            "durasi_menit": 40,
+            "mode_pelaksanaan": "simultan",
+            "mode_observasi": "rotasi",
+            "ukuran_kelompok": 2,
+            "ref": "P1.MENGAPLIKASI.2"
+          }
+        ]
+      },
+      {
+        "nama": "MEREFLEKSI",
+        "durasi_menit": 15,
+        "prinsip": [
+          "Berkesadaran"
+        ],
+        "sub_langkah": [
+          {
+            "nomor": 1,
+            "deskripsi": "Murid mengidentifikasi frasa mana yang dirasa paling mudah diucapkan dan bagian mana saat mempertahankan argumen yang masih terasa menantang dengan menuliskannya di buku catatan.",
+            "durasi_menit": 15,
+            "mode_pelaksanaan": "individual",
+            "mode_observasi": "mandiri",
+            "ref": "P1.MEREFLEKSI.1"
+          }
+        ]
+      },
+      {
+        "nama": "PENUTUP",
+        "durasi_menit": 10,
+        "prinsip": [
+          "Bermakna"
+        ],
+        "sub_langkah": [
+          {
+            "nomor": 1,
+            "deskripsi": "Guru memberikan apresiasi atas partisipasi aktif murid, menyimpulkan poin penting penggunaan ungkapan pendapat, dan menginformasikan rencana latihan simulasi butik untuk pertemuan berikutnya.",
+            "durasi_menit": 10,
+            "mode_pelaksanaan": "simultan",
+            "mode_observasi": "mandiri",
+            "ref": "P1.PENUTUP.1"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "nomor": 2,
+    "tujuan_pertemuan": "Peserta didik mampu mempertahankan argumen dengan alasan logis dalam situasi simulasi diskusi pemilihan bahan busana dan menerima umpan balik perbaikan.",
+    "media_dan_alat": [
+      "Papan tulis dan spidol",
+      "Kartu peran skenario butik busana (PBL-02)",
+      "Lembar matriks observasi cek pemahaman guru (ASM-01)"
+    ],
+    "langkah": [
+      {
+        "nama": "PEMBUKA",
+        "durasi_menit": 15,
+        "prinsip": [
+          "Berkesadaran"
+        ],
+        "sub_langkah": [
+          {
+            "nomor": 1,
+            "deskripsi": "Guru membuka pelajaran, memeriksa kesiapan ruang dan kehadiran murid, serta mengingatkan kembali frasa kunci menyatakan pendapat yang telah dipelajari sebelumnya.",
+            "durasi_menit": 15,
+            "mode_pelaksanaan": "simultan",
+            "mode_observasi": "mandiri",
+            "ref": "P2.PEMBUKA.1"
+          }
+        ]
+      },
+      {
+        "nama": "ASESMEN_AWAL",
+        "durasi_menit": 10,
+        "prinsip": [
+          "Berkesadaran"
+        ],
+        "sub_langkah": [
+          {
+            "nomor": 1,
+            "deskripsi": "Guru memberikan satu situasi pertentangan ide rancangan busana secara lisan, lalu meminta dua murid memberikan sanggahan dan alasan spontan untuk melihat kesiapan berargumen.",
+            "durasi_menit": 10,
+            "mode_pelaksanaan": "simultan",
+            "mode_observasi": "sampel",
+            "ref": "P2.ASESMEN_AWAL.1"
+          }
+        ]
+      },
+      {
+        "nama": "MEMAHAMI",
+        "durasi_menit": 25,
+        "prinsip": [
+          "Bermakna"
+        ],
+        "sub_langkah": [
+          {
+            "nomor": 1,
+            "deskripsi": "Guru memodelkan teknik mempertahankan argumen secara santun saat klien meragukan pemilihan bahan pakaian, memperlihatkan frasa penegas alasan di papan tulis.",
+            "durasi_menit": 25,
+            "mode_pelaksanaan": "simultan",
+            "mode_observasi": "mandiri",
+            "ref": "P2.MEMAHAMI.1"
+          }
+        ]
+      },
+      {
+        "nama": "MENGAPLIKASI",
+        "durasi_menit": 105,
+        "prinsip": [
+          "Bermakna",
+          "Menggembirakan"
+        ],
+        "sub_langkah": [
+          {
+            "nomor": 1,
+            "deskripsi": "Murid secara berpasangan menerima kartu peran skenario butik (PBL-02) dan merancang alur argumen pembelaan konsep busana masing-masing selama sesi latihan bersama pasangan.",
+            "durasi_menit": 50,
+            "instrumen_ref": [
+              "PBL-02"
+            ],
+            "mode_pelaksanaan": "kelompok_kecil",
+            "mode_observasi": "rotasi",
+            "ukuran_kelompok": 2,
+            "ref": "P2.MENGAPLIKASI.1"
+          },
+          {
+            "nomor": 2,
+            "deskripsi": "Murid melakukan simulasi percakapan berpasangan dengan saling bertukar peran secara bergantian agar setiap murid dinilai kemampuannya dalam menyatakan pendapat dan mempertahankan argumen, sementara guru mengamati dan mencatat capaian pada matriks observasi (ASM-01).",
+            "durasi_menit": 55,
+            "instrumen_ref": [
+              "ASM-01",
+              "PBL-02"
+            ],
+            "asesmen_ref": "FMT-01",
+            "mode_pelaksanaan": "bergantian",
+            "mode_observasi": "rotasi",
+            "ukuran_kelompok": 2,
+            "ref": "P2.MENGAPLIKASI.2"
+          }
+        ]
+      },
+      {
+        "nama": "MEREFLEKSI",
+        "durasi_menit": 15,
+        "prinsip": [
+          "Berkesadaran"
+        ],
+        "sub_langkah": [
+          {
+            "nomor": 1,
+            "deskripsi": "Murid bersama pasangannya mendiskusikan masukan yang diberikan guru mengenai kekuatan argumen dan ketepatan kosakata busana yang digunakan saat simulasi.",
+            "durasi_menit": 15,
+            "mode_pelaksanaan": "kelompok_kecil",
+            "mode_observasi": "mandiri",
+            "ukuran_kelompok": 2,
+            "ref": "P2.MEREFLEKSI.1"
+          }
+        ]
+      },
+      {
+        "nama": "PENUTUP",
+        "durasi_menit": 10,
+        "prinsip": [
+          "Bermakna"
+        ],
+        "sub_langkah": [
+          {
+            "nomor": 1,
+            "deskripsi": "Guru memberikan ringkasan perkembangan kemampuan berbicara kelas, mengumumkan kriteria penilaian unjuk kerja pada pertemuan berikutnya, dan menutup kelas dengan salam.",
+            "durasi_menit": 10,
+            "mode_pelaksanaan": "simultan",
+            "mode_observasi": "mandiri",
+            "ref": "P2.PENUTUP.1"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "nomor": 3,
+    "tujuan_pertemuan": "Peserta didik mampu mendemonstrasikan kemampuan menyatakan pendapat dan mempertahankan argumen secara mandiri dalam penilaian unjuk kerja percakapan konsultasi butik busana.",
+    "media_dan_alat": [
+      "Papan tulis dan spidol",
+      "Kartu peran skenario butik busana (PBL-02)",
+      "Lembar rubrik penilaian unjuk kerja (ASM-02)"
+    ],
+    "langkah": [
+      {
+        "nama": "PEMBUKA",
+        "durasi_menit": 15,
+        "prinsip": [
+          "Berkesadaran",
+          "Menggembirakan"
+        ],
+        "sub_langkah": [
+          {
+            "nomor": 1,
+            "deskripsi": "Guru membuka pertemuan, memotivasi murid, serta menjelaskan tata tertib dan prosedur pelaksanaan unjuk kerja penilaian akhir berpasangan.",
+            "durasi_menit": 15,
+            "mode_pelaksanaan": "simultan",
+            "mode_observasi": "mandiri",
+            "ref": "P3.PEMBUKA.1"
+          }
+        ]
+      },
+      {
+        "nama": "ASESMEN_AWAL",
+        "durasi_menit": 10,
+        "prinsip": [
+          "Berkesadaran"
+        ],
+        "sub_langkah": [
+          {
+            "nomor": 1,
+            "deskripsi": "Guru mengecek kesiapan mental dan penguasaan istilah teknis busana murid melalui pertanyaan pemanasan singkat sebelum penilaian unjuk kerja dimulai.",
+            "durasi_menit": 10,
+            "mode_pelaksanaan": "simultan",
+            "mode_observasi": "sampel",
+            "ref": "P3.ASESMEN_AWAL.1"
+          }
+        ]
+      },
+      {
+        "nama": "MEMAHAMI",
+        "durasi_menit": 15,
+        "prinsip": [
+          "Bermakna"
+        ],
+        "sub_langkah": [
+          {
+            "nomor": 1,
+            "deskripsi": "Guru menegaskan kembali poin-poin yang diamati dalam rubrik penilaian unjuk kerja, seperti kejelasan opini, kelogisan alasan, serta kesantunan dalam mempertahankan pendapat.",
+            "durasi_menit": 15,
+            "mode_pelaksanaan": "simultan",
+            "mode_observasi": "mandiri",
+            "ref": "P3.MEMAHAMI.1"
+          }
+        ]
+      },
+      {
+        "nama": "MENGAPLIKASI",
+        "durasi_menit": 115,
+        "prinsip": [
+          "Bermakna",
+          "Menggembirakan"
+        ],
+        "sub_langkah": [
+          {
+            "nomor": 1,
+            "deskripsi": "Murid secara berpasangan mengambil kartu peran skenario butik busana (PBL-02) dan melakukan persiapan singkat menyelaraskan poin argumen sebelum unjuk kerja.",
+            "durasi_menit": 45,
+            "instrumen_ref": [
+              "PBL-02"
+            ],
+            "mode_pelaksanaan": "kelompok_kecil",
+            "mode_observasi": "rotasi",
+            "ukuran_kelompok": 2,
+            "ref": "P3.MENGAPLIKASI.1"
+          },
+          {
+            "nomor": 2,
+            "deskripsi": "Setiap pasangan tampil bergantian memperagakan percakapan konsultasi butik busana dengan bertukar peran sebagai desainer dan klien sehingga seluruh murid dinilai secara perorangan dalam menyatakan pendapat dan mempertahankan argumen, sementara guru menilai menggunakan rubrik observasi (ASM-02).",
+            "durasi_menit": 70,
+            "instrumen_ref": [
+              "ASM-02",
+              "PBL-02"
+            ],
+            "asesmen_ref": "SUMATIF",
+            "mode_pelaksanaan": "bergantian",
+            "mode_observasi": "rotasi",
+            "ukuran_kelompok": 2,
+            "ref": "P3.MENGAPLIKASI.2"
+          }
+        ]
+      },
+      {
+        "nama": "MEREFLEKSI",
+        "durasi_menit": 15,
+        "prinsip": [
+          "Berkesadaran"
+        ],
+        "sub_langkah": [
+          {
+            "nomor": 1,
+            "deskripsi": "Murid menuliskan refleksi pribadi di buku catatan mengenai pengalaman mereka mempertahankan argumen dalam bahasa Inggris dan menetapkan target pengembangan diri selanjutnya.",
+            "durasi_menit": 15,
+            "mode_pelaksanaan": "individual",
+            "mode_observasi": "mandiri",
+            "ref": "P3.MEREFLEKSI.1"
+          }
+        ]
+      },
+      {
+        "nama": "PENUTUP",
+        "durasi_menit": 10,
+        "prinsip": [
+          "Bermakna",
+          "Menggembirakan"
+        ],
+        "sub_langkah": [
+          {
+            "nomor": 1,
+            "deskripsi": "Guru memberikan apresiasi menyeluruh atas usaha dan keberanian seluruh murid dalam berkomunikasi lisan bahasa Inggris, mengumumkan selesainya rangkaian tujuan pembelajaran ini, dan menutup pertemuan.",
+            "durasi_menit": 10,
+            "mode_pelaksanaan": "simultan",
+            "mode_observasi": "mandiri",
+            "ref": "P3.PENUTUP.1"
+          }
+        ]
+      }
+    ]
+  }
+]

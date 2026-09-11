@@ -1,0 +1,1720 @@
+{
+  "schema_version": "4.0.0",
+  "identitas": {
+    "mata_pelajaran": "Bahasa Inggris",
+    "jenjang": "SMK",
+    "fase": "E",
+    "nomor_tp": 1,
+    "jumlah_pertemuan": 3,
+    "jp_per_pertemuan": 4,
+    "durasi_jp_menit": 45,
+    "alokasi_waktu_total_menit": 540,
+    "elemen_cp": [
+      "Membaca - Memirsa"
+    ],
+    "jenis_dokumen": "Modul Induk; guru mengadaptasi konteks kelas dan program keahlian",
+    "konteks_kejuruan": {
+      "bidang_keahlian": "Seni dan Ekonomi Kreatif",
+      "program_keahlian": "Tata Busana",
+      "konsentrasi_keahlian": "Tata Busana"
+    },
+    "dasar_cp": "Membaca - Memirsa: Peserta didik memahami alur informasi keseluruhan dan menganalisis serta menyimpulkan informasi tersurat dan tersirat pada berbagai jenis teks fiksi dan nonfiksi.",
+    "tujuan_pembelajaran": "Peserta didik memahami alur informasi keseluruhan dan gagasan utama teks prosedur nonfiksi sederhana berbahasa Inggris, serta menyimpulkan informasi tersurat di dalamnya."
+  },
+  "kktp": [
+    {
+      "id_kktp": "K1",
+      "kriteria": "Menemukan gagasan utama dan tujuan komunikasi dari teks prosedur nonfiksi sederhana.",
+      "tuntutan_ref": [
+        "BIE-E25-MM-1"
+      ],
+      "keputusan_ketercapaian": {
+        "jenis": "jumlah",
+        "nilai_minimum": 3,
+        "satuan": "butir benar dari 4 butir",
+        "deskripsi": "Menjawab dengan benar minimal 3 dari 4 pertanyaan penentuan gagasan utama dan tujuan penulisan teks prosedur."
+      },
+      "ambang_batas": "Minimal 3 dari 4 butir pertanyaan gagasan utama dan tujuan teks dijawab dengan benar.",
+      "instrumen_bukti": [
+        "ASM-01",
+        "ASM-03"
+      ]
+    },
+    {
+      "id_kktp": "K2",
+      "kriteria": "Menjelaskan alur urutan tahapan kerja pada teks prosedur nonfiksi secara runtut.",
+      "tuntutan_ref": [
+        "BIE-E25-MM-1"
+      ],
+      "keputusan_ketercapaian": {
+        "jenis": "jumlah",
+        "nilai_minimum": 4,
+        "satuan": "langkah runtut dari 5 langkah",
+        "deskripsi": "Mengurutkan atau menjabarkan alur kerja minimal 4 dari 5 tahapan prosedur dengan tepat."
+      },
+      "ambang_batas": "Minimal 4 dari 5 tahapan langkah kerja diurutkan dan dijelaskan alurnya secara runtut dan tepat.",
+      "instrumen_bukti": [
+        "ASM-01",
+        "ASM-03"
+      ]
+    },
+    {
+      "id_kktp": "K3",
+      "kriteria": "Menyimpulkan informasi tersurat mengenai alat, bahan, dan instruksi spesifik di dalam teks prosedur.",
+      "tuntutan_ref": [
+        "BIE-E25-MM-2"
+      ],
+      "keputusan_ketercapaian": {
+        "jenis": "jumlah",
+        "nilai_minimum": 4,
+        "satuan": "butir benar dari 5 butir",
+        "deskripsi": "Menemukan dan menyimpulkan secara tepat minimal 4 dari 5 informasi tersurat terkait alat, bahan, atau rincian tindakan."
+      },
+      "ambang_batas": "Minimal 4 dari 5 informasi tersurat pada rincian instruksi ditemukan dan disimpulkan dengan benar.",
+      "instrumen_bukti": [
+        "ASM-01",
+        "ASM-03"
+      ]
+    }
+  ],
+  "keputusan_kontekstual": [
+    {
+      "id": "KTX-01",
+      "sumber": {
+        "jenis": "kesiapan_murid",
+        "kunci": "jauh_di_bawah"
+      },
+      "keputusan": "Pembelajaran diawali dengan membaca bersama secara terbimbing serta menuliskan kata kunci di papan tulis sebelum murid diminta menganalisis teks.",
+      "komponen_terdampak": [
+        "pertemuan:1",
+        "rancangan"
+      ],
+      "penerapan": "Guru membedah teks baris demi baris bersama kelas untuk membangun pemahaman kosakata sebelum memberikan lembar latihan."
+    },
+    {
+      "id": "KTX-02",
+      "sumber": {
+        "jenis": "konteks_tugas",
+        "kunci": "seimbang"
+      },
+      "keputusan": "Bahan bacaan memadukan contoh perawatan sandang dalam kehidupan sehari-hari dan petunjuk teknis peralatan di bengkel busana.",
+      "komponen_terdampak": [
+        "instrumen:PBL-01",
+        "instrumen:PBL-02"
+      ],
+      "penerapan": "Pertemuan awal mengkaji teks petunjuk mencuci dan menyetrika busana, dilanjutkan dengan petunjuk memasang benang pada mesin jahit."
+    },
+    {
+      "id": "KTX-03",
+      "sumber": {
+        "jenis": "prioritas_guru",
+        "kunci": "literasi"
+      },
+      "keputusan": "Setiap kegiatan membaca menggunakan teks prosedur nonfiksi yang disajikan secara utuh dan terstruktur lengkap.",
+      "komponen_terdampak": [
+        "kktp:K1",
+        "kktp:K2",
+        "kktp:K3",
+        "instrumen:PBL-01"
+      ],
+      "penerapan": "Murid dibiasakan menelusuri teks utuh mulai dari judul, daftar alat dan bahan, hingga langkah-langkah kerja tanpa dipotong menjadi kalimat lepas."
+    },
+    {
+      "id": "KTX-04",
+      "sumber": {
+        "jenis": "program_keahlian",
+        "kunci": "Tata Busana"
+      },
+      "keputusan": "Seluruh istilah teknis dan konteks teks prosedur disesuaikan dengan lingkungan kerja busana dan garmen.",
+      "komponen_terdampak": [
+        "materi_esensial",
+        "instrumen:ASM-03"
+      ],
+      "penerapan": "Teks dan tugas membaca menggunakan petunjuk praktis seperti mengoperasikan mesin jahit dan prosedur pemeliharaan kain."
+    }
+  ],
+  "konteks_murid": {
+    "kesiapan_awal": [
+      "Sebagian besar murid berada jauh di bawah prasyarat awal dan masih kesulitan mengartikan kosakata dasar bahasa Inggris secara mandiri.",
+      "Murid mengenali beberapa nama peralatan busana sederhana dalam bahasa Indonesia namun belum terbiasa dengan teks petunjuk kerja berbahasa Inggris."
+    ],
+    "variasi_kemampuan": "Kemampuan membaca murid sangat beragam; sebagian kecil dapat menebak arti kata dari konteks, sementara mayoritas memerlukan pendampingan bertahap dan pengenalan kosakata kunci di papan tulis.",
+    "kebutuhan_dukungan": [
+      "Bimbingan membaca bersama secara perlahan sebelum tugas mandiri.",
+      "Daftar padanan kosakata kerja busana yang dituliskan guru di papan tulis.",
+      "Penjelasan alur informasi menggunakan petunjuk visual sederhana atau peragaan alat nyata di bengkel busana."
+    ]
+  },
+  "materi_esensial": {
+    "lingkup_materi": [
+      "Teks prosedur nonfiksi sederhana tentang petunjuk perawatan pakaian dan pengoperasian alat jahit.",
+      "Struktur teks prosedur: tujuan kerja, bahan dan peralatan yang diperlukan, serta urutan langkah pelaksanaan.",
+      "Unsur kebahasaan penanda urutan langkah kerja dan kalimat perintah sederhana."
+    ],
+    "kosakata_kunci": [
+      "fabric care",
+      "ironing",
+      "thread",
+      "stitch",
+      "needle",
+      "sewing machine",
+      "presser foot",
+      "step"
+    ],
+    "konsep_utama": [
+      "Teks prosedur menyajikan langkah-langkah kerja yang tersusun runtut untuk mencapai hasil tertentu secara aman dan benar.",
+      "Gagasan utama teks prosedur terletak pada tujuan yang ingin dicapai melalui serangkaian instruksi kerja.",
+      "Informasi tersurat dapat ditemukan langsung pada bagian penyebutan alat, takaran, dan larangan teknis."
+    ]
+  },
+  "rencana_asesmen": {
+    "asesmen_diagnostik": null,
+    "asesmen_formatif": [
+      {
+        "id": "FMT-01",
+        "waktu_pertemuan": 1,
+        "fase_langkah": "MEMAHAMI",
+        "teknik": "tanya jawab dan pengecekan pemahaman teks",
+        "instrumen_ref": [
+          "ASM-01"
+        ],
+        "fungsi": "Mengetahui pemahaman awal murid mengenai tujuan teks dan kosakata pokok dari teks petunjuk perawatan pakaian.",
+        "referensi_kktp": [
+          "K1"
+        ],
+        "cakupan_bukti": "per_murid",
+        "umpan_balik": "Guru langsung mengoreksi pelafalan dan arti istilah serta mencatat kata kerja yang masih membingungkan murid."
+      },
+      {
+        "id": "FMT-02",
+        "waktu_pertemuan": 2,
+        "fase_langkah": "MENGAPLIKASI",
+        "teknik": "latihan membaca terpandu dan analisis alur instruksi",
+        "instrumen_ref": [
+          "ASM-01"
+        ],
+        "fungsi": "Memeriksa kemampuan murid dalam mengurutkan tahapan kerja dan menemukan informasi tersurat pada petunjuk mesin jahit.",
+        "referensi_kktp": [
+          "K2",
+          "K3"
+        ],
+        "cakupan_bukti": "per_murid",
+        "umpan_balik": "Guru memberikan koreksi langsung pada urutan langkah yang tertukar dan menunjukkan letak informasi pada lembar teks."
+      }
+    ],
+    "asesmen_sumatif": {
+      "deskripsi": "Penilaian unjuk kerja membaca dan menganalisis teks prosedur instruksi kerja bengkel busana secara mandiri.",
+      "teknik": "unjuk kerja — murid menunjukkan kemampuan secara langsung",
+      "instrumen_ref": [
+        "ASM-02",
+        "ASM-03"
+      ],
+      "durasi_menit": 70,
+      "referensi_kktp": [
+        "K1",
+        "K2",
+        "K3"
+      ],
+      "cakupan_bukti": "per_murid",
+      "placement": {
+        "pertemuan": 3,
+        "fase": "MENGAPLIKASI"
+      }
+    }
+  },
+  "rancangan": {
+    "strategi_pedagogis": "Pembelajaran berpusat pada literasi terbimbing melalui pemodelan membaca, bedah kosakata bersama, dan latihan analisis mandiri bertahap.",
+    "sumber_belajar": [
+      {
+        "sumber": "PBL-01 Teks Petunjuk Perawatan Pakaian dan Pengoperasian Mesin Jahit",
+        "kategori": "bahan ajar cetak",
+        "fungsi": "Bahan bacaan utama untuk latihan memahami alur kerja dan kosakata inti"
+      },
+      {
+        "sumber": "PBL-02 Lembar Teks Prosedur Pemeliharaan Alat Jahit",
+        "kategori": "bahan ajar cetak",
+        "fungsi": "Bahan latihan terbimbing untuk menganalisis urutan langkah dan informasi tersurat"
+      }
+    ],
+    "pemanfaatan_digital": "Tidak memerlukan perangkat digital khusus.",
+    "lingkungan_pembelajaran": "Ruang kelas atau bengkel praktik tata busana yang dilengkapi papan tulis dan mesin jahit manual sebagai benda peraga kontekstual.",
+    "kemitraan_pembelajaran": null,
+    "keselamatan_k3": "Pengenalan simbol kehati-hatian pada petunjuk pemakaian alat panas dan tajam di bengkel tata busana."
+  },
+  "pertemuan": [
+    {
+      "nomor": 1,
+      "tujuan_pertemuan": "Menemukan gagasan utama, tujuan komunikasi, dan kosakata tindakan dasar pada teks prosedur petunjuk perawatan pakaian melalui membaca terbimbing.",
+      "media_dan_alat": [
+        "Papan tulis dan spidol",
+        "PBL-01 Teks Petunjuk Perawatan Pakaian dan Pengoperasian Mesin Jahit",
+        "ASM-01 Lembar Soal Latihan Pemahaman Teks Prosedur"
+      ],
+      "langkah": [
+        {
+          "nama": "PEMBUKA",
+          "durasi_menit": 15,
+          "prinsip": [
+            "Menggembirakan",
+            "Bermakna"
+          ],
+          "sub_langkah": [
+            {
+              "nomor": 1,
+              "deskripsi": "Guru menyapa murid dengan ramah, mengajak berdoa, memeriksa kehadiran, serta membangun suasana belajar yang aman dan terbuka di kelas.",
+              "durasi_menit": 7,
+              "mode_pelaksanaan": "simultan",
+              "mode_observasi": "mandiri",
+              "ref": "P1.PEMBUKA.1"
+            },
+            {
+              "nomor": 2,
+              "deskripsi": "Guru mengaitkan pengalaman murid dalam melihat label petunjuk perawatan pakaian sehari-hari dengan tujuan pembelajaran membaca teks petunjuk kerja.",
+              "durasi_menit": 8,
+              "mode_pelaksanaan": "simultan",
+              "mode_observasi": "mandiri",
+              "ref": "P1.PEMBUKA.2"
+            }
+          ]
+        },
+        {
+          "nama": "ASESMEN_AWAL",
+          "durasi_menit": 15,
+          "prinsip": [
+            "Berkesadaran"
+          ],
+          "sub_langkah": [
+            {
+              "nomor": 1,
+              "deskripsi": "Guru menuliskan tiga kata kerja instruksi sederhana di papan tulis dan meminta beberapa murid menebak maknanya tanpa membenarkan atau menyalahkan.",
+              "durasi_menit": 8,
+              "mode_pelaksanaan": "simultan",
+              "mode_observasi": "rotasi",
+              "ref": "P1.ASESMEN_AWAL.1"
+            },
+            {
+              "nomor": 2,
+              "deskripsi": "Guru memetakan kesiapan membaca murid dari respons awal untuk menentukan pendampingan membaca secara perlahan.",
+              "durasi_menit": 7,
+              "mode_pelaksanaan": "simultan",
+              "mode_observasi": "rotasi",
+              "ref": "P1.ASESMEN_AWAL.2"
+            }
+          ]
+        },
+        {
+          "nama": "MEMAHAMI",
+          "durasi_menit": 90,
+          "prinsip": [
+            "Bermakna",
+            "Berkesadaran"
+          ],
+          "sub_langkah": [
+            {
+              "nomor": 1,
+              "deskripsi": "Guru membagikan teks petunjuk perawatan pakaian, membacakan paragraf per paragraf dengan intonasi jelas, dan membedah kosakata kunci bersama murid di papan tulis.",
+              "durasi_menit": 45,
+              "instrumen_ref": [
+                "PBL-01"
+              ],
+              "mode_pelaksanaan": "simultan",
+              "mode_observasi": "rotasi",
+              "ref": "P1.MEMAHAMI.1"
+            },
+            {
+              "nomor": 2,
+              "deskripsi": "Guru melakukan cek pemahaman di tengah pembelajaran mengenai tujuan teks dan gagasan utama menggunakan lembar latihan untuk memeriksa ketercapaian kriteria penemuan gagasan utama.",
+              "durasi_menit": 45,
+              "instrumen_ref": [
+                "ASM-01",
+                "PBL-01"
+              ],
+              "asesmen_ref": "FMT-01",
+              "mode_pelaksanaan": "individual",
+              "mode_observasi": "rotasi",
+              "ref": "P1.MEMAHAMI.2"
+            }
+          ]
+        },
+        {
+          "nama": "MENGAPLIKASI",
+          "durasi_menit": 35,
+          "prinsip": [
+            "Menggembirakan",
+            "Bermakna"
+          ],
+          "sub_langkah": [
+            {
+              "nomor": 1,
+              "deskripsi": "Murid berpasangan membaca ulang teks petunjuk perawatan pakaian dan menandai kata penunjuk urutan tindakan serta bahan pencuci yang dianjurkan.",
+              "durasi_menit": 35,
+              "instrumen_ref": [
+                "PBL-01"
+              ],
+              "mode_pelaksanaan": "kelompok_kecil",
+              "ukuran_kelompok": 2,
+              "mode_observasi": "rotasi",
+              "ref": "P1.MENGAPLIKASI.1"
+            }
+          ]
+        },
+        {
+          "nama": "MEREFLEKSI",
+          "durasi_menit": 15,
+          "prinsip": [
+            "Berkesadaran"
+          ],
+          "sub_langkah": [
+            {
+              "nomor": 1,
+              "deskripsi": "Murid menyampaikan bagian teks atau kosakata bahasa Inggris yang dirasa paling sulit dipahami dan menuliskan satu kata baru yang berhasil diingat hari ini.",
+              "durasi_menit": 15,
+              "mode_pelaksanaan": "simultan",
+              "mode_observasi": "mandiri",
+              "ref": "P1.MEREFLEKSI.1"
+            }
+          ]
+        },
+        {
+          "nama": "PENUTUP",
+          "durasi_menit": 10,
+          "prinsip": [
+            "Menggembirakan"
+          ],
+          "sub_langkah": [
+            {
+              "nomor": 1,
+              "deskripsi": "Guru bersama murid menyimpulkan manfaat memahami petunjuk teks busana, memberikan apresiasi atas ketekunan membaca, dan menyampaikan rencana pertemuan berikutnya.",
+              "durasi_menit": 10,
+              "mode_pelaksanaan": "simultan",
+              "mode_observasi": "mandiri",
+              "ref": "P1.PENUTUP.1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "nomor": 2,
+      "tujuan_pertemuan": "Menganalisis alur urutan tahapan kerja dan menyimpulkan informasi tersurat pada teks prosedur petunjuk pemeliharaan alat jahit.",
+      "media_dan_alat": [
+        "Papan tulis dan spidol",
+        "PBL-01 Teks Petunjuk Perawatan Pakaian dan Pengoperasian Mesin Jahit",
+        "PBL-02 Lembar Teks Prosedur Pemeliharaan Alat Jahit",
+        "ASM-01 Lembar Soal Latihan Pemahaman Teks Prosedur"
+      ],
+      "langkah": [
+        {
+          "nama": "PEMBUKA",
+          "durasi_menit": 15,
+          "prinsip": [
+            "Menggembirakan",
+            "Bermakna"
+          ],
+          "sub_langkah": [
+            {
+              "nomor": 1,
+              "deskripsi": "Guru membuka pelajaran, memeriksa kesiapan kelas, dan mengulang sekilas kosakata kata kerja tindakan yang telah dipelajari pada pertemuan lalu.",
+              "durasi_menit": 7,
+              "mode_pelaksanaan": "simultan",
+              "mode_observasi": "mandiri",
+              "ref": "P2.PEMBUKA.1"
+            },
+            {
+              "nomor": 2,
+              "deskripsi": "Guru mengaitkan pentingnya ketertiban alur kerja saat membersihkan alat jahit dengan materi teks prosedur yang akan dipelajari.",
+              "durasi_menit": 8,
+              "mode_pelaksanaan": "simultan",
+              "mode_observasi": "mandiri",
+              "ref": "P2.PEMBUKA.2"
+            }
+          ]
+        },
+        {
+          "nama": "ASESMEN_AWAL",
+          "durasi_menit": 15,
+          "prinsip": [
+            "Berkesadaran"
+          ],
+          "sub_langkah": [
+            {
+              "nomor": 1,
+              "deskripsi": "Guru menuliskan lima penanda urutan waktu acak di papan tulis dan meminta tanggapan murid tentang urutan yang benar tanpa langsung mengoreksi.",
+              "durasi_menit": 15,
+              "mode_pelaksanaan": "simultan",
+              "mode_observasi": "rotasi",
+              "ref": "P2.ASESMEN_AWAL.1"
+            }
+          ]
+        },
+        {
+          "nama": "MEMAHAMI",
+          "durasi_menit": 60,
+          "prinsip": [
+            "Bermakna",
+            "Berkesadaran"
+          ],
+          "sub_langkah": [
+            {
+              "nomor": 1,
+              "deskripsi": "Guru memandu murid menelusuri penanda urutan kronologis langkah kerja pada teks pengoperasian mesin jahit secara runtut.",
+              "durasi_menit": 30,
+              "instrumen_ref": [
+                "PBL-01"
+              ],
+              "mode_pelaksanaan": "simultan",
+              "mode_observasi": "rotasi",
+              "ref": "P2.MEMAHAMI.1"
+            },
+            {
+              "nomor": 2,
+              "deskripsi": "Guru memodelkan cara menemukan informasi tersurat seperti nama komponen dan larangan keselamatan kerja yang tertulis pada teks.",
+              "durasi_menit": 30,
+              "instrumen_ref": [
+                "PBL-01"
+              ],
+              "mode_pelaksanaan": "simultan",
+              "mode_observasi": "rotasi",
+              "ref": "P2.MEMAHAMI.2"
+            }
+          ]
+        },
+        {
+          "nama": "MENGAPLIKASI",
+          "durasi_menit": 65,
+          "prinsip": [
+            "Bermakna",
+            "Menggembirakan"
+          ],
+          "sub_langkah": [
+            {
+              "nomor": 1,
+              "deskripsi": "Murid secara berpasangan membaca teks baru tentang pemeliharaan alat jahit dan menyusun bagan alur urutan kerja di buku tulis masing-masing.",
+              "durasi_menit": 35,
+              "instrumen_ref": [
+                "PBL-02"
+              ],
+              "mode_pelaksanaan": "kelompok_kecil",
+              "ukuran_kelompok": 2,
+              "mode_observasi": "rotasi",
+              "ref": "P2.MENGAPLIKASI.1"
+            },
+            {
+              "nomor": 2,
+              "deskripsi": "Guru melakukan cek pemahaman di tengah pembelajaran menggunakan lembar soal latihan untuk memeriksa kemampuan murid dalam merunutkan langkah kerja dan menemukan rincian instruksi secara mandiri.",
+              "durasi_menit": 30,
+              "instrumen_ref": [
+                "ASM-01",
+                "PBL-02"
+              ],
+              "asesmen_ref": "FMT-02",
+              "mode_pelaksanaan": "individual",
+              "mode_observasi": "rotasi",
+              "ref": "P2.MENGAPLIKASI.2"
+            }
+          ]
+        },
+        {
+          "nama": "MEREFLEKSI",
+          "durasi_menit": 15,
+          "prinsip": [
+            "Berkesadaran"
+          ],
+          "sub_langkah": [
+            {
+              "nomor": 1,
+              "deskripsi": "Murid menuliskan satu hal yang membantu mereka memahami alur kerja teks berbahasa Inggris dan satu kebiasaan membaca yang perlu ditingkatkan.",
+              "durasi_menit": 15,
+              "mode_pelaksanaan": "simultan",
+              "mode_observasi": "mandiri",
+              "ref": "P2.MEREFLEKSI.1"
+            }
+          ]
+        },
+        {
+          "nama": "PENUTUP",
+          "durasi_menit": 10,
+          "prinsip": [
+            "Menggembirakan"
+          ],
+          "sub_langkah": [
+            {
+              "nomor": 1,
+              "deskripsi": "Guru mengapresiasi kerja teliti murid, menegaskan kembali pola alur teks instruksi kerja, dan mengingatkan persiapan kegiatan penilaian akhir di pertemuan berikutnya.",
+              "durasi_menit": 10,
+              "mode_pelaksanaan": "simultan",
+              "mode_observasi": "mandiri",
+              "ref": "P2.PENUTUP.1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "nomor": 3,
+      "tujuan_pertemuan": "Mengukur ketercapaian kemampuan membaca teks prosedur secara mandiri meliputi gagasan utama, alur tahapan kerja, dan simpulan informasi tersurat.",
+      "media_dan_alat": [
+        "Papan tulis dan spidol",
+        "ASM-02 Panduan Matriks Observasi Membaca Teks Prosedur",
+        "ASM-03 Lembar Soal Tes Tertulis Analisis Teks Prosedur Bengkel Busana"
+      ],
+      "langkah": [
+        {
+          "nama": "PEMBUKA",
+          "durasi_menit": 15,
+          "prinsip": [
+            "Menggembirakan",
+            "Berkesadaran"
+          ],
+          "sub_langkah": [
+            {
+              "nomor": 1,
+              "deskripsi": "Guru membuka pembelajaran, membangun suasana tenang dan percaya diri, serta memimpin doa sebelum memulai kegiatan penilaian.",
+              "durasi_menit": 7,
+              "mode_pelaksanaan": "simultan",
+              "mode_observasi": "mandiri",
+              "ref": "P3.PEMBUKA.1"
+            },
+            {
+              "nomor": 2,
+              "deskripsi": "Guru menjelaskan alur kegiatan dan petunjuk teknis penyelesaian tugas membaca mandiri dengan bahasa yang jelas.",
+              "durasi_menit": 8,
+              "mode_pelaksanaan": "simultan",
+              "mode_observasi": "mandiri",
+              "ref": "P3.PEMBUKA.2"
+            }
+          ]
+        },
+        {
+          "nama": "ASESMEN_AWAL",
+          "durasi_menit": 15,
+          "prinsip": [
+            "Berkesadaran"
+          ],
+          "sub_langkah": [
+            {
+              "nomor": 1,
+              "deskripsi": "Guru mengecek kesiapan konsentrasi membaca murid melalui tanya jawab singkat tentang cara menemukan informasi penting dalam teks prosedur.",
+              "durasi_menit": 15,
+              "mode_pelaksanaan": "simultan",
+              "mode_observasi": "rotasi",
+              "ref": "P3.ASESMEN_AWAL.1"
+            }
+          ]
+        },
+        {
+          "nama": "MEMAHAMI",
+          "durasi_menit": 45,
+          "prinsip": [
+            "Bermakna",
+            "Berkesadaran"
+          ],
+          "sub_langkah": [
+            {
+              "nomor": 1,
+              "deskripsi": "Guru mengajak murid mengulas kembali strategi membaca cepat untuk menangkap gagasan pokok dan mengenali kata kunci alat di papan tulis.",
+              "durasi_menit": 25,
+              "mode_pelaksanaan": "simultan",
+              "mode_observasi": "rotasi",
+              "ref": "P3.MEMAHAMI.1"
+            },
+            {
+              "nomor": 2,
+              "deskripsi": "Murid secara mandiri mencocokkan kembali daftar istilah instruksi kerja busana yang telah dipelajari sebagai persiapan menghadapi tugas mandiri.",
+              "durasi_menit": 20,
+              "mode_pelaksanaan": "individual",
+              "mode_observasi": "rotasi",
+              "ref": "P3.MEMAHAMI.2"
+            }
+          ]
+        },
+        {
+          "nama": "MENGAPLIKASI",
+          "durasi_menit": 80,
+          "prinsip": [
+            "Berkesadaran",
+            "Bermakna"
+          ],
+          "sub_langkah": [
+            {
+              "nomor": 1,
+              "deskripsi": "Guru membagikan naskah tugas membaca mandiri dan memastikan seluruh murid memahami instruksi pengerjaan lembar kerja tanpa ada keraguan teknis.",
+              "durasi_menit": 10,
+              "mode_pelaksanaan": "simultan",
+              "mode_observasi": "mandiri",
+              "ref": "P3.MENGAPLIKASI.1"
+            },
+            {
+              "nomor": 2,
+              "deskripsi": "Murid mengerjakan penilaian unjuk kerja membaca mandiri secara perorangan untuk menemukan gagasan utama, mengurutkan tahapan kerja, dan menyimpulkan informasi tersurat, sementara guru mengamati ketercapaian kriteria seluruh murid.",
+              "durasi_menit": 70,
+              "instrumen_ref": [
+                "ASM-02",
+                "ASM-03"
+              ],
+              "asesmen_ref": "SUMATIF",
+              "mode_pelaksanaan": "individual",
+              "mode_observasi": "semua",
+              "ref": "P3.MENGAPLIKASI.2"
+            }
+          ]
+        },
+        {
+          "nama": "MEREFLEKSI",
+          "durasi_menit": 15,
+          "prinsip": [
+            "Berkesadaran"
+          ],
+          "sub_langkah": [
+            {
+              "nomor": 1,
+              "deskripsi": "Murid mengidentifikasi kemajuan kemampuan membaca teks instruksi bahasa Inggris dari awal pertemuan hingga pelaksanaan penilaian akhir hari ini.",
+              "durasi_menit": 15,
+              "mode_pelaksanaan": "simultan",
+              "mode_observasi": "mandiri",
+              "ref": "P3.MEREFLEKSI.1"
+            }
+          ]
+        },
+        {
+          "nama": "PENUTUP",
+          "durasi_menit": 10,
+          "prinsip": [
+            "Menggembirakan"
+          ],
+          "sub_langkah": [
+            {
+              "nomor": 1,
+              "deskripsi": "Guru memberikan apresiasi atas integritas dan ketekunan belajar murid selama tiga pertemuan, mengumpulkan lembar jawaban, dan menutup pelajaran dengan doa.",
+              "durasi_menit": 10,
+              "mode_pelaksanaan": "simultan",
+              "mode_observasi": "mandiri",
+              "ref": "P3.PENUTUP.1"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "naskah_fasilitasi": [
+    {
+      "nomor": 1,
+      "langkah": [
+        {
+          "nama": "PEMBUKA",
+          "sub_langkah": [
+            {
+              "ref": "P1.PEMBUKA.1",
+              "aksi_guru": [
+                "Menyapa murid dengan hangat di depan kelas dan mengajak ketua kelas memimpin doa bersama.",
+                "Memeriksa kehadiran murid sambil menanyakan kesiapan fisik dan kenyamanan ruang belajar.",
+                "Menyampaikan bahwa kelas bahasa Inggris ini adalah tempat aman untuk mencoba dan tidak perlu takut salah dalam membaca kata asing."
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Selamat pagi semuanya. Sebelum kita mulai belajar hari ini, mari kita berdoa menurut keyakinan masing-masing agar pembelajaran kita bermanfaat.'",
+                "Katakan: 'Bagaimana kabar kalian hari ini? Di kelas ini, jangan takut salah saat mencoba membaca atau menjawab dalam bahasa Inggris. Kesalahan justru membantu kita tahu bagian mana yang perlu kita pelajari bersama.'"
+              ],
+              "pertanyaan_kunci": [
+                "Apakah tempat duduk dan meja kalian sudah nyaman untuk mulai belajar?"
+              ],
+              "jika_kesulitan": [
+                "Jika kelas tampak tegang atau pasif, ajak murid menarik napas dalam bersama dan berikan senyuman penyemangat."
+              ]
+            },
+            {
+              "ref": "P1.PEMBUKA.2",
+              "aksi_guru": [
+                "Menunjukkan kerah pakaian atau label baju yang biasa ditemukan pada busana jadi.",
+                "Menghubungkan fungsi label perawatan pakaian tersebut dengan tujuan pembelajaran hari ini, yaitu membaca teks petunjuk perawatan pakaian berbahan katun.",
+                "Menuliskan judul materi dan tujuan membaca di sudut papan tulis."
+              ],
+              "ucapan_guru": [
+                "Tanyakan: 'Siapa di sini yang pernah melihat label kecil di bagian dalam kerah baju atau samping pinggang celana? Apa saja yang biasa tertulis di sana?'",
+                "Katakan: 'Hari ini kita akan belajar membaca teks petunjuk perawatan busana, atau care label guide. Tujuannya agar kalian mampu menangkap gagasan utama dan tujuan dari petunjuk perawatan pakaian tersebut secara tepat.'"
+              ],
+              "pertanyaan_kunci": [
+                "Mengapa produsen pakaian selalu menempelkan petunjuk perawatan pada baju yang kita beli?"
+              ],
+              "jika_kesulitan": [
+                "Jika murid belum ingat bentuk label baju, tunjukkan label pada bagian dalam jaket atau seragam guru secara langsung."
+              ]
+            }
+          ]
+        },
+        {
+          "nama": "ASESMEN_AWAL",
+          "sub_langkah": [
+            {
+              "ref": "P1.ASESMEN_AWAL.1",
+              "aksi_guru": [
+                "Menuliskan tiga kata kerja instruksi perawatan di papan tulis: 'wash', 'dry', dan 'iron'.",
+                "Meminta murid menebak arti tindakan tersebut dalam kegiatan merawat busana tanpa menyalahkan tebakan yang kurang tepat.",
+                "Menyimak ragam jawaban murid untuk melihat seberapa akrab mereka dengan kata kerja instruksi dasar."
+              ],
+              "ucapan_guru": [
+                "Tanyakan: 'Coba perhatikan tiga kata di papan tulis: wash, dry, dan iron. Siapa yang tahu apa artinya dalam bahasa Indonesia saat kita merawat pakaian?'",
+                "Katakan: 'Coba saja sebutkan tebakan kalian, tidak apa-apa jika belum yakin.'"
+              ],
+              "pertanyaan_kunci": [
+                "Kata mana di papan tulis yang menurut kalian berhubungan dengan mencuci, mengeringkan, atau merapikan kain?"
+              ],
+              "jika_kesulitan": [
+                "Peragakan gerakan mencuci atau menyetrika secara visual dengan gestur tangan jika murid ragu mengartikan."
+              ]
+            },
+            {
+              "ref": "P1.ASESMEN_AWAL.2",
+              "aksi_guru": [
+                "Mencatat di catatan harian guru murid mana yang sudah mengenali arti kata kerja dan mana yang membutuhkan pendampingan membaca perlahan.",
+                "Menyampaikan alur kegiatan berikutnya bahwa guru akan mendampingi pembacaan teks kata demi kata."
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Baik, terima kasih atas tebakan kalian. Sebagian dari kalian sudah mengenali kata-kata ini, dan bagi yang belum, jangan khawatir karena setelah ini kita akan bedah teksnya bersama langkah demi langkah.'"
+              ],
+              "pertanyaan_kunci": [],
+              "jika_kesulitan": []
+            }
+          ]
+        },
+        {
+          "nama": "MEMAHAMI",
+          "sub_langkah": [
+            {
+              "ref": "P1.MEMAHAMI.1",
+              "aksi_guru": [
+                "Membagikan teks PBL-01 kepada seluruh murid dan memastikan setiap meja menerima salinan teks.",
+                "Membacakan judul dan paragraf pembuka teks PBL-01 dengan pelafalan jelas dan tempo perlahan.",
+                "Menuliskan kosakata kunci di papan tulis seperti 'care label', 'shrinking', 'fading', 'lukewarm water', dan 'detergent' beserta padanan artinya.",
+                "Mengajak murid menirukan pelafalan frasa penting secara bersama-sama."
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Pegang lembar PBL-01 kalian. Simak baik-baik saat saya membacakan judul: How to Care for Your Cotton Garment.'",
+                "Katakan: 'Perhatikan kata shrinking yang artinya menyusut, dan fading yang artinya memudar. Mari lafalkan bersama-sama: shrinking... fading.'",
+                "Tanyakan: 'Berdasarkan kalimat pembuka, mengapa kain katun butuh perawatan khusus?'"
+              ],
+              "pertanyaan_kunci": [
+                "What is the main topic of the cotton care text?",
+                "Mengapa kita perlu memeriksa temperatur air sebelum mencuci pakaian katun?"
+              ],
+              "jika_kesulitan": [
+                "Jika murid kesulitan melafalkan kosakata, penggal kata menjadi suku kata di papan tulis, misalnya: 'shrink-ing' dan 'lu-ke-warm'."
+              ]
+            },
+            {
+              "ref": "P1.MEMAHAMI.2",
+              "aksi_guru": [
+                "Meminta murid membuka lembar latihan ASM-01 untuk bagian pertanyaan nomor 1 sampai 4.",
+                "Menginstruksikan murid menjawab pertanyaan nomor 1 hingga 4 di buku tulis masing-masing secara mandiri berdasarkan teks PBL-01.",
+                "Berkeliling ke meja-meja murid untuk memeriksa ketepatan jawaban terkait gagasan utama dan tujuan teks.",
+                "Mencatat pencapaian murid pada kriteria K1 untuk melihat siapa yang menjawab benar minimal 3 dari 4 butir pertanyaan."
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Sekarang buka lembar ASM-01. Kerjakan nomor 1 sampai 4 di buku tulis kalian masing-masing. Cari jawaban gagasan utama dan tujuan penulisan langsung dari teks PBL-01.'",
+                "Katakan: 'Tuliskan jawaban kalian dengan teliti, perhatikan kata kunci pada pertanyaan.'"
+              ],
+              "pertanyaan_kunci": [
+                "What is the writer's main intention in presenting the care steps?",
+                "Siapa pembaca sasaran dari petunjuk perawatan pakaian ini?"
+              ],
+              "jika_kesulitan": [
+                "Tunjukkan letak kalimat utama pada paragraf pembuka teks PBL-01 jika murid bingung menentukan tujuan teks."
+              ],
+              "yang_diamati": [
+                "Ketepatan jawaban murid pada soal nomor 1 sampai 4 di lembar ASM-01 mengenai gagasan utama teks dan tujuan komunikatif penulis.",
+                "Kemampuan murid menemukan kalimat kunci pada paragraf pengantar teks PBL-01 untuk mendukung jawabannya."
+              ],
+              "putusan_lanjut": {
+                "jika_tercapai": "Jika murid menjawab benar minimal 3 dari 4 butir (K1 tercapai), minta murid melanjutkan membaca mandiri butir-butir langkah kerja 1 sampai 4 pada teks PBL-01.",
+                "jika_belum": "Jika murid menjawab benar kurang dari 3 butir, bimbing kembali murid membaca kalimat pertama teks PBL-01 secara bersama dan garis bawahi frasa 'proper treatment to prevent shrinking and fading'."
+              }
+            }
+          ]
+        },
+        {
+          "nama": "MENGAPLIKASI",
+          "sub_langkah": [
+            {
+              "ref": "P1.MENGAPLIKASI.1",
+              "aksi_guru": [
+                "Menginstruksikan murid duduk berpasangan dengan teman sebangku.",
+                "Meminta setiap pasangan membaca ulang 4 langkah pada teks PBL-01 dan menandai kata kerja tindakan serta jenis bahan pencuci di buku catatan.",
+                "Berkeliling memberikan pendampingan bertahap kepada pasangan yang masih mengeja kata secara terbata-bata.",
+                "Meminta perwakilan satu atau dua pasangan menyebutkan hasil temuan mereka di depan kelas secara santai."
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Sekarang bersama teman sebangku, baca ulang empat langkah kerja pada teks PBL-01. Temukan kata kerja tindakan seperti check, separate, wash, dan dry. Tuliskan di buku catatan kalian beserta artinya.'",
+                "Tanyakan: 'Bahan pembersih apa yang dianjurkan di langkah ketiga? Coba temukan pada teks.'"
+              ],
+              "pertanyaan_kunci": [
+                "Why do we need to separate white clothes from colored clothes?",
+                "What kind of detergent is recommended for cotton garments?"
+              ],
+              "jika_kesulitan": [
+                "Jika pasangan kesulitan menemukan informasi detergen, bimbing mereka menunjuk kata 'mild liquid detergent' pada langkah nomor 3 teks PBL-01."
+              ]
+            }
+          ]
+        },
+        {
+          "nama": "MEREFLEKSI",
+          "sub_langkah": [
+            {
+              "ref": "P1.MEREFLEKSI.1",
+              "aksi_guru": [
+                "Meminta murid berhenti sejenak dan membuka halaman refleksi di buku tulis.",
+                "Meminta murid menuliskan satu kata bahasa Inggris paling berkesan yang baru dipelajari hari ini dan satu hal yang masih dirasa membingungkan.",
+                "Mendengarkan beberapa murid yang sukarela membacakan catatan refleksinya."
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Mari kita luangkan waktu untuk refleksi. Tulis di buku catatan kalian: satu kata kerja bahasa Inggris baru yang paling kalian ingat hari ini, dan satu kalimat yang masih terasa sulit dipahami.'",
+                "Katakan: 'Kejujuran kalian mencatat kesulitan akan membantu saya menyiapkan penjelasan yang lebih pas di pertemuan berikutnya.'"
+              ],
+              "pertanyaan_kunci": [
+                "Kata baru apa yang menurut kalian paling berguna saat bekerja di bengkel busana nanti?"
+              ],
+              "jika_kesulitan": [
+                "Bantu murid memilih kosakata dari daftar di papan tulis jika mereka bingung menentukan kata yang ingin dicatat."
+              ]
+            }
+          ]
+        },
+        {
+          "nama": "PENUTUP",
+          "sub_langkah": [
+            {
+              "ref": "P1.PENUTUP.1",
+              "aksi_guru": [
+                "Merangkum inti pelajaran hari ini bersama seluruh murid dengan mengulang fungsi teks petunjuk perawatan.",
+                "Memberikan apresiasi atas ketekunan seluruh murid yang telah berusaha membaca teks berbahasa Inggris.",
+                "Menyampaikan topik pertemuan kedua mengenai alur pengoperasian mesin jahit, lalu menutup kelas dengan doa."
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Luar biasa usaha kalian hari ini. Kita sudah berhasil membedah tujuan teks perawatan katun dan menemukan kosakata penting di dalamnya.'",
+                "Katakan: 'Pada pertemuan berikutnya, kita akan menganalisis alur langkah kerja pengoperasian mesin jahit menggunakan penanda urutan. Terima kasih atas kerja kerasnya hari ini, mari kita tutup dengan doa.'"
+              ],
+              "pertanyaan_kunci": [],
+              "jika_kesulitan": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "nomor": 2,
+      "langkah": [
+        {
+          "nama": "PEMBUKA",
+          "sub_langkah": [
+            {
+              "ref": "P2.PEMBUKA.1",
+              "aksi_guru": [
+                "Menyapa murid dengan ceria, mengajak berdoa bersama, dan mengecek kehadiran.",
+                "Mengulang sekilas kosakata tindakan dari pertemuan pertama dengan menunjuk kata di papan tulis.",
+                "Meminta murid merespons arti kata secara serentak."
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Selamat pagi rekan-rekan. Mari kita awali hari ini dengan doa bersama. Semoga konsentrasi dan pemahaman kita semakin tajam.'",
+                "Katakan: 'Sebelum melangkah ke materi baru, siapa yang masih ingat arti kata separate dan mild liquid detergent dari teks perawatan kemarin?'"
+              ],
+              "pertanyaan_kunci": [
+                "Siapa yang bisa menyebutkan satu aturan perawatan pakaian katun yang kita bahas minggu lalu?"
+              ],
+              "jika_kesulitan": [
+                "Jika murid lupa, berikan petunjuk kata kunci 'memisahkan pakaian putih' atau 'air dingin'."
+              ]
+            },
+            {
+              "ref": "P2.PEMBUKA.2",
+              "aksi_guru": [
+                "Mengaitkan pentingnya alur kerja yang runtut dan keselamatan kerja saat membersihkan atau memasang benang mesin jahit di bengkel busana.",
+                "Menyampaikan tujuan pertemuan kedua: menganalisis alur urutan langkah kerja dan menemukan rincian informasi spesifik pada teks prosedur.",
+                "Menuliskan target pertemuan di papan tulis."
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Di bengkel busana, jika kita salah urutan memasang benang atau lupa mematikan mesin, benang bisa putus atau tangan bisa terluka. Itulah mengapa alur urutan kerja pada petunjuk mesin sangat penting.'",
+                "Katakan: 'Hari ini kita akan belajar merunutkan langkah kerja dan mencari informasi tersurat pada panduan mesin jahit berkecepatan tinggi.'"
+              ],
+              "pertanyaan_kunci": [
+                "Apa yang bisa terjadi jika kita mengabaikan urutan instruksi kerja pada mesin industri?"
+              ],
+              "jika_kesulitan": []
+            }
+          ]
+        },
+        {
+          "nama": "ASESMEN_AWAL",
+          "sub_langkah": [
+            {
+              "ref": "P2.ASESMEN_AWAL.1",
+              "aksi_guru": [
+                "Menuliskan lima kata penanda urutan waktu acak di papan tulis: 'Then', 'First', 'Finally', 'After that', dan 'Second'.",
+                "Meminta murid menebak urutan kronologis yang logis dari kata-kata tersebut tanpa langsung membenarkan atau menyalahkan.",
+                "Mengamati respons murid untuk mengetahui pemahaman mereka tentang kata penghubung urutan waktu."
+              ],
+              "ucapan_guru": [
+                "Tanyakan: 'Lihat lima kata penanda di papan tulis. Jika kita membuat alur kerja, kata mana yang harus berada paling awal, di tengah, dan paling akhir?'",
+                "Katakan: 'Sampaikan pendapat kalian, jangan takut keliru.'"
+              ],
+              "pertanyaan_kunci": [
+                "Mana penanda yang menunjukkan langkah paling awal dan mana yang menunjukkan tahapan penutup?"
+              ],
+              "jika_kesulitan": [
+                "Berikan petunjuk dengan kata 'First' sebagai langkah nomor satu jika seluruh kelas terdiam."
+              ]
+            }
+          ]
+        },
+        {
+          "nama": "MEMAHAMI",
+          "sub_langkah": [
+            {
+              "ref": "P2.MEMAHAMI.1",
+              "aksi_guru": [
+                "Meminta murid memperhatikan kembali bagian petunjuk langkah kerja pada teks PBL-01.",
+                "Menjelaskan bagaimana angka (1, 2, 3, 4) dan kata penghubung urutan digunakan penulis untuk menyusun tahapan yang tidak boleh tertukar.",
+                "Menggambar bagan alur panah sederhana di papan tulis untuk memperlihatkan urutan langkah demi langkah."
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Perhatikan teks PBL-01 langkah 1 sampai 4. Urutan nomor 1 sampai 4 adalah alur berurutan atau sequential steps. Kita tidak bisa menjemur pakaian sebelum mencucinya, bukan?'",
+                "Katakan: 'Dalam teks prosedur kerja bengkel, alur ini mutlak ditaati agar hasil jahitan rapi dan mesin tidak rusak.'"
+              ],
+              "pertanyaan_kunci": [
+                "Mengapa langkah pengecekan label harus dilakukan sebelum langkah pencucian?"
+              ],
+              "jika_kesulitan": [
+                "Buat analogi sederhana kegiatan sehari-hari seperti urutan memakai sepatu sebelum mengikat tali sepatu."
+              ]
+            },
+            {
+              "ref": "P2.MEMAHAMI.2",
+              "aksi_guru": [
+                "Memodelkan cara mencari informasi tersurat terkait komponen alat dan aspek keselamatan kerja K3 dari teks.",
+                "Menunjukkan letak kata benda teknis dan simbol kehati-hatian pada teks di papan tulis.",
+                "Mengajarkan teknik pemindaian cepat (scanning) untuk menemukan rincian angka, nama benda, atau arah gerakan."
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Sekarang perhatikan cara saya mencari rincian informasi. Saat mencari jenis air yang dipakai, mata saya langsung memindai kata kunci water, dan menemukan frasa cold or lukewarm water.'",
+                "Katakan: 'Cara memindai ini sangat berguna saat kalian membaca petunjuk manual mesin di bengkel.'"
+              ],
+              "pertanyaan_kunci": [
+                "Bagaimana cara menemukan instruksi khusus tanpa harus membaca seluruh teks dari awal?"
+              ],
+              "jika_kesulitan": [
+                "Tunjukkan dengan jari telunjuk di lembar teks bagaimana mata meluncur mencari kata kunci tanpa membaca kata lain di sekitarnya."
+              ]
+            }
+          ]
+        },
+        {
+          "nama": "MENGAPLIKASI",
+          "sub_langkah": [
+            {
+              "ref": "P2.MENGAPLIKASI.1",
+              "aksi_guru": [
+                "Membagikan teks autentik kedua PBL-02 kepada murid yang duduk berpasangan.",
+                "Meminta setiap pasangan membaca teks PBL-02 tentang cara memasang benang pada mesin jahit industri dengan aman.",
+                "Menugaskan murid membuat bagan alur urutan kerja 5 langkah pemasangan benang di buku tulis masing-masing.",
+                "Berkeliling memantau proses kerja pasangan dan memastikan setiap murid mencatat alurnya."
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Sekarang perhatikan lembar PBL-02: How to Thread a High-Speed Sewing Machine Safely. Baca bersama pasangan kalian.'",
+                "Katakan: 'Buatlah diagram alur 5 kotak di buku tulis kalian yang menggambarkan urutan kerja mulai dari langkah 1 sampai langkah 5. Tuliskan kata kerja kuncinya di setiap kotak.'"
+              ],
+              "pertanyaan_kunci": [
+                "What is the first safety rule before threading the machine?",
+                "Through which part should you guide the thread after the top guides?"
+              ],
+              "jika_kesulitan": [
+                "Tuliskan format bagan alur kotak berpanah sederhana di papan tulis sebagai contoh susunan yang bisa mereka tiru di buku tulis."
+              ]
+            },
+            {
+              "ref": "P2.MENGAPLIKASI.2",
+              "aksi_guru": [
+                "Meminta murid membuka lembar ASM-01 untuk mengerjakan soal nomor 5 sampai 10 secara perorangan di buku tulis.",
+                "Menegaskan bahwa latihan ini dikerjakan mandiri untuk mengecek kemampuan merunutkan langkah kerja (K2) dan menyimpulkan rincian informasi tersurat (K3).",
+                "Berkeliling kelas mengamati pekerjaan murid dan memeriksa buku tulis mereka menggunakan acuan ambang batas KKTP.",
+                "Mencatat kemajuan setiap murid pada lembar catatan guru."
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Buka lembar ASM-01 soal nomor 5 sampai 10. Kerjakan sendiri di buku catatan kalian berdasarkan teks PBL-02.'",
+                "Katakan: 'Nomor 5 adalah mengurutkan langkah kerja mesin jahit. Nomor 6 sampai 10 meminta kalian menuliskan rincian alat, arah gerakan benang, dan aturan keselamatan kerja. Cari jawabannya langsung di dalam teks PBL-02.'"
+              ],
+              "pertanyaan_kunci": [
+                "What action must be done before touching any moving machine parts?",
+                "In which direction should you pull the thread through the take-up lever?",
+                "How many centimeters of thread tail must be left after threading the needle?"
+              ],
+              "jika_kesulitan": [
+                "Bimbing murid menelusuri nomor langkah pada teks PBL-02 yang memuat kata kunci 'take-up lever' atau 'needle eye'."
+              ],
+              "yang_diamati": [
+                "Ketepatan susunan alur tahapan pada soal nomor 5 lembar ASM-01 (minimal 4 dari 5 langkah berurutan dengan benar untuk memenuhi kriteria K2).",
+                "Ketepatan rincian informasi tersurat pada soal nomor 6 sampai 10 lembar ASM-01 mengenai alat, arah, dan tindakan K3 (minimal 4 dari 5 butir tepat untuk memenuhi kriteria K3)."
+              ],
+              "putusan_lanjut": {
+                "jika_tercapai": "Jika murid berhasil mengurutkan minimal 4 dari 5 langkah dan menjawab tepat minimal 4 dari 5 rincian informasi tersurat, arahkan murid membantu memeriksa jawaban teman sebangku atau membaca ulang teks PBL-02 untuk mencermati kosakata teknis lainnya.",
+                "jika_belum": "Jika murid belum mencapai ambang batas (salah mengurutkan atau rincian belum tepat), tunjukkan langsung letak frasa 'turn off the main machine power switch' dan arah tarikan 'from right to left' pada teks PBL-02, lalu minta murid memperbaiki jawabannya di buku tulis."
+              }
+            }
+          ]
+        },
+        {
+          "nama": "MEREFLEKSI",
+          "sub_langkah": [
+            {
+              "ref": "P2.MEREFLEKSI.1",
+              "aksi_guru": [
+                "Meminta murid menutup lembar teks dan merenungkan proses membaca alur kerja hari ini.",
+                "Meminta murid menuliskan di buku catatan: strategi apa yang paling membantu mereka menemukan informasi tersurat dan bagian instruksi mana yang masih terasa rumit dipahami.",
+                "Meminta dua orang murid membagikan refleksinya secara singkat."
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Tuliskan di buku refleksi kalian: hal apa yang membuat kalian lebih mudah menemukan jawaban tersurat di teks tadi? Apakah mencari kata kunci, atau melihat nomor urutan?'",
+                "Katakan: 'Tulis juga satu kebiasaan membaca yang ingin kalian perbaiki saat menghadapi tes di pertemuan berikutnya.'"
+              ],
+              "pertanyaan_kunci": [
+                "Apakah mencari kata kunci di teks membantu kalian menjawab lebih cepat dan tepat?"
+              ],
+              "jika_kesulitan": [
+                "Beri contoh kalimat pemantik refleksi di papan tulis: 'Saya merasa terbantu ketika mencari kata kunci... tetapi saya masih bingung saat...'"
+              ]
+            }
+          ]
+        },
+        {
+          "nama": "PENUTUP",
+          "sub_langkah": [
+            {
+              "ref": "P2.PENUTUP.1",
+              "aksi_guru": [
+                "Menegaskan kembali pentingnya membaca petunjuk kerja bengkel secara teliti demi keselamatan dan mutu produk busana.",
+                "Memberi informasi bahwa pertemuan berikutnya adalah penilaian akhir mandiri dengan teks instruksi baru (penggunaan setrika uap industri).",
+                "Menutup kegiatan pembelajaran dengan mengucap syukur dan doa bersama."
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Hari ini kalian belajar hal luar biasa: merunutkan langkah kerja teknis dan menemukan aturan keselamatan K3 dalam bahasa Inggris.'",
+                "Katakan: 'Minggu depan kita akan mengadakan penilaian akhir mandiri untuk mengukur ketiga kemampuan yang sudah kita latih: gagasan utama, alur kerja, dan rincian tersurat. Istirahatlah dengan baik dan jaga kesehatan. Mari kita berdoa sebelum pulang.'"
+              ],
+              "pertanyaan_kunci": [],
+              "jika_kesulitan": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "nomor": 3,
+      "langkah": [
+        {
+          "nama": "PEMBUKA",
+          "sub_langkah": [
+            {
+              "ref": "P3.PEMBUKA.1",
+              "aksi_guru": [
+                "Menyapa murid dengan ramah dan penuh ketenangan, lalu memimpin doa sebelum memulai penilaian akhir.",
+                "Mengecek kehadiran seluruh murid dan memastikan meja bersih dari catatan yang tidak diperlukan.",
+                "Menciptakan suasana kelas yang tertib, tenang, dan membangun rasa percaya diri pada kemampuan murid."
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Selamat pagi rekan-rekan sekalian. Hari ini adalah hari pembuktian dari apa yang sudah kita pelajari bersama. Mari kita berdoa agar diberi ketenangan dan kejernihan berpikir.'",
+                "Katakan: 'Tarik napas dalam-dalam. Kalian sudah berlatih membaca teks perawatan pakaian dan mesin jahit dengan sangat baik. Percayalah pada kemampuan diri kalian sendiri.'"
+              ],
+              "pertanyaan_kunci": [
+                "Apakah kalian semua sudah siap dan merasa tenang untuk mengerjakan tugas hari ini?"
+              ],
+              "jika_kesulitan": []
+            },
+            {
+              "ref": "P3.PEMBUKA.2",
+              "aksi_guru": [
+                "Menjelaskan tata cara dan alur penilaian unjuk kerja membaca mandiri yang akan berlangsung hari ini.",
+                "Menyampaikan indikator penilaian yang diambil dari ASM-02 secara terbuka kepada murid.",
+                "Menegaskan bahwa lembar kerja dijawab di buku tulis masing-masing secara mandiri dan jujur."
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Hari ini kalian akan membaca teks petunjuk kerja baru dan menjawab pertanyaan nomor 1 sampai 10 di buku tulis.'",
+                "Katakan: 'Hal yang dinilai ada tiga: pertama, ketepatan menemukan gagasan utama dan tujuan teks minimal 3 dari 4 butir benar. Kedua, ketepatan mengurutkan dan menjelaskan alur tahapan kerja minimal 4 dari 5 langkah runtut. Ketiga, ketepatan menyimpulkan informasi tersurat terkait alat, bahan, dan instruksi spesifik minimal 4 dari 5 rincian benar.'"
+              ],
+              "pertanyaan_kunci": [
+                "Apakah ada yang ingin ditanyakan terkait petunjuk pengerjaan sebelum lembar dibagikan?"
+              ],
+              "jika_kesulitan": [
+                "Ulangi indikator kelulusan secara ringkas di papan tulis jika murid memerlukan penegasan ulang."
+              ]
+            }
+          ]
+        },
+        {
+          "nama": "ASESMEN_AWAL",
+          "sub_langkah": [
+            {
+              "ref": "P3.ASESMEN_AWAL.1",
+              "aksi_guru": [
+                "Melakukan tanya jawab pemanasan singkat mengenai strategi membaca yang telah dipelajari untuk mengecek fokus murid.",
+                "Menanyakan langkah pertama apa yang harus dilakukan saat pertama kali memegang teks instruksi baru.",
+                "Mengingatkan murid untuk tidak terburu-buru dan membaca judul serta kalimat pengantar dengan teliti."
+              ],
+              "ucapan_guru": [
+                "Tanyakan: 'Saat pertama kali menerima teks petunjuk kerja baru, apa bagian pertama yang harus kalian perhatikan baik-baik?'",
+                "Katakan: 'Tepat sekali, baca judulnya untuk mengetahui gagasan pokok, lalu perhatikan urutan nomor langkahnya. Ingat strategi kata kunci yang sudah kita latih.'"
+              ],
+              "pertanyaan_kunci": [
+                "Apa yang harus kalian lakukan jika menemukan satu kata sulit di tengah kalimat?"
+              ],
+              "jika_kesulitan": [
+                "Ingatkan kembali teknik menebak dari konteks kalimat di sekitarnya tanpa merasa panik."
+              ]
+            }
+          ]
+        },
+        {
+          "nama": "MEMAHAMI",
+          "sub_langkah": [
+            {
+              "ref": "P3.MEMAHAMI.1",
+              "aksi_guru": [
+                "Mengulas secara cepat di papan tulis pola penulisan teks prosedur: Goal (tujuan), Materials/Equipment (alat/bahan), dan Steps (langkah kerja).",
+                "Menuliskan beberapa contoh kata kerja operasional bengkel busana yang sering muncul seperti 'plug in', 'press', 'turn off', dan 'fill'.",
+                "Memastikan murid mengingat kembali struktur umum teks instruksi sebelum tugas mandiri dimulai."
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Mari kita ingat kembali kerangka teks prosedur di papan tulis: ada Goal atau tujuan, ada perlengkapan atau bahan, lalu ada Steps atau tahapan tindakan berurutan.'",
+                "Katakan: 'Perhatikan kata kerja seperti plug in, press, turn off, dan fill. Kata-kata tindakan inilah yang menjadi pemandu alur kerja kalian.'"
+              ],
+              "pertanyaan_kunci": [
+                "Di bagian mana biasanya informasi tentang alat dan bahan tercantum dalam teks prosedur?"
+              ],
+              "jika_kesulitan": []
+            },
+            {
+              "ref": "P3.MEMAHAMI.2",
+              "aksi_guru": [
+                "Memberikan waktu kepada murid untuk memeriksa kembali catatan kosakata pribadi di buku tulis.",
+                "Meminta murid mencocokkan ingatan tentang arti istilah teknis busana secara hening dan mandiri.",
+                "Meminta murid menutup buku catatan kosakata dan menyiapkan selembar kertas bersih di buku tulis untuk lembar jawaban."
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Silakan lihat kembali catatan kosakata di buku kalian. Pastikan kalian mengingat arti kata kerja dan penanda urutan.'",
+                "Katakan: 'Sekarang tutup buku catatan materi kalian. Siapkan satu halaman bersih di buku tulis, tuliskan nama, kelas, dan tanggal hari ini di bagian atas.'"
+              ],
+              "pertanyaan_kunci": [
+                "Apakah buku tulis dan alat tulis kalian sudah siap di atas meja?"
+              ],
+              "jika_kesulitan": [
+                "Pastikan setiap murid memiliki pena yang berfungsi sebelum penilaian mandiri dimulai."
+              ]
+            }
+          ]
+        },
+        {
+          "nama": "MENGAPLIKASI",
+          "sub_langkah": [
+            {
+              "ref": "P3.MENGAPLIKASI.1",
+              "aksi_guru": [
+                "Membagikan naskah soal instrumen ASM-03 yang berisi teks prosedur pengoperasian setrika uap industri (industrial steam iron) beserta daftar soalnya kepada seluruh murid.",
+                "Membacakan petunjuk umum pengerjaan soal di depan kelas dan memastikan lembar cetak terbaca jelas oleh semua murid.",
+                "Meminta murid mulai membaca teks ASM-03 secara mandiri tanpa berdiskusi."
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Saya bagikan lembar ASM-03. Periksa kelengkapan teks dan soalnya, mulai dari nomor 1 sampai 10.'",
+                "Katakan: 'Bacalah petunjuk kerja pengoperasian setrika uap industri dengan saksama. Jawablah soal nomor 1 sampai 10 pada buku tulis kalian secara mandiri. Jangan bekerja sama atau mencontek.'"
+              ],
+              "pertanyaan_kunci": [
+                "Apakah seluruh lembar soal yang kalian terima dapat terbaca dengan jelas?"
+              ],
+              "jika_kesulitan": [
+                "Ganti lembar soal yang buram atau cacat cetak dengan salinan baru segera."
+              ]
+            },
+            {
+              "ref": "P3.MENGAPLIKASI.2",
+              "aksi_guru": [
+                "Mengawasi jalannya penilaian unjuk kerja membaca mandiri secara tertib di seluruh penjuru kelas.",
+                "Membawa instrumen matriks observasi ASM-02 dan mencatat pengamatan ketercapaian kriteria K1, K2, dan K3 untuk setiap murid saat mereka menyelesaikan lembar kerja.",
+                "Memastikan tidak ada kerja sama antar murid dan suasana kelas tetap hening serta mendukung konsentrasi.",
+                "Mengingatkan sisa waktu pengerjaan secara berkala tanpa membuat gaduh."
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Fokus pada teks dan lembar jawaban masing-masing. Manfaatkan teknik mencari kata kunci yang sudah kita latih.'",
+                "Katakan: 'Periksa kembali jawaban nomor 1 sampai 4 untuk tujuan teks, nomor 5 sampai 9 untuk alur urutan, dan nomor 10 untuk rincian cairan tangki setrika.'"
+              ],
+              "pertanyaan_kunci": [],
+              "jika_kesulitan": [
+                "Jika ada murid yang tampak berhenti karena cemas, hampiri dengan tenang dan beri dorongan lisan tanpa memberi tahu jawaban: 'Baca lagi judulnya perlahan, cari kata kuncinya di paragraf pertama.'"
+              ]
+            }
+          ]
+        },
+        {
+          "nama": "MEREFLEKSI",
+          "sub_langkah": [
+            {
+              "ref": "P3.MEREFLEKSI.1",
+              "aksi_guru": [
+                "Menginstruksikan murid meletakkan alat tulis dan membuka halaman catatan refleksi di buku tulis.",
+                "Meminta murid menuliskan perbandingan perasaan dan kemampuan membaca teks bahasa Inggris dari pertemuan pertama hingga hari ini.",
+                "Meminta beberapa murid menyampaikan bagaimana rasa percaya diri mereka berkembang setelah mempelajari teks petunjuk bengkel busana."
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Alat tulis boleh diletakkan. Luangkan waktu sejenak untuk refleksi akhir modul kita.'",
+                "Katakan: 'Tuliskan di buku kalian: apa perbedaan kemampuan membaca kalian antara pertemuan pertama saat membaca petunjuk katun dengan hari ini saat membaca teks setrika uap? Apakah kalian merasa lebih mandiri?'"
+              ],
+              "pertanyaan_kunci": [
+                "Keterampilan membaca apa yang paling kalian rasakan meningkat selama tiga pertemuan ini?"
+              ],
+              "jika_kesulitan": [
+                "Bimbing murid dengan pertanyaan penuntun: 'Apakah sekarang kalian merasa lebih cepat mengenali arti kata kerja instruksi dibanding minggu lalu?'"
+              ]
+            }
+          ]
+        },
+        {
+          "nama": "PENUTUP",
+          "sub_langkah": [
+            {
+              "ref": "P3.PENUTUP.1",
+              "aksi_guru": [
+                "Mengumpulkan seluruh buku tulis atau lembar jawaban murid dan naskah soal ASM-03 secara rapi dan tertib.",
+                "Menyampaikan apresiasi mendalam atas kejujuran, kerja keras, dan kemajuan nyata yang ditunjukkan seluruh murid selama tiga pertemuan.",
+                "Memberikan pengumuman singkat tentang kegiatan membaca teks kerja pada unit berikutnya, lalu menutup seluruh rangkaian pembelajaran dengan doa bersama."
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Kumpulkan lembar jawaban kalian ke depan baris masing-masing dengan rapi.'",
+                "Katakan: 'Saya sangat bangga pada kerja keras, ketelitian, dan kejujuran kalian hari ini. Kalian telah membuktikan bahwa teks petunjuk kerja berbahasa Inggris di bengkel busana bisa dipahami dan dikuasai langkah demi langkah.'",
+                "Katakan: 'Terima kasih atas semangat belajar kalian yang luar biasa. Mari kita akhiri pembelajaran modul ini dengan berdoa bersama.'"
+              ],
+              "pertanyaan_kunci": [],
+              "jika_kesulitan": []
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "instrumen_pembelajaran": [
+    {
+      "id": "PBL-01",
+      "judul": "Teks Petunjuk Perawatan Busana Berbahan Katun (Care Label Guide)",
+      "jenis": "teks_autentik",
+      "untuk_murid": true,
+      "digunakan_pada": [
+        "P1.MEMAHAMI",
+        "P2.MEMAHAMI"
+      ],
+      "konten_murid": {
+        "isi_teks": "HOW TO CARE FOR YOUR COTTON GARMENT\n\nCotton is a comfortable and durable natural fiber, but it needs proper treatment to prevent shrinking and fading. Follow these steps carefully:\n\n1. Check the care label inside the garment to see specific temperature instructions before washing.\n2. Separate white cotton garments from dark or colored clothes to avoid color transfer.\n3. Wash the cotton clothes using mild liquid detergent with cold or lukewarm water.\n4. Dry the clothes by hanging them in an open shaded area instead of direct sunlight.\n5. Iron the garment on medium heat while it is still slightly damp for best results.",
+        "pertanyaan_panduan": [
+          "What is the main purpose of the text above?",
+          "Why do we need to separate white clothes from colored clothes?",
+          "What kind of detergent is recommended for cotton garments?",
+          "What is the best condition of the fabric when we iron it?"
+        ]
+      },
+      "panduan_guru": {
+        "nama_entitas": "Label Petunjuk Perawatan Busana (Garment Care Label)",
+        "catatan_konteks": "Teks ini mengenalkan format instruksi kerja nonfiksi sederhana dalam perawatan produk tekstil. Guru mengajak murid membaca bersama dan menandai kata kerja imperatif seperti check, separate, wash, dry, dan iron di papan tulis."
+      }
+    },
+    {
+      "id": "PBL-02",
+      "judul": "Panduan Pemasangan Benang pada Mesin Jahit Industri (Threading High-Speed Sewing Machine)",
+      "jenis": "teks_autentik",
+      "untuk_murid": true,
+      "digunakan_pada": [
+        "P2.MENGAPLIKASI"
+      ],
+      "konten_murid": {
+        "isi_teks": "HOW TO THREAD A HIGH-SPEED SEWING MACHINE SAFELY\n\nProper threading ensures smooth stitching and prevents thread breakage during garment production. Follow these sequential steps:\n\n1. Turn off the main machine power switch before touching any moving parts.\n2. Place the spool of sewing thread onto the spool pin securely on the thread stand.\n3. Guide the upper thread through the top thread guides and tension discs smoothly.\n4. Pull the thread down through the take-up lever from right to left.\n5. Insert the thread through the needle eye from left to right, leaving a ten-centimeter tail.",
+        "pertanyaan_panduan": [
+          "What is the first safety rule before threading the machine?",
+          "Where should you place the thread spool?",
+          "Through which part should you guide the thread after the top guides?",
+          "How long should the thread tail be after passing through the needle eye?"
+        ]
+      },
+      "panduan_guru": {
+        "nama_entitas": "Manual Pengoperasian Mesin Jahit Industri Bengkel Busana",
+        "catatan_konteks": "Teks ini menyajikan prosedur kerja bengkel tata busana. Guru dapat menunjukkan bagian mesin jahit secara langsung atau menggunakan bagan mesin untuk menghubungkan istilah bahasa Inggris dengan benda nyata."
+      }
+    }
+  ],
+  "instrumen_asesmen": [
+    {
+      "id": "ASM-01",
+      "judul": "Lembar Latihan dan Pengecekan Alur Teks Prosedur",
+      "jenis": "soal_latihan",
+      "untuk_murid": true,
+      "digunakan_pada": [
+        "P1.MEMAHAMI",
+        "P2.MENGAPLIKASI"
+      ],
+      "konten_murid": {
+        "petunjuk": "Bacalah teks petunjuk kerja yang diberikan dengan saksama. Jawablah seluruh pertanyaan berikut pada buku catatan Anda sesuai dengan informasi yang tertulis di dalam teks.",
+        "soal": [
+          {
+            "nomor": 1,
+            "pertanyaan": "What is the main topic of the cotton care text?",
+            "tipe": "pilihan_ganda"
+          },
+          {
+            "nomor": 2,
+            "pertanyaan": "What is the writer's main intention in presenting the care steps?",
+            "tipe": "pilihan_ganda"
+          },
+          {
+            "nomor": 3,
+            "pertanyaan": "Who is the primary target audience of this instruction text?",
+            "tipe": "pilihan_ganda"
+          },
+          {
+            "nomor": 4,
+            "pertanyaan": "What general benefit do readers get by following the instructions properly?",
+            "tipe": "pilihan_ganda"
+          },
+          {
+            "nomor": 5,
+            "pertanyaan": "Rearrange the 5 steps of threading the sewing machine into the correct order based on the text (A-B-C-D-E).",
+            "tipe": "menjodohkan_urutan"
+          },
+          {
+            "nomor": 6,
+            "pertanyaan": "What action must be done before touching any moving machine parts?",
+            "tipe": "isian_singkat"
+          },
+          {
+            "nomor": 7,
+            "pertanyaan": "What part controls the smoothness of the thread after the top thread guides?",
+            "tipe": "isian_singkat"
+          },
+          {
+            "nomor": 8,
+            "pertanyaan": "In which direction should you pull the thread through the take-up lever?",
+            "tipe": "isian_singkat"
+          },
+          {
+            "nomor": 9,
+            "pertanyaan": "From which side should you insert the thread into the needle eye?",
+            "tipe": "isian_singkat"
+          },
+          {
+            "nomor": 10,
+            "pertanyaan": "How many centimeters of thread tail must be left after threading the needle?",
+            "tipe": "isian_singkat"
+          }
+        ]
+      },
+      "panduan_guru": {
+        "kunci_jawaban": [
+          "Nomor 1: Proper procedures to care for cotton garments.",
+          "Nomor 2: To explain how to wash, dry, and iron cotton clothes correctly.",
+          "Nomor 3: Garment owners / garment workshop assistants.",
+          "Nomor 4: To keep clothes durable and prevent them from shrinking or fading.",
+          "Nomor 5: Urutan tepat 5 langkah: Turn off switch -> Place spool -> Guide through tension discs -> Pull through take-up lever -> Insert through needle eye.",
+          "Nomor 6: Turn off the main machine power switch.",
+          "Nomor 7: Tension discs.",
+          "Nomor 8: From right to left.",
+          "Nomor 9: From left to right.",
+          "Nomor 10: Ten centimeters (10 cm)."
+        ],
+        "panduan_penskoran": "Pertanyaan 1-4 mengukur K1 (gagasan utama dan tujuan komunikasi). Murid mencapai ambang batas jika menjawab benar minimal 3 dari 4 butir. Pertanyaan 5 mengukur K2 (alur urutan 5 tahapan kerja). Murid mencapai ambang batas jika mengurutkan minimal 4 dari 5 tahapan dengan benar. Pertanyaan 6-10 mengukur K3 (informasi tersurat). Murid mencapai ambang batas jika menjawab benar minimal 4 dari 5 butir rincian informasi."
+      }
+    },
+    {
+      "id": "ASM-02",
+      "judul": "Matriks Observasi Keterampilan Membaca Teks Prosedur Kejuruan Busana",
+      "jenis": "matriks_observasi",
+      "untuk_murid": false,
+      "digunakan_pada": [
+        "P3.MENGAPLIKASI"
+      ],
+      "konten_murid": null,
+      "panduan_guru": {
+        "kode_legend": "Centang (V) pada kolom indikator jika murid menunjukkan bukti yang tepat pada lembar kerjanya, atau beri tanda silang (X) jika belum tepat.",
+        "kolom_indikator": [
+          {
+            "id": "IND-K1",
+            "label": "Ketepatan menemukan gagasan utama dan tujuan penulisan teks prosedur kerja (minimal 3 dari 4 butir benar)."
+          },
+          {
+            "id": "IND-K2",
+            "label": "Ketepatan mengurutkan dan menjelaskan alur tahapan kerja (minimal 4 dari 5 langkah runtut dan tepat)."
+          },
+          {
+            "id": "IND-K3",
+            "label": "Ketepatan menyimpulkan informasi tersurat terkait alat, bahan, dan instruksi spesifik (minimal 4 dari 5 rincian benar)."
+          }
+        ],
+        "catatan_kritis": "Guru mengamati pengerjaan mandiri murid dan mencocokkan hasil analisis teks dengan kunci jawaban pada ASM-03. Perhatikan apakah murid mampu menemukan letak bukti kalimat langsung pada teks prosedur atau masih menebak tanpa merujuk paragraf teks."
+      }
+    },
+    {
+      "id": "ASM-03",
+      "judul": "Lembar Tes Membaca Mandiri: Prosedur Penggunaan Setrika Uap Industri",
+      "jenis": "soal_latihan",
+      "untuk_murid": true,
+      "digunakan_pada": [
+        "P3.MENGAPLIKASI"
+      ],
+      "konten_murid": {
+        "petunjuk": "Bacalah teks instruksi kerja pengoperasian setrika uap industri (industrial steam iron) di bawah ini. Jawablah pertanyaan nomor 1 sampai 14 di buku tulis Anda secara mandiri.",
+        "soal": [
+          {
+            "nomor": 1,
+            "pertanyaan": "What is the main topic of the text above?",
+            "tipe": "pilihan_ganda"
+          },
+          {
+            "nomor": 2,
+            "pertanyaan": "What is the writer's primary communicative goal in writing this instruction?",
+            "tipe": "pilihan_ganda"
+          },
+          {
+            "nomor": 3,
+            "pertanyaan": "Where would this technical instruction text most likely be displayed?",
+            "tipe": "pilihan_ganda"
+          },
+          {
+            "nomor": 4,
+            "pertanyaan": "What overall problem can be avoided if the operator follows this entire guide?",
+            "tipe": "pilihan_ganda"
+          },
+          {
+            "nomor": 5,
+            "pertanyaan": "What is the very first step the operator must do before plugging in the machine?",
+            "tipe": "uraian_singkat"
+          },
+          {
+            "nomor": 6,
+            "pertanyaan": "What should the operator do immediately after filling the water reservoir?",
+            "tipe": "uraian_singkat"
+          },
+          {
+            "nomor": 7,
+            "pertanyaan": "What is the third sequential step described in the operational procedure?",
+            "tipe": "uraian_singkat"
+          },
+          {
+            "nomor": 8,
+            "pertanyaan": "What action indicates that the steam iron is hot and ready to press the fabric?",
+            "tipe": "uraian_singkat"
+          },
+          {
+            "nomor": 9,
+            "pertanyaan": "What is the final step after finishing the ironing process in the workshop?",
+            "tipe": "uraian_singkat"
+          },
+          {
+            "nomor": 10,
+            "pertanyaan": "What specific type of liquid must be poured into the water tank?",
+            "tipe": "isian_singkat"
+          },
+          {
+            "nomor": 11,
+            "pertanyaan": "What tool or button is pressed to release the steam burst?",
+            "tipe": "isian_singkat"
+          },
+          {
+            "nomor": 12,
+            "pertanyaan": "What safety accessory must the operator wear to prevent hand burns?",
+            "tipe": "isian_singkat"
+          },
+          {
+            "nomor": 13,
+            "pertanyaan": "What temperature dial setting should be selected for delicate fabrics?",
+            "tipe": "isian_singkat"
+          },
+          {
+            "nomor": 14,
+            "pertanyaan": "How long must the iron cool down before draining the leftover water?",
+            "tipe": "isian_singkat"
+          }
+        ]
+      },
+      "panduan_guru": {
+        "kunci_jawaban": [
+          "Teks yang disajikan: HOW TO OPERATE AN INDUSTRIAL STEAM IRON. (1) Fill the water tank with clean distilled water up to the maximum mark. (2) Tighten the tank valve securely to prevent water leakage. (3) Plug the power cord into a grounded wall socket and switch on the main heater. (4) Wait until the indicator light turns green, which signals the iron is ready. (5) Press the steam trigger gently while gliding over the fabric. Always wear heat-resistant gloves during operation. For delicate fabrics, set the dial to low heat. After finishing, turn off the power and let the iron cool down for fifteen minutes before draining water.",
+          "Kunci No 1: Operating procedure for an industrial steam iron in a garment workshop.",
+          "Kunci No 2: To explain the correct and safe sequence of steps to use an industrial steam iron.",
+          "Kunci No 3: Near the finishing and pressing station in a garment studio or clothing workshop.",
+          "Kunci No 4: Water leakage, fabric damage, and occupational injuries like burning.",
+          "Kunci No 5: Fill the water tank with clean distilled water up to the maximum mark.",
+          "Kunci No 6: Tighten the tank valve securely to prevent water leakage.",
+          "Kunci No 7: Plug the power cord into a grounded wall socket and switch on the main heater.",
+          "Kunci No 8: The indicator light turns green.",
+          "Kunci No 9: Turn off the power and let the iron cool down for 15 minutes before draining leftover water.",
+          "Kunci No 10: Clean distilled water.",
+          "Kunci No 11: The steam trigger.",
+          "Kunci No 12: Heat-resistant gloves.",
+          "Kunci No 13: Low heat setting.",
+          "Kunci No 14: Fifteen minutes (15 minutes)."
+        ],
+        "panduan_penskoran": "Pertanyaan 1-4 menguji K1 (gagasan utama dan tujuan teks). Murid mencapai kriteria jika menjawab benar minimal 3 dari 4 butir. Pertanyaan 5-9 menguji K2 (alur urutan 5 langkah kerja). Murid mencapai kriteria jika menjelaskan alur dengan benar minimal 4 dari 5 butir. Pertanyaan 10-14 menguji K3 (informasi tersurat). Murid mencapai kriteria jika menjawab benar minimal 4 dari 5 butir rincian teknis."
+      }
+    }
+  ],
+  "tindak_lanjut": {
+    "pilihan_dukungan": [
+      "Guru menuliskan daftar kata kerja perintah pokok di papan tulis beserta artinya dalam bahasa Indonesia untuk membantu murid yang kesulitan memahami instruksi kerja.",
+      "Guru membimbing murid membaca kalimat demi kalimat sambil menandai kata penanda urutan seperti first, next, then, dan finally langsung pada teks bacaan.",
+      "Murid yang masih ragu dipasangkan dengan rekan sebangku untuk mencocokkan kembali daftar alat dan bahan sebelum masuk ke tahap analisis urutan langkah."
+    ],
+    "dukungan_terstruktur": [
+      "Berikan pendampingan bertahap dalam kelompok kecil untuk menguraikan satu per satu langkah kerja pada teks petunjuk mesin jahit sebelum murid menganalisis teks secara mandiri.",
+      "Bimbing murid memindahkan urutan langkah kerja dari teks ke dalam bentuk bagan alur sederhana di buku tulis agar alur proses kerja terlihat lebih jelas."
+    ],
+    "tantangan_lanjutan": [
+      "Murid diminta membaca teks prosedur pengoperasian mesin jahit industri yang memuat instruksi penanganan benang putus, lalu menyimpulkan solusinya secara tertulis.",
+      "Murid menyusun kembali alur kerja penjahitan busana sederhana ke dalam urutan langkah berbahasa Inggris menggunakan kata kerja tindakan yang telah dipelajari."
+    ]
+  },
+  "catatan_guru": [
+    "Lembar kerja dan catatan analisis teks prosedur pada modul ini menggunakan buku tulis atau kertas biasa milik murid. Murid cukup mencatat gagasan utama, alur langkah kerja, serta rincian alat dan bahan secara rapi tanpa memerlukan lembar cetak khusus.",
+    "Saat mengecek pemahaman murid di tengah pembelajaran, pusatkan perhatian pada penguasaan kata kerja tindakan yang lazim digunakan di bengkel tata busana seperti cut, stitch, sew, press, dan adjust.",
+    "Bantu murid memahami teks tanpa menerjemahkan seluruh bacaan kata demi kata. Dorong murid menebak makna kata baru melalui konteks kalimat dan nama bagian mesin jahit yang sudah mereka kenal saat praktik.",
+    "Pada pertemuan ketiga saat pelaksanaan penilaian akhir, pastikan setiap murid mengerjakan tugas membaca dan analisis teks instruksi kerja secara perorangan agar data ketercapaian setiap kriteria benar-benar valid.",
+    "Bila ada murid yang belum tuntas mengurutkan tahapan kerja, berikan latihan tambahan berupa potongan kalimat instruksi acak untuk mereka susun kembali menjadi prosedur kerja yang runtut."
+  ],
+  "metadata_pedagogis": {
+    "dimensi_profil_lulusan": [
+      {
+        "dimensi": "Penalaran Kritis",
+        "alasan": "Murid perlu menelaah urutan langkah kerja dan membedakan informasi pokok dari rincian instruksi pada teks prosedur.",
+        "indikator": "Murid mampu mengidentifikasi urutan langkah kerja yang logis serta menemukan informasi tersurat yang ditanyakan."
+      },
+      {
+        "dimensi": "Kemandirian",
+        "alasan": "Murid dilatih membaca dan menyimpulkan instruksi kerja berbahasa Inggris secara percaya diri tanpa bergantung penuh pada terjemahan teman.",
+        "indikator": "Murid menyelesaikan lembar tugas membaca dan menentukan gagasan utama teks secara mandiri."
+      },
+      {
+        "dimensi": "Komunikasi",
+        "alasan": "Murid menyampaikan kembali informasi dan alur prosedur kerja dengan bahasa yang jelas dan runtut.",
+        "indikator": "Murid dapat menjelaskan kembali alur tahapan kerja teks prosedur saat sesi tanya jawab di kelas."
+      }
+    ],
+    "karakteristik_materi": {
+      "faktual": "Istilah nama komponen mesin jahit, jenis kain, dan simbol petunjuk perawatan busana yang tertulis dalam teks nonfiksi.",
+      "konseptual": "Ciri khas struktur teks prosedur nonfiksi yang mencakup pernyataan tujuan, penyebutan bahan/alat, dan urutan instruksi kerja.",
+      "prosedural": "Tata cara membaca memindai untuk menemukan informasi tersurat dan merangkai urutan alur informasi dari awal hingga akhir."
+    },
+    "language_policy": {
+      "teacher_instruction": "Guru memberi instruksi kerja utama dalam bahasa Indonesia yang diselingi frasa teknis bahasa Inggris secara bertahap.",
+      "student_instruction": "Murid merespons dan menjawab pertanyaan lembar kerja menggunakan kosakata bahasa Inggris yang dikutip dari teks.",
+      "target_language": "Bahasa Inggris"
+    }
+  },
+  "tp_anchor": {
+    "atp_induk_id": "m9-skenario-1",
+    "nomor_tp": 1,
+    "tp_judul": "Peserta didik memahami alur informasi keseluruhan dan gagasan utama teks prosedur nonfiksi sederhana berbahasa Inggris, serta menyimpulkan informasi tersurat di dalamnya.",
+    "tuntutan": [
+      {
+        "id": "BIE-E25-MM-1",
+        "kompetensi": "memahami alur informasi secara keseluruhan",
+        "lingkup_materi": "berbagai jenis teks fiksi dan non fiksi tertulis atau teks multimodal tentang topik sehari-hari atau isu terkini",
+        "cakupan_wajib": {
+          "kategori_teks": [
+            "fiksi",
+            "nonfiksi"
+          ]
+        }
+      },
+      {
+        "id": "BIE-E25-MM-2",
+        "kompetensi": "menganalisis dan menyimpulkan informasi tersurat dan tersirat",
+        "lingkup_materi": "berbagai jenis teks fiksi dan non fiksi tertulis atau teks multimodal tentang topik sehari-hari atau isu terkini",
+        "cakupan_wajib": {
+          "kategori_teks": [
+            "fiksi",
+            "nonfiksi"
+          ]
+        }
+      }
+    ],
+    "kategori_teks": [
+      "nonfiksi"
+    ],
+    "semester": 1,
+    "jp_alokasi": 12,
+    "jp_pertemuan": [
+      4,
+      4,
+      4
+    ],
+    "versi_cp": "046/H/KR/2025",
+    "tuntutan_id": [
+      "BIE-E25-MM-1",
+      "BIE-E25-MM-2"
+    ],
+    "kategori_teks_wajib": [
+      "nonfiksi"
+    ]
+  },
+  "atp_context": {
+    "versi_cp": "046/H/KR/2025",
+    "semester": 1,
+    "kesiapan_murid": {
+      "nilai": "jauh_di_bawah",
+      "asal": "keputusan_guru",
+      "arti": "sebagian besar murid jauh di bawah prasyarat TP ini",
+      "dasar": "hasil penilaian sebelumnya"
+    },
+    "jumlah_murid": {
+      "nilai": 32,
+      "asal": "fakta"
+    },
+    "program_keahlian": {
+      "nilai": "Tata Busana",
+      "asal": "fakta"
+    },
+    "konteks_tugas": {
+      "nilai": "seimbang",
+      "asal": "keputusan_guru",
+      "arti": "contoh dan tugas seimbang antara kehidupan sehari-hari dan dunia kerja"
+    },
+    "prioritas_guru": [
+      {
+        "kunci": "literasi",
+        "arti": "penguatan literasi",
+        "arahan": "perbanyak membaca teks utuh"
+      }
+    ],
+    "penerapan_prioritas": {
+      "untuk_tp_ini": [
+        {
+          "prioritas": "literasi",
+          "kunci": "literasi",
+          "tp": [
+            1
+          ],
+          "pengaruh": [
+            "kegiatan"
+          ],
+          "alasan": "ATP menyatakan penekanan ini berlaku untuk TP ini."
+        }
+      ],
+      "seluruh_atp": [
+        {
+          "prioritas": "literasi",
+          "kunci": "literasi",
+          "tp": [
+            1
+          ],
+          "pengaruh": [
+            "kegiatan"
+          ],
+          "alasan": "Penekanan guru pada ATP."
+        }
+      ]
+    }
+  },
+  "alokasi_server": {
+    "pertemuan": [
+      4,
+      4,
+      4
+    ]
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "skenario": 2,
+  "nama": "Kesiapan lebih tinggi — pembanding Skenario 1",
+  "attempt": 8,
+  "model": "gemini-3.8-flash",
+  "waktu": "2026-09-11T05:12:11.500Z",
+  "arahan_titik_awal": "Murid sudah siap memasuki materi fase ini. MEMAHAMI cukup ringkas — mulai sekitar seperempat waktu pertemuan pertama dan boleh cepat mengecil. MENGAPLIKASI mendapat porsi terbesar sejak awal.",
+  "pemakaian_token": [
+    {
+      "fase": "Fase A",
+      "masuk": 13690,
+      "keluar": 4060,
+      "penalaran": 365,
+      "total": 18115,
+      "ms": 14821
+    },
+    {
+      "fase": "Fase B",
+      "masuk": 14280,
+      "keluar": 4432,
+      "penalaran": 1078,
+      "total": 19790,
+      "ms": 18672
+    },
+    {
+      "fase": "Fase C",
+      "masuk": 13573,
+      "keluar": 3417,
+      "penalaran": 4407,
+      "total": 21397,
+      "ms": 23413
+    },
+    {
+      "fase": "Fase B2 (naskah)",
+      "masuk": 17685,
+      "keluar": 6674,
+      "penalaran": 788,
+      "total": 25147,
+      "ms": 27397
+    },
+    {
+      "fase": "Fase D",
+      "masuk": 12191,
+      "keluar": 518,
+      "penalaran": 1150,
+      "total": 13859,
+      "ms": 8697
+    }
+  ],
+  "validasi": {
+    "valid": false,
+    "jumlah_galat": 1,
+    "galat": [
+      "guru menyatakan kelas tanpa perangkat digital, tapi dokumen menyebut: ponsel. Ganti dengan kegiatan yang memakai bahan cetak, papan tulis, atau alat fisik."
+    ]
+  }
+}

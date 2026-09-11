@@ -1,0 +1,1485 @@
+{
+  "schema_version": "4.0.0",
+  "identitas": {
+    "mata_pelajaran": "Bahasa Inggris",
+    "jenjang": "SMK",
+    "fase": "E",
+    "nomor_tp": 1,
+    "jumlah_pertemuan": 3,
+    "jp_per_pertemuan": 4,
+    "durasi_jp_menit": 45,
+    "alokasi_waktu_total_menit": 540,
+    "elemen_cp": [
+      "Membaca - Memirsa"
+    ],
+    "jenis_dokumen": "Modul Induk; guru mengadaptasi konteks kelas dan program keahlian",
+    "konteks_kejuruan": {
+      "bidang_keahlian": "Seni dan Ekonomi Kreatif",
+      "program_keahlian": "Tata Busana",
+      "konsentrasi_keahlian": null
+    },
+    "dasar_cp": "Membaca - Memirsa: Peserta didik memahami alur informasi keseluruhan dan menganalisis serta menyimpulkan informasi tersurat dan tersirat pada berbagai jenis teks fiksi dan nonfiksi.",
+    "tujuan_pembelajaran": "Peserta didik mengomunikasikan gagasan dan pengalaman secara tertulis dalam teks nonfiksi sederhana berbahasa Inggris."
+  },
+  "kktp": [
+    {
+      "id_kktp": "K1",
+      "kriteria": "Menyusun kerangka alur pengalaman pribadi nonfiksi dengan urutan kronologis yang runtut mencakup orientasi, rentetan peristiwa, dan kesimpulan penutup.",
+      "tuntutan_ref": [
+        "BIE-E25-MP-1"
+      ],
+      "keputusan_ketercapaian": {
+        "jenis": "jumlah",
+        "nilai_minimum": 3,
+        "satuan": "bagian struktur teks",
+        "deskripsi": "Menuliskan 3 bagian kerangka teks nonfiksi secara berurutan mulai dari pembuka orientasi, peristiwa utama, hingga penutup."
+      },
+      "ambang_batas": "3 dari 3 bagian struktur teks (orientasi, rentetan peristiwa, dan penutup) tersusun runut",
+      "instrumen_bukti": [
+        "ASM-01",
+        "ASM-02"
+      ]
+    },
+    {
+      "id_kktp": "K2",
+      "kriteria": "Menuliskan kalimat pengalaman menggunakan kata kerja bentuk lampau sederhana dan kata penghubung urutan waktu dengan makna yang jelas.",
+      "tuntutan_ref": [
+        "BIE-E25-MP-1"
+      ],
+      "keputusan_ketercapaian": {
+        "jenis": "jumlah",
+        "nilai_minimum": 4,
+        "satuan": "kalimat benar",
+        "deskripsi": "Menuliskan minimal 4 dari 5 kalimat menggunakan bentuk past tense dan penanda waktu yang tepat."
+      },
+      "ambang_batas": "4 dari 5 kalimat menggunakan bentuk past tense dan penanda waktu dengan tepat",
+      "instrumen_bukti": [
+        "ASM-01",
+        "ASM-02"
+      ]
+    },
+    {
+      "id_kktp": "K3",
+      "kriteria": "Menghasilkan draf teks nonfiksi sederhana utuh tentang pengalaman pribadi sehari-hari yang komunikatif dan dapat dipahami pembaca.",
+      "tuntutan_ref": [
+        "BIE-E25-MP-1"
+      ],
+      "keputusan_ketercapaian": {
+        "jenis": "rubrik",
+        "nilai_minimum": 3,
+        "satuan": "level capaian",
+        "deskripsi": "Mencapai minimal level Mandiri pada aspek kejelasan gagasan dan kelengkapan pesan teks nonfiksi."
+      },
+      "ambang_batas": "Mencapai minimal level Mandiri pada rubrik keterbacaan dan keutuhan pesan teks",
+      "instrumen_bukti": [
+        "ASM-02"
+      ]
+    }
+  ],
+  "keputusan_kontekstual": [
+    {
+      "id": "KTX-01",
+      "sumber": {
+        "jenis": "kesiapan_murid",
+        "kunci": "sedikit_di_bawah"
+      },
+      "keputusan": "Menyediakan pemodelan teks secara bertahap dan membedah kosakata kata kerja bentuk lampau di papan tulis sebelum murid diminta menulis draf secara mandiri.",
+      "komponen_terdampak": [
+        "pertemuan:1",
+        "kktp:K2"
+      ],
+      "penerapan": "Guru mengawali kegiatan penulisan dengan analisis bersama contoh teks sederhana dan mendaftar perubahan bentuk kata kerja bantu agar murid memiliki rujukan yang jelas."
+    },
+    {
+      "id": "KTX-02",
+      "sumber": {
+        "jenis": "konteks_tugas",
+        "kunci": "dominan_sehari_hari"
+      },
+      "keputusan": "Menetapkan tema contoh teks dan tugas menulis pada peristiwa nyata sehari-hari murid, seperti pengalaman perjalanan ke sekolah, membantu keluarga, atau kegiatan di rumah.",
+      "komponen_terdampak": [
+        "pertemuan:1",
+        "pertemuan:2",
+        "pertemuan:3"
+      ],
+      "penerapan": "Teks model dan tugas penulisan berpusat pada rutinitas dan pengalaman nyata sehari-hari yang dekat dengan keseharian murid SMK Tata Busana."
+    },
+    {
+      "id": "KTX-03",
+      "sumber": {
+        "jenis": "prioritas_guru",
+        "kunci": "kemandirian"
+      },
+      "keputusan": "Mengurangi bantuan penulisan secara bertahap dari kegiatan terbimbing bersama pada pertemuan awal menuju penulisan teks utuh secara mandiri pada pertemuan akhir.",
+      "komponen_terdampak": [
+        "pertemuan:2",
+        "pertemuan:3"
+      ],
+      "penerapan": "Pada pertemuan pertama dan kedua murid dibantu pengatur grafis, sedangkan pada pertemuan ketiga murid menyusun teks secara mandiri tanpa lembar bantuan."
+    }
+  ],
+  "konteks_murid": {
+    "kesiapan_awal": [
+      "Sebagian murid telah mengenal kata kerja dasar namun masih sering keliru menggunakan perubahan bentuk lampau sederhana (regular dan irregular verbs).",
+      "Murid terbiasa menyusun kalimat tunggal pendek tetapi masih memerlukan panduan untuk merangkai beberapa kalimat menjadi paragraf kronologis yang padu."
+    ],
+    "variasi_kemampuan": "Kemampuan murid beragam dengan sebagian besar berada sedikit di bawah penguasaan kalimat lampau mandiri, sehingga membutuhkan pemodelan dan penguatan kosakata sebelum menulis mandiri.",
+    "kebutuhan_dukungan": [
+      "Penyediaan bank kata kerja bentuk lampau dan penanda urutan waktu sederhana di papan tulis.",
+      "Pendampingan bertahap melalui penyusunan kerangka tulisan terbimbing sebelum penulisan teks utuh."
+    ]
+  },
+  "materi_esensial": {
+    "lingkup_materi": [
+      "Struktur teks nonfiksi pengalaman pribadi (orientation, sequence of events, re-orientation)",
+      "Unsur kebahasaan teks cerita pengalaman: simple past tense dan chronological connectors (first, next, after that, finally)",
+      "Pengembangan draf tulisan pengalaman sehari-hari yang runtut dan bermakna"
+    ],
+    "kosakata_kunci": [
+      "yesterday",
+      "last week",
+      "arrived",
+      "prepared",
+      "made",
+      "bought",
+      "first",
+      "then",
+      "after that",
+      "finally",
+      "experience"
+    ],
+    "konsep_utama": [
+      "Teks nonfiksi pengalaman pribadi berfungsi membagikan peristiwa nyata secara kronologis agar pembaca memahami alur kejadian.",
+      "Ketepatan penggunaan kata kerja lampau dan kata hubung waktu menentukan kejelasan urutan peristiwa yang disampaikan."
+    ]
+  },
+  "rencana_asesmen": {
+    "asesmen_diagnostik": null,
+    "asesmen_formatif": [
+      {
+        "id": "FMT-01",
+        "waktu_pertemuan": 1,
+        "fase_langkah": "MENGAPLIKASI",
+        "teknik": "observasi dan umpan balik berkala saat latihan terbimbing",
+        "instrumen_ref": [
+          "ASM-01"
+        ],
+        "fungsi": "Mengetahui kemampuan awal murid dalam menyusun kerangka alur peristiwa dan kalimat lampau sederhana guna memberikan masukan perbaikan langsung.",
+        "referensi_kktp": [
+          "K1",
+          "K2"
+        ],
+        "cakupan_bukti": "per_murid",
+        "umpan_balik": "Memberikan koreksi langsung terhadap pemilihan kata kerja lampau dan kelengkapan urutan peristiwa pada kerangka tulisan murid."
+      },
+      {
+        "id": "FMT-02",
+        "waktu_pertemuan": 2,
+        "fase_langkah": "MENGAPLIKASI",
+        "teknik": "penelaahan draf tulisan bertahap",
+        "instrumen_ref": [
+          "ASM-01"
+        ],
+        "fungsi": "Memeriksa perkembangan draf paragraf murid sebelum penulisan akhir mandiri.",
+        "referensi_kktp": [
+          "K2",
+          "K3"
+        ],
+        "cakupan_bukti": "per_murid",
+        "umpan_balik": "Menunjukkan bagian kalimat yang belum padu serta memandu perbaikan struktur kalimat lampau secara individual."
+      }
+    ],
+    "asesmen_sumatif": {
+      "deskripsi": "Penilaian unjuk kerja menulis mandiri teks nonfiksi sederhana tentang pengalaman pribadi sehari-hari tanpa bantuan templat.",
+      "teknik": "unjuk kerja",
+      "instrumen_ref": [
+        "ASM-02"
+      ],
+      "durasi_menit": 60,
+      "referensi_kktp": [
+        "K1",
+        "K2",
+        "K3"
+      ],
+      "cakupan_bukti": "per_murid",
+      "placement": {
+        "pertemuan": 3,
+        "fase": "MENGAPLIKASI"
+      }
+    }
+  },
+  "rancangan": {
+    "strategi_pedagogis": "Pendekatan berbasis genre melalui tahapan pemodelan teks bersama, penulisan terbimbing berpasangan, hingga penulisan mandiri utuh.",
+    "sumber_belajar": [
+      {
+        "sumber": "PBL-01",
+        "kategori": "teks cetak",
+        "fungsi": "Teks model bacaan nonfiksi sederhana tentang pengalaman sehari-hari untuk dibedah struktur dan bahasanya."
+      },
+      {
+        "sumber": "PBL-02",
+        "kategori": "lembar panduan",
+        "fungsi": "Pengatur grafis alur peristiwa untuk membantu perencanaan kerangka tulisan murid."
+      },
+      {
+        "sumber": "Buku tulis murid dan papan tulis kelas",
+        "kategori": "sarana fisik",
+        "fungsi": "Media menuliskan bank kata kerja dan tempat murid mencatat draf tulisan pengalaman."
+      }
+    ],
+    "pemanfaatan_digital": "Tidak memerlukan perangkat digital khusus.",
+    "lingkungan_pembelajaran": "Ruang kelas dengan susunan meja fleksibel yang mendukung kerja berpasangan maupun penulisan mandiri yang tenang.",
+    "kemitraan_pembelajaran": null,
+    "keselamatan_k3": null
+  },
+  "pertemuan": [
+    {
+      "nomor": 1,
+      "tujuan_pertemuan": "Murid mampu membedakan struktur teks nonfiksi sederhana serta mengidentifikasi kata kerja bentuk lampau melalui analisis teks model dan latihan menyusun kerangka alur peristiwa.",
+      "media_dan_alat": [
+        "Papan tulis dan spidol",
+        "Buku tulis murid",
+        "Lembar cetak teks model PBL-01",
+        "Lembar pengatur grafis alur peristiwa PBL-02",
+        "Lembar catatan observasi guru ASM-01"
+      ],
+      "langkah": [
+        {
+          "nama": "PEMBUKA",
+          "durasi_menit": 15,
+          "prinsip": [
+            "Berkesadaran",
+            "Menggembirakan"
+          ],
+          "sub_langkah": [
+            {
+              "nomor": 1,
+              "deskripsi": "Guru menyapa murid dengan ramah, mengajak berdoa bersama, memeriksa kehadiran, dan mencairkan suasana dengan permainan tebak kata kerja kegiatan akhir pekan untuk menghubungkan pengalaman sehari-hari murid dengan tujuan belajar hari ini.",
+              "durasi_menit": 15,
+              "mode_pelaksanaan": "simultan",
+              "mode_observasi": "semua",
+              "ref": "P1.PEMBUKA.1"
+            }
+          ]
+        },
+        {
+          "nama": "ASESMEN_AWAL",
+          "durasi_menit": 15,
+          "prinsip": [
+            "Berkesadaran"
+          ],
+          "sub_langkah": [
+            {
+              "nomor": 1,
+              "deskripsi": "Guru menuliskan tiga kalimat acak tentang rutinitas kemarin di papan tulis dan meminta murid secara cepat menandai kata yang menunjukkan waktu lampau pada buku tulis masing-masing guna memetakan pemahaman dasar murid tanpa memberi penghakiman atau kunci jawaban langsung.",
+              "durasi_menit": 15,
+              "mode_pelaksanaan": "individual",
+              "mode_observasi": "rotasi",
+              "ref": "P1.ASESMEN_AWAL.1"
+            }
+          ]
+        },
+        {
+          "nama": "MEMAHAMI",
+          "durasi_menit": 55,
+          "prinsip": [
+            "Bermakna",
+            "Berkesadaran"
+          ],
+          "sub_langkah": [
+            {
+              "nomor": 1,
+              "deskripsi": "Guru membagikan lembar teks bacaan nonfiksi PBL-01, membacanya bersama murid dengan intonasi jelas, lalu memandu murid membedah tiga bagian utama teks yaitu bagian pengantar situasi, rentetan kejadian, dan kesan penutup.",
+              "durasi_menit": 25,
+              "instrumen_ref": [
+                "PBL-01"
+              ],
+              "mode_pelaksanaan": "simultan",
+              "mode_observasi": "semua",
+              "ref": "P1.MEMAHAMI.1"
+            },
+            {
+              "nomor": 2,
+              "deskripsi": "Murid bersama teman sebangku mencermati perubahan kata kerja bentuk lampau dan penanda urutan waktu pada teks model PBL-01, kemudian menuliskan daftar kata kerja yang ditemukan ke dalam buku tulis dengan panduan penguatan dari guru di papan tulis.",
+              "durasi_menit": 30,
+              "instrumen_ref": [
+                "PBL-01"
+              ],
+              "mode_pelaksanaan": "kelompok_kecil",
+              "mode_observasi": "rotasi",
+              "ukuran_kelompok": 2,
+              "ref": "P1.MEMAHAMI.2"
+            }
+          ]
+        },
+        {
+          "nama": "MENGAPLIKASI",
+          "durasi_menit": 65,
+          "prinsip": [
+            "Bermakna"
+          ],
+          "sub_langkah": [
+            {
+              "nomor": 1,
+              "deskripsi": "Guru membagikan lembar pengatur alur PBL-02 dan membimbing murid menentukan satu pengalaman pribadi sederhana untuk dirancang kerangka kronologisnya secara berpasangan.",
+              "durasi_menit": 30,
+              "instrumen_ref": [
+                "PBL-02"
+              ],
+              "mode_pelaksanaan": "kelompok_kecil",
+              "mode_observasi": "rotasi",
+              "ukuran_kelompok": 2,
+              "ref": "P1.MENGAPLIKASI.1"
+            },
+            {
+              "nomor": 2,
+              "deskripsi": "Murid secara mandiri menuliskan kalimat-kalimat lampau sederhana pada kerangka alur di lembar PBL-02 sementara guru mengamati ketercapaian urutan alur serta ketepatan kata kerja lampau menggunakan matriks observasi ASM-01 dan memberikan masukan langsung.",
+              "durasi_menit": 35,
+              "instrumen_ref": [
+                "PBL-02",
+                "ASM-01"
+              ],
+              "asesmen_ref": "FMT-01",
+              "mode_pelaksanaan": "individual",
+              "mode_observasi": "rotasi",
+              "ref": "P1.MENGAPLIKASI.2"
+            }
+          ]
+        },
+        {
+          "nama": "MEREFLEKSI",
+          "durasi_menit": 15,
+          "prinsip": [
+            "Berkesadaran"
+          ],
+          "sub_langkah": [
+            {
+              "nomor": 1,
+              "deskripsi": "Murid mengecek kembali kerangka tulisannya di buku tulis, menandai satu bagian yang menurutnya paling mudah dibuat dan satu bagian kalimat lampau yang masih membingungkan, lalu menuliskannya di pojok buku catatan.",
+              "durasi_menit": 15,
+              "mode_pelaksanaan": "individual",
+              "mode_observasi": "mandiri",
+              "ref": "P1.MEREFLEKSI.1"
+            }
+          ]
+        },
+        {
+          "nama": "PENUTUP",
+          "durasi_menit": 15,
+          "prinsip": [
+            "Menggembirakan"
+          ],
+          "sub_langkah": [
+            {
+              "nomor": 1,
+              "deskripsi": "Guru merangkum poin inti pembelajaran mengenai kerangka teks kronologis dan kata kerja lampau, memberi apresiasi atas keterlibatan aktif kelas, menyampaikan rencana pengembangan kerangka menjadi draf di pertemuan berikutnya, dan menutup kelas dengan doa bersama.",
+              "durasi_menit": 15,
+              "mode_pelaksanaan": "simultan",
+              "mode_observasi": "semua",
+              "ref": "P1.PENUTUP.1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "nomor": 2,
+      "tujuan_pertemuan": "Murid mampu mengembangkan kerangka alur menjadi draf paragraf teks nonfiksi sederhana yang runtut dengan memanfaatkan kata hubung kronologis dan bentuk kalimat lampau yang lebih tepat.",
+      "media_dan_alat": [
+        "Papan tulis dan spidol",
+        "Buku tulis murid",
+        "Lembar bacaan nonfiksi model PBL-01",
+        "Lembar pengatur grafis alur peristiwa PBL-02",
+        "Lembar catatan observasi guru ASM-01"
+      ],
+      "langkah": [
+        {
+          "nama": "PEMBUKA",
+          "durasi_menit": 15,
+          "prinsip": [
+            "Menggembirakan",
+            "Berkesadaran"
+          ],
+          "sub_langkah": [
+            {
+              "nomor": 1,
+              "deskripsi": "Guru menyapa murid, mengecek kesiapan belajar dan kebersihan ruang kelas, lalu memimpin permainan estafet kata penghubung urutan waktu di papan tulis untuk mengaktifkan kembali memori belajar murid.",
+              "durasi_menit": 15,
+              "mode_pelaksanaan": "simultan",
+              "mode_observasi": "semua",
+              "ref": "P2.PEMBUKA.1"
+            }
+          ]
+        },
+        {
+          "nama": "ASESMEN_AWAL",
+          "durasi_menit": 15,
+          "prinsip": [
+            "Berkesadaran"
+          ],
+          "sub_langkah": [
+            {
+              "nomor": 1,
+              "deskripsi": "Guru meminta murid membuka kembali kerangka alur di lembar PBL-02 hasil pertemuan sebelumnya dan membacakan dua kalimat lampau yang telah dibuat kepada teman sebangku guna mengecek kesiapan draf sebelum mulai dirangkai utuh.",
+              "durasi_menit": 15,
+              "instrumen_ref": [
+                "PBL-02"
+              ],
+              "mode_pelaksanaan": "kelompok_kecil",
+              "mode_observasi": "rotasi",
+              "ukuran_kelompok": 2,
+              "ref": "P2.ASESMEN_AWAL.1"
+            }
+          ]
+        },
+        {
+          "nama": "MEMAHAMI",
+          "durasi_menit": 35,
+          "prinsip": [
+            "Bermakna"
+          ],
+          "sub_langkah": [
+            {
+              "nomor": 1,
+              "deskripsi": "Guru mencontohkan cara merangkai poin-poin dari kerangka PBL-02 menjadi paragraf yang mengalir dengan membedah teknik penggabungan kalimat pada teks model PBL-01 serta mencontohkan penggunaan kata sambung seperti first, then, after that, dan finally di papan tulis.",
+              "durasi_menit": 35,
+              "instrumen_ref": [
+                "PBL-01",
+                "PBL-02"
+              ],
+              "mode_pelaksanaan": "simultan",
+              "mode_observasi": "semua",
+              "ref": "P2.MEMAHAMI.1"
+            }
+          ]
+        },
+        {
+          "nama": "MENGAPLIKASI",
+          "durasi_menit": 85,
+          "prinsip": [
+            "Bermakna",
+            "Berkesadaran"
+          ],
+          "sub_langkah": [
+            {
+              "nomor": 1,
+              "deskripsi": "Murid secara berpasangan saling menukar dan memeriksa kerangka di lembar PBL-02, saling memberikan usulan perbaikan kata sambung kronologis dan kejelasan arti kalimat dengan bimbingan berkeliling dari guru.",
+              "durasi_menit": 35,
+              "instrumen_ref": [
+                "PBL-02"
+              ],
+              "mode_pelaksanaan": "kelompok_kecil",
+              "mode_observasi": "rotasi",
+              "ukuran_kelompok": 2,
+              "ref": "P2.MENGAPLIKASI.1"
+            },
+            {
+              "nomor": 2,
+              "deskripsi": "Murid mulai menulis draf paragraf teks nonfiksi utuh secara mandiri di buku tulis berdasarkan kerangka PBL-02 yang telah disempurnakan, sementara guru memeriksa perkembangan draf menggunakan matriks observasi ASM-01 serta memberikan umpan balik langsung per murid.",
+              "durasi_menit": 50,
+              "instrumen_ref": [
+                "PBL-02",
+                "ASM-01"
+              ],
+              "asesmen_ref": "FMT-02",
+              "mode_pelaksanaan": "individual",
+              "mode_observasi": "rotasi",
+              "ref": "P2.MENGAPLIKASI.2"
+            }
+          ]
+        },
+        {
+          "nama": "MEREFLEKSI",
+          "durasi_menit": 15,
+          "prinsip": [
+            "Berkesadaran"
+          ],
+          "sub_langkah": [
+            {
+              "nomor": 1,
+              "deskripsi": "Murid membacakan kembali draf yang telah disusun dalam hati, mencocokkan drafnya dengan tiga pertanyaan pemandu di papan tulis tentang kelengkapan cerita, lalu menuliskan satu kalimat yang paling mereka banggakan.",
+              "durasi_menit": 15,
+              "mode_pelaksanaan": "individual",
+              "mode_observasi": "mandiri",
+              "ref": "P2.MEREFLEKSI.1"
+            }
+          ]
+        },
+        {
+          "nama": "PENUTUP",
+          "durasi_menit": 15,
+          "prinsip": [
+            "Menggembirakan"
+          ],
+          "sub_langkah": [
+            {
+              "nomor": 1,
+              "deskripsi": "Guru mengapresiasi kerja mandiri dan ketekunan murid selama menyusun draf cerita, menyimpulkan kiat menghubungkan peristiwa agar cerita mudah dipahami, serta mengingatkan persiapan penulisan mandiri akhir pada pertemuan berikutnya.",
+              "durasi_menit": 15,
+              "mode_pelaksanaan": "simultan",
+              "mode_observasi": "semua",
+              "ref": "P2.PENUTUP.1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "nomor": 3,
+      "tujuan_pertemuan": "Murid mampu menulis teks nonfiksi sederhana tentang pengalaman pribadi sehari-hari secara utuh dan mandiri dengan struktur yang runtut serta kaidah kebahasaan lampau yang tepat.",
+      "media_dan_alat": [
+        "Papan tulis dan spidol",
+        "Buku tulis dan kertas bergaris murid",
+        "Matriks penilaian unjuk kerja sumatif ASM-02"
+      ],
+      "langkah": [
+        {
+          "nama": "PEMBUKA",
+          "durasi_menit": 15,
+          "prinsip": [
+            "Menggembirakan",
+            "Berkesadaran"
+          ],
+          "sub_langkah": [
+            {
+              "nomor": 1,
+              "deskripsi": "Guru membuka sesi dengan salam dan doa, mengondisikan ketenangan ruang kelas, menyampaikan tujuan unjuk kerja mandiri hari ini, serta memberikan afirmasi positif untuk membangun rasa percaya diri murid.",
+              "durasi_menit": 15,
+              "mode_pelaksanaan": "simultan",
+              "mode_observasi": "semua",
+              "ref": "P3.PEMBUKA.1"
+            }
+          ]
+        },
+        {
+          "nama": "ASESMEN_AWAL",
+          "durasi_menit": 10,
+          "prinsip": [
+            "Berkesadaran"
+          ],
+          "sub_langkah": [
+            {
+              "nomor": 1,
+              "deskripsi": "Guru melakukan cek kesiapan cepat dengan meminta murid mengangkat jempol untuk mengonfirmasi bahwa topik pengalaman pribadi dan gambaran alur cerita yang akan mereka tulis secara mandiri sudah siap di ingatan masing-masing.",
+              "durasi_menit": 10,
+              "mode_pelaksanaan": "simultan",
+              "mode_observasi": "semua",
+              "ref": "P3.ASESMEN_AWAL.1"
+            }
+          ]
+        },
+        {
+          "nama": "MEMAHAMI",
+          "durasi_menit": 20,
+          "prinsip": [
+            "Bermakna"
+          ],
+          "sub_langkah": [
+            {
+              "nomor": 1,
+              "deskripsi": "Guru menjelaskan kriteria penulisan yang dinilai, tata cara pelaksanaan penulisan mandiri, alokasi waktu penulisan, dan kebiasaan menyunting secara mandiri di buku tulis atau lembar kertas bergaris.",
+              "durasi_menit": 20,
+              "mode_pelaksanaan": "simultan",
+              "mode_observasi": "semua",
+              "ref": "P3.MEMAHAMI.1"
+            }
+          ]
+        },
+        {
+          "nama": "MENGAPLIKASI",
+          "durasi_menit": 105,
+          "prinsip": [
+            "Bermakna",
+            "Berkesadaran"
+          ],
+          "sub_langkah": [
+            {
+              "nomor": 1,
+              "deskripsi": "Murid menyiapkan kertas kerja di atas meja, membuat bagan kerangka sederhana mandiri, dan merancang poin urutan waktu peristiwa pengalaman pribadi tanpa membuka lembar contekan maupun bantuan teman.",
+              "durasi_menit": 45,
+              "mode_pelaksanaan": "individual",
+              "mode_observasi": "rotasi",
+              "ref": "P3.MENGAPLIKASI.1"
+            },
+            {
+              "nomor": 2,
+              "deskripsi": "Murid secara mandiri menulis teks nonfiksi pengalaman pribadi utuh sebanyak tiga bagian (orientasi, rentetan peristiwa, dan penutup) pada kertas kerja masing-masing, sementara guru mengamati proses kerja dan menilai hasil tulisan seluruh murid menggunakan rubrik unjuk kerja ASM-02.",
+              "durasi_menit": 60,
+              "instrumen_ref": [
+                "ASM-02"
+              ],
+              "asesmen_ref": "SUMATIF",
+              "mode_pelaksanaan": "individual",
+              "mode_observasi": "semua",
+              "ref": "P3.MENGAPLIKASI.2"
+            }
+          ]
+        },
+        {
+          "nama": "MEREFLEKSI",
+          "durasi_menit": 15,
+          "prinsip": [
+            "Berkesadaran"
+          ],
+          "sub_langkah": [
+            {
+              "nomor": 1,
+              "deskripsi": "Murid merenungkan proses menulis yang telah dijalani dari pertemuan pertama hingga akhir dengan menuliskan satu kalimat refleksi di bagian bawah karya tentang kemajuan belajar menulis dalam bahasa Inggris yang paling mereka rasakan.",
+              "durasi_menit": 15,
+              "mode_pelaksanaan": "individual",
+              "mode_observasi": "mandiri",
+              "ref": "P3.MEREFLEKSI.1"
+            }
+          ]
+        },
+        {
+          "nama": "PENUTUP",
+          "durasi_menit": 15,
+          "prinsip": [
+            "Menggembirakan"
+          ],
+          "sub_langkah": [
+            {
+              "nomor": 1,
+              "deskripsi": "Guru mengumpulkan seluruh hasil karya murid, memberikan apresiasi hangat atas kemandirian dan kerja keras yang ditunjukkan oleh setiap murid, merangkum perjalanan pembelajaran teks nonfiksi, dan mengakhiri sesi pembelajaran dengan doa penutup.",
+              "durasi_menit": 15,
+              "mode_pelaksanaan": "simultan",
+              "mode_observasi": "semua",
+              "ref": "P3.PENUTUP.1"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "naskah_fasilitasi": [
+    {
+      "nomor": 1,
+      "langkah": [
+        {
+          "nama": "PEMBUKA",
+          "sub_langkah": [
+            {
+              "ref": "P1.PEMBUKA.1",
+              "aksi_guru": [
+                "Sapa murid dengan ramah dan pimpin doa bersama di depan kelas.",
+                "Tulis kata 'Weekend Activities' di tengah papan tulis.",
+                "Minta tiga orang murid menyebutkan satu kegiatan yang mereka lakukan hari Minggu kemarin."
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Good morning everyone! Hari ini kita akan belajar bagaimana menceritakan pengalaman pribadi yang benar-benar pernah kalian alami ke dalam bahasa Inggris yang runtut dan jelas.'",
+                "Tanyakan: 'What did you do last Sunday? Siapa yang mau berbagi satu kegiatan singkatnya?'"
+              ],
+              "pertanyaan_kunci": [
+                "Kegiatan apa yang paling berkesan bagi kalian di akhir pekan lalu?"
+              ],
+              "jika_kesulitan": [
+                "Beri pilihan kata kerja sederhana di papan tulis seperti: watched, cooked, helped, atau played jika murid ragu menjawab."
+              ]
+            }
+          ]
+        },
+        {
+          "nama": "ASESMEN_AWAL",
+          "sub_langkah": [
+            {
+              "ref": "P1.ASESMEN_AWAL.1",
+              "aksi_guru": [
+                "Tuliskan tiga kalimat berikut di papan tulis tanpa memberi tahu mana bentuk kata kerja lampau: '1. I help my mother.', '2. Yesterday, I cleaned my room.', '3. She makes a dress.'",
+                "Minta murid menuliskan nomor kalimat yang menunjukkan kejadian masa lampau di buku catatan masing-masing.",
+                "Kelilingi kelas mengamati secara sekilas jawaban murid di buku tulis tanpa menyalahkan atau membenarkan."
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Coba lihat tiga kalimat di papan tulis. Tulis di buku catatan kalian, kalimat nomor berapa yang menceritakan peristiwa yang sudah lewat atau lampau. Cukup tulis nomornya saja.'"
+              ],
+              "pertanyaan_kunci": [
+                "Kata mana pada kalimat tersebut yang menandakan bahwa kegiatannya sudah selesai dilakukan?"
+              ],
+              "jika_kesulitan": [
+                "Ingatkan murid untuk memperhatikan penanda waktu atau akhiran kata kerjanya."
+              ]
+            }
+          ]
+        },
+        {
+          "nama": "MEMAHAMI",
+          "sub_langkah": [
+            {
+              "ref": "P1.MEMAHAMI.1",
+              "aksi_guru": [
+                "Bagikan lembar bacaan nonfiksi model PBL-01 kepada setiap murid.",
+                "Bacakan teks model secara lantang dengan pelafalan dan intonasi yang jelas.",
+                "Arahkan murid memperhatikan struktur teks nonfiksi model yang terdiri atas tiga bagian utama: pengantar situasi (orientasi), urutan peristiwa, dan simpulan penutup."
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Perhatikan lembar PBL-01 berjudul My First Sewing Project. Mari kita baca bersama teks ini.'",
+                "Katakan: 'Perhatikan kalimat pertamanya: Last Sunday, I decided to make a simple tote bag at home. Bagian ini disebut orientasi atau pembuka, yang memberitahu pembaca siapa, kapan, dan apa yang terjadi.'"
+              ],
+              "pertanyaan_kunci": [
+                "What did the writer do first before stitching the fabric?",
+                "Bagian mana dari teks PBL-01 yang menceritakan perasaan penulis di akhir kegiatan?"
+              ],
+              "jika_kesulitan": [
+                "Tunjuk langsung kalimat terakhir pada PBL-01: 'I felt very proud because the finished bag looked clean and sturdy' untuk memperjelas bagian penutup."
+              ]
+            },
+            {
+              "ref": "P1.MEMAHAMI.2",
+              "aksi_guru": [
+                "Instruksikan murid duduk berpasangan dengan teman sebangku.",
+                "Minta setiap pasangan menemukan kata kerja bentuk lampau dan kata penghubung urutan waktu pada teks PBL-01.",
+                "Tuliskan dua kolom di papan tulis: 'Past Verbs' dan 'Sequence Words', lalu minta perwakilan pasangan menuliskan kata temuan mereka."
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Bersama teman sebangkumu, cari kata kerja bentuk lampau dan kata urutan waktu di lembar PBL-01, lalu tuliskan daftarnya di buku catatanmu.'"
+              ],
+              "pertanyaan_kunci": [
+                "Find three action verbs in the past tense used in the second paragraph.",
+                "Identify words that show the sequence of events in the text."
+              ],
+              "jika_kesulitan": [
+                "Arahkan pandangan murid pada kata 'First', 'Next', 'After that', dan 'Finally' pada lembar PBL-01."
+              ]
+            }
+          ]
+        },
+        {
+          "nama": "MENGAPLIKASI",
+          "sub_langkah": [
+            {
+              "ref": "P1.MENGAPLIKASI.1",
+              "aksi_guru": [
+                "Bagikan lembar panduan kerangka alur PBL-02 kepada murid.",
+                "Jelaskan bahwa murid harus memilih satu topik pengalaman pribadi nyata yang pernah dialami sendiri.",
+                "Dampingi murid berdiskusi dengan teman sebangku untuk menentukan tiga bagian cerita: pembuka, peristiwa utama, dan penutup."
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Pegang lembar PBL-02. Pilih satu pengalaman yang benar-benar kalian alami, misalnya membuat sesuatu, memperbaiki barang, atau kegiatan praktik pertama kalian.'",
+                "Katakan: 'Diskusikan idemu dengan teman sebelah sebelum mulai menuliskan poin-poinnya.'"
+              ],
+              "pertanyaan_kunci": [
+                "Peristiwa nyata apa yang ingin kalian ceritakan di lembar PBL-02 ini?"
+              ],
+              "jika_kesulitan": [
+                "Bantu murid memilih topik yang sangat dekat, misalnya merapikan kamar, memasak makanan sederhana, atau berangkat sekolah kemarin."
+              ]
+            },
+            {
+              "ref": "P1.MENGAPLIKASI.2",
+              "aksi_guru": [
+                "Minta murid menuliskan draf kerangka dan minimal lima kalimat lampau di lembar PBL-02 secara mandiri.",
+                "Bawa lembar observasi ASM-01 dan amati proses penulisan murid secara bergiliran.",
+                "Periksa apakah murid menuliskan orientasi, urutan peristiwa, simpulan, serta ketepatan kata kerja lampau.",
+                "Beri coretan masukan perbaikan langsung pada lembar murid yang mengalami kekeliruan bentuk kata kerja."
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Sekarang tuliskan kalimat-kalimat pengalamanmu di lembar PBL-02. Pastikan urutannya jelas: pembuka, rentetan kejadian, dan perasaan penutup.'",
+                "Katakan: 'Gunakan kata kerja lampau yang tepat. Jika ragu dengan perubahan katanya, kalian boleh bertanya kepada saya.'"
+              ],
+              "pertanyaan_kunci": [
+                "Apakah kata kerja yang kamu pakai sudah dalam bentuk lampau?",
+                "Apakah urutan ceritamu sudah memiliki pembuka, isi peristiwa, dan penutup?"
+              ],
+              "jika_kesulitan": [
+                "Tuliskan perubahan kata kerja reguler berakhiran -ed dan beberapa irregular verb umum di pojok papan tulis sebagai rujukan."
+              ],
+              "yang_diamati": [
+                "Kelengkapan 3 bagian struktur alur di lembar PBL-02: bagian pembuka waktu/latar, urutan peristiwa kronologis, dan simpulan penutup.",
+                "Ketepatan penggunaan kata kerja lampau pada minimal 4 dari 5 kalimat yang ditulis murid sesuai indikator ASM-01."
+              ],
+              "putusan_lanjut": {
+                "jika_tercapai": "Minta murid melanjutkan dengan memperkaya kata penghubung waktu (seperti then, after that) agar peralihan antarperistiwa semakin mengalir.",
+                "jika_belum": "Bimbing langsung murid menata ulang 3 kotak alur di PBL-02 dan koreksi langsung 2 kalimat pertama agar bentuk kata kerja lampaunya benar."
+              }
+            }
+          ]
+        },
+        {
+          "nama": "MEREFLEKSI",
+          "sub_langkah": [
+            {
+              "ref": "P1.MEREFLEKSI.1",
+              "aksi_guru": [
+                "Minta murid melihat kembali lembar kerangka PBL-02 yang telah mereka isi.",
+                "Instruksikan murid memberi tanda bintang (*) pada satu kalimat yang paling mereka yakini sudah benar.",
+                "Instruksikan murid memberi tanda tanya (?) pada kata atau kalimat yang masih mereka ragukan bentuk lampaunya."
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Buka kembali kerangka tulisanmu di lembar PBL-02. Beri tanda bintang di kalimat yang kamu rasa paling bagus, dan beri tanda tanya di kalimat yang menurutmu masih sulit.'"
+              ],
+              "pertanyaan_kunci": [
+                "Bagian mana dari menyusun kerangka cerita yang terasa paling menantang bagi kalian hari ini?"
+              ],
+              "jika_kesulitan": [
+                "Pandu murid dengan menunjuk apakah kesulitannya ada pada mengingat urutan kejadian atau pada perubahan kata kerjanya."
+              ]
+            }
+          ]
+        },
+        {
+          "nama": "PENUTUP",
+          "sub_langkah": [
+            {
+              "ref": "P1.PENUTUP.1",
+              "aksi_guru": [
+                "Tinjau kembali struktur tiga bagian teks nonfiksi dan penggunaan kata kerja lampau di papan tulis.",
+                "Apresiasi usaha seluruh murid yang telah berhasil menyusun kerangka alur peristiwanya.",
+                "Ingatkan murid menyimpan lembar PBL-02 di buku masing-masing untuk digunakan kembali pada pertemuan kedua.",
+                "Pimpin doa penutup pembelajaran."
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Kerja bagus semuanya! Hari ini kalian sudah berhasil membuat kerangka alur pengalaman nonfiksi dengan struktur orientasi, peristiwa, dan penutup.'",
+                "Katakan: 'Simpan lembar PBL-02 ini dengan rapi di buku catatanmu. Pertemuan berikutnya, kita akan rangkai kalimat-kalimat ini menjadi paragraf yang utuh. Let us close today's class with prayer.'"
+              ],
+              "pertanyaan_kunci": [
+                "Siapa yang bisa menyebutkan kembali tiga bagian penting dalam teks cerita pengalaman nonfiksi?"
+              ],
+              "jika_kesulitan": [
+                "Tunjuk kembali kata pembuka, peristiwa, dan penutup di papan tulis."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "nomor": 2,
+      "langkah": [
+        {
+          "nama": "PEMBUKA",
+          "sub_langkah": [
+            {
+              "ref": "P2.PEMBUKA.1",
+              "aksi_guru": [
+                "Sapa murid dengan bersemangat dan pastikan ruang kelas dalam kondisi bersih dan rapi.",
+                "Buat garis vertikal di papan tulis membagi dua area.",
+                "Ajak empat orang murid maju bergantian menuliskan kata penghubung urutan waktu dalam bahasa Inggris yang mereka ingat."
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Good morning class! Masih ingat kata-kata penanda urutan waktu yang kita temukan kemarin?'",
+                "Katakan: 'Yuk, tuliskan kata sambung waktu seperti first, next, then, atau kata lainnya di papan tulis secepat mungkin!'"
+              ],
+              "pertanyaan_kunci": [
+                "Kata penghubung apa saja yang bisa membuat urutan cerita kita enak dibaca?"
+              ],
+              "jika_kesulitan": [
+                "Beri pancingan huruf depan di papan tulis, misalnya: 'A... that' atau 'F...ly'."
+              ]
+            }
+          ]
+        },
+        {
+          "nama": "ASESMEN_AWAL",
+          "sub_langkah": [
+            {
+              "ref": "P2.ASESMEN_AWAL.1",
+              "aksi_guru": [
+                "Minta murid mengeluarkan lembar kerangka alur PBL-02 hasil pertemuan sebelumnya.",
+                "Instruksikan murid membacakan dua kalimat yang sudah mereka buat di PBL-02 kepada teman sebangkunya.",
+                "Kelilingi beberapa meja untuk mengecek apakah setiap murid sudah memegang kerangka alur yang siap dikembangkan."
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Buka lembar PBL-02 kalian masing-masing. Bacakan dua kalimat yang sudah kalian buat kemarin kepada teman sebangku secara bergantian.'",
+                "Katakan: 'Cek apakah temanmu sudah punya kalimat pembuka dan kejadian utamanya.'"
+              ],
+              "pertanyaan_kunci": [
+                "Apakah kalimat yang dibacakan temanmu sudah menceritakan urutan kejadian masa lalu?"
+              ],
+              "jika_kesulitan": [
+                "Jika ada murid yang belum menyelesaikan kalimat kemarin, arahkan teman sebangkunya membantu mencarikan kata kerja dasarnya lebih dulu."
+              ]
+            }
+          ]
+        },
+        {
+          "nama": "MEMAHAMI",
+          "sub_langkah": [
+            {
+              "ref": "P2.MEMAHAMI.1",
+              "aksi_guru": [
+                "Buka kembali teks model PBL-01 dan tuliskan dua kalimat terpisah di papan tulis: 'I prepared the fabric.' dan 'I measured and cut the fabric.'",
+                "Tunjukkan cara menggabungkannya menjadi paragraf yang koheren menggunakan kata penghubung urutan: 'First, I prepared a piece of cotton fabric... Next, I measured and cut the fabric...'",
+                "Tekankan pentingnya perpindahan antarkalimat agar pembaca tidak bingung mengikuti rentetan peristiwa."
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Coba bandingkan dua kalimat tunggal yang kaku ini dengan kalimat di teks PBL-01. Ketika kita menambahkan kata penghubung seperti First, Next, After that, dan Finally, kalimat-kalimat kita mengalir menjadi cerita yang padu.'",
+                "Katakan: 'Jangan biarkan kalimat berdiri sendiri-sendiri tanpa perangkai urutan waktu.'"
+              ],
+              "pertanyaan_kunci": [
+                "Mengapa penggunaan kata sambung seperti 'after that' atau 'then' membuat cerita pengalaman kita lebih enak dipahami?"
+              ],
+              "jika_kesulitan": [
+                "Hapus kata penghubung pada satu kalimat di papan tulis dan tunjukkan betapa patah-patahnya cerita jika dibaca tanpa kata sambung."
+              ]
+            }
+          ]
+        },
+        {
+          "nama": "MENGAPLIKASI",
+          "sub_langkah": [
+            {
+              "ref": "P2.MENGAPLIKASI.1",
+              "aksi_guru": [
+                "Minta murid saling menukar lembar PBL-02 dengan teman sebangku.",
+                "Instruksikan murid memberikan satu saran penanda urutan waktu dan memeriksa apakah kata kerja yang digunakan sudah berbentuk lampau.",
+                "Kelilingi meja murid untuk memastikan masukan antarteman berlangsung positif dan membangun."
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Tukarkan lembar PBL-02 dengan teman sebangku. Cek bersama: apakah kata sambung waktunya sudah ada? Apakah kata kerjanya sudah bentuk lampau?'",
+                "Katakan: 'Tuliskan saran perbaikan kecil dengan pensil atau pulpen di samping tulisan temanmu.'"
+              ],
+              "pertanyaan_kunci": [
+                "Kata sambung apa yang paling tepat disisipkan untuk menghubungkan peristiwa pertama ke peristiwa berikutnya pada tulisan temanmu?"
+              ],
+              "jika_kesulitan": [
+                "Tuliskan daftar opsi penanda waktu di papan tulis: First, Then, Next, After that, Finally agar murid tinggal memilih bersama temannya."
+              ]
+            },
+            {
+              "ref": "P2.MENGAPLIKASI.2",
+              "aksi_guru": [
+                "Instruksikan murid mulai merangkai kalimat-kalimat dari PBL-02 menjadi satu draf paragraf teks nonfiksi utuh di buku tulis masing-masing.",
+                "Gunakan matriks pengamatan ASM-01 untuk memeriksa draf murid yang sedang berkembang.",
+                "Berikan umpan balik langsung per murid terkait keterbacaan ide, penggunaan kata sambung, dan ketepatan minimal 4 bentuk kata kerja lampau."
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Sekarang tulis draf teks utuh pengalaman pribadimu di buku tulis. Gabungkan kerangka pembuka, urutan peristiwa, dan penutup menjadi satu kesatuan paragraf yang utuh.'",
+                "Katakan: 'Saya akan berkeliling membaca draf kalian dan memberi catatan masukan langsung.'"
+              ],
+              "pertanyaan_kunci": [
+                "Apakah antarkalimat dalam rentetan kejadianmu sudah saling tersambung dengan rapi?",
+                "Apakah kalimat penutupmu sudah merangkum kesan atau perasaan pribadimu?"
+              ],
+              "jika_kesulitan": [
+                "Arahkan murid membaca teks model PBL-01 kembali sebagai rujukan alur penggabungan kalimat."
+              ],
+              "yang_diamati": [
+                "Keterbacaan dan keutuhan ide antarkalimat dalam menghubungkan rentetan peristiwa di buku tulis murid.",
+                "Ketepatan bentuk kata kerja lampau pada minimal 4 dari 5 kalimat serta kehadiran kata sambung urutan waktu sesuai indikator ASM-01."
+              ],
+              "putusan_lanjut": {
+                "jika_tercapai": "Tantang murid memperjelas detail deskripsi peristiwa atau variasi kosakata kata kerja agar ceritanya lebih hidup.",
+                "jika_belum": "Dampingi murid secara individual, tunjuk satu per satu kalimat yang kata kerjanya masih bentuk dasar, dan bimbing murid mengubahnya ke bentuk lampau."
+              }
+            }
+          ]
+        },
+        {
+          "nama": "MEREFLEKSI",
+          "sub_langkah": [
+            {
+              "ref": "P2.MEREFLEKSI.1",
+              "aksi_guru": [
+                "Tuliskan tiga pertanyaan cek mandiri di papan tulis: 1. Apakah ceritaku punya pembuka dan penutup? 2. Apakah ada kata sambung waktu? 3. Apakah kata kerjanya sudah bentuk lampau?",
+                "Minta murid membaca kembali drafnya dalam hati sambil mencocokkan dengan tiga pertanyaan tersebut.",
+                "Instruksikan murid menuliskan satu kalimat yang paling mereka sukai dari draf mereka di bagian paling bawah buku tulis."
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Baca drafmu dalam hati. Cocokkan dengan tiga pertanyaan di papan tulis.'",
+                "Katakan: 'Pilih satu kalimat dari ceritamu yang menurutmu paling keren dan tuliskan kembali di bagian paling bawah sebagai kalimat favoritmu.'"
+              ],
+              "pertanyaan_kunci": [
+                "Apakah pesan utama pengalamanmu sudah bisa dipahami dengan jelas oleh orang lain yang membacanya?"
+              ],
+              "jika_kesulitan": [
+                "Bimbing murid memeriksa kalimat penutupnya jika mereka belum yakin apakah ceritanya sudah tuntas atau belum."
+              ]
+            }
+          ]
+        },
+        {
+          "nama": "PENUTUP",
+          "sub_langkah": [
+            {
+              "ref": "P2.PENUTUP.1",
+              "aksi_guru": [
+                "Ajak murid mengangkat buku tulisnya untuk menunjukkan bahwa draf kasar telah berhasil mereka tulis.",
+                "Simpulkan bersama pentingnya kata hubung kronologis dan struktur tiga bagian teks nonfiksi.",
+                "Umumkan bahwa pada pertemuan berikutnya murid akan menulis teks pengalaman pribadi secara mandiri tanpa melihat draf atau contoh.",
+                "Tutup kegiatan pembelajaran dengan doa."
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Hebat sekali! Kalian semua sudah berhasil menyusun draf cerita pengalaman nonfiksi yang runtut hari ini.'",
+                "Katakan: 'Di pertemuan berikutnya, kita akan membuktikan kemampuan kalian dengan menulis mandiri sebuah cerita pengalaman pribadi utuh. Siapkan ingatan dan rasa percaya diri kalian. Let us pray together.'"
+              ],
+              "pertanyaan_kunci": [
+                "Kiat apa yang paling membantu kalian dalam merangkai kalimat menjadi paragraf hari ini?"
+              ],
+              "jika_kesulitan": [
+                "Kuatkan keyakinan murid bahwa jika mereka sudah bisa menyusun draf hari ini, mereka pasti mampu menulis mandiri di pertemuan berikutnya."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "nomor": 3,
+      "langkah": [
+        {
+          "nama": "PEMBUKA",
+          "sub_langkah": [
+            {
+              "ref": "P3.PEMBUKA.1",
+              "aksi_guru": [
+                "Buka pertemuan dengan salam hangat dan pimpin doa bersama.",
+                "Kondisikan kelas agar tenang, tertib, dan bersih dari benda yang tidak diperlukan.",
+                "Sampaikan tujuan unjuk kerja mandiri hari ini dengan nada tenang dan menyemangati untuk meredakan rasa cemas murid."
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Good morning everyone. Hari ini adalah kesempatan kalian untuk menuangkan pengalaman pribadi nyata kalian ke dalam teks bahasa Inggris yang utuh secara mandiri.'",
+                "Katakan: 'Jangan khawatir atau takut salah. Kalian sudah berlatih membuat kerangka dan merangkai kalimat di dua pertemuan sebelumnya. Kalian pasti bisa.'"
+              ],
+              "pertanyaan_kunci": [
+                "Siapa yang sudah punya ide pengalaman menarik yang ingin ditulis hari ini?"
+              ],
+              "jika_kesulitan": [
+                "Berikan senyuman dan kata penguat bahwa proses yang dinilai adalah kemandirian dan kejelasan cerita mereka."
+              ]
+            }
+          ]
+        },
+        {
+          "nama": "ASESMEN_AWAL",
+          "sub_langkah": [
+            {
+              "ref": "P3.ASESMEN_AWAL.1",
+              "aksi_guru": [
+                "Minta seluruh murid meletakkan tangan di dada sejenak untuk memusatkan konsentrasi.",
+                "Instruksikan murid menunjukkan jempol ke atas jika topik dan gambaran kejadian pengalaman pribadinya sudah siap di kepala.",
+                "Pastikan seluruh murid sudah memiliki gambaran topik nyata sebelum lembar kerja dimulai."
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Tarik napas dalam-dalam. Pejamkan mata sejenak dan ingat satu pengalaman nyata yang paling berkesan bagi kalian.'",
+                "Katakan: 'Angkat jempol kalian jika topiknya sudah siap di ingatan masing-masing.'"
+              ],
+              "pertanyaan_kunci": [
+                "Apakah peristiwa yang kalian pilih benar-benar pengalaman nyata yang kalian alami sendiri?"
+              ],
+              "jika_kesulitan": [
+                "Datangi murid yang ragu mengangkat jempol dan tanyakan secara berbisik: 'Ingin cerita tentang pengalaman menjahit, memasak, atau perjalanan kemarin?'"
+              ]
+            }
+          ]
+        },
+        {
+          "nama": "MEMAHAMI",
+          "sub_langkah": [
+            {
+              "ref": "P3.MEMAHAMI.1",
+              "aksi_guru": [
+                "Tuliskan kriteria yang dinilai di papan tulis mengacu langsung pada indikator ASM-02: 1. Kelengkapan 3 bagian alur (orientasi, rentetan peristiwa, penutup); 2. Ketepatan bentuk kata kerja lampau pada minimal 4 dari 5 kalimat; 3. Penggunaan kata penghubung urutan waktu; 4. Kejelasan makna gagasan cerita; 5. Kerapian dan keutuhan pesan.",
+                "Jelaskan aturan unjuk kerja: kerja mandiri, tidak menyontek draf sebelumnya, dan memeriksa kembali tulisan sebelum dikumpulkan.",
+                "Tegaskan bahwa murid menulis di lembar kertas bergaris atau buku tulis masing-masing."
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Perhatikan hal-hal yang dinilai di papan tulis. Teks kalian harus memiliki tiga bagian lengkap: pembuka, peristiwa, dan penutup. Gunakan minimal 4 kalimat bentuk lampau yang tepat, serta sambungkan ceritamu dengan kata urutan waktu.'",
+                "Katakan: 'Kalian menulis secara mandiri di buku tulis atau kertas bergaris masing-masing tanpa membuka catatan latihan sebelumnya.'"
+              ],
+              "pertanyaan_kunci": [
+                "Berapa bagian struktur utama yang harus ada dalam tulisan kalian nanti?",
+                "Berapa minimal kalimat lampau yang harus ditulis dengan benar?"
+              ],
+              "jika_kesulitan": [
+                "Tunjuk kembali poin indikator penulisan di papan tulis agar murid paham kriteria yang diharapkan."
+              ]
+            }
+          ]
+        },
+        {
+          "nama": "MENGAPLIKASI",
+          "sub_langkah": [
+            {
+              "ref": "P3.MENGAPLIKASI.1",
+              "aksi_guru": [
+                "Instruksikan murid menyiapkan kertas kerja dan alat tulis di meja.",
+                "Minta murid membuat bagan alur tiga kotak sederhana secara mandiri di bagian atas kertas sebagai draf alur berpikir.",
+                "Pantau agar murid mulai mencatat poin kata kunci alur peristiwanya sendiri secara tertib."
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Mulai dengan membuat sketsa alur tiga bagian di bagian atas kertasmu: pembuka, peristiwa utama, dan simpulan. Tuliskan poin-poin singkat kejadiannya lebih dulu secara mandiri.'"
+              ],
+              "pertanyaan_kunci": [
+                "Apakah kamu sudah membagi alur ceritamu ke dalam urutan kejadian yang jelas?"
+              ],
+              "jika_kesulitan": [
+                "Ingatkan murid untuk menuliskan kata kunci kegiatannya saja terlebih dahulu di tiap kotak sebelum membuat kalimat lengkap."
+              ]
+            },
+            {
+              "ref": "P3.MENGAPLIKASI.2",
+              "aksi_guru": [
+                "Instruksikan murid mulai menulis teks nonfiksi pengalaman pribadi utuh pada lembar kerja masing-masing secara mandiri.",
+                "Bawa matriks penilaian unjuk kerja ASM-02 dan berkeliling memantau keseriusan dan proses penulisan seluruh murid.",
+                "Catat capaian tiap murid pada rubrik ASM-02 mencakup kelengkapan 3 bagian teks, ketepatan kata kerja lampau, kata sambung waktu, dan kejelasan pesan.",
+                "Jaga suasana kelas tetap hening dan fokus hingga batas waktu penulisan selesai."
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Silakan mulai menulis teks utuh pengalaman pribadimu. Tuliskan dengan jujur, runtut, dan gunakan kata kerja lampau dengan cermat.'",
+                "Katakan: 'Fokus pada karyamu sendiri. Bila selesai lebih awal, baca ulang dan periksa kembali tanda baca serta ejaan kalimatmu.'"
+              ],
+              "pertanyaan_kunci": [
+                "Apakah seluruh kalimat yang kamu buat sudah membentuk cerita yang padu dan mudah dimengerti?"
+              ],
+              "jika_kesulitan": [
+                "Beri isyarat tenang kepada murid yang terlihat gugup dan bisikkan untuk membaca kembali kalimat yang sudah ditulisnya dari awal."
+              ]
+            }
+          ]
+        },
+        {
+          "nama": "MEREFLEKSI",
+          "sub_langkah": [
+            {
+              "ref": "P3.MEREFLEKSI.1",
+              "aksi_guru": [
+                "Minta murid meletakkan pulpen setelah tulisan selesai.",
+                "Instruksikan murid menuliskan satu kalimat refleksi singkat di bagian paling bawah kertas kerja mereka: 'Satu hal yang paling berkembang dari kemampuan menulis bahasa Inggris saya adalah...'",
+                "Beri waktu murid merenungkan kemajuan belajar mereka dari pertemuan pertama hingga hari ini."
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Waktu menulis selesai. Di baris paling bawah lembar kerjamu, tuliskan satu kalimat refleksi: kemajuan apa yang paling kalian rasakan dalam menulis bahasa Inggris sejak pertemuan pertama hingga hari ini?'"
+              ],
+              "pertanyaan_kunci": [
+                "Perubahan apa yang paling kalian rasakan saat menulis cerita pengalaman hari ini dibandingkan saat pertama kali belajar?"
+              ],
+              "jika_kesulitan": [
+                "Berikan opsi pemantik: apakah lebih mudah mengingat kata kerja lampau, lebih paham urutan cerita, atau lebih percaya diri menulis kalimat sendiri."
+              ]
+            }
+          ]
+        },
+        {
+          "nama": "PENUTUP",
+          "sub_langkah": [
+            {
+              "ref": "P3.PENUTUP.1",
+              "aksi_guru": [
+                "Kumpulkan seluruh lembar kerja hasil tulisan mandiri murid ke meja guru dengan tertib.",
+                "Berikan tepuk tangan dan apresiasi tulus atas keberanian dan kemandirian seluruh murid dalam menulis teks nonfiksi bahasa Inggris.",
+                "Sampaikan pesan penguatan bahwa kemampuan menulis pengalaman pribadi adalah keterampilan berharga untuk masa depan dan dunia kerja.",
+                "Pimpin doa syukur bersama untuk mengakhiri rangkaian tiga pertemuan pembelajaran."
+              ],
+              "ucapan_guru": [
+                "Katakan: 'Kumpulkan kertas kerja kalian ke depan meja secara rapi.'",
+                "Katakan: 'Beri tepuk tangan meriah untuk diri kalian semua! Hari ini kalian telah membuktikan bahwa kalian mampu menulis teks nonfiksi pengalaman pribadi dalam bahasa Inggris secara mandiri, lengkap, dan runtut.'",
+                "Katakan: 'Teruslah berlatih menulis. Mari kita akhiri pembelajaran kita dengan berdoa bersama. Thank you very much everyone, and see you next time!'"
+              ],
+              "pertanyaan_kunci": [
+                "Siapa yang merasa lebih bangga setelah berhasil menyelesaikan tulisan bahasa Inggrisnya hari ini?"
+              ],
+              "jika_kesulitan": [
+                "Beri tepukan di bahu murid yang masih merasa ragu dengan hasilnya dan katakan bahwa setiap usaha mandiri adalah langkah kemajuan yang nyata."
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "instrumen_pembelajaran": [
+    {
+      "id": "PBL-01",
+      "judul": "Contoh Teks Pengalaman Pribadi: My First Sewing Project",
+      "jenis": "teks_autentik",
+      "untuk_murid": true,
+      "digunakan_pada": [
+        "P1.MEMAHAMI",
+        "P2.MEMAHAMI"
+      ],
+      "konten_murid": {
+        "isi_teks": "Last Sunday, I decided to make a simple tote bag at home. First, I prepared a piece of cotton fabric, scissors, and sewing thread. Next, I measured and cut the fabric carefully according to the pattern. After that, I stitched both sides using a portable sewing machine. Finally, I attached the handles and ironed the bag neatly. I felt very proud because the finished bag looked clean and sturdy.",
+        "pertanyaan_panduan": [
+          "What did the writer do first before stitching the fabric?",
+          "Find three action verbs in the past tense used in the second paragraph.",
+          "Identify words that show the sequence of events in the text."
+        ]
+      },
+      "panduan_guru": {
+        "nama_entitas": "Lembar Bacaan Pengalaman Pribadi",
+        "catatan_konteks": "Teks ini digunakan untuk memodelkan struktur teks recount sederhana yang memadukan aktivitas sehari-hari dengan keterampilan dasar menjahit, membantu murid mencermati urutan peristiwa dan kata kerja bentuk lampau."
+      }
+    },
+    {
+      "id": "PBL-02",
+      "judul": "Lembar Panduan Kerangka dan Perangkai Kalimat Pengalaman",
+      "jenis": "custom",
+      "untuk_murid": true,
+      "digunakan_pada": [
+        "P1.MENGAPLIKASI",
+        "P2.MENGAPLIKASI"
+      ],
+      "konten_murid": {
+        "petunjuk": "Gunakan panduan berikut untuk menyusun draf cerita pengalamanmu ke dalam tiga bagian alur yang runtut dan lima kalimat lampau.",
+        "pola_penanda_waktu": [
+          "First,...",
+          "Next,...",
+          "Then,...",
+          "After that,...",
+          "Finally,..."
+        ],
+        "bank_kata_kerja": [
+          "bought",
+          "chose",
+          "cut",
+          "sewed",
+          "measured",
+          "ironed",
+          "felt",
+          "made"
+        ],
+        "panduan_struktur": [
+          "Bagian 1 (Orientasi): Kapan peristiwa terjadi dan apa yang ingin kamu buat?",
+          "Bagian 2 (Rangkaian Peristiwa): Tuliskan langkah-langkah yang kamu lakukan secara berurutan.",
+          "Bagian 3 (Penutup): Bagaimana perasaan atau hasil akhir dari pengalaman tersebut?"
+        ]
+      },
+      "panduan_guru": {
+        "tujuan": "Mendampingi murid merangkai ide secara mandiri dari kalimat tunggal menjadi draf paragraf utuh.",
+        "saran_fasilitasi": "Minta murid memilih minimal 5 kata kerja dari bank kata yang disediakan saat menyusun rentetan peristiwa."
+      }
+    }
+  ],
+  "instrumen_asesmen": [
+    {
+      "id": "ASM-01",
+      "judul": "Matriks Pengamatan Proses Menulis dan Latihan Terbimbing",
+      "jenis": "matriks_observasi",
+      "untuk_murid": false,
+      "digunakan_pada": [
+        "P1.MENGAPLIKASI",
+        "P2.MENGAPLIKASI"
+      ],
+      "konten_murid": null,
+      "panduan_guru": {
+        "kode_legend": "Centang (V) pada indikator yang terpenuhi oleh murid saat proses penulisan draf berlangsung.",
+        "kolom_indikator": [
+          {
+            "id": "IND-01",
+            "label": "Menuliskan bagian pembuka atau orientasi yang menyebutkan waktu dan latar peristiwa."
+          },
+          {
+            "id": "IND-02",
+            "label": "Menyusun rangkaian peristiwa secara urut menggunakan penanda waktu penghubung."
+          },
+          {
+            "id": "IND-03",
+            "label": "Menuliskan bagian penutup atau simpulan perasaan di akhir cerita."
+          },
+          {
+            "id": "IND-04",
+            "label": "Menggunakan minimal 4 kalimat dengan kata kerja bentuk lampau secara tepat."
+          },
+          {
+            "id": "IND-05",
+            "label": "Menunjukkan keterbacaan ide antarkalimat dalam rentetan kejadian."
+          }
+        ],
+        "catatan_kritis": "Fokus pengamatan diarahkan pada keberanian murid memilih bentuk kata kerja lampau dan keteraturan urutan peristiwa pada draf awal."
+      }
+    },
+    {
+      "id": "ASM-02",
+      "judul": "Matriks Penilaian Unjuk Kerja Penulisan Teks Nonfiksi Mandiri",
+      "jenis": "matriks_observasi",
+      "untuk_murid": false,
+      "digunakan_pada": [
+        "P3.MENGAPLIKASI"
+      ],
+      "konten_murid": null,
+      "panduan_guru": {
+        "kode_legend": "Skala amatan: Berkembang (1) - Cukup (2) - Mandiri (3) - Mahir (4)",
+        "kolom_indikator": [
+          {
+            "id": "IND-01",
+            "label": "Kelengkapan 3 bagian alur teks nonfiksi (orientasi, rentetan peristiwa, dan penutup)."
+          },
+          {
+            "id": "IND-02",
+            "label": "Ketepatan penggunaan bentuk kata kerja lampau pada minimal 4 dari 5 kalimat."
+          },
+          {
+            "id": "IND-03",
+            "label": "Kesesuaian penggunaan kata penghubung urutan waktu dalam menghubungkan peristiwa."
+          },
+          {
+            "id": "IND-04",
+            "label": "Kejelasan makna dan keterbacaan gagasan utama cerita secara keseluruhan."
+          },
+          {
+            "id": "IND-05",
+            "label": "Kerapian struktur paragraf dan keutuhan penyampaian pesan pengalaman pribadi."
+          }
+        ],
+        "catatan_kritis": "Guru mengamati teks hasil karya mandiri murid tanpa intervensi penyuntingan langsung selama waktu pengerjaan penilaian akhir."
+      }
+    }
+  ],
+  "tindak_lanjut": {
+    "pilihan_dukungan": [
+      "Guru mendampingi murid menuliskan kembali daftar kata kerja bentuk lampau sederhana di papan tulis sebagai rujukan mandiri saat menyusun kalimat.",
+      "Murid yang kesulitan merangkai alur dibimbing menentukan urutan kejadian menggunakan kata hubung waktu sederhana seperti first, next, dan then secara bertahap.",
+      "Guru mengajak murid menceritakan kembali ide pengalamannya secara lisan sebelum menuangkannya ke dalam draf kalimat bahasa Inggris."
+    ],
+    "dukungan_terstruktur": [
+      "Guru memandu penulisan kalimat per kalimat dengan menuliskan pola dasar kalimat lampau di papan tulis, lalu meminta murid mengganti kata kerja sesuai pengalamannya.",
+      "Guru mendampingi murid memeriksa kembali draf kerangka tulisan langkah demi langkah untuk memastikan bagian pembuka, rentetan peristiwa, dan penutup tersusun lengkap."
+    ],
+    "tantangan_lanjutan": [
+      "Murid yang sudah menyelesaikan draf lebih awal diminta memperkaya teks dengan menambahkan variasi kata sifat atau kata keterangan waktu yang lebih spesifik.",
+      "Murid diajak mengembangkan cerita pengalamannya menjadi dua paragraf terpadu dengan menambahkan ungkapan refleksi atau kesan pribadi di bagian akhir tulisan."
+    ]
+  },
+  "catatan_guru": [
+    "Lembar penulisan kerangka dan draf teks murid pada modul ini cukup menggunakan buku tulis atau selembar kertas bergaris biasa. Murid mencatat judul pengalaman, urutan peristiwa, dan kalimat draf secara berurutan tanpa memerlukan formulir cetak khusus.",
+    "Saat mengecek pemahaman murid di tengah proses belajar menggunakan ASM-01, fokuskan observasi pada keteraturan alur peristiwa dan penggunaan kata kerja lampau. Hindari langsung mencoret kesalahan ejaan minor agar murid tetap percaya diri menuangkan gagasannya.",
+    "Guru dapat menuliskan contoh kata kerja tindakan yang sering dijumpai dalam kegiatan sehari-hari atau praktik kejuruan di papan tulis sebagai bantuan visual. Hapus bantuan tersebut secara bertahap sebelum penilaian mandiri berlangsung.",
+    "Pada saat penilaian akhir unjuk kerja mandiri dengan ASM-02, pastikan setiap murid mengerjakan teksnya secara individual. Berikan waktu hening sekitar 10 menit di akhir kegiatan agar murid sempat membaca ulang dan memeriksa keutuhan tulisannya sendiri.",
+    "Catat pola kesalahan tata bahasa yang paling sering muncul pada draf tulisan murid sebagai data perbaikan pengajaran berikutnya. Masukan hasil pengamatan tersebut dapat dibahas secara ringkas bersama seluruh kelas pada awal pertemuan materi selanjutnya."
+  ],
+  "metadata_pedagogis": {
+    "dimensi_profil_lulusan": [
+      {
+        "dimensi": "Kemandirian",
+        "alasan": "Murid secara bertahap mengelola proses belajarnya sendiri dari latihan terbimbing hingga mampu menulis teks secara berdikari.",
+        "indikator": "Murid mampu menyelesaikan penulisan teks pengalaman pribadi secara mandiri tanpa bergantung pada bantuan terus-menerus."
+      },
+      {
+        "dimensi": "Komunikasi",
+        "alasan": "Fokus pembelajaran adalah menyampaikan gagasan dan pengalaman nyata kepada orang lain melalui ragam tulisan berbahasa Inggris.",
+        "indikator": "Murid menuangkan alur kejadian secara runtut dan menggunakan ungkapan tertulis yang dapat dipahami pembaca."
+      },
+      {
+        "dimensi": "Penalaran Kritis",
+        "alasan": "Murid perlu menyeleksi peristiwa penting, menyusun kronologi waktu, dan memilih bentuk kata kerja lampau yang tepat.",
+        "indikator": "Murid memeriksa dan memperbaiki urutan logis peristiwa serta ketepatan bentuk kebahasaan dalam draf tulisannya."
+      }
+    ],
+    "karakteristik_materi": {
+      "faktual": "Bentuk perubahan kata kerja reguler dan ireguler lampau sederhana serta penanda waktu lampau dalam bahasa Inggris.",
+      "konseptual": "Fungsi sosial penulisan teks nonfiksi pengalaman pribadi dan struktur generik teks (pembuka orientasi, peristiwa berurutan, dan simpulan).",
+      "prosedural": "Langkah merancang gagasan, membuat kerangka urutan waktu, menyusun draf kalimat lampau, dan menyunting keterbacaan teks."
+    },
+    "language_policy": {
+      "teacher_instruction": "Bahasa Indonesia digunakan sebagai bahasa pengantar utama dengan penyisipan instruksi kelas sederhana dalam Bahasa Inggris.",
+      "student_instruction": "Bahasa Inggris sederhana digunakan dalam penyusunan draf teks dan latihan kalimat tertulis.",
+      "target_language": "Bahasa Inggris"
+    }
+  },
+  "tp_anchor": {
+    "atp_induk_id": "m9-skenario-4",
+    "nomor_tp": 1,
+    "tp_judul": "Peserta didik mengomunikasikan gagasan dan pengalaman secara tertulis dalam teks nonfiksi sederhana berbahasa Inggris.",
+    "tuntutan": [
+      {
+        "id": "BIE-E25-MP-1",
+        "kompetensi": "mengomunikasikan gagasan dan pengalaman secara tertulis atau multimodal untuk mencapai tujuan tertentu dengan struktur teks dan unsur kebahasaan yang tepat",
+        "lingkup_materi": "berbagai jenis teks fiksi dan nonfiksi",
+        "cakupan_wajib": {
+          "kategori_teks": [
+            "fiksi",
+            "nonfiksi"
+          ]
+        }
+      }
+    ],
+    "kategori_teks": [
+      "nonfiksi"
+    ],
+    "semester": 1,
+    "jp_alokasi": 12,
+    "jp_pertemuan": [
+      4,
+      4,
+      4
+    ],
+    "versi_cp": "046/H/KR/2025",
+    "tuntutan_id": [
+      "BIE-E25-MP-1"
+    ],
+    "kategori_teks_wajib": [
+      "nonfiksi"
+    ]
+  },
+  "atp_context": {
+    "versi_cp": "046/H/KR/2025",
+    "semester": 1,
+    "kesiapan_murid": {
+      "nilai": "sedikit_di_bawah",
+      "asal": "keputusan_guru",
+      "arti": "sebagian murid sedikit di bawah prasyarat TP ini",
+      "dasar": "hasil penilaian sebelumnya"
+    },
+    "jumlah_murid": {
+      "nilai": 28,
+      "asal": "fakta"
+    },
+    "program_keahlian": {
+      "nilai": "Tata Busana",
+      "asal": "fakta"
+    },
+    "konteks_tugas": {
+      "nilai": "dominan_sehari_hari",
+      "asal": "keputusan_guru",
+      "arti": "sebagian besar contoh dan tugas berlatar kehidupan sehari-hari"
+    },
+    "prioritas_guru": [
+      {
+        "kunci": "kemandirian",
+        "arti": "kemandirian belajar",
+        "arahan": "kurangi bantuan secara bertahap"
+      },
+      {
+        "kunci": "literasi",
+        "arti": "penguatan literasi",
+        "arahan": "perbanyak membaca teks utuh"
+      }
+    ],
+    "penerapan_prioritas": {
+      "untuk_tp_ini": [
+        {
+          "prioritas": "kemandirian",
+          "kunci": "kemandirian",
+          "tp": [
+            1
+          ],
+          "pengaruh": [
+            "kegiatan"
+          ],
+          "alasan": "ATP menyatakan penekanan ini berlaku untuk TP ini."
+        }
+      ],
+      "seluruh_atp": [
+        {
+          "prioritas": "kemandirian",
+          "kunci": "kemandirian",
+          "tp": [
+            1
+          ],
+          "pengaruh": [
+            "kegiatan"
+          ],
+          "alasan": "Penekanan guru pada ATP."
+        },
+        {
+          "prioritas": "literasi",
+          "kunci": "literasi",
+          "tp": [
+            1
+          ],
+          "pengaruh": [
+            "kegiatan"
+          ],
+          "alasan": "Penekanan guru pada ATP."
+        }
+      ]
+    }
+  },
+  "alokasi_server": {
+    "pertemuan": [
+      4,
+      4,
+      4
+    ]
+  }
+}
