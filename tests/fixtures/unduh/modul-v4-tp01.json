@@ -1,0 +1,1242 @@
+{
+ "_asal": "Modul produksi fff9db36 (smoke 11 Sep 2026, akun uji milik pemilik), konten final V4 setelah koreksi perakitan M9. collected_data dibuang.",
+ "nomor_tp": 1,
+ "tp_judul": "Menyimak cerita lisan tentang perancang busana muda dan menemukan gagasan utama",
+ "konten": {
+  "alokasi_server": {
+   "jp_alokasi": 8,
+   "jp_per_pertemuan": 4,
+   "jp_pertemuan": [
+    4,
+    4
+   ],
+   "jumlah_pertemuan": 2,
+   "sumber": "anchor_server"
+  },
+  "atp_context": {
+   "jumlah_murid": {
+    "asal": "fakta",
+    "nilai": 10
+   },
+   "kesiapan_murid": {
+    "arti": "Sebagian besar murid sudah siap memulai fase ini.",
+    "asal": "fakta",
+    "dasar": "Gambaran kesiapan ini berasal dari pengamatan dan pengalaman mengajar guru.",
+    "nilai": "sesuai"
+   },
+   "konteks_tugas": {
+    "arti": "Contoh dan tugas dibagi seimbang antara kehidupan sehari-hari dan situasi kerja.",
+    "asal": "keputusan_guru",
+    "nilai": "seimbang"
+   },
+   "penerapan_prioritas": {
+    "seluruh_atp": [
+     {
+      "alasan": "TP berfokus pada simulasi komunikasi kerja busana nyata seperti layanan pelanggan butik, pembacaan lembar kerja pola, penulisan portofolio produk, dan penanganan keluhan mutu jahitan.",
+      "kunci": "pkl_kerja",
+      "pengaruh": [
+       "latar contoh dan tugas",
+       "penekanan isi"
+      ],
+      "prioritas": "kesiapan PKL dan dunia kerja",
+      "tp": [
+       2,
+       4,
+       9,
+       11,
+       12
+      ]
+     }
+    ],
+    "untuk_tp_ini": []
+   },
+   "prioritas_guru": [
+    {
+     "arahan": "situasi kerja nyata yang relevan bagi program keahlian, dalam porsi yang diizinkan keputusan konteks contoh dan tugas",
+     "arti": "kesiapan PKL dan dunia kerja",
+     "kunci": "pkl_kerja"
+    }
+   ],
+   "program_keahlian": {
+    "asal": "fakta",
+    "nilai": "Busana"
+   },
+   "semester": 1,
+   "versi_cp": "046/H/KR/2025"
+  },
+  "catatan_guru": [
+   "Lembar catatan dan lembar pengerjaan murid pada modul ini memakai buku tulis atau kertas biasa. Murid mencatat kata kunci, gagasan utama, serta urutan peristiwa tanpa memerlukan formulir cetak khusus.",
+   "Saat sesi menyimak berlangsung, guru membacakan naskah dengan artikulasi jernih dan tempo yang tenang. Hindari memperlihatkan teks naskah kepada murid agar fokus menyimak lisan tetap terjaga.",
+   "Seluruh materi menyimak dan butir soal telah tersedia pada instrumen ASM-01 dan ASM-02. Guru tidak perlu memutar rekaman video atau menyiapkan audio tambahan di luar naskah bacaan yang disediakan.",
+   "Dengan jumlah murid sebanyak 10 orang, guru dapat memantau catatan setiap murid secara langsung dan memberikan umpan balik langsung saat latihan berlangsung.",
+   "Jika murid ragu menentukan urutan alur peristiwa busana, ingatkan kembali kata penanda urutan waktu seperti first, after that, dan finally yang diucapkan dalam cerita."
+  ],
+  "identitas": {
+   "alokasi_waktu_total_menit": 360,
+   "dasar_cp": "Menyimak - Berbicara: Memahami alur informasi secara keseluruhan, gagasan utama dan detail dalam teks lisan fiksi dan non fiksi mengenai berbagai macam topik yang relevan dengan topik sehari-hari atau isu terkini; menggunakan bahasa Inggris untuk mengungkapkan pendapat dan mempertahankan argumen tentang topik yang dibahas.\n\nMembaca - Memirsa: Memahami alur informasi secara keseluruhan, menganalisis dan menyimpulkan informasi tersurat dan tersirat dari berbagai jenis teks fiksi dan non fiksi tertulis atau teks multimodal tentang topik sehari-hari atau isu terkini.\n\nMenulis - Mempresentasikan: Mengomunikasikan gagasan dan pengalaman mereka secara tertulis atau multimodal dalam berbagai jenis teks fiksi dan nonfiksi dengan menggunakan berbagai media presentasi (cetak atau digital) untuk mencapai tujuan tertentu dengan struktur teks dan unsur kebahasaan yang tepat; mengungkapkan pendapat dan mempertahankan argumen tentang topik sehari-hari atau isu terkini.",
+   "durasi_jp_menit": 45,
+   "elemen_cp": [
+    "Menyimak - Berbicara",
+    "Membaca - Memirsa",
+    "Menulis - Mempresentasikan"
+   ],
+   "fase": "E",
+   "jenis_dokumen": "Modul Induk; guru mengadaptasi konteks kelas dan program keahlian",
+   "jenjang": "SMK",
+   "jp_per_pertemuan": 4,
+   "jumlah_pertemuan": 2,
+   "konteks_kejuruan": {
+    "bidang_keahlian": "Seni dan Ekonomi Kreatif",
+    "konsentrasi_keahlian": null,
+    "program_keahlian": "Busana"
+   },
+   "mata_pelajaran": "Bahasa Inggris",
+   "nomor_tp": 1,
+   "tujuan_pembelajaran": "Menyimak cerita lisan tentang perancang busana muda dan menemukan gagasan utama"
+  },
+  "instrumen_asesmen": [
+   {
+    "digunakan_pada": [
+     "P1.MENGAPLIKASI"
+    ],
+    "id": "ASM-01",
+    "jenis": "soal_latihan",
+    "judul": "Lembar Latihan Menyimak: Sarah's Eco-Fashion Breakthrough",
+    "konten_murid": {
+     "petunjuk": "Dengarkan cerita lisan yang dibacakan guru, lalu jawab pertanyaan gagasan utama dan urutkan alur peristiwa berikut.",
+     "soal": [
+      {
+       "nomor": 1,
+       "pertanyaan": "What is the main idea of the story about Sarah?",
+       "tipe": "pilihan ganda"
+      },
+      {
+       "nomor": 2,
+       "pertanyaan": "Chronological stage 1 (Beginning): How did Sarah begin her design journey?",
+       "tipe": "uraian singkat"
+      },
+      {
+       "nomor": 3,
+       "pertanyaan": "Chronological stage 2 (Problem): What obstacle did Sarah encounter?",
+       "tipe": "uraian singkat"
+      },
+      {
+       "nomor": 4,
+       "pertanyaan": "Chronological stage 3 (Climax/Action): What action did Sarah take using silk scraps and sashiko stitching?",
+       "tipe": "uraian singkat"
+      },
+      {
+       "nomor": 5,
+       "pertanyaan": "Chronological stage 4 (Resolution): How did the judges react at the youth showcase?",
+       "tipe": "uraian singkat"
+      }
+     ]
+    },
+    "panduan_guru": {
+     "kunci_jawaban": [
+      "1. A young designer creates an innovative eco-friendly dress from fabric scraps (Gagasan utama tepat).",
+      "2. Sarah planned to create a sustainable evening gown.",
+      "3. She lacked affordable sustainable fabrics.",
+      "4. She gathered silk scraps from a garment factory and assembled them with sashiko stitching.",
+      "5. Judges praised her creativity and zero-waste concept."
+     ],
+     "panduan_penskoran": "Gagasan utama (soal 1) dinilai tepat jika mencakup inti upaya pembuatan busana ramah lingkungan Sarah (skor 1). Alur peristiwa (soal 2-5) dinilai berdasarkan ketepatan mengurutkan 4 tahapan kejadian (skor 1 per tahapan yang runtut)."
+    },
+    "untuk_murid": true
+   },
+   {
+    "digunakan_pada": [
+     "P2.MENGAPLIKASI"
+    ],
+    "id": "ASM-02",
+    "jenis": "soal_latihan",
+    "judul": "Lembar Tes Penilaian Akhir Menyimak: Rian's Heritage Runway Collection",
+    "konten_murid": {
+     "petunjuk": "Dengarkan cerita lisan yang dibacakan guru secara saksama, kemudian kerjakan seluruh butir soal di bawah ini.",
+     "soal": [
+      {
+       "nomor": 1,
+       "pertanyaan": "What is the main idea of the story about Rian's collection?",
+       "tipe": "pilihan ganda"
+      },
+      {
+       "nomor": 2,
+       "pertanyaan": "Put the 4 chronological stages in order: (A) Rian altered the darts and cuffs, (B) Rian prepared a Lurik and denim jacket, (C) The client requested a fitted silhouette, (D) Senior editors praised the jacket on runway day.",
+       "tipe": "mengurutkan"
+      },
+      {
+       "nomor": 3,
+       "pertanyaan": "What two fabrics did Rian combine in his jacket design?",
+       "tipe": "isian singkat"
+      },
+      {
+       "nomor": 4,
+       "pertanyaan": "What specific pattern alteration did the client ask for one week before the show?",
+       "tipe": "isian singkat"
+      },
+      {
+       "nomor": 5,
+       "pertanyaan": "Which pattern parts did Rian modify during overtime work?",
+       "tipe": "isian singkat"
+      },
+      {
+       "nomor": 6,
+       "pertanyaan": "What specific qualities did the senior fashion editors compliment at the runway show?",
+       "tipe": "isian singkat"
+      }
+     ]
+    },
+    "panduan_guru": {
+     "kunci_jawaban": [
+      "1. A young tailor successfully alters and showcases a heritage-modern jacket despite urgent client demands.",
+      "2. Urutan kronologis yang benar: (B) -> (C) -> (A) -> (D).",
+      "3. Traditional handwoven Lurik and denim.",
+      "4. A fitted silhouette instead of an oversized pattern.",
+      "5. Front darts and sleeve cuffs.",
+      "6. Neat cutting and balanced proportions."
+     ],
+     "panduan_penskoran": "K1 diukur pada soal 1 (1 butir gagasan utama). K2 diukur pada soal 2 yang mencakup 4 tahapan alur runtut (skor 4 jika semua tahapan urut). K3 diukur pada soal 3 sampai 6 yang memuat 4 butir detail teknis rancangan busana (skor 1 per detail jawaban benar)."
+    },
+    "untuk_murid": true
+   }
+  ],
+  "instrumen_pembelajaran": [
+   {
+    "digunakan_pada": [
+     "P1.MEMAHAMI",
+     "P1.MENGAPLIKASI"
+    ],
+    "id": "PBL-01",
+    "jenis": "teks_autentik",
+    "judul": "Teks Cerita Lisan: Sarah's Eco-Fashion Breakthrough",
+    "konten_murid": {
+     "isi_teks": "Sarah was a young fashion designer from a vocational school who wanted to create an eco-friendly evening dress. At first, she struggled to find affordable sustainable fabrics in her small workshop. After visiting a local garment factory, she collected leftover silk scraps and patched them using sashiko stitching techniques. When she presented the finished cocktail gown at the local youth showcase, the judges praised both her creativity and zero-waste concept.",
+     "pertanyaan_panduan": [
+      "Who is the main character and what did she want to create?",
+      "What main problem did Sarah face in making the dress?",
+      "What is the main idea of Sarah's story?"
+     ]
+    },
+    "panduan_guru": {
+     "catatan_konteks": "Teks fiksi naratif yang dibacakan oleh guru secara lisan sebanyak 2-3 kali dengan intonasi jelas untuk melatih kemampuan menyimak gagasan utama dan alur cerita.",
+     "nama_entitas": "Rumah Mode Kreatif Mandiri"
+    },
+    "untuk_murid": true
+   },
+   {
+    "digunakan_pada": [
+     "P2.MEMAHAMI",
+     "P2.MENGAPLIKASI"
+    ],
+    "id": "PBL-02",
+    "jenis": "teks_autentik",
+    "judul": "Teks Cerita Lisan: Rian's Heritage Runway Collection",
+    "konten_murid": {
+     "isi_teks": "Rian, an apprentice tailor at a boutique atelier, prepared a modern casual jacket combining traditional handwoven Lurik with denim. A week before the runway, his client requested a fitted silhouette instead of the original oversized pattern. Rian worked overtime to alter the front darts and sleeve cuffs without damaging the handwoven motifs. On the fashion show day, his jacket received praise from senior fashion editors for its neat cutting and balanced proportions.",
+     "pertanyaan_panduan": [
+      "What garment did Rian design and what materials did he combine?",
+      "How did Rian solve the client's last-minute request?",
+      "What is the main message or core idea behind Rian's runway collection?"
+     ]
+    },
+    "panduan_guru": {
+     "catatan_konteks": "Teks fiksi naratif lisan kedua yang dibacakan guru sebagai bahan asesmen akhir untuk mengukur ketuntasan menemukan gagasan utama, alur kronologis, dan detail rancangan.",
+     "nama_entitas": "Atelier Busana Wastra Nusantara"
+    },
+    "untuk_murid": true
+   }
+  ],
+  "keputusan_kontekstual": [
+   {
+    "id": "KTX-01",
+    "keputusan": "Menyajikan cerita lisan dengan kecepatan berbicara wajar dan pelafalan jelas menggunakan pengeras suara tanpa menyederhanakan struktur alur teks.",
+    "komponen_terdampak": [
+     "pertemuan:1",
+     "kktp:K1"
+    ],
+    "penerapan": "Guru membacakan atau memperdengarkan rekaman lisan naratif secara langsung dengan jeda wajar antarperistiwa.",
+    "sumber": {
+     "jenis": "kesiapan_murid",
+     "kunci": "sesuai"
+    }
+   },
+   {
+    "id": "KTX-02",
+    "keputusan": "Menghubungkan alur cerita fiksi perancang busana muda dengan pengalaman kreatif di studio busana dan dinamika keseharian remaja.",
+    "komponen_terdampak": [
+     "instrumen:PBL-01",
+     "pertemuan:1"
+    ],
+    "penerapan": "Tokoh utama dalam cerita menghadapi tantangan menata koleksi gaun pameran sambil mengatur waktu pribadi.",
+    "sumber": {
+     "jenis": "konteks_tugas",
+     "kunci": "seimbang"
+    }
+   },
+   {
+    "id": "KTX-03",
+    "keputusan": "Mengintegrasikan tahapan kerja pembuatan busana seperti pembuatan sketsa, pemilihan kain, dan pas pasang (fitting) ke dalam plot narasi.",
+    "komponen_terdampak": [
+     "instrumen:PBL-02",
+     "kktp:K3"
+    ],
+    "penerapan": "Detail informasi yang diuji pada asesmen mencakup istilah dan tahapan teknis pembuatan busana yang relevan dengan kejuruan.",
+    "sumber": {
+     "jenis": "program_keahlian",
+     "kunci": "Busana"
+    }
+   }
+  ],
+  "kktp": [
+   {
+    "ambang_batas": "1 dari 1 gagasan utama teridentifikasi dengan tepat",
+    "id_kktp": "K1",
+    "instrumen_bukti": [
+     "ASM-01",
+     "ASM-02"
+    ],
+    "keputusan_ketercapaian": {
+     "deskripsi": "Murid mampu menentukan 1 gagasan utama cerita secara tepat berdasarkan inti persoalan yang dihadapi tokoh perancang busana.",
+     "jenis": "jumlah",
+     "nilai_minimum": 1,
+     "satuan": "gagasan utama yang tepat dari 1 cerita"
+    },
+    "kriteria": "Menemukan gagasan utama dari cerita lisan tentang perancang busana muda yang disimak.",
+    "tuntutan_ref": [
+     "BIE-E25-MB-1"
+    ]
+   },
+   {
+    "ambang_batas": "3 dari 4 tahapan alur diurutkan secara tepat",
+    "id_kktp": "K2",
+    "instrumen_bukti": [
+     "ASM-01",
+     "ASM-02"
+    ],
+    "keputusan_ketercapaian": {
+     "deskripsi": "Murid menyusun alur cerita (awal, kemunculan masalah, klimaks rancangan, penyelesaian) dengan benar.",
+     "jenis": "jumlah",
+     "nilai_minimum": 3,
+     "satuan": "urutan tahapan alur yang tepat dari 4 tahapan"
+    },
+    "kriteria": "Mengidentifikasi alur peristiwa secara kronologis dalam cerita fiksi lisan perancang busana muda.",
+    "tuntutan_ref": [
+     "BIE-E25-MB-1"
+    ]
+   },
+   {
+    "ambang_batas": "3 dari 4 butir detail informasi dijawab dengan benar",
+    "id_kktp": "K3",
+    "instrumen_bukti": [
+     "ASM-01",
+     "ASM-02"
+    ],
+    "keputusan_ketercapaian": {
+     "deskripsi": "Murid menjawab butir pertanyaan seputar detail bahan, inspirasi rancangan, atau tanggapan pelanggan yang disampaikan lisan.",
+     "jenis": "jumlah",
+     "nilai_minimum": 3,
+     "satuan": "butir pertanyaan detail yang dijawab benar dari 4 pertanyaan"
+    },
+    "kriteria": "Menemukan detail informasi mengenai proses merancang dan ciri karya busana yang disebutkan dalam cerita lisan.",
+    "tuntutan_ref": [
+     "BIE-E25-MB-1"
+    ]
+   }
+  ],
+  "konteks_murid": {
+   "input_guru": {
+    "jumlah_murid": 10,
+    "kondisi_kelas": "Kemampuan murid relatif seragam"
+   },
+   "kebutuhan_dukungan": [
+    "Pengulangan pelafalan istilah teknis busana dalam konteks kalimat.",
+    "Pemberian penanda transisi alur saat cerita dibacakan."
+   ],
+   "kesiapan_awal": [
+    "Murid sudah terbiasa menyimak frasa sederhana dalam bahasa Inggris sehari-hari.",
+    "Murid telah mengenal istilah dasar busana seperti sketch, fabric, pattern, dan runway."
+   ],
+   "variasi_kemampuan": "Kemampuan murid relatif merata dengan kesiapan dasar menyimak yang cukup untuk mengikuti teks fiksi naratif lisan."
+  },
+  "materi_esensial": {
+   "konsep_utama": [
+    "Gagasan utama merupakan pokok permasalahan atau pesan sentral dari keseluruhan cerita lisan.",
+    "Alur naratif tersusun dari orientasi, komplikasi rancangan busana, dan penyelesaian.",
+    "Detail tersirat dan tersurat mendukung keutuhan informasi dalam cerita fiksi kejuruan."
+   ],
+   "kosakata_kunci": [
+    "fashion designer",
+    "sketch",
+    "fabric collection",
+    "runway",
+    "tailoring",
+    "pattern making"
+   ],
+   "lingkup_materi": [
+    "Teks fiksi naratif lisan mengenai perjalanan karier perancang busana muda.",
+    "Gagasan utama (main idea) dalam tuturan naratif lisan.",
+    "Detail pendukung (supporting details) terkait proses kreatif pembuatan busana."
+   ]
+  },
+  "metadata_pedagogis": {
+   "dimensi_profil_lulusan": [
+    {
+     "alasan": "Kompetensi menyimak menuntut murid mencerna pesan lisan berbahasa Inggris secara saksama dan meresponsnya kembali melalui pemahaman yang akurat.",
+     "dimensi": "Komunikasi",
+     "indikator": "Murid mampu menyimak secara aktif dan menuliskan kembali gagasan utama serta detail cerita secara lisan maupun tertulis."
+    }
+   ],
+   "karakteristik_materi": {
+    "faktual": "Istilah teknis seputar pembuatan pakaian, nama perlengkapan busana, dan latar peragaan busana dalam narasi.",
+    "konseptual": "Struktur naratif fiksi lisan (pengenalan tokoh, konflik pembuatan busana, penyelesaian) dan konsep gagasan utama.",
+    "prosedural": "Langkah menyimak selektif untuk mencatat kata kunci penting dan menyimpulkan gagasan pokok cerita lisan."
+   },
+   "language_policy": {
+    "student_instruction": "Murid mengikuti instruksi dalam Bahasa Inggris dan boleh bertanya dalam Bahasa Indonesia.",
+    "target_language": "Bahasa Inggris",
+    "teacher_instruction": "Guru menjelaskan konsep dalam Bahasa Indonesia dan memberi instruksi kelas dalam Bahasa Inggris."
+   }
+  },
+  "naskah_fasilitasi": [
+   {
+    "langkah": [
+     {
+      "nama": "PEMBUKA",
+      "sub_langkah": [
+       {
+        "aksi_guru": [
+         "Menyapa murid dengan ramah dan meminta ketua kelas memimpin doa pembuka.",
+         "Memeriksa kesiapan meja praktik dan meminta murid merapikan buku tulis serta alat tulis agar fokus menyimak."
+        ],
+        "jika_kesulitan": [
+         "Menenangkan suasana dengan meminta semua murid meletakkan benda yang tidak diperlukan ke dalam tas."
+        ],
+        "pertanyaan_kunci": [
+         "Are you ready to listen and learn today?"
+        ],
+        "ref": "P1.PEMBUKA.1",
+        "ucapan_guru": [
+         "Katakan: 'Good morning, everyone. Before we begin our lesson today, let's pray together.'",
+         "Katakan: 'Please prepare your notebook and pen on your table. Make sure our room is quiet and ready for listening.'"
+        ]
+       },
+       {
+        "aksi_guru": [
+         "Menyalakan rekaman audio suasana belakang panggung peragaan busana sesaat melalui pengeras suara.",
+         "Menjelaskan keterkaitan suara tersebut dengan tujuan belajar hari ini, yaitu menangkap pesan dan perjalanan perancang busana muda lewat cerita yang didengar."
+        ],
+        "jika_kesulitan": [
+         "Memberi pancingan sederhana dengan menyebutkan aktivitas peragaan busana atau kesibukan persiapan busana di panggung."
+        ],
+        "pertanyaan_kunci": [
+         "What situation comes to your mind when you hear backstage sounds like that?"
+        ],
+        "ref": "P1.PEMBUKA.2",
+        "ucapan_guru": [
+         "Katakan: 'Listen carefully to this background sound. What kind of situation do you imagine?'",
+         "Katakan: 'Hari ini kita akan menyimak sebuah cerita menarik tentang perancang busana muda. Target kita adalah mampu menemukan gagasan utama cerita dan mengenali tahapan alur peristiwanya.'"
+        ]
+       }
+      ]
+     },
+     {
+      "nama": "ASESMEN_AWAL",
+      "sub_langkah": [
+       {
+        "aksi_guru": [
+         "Membacakan dua kalimat pendek dalam bahasa Inggris tentang seorang penjahit muda yang kehabisan bahan kain.",
+         "Meminta beberapa murid menebak tema persoalan secara lisan tanpa menilai benar atau salah sebagai pemetaan awal."
+        ],
+        "jika_kesulitan": [
+         "Mengulangi kalimat dengan intonasi yang memberi penekanan pada kata 'no expensive fabrics'."
+        ],
+        "pertanyaan_kunci": [
+         "What is the main problem faced by the tailor in those sentences?"
+        ],
+        "ref": "P1.ASESMEN_AWAL.1",
+        "ucapan_guru": [
+         "Katakan: 'Please listen to these two sentences: A young tailor wants to sew a gown, but she has no expensive fabrics left. What is her problem?'",
+         "Katakan: 'Tidak perlu takut salah, sebutkan saja kata kunci atau inti masalah yang kalian tangkap.'"
+        ]
+       }
+      ]
+     },
+     {
+      "nama": "MEMAHAMI",
+      "sub_langkah": [
+       {
+        "aksi_guru": [
+         "Membacakan naskah narasi PBL-01 secara lisan dengan lafal yang jelas dan tempo sedang.",
+         "Meminta murid menyimak dengan saksama tanpa membuka catatan terlebih dahulu."
+        ],
+        "jika_kesulitan": [
+         "Menuliskan istilah 'eco-friendly evening dress' di papan tulis untuk membantu murid menghubungkan suara dengan maknanya."
+        ],
+        "pertanyaan_kunci": [
+         "Who is the main character in the story?",
+         "What kind of dress did Sarah want to create?"
+        ],
+        "ref": "P1.MEMAHAMI.1",
+        "ucapan_guru": [
+         "Katakan: 'Now, please listen carefully to the first story from PBL-01. Focus on who the character is and what she wants to create.'",
+         "Katakan: 'Sarah was a young fashion designer from a vocational school who wanted to create an eco-friendly evening dress. At first, she struggled to find affordable sustainable fabrics in her small workshop.'"
+        ]
+       },
+       {
+        "aksi_guru": [
+         "Menuliskan kata penanda transisi alur di papan tulis, seperti 'at first', 'after', dan 'when'.",
+         "Memodelkan cara menghubungkan penanda urutan tersebut untuk memetakan alur dari masalah menuju penyelesaian."
+        ],
+        "jika_kesulitan": [
+         "Membuat garis panah sederhana di papan tulis yang menghubungkan kata 'At first (masalah)' menuju 'After (tindakan)' dan 'When (hasil/penyelesaian)'."
+        ],
+        "pertanyaan_kunci": [
+         "How do words like 'after' and 'when' help us follow the story?"
+        ],
+        "ref": "P1.MEMAHAMI.2",
+        "ucapan_guru": [
+         "Katakan: 'Notice words like At first, After, and When. Kata-kata ini adalah penanda penting saat kita menyimak alur cerita.'",
+         "Katakan: 'Look at the board. Gagasan utama bukan sekadar kalimat pertama, melainkan inti dari apa yang diperjuangkan tokoh dan hasil akhirnya.'"
+        ]
+       }
+      ]
+     },
+     {
+      "nama": "MENGAPLIKASI",
+      "sub_langkah": [
+       {
+        "aksi_guru": [
+         "Meminta murid berpasangan dengan teman sebangku.",
+         "Menugaskan setiap pasangan menuliskan kembali empat tahapan peristiwa dari cerita Sarah di buku catatan masing-masing."
+        ],
+        "jika_kesulitan": [
+         "Membimbing pasangan yang terhenti dengan melontarkan pertanyaan: 'Bahan apa yang Sarah temukan di pabrik garmen?'"
+        ],
+        "pertanyaan_kunci": [
+         "What action did Sarah take after visiting the local garment factory?"
+        ],
+        "ref": "P1.MENGAPLIKASI.1",
+        "ucapan_guru": [
+         "Katakan: 'Work in pairs with your seatmate. Discuss the four stages of Sarah's journey in your notebook.'",
+         "Katakan: 'Diskusikan apa yang terjadi di awal, masalahnya, solusinya, dan bagaimana cerita berakhir.'"
+        ]
+       },
+       {
+        "aksi_guru": [
+         "Membagikan lembar latihan menyimak ASM-01 kepada setiap murid.",
+         "Membacakan kembali teks narasi lengkap PBL-01 dari naskah guru dengan tempo yang wajar.",
+         "Mengamati murid saat mengerjakan butir gagasan utama dan penataan empat alur kronologis secara mandiri."
+        ],
+        "jika_kesulitan": [
+         "Mengingatkan murid untuk memperhatikan kata penanda urutan waktu yang telah dibahas di papan tulis sebelumnya."
+        ],
+        "pertanyaan_kunci": [
+         "What is the main idea of Sarah's story?",
+         "How did the judges react at the youth showcase?"
+        ],
+        "putusan_lanjut": {
+         "jika_belum": "Guru membacakan ulang kutipan kalimat penyelesaian cerita Sarah sambil menunjukkan kata kunci penentu alur di papan tulis untuk dibenahi murid.",
+         "jika_tercapai": "Murid diminta saling mencocokkan kata kunci jawaban dengan pembahasan ringkas di papan tulis dan bersiap menyimak detail busana pada pertemuan berikutnya."
+        },
+        "ref": "P1.MENGAPLIKASI.2",
+        "ucapan_guru": [
+         "Katakan: 'I will distribute ASM-01. I will read the complete story of Sarah once again. Listen carefully and answer the questions on your worksheet.'",
+         "Katakan: 'Kerjakan secara mandiri. Tentukan satu gagasan utama dan urutkan empat tahapan peristiwanya.'"
+        ],
+        "yang_diamati": [
+         "Ketepatan murid memilih 1 gagasan utama tentang inovasi gaun ramah lingkungan Sarah pada soal nomor 1 lembar ASM-01.",
+         "Ketepatan murid menyusun minimal 3 dari 4 tahapan alur kronologis (awal, masalah kain, tindakan daur ulang perca sutra, dan apresiasi juri) pada soal nomor 2 sampai 5 lembar ASM-01."
+        ]
+       }
+      ]
+     },
+     {
+      "nama": "MEREFLEKSI",
+      "sub_langkah": [
+       {
+        "aksi_guru": [
+         "Meminta murid menuliskan satu tantangan terbesar saat mendengarkan cerita lisan berbahasa Inggris di buku tulis.",
+         "Meminta dua orang murid membagikan strategi yang mereka gunakan untuk menangkap alur cerita."
+        ],
+        "jika_kesulitan": [
+         "Memberi pilihan panduan: apakah kesulitannya pada kecepatan berbicara atau mengenali kosakata busana."
+        ],
+        "pertanyaan_kunci": [
+         "Which part was the hardest to catch: the main idea or the order of events?"
+        ],
+        "ref": "P1.MEREFLEKSI.1",
+        "ucapan_guru": [
+         "Katakan: 'Open your notebook. Write down one challenge you faced while listening today, and one strategy that helped you.'",
+         "Tanyakan: 'Siapa yang ingin berbagi cara mengingat alur peristiwa tadi?'"
+        ]
+       }
+      ]
+     },
+     {
+      "nama": "PENUTUP",
+      "sub_langkah": [
+       {
+        "aksi_guru": [
+         "Menyimpulkan bersama murid kiat menyimak gagasan pokok dan runtutan peristiwa cerita kerja busana.",
+         "Memberikan apresiasi atas kesungguhan menyimak seluruh murid dan menyampaikan pengantar untuk cerita kedua pada pertemuan berikutnya.",
+         "Menutup sesi belajar dengan salam dan ucapan terima kasih."
+        ],
+        "jika_kesulitan": [
+         "Merangkumkan kembali secara lisan bahwa inti cerita terletak pada masalah utama tokoh dan cara tokoh menyelesaikannya."
+        ],
+        "pertanyaan_kunci": [
+         "What is the most important clue to find the main idea of a spoken story?"
+        ],
+        "ref": "P1.PENUTUP.1",
+        "ucapan_guru": [
+         "Katakan: 'Great job today, everyone! You successfully followed Sarah's design journey.'",
+         "Katakan: 'Di pertemuan berikutnya, kita akan menyimak cerita tentang tantangan peragaan busana yang lebih seru dan mendalam. See you next meeting!'"
+        ]
+       }
+      ]
+     }
+    ],
+    "nomor": 1
+   },
+   {
+    "langkah": [
+     {
+      "nama": "PEMBUKA",
+      "sub_langkah": [
+       {
+        "aksi_guru": [
+         "Menyapa murid, memimpin doa bersama, dan memastikan ruang kelas dalam keadaan hening serta siap untuk kegiatan menyimak mendalam.",
+         "Memeriksa kesiapan alat tulis dan buku catatan murid."
+        ],
+        "jika_kesulitan": [
+         "Menunggu beberapa saat sampai seluruh murid duduk tenang sebelum memulai instruksi."
+        ],
+        "pertanyaan_kunci": [
+         "Is everyone ready for today's listening challenge?"
+        ],
+        "ref": "P2.PEMBUKA.1",
+        "ucapan_guru": [
+         "Katakan: 'Good morning, class. Let's start our second session by praying together.'",
+         "Katakan: 'Please make sure your desk is clear and your pen is ready. We will have another listening session today.'"
+        ]
+       },
+       {
+        "aksi_guru": [
+         "Menuliskan kata 'Lurik', 'Denim', dan 'Runway' di papan tulis.",
+         "Menjelaskan bahwa hari ini murid akan menyimak kisah perancang busana yang menggabungkan kain tradisional dan modern serta menguji pemahaman secara menyeluruh."
+        ],
+        "jika_kesulitan": [
+         "Menjelaskan secara singkat bahwa Lurik adalah kain tenun garis-garis tradisional khas nusantara."
+        ],
+        "pertanyaan_kunci": [
+         "Have you ever seen traditional woven fabric combined with denim?"
+        ],
+        "ref": "P2.PEMBUKA.2",
+        "ucapan_guru": [
+         "Katakan: 'Look at the board: Lurik, Denim, and Runway. Today we will listen to Rian's story.'",
+         "Katakan: 'Hari ini kalian akan menyimak detail bahan, perubahan pola, dan tanggapan juri dalam cerita lisan, lalu mengerjakan penilaian akhir secara mandiri.'"
+        ]
+       }
+      ]
+     },
+     {
+      "nama": "ASESMEN_AWAL",
+      "sub_langkah": [
+       {
+        "aksi_guru": [
+         "Mengajukan tiga pertanyaan pemantik cepat kepada murid secara lisan mengenai istilah busana untuk mengecek kesiapan menangkap detail cerita.",
+         "Mencatat kesiapan murid merespons istilah teknis pembuatan busana."
+        ],
+        "jika_kesulitan": [
+         "Menjelaskan padanan kata kupnat (darts) dan ujung lengan (cuffs) secara lisan di papan tulis."
+        ],
+        "pertanyaan_kunci": [
+         "What does 'alter the pattern' mean in fashion making?"
+        ],
+        "ref": "P2.ASESMEN_AWAL.1",
+        "ucapan_guru": [
+         "Katakan: 'I will ask three quick questions. First: What is the English word for bagian lipatan kupnat pada pola baju?'",
+         "Tanyakan: 'Apa yang kalian bayangkan jika seorang klien meminta fitted silhouette alih-alih oversized?'"
+        ]
+       }
+      ]
+     },
+     {
+      "nama": "MEMAHAMI",
+      "sub_langkah": [
+       {
+        "aksi_guru": [
+         "Membacakan naskah narasi PBL-02 putaran pertama dengan intonasi jelas dan penekanan pada detail teknis busana.",
+         "Meminta murid mencatat istilah jenis kain dan bagian pola busana yang mereka dengar di buku tulis."
+        ],
+        "jika_kesulitan": [
+         "Mengulangi frasa 'traditional handwoven Lurik with denim' dengan jeda yang lebih lambat."
+        ],
+        "pertanyaan_kunci": [
+         "What two fabrics did Rian combine in his jacket?"
+        ],
+        "ref": "P2.MEMAHAMI.1",
+        "ucapan_guru": [
+         "Katakan: 'Listen to the first reading of Rian's story from PBL-02. Pay attention to the materials and technical terms.'",
+         "Katakan: 'Rian, an apprentice tailor at a boutique atelier, prepared a modern casual jacket combining traditional handwoven Lurik with denim.'"
+        ]
+       },
+       {
+        "aksi_guru": [
+         "Membahas bersama murid kata penanda waktu yang menunjukkan ketegangan dalam cerita, seperti 'A week before the runway' dan 'On the fashion show day'.",
+         "Menegaskan bagaimana perubahan permintaan klien memicu tindakan kerja lembur sang perancang."
+        ],
+        "jika_kesulitan": [
+         "Menunjuk perbedaan antara pola longgar (oversized) dan pas badan (fitted) menggunakan peragaan gerak tangan."
+        ],
+        "pertanyaan_kunci": [
+         "What specific alteration did the client ask for?"
+        ],
+        "ref": "P2.MEMAHAMI.2",
+        "ucapan_guru": [
+         "Katakan: 'Notice the phrase: A week before the runway. What sudden request happened there?'",
+         "Katakan: 'Perhatikan bagaimana masalah mendadak dari klien menjadi titik balik yang menguji keahlian Rian dalam mengubah pola baju.'"
+        ]
+       }
+      ]
+     },
+     {
+      "nama": "MENGAPLIKASI",
+      "sub_langkah": [
+       {
+        "aksi_guru": [
+         "Menginstruksikan murid berdiskusi dengan teman sebangku.",
+         "Meminta setiap pasangan merinci masalah perubahan pola dan solusi yang dilakukan tokoh dalam cuplikan teks PBL-02 pada buku tulis masing-masing."
+        ],
+        "jika_kesulitan": [
+         "Mengingatkan kata 'front darts' dan 'sleeve cuffs' yang sempat dibacakan dalam cerita."
+        ],
+        "pertanyaan_kunci": [
+         "Which pattern parts did Rian alter during overtime work?"
+        ],
+        "ref": "P2.MENGAPLIKASI.1",
+        "ucapan_guru": [
+         "Katakan: 'Discuss with your partner. Identify what pattern parts Rian modified and how he protected the handwoven motifs.'",
+         "Katakan: 'Tuliskan bagian pola apa saja yang diubah Rian agar motif tenunnya tidak rusak.'"
+        ]
+       },
+       {
+        "aksi_guru": [
+         "Membacakan kembali bagian akhir naskah PBL-02 tentang pameran busana dan ulasan editor mode.",
+         "Mengajukan pertanyaan lisan terarah untuk melatih murid menangkap detail pujian juri sebelum masuk ke tahap penilaian akhir."
+        ],
+        "jika_kesulitan": [
+         "Menuliskan frasa 'neat cutting' dan 'balanced proportions' di papan tulis serta menjelaskan maknanya dalam dunia jahit busana."
+        ],
+        "pertanyaan_kunci": [
+         "What specific qualities did the senior editors compliment?"
+        ],
+        "ref": "P2.MENGAPLIKASI.2",
+        "ucapan_guru": [
+         "Katakan: 'Listen to the ending part: On the fashion show day, his jacket received praise from senior fashion editors for its neat cutting and balanced proportions.'",
+         "Tanyakan: 'Dua hal spesifik apa yang dipuji oleh para editor mode senior?'"
+        ]
+       },
+       {
+        "aksi_guru": [
+         "Membagikan lembar tes penilaian akhir ASM-02 kepada seluruh murid.",
+         "Membacakan cerita utuh Rian dari naskah PBL-02 secara utuh sebanyak dua kali dengan jeda hening antar-pembacaan.",
+         "Mengawasi murid mengerjakan seluruh butir soal tes menyimak ASM-02 secara mandiri tanpa berdiskusi."
+        ],
+        "jika_kesulitan": [
+         "Meminta murid tetap tenang dan mengingatkan mereka agar memeriksa kembali urutan kronologis nomor 2 sebelum lembar dikumpulkan."
+        ],
+        "pertanyaan_kunci": [
+         "What is the main idea of the story about Rian's collection?",
+         "What two fabrics did Rian combine in his jacket design?"
+        ],
+        "ref": "P2.MENGAPLIKASI.3",
+        "ucapan_guru": [
+         "Katakan: 'Now we will do our final assessment on ASM-02. Put away your notes. I will read Rian's complete story twice.'",
+         "Katakan: 'First listening: focus on understanding the story. Second listening: write down your answers carefully on ASM-02. Good luck!'"
+        ]
+       }
+      ]
+     },
+     {
+      "nama": "MEREFLEKSI",
+      "sub_langkah": [
+       {
+        "aksi_guru": [
+         "Menginstruksikan murid membuka buku tulis dan menuliskan tiga kalimat refleksi diri tentang perkembangan kemampuan menyimak cerita busana berbahasa Inggris.",
+         "Mendorong murid menilai sendiri bagian mana yang sudah mudah dipahami dan bagian mana yang masih membutuhkan latihan."
+        ],
+        "jika_kesulitan": [
+         "Memberi pancingan kalimat di papan tulis: 'I found it easier to identify... but I still need practice on...'"
+        ],
+        "pertanyaan_kunci": [
+         "How much easier was it to catch the main idea today compared to our first meeting?"
+        ],
+        "ref": "P2.MEREFLEKSI.1",
+        "ucapan_guru": [
+         "Katakan: 'Please open your notebook. Write three sentences reflecting on your listening progress from meeting one to meeting two.'",
+         "Katakan: 'Tuliskan apakah kalian merasa lebih mudah menemukan gagasan pokok atau detail busana, dan apa yang ingin kalian tingkatkan.'"
+        ]
+       }
+      ]
+     },
+     {
+      "nama": "PENUTUP",
+      "sub_langkah": [
+       {
+        "aksi_guru": [
+         "Mengumpulkan lembar tes ASM-02 dari seluruh murid.",
+         "Menyampaikan apresiasi atas ketekunan dan keseriusan seluruh murid dalam menyimak narasi bahasa Inggris kejuruan busana.",
+         "Menutup rangkaian pembelajaran dengan doa bersama dan salam penutup."
+        ],
+        "jika_kesulitan": [
+         "Mengingatkan murid yang belum selesai menulis identitas diri di lembar tes agar melengkapinya sebelum diserahkan."
+        ],
+        "pertanyaan_kunci": [
+         "What was the most exciting part of following these young fashion designers' stories?"
+        ],
+        "ref": "P2.PENUTUP.1",
+        "ucapan_guru": [
+         "Katakan: 'Please submit your ASM-02 sheets to my desk. Thank you for your hard work and focus today.'",
+         "Katakan: 'Kalian telah membuktikan bahwa menyimak cerita teknis busana dalam bahasa Inggris dapat dikuasai dengan mengenali alur dan kata kuncinya. Let's close our class with a prayer. Have a great day!'"
+        ]
+       }
+      ]
+     }
+    ],
+    "nomor": 2
+   }
+  ],
+  "pertemuan": [
+   {
+    "langkah": [
+     {
+      "durasi_menit": 15,
+      "nama": "PEMBUKA",
+      "prinsip": [
+       "Berkesadaran",
+       "Menggembirakan"
+      ],
+      "sub_langkah": [
+       {
+        "deskripsi": "Guru menyapa murid, mengajak berdoa bersama, dan memeriksa kesiapan ruang kelas busana agar suasana tenang untuk menyimak.",
+        "durasi_menit": 5,
+        "mode_observasi": "semua",
+        "mode_pelaksanaan": "simultan",
+        "nomor": 1,
+        "ref": "P1.PEMBUKA.1"
+       },
+       {
+        "deskripsi": "Guru memperdengarkan efek suara riuh di balik panggung peragaan busana lewat pengeras suara, lalu mengaitkannya dengan tujuan pembelajaran menyimak cerita perancang busana.",
+        "durasi_menit": 10,
+        "mode_observasi": "semua",
+        "mode_pelaksanaan": "simultan",
+        "nomor": 2,
+        "ref": "P1.PEMBUKA.2"
+       }
+      ]
+     },
+     {
+      "durasi_menit": 15,
+      "nama": "ASESMEN_AWAL",
+      "prinsip": [
+       "Berkesadaran"
+      ],
+      "sub_langkah": [
+       {
+        "deskripsi": "Guru membacakan dua kalimat pendek tentang tantangan seorang penjahit muda dan meminta murid menebak kata kunci tema cerita secara lisan tanpa dinilai benar atau salah.",
+        "durasi_menit": 15,
+        "mode_observasi": "rotasi",
+        "mode_pelaksanaan": "individual",
+        "nomor": 1,
+        "ref": "P1.ASESMEN_AWAL.1"
+       }
+      ]
+     },
+     {
+      "durasi_menit": 40,
+      "nama": "MEMAHAMI",
+      "prinsip": [
+       "Bermakna"
+      ],
+      "sub_langkah": [
+       {
+        "deskripsi": "Guru membacakan bagian awal cerita dari naskah PBL-01 secara lisan dengan artikulasi jelas, sementara murid menyimak fokus utama yang dihadapi tokoh perancang busana.",
+        "durasi_menit": 15,
+        "instrumen_ref": [
+         "PBL-01"
+        ],
+        "mode_observasi": "semua",
+        "mode_pelaksanaan": "simultan",
+        "nomor": 1,
+        "ref": "P1.MEMAHAMI.1"
+       },
+       {
+        "deskripsi": "Guru memodelkan cara menandai kata penanda kronologis di papan tulis untuk menemukan gagasan pokok dan runtutan peristiwa saat mendengarkan cerita.",
+        "durasi_menit": 25,
+        "instrumen_ref": [
+         "PBL-01"
+        ],
+        "mode_observasi": "semua",
+        "mode_pelaksanaan": "simultan",
+        "nomor": 2,
+        "ref": "P1.MEMAHAMI.2"
+       }
+      ]
+     },
+     {
+      "durasi_menit": 80,
+      "nama": "MENGAPLIKASI",
+      "prinsip": [
+       "Bermakna",
+       "Menggembirakan"
+      ],
+      "sub_langkah": [
+       {
+        "deskripsi": "Murid secara berpasangan berdiskusi untuk menyusun kembali potongan alur cerita dari naskah PBL-01 yang baru saja mereka simak.",
+        "durasi_menit": 35,
+        "instrumen_ref": [
+         "PBL-01"
+        ],
+        "mode_observasi": "semua",
+        "mode_pelaksanaan": "kelompok_kecil",
+        "nomor": 1,
+        "ref": "P1.MENGAPLIKASI.1",
+        "ukuran_kelompok": 2
+       },
+       {
+        "asesmen_ref": "FMT-01",
+        "deskripsi": "Murid menyimak kembali keseluruhan narasi PBL-01 yang diperdengarkan melalui pengeras suara, kemudian mengerjakan lembar latihan ASM-01 secara mandiri untuk menentukan gagasan utama dan alur peristiwa.",
+        "durasi_menit": 45,
+        "instrumen_ref": [
+         "PBL-01",
+         "ASM-01"
+        ],
+        "mode_observasi": "semua",
+        "mode_pelaksanaan": "individual",
+        "nomor": 2,
+        "ref": "P1.MENGAPLIKASI.2"
+       }
+      ]
+     },
+     {
+      "durasi_menit": 15,
+      "nama": "MEREFLEKSI",
+      "prinsip": [
+       "Berkesadaran"
+      ],
+      "sub_langkah": [
+       {
+        "deskripsi": "Murid menuliskan satu hal paling menantang saat mendengarkan narasi bahasa Inggris di buku catatan masing-masing dan saling bertukar strategi menyimak.",
+        "durasi_menit": 15,
+        "mode_observasi": "rotasi",
+        "mode_pelaksanaan": "individual",
+        "nomor": 1,
+        "ref": "P1.MEREFLEKSI.1"
+       }
+      ]
+     },
+     {
+      "durasi_menit": 15,
+      "nama": "PENUTUP",
+      "prinsip": [
+       "Menggembirakan"
+      ],
+      "sub_langkah": [
+       {
+        "deskripsi": "Guru bersama murid menyimpulkan cara menentukan gagasan utama cerita lisan, memberikan apresiasi atas ketekunan menyimak, dan menyampaikan rencana kegiatan pertemuan berikutnya.",
+        "durasi_menit": 15,
+        "mode_observasi": "semua",
+        "mode_pelaksanaan": "simultan",
+        "nomor": 1,
+        "ref": "P1.PENUTUP.1"
+       }
+      ]
+     }
+    ],
+    "media_dan_alat": [
+     "Pengeras suara",
+     "Papan tulis dan spidol",
+     "Naskah narasi fiksi lisan perancang busana muda (PBL-01)",
+     "Lembar latihan menyimak (ASM-01)"
+    ],
+    "nomor": 1,
+    "tujuan_pertemuan": "Murid mampu menyimak pembacaan cerita fiksi mengenai perancang busana muda serta menemukan gagasan utama dan alur peristiwanya dengan cermat."
+   },
+   {
+    "langkah": [
+     {
+      "durasi_menit": 15,
+      "nama": "PEMBUKA",
+      "prinsip": [
+       "Berkesadaran",
+       "Menggembirakan"
+      ],
+      "sub_langkah": [
+       {
+        "deskripsi": "Guru menyapa murid, memimpin doa, dan mengondisikan kelas agar kembali fokus dan siap melakukan kegiatan menyimak intensif.",
+        "durasi_menit": 5,
+        "mode_observasi": "semua",
+        "mode_pelaksanaan": "simultan",
+        "nomor": 1,
+        "ref": "P2.PEMBUKA.1"
+       },
+       {
+        "deskripsi": "Guru mengulas kembali kata kunci dunia busana dari pertemuan lalu dan menyampaikan target unjuk pemahaman menyimak pada hari ini.",
+        "durasi_menit": 10,
+        "mode_observasi": "semua",
+        "mode_pelaksanaan": "simultan",
+        "nomor": 2,
+        "ref": "P2.PEMBUKA.2"
+       }
+      ]
+     },
+     {
+      "durasi_menit": 10,
+      "nama": "ASESMEN_AWAL",
+      "prinsip": [
+       "Berkesadaran"
+      ],
+      "sub_langkah": [
+       {
+        "deskripsi": "Guru melontarkan tiga pertanyaan cepat seputar kaitan antara tema rancangan busana dan detail bahan untuk memetakan kesiapan menyimak detail cerita.",
+        "durasi_menit": 10,
+        "mode_observasi": "rotasi",
+        "mode_pelaksanaan": "individual",
+        "nomor": 1,
+        "ref": "P2.ASESMEN_AWAL.1"
+       }
+      ]
+     },
+     {
+      "durasi_menit": 25,
+      "nama": "MEMAHAMI",
+      "prinsip": [
+       "Bermakna"
+      ],
+      "sub_langkah": [
+       {
+        "deskripsi": "Guru memperdengarkan naskah narasi lisan PBL-02 putaran pertama melalui pengeras suara, mengajak murid mencermati kata sifat dan istilah bahan kain yang terdengar.",
+        "durasi_menit": 10,
+        "instrumen_ref": [
+         "PBL-02"
+        ],
+        "mode_observasi": "semua",
+        "mode_pelaksanaan": "simultan",
+        "nomor": 1,
+        "ref": "P2.MEMAHAMI.1"
+       },
+       {
+        "deskripsi": "Guru dan murid mendiskusikan petunjuk lisan yang mengindikasikan pergantian babak cerita peragaan busana pada teks PBL-02.",
+        "durasi_menit": 15,
+        "instrumen_ref": [
+         "PBL-02"
+        ],
+        "mode_observasi": "semua",
+        "mode_pelaksanaan": "simultan",
+        "nomor": 2,
+        "ref": "P2.MEMAHAMI.2"
+       }
+      ]
+     },
+     {
+      "durasi_menit": 105,
+      "nama": "MENGAPLIKASI",
+      "prinsip": [
+       "Bermakna",
+       "Berkesadaran"
+      ],
+      "sub_langkah": [
+       {
+        "deskripsi": "Murid dalam kelompok kecil berdiskusi menganalisis detail rancangan dan reaksi audiens berdasarkan cuplikan cerita PBL-02 yang diperdengarkan kembali.",
+        "durasi_menit": 35,
+        "instrumen_ref": [
+         "PBL-02"
+        ],
+        "mode_observasi": "semua",
+        "mode_pelaksanaan": "kelompok_kecil",
+        "nomor": 1,
+        "ref": "P2.MENGAPLIKASI.1",
+        "ukuran_kelompok": 2
+       },
+       {
+        "deskripsi": "Guru memandu latihan menyimak terpimpin untuk mengidentifikasi detail teknis busana dan memberikan umpan balik langsung sebelum penilaian akhir.",
+        "durasi_menit": 40,
+        "instrumen_ref": [
+         "PBL-02"
+        ],
+        "mode_observasi": "semua",
+        "mode_pelaksanaan": "simultan",
+        "nomor": 2,
+        "ref": "P2.MENGAPLIKASI.2"
+       },
+       {
+        "asesmen_ref": "SUMATIF",
+        "deskripsi": "Murid menyimak pembacaan utuh narasi cerita fiksi perancang busana lalu mengerjakan tes tertulis ASM-02 secara mandiri untuk mengukur penemuan gagasan utama, alur, dan detail informasi.",
+        "durasi_menit": 30,
+        "instrumen_ref": [
+         "ASM-02"
+        ],
+        "mode_observasi": "semua",
+        "mode_pelaksanaan": "individual",
+        "nomor": 3,
+        "ref": "P2.MENGAPLIKASI.3"
+       }
+      ]
+     },
+     {
+      "durasi_menit": 15,
+      "nama": "MEREFLEKSI",
+      "prinsip": [
+       "Berkesadaran"
+      ],
+      "sub_langkah": [
+       {
+        "deskripsi": "Murid mengisi catatan refleksi di buku tulis mengenai peningkatan kemampuannya menangkap gagasan pokok dalam teks lisan berbahasa Inggris.",
+        "durasi_menit": 15,
+        "mode_observasi": "mandiri",
+        "mode_pelaksanaan": "individual",
+        "nomor": 1,
+        "ref": "P2.MEREFLEKSI.1"
+       }
+      ]
+     },
+     {
+      "durasi_menit": 10,
+      "nama": "PENUTUP",
+      "prinsip": [
+       "Menggembirakan"
+      ],
+      "sub_langkah": [
+       {
+        "deskripsi": "Guru memberikan apresiasi atas kerja keras seluruh murid selama menyimak cerita kerja perancang busana, menyimpulkan capaian bersama, dan menutup kelas dengan doa.",
+        "durasi_menit": 10,
+        "mode_observasi": "semua",
+        "mode_pelaksanaan": "simultan",
+        "nomor": 1,
+        "ref": "P2.PENUTUP.1"
+       }
+      ]
+     }
+    ],
+    "media_dan_alat": [
+     "Pengeras suara",
+     "Papan tulis dan spidol",
+     "Naskah narasi fiksi lisan peragaan busana perdana (PBL-02)",
+     "Lembar tes menyimak mandiri (ASM-02)"
+    ],
+    "nomor": 2,
+    "tujuan_pertemuan": "Murid mampu mengidentifikasi gagasan utama, alur kronologis, dan detail spesifik dalam cerita fiksi lisan peragaan busana melalui kegiatan menyimak mandiri."
+   }
+  ],
+  "rancangan": {
+   "kemitraan_pembelajaran": null,
+   "keselamatan_k3": null,
+   "lingkungan_pembelajaran": "Ruang kelas ditata dengan posisi duduk menghadap pengeras suara dan papan tulis agar murid fokus menyimak tanpa gangguan visual berlebih.",
+   "pemanfaatan_digital": "Pengeras suara digunakan untuk memperdengarkan rekaman narasi lisan atau pembacaan naskah guru secara jelas di kelas.",
+   "strategi_pedagogis": "Pembelajaran langsung dipadukan dengan praktik menyimak terarah, di mana guru memodelkan cara menandai kata kunci gagasan utama lalu murid berlatih mandiri.",
+   "sumber_belajar": [
+    {
+     "fungsi": "Teks stimulus lisan pertama untuk pemodelan dan latihan menyimak gagasan utama.",
+     "kategori": "instrumen pembelajaran",
+     "sumber": "Naskah narasi fiksi lisan perancang busana muda (PBL-01)"
+    },
+    {
+     "fungsi": "Teks stimulus lisan kedua untuk pemantapan dan dasar penilaian akhir menyimak.",
+     "kategori": "instrumen pembelajaran",
+     "sumber": "Naskah narasi fiksi lisan peragaan busana perdana (PBL-02)"
+    }
+   ]
+  },
+  "rencana_asesmen": {
+   "asesmen_diagnostik": null,
+   "asesmen_formatif": [
+    {
+     "cakupan_bukti": "per_murid",
+     "fase_langkah": "MENGAPLIKASI",
+     "fungsi": "Mengecek kemampuan murid menangkap gagasan utama dan alur pokok setelah menyimak pembacaan cerita perancang busana.",
+     "id": "FMT-01",
+     "instrumen_ref": [
+      "ASM-01"
+     ],
+     "referensi_kktp": [
+      "K1",
+      "K2"
+     ],
+     "teknik": "latihan singkat yang langsung dikoreksi bersama",
+     "umpan_balik": "Guru dan murid langsung membahas jawaban tepat di papan tulis, memberikan klarifikasi kata kunci penanda alur.",
+     "waktu_pertemuan": 1
+    }
+   ],
+   "asesmen_sumatif": {
+    "cakupan_bukti": "per_murid",
+    "deskripsi": "Tes tertulis pemahaman cerita lisan kedua untuk mengukur penemuan gagasan utama, pengurutan alur, dan detail cerita.",
+    "durasi_menit": 30,
+    "instrumen_ref": [
+     "ASM-02"
+    ],
+    "placement": {
+     "fase": "MENGAPLIKASI",
+     "pertemuan": 2
+    },
+    "referensi_kktp": [
+     "K1",
+     "K2",
+     "K3"
+    ],
+    "teknik": "tes tertulis â€” soal pilihan ganda atau uraian"
+   }
+  },
+  "schema_version": "4.0.0",
+  "tindak_lanjut": {
+   "dukungan_terstruktur": [
+    "Membimbing murid langkah demi langkah mengurai alur cerita menggunakan tiga pertanyaan pemandu sederhana: tokoh utama, kendala rancangan busana, dan penyelesaian karya.",
+    "Melatih pemahaman menyimak secara bertahap mulai dari menangkap satu kalimat inti sebelum meminta murid merangkum urutan kronologis secara mandiri."
+   ],
+   "pilihan_dukungan": [
+    "Memberikan penekanan intonasi dan jeda yang lebih jelas pada kalimat penentu gagasan utama saat guru membacakan ulang cerita perancang busana.",
+    "Menuliskan kosakata kunci istilah busana seperti fabric, sketch, collection, dan runway di papan tulis untuk membantu fokus menyimak murid.",
+    "Mengizinkan murid menyimak kembali satu paragraf kunci cerita sambil mencocokkan kata penanda urutan peristiwa bersama teman sebangku."
+   ],
+   "tantangan_lanjutan": [
+    "Menyimpulkan nilai etika kerja dan kegigihan tokoh perancang busana dari cerita lisan ke dalam satu kalimat bahasa Inggris menggunakan kata-kata sendiri.",
+    "Membuat prediksi kelanjutan karier perancang busana dalam cerita dengan menuliskan dua kalimat ide rancangan busana berikutnya."
+   ]
+  },
+  "tp_anchor": {
+   "atp_induk_id": "7c7d19ba-a5a9-4d06-a632-d1731e7abdfc",
+   "jp_alokasi": 8,
+   "jp_pertemuan": [
+    4,
+    4
+   ],
+   "kategori_teks": [
+    "fiksi"
+   ],
+   "kategori_teks_wajib": [
+    "fiksi",
+    "nonfiksi"
+   ],
+   "nomor_tp": 1,
+   "semester": 1,
+   "tp_judul": "Menyimak cerita lisan tentang perancang busana muda dan menemukan gagasan utama",
+   "tuntutan": [
+    {
+     "cakupan_wajib": {
+      "kategori_teks": [
+       "fiksi",
+       "nonfiksi"
+      ]
+     },
+     "id": "BIE-E25-MB-1",
+     "kompetensi": "memahami alur informasi secara keseluruhan, gagasan utama, dan detail dalam teks lisan fiksi dan non fiksi",
+     "lingkup_materi": "berbagai macam topik yang relevan dengan topik sehari-hari atau isu terkini"
+    }
+   ],
+   "tuntutan_id": [
+    "BIE-E25-MB-1"
+   ],
+   "versi_cp": "046/H/KR/2025"
+  }
+ }
+}

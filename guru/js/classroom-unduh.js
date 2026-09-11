@@ -767,7 +767,7 @@
     if (identitas.tujuan_pembelajaran || adaRancangan) {
       // M8.1: subbagian, bukan bab baru — penomoran A–I tidak bergeser sama
       // sekali, dan labelnya sama dengan pratinjau ("C2. Pertimbangan Konteks").
-      blokKonteksDocx(children, konten, D, window.ModulTampilan);
+      blokKonteksDocx(children, k, D, window.ModulTampilan);
 
       children.push(sectionHeading('D. Desain Pembelajaran'));
       if (identitas.tujuan_pembelajaran) {

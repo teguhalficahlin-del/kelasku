@@ -444,14 +444,21 @@ Deno.test('M8-V: cakupan bukti yang tidak ada tidak menghasilkan kalimat palsu',
 
 Deno.test('M8-W: kedua jalur .docx dipanggil dari badan dokumen, bukan hanya didefinisikan', async () => {
   // Fungsi yang ada tetapi tidak pernah dipanggil sama saja dengan tidak ada.
+  //
+  // PERINGATAN (hotfix 11 Sep 2026): pemeriksaan TEKS di bawah ini dulu memuat
+  // `blokKonteksDocx(children, konten, …)` — pemanggilan yang salah itu sendiri —
+  // dan lolos, sementara setiap unduhan Modul di produksi jatuh dengan
+  // "ReferenceError: konten is not defined". Teks hanya menjaga penempatan C2
+  // sebelum bab D. Bukti bahwa jalur .docx benar-benar BERJALAN ada di
+  // tests/modul-unduh-docx.test.ts, yang menjalankan generateModulDocx() asli.
   const src = await Deno.readTextFile(UNDUH);
   const tanpaDefinisi = src.replace(/function (blokKonteksDocx|barisCakupanDocx)\([^)]*\)/g, '');
-  assertStringIncludes(tanpaDefinisi, 'blokKonteksDocx(children, konten, D, window.ModulTampilan)');
+  assertStringIncludes(tanpaDefinisi, 'blokKonteksDocx(children, k, D, window.ModulTampilan)');
   assertStringIncludes(tanpaDefinisi, 'barisCakupanDocx(children, af, D, window.ModulTampilan)');
   assertStringIncludes(tanpaDefinisi, 'barisCakupanDocx(children, suma, D, window.ModulTampilan)');
 
   // Dan C2 disisipkan SEBELUM bab D \u2014 penomoran A\u2013I tidak bergeser.
-  const iKonteks = src.indexOf('blokKonteksDocx(children, konten');
+  const iKonteks = src.indexOf('blokKonteksDocx(children, k');
   const iBabD    = src.indexOf("sectionHeading('D. Desain Pembelajaran')");
   assert(iKonteks > 0 && iKonteks < iBabD, 'C2 tidak berada tepat sebelum bab D');
   for (const bab of ['A. Identifikasi', 'B. Fokus Materi', 'C. Kriteria', 'D. Desain',
