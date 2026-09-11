@@ -235,12 +235,15 @@
         .catch(function (e) { console.warn('[MiClass] cp-acuan gagal dimuat:', e); });
     }());
   </script>
+  <!-- Otoritas penyajian bersama (M8) — WAJIB dimuat SEBELUM kedua renderer:
+       pratinjau dan pengunduh sama-sama memanggilnya. -->
+  <script src="js/modul-tampilan.js?v=tampilan-20260911a1"></script>
   <script src="js/rancang-chat-flow.js?v=chat-20260910a1"></script>
   <script src="js/rancang-chat-api.js?v=chat-20260910m1"></script>
   <script src="js/rancang-chat-ui.js?v=chat-20260903u4"></script>
-  <script src="js/rancang-chat.js?v=chat-20260910m1"></script>
+  <script src="js/rancang-chat.js?v=chat-20260911m8"></script>
 
-  <script src="js/classroom-unduh.js?v=unduh-20260910a3"></script>
+  <script src="js/classroom-unduh.js?v=unduh-20260911m8"></script>
   <script src="../shared/js/pwa.js"></script>
 </body>
 </html>

@@ -3174,13 +3174,39 @@ Jatah menyusun ATP hari ini tidak terpakai. Silakan pilih tindakan lain.`);
 
     // [C] KKTP
     if (kktp.length) {
-      const kktpHtml = kktp.map(k =>
-        `<div class="mv4-kktp-item"><strong>${esc(k.id_kktp ?? '?')}</strong> — ${esc(k.kriteria ?? '-')}`+
-        (k.ambang_batas != null ? ` <em>(${esc(String(k.ambang_batas))})</em>` : '') +
+      // M8: `keputusan_ketercapaian` adalah OTORITAS keputusan; `ambang_batas`
+      // penjelasannya. Sebelum M8 hanya penjelasannya yang tampil — guru melihat
+      // kalimatnya dan kehilangan angka yang dipakai memutuskan.
+      const MT = window.ModulTampilan ?? {};
+      const kktpHtml = kktp.map(k => {
+        const ambang    = MT.kalimatKetercapaian ? MT.kalimatKetercapaian(k) : null;
+        const penjelasan = MT.kalimatPenjelasanAmbang ? MT.kalimatPenjelasanAmbang(k) : null;
+        return `<div class="mv4-kktp-item"><strong>${esc(k.id_kktp ?? '?')}</strong> — ${esc(k.kriteria ?? '-')}`+
+        (ambang ? `<div class="mv4-sub mv4-ambang">${esc(ambang)}</div>` : '') +
+        (penjelasan ? `<div class="mv4-sub">${esc(penjelasan)}</div>` : '') +
         (Array.isArray(k.instrumen_bukti) && k.instrumen_bukti.length ? `<div class="mv4-sub">Instrumen Bukti: ${k.instrumen_bukti.map(esc).join(', ')}</div>` : '') +
-        `</div>`
-      ).join('');
+        `</div>`;
+      }).join('');
       resmi += sec('C. Kriteria Ketercapaian Tujuan Pembelajaran (KKTP)', kktpHtml);
+    }
+
+    // [C2] Pertimbangan Konteks — jejak keputusan M6.
+    //
+    // Sebelum M8 bagian ini tidak pernah muncul sama sekali: konteks yang ATP
+    // wariskan menghasilkan keputusan rancangan, dan guru tidak pernah
+    // melihatnya. ID internal KTX-01 sengaja TIDAK ditampilkan.
+    {
+      const blokKtx = (window.ModulTampilan ?? {}).blokPertimbanganKonteks?.(konten) ?? [];
+      if (blokKtx.length) {
+        const ktxHtml = blokKtx.map(b =>
+          `<div class="mv4-kktp-item"><strong>${esc(b.judul)}</strong>`+
+          (b.keputusan ? `<div class="mv4-sub">${esc(b.keputusan)}</div>` : '')+
+          (b.penerapan ? `<div class="mv4-sub">${esc(b.penerapan)}</div>` : '')+
+          (b.terlihat.length ? `<div class="mv4-sub">Terlihat pada: ${b.terlihat.map(esc).join(', ')}</div>` : '')+
+          `</div>`
+        ).join('');
+        resmi += sec('C2. Pertimbangan Konteks', ktxHtml);
+      }
     }
 
     // [D] Konteks Murid
@@ -3230,6 +3256,7 @@ Jatah menyusun ATP hari ini tidak terpakai. Silakan pilih tindakan lain.`);
             (f.fungsi ? `<div class="mv4-row"><span class="mv4-label">Fungsi</span><span>${esc(f.fungsi)}</span></div>` : '')+
             (f.umpan_balik ? `<div class="mv4-row"><span class="mv4-label">Umpan Balik</span><span>${esc(f.umpan_balik)}</span></div>` : '')+
             (Array.isArray(f.referensi_kktp) && f.referensi_kktp.length ? `<div class="mv4-sub">KKTP: ${f.referensi_kktp.map(esc).join(', ')}</div>` : '')+
+            ((() => { const c = (window.ModulTampilan ?? {}).kalimatCakupanBukti?.(f); return c ? `<div class="mv4-sub">${esc(c)}</div>` : ''; })())+
             (Array.isArray(f.instrumen_ref) && f.instrumen_ref.length ? `<div class="mv4-sub">Instrumen: ${f.instrumen_ref.map(esc).join(', ')}</div>` : '')+
             `</div>`;
         });
@@ -3333,6 +3360,13 @@ Jatah menyusun ATP hari ini tidak terpakai. Silakan pilih tindakan lain.`);
                 tanya.map(t => `<div class="mv4-ns-item">? ${esc(t)}</div>`).join('')+`</div>` : '')+
               (kesulitan.length ? `<div class="mv4-ns-group mv4-ns-tip"><div class="mv4-ns-group-label">Jika Kesulitan</div>`+
                 kesulitan.map(k => `<div class="mv4-ns-item">⚠ ${esc(k)}</div>`).join('')+`</div>` : '')+
+              // M8: bagian M7 — hanya yang benar-benar berisi yang muncul, jadi
+              // slot SUMATIF yang memang tanpa keputusan lanjut tidak terlihat
+              // rusak; bagiannya sekadar tidak ada.
+              ((window.ModulTampilan?.blokNaskahTambahan?.(sl) ?? []).map(g =>
+                `<div class="mv4-ns-group"><div class="mv4-ns-group-label">${esc(g.label)}</div>`+
+                g.butir.map(b => `<div class="mv4-ns-item">${esc(b)}</div>`).join('')+`</div>`
+              ).join(''))+
               `</div>`;
           }).join('');
           return `<div class="mv4-ns-langkah"><div class="mv4-langkah-nama">${esc(istilah(ISTILAH_LANGKAH, lk.nama, '?'))}</div>${slHtml}</div>`;

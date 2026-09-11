@@ -487,6 +487,72 @@
   }
 
   // Satu blok naskah: label di atas, butirnya di bawah.
+  // ── M8.1: DUA JALUR .docx YANG SEMPAT TERTINGGAL ──────────────────────
+  //
+  // M8 memasang otoritas penyajian bersama (`modul-tampilan.js`) supaya
+  // pratinjau dan pengunduh tidak menyimpang. Dua dari empat fungsinya sempat
+  // hanya dipakai pratinjau, sehingga guru MELIHAT Pertimbangan Konteks dan
+  // cakupan bukti di layar lalu KEHILANGANNYA di berkas yang ia cetak.
+  //
+  // Alasannya waktu itu penomoran bab — dan itu alasan yang salah: data
+  // otoritas lebih penting daripada kenyamanan mempertahankan nomor.
+  //
+  // Keduanya sengaja fungsi di lingkup modul, sejajar dengan `blokNaskah` di
+  // bawah. Bentuk itu yang membuatnya dapat dijalankan langsung oleh uji dengan
+  // `D` tiruan — jadi yang dibuktikan bukan sekadar nama fungsi muncul di
+  // sumber, melainkan paragraf benar-benar dihasilkan.
+  //
+  // `MT` diterima sebagai argumen (bukan dibaca dari window di dalam) supaya
+  // keduanya murni dan dapat diuji tanpa memalsukan global.
+
+  /** Pertimbangan Konteks (M6) ke dalam dokumen. Tidak menghasilkan apa pun
+   *  ketika dokumennya tidak punya jejak — dokumen lama tidak boleh mendapat
+   *  judul kosong. */
+  function blokKonteksDocx(children, konten, D, MT) {
+    if (!MT || typeof MT.blokPertimbanganKonteks !== 'function') return;
+    var blok = MT.blokPertimbanganKonteks(konten) || [];
+    if (!blok.length) return;
+
+    children.push(subLabel('C2. Pertimbangan Konteks'));
+    for (var i = 0; i < blok.length; i++) {
+      var b = blok[i];
+      children.push(new D.Paragraph({
+        children: [new D.TextRun({ text: b.judul, bold: true, size: 20 })],
+        spacing: { before: 100, after: 40 },
+      }));
+      if (b.keputusan)
+        children.push(new D.Paragraph({
+          children: [new D.TextRun({ text: b.keputusan, size: 20 })],
+          indent: { left: 360 }, spacing: { after: 40 },
+        }));
+      if (b.penerapan)
+        children.push(new D.Paragraph({
+          children: [new D.TextRun({ text: b.penerapan, size: 20 })],
+          indent: { left: 360 }, spacing: { after: 40 },
+        }));
+      if (b.terlihat && b.terlihat.length)
+        children.push(new D.Paragraph({
+          children: [new D.TextRun({
+            text: 'Terlihat pada: ' + b.terlihat.join(', '), color: '666666', size: 18,
+          })],
+          indent: { left: 360 }, spacing: { after: 80 },
+        }));
+    }
+    children.push(new D.Paragraph({ text: '', spacing: { after: 100 } }));
+  }
+
+  /** Cakupan bukti (M4) pada satu entri asesmen. Diam ketika dokumennya tidak
+   *  menyatakannya — tidak ada kalimat yang dikarang. */
+  function barisCakupanDocx(children, entri, D, MT) {
+    if (!MT || typeof MT.kalimatCakupanBukti !== 'function') return;
+    var teks = MT.kalimatCakupanBukti(entri);
+    if (!teks) return;
+    children.push(new D.Paragraph({
+      children: [new D.TextRun({ text: teks, color: '666666', size: 18 })],
+      indent: { left: 720 }, spacing: { after: 60 },
+    }));
+  }
+
   function blokNaskah(children, label, arr, D) {
     if (!Array.isArray(arr) || arr.length === 0) return;
     children.push(new D.Paragraph({
@@ -664,6 +730,14 @@
           ],
           spacing: { before: 120, after: 40 },
         }));
+        // M8: otoritas keputusan ikut tercetak, bukan hanya penjelasannya.
+        var MT8 = window.ModulTampilan || {};
+        var ambang8 = MT8.kalimatKetercapaian ? MT8.kalimatKetercapaian(kk) : null;
+        if (ambang8)
+          children.push(new D.Paragraph({
+            children: [new D.TextRun({ text: ambang8, bold: true, size: 20 })],
+            spacing: { after: 40 }
+          }));
         if (kk.ambang_batas)
           children.push(new D.Paragraph({
             children: [new D.TextRun({ text: 'Ambang batas: ' + kk.ambang_batas, italics: true, size: 20 })],
@@ -691,6 +765,10 @@
       rancangan.pemanfaatan_digital ||
       (Array.isArray(rancangan.sumber_belajar) && rancangan.sumber_belajar.length);
     if (identitas.tujuan_pembelajaran || adaRancangan) {
+      // M8.1: subbagian, bukan bab baru — penomoran A–I tidak bergeser sama
+      // sekali, dan labelnya sama dengan pratinjau ("C2. Pertimbangan Konteks").
+      blokKonteksDocx(children, konten, D, window.ModulTampilan);
+
       children.push(sectionHeading('D. Desain Pembelajaran'));
       if (identitas.tujuan_pembelajaran) {
         children.push(subLabel('Tujuan Pembelajaran'));
@@ -827,6 +905,7 @@
               children: [new D.TextRun({ text: jejak.join(' · '), color: '666666', size: 18 })],
               indent: { left: 720 }, spacing: { after: 60 },
             }));
+          barisCakupanDocx(children, af, D, window.ModulTampilan);
           if (af.umpan_balik)
             children.push(new D.Paragraph({
               children: [new D.TextRun({ text: 'Umpan balik: ' + af.umpan_balik, italics: true, size: 19 })],
@@ -847,6 +926,7 @@
             (suma.placement.pertemuan ? 'Pertemuan ' + suma.placement.pertemuan : '') +
             (suma.placement.fase ? ' · ' + (LABEL_LANGKAH[String(suma.placement.fase).toUpperCase()] || suma.placement.fase) : '')));
         if (suma.durasi_menit) children.push(tableRow2Col('Durasi', suma.durasi_menit + ' menit'));
+        barisCakupanDocx(children, suma, D, window.ModulTampilan);
       }
       children.push(new D.Paragraph({ text: '', spacing: { after: 200 } }));
     }
@@ -936,6 +1016,11 @@
             blokNaskah(children, 'Yang dilakukan guru',   sl.aksi_guru,        D);
             blokNaskah(children, 'Pertanyaan kunci',      sl.pertanyaan_kunci, D);
             blokNaskah(children, 'Jika murid kesulitan',  sl.jika_kesulitan,   D);
+            // M8: bagian M7 lewat otoritas penyajian yang sama dengan pratinjau.
+            var tambahan8 = (window.ModulTampilan && window.ModulTampilan.blokNaskahTambahan)
+              ? window.ModulTampilan.blokNaskahTambahan(sl) : [];
+            for (var t8 = 0; t8 < tambahan8.length; t8++)
+              blokNaskah(children, tambahan8[t8].label, tambahan8[t8].butir, D);
           });
         });
       });
