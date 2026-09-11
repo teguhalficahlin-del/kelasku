@@ -364,10 +364,15 @@ Deno.test('M3-N: jejak M2 tetap ikut ke dokumen final, dan hash M1 tidak tersent
   for (const nama of ['tp_anchor', 'atp_context', 'alokasi_server']) {
     assert(blok.includes(nama), `${nama} hilang dari dokumen final`);
   }
-  // Penyusunan menyalakan tuntutan jejak; jalur lain tidak. Sejak M4 argumen
-  // sesudahnya adalah kontrak rantai bukti, jadi jalur penyusunan berbunyi
-  // `true, true` — keduanya menyala. Lihat M4-AK.
-  assert(/perangkatDigitalDiizinkan\(cd\), true(, true)?\)/.test(src),
+  // Penyusunan menyalakan tuntutan jejak; jalur lain tidak.
+  //
+  // Yang diuji di sini HANYA bendera pertama — jejak pewarisan M2. Tiap
+  // milestone sesudahnya menambahkan benderanya sendiri di belakangnya (M4:
+  // kontrak rantai bukti; M5: kelengkapan resource), jadi mematok jumlahnya
+  // akan menjadikan uji M3 gagal setiap kali milestone baru diterima —
+  // kegagalan yang tidak mengatakan apa pun tentang M3. Bendera milestone lain
+  // punya ujinya sendiri: M4-AK, M4-AO, dan M5-GEN.
+  assert(/perangkatDigitalDiizinkan\(cd\), true(, true)*\)/.test(src),
     'jalur penyusunan tidak menuntut jejak pewarisan');
 
   // Semantik tp_snapshot_hash tidak disentuh M3.

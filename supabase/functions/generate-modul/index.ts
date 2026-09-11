@@ -6,6 +6,8 @@ import {
 } from './anchor.ts';
 import {
   MODUL_SCHEMA_VERSION, KONTRAK_ROOT, ENUM_KONTRAK, URUTAN_LANGKAH_KONTRAK,
+  RESOURCE_WAJIB, JENIS_TANPA_SPESIFIKASI, KUNCI_SEPADAN_SOAL,
+  type FieldResource,
   rootWajib, kerangkaSeluruhFase, ringkasanTanggungJawabFase,
   perintahPerbaikanStruktural, type FasePenghasil,
 } from './contract.ts';
@@ -670,6 +672,16 @@ function validateModulOutputV400(
    *  dilakukan adalah kebalikannya — melemahkan penyusunan baru agar dokumen
    *  lama ikut lolos. */
   wajibKontrakAsesmenCurrent = false,
+  /** Menuntut KELENGKAPAN RESOURCE M5: setiap bahan yang murid perlukan berisi
+   *  nyata, dan setiap instrumen asesmen yang dipakai punya yang guru perlukan
+   *  untuk menjalankan atau menilainya.
+   *
+   *  Satu bendera per milestone, sama pola dengan `wajibJejakWarisan` (M2) dan
+   *  `wajibKontrakAsesmenCurrent` (M4). Jalur PENYUSUNAN menyalakannya;
+   *  pembacaan dokumen lama tidak, karena modul pra-M5 memang boleh punya
+   *  instrumen setengah isi dan menghakiminya secara surut bukan pemeriksaan
+   *  melainkan mengubah aturan ke belakang. */
+  wajibResourceCurrent = false,
 ): { valid: boolean; errors: string[]; output: ModulOutput | null } {
   const errors: string[] = [];
 
@@ -1507,6 +1519,189 @@ function validateModulOutputV400(
         if (!dipakai.has(id))
           errors.push(`instrumen_asesmen '${id}' tidak dipakai jalur asesmen mana pun — instrumen tanpa tempat pemakaian`);
       }
+    }
+  }
+
+  // ── M5: KELENGKAPAN RESOURCE ────────────────────────────────────────────────
+  //
+  // Sampai M4 satu-satunya pemeriksaan atas ISI instrumen adalah V8, dan V8
+  // hanya menanyakan apakah `konten_murid` null atau tidak. Akibatnya lima
+  // keadaan berikut lolos, dan kelimanya direproduksi lebih dulu sebagai uji:
+  //
+  //   1. `teks_autentik` dengan `isi_teks: ""` — "bacalah teks berikut", teksnya tiada;
+  //   2. `konten_murid: {}` — instrumen tinggal judul;
+  //   3. `soal_latihan` dengan `soal: []` dan `panduan_guru: null` — tanpa soal, tanpa kunci;
+  //   4. `kartu_peran` dengan `set: []` — tidak ada peran untuk dimainkan;
+  //   5. `soal` yang ada tetapi `pertanyaan: ""` — nomornya ada, pertanyaannya tidak.
+  //
+  // Yang ditegakkan: resource ADA dan DAPAT DIPAKAI. Mutu isinya M9 — tidak ada
+  // ambang panjang dan tidak ada pencocokan kata di seluruh blok ini.
+  if (wajibResourceCurrent) {
+    /** Satu field resource, diperiksa terhadap spesifikasinya. Murni bentuk.
+     *
+     *  PESANNYA MEMBEDAKAN "TIDAK ADA" DARI "KOSONG", dan itu bukan kehalusan
+     *  bahasa. Pengukuran terhadap modul produksi menunjukkan penyebab
+     *  tersering bukan resource yang hilang melainkan resource yang LENGKAP
+     *  tetapi disimpan di nama field lain: `bagian_teks` alih-alih `isi_teks`,
+     *  `butir_tugas` alih-alih `soal`. Pesan "isi_teks kosong" pada dokumen
+     *  yang justru penuh teks akan mengirim perbaikan ke arah yang salah, jadi
+     *  ketika field yang dituntut tidak ada, pesannya menyebut field APA SAJA
+     *  yang benar-benar ada. */
+    const kunciLain = (wadah: Record<string, unknown>, kecuali: string): string => {
+      const ada = Object.keys(wadah).filter(k => k !== kecuali);
+      return ada.length ? ` — yang ada di sini: ${ada.join(', ')}` : '';
+    };
+    const periksaField = (
+      wadah: Record<string, unknown>, f: FieldResource, jalur: string,
+    ): string[] => {
+      const galat: string[] = [];
+      const v = wadah[f.field];
+      const hilang = v === undefined || v === null;
+      if (f.bentuk === 'teks') {
+        if (hilang) galat.push(`${jalur}.${f.field} tidak ada${kunciLain(wadah, f.field)}`);
+        else if (!nonEmpty(v)) galat.push(`${jalur}.${f.field} kosong`);
+        return galat;
+      }
+      if (!Array.isArray(v)) {
+        galat.push(hilang
+          ? `${jalur}.${f.field} tidak ada${kunciLain(wadah, f.field)}`
+          : `${jalur}.${f.field} harus array, dapat ${typeof v}`);
+        return galat;
+      }
+      if (v.length < f.min) {
+        galat.push(`${jalur}.${f.field} berisi ${v.length} butir, minimal ${f.min}`);
+        return galat;
+      }
+      if (f.bentuk === 'daftar_teks') {
+        v.forEach((butir, i) => {
+          if (!nonEmpty(butir)) galat.push(`${jalur}.${f.field}[${i}] kosong`);
+        });
+        return galat;
+      }
+      // daftar_objek
+      v.forEach((butir, i) => {
+        if (!butir || typeof butir !== 'object' || Array.isArray(butir)) {
+          galat.push(`${jalur}.${f.field}[${i}] harus object`);
+          return;
+        }
+        const b = butir as Record<string, unknown>;
+        for (const kunci of f.wajib) {
+          if (!nonEmpty(b[kunci])) galat.push(`${jalur}.${f.field}[${i}].${kunci} kosong`);
+        }
+        for (const [subObjek, subField] of Object.entries(f.objek_wajib ?? {})) {
+          const so = b[subObjek];
+          if (!so || typeof so !== 'object' || Array.isArray(so)) {
+            galat.push(`${jalur}.${f.field}[${i}].${subObjek} tidak ada`);
+            continue;
+          }
+          for (const kunci of subField) {
+            if (!nonEmpty((so as Record<string, unknown>)[kunci]))
+              galat.push(`${jalur}.${f.field}[${i}].${subObjek}.${kunci} kosong`);
+          }
+        }
+      });
+      return galat;
+    };
+
+    // Instrumen asesmen yang benar-benar DIPAKAI jalur asesmen. Hanya untuk
+    // inilah panduan guru dituntut — lihat catatan di contract.ts.
+    const asesmenDipakai = new Set<string>();
+    if (o.rencana_asesmen && typeof o.rencana_asesmen === 'object') {
+      const ra_ = o.rencana_asesmen as Record<string, unknown>;
+      const kumpulkan = (v: unknown) => {
+        if (Array.isArray(v)) for (const x of v) asesmenDipakai.add(String(x));
+      };
+      for (const entri of (Array.isArray(ra_.asesmen_formatif) ? ra_.asesmen_formatif : []) as Array<Record<string, unknown>>) {
+        kumpulkan(entri?.instrumen_ref);
+      }
+      if (ra_.asesmen_sumatif && typeof ra_.asesmen_sumatif === 'object')
+        kumpulkan((ra_.asesmen_sumatif as Record<string, unknown>).instrumen_ref);
+      if (ra_.asesmen_diagnostik && typeof ra_.asesmen_diagnostik === 'object')
+        kumpulkan((ra_.asesmen_diagnostik as Record<string, unknown>).instrumen_ref);
+    }
+    if (Array.isArray(o.kktp)) {
+      for (const k of o.kktp as Array<Record<string, unknown>>) {
+        if (Array.isArray(k.instrumen_bukti)) for (const x of k.instrumen_bukti) asesmenDipakai.add(String(x));
+      }
+    }
+
+    const daftarInstrumen: Array<[string, unknown]> = [
+      ['instrumen_pembelajaran', o.instrumen_pembelajaran],
+      ['instrumen_asesmen',      o.instrumen_asesmen],
+    ];
+
+    for (const [namaArray, arr] of daftarInstrumen) {
+      if (!Array.isArray(arr)) continue;
+      (arr as Array<Record<string, unknown>>).forEach((ins, i) => {
+        const id    = String(ins.id ?? `#${i}`);
+        const jenis = String(ins.jenis ?? '');
+        const jalur = `${namaArray}[${i}] (${id}, ${jenis || 'tanpa jenis'})`;
+        const spec  = RESOURCE_WAJIB[jenis];
+
+        // `custom` sengaja tanpa spesifikasi bentuk, tetapi tetap tidak boleh
+        // menjadi pintu belakang bagi instrumen kosong.
+        if (!spec) {
+          if ((JENIS_TANPA_SPESIFIKASI as readonly string[]).includes(jenis)) {
+            if (ins.untuk_murid === true) {
+              const km = ins.konten_murid;
+              const berisi = km && typeof km === 'object' && !Array.isArray(km)
+                && Object.values(km as Record<string, unknown>).some(v =>
+                     Array.isArray(v) ? v.length > 0 : (typeof v === 'object' && v !== null ? true : nonEmpty(v)));
+              if (!berisi) errors.push(`${jalur}.konten_murid tidak berisi apa pun`);
+            }
+          }
+          // Jenis di luar enum sudah ditolak pemeriksaan enum; tidak perlu
+          // dilaporkan dua kali di sini.
+          return;
+        }
+
+        // ── Yang murid perlukan ────────────────────────────────────────────
+        if (ins.untuk_murid === true) {
+          const km = ins.konten_murid;
+          if (!km || typeof km !== 'object' || Array.isArray(km)) {
+            errors.push(`${jalur}.konten_murid tidak ada — murid tidak punya bahan untuk dikerjakan`);
+          } else {
+            for (const f of spec.murid) {
+              for (const g of periksaField(km as Record<string, unknown>, f, `${jalur}.konten_murid`)) errors.push(g);
+            }
+          }
+        }
+
+        // ── Yang guru perlukan untuk menjalankan atau menilai ──────────────
+        //
+        // Hanya untuk instrumen asesmen yang dipakai jalur asesmen: dari
+        // instrumen inilah keputusan tentang murid diambil, jadi guru tidak
+        // dapat berhenti di "silakan nilai sendiri".
+        const butuhPanduanGuru = spec.guru && namaArray === 'instrumen_asesmen'
+          && asesmenDipakai.has(id);
+        if (butuhPanduanGuru) {
+          const pg = ins.panduan_guru;
+          if (!pg || typeof pg !== 'object' || Array.isArray(pg)) {
+            errors.push(
+              `${jalur}.panduan_guru tidak ada — instrumen ini dipakai untuk menilai murid, ` +
+              `jadi guru membutuhkan cara memakainya`,
+            );
+          } else {
+            for (const f of spec.guru!) {
+              for (const g of periksaField(pg as Record<string, unknown>, f, `${jalur}.panduan_guru`)) errors.push(g);
+            }
+
+            // Kunci jawaban sepadan jumlah soal — satu-satunya aturan M5 yang
+            // membandingkan dua resource, dan sepenuhnya berupa dua bilangan.
+            if (jenis === KUNCI_SEPADAN_SOAL.jenis) {
+              const km = ins.konten_murid as Record<string, unknown> | null;
+              const soal  = Array.isArray(km?.[KUNCI_SEPADAN_SOAL.murid]) ? (km![KUNCI_SEPADAN_SOAL.murid] as unknown[]) : null;
+              const kunci = Array.isArray((pg as Record<string, unknown>)[KUNCI_SEPADAN_SOAL.guru])
+                ? ((pg as Record<string, unknown>)[KUNCI_SEPADAN_SOAL.guru] as unknown[]) : null;
+              if (soal && kunci && soal.length !== kunci.length)
+                errors.push(
+                  `${jalur}: ${soal.length} soal tetapi ${kunci.length} kunci jawaban — ` +
+                  `guru berhenti di soal ke-${Math.min(soal.length, kunci.length) + 1} tanpa jawabannya`,
+                );
+            }
+          }
+        }
+      });
     }
   }
 
@@ -4004,7 +4199,7 @@ Deno.serve(async (req) => {
     // Kedua argumen terakhir: jejak warisan (M2) dan rantai bukti (M4). Jalur
     // PENYUSUNAN selalu menyalakan keduanya — dokumen baru tidak pernah lolos
     // dengan aturan dokumen lama.
-    let validation = validateModulOutputV400(merged, nomorTp, jumlahPertemuan, jpPerPertemuan, durasiJp, jumlahMurid, manifestFaseD, perangkatDigitalDiizinkan(cd), true, true);
+    let validation = validateModulOutputV400(merged, nomorTp, jumlahPertemuan, jpPerPertemuan, durasiJp, jumlahMurid, manifestFaseD, perangkatDigitalDiizinkan(cd), true, true, true);
 
     if (!validation.valid) {
       const errorList = validation.errors.join('; ');
@@ -4044,7 +4239,7 @@ Deno.serve(async (req) => {
         // sebuah perbaikan: ia keluaran Fase A, sedangkan yang diperbaiki di
         // sini keluaran fase sesudahnya. Menghilangkannya justru membuat
         // gerbangnya paling lemah tepat ketika model baru saja salah sekali.
-        validation = validateModulOutputV400(mergedFixed, nomorTp, jumlahPertemuan, jpPerPertemuan, durasiJp, jumlahMurid, manifestFaseD, perangkatDigitalDiizinkan(cd), true, true);
+        validation = validateModulOutputV400(mergedFixed, nomorTp, jumlahPertemuan, jpPerPertemuan, durasiJp, jumlahMurid, manifestFaseD, perangkatDigitalDiizinkan(cd), true, true, true);
         if (!validation.valid) {
           return json({ error: `Validasi gagal setelah repair: ${validation.errors.join('; ')}`, code: 'MODUL_GENERATION_INVALID_SCHEMA', retryable: true }, 422);
         }

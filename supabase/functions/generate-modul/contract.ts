@@ -347,3 +347,179 @@ export function perintahPerbaikanStruktural(fase?: FasePenghasil): string {
     'Jangan menghapus, mengganti nama, atau menambah field akar.',
   ].join(' ');
 }
+
+// ══ M5 — KELENGKAPAN RESOURCE ═══════════════════════════════════════════════
+//
+// PRINSIP PRODUK: MiClass menyediakan seluruh bahan yang guru dan murid perlukan
+// untuk MENJALANKAN Modul. Modul tidak boleh memindahkan pekerjaan membuat
+// konten pembelajaran kepada guru — tidak ada "cari teks sendiri", tidak ada
+// "siapkan contoh sendiri", dan tidak ada instrumen yang tinggal judul.
+//
+// APA YANG M5 TEGAKKAN, DAN APA YANG TIDAK.
+//
+//   resource ADA                  → ditegakkan M5 (field ada, tidak kosong)
+//   resource DAPAT DIPAKAI        → ditegakkan M5 (jumlah butir minimum, sub-field
+//                                    yang tanpa isinya butir itu tak berarti)
+//   resource BERMUTU secara isi   → BUKAN M5. Itu M9.
+//
+// Karena itu di bawah TIDAK ADA ambang panjang teks, tidak ada pencocokan kata,
+// dan tidak ada daftar kata kunci. Sebuah `isi_teks` berisi satu kata akan
+// lolos M5 — dan itu memang benar: yang tahu bahwa satu kata bukan teks bacaan
+// adalah pembaca, bukan penghitung karakter. Menaruh ambang di sini hanya akan
+// berpura-pura menilai mutu, dan pengalaman repo ini sudah mahal soal itu
+// (lihat pelajaran V14 di CLAUDE.md).
+//
+// HUBUNGANNYA DENGAN BENTUK_INSTRUMEN DI index.ts.
+//
+// `BENTUK_INSTRUMEN` adalah bentuk yang DIKIRIM KE MODEL, berupa potongan teks
+// mirip TypeScript. Tabel di bawah adalah bentuk yang DITEGAKKAN VALIDATOR,
+// berupa data. Keduanya sengaja tetap terpisah: menurunkan teks prompt dari
+// tabel ini akan mengubah kalimat yang model lihat, dan perubahan itu tidak
+// dapat diuji tanpa memanggil model. Yang menjaga keduanya tidak menyimpang
+// adalah uji sinkron M5-SYNC — pola yang sama dengan `atp-acuan-sinkron.mjs`:
+// kalau satu jenis ditambahkan di satu tempat dan tidak di tempat lain, uji itu
+// gagal. Menambah jenis instrumen berarti menyunting KEDUANYA.
+
+/** Bentuk satu field resource yang wajib berisi. */
+export type FieldResource =
+  /** String yang tidak boleh kosong setelah di-trim. */
+  | { field: string; bentuk: 'teks' }
+  /** Array string; minimal `min` butir, dan tiap butir tidak boleh kosong. */
+  | { field: string; bentuk: 'daftar_teks'; min: number }
+  /** Array objek; minimal `min` butir. `wajib` = sub-field string yang tanpa
+   *  isinya butir itu tidak berarti. `objek_wajib` = sub-objek beserta
+   *  sub-field-nya sendiri (mis. kartu peran: peran_a.instruksi_peran). */
+  | { field: string; bentuk: 'daftar_objek'; min: number; wajib: string[];
+      objek_wajib?: Record<string, string[]> };
+
+export type SpesifikasiResource = {
+  /** Yang murid perlukan untuk mengerjakan. Diperiksa bila `untuk_murid=true`. */
+  murid: FieldResource[];
+  /** Yang guru perlukan untuk MENJALANKAN atau MENILAI. Diperiksa hanya bila
+   *  instrumennya benar-benar dipakai jalur asesmen — lihat catatan di bawah. */
+  guru?: FieldResource[];
+};
+
+// MENGAPA `guru` HANYA DIPERIKSA UNTUK INSTRUMEN ASESMEN YANG DIPAKAI.
+//
+// Panduan guru dituntut ketika guru tidak dapat menjalankan atau menilai tanpa
+// nya: kunci jawaban untuk soal yang jawabannya objektif, rubrik untuk yang
+// dinilai berrubrik, legenda dan kolom untuk lembar pengamatan, panduan
+// penafsiran untuk pemetaan awal.
+//
+// Ia TIDAK dituntut untuk instrumen pembelajaran (dialog, teks, kartu peran).
+// Di sana bahan muridnya sendiri yang menjadi kegiatannya, dan menuntut catatan
+// fasilitasi untuk setiap lembar bacaan akan menjatuhkan modul yang sehat tanpa
+// menambah satu pun hal yang guru butuhkan. Gerbang yang terlalu lebar memakan
+// jatah generate guru — itu pelajaran yang sudah dibayar di milestone Naskah.
+
+export const RESOURCE_WAJIB: Record<string, SpesifikasiResource> = {
+  // ── Instrumen pembelajaran ────────────────────────────────────────────────
+  dialog_baseline: {
+    murid: [
+      { field: 'petunjuk', bentuk: 'teks' },
+      // Dua giliran adalah lantai bentuk, bukan selera: percakapan dengan satu
+      // giliran bukan percakapan.
+      { field: 'giliran', bentuk: 'daftar_objek', min: 2, wajib: ['pembicara', 'ucapan'] },
+    ],
+  },
+  dialog_model: {
+    murid: [
+      { field: 'petunjuk', bentuk: 'teks' },
+      { field: 'giliran', bentuk: 'daftar_objek', min: 2, wajib: ['pembicara', 'ucapan'] },
+    ],
+  },
+  teks_autentik: {
+    murid: [
+      { field: 'isi_teks', bentuk: 'teks' },
+      { field: 'pertanyaan_panduan', bentuk: 'daftar_teks', min: 1 },
+    ],
+  },
+  kartu_peran: {
+    murid: [
+      { field: 'set', bentuk: 'daftar_objek', min: 1,
+        wajib: ['nama_set', 'nama_entitas'],
+        objek_wajib: { peran_a: ['instruksi_peran'], peran_b: ['instruksi_peran'] } },
+    ],
+  },
+
+  // ── Instrumen asesmen ─────────────────────────────────────────────────────
+  pemetaan_awal: {
+    murid: [
+      { field: 'petunjuk', bentuk: 'teks' },
+      { field: 'item_soal', bentuk: 'daftar_objek', min: 1, wajib: ['kalimat_konteks', 'kata_target'] },
+    ],
+    guru: [
+      { field: 'tujuan_diagnostik', bentuk: 'teks' },
+      { field: 'panduan_interpretasi', bentuk: 'teks' },
+    ],
+  },
+  matriks_observasi: {
+    // Lembar pengamatan biasanya milik guru (untuk_murid=false), sehingga
+    // konten_murid null dan isi yang dapat dipakai justru ada di panduan_guru.
+    murid: [
+      { field: 'petunjuk', bentuk: 'teks' },
+      { field: 'kolom_indikator', bentuk: 'daftar_objek', min: 1, wajib: ['id', 'label'] },
+    ],
+    guru: [
+      { field: 'kode_legend', bentuk: 'teks' },
+      { field: 'kolom_indikator', bentuk: 'daftar_objek', min: 1, wajib: ['id', 'label'] },
+      { field: 'catatan_kritis', bentuk: 'teks' },
+    ],
+  },
+  lembar_refleksi: {
+    murid: [
+      { field: 'pertanyaan', bentuk: 'daftar_objek', min: 1, wajib: ['prompt'] },
+    ],
+    guru: [
+      { field: 'panduan_interpretasi', bentuk: 'teks' },
+    ],
+  },
+  soal_latihan: {
+    murid: [
+      { field: 'petunjuk', bentuk: 'teks' },
+      { field: 'soal', bentuk: 'daftar_objek', min: 1, wajib: ['pertanyaan'] },
+    ],
+    guru: [
+      { field: 'kunci_jawaban', bentuk: 'daftar_teks', min: 1 },
+      { field: 'panduan_penskoran', bentuk: 'teks' },
+    ],
+  },
+  lembar_praktikum: {
+    murid: [
+      { field: 'tujuan', bentuk: 'teks' },
+      { field: 'alat_bahan', bentuk: 'daftar_teks', min: 1 },
+      { field: 'langkah_kerja', bentuk: 'daftar_teks', min: 1 },
+      { field: 'pertanyaan_analisis', bentuk: 'daftar_teks', min: 1 },
+    ],
+    guru: [
+      { field: 'rubrik_penilaian', bentuk: 'teks' },
+    ],
+  },
+  panduan_proyek: {
+    murid: [
+      { field: 'deskripsi_proyek', bentuk: 'teks' },
+      { field: 'tahapan', bentuk: 'daftar_objek', min: 1, wajib: ['judul', 'instruksi'] },
+      { field: 'kriteria_produk', bentuk: 'daftar_teks', min: 1 },
+      { field: 'pertanyaan_refleksi', bentuk: 'daftar_teks', min: 1 },
+    ],
+    guru: [
+      { field: 'rubrik_penilaian', bentuk: 'teks' },
+    ],
+  },
+};
+
+/** Jenis yang sengaja TIDAK punya spesifikasi bentuk: `custom` ada supaya guru
+ *  tidak terkurung oleh sepuluh jenis di atas. Ia tetap tidak boleh kosong —
+ *  penegakannya di validator, bukan di tabel ini, karena yang bisa dituntut
+ *  hanyalah "ada isinya", bukan isi apa. */
+export const JENIS_TANPA_SPESIFIKASI = ['custom'] as const;
+
+/** Jumlah kunci jawaban WAJIB sama dengan jumlah soal.
+ *
+ *  Ini satu-satunya aturan M5 yang membandingkan dua resource, dan ia
+ *  deterministik sepenuhnya: sembilan soal dengan tujuh kunci berarti guru
+ *  berhenti di soal kedelapan tanpa tahu jawabannya. Tidak ada penafsiran yang
+ *  terlibat — hanya dua bilangan yang harus sama. */
+export const KUNCI_SEPADAN_SOAL = { jenis: 'soal_latihan', murid: 'soal', guru: 'kunci_jawaban' } as const;
+
