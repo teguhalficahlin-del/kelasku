@@ -383,10 +383,17 @@ Deno.test('M3-M: jejak pewarisan M2 dikenal kontrak dan dituntut untuk dokumen b
 
 Deno.test('M3-N: jejak M2 tetap ikut ke dokumen final, dan hash M1 tidak tersentuh', async () => {
   const src = await Deno.readTextFile(EF_MODUL);
-  const iMerge = src.indexOf('const merged: unknown = {');
-  const blok = src.slice(iMerge, iMerge + 1800);
+  // Dokumen final dirakit di SATU otoritas (koreksi perakitan M9): handler
+  // Fase D memanggilnya, dan field jejak M2 diperiksa di sana.
+  assert(src.includes('const merged: unknown = rakitModulFinal({'),
+    'Fase D tidak merakit dokumen final lewat otoritas perakitan');
+  const rakit = await Deno.readTextFile(
+    new URL('../supabase/functions/generate-modul/assembly.ts', import.meta.url));
+  const iMerge = rakit.indexOf('export function rakitModulFinal(');
+  assert(iMerge >= 0, 'otoritas perakitan dokumen final tidak ditemukan');
+  const blok = rakit.slice(iMerge);
   for (const nama of ['tp_anchor', 'atp_context', 'alokasi_server']) {
-    assert(blok.includes(nama), `${nama} hilang dari dokumen final`);
+    assert(blok.includes(`${nama}:`), `${nama} hilang dari dokumen final`);
   }
   // Penyusunan menyalakan tuntutan jejak; jalur lain tidak.
   //

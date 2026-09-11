@@ -28,6 +28,8 @@
 //   deno run --allow-env --allow-net --allow-read --allow-write \
 //     tests/m9-semantic-harness.ts --skenario 1
 
+import { rakitModulFinal } from '../supabase/functions/generate-modul/assembly.ts';
+
 const EF = new URL('../supabase/functions/generate-modul/index.ts', import.meta.url);
 const ARTEFAK = new URL('./artifacts/m9/', import.meta.url);
 const MODEL = 'gemini-3.8-flash';
@@ -419,43 +421,19 @@ export async function jalankanSkenario(sk: Skenario, attempt: number) {
   const faseD = await panggilFase(M, msgD,
     M.anggaranTokenFaseD((faseA.kktp ?? []).length || 3, jumlahPertemuan), 'Fase D', 150_000, 'D');
 
-  // ── MERGE seperti Fase D di EF ────────────────────────────────────────────
-  // identitas DIRAKIT BACKEND seperti Fase D produksi — bukan faseA.identitas.
-  const identitasAI = (faseA.identitas ?? {}) as Record<string, unknown>;
-  const identitasFinal = {
-    mata_pelajaran: identitasDB.mapel || identitasAI.mata_pelajaran,
-    jenjang: identitasDB.jenjang || identitasAI.jenjang,
-    fase: identitasDB.fase || identitasAI.fase,
-    nomor_tp: nomorTp, jumlah_pertemuan: jumlahPertemuan, jp_per_pertemuan: jpPerPertemuan,
-    durasi_jp_menit: durasiJp,
-    alokasi_waktu_total_menit: jumlahPertemuan * jpPerPertemuan * durasiJp,
-    elemen_cp: elemenCp.map(e => e.label),
-    jenis_dokumen: 'Modul Induk; guru mengadaptasi konteks kelas dan program keahlian',
-    konteks_kejuruan: identitasAI.konteks_kejuruan,
-    dasar_cp: elemenCp.map(e => `${e.label}: ${e.cp_text}`).join('\n\n'),
-    tujuan_pembelajaran: identitasAI.tujuan_pembelajaran,
-  };
-  const merged = {
-    schema_version: '4.0.0',
-    identitas: identitasFinal,
-    kktp: faseA.kktp,
-    keputusan_kontekstual: faseA.keputusan_kontekstual,
-    konteks_murid: faseA.konteks_murid,
-    materi_esensial: faseA.materi_esensial,
-    rencana_asesmen: faseA.rencana_asesmen,
-    rancangan: faseA.rancangan,
-    pertemuan: pertemuanWithRef,
-    naskah_fasilitasi: faseB2.naskah_fasilitasi ?? [],
-    instrumen_pembelajaran: faseC.instrumen_pembelajaran ?? [],
-    instrumen_asesmen: faseC.instrumen_asesmen ?? [],
-    tindak_lanjut: faseD.tindak_lanjut,
-    catatan_guru: faseD.catatan_guru,
-    metadata_pedagogis: faseA.metadata_pedagogis,
-    tp_anchor: { ...tpAnchor, tuntutan: masukan.tuntutanTerurai,
-                 tuntutan_id: tpAnchor.tuntutan, kategori_teks_wajib: warisan.kategoriWajib },
-    atp_context: atpContext,
-    alokasi_server: alokasi,
-  };
+  // ── MERGE lewat otoritas perakitan produksi ───────────────────────────────
+  // Harness DULU merakit `merged` sendiri dan kebetulan membawa
+  // keputusan_kontekstual, sementara handler tidak — seluruh M9 hijau
+  // sementara setiap Modul baru di produksi gagal di Fase D (smoke 11 Sep 2026).
+  // Kini keduanya memanggil rakitModulFinal() yang sama; tidak ada daftar
+  // field akar di berkas ini.
+  const merged = rakitModulFinal({
+    faseAOutput: faseA, faseBOutput: { pertemuan: pertemuanWithRef },
+    faseCOutput: faseC, faseDOutput: faseD, naskahFinal: faseB2.naskah_fasilitasi,
+    identitasDB, nomorTp, jumlahPertemuan, jpPerPertemuan, durasiJp, elemenCp,
+    tpAnchor, tuntutanTerurai: masukan.tuntutanTerurai,
+    kategoriWajib: warisan.kategoriWajib, atpContext, alokasiServer: alokasi,
+  });
 
   const manifestFaseD = {
     pembelajaran_manifest: manifest.pembelajaran_manifest,

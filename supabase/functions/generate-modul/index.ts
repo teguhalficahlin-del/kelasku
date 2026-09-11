@@ -20,6 +20,7 @@ import {
   KODE_TUNTUTAN_ASING, KODE_LAYANAN_CP,
   type TuntutanTerurai, type AtpContext, type AlokasiPertemuan,
 } from './warisan.ts';
+import { rakitModulFinal } from './assembly.ts';
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
@@ -4953,68 +4954,14 @@ Deno.serve(async (req) => {
       return json({ error: err.message ?? 'Gagal di Fase D', code: err.code ?? 'AI_ERROR', retryable: err.retryable ?? true }, 500);
     }
 
-    // Merge semua fase → ModulOutput V4.0
-    // Identitas deterministik diambil dari DB params — tidak dari AI output
-    // AI hanya dipercaya untuk dasar_cp, tujuan_pembelajaran, konteks_kejuruan
-    const identitasAI = (faseAOutput.identitas ?? {}) as Record<string, unknown>;
-    const identitasFinal: Record<string, unknown> = {
-      mata_pelajaran:            identitasDB.mapel  || identitasAI.mata_pelajaran,
-      jenjang:                   identitasDB.jenjang || identitasAI.jenjang,
-      fase:                      identitasDB.fase   || identitasAI.fase,
-      nomor_tp:                  nomorTp,
-      jumlah_pertemuan:          jumlahPertemuan,
-      jp_per_pertemuan:          jpPerPertemuan,
-      durasi_jp_menit:           durasiJp,
-      alokasi_waktu_total_menit: jumlahPertemuan * jpPerPertemuan * durasiJp,
-      elemen_cp:                 elemenCp.map(e => e.label),
-      jenis_dokumen:             'Modul Induk; guru mengadaptasi konteks kelas dan program keahlian',
-      konteks_kejuruan:          identitasAI.konteks_kejuruan,
-      // dasar_cp DIRAKIT BACKEND sejak 8 September 2026, bukan dipilih AI.
-      //
-      // Telaah ahli kurikulum menemukan "Dasar CP" yang dicetak di modul tidak
-      // menjelaskan seluruh kompetensi yang dituntut KKTP-nya. Setelah
-      // ditelusuri, teksnya TIDAK dikarang — ia verbatim dari CP resmi. Cacatnya
-      // lebih halus: TP ini menyentuh TIGA elemen CP, tapi AI hanya menyalin
-      // SATU. Akibatnya kriteria tentang menjawab pertanyaan audiens tidak bisa
-      // ditelusuri ke dasar yang tercantum, dan guru mengarsipkan dokumen yang
-      // rujukannya tidak lengkap.
-      //
-      // Memilih elemen mana yang dikutip bukan penilaian pedagogis — ia
-      // penyalinan. Menyerahkannya ke model hanya menambah satu tempat lagi
-      // yang bisa meleset tanpa ada yang mengeluh.
-      dasar_cp:                  elemenCp.length
-        ? elemenCp.map(e => `${e.label}: ${e.cp_text}`).join('\n\n')
-        : identitasAI.dasar_cp,
-      tujuan_pembelajaran:       identitasAI.tujuan_pembelajaran,
-    };
-    const merged: unknown = {
-      schema_version:         MODUL_SCHEMA_VERSION,
-      identitas:              identitasFinal,
-      kktp:                   faseAOutput.kktp,
-      konteks_murid:          faseAOutput.konteks_murid,
-      materi_esensial:        faseAOutput.materi_esensial,
-      rencana_asesmen:        faseAOutput.rencana_asesmen,
-      rancangan:              faseAOutput.rancangan,
-      pertemuan:              faseBOutput.pertemuan,
-      naskah_fasilitasi:      naskahFinal ?? [],
-      instrumen_pembelajaran: faseCOutput.instrumen_pembelajaran ?? [],
-      instrumen_asesmen:      faseCOutput.instrumen_asesmen ?? [],
-      tindak_lanjut:          faseDOutput.tindak_lanjut,
-      catatan_guru:           faseDOutput.catatan_guru,
-      metadata_pedagogis:     faseAOutput.metadata_pedagogis,
-      // JEJAK WARISAN (M2). Fase D menyusun `konten` final dari nol, jadi jejak
-      // yang dipaku di Fase A harus ikut dibawa ke sini — kalau tidak, ia hilang
-      // persis pada dokumen yang paling lama hidup. Validator tidak menolak
-      // field di luar daftarnya; ia memeriksa yang ada, bukan melarang yang lain.
-      tp_anchor: {
-        ...tpAnchor,
-        tuntutan: tuntutanTerurai,
-        tuntutan_id: tpAnchor.tuntutan,
-        kategori_teks_wajib: kategoriWajib,
-      },
-      atp_context:    atpContext,
-      alokasi_server: alokasiTp,
-    };
+    // Merge semua fase → ModulOutput V4.0 — lewat SATU otoritas perakitan
+    // (assembly.ts). Daftar field akar dokumen final tidak ditulis di sini;
+    // uji regresi dan harness M9 memanggil fungsi yang sama.
+    const merged: unknown = rakitModulFinal({
+      faseAOutput, faseBOutput, faseCOutput, faseDOutput, naskahFinal,
+      identitasDB, nomorTp, jumlahPertemuan, jpPerPertemuan, durasiJp, elemenCp,
+      tpAnchor, tuntutanTerurai, kategoriWajib, atpContext, alokasiServer: alokasiTp,
+    });
 
     // Kedua argumen terakhir: jejak warisan (M2) dan rantai bukti (M4). Jalur
     // PENYUSUNAN selalu menyalakan keduanya — dokumen baru tidak pernah lolos

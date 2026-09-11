@@ -373,13 +373,23 @@ Deno.test('M2-Q: jejak warisan tersimpan di dokumen Modul, bukan hanya di prompt
     'jejak tidak ikut tersimpan bersama draft');
 
   // … dan ikut ke dokumen final Fase D, yang menyusun konten dari nol.
-  const iMerge = src.indexOf('const merged: unknown = {');
-  const blokMerge = src.slice(iMerge, iMerge + 1800);
+  //
+  // Sejak koreksi perakitan M9 (smoke produksi 11 Sep 2026) dokumen final
+  // dirakit di SATU tempat — rakitModulFinal() di assembly.ts — dan handler
+  // meneruskan nilai yang sama ke sana. Kedua sisi diperiksa: field ada di
+  // perakitan, DAN handler mengisinya dari sumber yang sama seperti dulu.
+  const rakit = await Deno.readTextFile(
+    new URL('../supabase/functions/generate-modul/assembly.ts', import.meta.url));
+  const iMerge = rakit.indexOf('export function rakitModulFinal(');
+  assert(iMerge >= 0, 'otoritas perakitan dokumen final tidak ditemukan');
+  const blokMerge = rakit.slice(iMerge);
   assert(/tp_anchor: \{/.test(blokMerge), 'tp_anchor hilang di dokumen final');
-  assert(/atp_context:\s*atpContext/.test(blokMerge), 'atp_context hilang di dokumen final');
-  assert(/alokasi_server:\s*alokasiTp/.test(blokMerge), 'alokasi server hilang di dokumen final');
+  assert(/atp_context:\s*b\.atpContext/.test(blokMerge), 'atp_context hilang di dokumen final');
+  assert(/alokasi_server:\s*b\.alokasiServer/.test(blokMerge), 'alokasi server hilang di dokumen final');
+  assert(/rakitModulFinal\(\{[\s\S]{0,400}atpContext, alokasiServer:\s*alokasiTp/.test(src),
+    'handler tidak meneruskan atp_context dan alokasi server ke perakitan dokumen final');
   // Bentuk kaya untuk dibaca, ID mentah tetap disimpan berdampingan.
-  assert(/tuntutan_id: tpAnchor\.tuntutan/.test(src),
+  assert(/tuntutan_id: b\.tpAnchor\.tuntutan/.test(blokMerge),
     'ID tuntutan mentah tidak disimpan berdampingan dengan bentuk kayanya');
 });
 
