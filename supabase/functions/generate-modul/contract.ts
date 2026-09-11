@@ -241,14 +241,54 @@ export const KONTRAK_ROOT: Record<string, FieldKontrak> = {
      "digunakan_pada":["P1.ASESMEN_AWAL"],"konten_murid":object|null,"panduan_guru":object|null}
   ]`,
   },
+  // ── NASKAH FASILITASI — LAPISAN PELAKSANA (M7) ───────────────────────
+  //
+  // Naskah adalah yang guru pegang SAAT MENGAJAR, sering dari layar HP. Ia bukan
+  // Modul kedua, bukan ringkasan, dan bukan naskah yang dibaca kata demi kata.
+  // Bentuknya lima hal yang guru perlukan dalam hitungan detik:
+  //
+  //   lakukan apa        → aksi_guru
+  //   katakan apa        → ucapan_guru      (boleh kosong — tidak setiap saat perlu)
+  //   tanyakan apa       → pertanyaan_kunci (boleh kosong)
+  //   amati apa          → yang_diamati     (M7)
+  //   lalu putuskan apa  → putusan_lanjut   (M7)
+  //
+  // DUA YANG TERAKHIR ADALAH TAMBAHAN M7, dan alasannya terukur: sampai M6
+  // naskah dapat meliput 1 dari 24 sub-langkah, seluruh entrinya boleh kosong,
+  // dan sub-langkah yang menjadi JANGKAR ASESMEN FORMATIF tidak wajib
+  // memberitahu guru apa pun tentang apa yang harus diamati atau apa yang
+  // dilakukan sesudahnya. Guru berdiri di depan kelas memegang lembar yang
+  // menyuruhnya menilai, tanpa satu kata pun tentang menilai apa.
+  //
+  // `putusan_lanjut` vs `jika_kesulitan`: yang pertama adalah struktur keputusan
+  // (dua cabang, wajib di jangkar FORMATIF — SUMATIF dikecualikan, lihat
+  // ASESMEN_REF_TANPA_PUTUSAN), yang kedua tetap catatan bebas yang
+  // sudah ada dan dipertahankan untuk dokumen lama serta renderer. Pembagian
+  // yang sama dengan `keputusan_ketercapaian` vs `ambang_batas` di M4.
+  //
+  // NASKAH TIDAK PUNYA WAKTU SENDIRI. Tidak ada `durasi_menit` di sini, dan itu
+  // disengaja: urutan dan durasi sudah ditetapkan `pertemuan[]`. Timeline kedua
+  // hanya akan bertengkar dengan yang pertama.
   naskah_fasilitasi: {
     fase: 'B2', kind: 'array', required: true,
-    catatan: 'Panjangnya WAJIB sama dengan jumlah_pertemuan. field "ref" disalin PERSIS dari sub_langkah[].ref yang dikirim.',
+    catatan: 'Panjangnya WAJIB sama dengan jumlah_pertemuan. field "ref" disalin PERSIS dari sub_langkah[].ref yang dikirim. '
+           + 'WAJIB ada TEPAT SATU entri untuk SETIAP sub_langkah di pertemuan[], dengan URUTAN yang sama — '
+           + 'naskah yang melewati sebagian langkah membuat guru kehilangan panduan tepat di tengah mengajar. '
+           + 'aksi_guru WAJIB berisi (itulah tindakan konkret guru). ucapan_guru dan pertanyaan_kunci BOLEH kosong — '
+           + 'guru tidak perlu membaca naskah setiap saat. '
+           + 'Untuk sub_langkah yang menjadi jangkar asesmen FORMATIF (asesmen_ref = FMT-xx), WAJIB ada '
+           + 'yang_diamati DAN putusan_lanjut: formatif terjadi DI TENGAH pembelajaran, jadi guru harus tahu '
+           + 'apa yang diamati dan apa langkah berikutnya saat itu juga, baik ketika murid sudah maupun belum mencapainya. '
+           + 'Untuk asesmen_ref = SUMATIF keduanya TIDAK diwajibkan: hasil sumatif kerap baru dinilai setelah kelas '
+           + 'usai, jadi memaksa keputusan di tempat akan mengarang kebiasaan yang tidak dilakukan guru. '
+           + 'DILARANG menulis durasi atau menit di naskah — waktu sudah ditetapkan pertemuan[].',
     bentuk: `"naskah_fasilitasi":[
     {"nomor":1,
      "langkah":[{"nama":<nama_langkah>,
-                 "sub_langkah":[{"ref":"P1.PEMBUKA.1","ucapan_guru":[string],"aksi_guru":[string],
-                                 "pertanyaan_kunci":[string],"jika_kesulitan":[string]}]}]}
+                 "sub_langkah":[{"ref":"P1.PEMBUKA.1","aksi_guru":[string],"ucapan_guru":[string],
+                                 "pertanyaan_kunci":[string],"jika_kesulitan":[string],
+                                 "yang_diamati":[string],
+                                 "putusan_lanjut":{"jika_tercapai":string,"jika_belum":string}}]}]}
   ]`,
   },
   tindak_lanjut: {
@@ -611,3 +651,56 @@ export const AWALAN_KOMPONEN = {
  *  yang dituntut adalah setiap penekanan yang ATP nyatakan berlaku bagi TP INI,
  *  dan daftar itu hanya diketahui saat validasi. */
 export const SUMBER_WAJIB_BERJEJAK = ['kesiapan_murid', 'konteks_tugas'] as const;
+
+
+// ══ M7 — KONTRAK NASKAH FASILITASI ══════════════════════════════════════════
+//
+// Satu tabel untuk validator dan uji, sehingga daftar field tidak dapat
+// menyimpang di antara keduanya.
+
+/** Field naskah yang WAJIB berisi di setiap unit eksekusi. `aksi_guru` sendirian
+ *  di sini dengan sengaja: guru selalu MELAKUKAN sesuatu di setiap langkah,
+ *  tetapi tidak selalu perlu MENGATAKAN atau MENANYAKAN sesuatu. Mewajibkan
+ *  ucapan di setiap sub-langkah akan memaksa naskah menjadi skrip yang dibaca
+ *  kata demi kata — persis yang produk ini tolak. */
+export const NASKAH_WAJIB = ['aksi_guru'] as const;
+
+/** Field naskah yang boleh kosong, tetapi kalau ada isinya tidak boleh hampa. */
+export const NASKAH_OPSIONAL = ['ucapan_guru', 'pertanyaan_kunci', 'jika_kesulitan'] as const;
+
+/** Field yang WAJIB ada ketika sub-langkahnya menjadi jangkar asesmen FORMATIF. */
+export const NASKAH_WAJIB_DI_JANGKAR = ['yang_diamati'] as const;
+
+/** Kedua cabang keputusan lanjut. Dua-duanya wajib di jangkar FORMATIF: guru
+ *  perlu tahu langkahnya baik ketika murid sudah mencapai maupun belum. */
+export const CABANG_PUTUSAN = ['jika_tercapai', 'jika_belum'] as const;
+
+/**
+ * Jangkar asesmen yang TIDAK dituntut `yang_diamati` maupun `putusan_lanjut`.
+ *
+ * MENGAPA SUMATIF DIKECUALIKAN.
+ *
+ * Rantai formatif menuntut keputusan DI TEMPAT: asesmen formatif terjadi di
+ * tengah pembelajaran, guru mengamati bukti, memutuskan tercapai atau belum,
+ * lalu melakukan sesuatu sebelum pelajaran berlanjut. Tanpa `putusan_lanjut`
+ * guru hanya mengukur.
+ *
+ * Sumatif tidak bekerja begitu. Guru kerap MENGUMPULKAN produk atau unjuk kerja
+ * lalu menilainya setelah kelas usai — dan itu praktik yang sah, bukan
+ * kelalaian. Menuntut keputusan di tempat untuk setiap sumatif berarti
+ * mengarang kebiasaan yang guru memang tidak lakukan, lalu menolak modul yang
+ * sehat karenanya.
+ *
+ * Versi pertama M7 memperlakukan keduanya sama, dan itu terlalu luas.
+ *
+ * Daftar ini sengaja hanya memuat SUMATIF. `DIAGNOSTIK` tidak dimasukkan karena
+ * ia bukan nilai `asesmen_ref` yang dipakai sub_langkah mana pun: diagnostik
+ * punya `waktu` berupa kalimat di `rencana_asesmen`, bukan jangkar di
+ * `pertemuan[]`. Menambahkannya berarti mengecualikan sesuatu yang tidak ada.
+ */
+export const ASESMEN_REF_TANPA_PUTUSAN = ['SUMATIF'] as const;
+
+/** Nama field yang menandakan naskah mencoba memiliki waktunya sendiri.
+ *  Urutan dan durasi adalah milik `pertemuan[]`; timeline kedua hanya akan
+ *  bertengkar dengan yang pertama. */
+export const NASKAH_TERLARANG_WAKTU = ['durasi_menit', 'durasi', 'menit', 'waktu', 'alokasi_menit'] as const;

@@ -8,6 +8,8 @@ import {
   MODUL_SCHEMA_VERSION, KONTRAK_ROOT, ENUM_KONTRAK, URUTAN_LANGKAH_KONTRAK,
   RESOURCE_WAJIB, JENIS_TANPA_SPESIFIKASI, KUNCI_SEPADAN_SOAL,
   AWALAN_KOMPONEN, SUMBER_WAJIB_BERJEJAK,
+  NASKAH_WAJIB, NASKAH_OPSIONAL, NASKAH_WAJIB_DI_JANGKAR, CABANG_PUTUSAN,
+  NASKAH_TERLARANG_WAKTU, ASESMEN_REF_TANPA_PUTUSAN,
   type FieldResource,
   rootWajib, kerangkaSeluruhFase, ringkasanTanggungJawabFase,
   perintahPerbaikanStruktural, type FasePenghasil,
@@ -391,9 +393,20 @@ type Pertemuan = {
 // ── H. NASKAH FASILITASI ──────────────────────────────────────────────────────
 type NaskahSubLangkah = {
   ref:              string;
-  ucapan_guru:      string[];
+  /** do — tindakan konkret guru. Satu-satunya yang wajib di setiap unit. */
   aksi_guru:        string[];
+  /** say — bantuan bahasa, bukan skrip yang dibaca kata demi kata. */
+  ucapan_guru:      string[];
+  /** ask */
   pertanyaan_kunci: string[];
+  /** observe (M7) — wajib di sub_langkah yang menjadi jangkar asesmen. */
+  yang_diamati?:    string[];
+  /** decide-next (M7) — wajib di jangkar FORMATIF; SUMATIF dikecualikan karena
+   *  hasilnya kerap baru dinilai setelah kelas usai. Dua cabang, karena guru
+   *  perlu tahu langkahnya baik ketika murid sudah mencapai maupun belum.
+   *  `jika_kesulitan` di bawah tetap catatan bebas yang sudah ada sejak V4.0;
+   *  pembagian yang sama dengan `keputusan_ketercapaian` vs `ambang_batas`. */
+  putusan_lanjut?:  { jika_tercapai: string; jika_belum: string };
   jika_kesulitan?:  string[];
 };
 
@@ -701,6 +714,17 @@ function validateModulOutputV400(
    *  tidak punya `keputusan_kontekstual` dan menuntutnya secara surut bukan
    *  pemeriksaan melainkan mengubah aturan ke belakang. */
   wajibKausalitasCurrent = false,
+  /** Menuntut KONTRAK NASKAH M7: naskah meliput seluruh sub_langkah modul dalam
+   *  urutan yang sama, setiap unit memberi tindakan konkret, dan sub_langkah
+   *  yang menjadi jangkar asesmen memberi tahu guru apa yang diamati serta apa
+   *  langkah berikutnya.
+   *
+   *  Satu bendera per milestone, pola sama dengan `wajibJejakWarisan` (M2),
+   *  `wajibKontrakAsesmenCurrent` (M4), `wajibResourceCurrent` (M5), dan
+   *  `wajibKausalitasCurrent` (M6). Jalur PENYUSUNAN menyalakannya; dokumen
+   *  lama tidak, karena naskah pra-M7 memang tidak punya `yang_diamati` dan
+   *  `putusan_lanjut`. */
+  wajibNaskahCurrent = false,
 ): { valid: boolean; errors: string[]; output: ModulOutput | null } {
   const errors: string[] = [];
 
@@ -1900,6 +1924,198 @@ function validateModulOutputV400(
               `penekanan guru '${kunci}' dinyatakan ATP berlaku untuk TP ini tetapi tidak ada ` +
               `keputusan_kontekstual yang menerapkannya`,
             );
+          }
+        }
+      }
+    }
+  }
+
+  // ── M7: NASKAH FASILITASI SEBAGAI LAPISAN PELAKSANA ────────────────────
+  //
+  //   Modul → langkah pelaksanaan → lakukan → katakan → tanyakan → amati → putuskan
+  //
+  // Sampai M6, V11 hanya memeriksa panjang naskah, nomor pertemuan, enam nama
+  // langkah, dan bahwa setiap `ref` yang naskah sebut memang ada di modul. Arah
+  // sebaliknya tidak pernah diperiksa, dan isinya tidak pernah diperiksa sama
+  // sekali. Terukur pada modul produksi: naskah boleh meliput 1 dari 24
+  // sub_langkah, seluruh entrinya boleh kosong, urutannya boleh dibalik, dan
+  // sub_langkah yang menjadi JANGKAR ASESMEN FORMATIF tidak wajib menyebut satu
+  // kata pun tentang apa yang harus diamati.
+  //
+  // Yang ditegakkan di sini seluruhnya struktural: liputan, urutan, keberadaan
+  // isi, dan kelengkapan di jangkar asesmen. Apakah kalimatnya terdengar wajar,
+  // apakah pertanyaannya bagus, dan apakah keputusannya intervensi terbaik —
+  // semuanya M9. Tidak ada pencocokan kata di blok ini.
+  if (wajibNaskahCurrent) {
+    const naskah = Array.isArray(o.naskah_fasilitasi)
+      ? o.naskah_fasilitasi as Array<Record<string, unknown>> : null;
+    if (!naskah || !naskah.length) {
+      errors.push(
+        'naskah_fasilitasi tidak ada — guru tidak punya panduan pelaksanaan untuk modul ini',
+      );
+    } else {
+      // Peta ref naskah, beserta urutannya per langkah.
+      const naskahPerLangkah = new Map<string, Array<Record<string, unknown>>>();
+      const entriNaskah      = new Map<string, Record<string, unknown>>();
+      naskah.forEach((np, i) => {
+        const noP = Number(np.nomor ?? i + 1);
+        for (const lk of (Array.isArray(np.langkah) ? np.langkah as Array<Record<string, unknown>> : [])) {
+          const kunci = `${noP}.${String(lk.nama ?? '')}`;
+          const arr = (Array.isArray(lk.sub_langkah) ? lk.sub_langkah as Array<Record<string, unknown>> : []);
+          naskahPerLangkah.set(kunci, arr);
+          for (const sl of arr) if (sl.ref) entriNaskah.set(String(sl.ref), sl);
+        }
+      });
+
+      // ── PARITAS STRUKTURAL: setiap sub_langkah modul punya entri naskah ────
+      //
+      // Dicocokkan lewat `ref`, bukan kemiripan kalimat — ref sudah diisi backend
+      // dan sudah dijaga V11 dari arah sebaliknya.
+      if (Array.isArray(o.pertemuan)) {
+        (o.pertemuan as Array<Record<string, unknown>>).forEach((pt, pi) => {
+          const noP = Number(pt.nomor ?? pi + 1);
+          for (const lk of (Array.isArray(pt.langkah) ? pt.langkah as Array<Record<string, unknown>> : [])) {
+            const kunci   = `${noP}.${String(lk.nama ?? '')}`;
+            const modulSl = (Array.isArray(lk.sub_langkah) ? lk.sub_langkah as Array<Record<string, unknown>> : []);
+            const refModul  = modulSl.map(sl => String(sl.ref ?? ''));
+            const refNaskah = (naskahPerLangkah.get(kunci) ?? []).map(sl => String(sl.ref ?? ''));
+
+            const hilang = refModul.filter(r => !refNaskah.includes(r));
+            if (hilang.length) {
+              errors.push(
+                `naskah_fasilitasi tidak meliput ${hilang.length} sub_langkah di pertemuan ${noP} ` +
+                `langkah ${lk.nama}: ${hilang.join(', ')} — guru kehilangan panduan di tengah mengajar`,
+              );
+            }
+            // Urutan naskah harus mengikuti urutan modul: guru membacanya sambil
+            // mengajar, jadi melompat-lompat membuatnya kehilangan tempat.
+            const sejajar = refNaskah.filter(r => refModul.includes(r));
+            const harusnya = refModul.filter(r => refNaskah.includes(r));
+            if (sejajar.join('|') !== harusnya.join('|')) {
+              errors.push(
+                `naskah_fasilitasi pertemuan ${noP} langkah ${lk.nama}: urutan sub_langkah ` +
+                `(${sejajar.join(', ')}) berbeda dari urutan di modul (${harusnya.join(', ')})`,
+              );
+            }
+          }
+        });
+      }
+
+      // ── ISI SETIAP UNIT EKSEKUSI ────────────────────────────────
+      //
+      // Jangkar asesmen ditentukan MODUL, bukan naskah: sub_langkah yang punya
+      // `asesmen_ref`. Di situlah guru mengumpulkan bukti tentang murid.
+      const jangkar = new Map<string, string>();     // ref → asesmen_ref
+      if (Array.isArray(o.pertemuan)) {
+        for (const pt of o.pertemuan as Array<Record<string, unknown>>) {
+          for (const lk of (Array.isArray(pt.langkah) ? pt.langkah as Array<Record<string, unknown>> : [])) {
+            for (const sl of (Array.isArray(lk.sub_langkah) ? lk.sub_langkah as Array<Record<string, unknown>> : [])) {
+              if (nonEmpty(sl.asesmen_ref)) jangkar.set(String(sl.ref), String(sl.asesmen_ref));
+            }
+          }
+        }
+      }
+
+      for (const [ref, sl] of entriNaskah) {
+        const jalur = `naskah_fasilitasi ${ref}`;
+
+        // do — satu-satunya yang wajib di SETIAP unit.
+        for (const medan of NASKAH_WAJIB) {
+          const v = sl[medan];
+          if (!Array.isArray(v) || !v.length) {
+            errors.push(`${jalur}.${medan} kosong — setiap langkah harus memberi guru tindakan yang konkret`);
+          } else {
+            v.forEach((butir, i) => {
+              if (!nonEmpty(butir)) errors.push(`${jalur}.${medan}[${i}] kosong`);
+            });
+          }
+        }
+
+        // say / ask / catatan — boleh tidak ada, tetapi tidak boleh hampa.
+        // Guru tidak perlu membaca naskah setiap saat; mewajibkan ucapan di
+        // setiap sub-langkah justru menjadikannya skrip kata demi kata.
+        for (const medan of NASKAH_OPSIONAL) {
+          const v = sl[medan];
+          if (v === undefined || v === null) continue;
+          if (!Array.isArray(v)) { errors.push(`${jalur}.${medan} harus array`); continue; }
+          v.forEach((butir, i) => {
+            if (!nonEmpty(butir)) errors.push(`${jalur}.${medan}[${i}] kosong`);
+          });
+        }
+
+        // Naskah tidak punya waktu sendiri.
+        for (const medan of NASKAH_TERLARANG_WAKTU) {
+          if (sl[medan] !== undefined)
+            errors.push(
+              `${jalur}.${medan} tidak boleh ada — urutan dan durasi milik pertemuan[], ` +
+              `naskah tidak boleh punya timeline kedua`,
+            );
+        }
+
+        // ── DI JANGKAR ASESMEN: amati apa, lalu putuskan apa ──────────────
+        //
+        // FORMATIF DAN SUMATIF TIDAK DIPERLAKUKAN SAMA (koreksi M7.1).
+        //
+        // Rantai formatif menuntut keputusan DI TEMPAT: asesmen formatif terjadi
+        // di tengah pembelajaran, guru mengamati bukti, memutuskan tercapai atau
+        // belum, lalu melakukan sesuatu sebelum pelajaran berlanjut.
+        //
+        // Sumatif tidak bekerja begitu. Guru kerap mengumpulkan produk atau
+        // unjuk kerja lalu menilainya setelah kelas usai — praktik yang sah,
+        // bukan kelalaian. Versi pertama M7 menuntut keduanya sama, dan itu
+        // menolak modul sehat demi kebiasaan yang guru memang tidak lakukan.
+        const asesmenRef = jangkar.get(ref);
+        if (!asesmenRef) continue;
+
+        const dikecualikan = (ASESMEN_REF_TANPA_PUTUSAN as readonly string[]).includes(asesmenRef);
+
+        if (dikecualikan) {
+          // Keduanya OPSIONAL di sini — tidak diperluas demi simetri. Yang tetap
+          // dijaga hanya integritas isinya: field yang ADA tidak boleh hampa,
+          // perlakuan yang sama dengan field opsional lain di naskah.
+          for (const medan of NASKAH_WAJIB_DI_JANGKAR) {
+            const v = sl[medan];
+            if (v === undefined || v === null) continue;
+            if (!Array.isArray(v)) { errors.push(`${jalur}.${medan} harus array`); continue; }
+            v.forEach((butir, i) => {
+              if (!nonEmpty(butir)) errors.push(`${jalur}.${medan}[${i}] kosong`);
+            });
+          }
+          const putusanOpsional = sl.putusan_lanjut as Record<string, unknown> | undefined;
+          if (putusanOpsional && typeof putusanOpsional === 'object' && !Array.isArray(putusanOpsional)) {
+            for (const cabang of CABANG_PUTUSAN) {
+              if (putusanOpsional[cabang] !== undefined && !nonEmpty(putusanOpsional[cabang]))
+                errors.push(`${jalur}.putusan_lanjut.${cabang} kosong`);
+            }
+          }
+          continue;
+        }
+
+        // ── JANGKAR FORMATIF ────────────────────────────────────
+        for (const medan of NASKAH_WAJIB_DI_JANGKAR) {
+          const v = sl[medan];
+          if (!Array.isArray(v) || !v.length) {
+            errors.push(
+              `${jalur}.${medan} kosong padahal sub_langkah ini jangkar asesmen formatif '${asesmenRef}' — ` +
+              `guru diminta menilai tanpa diberi tahu apa yang harus diamati`,
+            );
+          } else {
+            v.forEach((butir, i) => {
+              if (!nonEmpty(butir)) errors.push(`${jalur}.${medan}[${i}] kosong`);
+            });
+          }
+        }
+
+        const putusan = sl.putusan_lanjut as Record<string, unknown> | undefined;
+        if (!putusan || typeof putusan !== 'object' || Array.isArray(putusan)) {
+          errors.push(
+            `${jalur}.putusan_lanjut tidak ada padahal sub_langkah ini jangkar asesmen formatif ` +
+            `'${asesmenRef}' — mengamati tanpa tahu langkah berikutnya hanya mengukur`,
+          );
+        } else {
+          for (const cabang of CABANG_PUTUSAN) {
+            if (!nonEmpty(putusan[cabang]))
+              errors.push(`${jalur}.putusan_lanjut.${cabang} kosong`);
           }
         }
       }
@@ -3338,7 +3554,14 @@ function buildUserMessageFaseB2(params: {
       `Hasilkan HANYA field "naskah_fasilitasi" (array length HARUS === ${params.jumlahPertemuan}). ` +
       'Setiap naskah.langkah[j].nama HARUS identik dengan pertemuan.langkah[j].nama. ' +
       'Field "ref" di setiap NaskahSubLangkah sudah disediakan dalam pertemuan[] di bawah — salin persis. ' +
-      'Tulis ucapan_guru, aksi_guru, pertanyaan_kunci, jika_kesulitan. ' +
+      'Tulis aksi_guru (WAJIB di setiap sub_langkah — tindakan konkret guru), lalu ucapan_guru, '
+      + 'pertanyaan_kunci, dan jika_kesulitan seperlunya. '
+      + 'Untuk sub_langkah yang punya asesmen_ref = FMT-xx di pertemuan[] — asesmen formatif terjadi '
+      + 'di tengah pembelajaran — WAJIB tulis yang_diamati (apa yang guru periksa pada murid) DAN '
+      + 'putusan_lanjut {jika_tercapai, jika_belum} (langkah berikutnya untuk kedua keadaan itu). '
+      + 'Untuk asesmen_ref = SUMATIF keduanya TIDAK wajib: hasil sumatif kerap baru dinilai setelah '
+      + 'kelas usai, jadi jangan memaksakan keputusan di tempat. '
+      + 'Pakai kktp dan rencana_asesmen di bawah sebagai acuan apa yang diamati; jangan membuat ambang baru. ' +
       'Bahasa imperatif, informal, langsung, siap diucapkan di kelas. ' +
       'WEWENANGMU TERBATAS: kamu menentukan guru MENGATAKAN dan MELAKUKAN apa. ' +
       'Kamu TIDAK menentukan bahan apa yang ada, berapa lama, atau siapa tokohnya — ' +
@@ -4400,7 +4623,7 @@ Deno.serve(async (req) => {
     // Kedua argumen terakhir: jejak warisan (M2) dan rantai bukti (M4). Jalur
     // PENYUSUNAN selalu menyalakan keduanya — dokumen baru tidak pernah lolos
     // dengan aturan dokumen lama.
-    let validation = validateModulOutputV400(merged, nomorTp, jumlahPertemuan, jpPerPertemuan, durasiJp, jumlahMurid, manifestFaseD, perangkatDigitalDiizinkan(cd), true, true, true, true);
+    let validation = validateModulOutputV400(merged, nomorTp, jumlahPertemuan, jpPerPertemuan, durasiJp, jumlahMurid, manifestFaseD, perangkatDigitalDiizinkan(cd), true, true, true, true, true);
 
     if (!validation.valid) {
       const errorList = validation.errors.join('; ');
@@ -4440,7 +4663,7 @@ Deno.serve(async (req) => {
         // sebuah perbaikan: ia keluaran Fase A, sedangkan yang diperbaiki di
         // sini keluaran fase sesudahnya. Menghilangkannya justru membuat
         // gerbangnya paling lemah tepat ketika model baru saja salah sekali.
-        validation = validateModulOutputV400(mergedFixed, nomorTp, jumlahPertemuan, jpPerPertemuan, durasiJp, jumlahMurid, manifestFaseD, perangkatDigitalDiizinkan(cd), true, true, true, true);
+        validation = validateModulOutputV400(mergedFixed, nomorTp, jumlahPertemuan, jpPerPertemuan, durasiJp, jumlahMurid, manifestFaseD, perangkatDigitalDiizinkan(cd), true, true, true, true, true);
         if (!validation.valid) {
           return json({ error: `Validasi gagal setelah repair: ${validation.errors.join('; ')}`, code: 'MODUL_GENERATION_INVALID_SCHEMA', retryable: true }, 422);
         }
