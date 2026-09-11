@@ -241,39 +241,70 @@ git push origin main                  → urutan TERAKHIR
 ## 12. STATUS PROYEK
 
 **Fase saat ini: DEVELOPMENT AKTIF**
-**HEAD:** `e3323b5` (per 10 September 2026; daftar di bawah direkonsiliasi ke kode aktual per 7 September 2026 kecuali yang bertanggal lebih baru)
+**HEAD:** `761ecaf` (per 11 September 2026 — sama dengan `origin/main`, dan kode inilah yang berjalan di produksi; daftar di bawah direkonsiliasi ke kode aktual per 7 September 2026 kecuali yang bertanggal lebih baru)
 
-> **10 September 2026 — ATP FINALIZATION, siap ditinjau, BELUM di-deploy.**
-> Alur pertanyaan ATP diganti seluruhnya ke 21 definisi SPEC (A1–A20 + A15a),
-> menggantikan 48 pertanyaan lama. Kontrak baru: `KONTRAK_PERTANYAAN`,
-> `bangunKonteksAtp()`, `resolveDelegasi()`, `validasiAtp()`, dan gerbang acuan
-> CP — semuanya di `supabase/functions/generate-atp/kontrak.ts` (murni, bisa
-> diuji tanpa menyentuh produksi).
+> **11 September 2026 — MODULE V4 LIVE DI PRODUKSI. Pilot terbatas: Bahasa Inggris Fase E.**
+> Seluruh rantai ATP → M1…M9 kini berjalan bagi guru:
+> - Edge Function `generate-atp` v28 dan `generate-modul` v78 (dari `4df6245`), `verify_jwt=true`.
+> - Frontend GitHub Pages `761ecaf`, `CACHE_NAME = miclass-v30`.
+> - Migration `20260910000001` (kolom `modul_induk.tp_snapshot_hash`) diterapkan.
 >
-> **Belum di-deploy dan belum di-push.** `generate-atp` yang berjalan di
-> produksi masih versi lama; klien di GitHub Pages juga. Jangan menganggap
-> perilaku di bawah sudah berlaku bagi guru sampai deploy dilakukan.
-> Jejak lengkap pertanyaan → data → keputusan: `docs/SPEC-ATP-KONTRAK.md`
-> (dibangkitkan, jangan disunting tangan).
+> Smoke produksi lulus di akun uji milik Romo (`parentingtangguh@gmail.com`,
+> profil `f58a2bb3`): ATP `7c7d19ba`, Modul `fff9db36`, dan unduh .docx. Modul
+> lama `93d53eed` terbaca `LEGACY_UNVERIFIED` dan tetap bisa dibuka.
 >
-> Perintah yang wajib lulus sebelum menyentuh ATP lagi:
+> **Pilot HANYA Bahasa Inggris Fase E** — bukti semantik M9 tidak berlaku untuk
+> mapel lain. ATP berkontrak lama (TP tanpa `tuntutan`) tidak bisa dipakai
+> menyusun Modul baru; guru pilot menyusun ATP baru lebih dulu.
+>
+> **Dua cacat lolos ke produksi, keduanya diperbaiki hari itu juga — polanya satu:
+> uji hijau karena menguji tiruan atau teks, bukan jalur yang dijalankan produksi.**
+> 1. Fase D merakit dokumen final tanpa `keputusan_kontekstual` → setiap Modul
+>    baru HTTP 422. Harness M9 punya perakitan sendiri yang kebetulan membawa
+>    field itu. Backend di-rollback ke `e3323b5`, lalu `4df6245`: satu otoritas
+>    `rakitModulFinal()` di `generate-modul/assembly.ts`, dipakai handler, uji,
+>    dan harness. Uji: `tests/modul-rakit.test.ts`.
+> 2. Unduh .docx Modul jatuh `ReferenceError: konten is not defined` (cacat M8).
+>    Uji M8 hanya mencari TEKS baris yang salah itu. `761ecaf`: `konten` → `k`;
+>    `tests/modul-unduh-docx.test.ts` menjalankan `generateModulDocx()` asli
+>    dengan library docx dari CDN yang sama dengan tombolnya.
+>
+> **Uji baru wajib menjalankan kode produksi — jangan menyalin logikanya, jangan
+> mencari teksnya.**
+>
+> Terbuka, bukan pemblokir:
+> (a) setiap generate Modul di produksi memicu satu repair validasi (~35 detik,
+>     ~14 ribu token), dan galat validasi pertamanya tidak disimpan;
+> (b) Modul legacy tidak punya tombol unduh di UI — Tab Unduh hanya menampilkan
+>     Modul milik ATP aktif terbaru;
+> (c) Playwright CI gagal 7 uji visibilitas dashboard siswa/ortu/guru sejak
+>     sebelum rilis, tidak terkait Rancang;
+> (d) sumber persis v25/v75 lama tidak bisa diunduh (403); kandidat rollback
+>     yang diterima adalah `e3323b5`.
+>
+> Rincian ATP finalization dan Pass 5 (keduanya kini ter-deploy): `docs/LAPORAN-ATP-FINALIZATION.md`
+> dan `docs/ATP-SEMANTIC-CORRECTION-RETEST-REPORT.md`. Jejak pertanyaan → data →
+> keputusan: `docs/SPEC-ATP-KONTRAK.md` (dibangkitkan, jangan disunting tangan).
+>
+> Gerbang deterministik yang wajib lulus sebelum menyentuh ATP atau Modul lagi:
 > ```
-> deno test --allow-read tests/atp-kontrak.test.ts    # 22 uji, Case A–J
-> node tests/atp-acuan-sinkron.mjs                    # salinan acuan CP di EF
-> node tests/atp-trace.mjs --periksa                  # dokumen jejak vs kode
+> deno test --allow-read tests/atp-kontrak.test.ts                      # ATP 60
+> node tests/atp-acuan-sinkron.mjs                                      # salinan acuan CP di EF
+> node tests/atp-trace.mjs --periksa                                    # dokumen jejak vs kode
+> deno test --allow-read --allow-write --ignore=tests/modul-unduh-docx.test.ts 'tests/modul-*.test.ts'  # 348: M1–M9, repair, rakit
+> deno test --allow-read --allow-net tests/modul-unduh-docx.test.ts    # 3: docx asli; butuh jaringan (library CDN)
+> deno run --allow-read --allow-write tests/validator-modul.ts           # historis 0/0/0/1/1
 > ```
-
-> **10 September 2026 — Pass 5 (koreksi semantik), BELUM di-deploy, BELUM di-commit.**
-> Keluaran model kanonik kini SELALU satu objek
-> `{keputusan_didelegasikan, penerapan_prioritas, tp}`; array lama tetap dibaca.
-> Parser `parseKeluaranModel()` dan orkestrator `susunDenganSatuPerbaikan()`
-> tinggal di `kontrak.ts` — Edge Function, uji, dan harness memakai fungsi yang sama.
-> **Satu permintaan guru = PALING BANYAK DUA panggilan model** (utama + satu
-> perbaikan). Catatan sebelum Pass 5 yang menyebut "repair maksimum satu" keliru:
-> kodenya dulu bisa menempuh tiga panggilan. Aturan baru validator: maksimal 2
-> tuntutan per TP (K2), cakupan fiksi+nonfiksi dari `cakupan_wajib` di
-> `cp-acuan.json` (C6/C7), jejak prioritas guru (P1–P4). TP baru tidak lagi punya
-> `tipe`. Laporan: `docs/ATP-SEMANTIC-CORRECTION-RETEST-REPORT.md`.
+> Dua jebakan pada perintah di atas, keduanya sudah dialami:
+> - Jangan menyatukan keduanya dengan `--allow-net`: uji M3 sengaja gagal bila
+>   dijalankan dengan izin jaringan (penjaga bahwa ia tidak memanggil model).
+> - Glob modul WAJIB berkutip. Tanpa kutip, shell mengembangkannya jadi nama
+>   berkas eksplisit dan Deno mengabaikan `--ignore` — uji docx ikut berjalan
+>   tanpa izin jaringan lalu gagal.
+>
+> Invarian ATP yang tetap berlaku (Pass 5): satu permintaan guru ke
+> `generate-atp` = PALING BANYAK DUA panggilan model (utama + satu perbaikan),
+> lewat `susunDenganSatuPerbaikan()` di `kontrak.ts`.
 
 > **SUMBER TUNGGAL HASIL AKHIR — `docs/SPEC-ATP-MODUL-BERBASIS-TEKS.md`
 > (9 September 2026).** Dokumen itu menetapkan apa yang wajib dihasilkan ATP dan
@@ -625,6 +656,7 @@ Migrations baru:
 20260904000002_forum-rls-fix.sql
 20260905000001_rancang-settings-jumlah-murid.sql
 20260907000001_rancang-akses-uji-coba.sql
+20260910000001_modul-tp-snapshot-hash.sql
 ```
 
 **File JS Runtime Rancang — SUDAH DIHAPUS, blok ini tinggal catatan sejarah:**
