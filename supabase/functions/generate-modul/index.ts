@@ -7,6 +7,7 @@ import {
 import {
   MODUL_SCHEMA_VERSION, KONTRAK_ROOT, ENUM_KONTRAK, URUTAN_LANGKAH_KONTRAK,
   RESOURCE_WAJIB, JENIS_TANPA_SPESIFIKASI, KUNCI_SEPADAN_SOAL,
+  AWALAN_KOMPONEN, SUMBER_WAJIB_BERJEJAK,
   type FieldResource,
   rootWajib, kerangkaSeluruhFase, ringkasanTanggungJawabFase,
   perintahPerbaikanStruktural, type FasePenghasil,
@@ -565,6 +566,15 @@ type ModulOutput = {
   tindak_lanjut:          TindakLanjut;
   catatan_guru:           string[];
   metadata_pedagogis:     MetadataPedagogis;
+  /** Jejak kausal konteks ATP (M6). Wajib pada dokumen yang disusun sekarang;
+   *  dokumen pra-M6 tidak memilikinya. */
+  keputusan_kontekstual?: Array<{
+    id:        string;
+    sumber:    { jenis: string; kunci: string };
+    keputusan: string;
+    komponen_terdampak: string[];
+    penerapan: string;
+  }>;
   // Jejak pewarisan ATP yang backend pakukan (M2). Dokumen final memilikinya,
   // dan sampai M3 tipe ini tidak — salah satu drift yang M3 tutup. Bentuknya
   // sudah diketahui, jadi tidak ada `any` di sini.
@@ -682,6 +692,15 @@ function validateModulOutputV400(
    *  instrumen setengah isi dan menghakiminya secara surut bukan pemeriksaan
    *  melainkan mengubah aturan ke belakang. */
   wajibResourceCurrent = false,
+  /** Menuntut JEJAK KAUSAL M6: konteks ATP yang diwarisi benar-benar menyebabkan
+   *  keputusan rancangan yang dapat ditelusuri ke bagian modul yang nyata.
+   *
+   *  Satu bendera per milestone, sama pola dengan `wajibJejakWarisan` (M2),
+   *  `wajibKontrakAsesmenCurrent` (M4), dan `wajibResourceCurrent` (M5). Jalur
+   *  PENYUSUNAN menyalakannya; dokumen lama tidak, karena modul pra-M6 memang
+   *  tidak punya `keputusan_kontekstual` dan menuntutnya secara surut bukan
+   *  pemeriksaan melainkan mengubah aturan ke belakang. */
+  wajibKausalitasCurrent = false,
 ): { valid: boolean; errors: string[]; output: ModulOutput | null } {
   const errors: string[] = [];
 
@@ -1702,6 +1721,188 @@ function validateModulOutputV400(
           }
         }
       });
+    }
+  }
+
+  // ── M6: KAUSALITAS KONTEKS ─────────────────────────────────────────
+  //
+  //   konteks ATP → keputusan → komponen yang terdampak
+  //
+  // Sampai M5 konteks diwarisi ke `atp_context`, dikirim ke model, lalu
+  // berhenti. Terukur: konteks dapat DIBALIK SELURUHNYA — kesiapan
+  // `jauh_di_bawah` menjadi `jauh_di_atas`, A17 `dominan_kerja` menjadi
+  // `dominan_sekolah`, seluruh penekanan guru dihapus — sementara rancangannya
+  // tidak berubah satu baris, dan dokumennya tetap lolos.
+  //
+  // Yang ditegakkan di sini SELURUHNYA deterministik: jejaknya ada, sumbernya
+  // benar-benar ada di potret ATP, komponen yang ditunjuk benar-benar ada di
+  // modul, dan konteks yang wajib berjejak memang berjejak. Apakah keputusannya
+  // TEPAT secara pedagogis tidak diperiksa — itu pembacaan makna, dan itu M9.
+  // Tidak ada pencocokan kata seperti "scaffold" atau "sederhana" di sini.
+  if (wajibKausalitasCurrent) {
+    const jejak = o.keputusan_kontekstual;
+    if (!Array.isArray(jejak) || jejak.length < 1) {
+      errors.push(
+        'keputusan_kontekstual harus array ≥ 1 entri — konteks ATP yang tidak menghasilkan ' +
+        'satu pun keputusan yang dapat ditelusuri bukan konteks, melainkan hiasan',
+      );
+    } else {
+      const ctx = o.atp_context as Record<string, unknown> | undefined;
+      const nilaiKonteks = (nama: string): string | null => {
+        const v = ctx?.[nama] as Record<string, unknown> | undefined;
+        if (!v || typeof v !== 'object') return null;
+        return v.nilai === null || v.nilai === undefined ? null : String(v.nilai);
+      };
+      const prioritasSah = new Set(
+        Array.isArray(ctx?.prioritas_guru)
+          ? (ctx!.prioritas_guru as Array<Record<string, unknown>>).map(x => String(x.kunci)) : [],
+      );
+
+      // Komponen modul yang benar-benar ada — semesta rujukan yang sah.
+      const refSub      = collectRefs(Array.isArray(o.pertemuan) ? o.pertemuan as unknown[] : []);
+      const idKktp      = new Set(Array.isArray(o.kktp)
+        ? (o.kktp as Array<Record<string, unknown>>).map(k => String(k.id_kktp)) : []);
+      const idInstrumen = new Set([
+        ...(Array.isArray(o.instrumen_pembelajaran)
+          ? (o.instrumen_pembelajaran as Array<Record<string, unknown>>).map(i => String(i.id)) : []),
+        ...(Array.isArray(o.instrumen_asesmen)
+          ? (o.instrumen_asesmen as Array<Record<string, unknown>>).map(i => String(i.id)) : []),
+      ]);
+      const idAsesmen = new Set<string>();
+      if (o.rencana_asesmen && typeof o.rencana_asesmen === 'object') {
+        const ra_ = o.rencana_asesmen as Record<string, unknown>;
+        for (const f of (Array.isArray(ra_.asesmen_formatif) ? ra_.asesmen_formatif : []) as Array<Record<string, unknown>>) {
+          if (f?.id) idAsesmen.add(String(f.id));
+        }
+        if (ra_.asesmen_sumatif && typeof ra_.asesmen_sumatif === 'object') idAsesmen.add('SUMATIF');
+        if (ra_.asesmen_diagnostik && typeof ra_.asesmen_diagnostik === 'object') idAsesmen.add('DIAGNOSTIK');
+      }
+
+      /** Satu rujukan komponen: bentuknya benar DAN yang ditunjuk benar ada. */
+      const periksaKomponen = (ref: string, jalur: string): string | null => {
+        const pisah = ref.indexOf(':');
+        if (pisah < 1) {
+          return `${jalur}='${ref}' tidak berbentuk '<jenis>:<id>' ` +
+                 `(jenis yang sah: ${Object.values(AWALAN_KOMPONEN).join(', ')})`;
+        }
+        const jenis = ref.slice(0, pisah);
+        const id    = ref.slice(pisah + 1);
+        switch (jenis) {
+          case AWALAN_KOMPONEN.pertemuan: {
+            const nomor = Number(id);
+            return Number.isInteger(nomor) && nomor >= 1 && nomor <= jumlahPertemuan
+              ? null : `${jalur}='${ref}' menunjuk pertemuan di luar 1..${jumlahPertemuan}`;
+          }
+          case AWALAN_KOMPONEN.sub_langkah:
+            return refSub.has(id) ? null : `${jalur}='${ref}' menunjuk sub_langkah yang tidak ada`;
+          case AWALAN_KOMPONEN.kktp:
+            return idKktp.has(id) ? null : `${jalur}='${ref}' menunjuk KKTP yang tidak ada`;
+          case AWALAN_KOMPONEN.asesmen:
+            return idAsesmen.has(id) ? null : `${jalur}='${ref}' menunjuk asesmen yang tidak ada`;
+          case AWALAN_KOMPONEN.instrumen:
+            return idInstrumen.has(id) ? null : `${jalur}='${ref}' menunjuk instrumen yang tidak ada`;
+          default:
+            return `${jalur}='${ref}' memakai jenis komponen '${jenis}' yang tidak dikenal`;
+        }
+      };
+
+      const idTerpakai = new Set<string>();
+      const berjejak   = new Map<string, Set<string>>();   // jenis sumber → kunci yang dijejakkan
+
+      (jejak as Array<Record<string, unknown>>).forEach((e, i) => {
+        const jalur   = `keputusan_kontekstual[${i}]`;
+        const id      = String(e.id ?? '');
+        const idHarap = `KTX-${String(i + 1).padStart(2, '0')}`;
+        if (!id) errors.push(`${jalur}.id kosong`);
+        else if (idTerpakai.has(id)) errors.push(`${jalur}.id='${id}' ganda`);
+        else if (id !== idHarap) errors.push(`${jalur}.id='${id}', diharapkan '${idHarap}'`);
+        idTerpakai.add(id);
+
+        // Keputusan dan penerapannya harus ADA. Mutunya M9.
+        if (!nonEmpty(e.keputusan)) errors.push(`${jalur}.keputusan kosong`);
+        if (!nonEmpty(e.penerapan)) errors.push(`${jalur}.penerapan kosong`);
+
+        // ── SUMBER: harus benar-benar ada di potret ATP ───────────────────
+        //
+        // Jejak yang menunjuk konteks yang tidak pernah ATP putuskan lebih buruk
+        // daripada tidak ada jejak: ia terlihat seperti alasan, padahal karangan.
+        const sumber = e.sumber as Record<string, unknown> | undefined;
+        if (!sumber || typeof sumber !== 'object' || Array.isArray(sumber)) {
+          errors.push(`${jalur}.sumber tidak ada`);
+          return;
+        }
+        const jenisSumber = String(sumber.jenis ?? '');
+        const kunci       = String(sumber.kunci ?? '');
+        const jenisSah    = ENUM_KONTRAK.jenis_sumber_konteks;
+        if (!jenisSah.includes(jenisSumber)) {
+          errors.push(`${jalur}.sumber.jenis='${jenisSumber}', harus salah satu dari ${jenisSah.join('|')}`);
+        } else if (!kunci) {
+          errors.push(`${jalur}.sumber.kunci kosong`);
+        } else if (ctx) {
+          // Dicocokkan ke NILAI yang benar-benar ATP wariskan.
+          const cocok = jenisSumber === 'prioritas_guru'
+            ? prioritasSah.has(kunci)
+            : nilaiKonteks(jenisSumber) === kunci;
+          if (!cocok) {
+            const sah = jenisSumber === 'prioritas_guru'
+              ? [...prioritasSah].join(', ') || '(tidak ada penekanan guru)'
+              : String(nilaiKonteks(jenisSumber));
+            errors.push(
+              `${jalur}.sumber.kunci='${kunci}' tidak ada di potret ATP untuk ` +
+              `'${jenisSumber}' (yang ATP wariskan: ${sah})`,
+            );
+          } else {
+            if (!berjejak.has(jenisSumber)) berjejak.set(jenisSumber, new Set());
+            berjejak.get(jenisSumber)!.add(kunci);
+          }
+        }
+
+        // ── KOMPONEN TERDAMPAK: keputusan harus mengenai sesuatu yang NYATA ──
+        const komponen = e.komponen_terdampak;
+        if (!Array.isArray(komponen) || komponen.length < 1) {
+          errors.push(
+            `${jalur}.komponen_terdampak kosong — keputusan yang tidak mengenai bagian ` +
+            `mana pun dari modul tidak dapat ditelusuri`,
+          );
+        } else {
+          komponen.forEach((ref, j) => {
+            const galat = periksaKomponen(String(ref), `${jalur}.komponen_terdampak[${j}]`);
+            if (galat) errors.push(galat);
+          });
+        }
+      });
+
+      // ── CAKUPAN: konteks yang wajib berjejak memang berjejak ────────────
+      if (ctx) {
+        for (const jenisSumber of SUMBER_WAJIB_BERJEJAK) {
+          const nilai = nilaiKonteks(jenisSumber);
+          if (nilai === null) continue;          // ATP tidak menetapkannya — tidak dituntut
+          if (!berjejak.get(jenisSumber)?.size) {
+            errors.push(
+              `konteks '${jenisSumber}' bernilai '${nilai}' di potret ATP tetapi tidak ada ` +
+              `keputusan_kontekstual yang bersumber padanya — konteks diwarisi tanpa dipakai`,
+            );
+          }
+        }
+
+        // Penekanan guru: yang dituntut HANYA yang ATP nyatakan berlaku bagi TP
+        // INI. Memaksa seluruh penekanan memengaruhi setiap TP akan menghasilkan
+        // kaitan yang dibuat-buat, dan ATP sudah memutuskan mana yang relevan.
+        const pp = ctx.penerapan_prioritas as Record<string, unknown> | undefined;
+        const untukTpIni = Array.isArray(pp?.untuk_tp_ini)
+          ? (pp!.untuk_tp_ini as Array<Record<string, unknown>>) : [];
+        const sudah = berjejak.get('prioritas_guru') ?? new Set<string>();
+        for (const item of untukTpIni) {
+          const kunci = String(item.kunci ?? item.prioritas ?? '');
+          if (!kunci) continue;
+          if (!sudah.has(kunci)) {
+            errors.push(
+              `penekanan guru '${kunci}' dinyatakan ATP berlaku untuk TP ini tetapi tidak ada ` +
+              `keputusan_kontekstual yang menerapkannya`,
+            );
+          }
+        }
+      }
     }
   }
 
@@ -4199,7 +4400,7 @@ Deno.serve(async (req) => {
     // Kedua argumen terakhir: jejak warisan (M2) dan rantai bukti (M4). Jalur
     // PENYUSUNAN selalu menyalakan keduanya — dokumen baru tidak pernah lolos
     // dengan aturan dokumen lama.
-    let validation = validateModulOutputV400(merged, nomorTp, jumlahPertemuan, jpPerPertemuan, durasiJp, jumlahMurid, manifestFaseD, perangkatDigitalDiizinkan(cd), true, true, true);
+    let validation = validateModulOutputV400(merged, nomorTp, jumlahPertemuan, jpPerPertemuan, durasiJp, jumlahMurid, manifestFaseD, perangkatDigitalDiizinkan(cd), true, true, true, true);
 
     if (!validation.valid) {
       const errorList = validation.errors.join('; ');
@@ -4239,7 +4440,7 @@ Deno.serve(async (req) => {
         // sebuah perbaikan: ia keluaran Fase A, sedangkan yang diperbaiki di
         // sini keluaran fase sesudahnya. Menghilangkannya justru membuat
         // gerbangnya paling lemah tepat ketika model baru saja salah sekali.
-        validation = validateModulOutputV400(mergedFixed, nomorTp, jumlahPertemuan, jpPerPertemuan, durasiJp, jumlahMurid, manifestFaseD, perangkatDigitalDiizinkan(cd), true, true, true);
+        validation = validateModulOutputV400(mergedFixed, nomorTp, jumlahPertemuan, jpPerPertemuan, durasiJp, jumlahMurid, manifestFaseD, perangkatDigitalDiizinkan(cd), true, true, true, true);
         if (!validation.valid) {
           return json({ error: `Validasi gagal setelah repair: ${validation.errors.join('; ')}`, code: 'MODUL_GENERATION_INVALID_SCHEMA', retryable: true }, 422);
         }

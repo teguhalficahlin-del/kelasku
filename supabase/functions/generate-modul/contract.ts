@@ -135,6 +135,56 @@ export const KONTRAK_ROOT: Record<string, FieldKontrak> = {
       "placement":{"pertemuan":integer,"fase":<nama_langkah>}}
   }`,
   },
+  // ── M6: JEJAK KEPUTUSAN KONTEKSTUAL ───────────────────────────────────────
+  //
+  // MENGAPA BAGIAN INI ADA.
+  //
+  // Sampai M5, konteks ATP (kesiapan murid, keputusan A17, penekanan guru,
+  // program keahlian, jumlah murid) diwarisi ke `atp_context` dan dikirim ke
+  // model — lalu berhenti di situ. Tidak ada satu pun field di dokumen yang
+  // menautkan sebuah keputusan rancangan kembali ke konteks yang menyebabkannya.
+  //
+  // Akibatnya terukur: konteks dapat DIBALIK SELURUHNYA (kesiapan
+  // `jauh_di_bawah` menjadi `jauh_di_atas`, A17 `dominan_kerja` menjadi
+  // `dominan_sekolah`, seluruh penekanan guru dihapus) sementara rancangan
+  // modulnya tidak berubah satu baris pun, dan dokumennya tetap lolos. Konteks
+  // yang tidak dapat mengubah apa pun bukan konteks; ia hiasan.
+  //
+  // BATAS YANG TEGAS. Bagian ini menegakkan bahwa konteks DIPAKAI dan jejaknya
+  // menunjuk hal-hal yang benar-benar ada. Ia TIDAK menilai apakah keputusannya
+  // tepat secara pedagogis — apakah "tambah contoh bertahap" memang jawaban yang
+  // benar untuk kesiapan `jauh_di_bawah` adalah pembacaan makna, dan itu M9.
+  //
+  // `required: false` DI SINI DISENGAJA. Pemeriksaan bentuk akar yang umum
+  // berlaku untuk SEMUA dokumen termasuk yang historis, sedangkan bagian ini
+  // hanya dituntut pada penyusunan sekarang. Penegakannya karena itu dinyalakan
+  // pemanggil lewat `wajibKausalitasCurrent`, pola yang sama dengan
+  // `wajibJejakWarisan` (M2), `wajibKontrakAsesmenCurrent` (M4), dan
+  // `wajibResourceCurrent` (M5). Prompt tetap memintanya: `kerangkaFase()`
+  // menyertakan setiap bagian yang punya `bentuk`, tanpa melihat `required`.
+  keputusan_kontekstual: {
+    fase: 'A', kind: 'array', required: false, min: 1,
+    catatan: 'WAJIB untuk modul yang disusun sekarang. Satu entri = satu keputusan rancangan '
+           + 'yang benar-benar disebabkan konteks ATP. id berurutan KTX-01, KTX-02, … '
+           + 'sumber.kunci WAJIB nilai yang persis ada di warisan_atp.konteks — jangan mengarang. '
+           // Nama enum dan nama field di pesan warisan tidak sama persis; tanpa
+           // peta ini model harus menebak, dan tebakannya akan gagal validasi.
+           + 'Petanya: kesiapan_murid→warisan_atp.konteks.kesiapan_murid.kunci, '
+           + 'konteks_tugas→warisan_atp.konteks.konteks_contoh_dan_tugas.kunci, '
+           + 'prioritas_guru→warisan_atp.konteks.penekanan_guru[].kunci, '
+           + 'program_keahlian→warisan_atp.konteks.program_keahlian.nilai, '
+           + 'jumlah_murid→warisan_atp.konteks.jumlah_murid.nilai. '
+           + 'komponen_terdampak WAJIB menunjuk bagian modul yang benar-benar ada, memakai bentuk '
+           + '"pertemuan:1", "sub_langkah:P1.MEMAHAMI.1", "kktp:K1", "asesmen:FMT-01", atau "instrumen:PBL-01". '
+           + 'WAJIB ada minimal satu entri untuk kesiapan murid, satu untuk keputusan konteks tugas, '
+           + 'dan satu untuk SETIAP penekanan guru yang ATP nyatakan berlaku bagi TP ini. '
+           + 'Program keahlian dan jumlah murid boleh dijejakkan bila memang memengaruhi, '
+           + 'tetapi TIDAK wajib — jangan memaksakan konteks kejuruan ke setiap kegiatan.',
+    bentuk: `"keputusan_kontekstual":[
+    {"id":"KTX-01","sumber":{"jenis":<jenis_sumber_konteks>,"kunci":string},
+     "keputusan":string,"komponen_terdampak":["pertemuan:1"],"penerapan":string}
+  ]`,
+  },
   rancangan: {
     fase: 'A', kind: 'object', required: true,
     bentuk: `"rancangan": {
@@ -238,6 +288,12 @@ export const ENUM_KONTRAK: Record<string, readonly string[]> = {
   mode_pelaksanaan: ['simultan', 'bergantian', 'individual', 'kelompok_kecil'],
   mode_observasi:   ['semua', 'sampel', 'rotasi', 'mandiri'],
   jenis_instrumen_pembelajaran: ['dialog_baseline', 'dialog_model', 'teks_autentik', 'kartu_peran', 'custom'],
+  // M6 — dari mana sebuah keputusan rancangan berasal. Kelimanya adalah konteks
+  // yang ATP wariskan; tidak ada sumber di luar daftar ini, dan tidak ada yang
+  // boleh dikarang model.
+  jenis_sumber_konteks: [
+    'kesiapan_murid', 'konteks_tugas', 'prioritas_guru', 'program_keahlian', 'jumlah_murid',
+  ],
   // M4 — bentuk keputusan ketercapaian dan cakupan bukti. Keduanya STRUKTURAL:
   // validator menegakkannya dan prompt melihat daftar yang sama.
   jenis_keputusan: ['jumlah', 'persentase', 'rubrik'],
@@ -523,3 +579,35 @@ export const JENIS_TANPA_SPESIFIKASI = ['custom'] as const;
  *  terlibat — hanya dua bilangan yang harus sama. */
 export const KUNCI_SEPADAN_SOAL = { jenis: 'soal_latihan', murid: 'soal', guru: 'kunci_jawaban' } as const;
 
+
+// ══ M6 — BENTUK RUJUKAN KOMPONEN TERDAMPAK ══════════════════════════════════
+//
+// `komponen_terdampak` menunjuk bagian modul yang terkena sebuah keputusan.
+// Bentuknya sengaja berupa awalan tetap, bukan kalimat bebas: yang dapat
+// diperiksa secara deterministik hanyalah rujukan yang punya bentuk.
+//
+// Satu tabel ini dipakai validator DAN uji, sehingga daftar awalan yang sah
+// tidak dapat menyimpang di antara keduanya.
+
+export const AWALAN_KOMPONEN = {
+  pertemuan:   'pertemuan',    // "pertemuan:1"           → nomor pertemuan yang ada
+  sub_langkah: 'sub_langkah',  // "sub_langkah:P1.MEMAHAMI.1" → ref sub_langkah yang ada
+  kktp:        'kktp',         // "kktp:K1"               → id_kktp yang ada
+  asesmen:     'asesmen',      // "asesmen:FMT-01"        → entri rencana_asesmen yang ada
+  instrumen:   'instrumen',    // "instrumen:PBL-01"      → id instrumen yang ada
+} as const;
+
+/** Sumber konteks yang WAJIB punya minimal satu jejak keputusan.
+ *
+ *  `program_keahlian` dan `jumlah_murid` sengaja TIDAK di sini:
+ *  - konteks kejuruan tidak boleh dipaksakan ke setiap modul; ada TP yang
+ *    memang tidak bertambah baik karena dikaitkan ke dunia kerja, dan memaksanya
+ *    justru menghasilkan kaitan yang dibuat-buat;
+ *  - jumlah murid sudah punya penegakan STRUKTURAL sendiri yang jauh lebih kuat
+ *    daripada sebuah jejak kalimat (V3/V4/V4b: kelayakan waktu bergantian,
+ *    slot sumatif per murid, dan individual+semua).
+ *
+ *  `prioritas_guru` tidak ada di daftar ini karena cakupannya tidak tetap:
+ *  yang dituntut adalah setiap penekanan yang ATP nyatakan berlaku bagi TP INI,
+ *  dan daftar itu hanya diketahui saat validasi. */
+export const SUMBER_WAJIB_BERJEJAK = ['kesiapan_murid', 'konteks_tugas'] as const;

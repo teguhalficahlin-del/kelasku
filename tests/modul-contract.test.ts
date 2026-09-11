@@ -322,14 +322,38 @@ Deno.test('DRIFT-3: nilai enum di kerangka tidak boleh ada di luar kontrak', () 
   // Setiap nilai enum yang dipakai di dalam bentuk kontrak ditulis lewat
   // penanda <nama_enum>. Kalau seseorang menuliskan nilainya langsung, ia
   // muncul di kerangka tanpa pernah lewat ENUM_KONTRAK — dan itu drift.
+  //
+  // POSISI NILAI, BUKAN SEKADAR TEKSNYA (dipertajam saat M6).
+  //
+  // Versi pertama mencari `"nilai"` di mana pun di dalam bentuk, dan itu tidak
+  // dapat membedakan NILAI enum dari NAMA FIELD yang kebetulan bertulisan sama.
+  // M6 menambahkan enum `jenis_sumber_konteks` yang memuat `program_keahlian` —
+  // yang juga nama field di `identitas.konteks_kejuruan`. Aturan lama menuduh
+  // `identitas` melakukan drift, padahal di sana ia nama field, bukan nilai.
+  //
+  // Di kerangka JSON, nama field selalu diikuti titik dua. Jadi yang diperiksa
+  // sekarang adalah kemunculan yang BUKAN di posisi kunci. Itu mempertajam
+  // maksud aslinya, bukan melonggarkannya: nilai enum yang benar-benar ditulis
+  // langsung tetap tertangkap, dan uji di bawah membuktikannya.
   const semua = new Set(Object.values(ENUM_KONTRAK).flat());
+  const ditulisSebagaiNilai = (bentuk: string, nilai: string): boolean =>
+    new RegExp(`"${nilai.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"\\s*(?!:)`).test(bentuk);
+
   for (const [nama, f] of Object.entries(KONTRAK_ROOT)) {
     if (!f.bentuk) continue;
     for (const nilai of semua) {
-      assert(!f.bentuk.includes(`"${nilai}"`),
+      assert(!ditulisSebagaiNilai(f.bentuk, nilai),
         `bentuk ${nama} menuliskan nilai enum "${nilai}" langsung — pakai penanda <nama_enum>`);
     }
   }
+
+  // Penjaga bahwa penajaman di atas tidak membuat uji ini buta: nilai enum yang
+  // ditulis di posisi NILAI tetap harus tertangkap.
+  const contohNilai = ENUM_KONTRAK.nama_langkah[0];
+  assert(ditulisSebagaiNilai(`{"fase": "${contohNilai}"}`, contohNilai),
+    'penajaman posisi membuat uji buta terhadap nilai enum yang ditulis langsung');
+  assert(!ditulisSebagaiNilai(`{"${contohNilai}": string}`, contohNilai),
+    'nama field seharusnya tidak dianggap nilai enum');
 });
 
 // ═════════════════════════════════════════════════════════════════════════════

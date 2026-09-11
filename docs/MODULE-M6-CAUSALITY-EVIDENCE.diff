@@ -1,0 +1,950 @@
+# MODULE M6 — CONTEXT / TIME CAUSALITY — BUKTI PERUBAHAN
+#
+# Baseline: MODULE M5 ACCEPTED = a12d8f7
+# Isi: HANYA perubahan M6 sesudah checkpoint M5.
+#
+# Akar masalah: konteks ATP diwarisi ke atp_context dan dikirim ke model,
+# lalu berhenti. Tidak ada field yang menautkan keputusan ke konteks, jadi
+# konteks dapat DIBALIK SELURUHNYA tanpa mengubah rancangan, dan dokumennya
+# tetap lolos.
+#
+# Berkas tersentuh:
+#   supabase/functions/generate-modul/contract.ts   keputusan_kontekstual di KONTRAK_ROOT,
+#                                                   enum jenis_sumber_konteks,
+#                                                   AWALAN_KOMPONEN, SUMBER_WAJIB_BERJEJAK
+#   supabase/functions/generate-modul/index.ts      bendera wajibKausalitasCurrent,
+#                                                   blok validasi kausalitas, tipe ModulOutput,
+#                                                   2 pemanggilan validator
+#   tests/modul-contract.test.ts                    DRIFT-3 dipertajam ke posisi nilai
+#   tests/modul-kausalitas.test.ts                  BARU - 29 uji, di bawah
+#
+# TIDAK ADA migration. TIDAK ADA perubahan basis data.
+# MODUL_SCHEMA_VERSION tidak dinaikkan (M4-M7 satu rangkaian V4 belum dirilis).
+
+diff --git a/supabase/functions/generate-modul/contract.ts b/supabase/functions/generate-modul/contract.ts
+index a9a267a..de413df 100644
+--- a/supabase/functions/generate-modul/contract.ts
++++ b/supabase/functions/generate-modul/contract.ts
+@@ -135,6 +135,56 @@ export const KONTRAK_ROOT: Record<string, FieldKontrak> = {
+       "placement":{"pertemuan":integer,"fase":<nama_langkah>}}
+   }`,
+   },
++  // ── M6: JEJAK KEPUTUSAN KONTEKSTUAL ───────────────────────────────────────
++  //
++  // MENGAPA BAGIAN INI ADA.
++  //
++  // Sampai M5, konteks ATP (kesiapan murid, keputusan A17, penekanan guru,
++  // program keahlian, jumlah murid) diwarisi ke `atp_context` dan dikirim ke
++  // model — lalu berhenti di situ. Tidak ada satu pun field di dokumen yang
++  // menautkan sebuah keputusan rancangan kembali ke konteks yang menyebabkannya.
++  //
++  // Akibatnya terukur: konteks dapat DIBALIK SELURUHNYA (kesiapan
++  // `jauh_di_bawah` menjadi `jauh_di_atas`, A17 `dominan_kerja` menjadi
++  // `dominan_sekolah`, seluruh penekanan guru dihapus) sementara rancangan
++  // modulnya tidak berubah satu baris pun, dan dokumennya tetap lolos. Konteks
++  // yang tidak dapat mengubah apa pun bukan konteks; ia hiasan.
++  //
++  // BATAS YANG TEGAS. Bagian ini menegakkan bahwa konteks DIPAKAI dan jejaknya
++  // menunjuk hal-hal yang benar-benar ada. Ia TIDAK menilai apakah keputusannya
++  // tepat secara pedagogis — apakah "tambah contoh bertahap" memang jawaban yang
++  // benar untuk kesiapan `jauh_di_bawah` adalah pembacaan makna, dan itu M9.
++  //
++  // `required: false` DI SINI DISENGAJA. Pemeriksaan bentuk akar yang umum
++  // berlaku untuk SEMUA dokumen termasuk yang historis, sedangkan bagian ini
++  // hanya dituntut pada penyusunan sekarang. Penegakannya karena itu dinyalakan
++  // pemanggil lewat `wajibKausalitasCurrent`, pola yang sama dengan
++  // `wajibJejakWarisan` (M2), `wajibKontrakAsesmenCurrent` (M4), dan
++  // `wajibResourceCurrent` (M5). Prompt tetap memintanya: `kerangkaFase()`
++  // menyertakan setiap bagian yang punya `bentuk`, tanpa melihat `required`.
++  keputusan_kontekstual: {
++    fase: 'A', kind: 'array', required: false, min: 1,
++    catatan: 'WAJIB untuk modul yang disusun sekarang. Satu entri = satu keputusan rancangan '
++           + 'yang benar-benar disebabkan konteks ATP. id berurutan KTX-01, KTX-02, … '
++           + 'sumber.kunci WAJIB nilai yang persis ada di warisan_atp.konteks — jangan mengarang. '
++           // Nama enum dan nama field di pesan warisan tidak sama persis; tanpa
++           // peta ini model harus menebak, dan tebakannya akan gagal validasi.
++           + 'Petanya: kesiapan_murid→warisan_atp.konteks.kesiapan_murid.kunci, '
++           + 'konteks_tugas→warisan_atp.konteks.konteks_contoh_dan_tugas.kunci, '
++           + 'prioritas_guru→warisan_atp.konteks.penekanan_guru[].kunci, '
++           + 'program_keahlian→warisan_atp.konteks.program_keahlian.nilai, '
++           + 'jumlah_murid→warisan_atp.konteks.jumlah_murid.nilai. '
++           + 'komponen_terdampak WAJIB menunjuk bagian modul yang benar-benar ada, memakai bentuk '
++           + '"pertemuan:1", "sub_langkah:P1.MEMAHAMI.1", "kktp:K1", "asesmen:FMT-01", atau "instrumen:PBL-01". '
++           + 'WAJIB ada minimal satu entri untuk kesiapan murid, satu untuk keputusan konteks tugas, '
++           + 'dan satu untuk SETIAP penekanan guru yang ATP nyatakan berlaku bagi TP ini. '
++           + 'Program keahlian dan jumlah murid boleh dijejakkan bila memang memengaruhi, '
++           + 'tetapi TIDAK wajib — jangan memaksakan konteks kejuruan ke setiap kegiatan.',
++    bentuk: `"keputusan_kontekstual":[
++    {"id":"KTX-01","sumber":{"jenis":<jenis_sumber_konteks>,"kunci":string},
++     "keputusan":string,"komponen_terdampak":["pertemuan:1"],"penerapan":string}
++  ]`,
++  },
+   rancangan: {
+     fase: 'A', kind: 'object', required: true,
+     bentuk: `"rancangan": {
+@@ -238,6 +288,12 @@ export const ENUM_KONTRAK: Record<string, readonly string[]> = {
+   mode_pelaksanaan: ['simultan', 'bergantian', 'individual', 'kelompok_kecil'],
+   mode_observasi:   ['semua', 'sampel', 'rotasi', 'mandiri'],
+   jenis_instrumen_pembelajaran: ['dialog_baseline', 'dialog_model', 'teks_autentik', 'kartu_peran', 'custom'],
++  // M6 — dari mana sebuah keputusan rancangan berasal. Kelimanya adalah konteks
++  // yang ATP wariskan; tidak ada sumber di luar daftar ini, dan tidak ada yang
++  // boleh dikarang model.
++  jenis_sumber_konteks: [
++    'kesiapan_murid', 'konteks_tugas', 'prioritas_guru', 'program_keahlian', 'jumlah_murid',
++  ],
+   // M4 — bentuk keputusan ketercapaian dan cakupan bukti. Keduanya STRUKTURAL:
+   // validator menegakkannya dan prompt melihat daftar yang sama.
+   jenis_keputusan: ['jumlah', 'persentase', 'rubrik'],
+@@ -523,3 +579,35 @@ export const JENIS_TANPA_SPESIFIKASI = ['custom'] as const;
+  *  terlibat — hanya dua bilangan yang harus sama. */
+ export const KUNCI_SEPADAN_SOAL = { jenis: 'soal_latihan', murid: 'soal', guru: 'kunci_jawaban' } as const;
+ 
++
++// ══ M6 — BENTUK RUJUKAN KOMPONEN TERDAMPAK ══════════════════════════════════
++//
++// `komponen_terdampak` menunjuk bagian modul yang terkena sebuah keputusan.
++// Bentuknya sengaja berupa awalan tetap, bukan kalimat bebas: yang dapat
++// diperiksa secara deterministik hanyalah rujukan yang punya bentuk.
++//
++// Satu tabel ini dipakai validator DAN uji, sehingga daftar awalan yang sah
++// tidak dapat menyimpang di antara keduanya.
++
++export const AWALAN_KOMPONEN = {
++  pertemuan:   'pertemuan',    // "pertemuan:1"           → nomor pertemuan yang ada
++  sub_langkah: 'sub_langkah',  // "sub_langkah:P1.MEMAHAMI.1" → ref sub_langkah yang ada
++  kktp:        'kktp',         // "kktp:K1"               → id_kktp yang ada
++  asesmen:     'asesmen',      // "asesmen:FMT-01"        → entri rencana_asesmen yang ada
++  instrumen:   'instrumen',    // "instrumen:PBL-01"      → id instrumen yang ada
++} as const;
++
++/** Sumber konteks yang WAJIB punya minimal satu jejak keputusan.
++ *
++ *  `program_keahlian` dan `jumlah_murid` sengaja TIDAK di sini:
++ *  - konteks kejuruan tidak boleh dipaksakan ke setiap modul; ada TP yang
++ *    memang tidak bertambah baik karena dikaitkan ke dunia kerja, dan memaksanya
++ *    justru menghasilkan kaitan yang dibuat-buat;
++ *  - jumlah murid sudah punya penegakan STRUKTURAL sendiri yang jauh lebih kuat
++ *    daripada sebuah jejak kalimat (V3/V4/V4b: kelayakan waktu bergantian,
++ *    slot sumatif per murid, dan individual+semua).
++ *
++ *  `prioritas_guru` tidak ada di daftar ini karena cakupannya tidak tetap:
++ *  yang dituntut adalah setiap penekanan yang ATP nyatakan berlaku bagi TP INI,
++ *  dan daftar itu hanya diketahui saat validasi. */
++export const SUMBER_WAJIB_BERJEJAK = ['kesiapan_murid', 'konteks_tugas'] as const;
+diff --git a/supabase/functions/generate-modul/index.ts b/supabase/functions/generate-modul/index.ts
+index 786670d..def7577 100644
+--- a/supabase/functions/generate-modul/index.ts
++++ b/supabase/functions/generate-modul/index.ts
+@@ -7,6 +7,7 @@ import {
+ import {
+   MODUL_SCHEMA_VERSION, KONTRAK_ROOT, ENUM_KONTRAK, URUTAN_LANGKAH_KONTRAK,
+   RESOURCE_WAJIB, JENIS_TANPA_SPESIFIKASI, KUNCI_SEPADAN_SOAL,
++  AWALAN_KOMPONEN, SUMBER_WAJIB_BERJEJAK,
+   type FieldResource,
+   rootWajib, kerangkaSeluruhFase, ringkasanTanggungJawabFase,
+   perintahPerbaikanStruktural, type FasePenghasil,
+@@ -565,6 +566,15 @@ type ModulOutput = {
+   tindak_lanjut:          TindakLanjut;
+   catatan_guru:           string[];
+   metadata_pedagogis:     MetadataPedagogis;
++  /** Jejak kausal konteks ATP (M6). Wajib pada dokumen yang disusun sekarang;
++   *  dokumen pra-M6 tidak memilikinya. */
++  keputusan_kontekstual?: Array<{
++    id:        string;
++    sumber:    { jenis: string; kunci: string };
++    keputusan: string;
++    komponen_terdampak: string[];
++    penerapan: string;
++  }>;
+   // Jejak pewarisan ATP yang backend pakukan (M2). Dokumen final memilikinya,
+   // dan sampai M3 tipe ini tidak — salah satu drift yang M3 tutup. Bentuknya
+   // sudah diketahui, jadi tidak ada `any` di sini.
+@@ -682,6 +692,15 @@ function validateModulOutputV400(
+    *  instrumen setengah isi dan menghakiminya secara surut bukan pemeriksaan
+    *  melainkan mengubah aturan ke belakang. */
+   wajibResourceCurrent = false,
++  /** Menuntut JEJAK KAUSAL M6: konteks ATP yang diwarisi benar-benar menyebabkan
++   *  keputusan rancangan yang dapat ditelusuri ke bagian modul yang nyata.
++   *
++   *  Satu bendera per milestone, sama pola dengan `wajibJejakWarisan` (M2),
++   *  `wajibKontrakAsesmenCurrent` (M4), dan `wajibResourceCurrent` (M5). Jalur
++   *  PENYUSUNAN menyalakannya; dokumen lama tidak, karena modul pra-M6 memang
++   *  tidak punya `keputusan_kontekstual` dan menuntutnya secara surut bukan
++   *  pemeriksaan melainkan mengubah aturan ke belakang. */
++  wajibKausalitasCurrent = false,
+ ): { valid: boolean; errors: string[]; output: ModulOutput | null } {
+   const errors: string[] = [];
+ 
+@@ -1705,6 +1724,188 @@ function validateModulOutputV400(
+     }
+   }
+ 
++  // ── M6: KAUSALITAS KONTEKS ─────────────────────────────────────────
++  //
++  //   konteks ATP → keputusan → komponen yang terdampak
++  //
++  // Sampai M5 konteks diwarisi ke `atp_context`, dikirim ke model, lalu
++  // berhenti. Terukur: konteks dapat DIBALIK SELURUHNYA — kesiapan
++  // `jauh_di_bawah` menjadi `jauh_di_atas`, A17 `dominan_kerja` menjadi
++  // `dominan_sekolah`, seluruh penekanan guru dihapus — sementara rancangannya
++  // tidak berubah satu baris, dan dokumennya tetap lolos.
++  //
++  // Yang ditegakkan di sini SELURUHNYA deterministik: jejaknya ada, sumbernya
++  // benar-benar ada di potret ATP, komponen yang ditunjuk benar-benar ada di
++  // modul, dan konteks yang wajib berjejak memang berjejak. Apakah keputusannya
++  // TEPAT secara pedagogis tidak diperiksa — itu pembacaan makna, dan itu M9.
++  // Tidak ada pencocokan kata seperti "scaffold" atau "sederhana" di sini.
++  if (wajibKausalitasCurrent) {
++    const jejak = o.keputusan_kontekstual;
++    if (!Array.isArray(jejak) || jejak.length < 1) {
++      errors.push(
++        'keputusan_kontekstual harus array ≥ 1 entri — konteks ATP yang tidak menghasilkan ' +
++        'satu pun keputusan yang dapat ditelusuri bukan konteks, melainkan hiasan',
++      );
++    } else {
++      const ctx = o.atp_context as Record<string, unknown> | undefined;
++      const nilaiKonteks = (nama: string): string | null => {
++        const v = ctx?.[nama] as Record<string, unknown> | undefined;
++        if (!v || typeof v !== 'object') return null;
++        return v.nilai === null || v.nilai === undefined ? null : String(v.nilai);
++      };
++      const prioritasSah = new Set(
++        Array.isArray(ctx?.prioritas_guru)
++          ? (ctx!.prioritas_guru as Array<Record<string, unknown>>).map(x => String(x.kunci)) : [],
++      );
++
++      // Komponen modul yang benar-benar ada — semesta rujukan yang sah.
++      const refSub      = collectRefs(Array.isArray(o.pertemuan) ? o.pertemuan as unknown[] : []);
++      const idKktp      = new Set(Array.isArray(o.kktp)
++        ? (o.kktp as Array<Record<string, unknown>>).map(k => String(k.id_kktp)) : []);
++      const idInstrumen = new Set([
++        ...(Array.isArray(o.instrumen_pembelajaran)
++          ? (o.instrumen_pembelajaran as Array<Record<string, unknown>>).map(i => String(i.id)) : []),
++        ...(Array.isArray(o.instrumen_asesmen)
++          ? (o.instrumen_asesmen as Array<Record<string, unknown>>).map(i => String(i.id)) : []),
++      ]);
++      const idAsesmen = new Set<string>();
++      if (o.rencana_asesmen && typeof o.rencana_asesmen === 'object') {
++        const ra_ = o.rencana_asesmen as Record<string, unknown>;
++        for (const f of (Array.isArray(ra_.asesmen_formatif) ? ra_.asesmen_formatif : []) as Array<Record<string, unknown>>) {
++          if (f?.id) idAsesmen.add(String(f.id));
++        }
++        if (ra_.asesmen_sumatif && typeof ra_.asesmen_sumatif === 'object') idAsesmen.add('SUMATIF');
++        if (ra_.asesmen_diagnostik && typeof ra_.asesmen_diagnostik === 'object') idAsesmen.add('DIAGNOSTIK');
++      }
++
++      /** Satu rujukan komponen: bentuknya benar DAN yang ditunjuk benar ada. */
++      const periksaKomponen = (ref: string, jalur: string): string | null => {
++        const pisah = ref.indexOf(':');
++        if (pisah < 1) {
++          return `${jalur}='${ref}' tidak berbentuk '<jenis>:<id>' ` +
++                 `(jenis yang sah: ${Object.values(AWALAN_KOMPONEN).join(', ')})`;
++        }
++        const jenis = ref.slice(0, pisah);
++        const id    = ref.slice(pisah + 1);
++        switch (jenis) {
++          case AWALAN_KOMPONEN.pertemuan: {
++            const nomor = Number(id);
++            return Number.isInteger(nomor) && nomor >= 1 && nomor <= jumlahPertemuan
++              ? null : `${jalur}='${ref}' menunjuk pertemuan di luar 1..${jumlahPertemuan}`;
++          }
++          case AWALAN_KOMPONEN.sub_langkah:
++            return refSub.has(id) ? null : `${jalur}='${ref}' menunjuk sub_langkah yang tidak ada`;
++          case AWALAN_KOMPONEN.kktp:
++            return idKktp.has(id) ? null : `${jalur}='${ref}' menunjuk KKTP yang tidak ada`;
++          case AWALAN_KOMPONEN.asesmen:
++            return idAsesmen.has(id) ? null : `${jalur}='${ref}' menunjuk asesmen yang tidak ada`;
++          case AWALAN_KOMPONEN.instrumen:
++            return idInstrumen.has(id) ? null : `${jalur}='${ref}' menunjuk instrumen yang tidak ada`;
++          default:
++            return `${jalur}='${ref}' memakai jenis komponen '${jenis}' yang tidak dikenal`;
++        }
++      };
++
++      const idTerpakai = new Set<string>();
++      const berjejak   = new Map<string, Set<string>>();   // jenis sumber → kunci yang dijejakkan
++
++      (jejak as Array<Record<string, unknown>>).forEach((e, i) => {
++        const jalur   = `keputusan_kontekstual[${i}]`;
++        const id      = String(e.id ?? '');
++        const idHarap = `KTX-${String(i + 1).padStart(2, '0')}`;
++        if (!id) errors.push(`${jalur}.id kosong`);
++        else if (idTerpakai.has(id)) errors.push(`${jalur}.id='${id}' ganda`);
++        else if (id !== idHarap) errors.push(`${jalur}.id='${id}', diharapkan '${idHarap}'`);
++        idTerpakai.add(id);
++
++        // Keputusan dan penerapannya harus ADA. Mutunya M9.
++        if (!nonEmpty(e.keputusan)) errors.push(`${jalur}.keputusan kosong`);
++        if (!nonEmpty(e.penerapan)) errors.push(`${jalur}.penerapan kosong`);
++
++        // ── SUMBER: harus benar-benar ada di potret ATP ───────────────────
++        //
++        // Jejak yang menunjuk konteks yang tidak pernah ATP putuskan lebih buruk
++        // daripada tidak ada jejak: ia terlihat seperti alasan, padahal karangan.
++        const sumber = e.sumber as Record<string, unknown> | undefined;
++        if (!sumber || typeof sumber !== 'object' || Array.isArray(sumber)) {
++          errors.push(`${jalur}.sumber tidak ada`);
++          return;
++        }
++        const jenisSumber = String(sumber.jenis ?? '');
++        const kunci       = String(sumber.kunci ?? '');
++        const jenisSah    = ENUM_KONTRAK.jenis_sumber_konteks;
++        if (!jenisSah.includes(jenisSumber)) {
++          errors.push(`${jalur}.sumber.jenis='${jenisSumber}', harus salah satu dari ${jenisSah.join('|')}`);
++        } else if (!kunci) {
++          errors.push(`${jalur}.sumber.kunci kosong`);
++        } else if (ctx) {
++          // Dicocokkan ke NILAI yang benar-benar ATP wariskan.
++          const cocok = jenisSumber === 'prioritas_guru'
++            ? prioritasSah.has(kunci)
++            : nilaiKonteks(jenisSumber) === kunci;
++          if (!cocok) {
++            const sah = jenisSumber === 'prioritas_guru'
++              ? [...prioritasSah].join(', ') || '(tidak ada penekanan guru)'
++              : String(nilaiKonteks(jenisSumber));
++            errors.push(
++              `${jalur}.sumber.kunci='${kunci}' tidak ada di potret ATP untuk ` +
++              `'${jenisSumber}' (yang ATP wariskan: ${sah})`,
++            );
++          } else {
++            if (!berjejak.has(jenisSumber)) berjejak.set(jenisSumber, new Set());
++            berjejak.get(jenisSumber)!.add(kunci);
++          }
++        }
++
++        // ── KOMPONEN TERDAMPAK: keputusan harus mengenai sesuatu yang NYATA ──
++        const komponen = e.komponen_terdampak;
++        if (!Array.isArray(komponen) || komponen.length < 1) {
++          errors.push(
++            `${jalur}.komponen_terdampak kosong — keputusan yang tidak mengenai bagian ` +
++            `mana pun dari modul tidak dapat ditelusuri`,
++          );
++        } else {
++          komponen.forEach((ref, j) => {
++            const galat = periksaKomponen(String(ref), `${jalur}.komponen_terdampak[${j}]`);
++            if (galat) errors.push(galat);
++          });
++        }
++      });
++
++      // ── CAKUPAN: konteks yang wajib berjejak memang berjejak ────────────
++      if (ctx) {
++        for (const jenisSumber of SUMBER_WAJIB_BERJEJAK) {
++          const nilai = nilaiKonteks(jenisSumber);
++          if (nilai === null) continue;          // ATP tidak menetapkannya — tidak dituntut
++          if (!berjejak.get(jenisSumber)?.size) {
++            errors.push(
++              `konteks '${jenisSumber}' bernilai '${nilai}' di potret ATP tetapi tidak ada ` +
++              `keputusan_kontekstual yang bersumber padanya — konteks diwarisi tanpa dipakai`,
++            );
++          }
++        }
++
++        // Penekanan guru: yang dituntut HANYA yang ATP nyatakan berlaku bagi TP
++        // INI. Memaksa seluruh penekanan memengaruhi setiap TP akan menghasilkan
++        // kaitan yang dibuat-buat, dan ATP sudah memutuskan mana yang relevan.
++        const pp = ctx.penerapan_prioritas as Record<string, unknown> | undefined;
++        const untukTpIni = Array.isArray(pp?.untuk_tp_ini)
++          ? (pp!.untuk_tp_ini as Array<Record<string, unknown>>) : [];
++        const sudah = berjejak.get('prioritas_guru') ?? new Set<string>();
++        for (const item of untukTpIni) {
++          const kunci = String(item.kunci ?? item.prioritas ?? '');
++          if (!kunci) continue;
++          if (!sudah.has(kunci)) {
++            errors.push(
++              `penekanan guru '${kunci}' dinyatakan ATP berlaku untuk TP ini tetapi tidak ada ` +
++              `keputusan_kontekstual yang menerapkannya`,
++            );
++          }
++        }
++      }
++    }
++  }
++
+   if (errors.length) return { valid: false, errors, output: null };
+   return { valid: true, errors: [], output: o as unknown as ModulOutput };
+ }
+@@ -4199,7 +4400,7 @@ Deno.serve(async (req) => {
+     // Kedua argumen terakhir: jejak warisan (M2) dan rantai bukti (M4). Jalur
+     // PENYUSUNAN selalu menyalakan keduanya — dokumen baru tidak pernah lolos
+     // dengan aturan dokumen lama.
+-    let validation = validateModulOutputV400(merged, nomorTp, jumlahPertemuan, jpPerPertemuan, durasiJp, jumlahMurid, manifestFaseD, perangkatDigitalDiizinkan(cd), true, true, true);
++    let validation = validateModulOutputV400(merged, nomorTp, jumlahPertemuan, jpPerPertemuan, durasiJp, jumlahMurid, manifestFaseD, perangkatDigitalDiizinkan(cd), true, true, true, true);
+ 
+     if (!validation.valid) {
+       const errorList = validation.errors.join('; ');
+@@ -4239,7 +4440,7 @@ Deno.serve(async (req) => {
+         // sebuah perbaikan: ia keluaran Fase A, sedangkan yang diperbaiki di
+         // sini keluaran fase sesudahnya. Menghilangkannya justru membuat
+         // gerbangnya paling lemah tepat ketika model baru saja salah sekali.
+-        validation = validateModulOutputV400(mergedFixed, nomorTp, jumlahPertemuan, jpPerPertemuan, durasiJp, jumlahMurid, manifestFaseD, perangkatDigitalDiizinkan(cd), true, true, true);
++        validation = validateModulOutputV400(mergedFixed, nomorTp, jumlahPertemuan, jpPerPertemuan, durasiJp, jumlahMurid, manifestFaseD, perangkatDigitalDiizinkan(cd), true, true, true, true);
+         if (!validation.valid) {
+           return json({ error: `Validasi gagal setelah repair: ${validation.errors.join('; ')}`, code: 'MODUL_GENERATION_INVALID_SCHEMA', retryable: true }, 422);
+         }
+diff --git a/tests/modul-contract.test.ts b/tests/modul-contract.test.ts
+index 5dc6e2a..e666da7 100644
+--- a/tests/modul-contract.test.ts
++++ b/tests/modul-contract.test.ts
+@@ -322,14 +322,38 @@ Deno.test('DRIFT-3: nilai enum di kerangka tidak boleh ada di luar kontrak', ()
+   // Setiap nilai enum yang dipakai di dalam bentuk kontrak ditulis lewat
+   // penanda <nama_enum>. Kalau seseorang menuliskan nilainya langsung, ia
+   // muncul di kerangka tanpa pernah lewat ENUM_KONTRAK — dan itu drift.
++  //
++  // POSISI NILAI, BUKAN SEKADAR TEKSNYA (dipertajam saat M6).
++  //
++  // Versi pertama mencari `"nilai"` di mana pun di dalam bentuk, dan itu tidak
++  // dapat membedakan NILAI enum dari NAMA FIELD yang kebetulan bertulisan sama.
++  // M6 menambahkan enum `jenis_sumber_konteks` yang memuat `program_keahlian` —
++  // yang juga nama field di `identitas.konteks_kejuruan`. Aturan lama menuduh
++  // `identitas` melakukan drift, padahal di sana ia nama field, bukan nilai.
++  //
++  // Di kerangka JSON, nama field selalu diikuti titik dua. Jadi yang diperiksa
++  // sekarang adalah kemunculan yang BUKAN di posisi kunci. Itu mempertajam
++  // maksud aslinya, bukan melonggarkannya: nilai enum yang benar-benar ditulis
++  // langsung tetap tertangkap, dan uji di bawah membuktikannya.
+   const semua = new Set(Object.values(ENUM_KONTRAK).flat());
++  const ditulisSebagaiNilai = (bentuk: string, nilai: string): boolean =>
++    new RegExp(`"${nilai.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"\\s*(?!:)`).test(bentuk);
++
+   for (const [nama, f] of Object.entries(KONTRAK_ROOT)) {
+     if (!f.bentuk) continue;
+     for (const nilai of semua) {
+-      assert(!f.bentuk.includes(`"${nilai}"`),
++      assert(!ditulisSebagaiNilai(f.bentuk, nilai),
+         `bentuk ${nama} menuliskan nilai enum "${nilai}" langsung — pakai penanda <nama_enum>`);
+     }
+   }
++
++  // Penjaga bahwa penajaman di atas tidak membuat uji ini buta: nilai enum yang
++  // ditulis di posisi NILAI tetap harus tertangkap.
++  const contohNilai = ENUM_KONTRAK.nama_langkah[0];
++  assert(ditulisSebagaiNilai(`{"fase": "${contohNilai}"}`, contohNilai),
++    'penajaman posisi membuat uji buta terhadap nilai enum yang ditulis langsung');
++  assert(!ditulisSebagaiNilai(`{"${contohNilai}": string}`, contohNilai),
++    'nama field seharusnya tidak dianggap nilai enum');
+ });
+ 
+ // ═════════════════════════════════════════════════════════════════════════════
+
+# -- BERKAS BARU: tests/modul-kausalitas.test.ts ------------------------
+
+diff --git a/tests/modul-kausalitas.test.ts b/tests/modul-kausalitas.test.ts
+new file mode 100644
+index 0000000..dde8e7d
+--- /dev/null
++++ b/tests/modul-kausalitas.test.ts
+@@ -0,0 +1,513 @@
++// M6 — KAUSALITAS KONTEKS.
++//
++//   konteks ATP → keputusan rancangan → komponen modul yang terdampak
++//
++// Sampai M5 konteks diwarisi ke `atp_context`, dikirim ke model, lalu berhenti.
++// Tidak ada satu pun field di dokumen yang menautkan sebuah keputusan kembali
++// ke konteks yang menyebabkannya — jadi konteks dapat dibalik seluruhnya
++// sementara rancangannya tidak berubah, dan dokumennya tetap lolos.
++//
++// TIGA TINGKAT, DAN M6 HANYA MENEGAKKAN DUA:
++//
++//   konteks ADA                        → sudah dijamin M2
++//   konteks DIGUNAKAN (dapat ditelusuri) → M6
++//   keputusannya TEPAT secara pedagogis  → M9, bukan di sini
++//
++// Karena itu tidak ada satu pun uji di berkas ini yang mencari kata seperti
++// "scaffold", "sederhana", atau "bertahap". Apakah "tambah contoh bertahap"
++// memang jawaban yang benar untuk kesiapan `jauh_di_bawah` adalah pembacaan
++// makna — dan menilainya dengan pencocokan kata hanya akan berpura-pura.
++//
++// M6-REPRO-*    reproduksi gap: konteks dapat dibalik total tanpa akibat
++// M6-A..M6-C    jejak ada, id, dan isinya
++// M6-D..M6-H    sumber wajib benar-benar ada di potret ATP
++// M6-I..M6-M    komponen terdampak wajib benar-benar ada di modul
++// M6-N..M6-R    cakupan: kesiapan, A17, penekanan guru per TP
++// M6-S..M6-U    program keahlian & jumlah murid TIDAK dipaksakan
++// M6-V..M6-W    kelayakan waktu yang sudah ada tetap berjalan
++// M6-HIST       dokumen historis tetap terbaca
++// M6-GEN        jalur penyusunan menyalakan kontrak M6
++//
++// TIDAK ADA panggilan model di berkas ini.
++
++import { assert, assertEquals, assertStringIncludes } from 'jsr:@std/assert@1';
++import {
++  KONTRAK_ROOT, ENUM_KONTRAK, AWALAN_KOMPONEN, SUMBER_WAJIB_BERJEJAK,
++  kerangkaFase, perintahPerbaikanStruktural,
++} from '../supabase/functions/generate-modul/contract.ts';
++
++const EF_MODUL = new URL('../supabase/functions/generate-modul/index.ts', import.meta.url);
++const FIXTURES = new URL('./fixtures/modul/', import.meta.url);
++
++type Validator = (
++  raw: unknown, nomorTp: number, jumlahPertemuan: number, jpPerPertemuan: number,
++  durasiJp: number, jumlahMurid: number | null, manifest?: unknown,
++  perangkatDigitalOk?: boolean, wajibJejakWarisan?: boolean,
++  wajibKontrakAsesmenCurrent?: boolean, wajibResourceCurrent?: boolean,
++  wajibKausalitasCurrent?: boolean,
++) => { valid: boolean; errors: string[] };
++
++async function muatValidator(): Promise<Validator> {
++  const penuh = await Deno.readTextFile(EF_MODUL);
++  const batas = penuh.indexOf('// ── EDGE FUNCTION ─');
++  assert(batas > 0, 'penanda EDGE FUNCTION tidak ada di index.ts');
++  const tmp = new URL(`._modul-kausalitas-${crypto.randomUUID()}.ts`, new URL('.', EF_MODUL));
++  try {
++    await Deno.writeTextFile(tmp, penuh.slice(0, batas) + '\nexport { validateModulOutputV400 };\n');
++    return (await import(tmp.href)).validateModulOutputV400 as Validator;
++  } finally {
++    await Deno.remove(tmp).catch(() => {});
++  }
++}
++
++const validate = await muatValidator();
++
++type Konten = Record<string, unknown>;
++const ARG = [2, 3, 4, 40, 30] as const;
++
++/** Modus M6 SAJA — milestone lain dimatikan supaya temuan yang terlihat murni
++ *  temuan kausalitas, bukan sisa M2/M4/M5. */
++function cekM6(k: Konten) {
++  return validate(k, ...ARG, undefined, false, false, false, false, true);
++}
++/** Modus historis: seluruh kontrak current mati. */
++function cekHistoris(k: Konten) {
++  return validate(k, ...ARG, undefined, false, false, false, false, false);
++}
++
++function tolak(hasil: { valid: boolean; errors: string[] }, potongan: string) {
++  assert(!hasil.valid, 'diharapkan DITOLAK, tapi lolos');
++  assert(hasil.errors.some(e => e.includes(potongan)),
++    `tidak ada galat yang menyebut "${potongan}".\nGalat: ${hasil.errors.join(' | ')}`);
++}
++function terima(hasil: { valid: boolean; errors: string[] }) {
++  assert(hasil.valid, `diharapkan LOLOS, ditolak karena: ${hasil.errors.join(' | ')}`);
++}
++
++async function fixtureHistoris(): Promise<Konten> {
++  const raw = JSON.parse(await Deno.readTextFile(new URL('tp02.json', FIXTURES)));
++  return structuredClone(raw.konten) as Konten;
++}
++
++/** Potret ATP yang tegas — kalau kausalitas berarti apa pun, modul yang
++ *  mengabaikannya tidak boleh lolos. Nilainya sengaja tidak netral. */
++function atpContextTegas(): Konten {
++  return {
++    versi_cp: '2024', semester: 1,
++    kesiapan_murid: {
++      nilai: 'jauh_di_bawah', asal: 'keputusan_guru',
++      arti: 'sebagian besar murid jauh di bawah prasyarat TP ini',
++      dasar: 'hasil penilaian sebelumnya',
++    },
++    jumlah_murid:     { nilai: 30, asal: 'fakta' },
++    program_keahlian: { nilai: 'Tata Busana', asal: 'fakta' },
++    konteks_tugas:    { nilai: 'dominan_kerja', asal: 'keputusan_guru',
++                        arti: 'sebagian besar contoh dan tugas berlatar dunia kerja' },
++    prioritas_guru: [
++      { kunci: 'literasi',    arti: 'penguatan literasi',  arahan: 'perbanyak membaca teks utuh' },
++      { kunci: 'kemandirian', arti: 'kemandirian belajar', arahan: 'kurangi bantuan bertahap' },
++    ],
++    penerapan_prioritas: {
++      // HANYA literasi yang ATP nyatakan berlaku untuk TP ini. `kemandirian`
++      // sengaja TIDAK — supaya dapat diuji bahwa M6 tidak memaksa seluruh
++      // penekanan memengaruhi setiap TP.
++      untuk_tp_ini: [
++        { prioritas: 'literasi', kunci: 'literasi', tp: [2], pengaruh: ['kegiatan'], alasan: 'TP ini berbasis teks' },
++      ],
++      seluruh_atp: [
++        { prioritas: 'literasi',    kunci: 'literasi',    tp: [2], pengaruh: ['kegiatan'], alasan: 'TP ini berbasis teks' },
++        { prioritas: 'kemandirian', kunci: 'kemandirian', tp: [5], pengaruh: ['asesmen'],  alasan: 'TP 5 proyek mandiri' },
++      ],
++    },
++  };
++}
++
++function jejak(
++  id: string, jenis: string, kunci: string, komponen: string[],
++): Konten {
++  return {
++    id, sumber: { jenis, kunci },
++    keputusan: `Keputusan rancangan yang bersumber pada ${jenis}=${kunci}.`,
++    komponen_terdampak: komponen,
++    penerapan: 'Diterapkan pada bagian modul yang disebut di komponen_terdampak.',
++  };
++}
++
++/** Modul yang jejak kausalnya LENGKAP dan sah — titik berangkat semua uji. */
++async function fixtureSekarang(): Promise<Konten> {
++  const k = await fixtureHistoris();
++  k.atp_context = atpContextTegas();
++  k.keputusan_kontekstual = [
++    jejak('KTX-01', 'kesiapan_murid', 'jauh_di_bawah', ['pertemuan:1', 'sub_langkah:P1.MEMAHAMI.1']),
++    jejak('KTX-02', 'konteks_tugas',  'dominan_kerja', ['instrumen:PBL-01']),
++    jejak('KTX-03', 'prioritas_guru', 'literasi',      ['kktp:K1']),
++  ];
++  return k;
++}
++
++function ktx(k: Konten, i = 0): Konten {
++  return (k.keputusan_kontekstual as Konten[])[i];
++}
++function ctx(k: Konten): Konten {
++  return k.atp_context as Konten;
++}
++
++// ══ REPRODUKSI GAP — keadaan SEBELUM M6 ═════════════════════════════════════
++
++Deno.test('M6-REPRO-1: modul yang mengabaikan SELURUH konteks lolos sebelum M6', async () => {
++  const k = await fixtureHistoris();
++  k.atp_context = atpContextTegas();
++  // Tidak ada keputusan_kontekstual sama sekali.
++  terima(cekHistoris(k));                       // inilah gap-nya
++  tolak(cekM6(k), 'keputusan_kontekstual harus array');
++});
++
++Deno.test('M6-REPRO-2: konteks dapat DIBALIK TOTAL tanpa akibat apa pun', async () => {
++  // Dua modul dengan rancangan yang sama persis, konteks berlawanan.
++  const a = await fixtureHistoris();
++  a.atp_context = atpContextTegas();
++
++  const b = structuredClone(a);
++  (ctx(b).kesiapan_murid as Konten).nilai = 'jauh_di_atas';
++  (ctx(b).konteks_tugas  as Konten).nilai = 'dominan_sekolah';
++  ctx(b).prioritas_guru = [];
++  ctx(b).penerapan_prioritas = { untuk_tp_ini: [], seluruh_atp: [] };
++
++  // Sebelum M6: keduanya lolos, tak terbedakan.
++  terima(cekHistoris(a));
++  terima(cekHistoris(b));
++
++  // Sesudah M6: keduanya ditolak karena tidak punya jejak sama sekali.
++  assert(!cekM6(a).valid && !cekM6(b).valid,
++    'M6 seharusnya menuntut jejak pada kedua modul');
++});
++
++Deno.test('M6-BASE: fixture berjejak lengkap lolos di kedua modus', async () => {
++  const k = await fixtureSekarang();
++  terima(cekHistoris(k));
++  terima(cekM6(k));
++});
++
++// ══ A–C — JEJAK ADA, ID, DAN ISINYA ═════════════════════════════════════════
++
++Deno.test('M6-A: keputusan_kontekstual kosong atau bukan array → ditolak', async () => {
++  for (const nilai of [[], null, undefined, {}]) {
++    const k = await fixtureSekarang();
++    if (nilai === undefined) delete k.keputusan_kontekstual;
++    else k.keputusan_kontekstual = nilai;
++    tolak(cekM6(k), 'keputusan_kontekstual harus array ≥ 1 entri');
++  }
++});
++
++Deno.test('M6-B: id jejak ganda / di luar urutan → ditolak', async () => {
++  const a = await fixtureSekarang();
++  ktx(a, 1).id = 'KTX-01';
++  tolak(cekM6(a), "keputusan_kontekstual[1].id='KTX-01' ganda");
++
++  const b = await fixtureSekarang();
++  ktx(b, 2).id = 'KTX-09';
++  tolak(cekM6(b), "diharapkan 'KTX-03'");
++
++  const c = await fixtureSekarang();
++  ktx(c, 0).id = '';
++  tolak(cekM6(c), 'keputusan_kontekstual[0].id kosong');
++});
++
++Deno.test('M6-C: keputusan / penerapan kosong → ditolak', async () => {
++  for (const field of ['keputusan', 'penerapan']) {
++    const k = await fixtureSekarang();
++    ktx(k, 0)[field] = '   ';
++    tolak(cekM6(k), `keputusan_kontekstual[0].${field} kosong`);
++  }
++});
++
++// ══ D–H — SUMBER WAJIB ADA DI POTRET ATP ════════════════════════════════════
++
++Deno.test('M6-D: sumber tidak ada → ditolak', async () => {
++  const k = await fixtureSekarang();
++  delete ktx(k, 0).sumber;
++  tolak(cekM6(k), 'keputusan_kontekstual[0].sumber tidak ada');
++});
++
++Deno.test('M6-E: jenis sumber di luar enum → ditolak', async () => {
++  const k = await fixtureSekarang();
++  (ktx(k, 0).sumber as Konten).jenis = 'firasat_guru';
++  tolak(cekM6(k), "sumber.jenis='firasat_guru'");
++});
++
++Deno.test('M6-F: kunci sumber yang TIDAK ADA di potret ATP → ditolak', async () => {
++  // Jejak yang menunjuk konteks yang tidak pernah ATP putuskan lebih buruk
++  // daripada tidak ada jejak: ia terlihat seperti alasan, padahal karangan.
++  const a = await fixtureSekarang();
++  (ktx(a, 0).sumber as Konten).kunci = 'sedikit_di_bawah';   // ATP bilang jauh_di_bawah
++  tolak(cekM6(a), "tidak ada di potret ATP untuk 'kesiapan_murid'");
++
++  const b = await fixtureSekarang();
++  (ktx(b, 1).sumber as Konten).kunci = 'dominan_sekolah';    // ATP bilang dominan_kerja
++  tolak(cekM6(b), "tidak ada di potret ATP untuk 'konteks_tugas'");
++});
++
++Deno.test('M6-G: penekanan guru yang tidak pernah guru pilih → ditolak', async () => {
++  const k = await fixtureSekarang();
++  (ktx(k, 2).sumber as Konten).kunci = 'numerasi';           // tidak ada di prioritas_guru
++  const h = cekM6(k);
++  tolak(h, "tidak ada di potret ATP untuk 'prioritas_guru'");
++  // Pesannya menyebut penekanan yang SAH, supaya perbaikannya satu putaran.
++  const pesan = h.errors.find(e => e.includes('numerasi'))!;
++  assertStringIncludes(pesan, 'literasi');
++});
++
++Deno.test('M6-H: kunci sumber kosong → ditolak', async () => {
++  const k = await fixtureSekarang();
++  (ktx(k, 0).sumber as Konten).kunci = '';
++  tolak(cekM6(k), 'sumber.kunci kosong');
++});
++
++// ══ I–M — KOMPONEN TERDAMPAK WAJIB NYATA ════════════════════════════════════
++
++Deno.test('M6-I: komponen_terdampak kosong → ditolak', async () => {
++  const k = await fixtureSekarang();
++  ktx(k, 0).komponen_terdampak = [];
++  tolak(cekM6(k), 'komponen_terdampak kosong');
++});
++
++Deno.test('M6-J: bentuk rujukan yang tidak dikenal → ditolak', async () => {
++  const a = await fixtureSekarang();
++  ktx(a, 0).komponen_terdampak = ['seluruh modul'];
++  tolak(cekM6(a), "tidak berbentuk '<jenis>:<id>'");
++
++  const b = await fixtureSekarang();
++  ktx(b, 0).komponen_terdampak = ['bagian:pembuka'];
++  tolak(cekM6(b), "jenis komponen 'bagian' yang tidak dikenal");
++});
++
++Deno.test('M6-K: rujukan ke komponen yang TIDAK ADA → ditolak', async () => {
++  const kasus: Array<[string, string]> = [
++    ['pertemuan:9',                 'menunjuk pertemuan di luar 1..3'],
++    ['sub_langkah:P9.MEMAHAMI.1',   'menunjuk sub_langkah yang tidak ada'],
++    ['kktp:K9',                     'menunjuk KKTP yang tidak ada'],
++    ['instrumen:PBL-99',            'menunjuk instrumen yang tidak ada'],
++    ['asesmen:FMT-99',              'menunjuk asesmen yang tidak ada'],
++  ];
++  for (const [ref, pesan] of kasus) {
++    const k = await fixtureSekarang();
++    ktx(k, 0).komponen_terdampak = [ref];
++    tolak(cekM6(k), pesan);
++  }
++});
++
++Deno.test('M6-L: kelima bentuk rujukan yang sah diterima', async () => {
++  const k = await fixtureSekarang();
++  // Rujukan ke asesmen memerlukan rencana asesmen yang memuatnya.
++  k.rencana_asesmen = {
++    asesmen_diagnostik: null,
++    asesmen_formatif: [{ id: 'FMT-01', waktu_pertemuan: 1, fase_langkah: 'MEMAHAMI',
++      teknik: 'observasi', instrumen_ref: ['ASM-01'], fungsi: 'x',
++      referensi_kktp: ['K1'], cakupan_bukti: 'per_murid', umpan_balik: 'y' }],
++    asesmen_sumatif: null,
++  };
++  ktx(k, 0).komponen_terdampak = [
++    'pertemuan:2',
++    'sub_langkah:P1.MEMAHAMI.1',
++    'kktp:K2',
++    'instrumen:ASM-01',
++    'asesmen:FMT-01',
++  ];
++  terima(cekM6(k));
++});
++
++Deno.test('M6-M: daftar awalan komponen adalah satu otoritas bersama', () => {
++  // Kalau awalan ditambah di kontrak tanpa ditangani validator, rujukan yang
++  // memakainya akan ditolak sebagai 'jenis tidak dikenal' — jadi daftar ini
++  // wajib tetap menjadi satu-satunya sumber.
++  assertEquals(Object.values(AWALAN_KOMPONEN).sort(),
++    ['asesmen', 'instrumen', 'kktp', 'pertemuan', 'sub_langkah']);
++});
++
++// ══ N–R — CAKUPAN KONTEKS ═══════════════════════════════════════════════════
++
++Deno.test('M6-N: kesiapan murid diwarisi tetapi tidak dipakai → ditolak', async () => {
++  const k = await fixtureSekarang();
++  k.keputusan_kontekstual = [
++    jejak('KTX-01', 'konteks_tugas',  'dominan_kerja', ['instrumen:PBL-01']),
++    jejak('KTX-02', 'prioritas_guru', 'literasi',      ['kktp:K1']),
++  ];
++  tolak(cekM6(k), "konteks 'kesiapan_murid' bernilai 'jauh_di_bawah' di potret ATP tetapi tidak ada");
++});
++
++Deno.test('M6-O: keputusan A17 diwarisi tetapi tidak dipakai → ditolak', async () => {
++  const k = await fixtureSekarang();
++  k.keputusan_kontekstual = [
++    jejak('KTX-01', 'kesiapan_murid', 'jauh_di_bawah', ['pertemuan:1']),
++    jejak('KTX-02', 'prioritas_guru', 'literasi',      ['kktp:K1']),
++  ];
++  tolak(cekM6(k), "konteks 'konteks_tugas' bernilai 'dominan_kerja'");
++});
++
++Deno.test('M6-P: penekanan guru yang ATP nyatakan berlaku untuk TP ini wajib diterapkan', async () => {
++  const k = await fixtureSekarang();
++  k.keputusan_kontekstual = [
++    jejak('KTX-01', 'kesiapan_murid', 'jauh_di_bawah', ['pertemuan:1']),
++    jejak('KTX-02', 'konteks_tugas',  'dominan_kerja', ['instrumen:PBL-01']),
++  ];
++  tolak(cekM6(k), "penekanan guru 'literasi' dinyatakan ATP berlaku untuk TP ini");
++});
++
++Deno.test('M6-Q: penekanan yang BUKAN untuk TP ini TIDAK dipaksakan', async () => {
++  // `kemandirian` ada di prioritas_guru dan di seluruh_atp, tetapi ATP
++  // menyatakannya berlaku untuk TP 5 — bukan TP ini. Memaksanya akan
++  // menghasilkan kaitan yang dibuat-buat.
++  const k = await fixtureSekarang();
++  terima(cekM6(k));
++  const kunciDijejak = (k.keputusan_kontekstual as Konten[])
++    .map(x => (x.sumber as Konten).kunci);
++  assert(!kunciDijejak.includes('kemandirian'),
++    'fixture seharusnya TIDAK menjejakkan kemandirian');
++});
++
++Deno.test('M6-R: konteks yang ATP tidak tetapkan tidak dituntut berjejak', async () => {
++  const k = await fixtureSekarang();
++  (ctx(k).konteks_tugas as Konten).nilai = null;       // ATP tidak memutuskan A17
++  k.keputusan_kontekstual = [
++    jejak('KTX-01', 'kesiapan_murid', 'jauh_di_bawah', ['pertemuan:1']),
++    jejak('KTX-02', 'prioritas_guru', 'literasi',      ['kktp:K1']),
++  ];
++  terima(cekM6(k));
++});
++
++// ══ S–U — PROGRAM KEAHLIAN & JUMLAH MURID TIDAK DIPAKSAKAN ══════════════════
++
++Deno.test('M6-S: program keahlian TIDAK wajib berjejak', async () => {
++  // Ada TP yang tidak bertambah baik karena dikaitkan ke dunia kerja, dan
++  // memaksanya justru menghasilkan kaitan artifisial. M6 menjaga sumbernya
++  // benar bila dipakai, bukan memaksa ia dipakai.
++  const k = await fixtureSekarang();
++  assertEquals((ctx(k).program_keahlian as Konten).nilai, 'Tata Busana');
++  terima(cekM6(k));
++  assert(!(SUMBER_WAJIB_BERJEJAK as readonly string[]).includes('program_keahlian'));
++});
++
++Deno.test('M6-T: bila program keahlian dijejakkan, sumbernya wajib potret ATP', async () => {
++  const a = await fixtureSekarang();
++  (a.keputusan_kontekstual as Konten[]).push(
++    jejak('KTX-04', 'program_keahlian', 'Tata Busana', ['instrumen:PBL-02']));
++  terima(cekM6(a));
++
++  // Program keahlian dari sumber lain — mis. setelan kelas sekarang yang sudah
++  // berubah — tidak boleh lolos. Otoritasnya potret ATP.
++  const b = await fixtureSekarang();
++  (b.keputusan_kontekstual as Konten[]).push(
++    jejak('KTX-04', 'program_keahlian', 'Tata Boga', ['instrumen:PBL-02']));
++  tolak(cekM6(b), "tidak ada di potret ATP untuk 'program_keahlian'");
++});
++
++Deno.test('M6-U: jumlah murid TIDAK wajib berjejak — penegakannya struktural', async () => {
++  // Jumlah murid sudah punya penegakan yang jauh lebih kuat daripada jejak
++  // kalimat: V3/V4/V4b menghitung kelayakan waktu dari angka. Menuntut jejak
++  // di sini hanya menambah kalimat, bukan jaminan.
++  const k = await fixtureSekarang();
++  terima(cekM6(k));
++  assert(!(SUMBER_WAJIB_BERJEJAK as readonly string[]).includes('jumlah_murid'));
++
++  // Bila dijejakkan, kuncinya tetap harus cocok.
++  const b = await fixtureSekarang();
++  (b.keputusan_kontekstual as Konten[]).push(
++    jejak('KTX-04', 'jumlah_murid', '30', ['pertemuan:3']));
++  terima(cekM6(b));
++
++  const c = await fixtureSekarang();
++  (c.keputusan_kontekstual as Konten[]).push(
++    jejak('KTX-04', 'jumlah_murid', '12', ['pertemuan:3']));
++  tolak(cekM6(c), "tidak ada di potret ATP untuk 'jumlah_murid'");
++});
++
++// ══ V–W — KELAYAKAN WAKTU YANG SUDAH ADA TETAP BERJALAN ═════════════════════
++//
++// M6 TIDAK membangun ulang kelayakan waktu: V3/V4/V4b sudah menghitungnya dari
++// angka terstruktur sejak sebelum M6, dan menambahkan aturan kedua di atasnya
++// hanya akan menghasilkan dua otoritas yang bisa bertengkar. Kedua uji ini
++// menjaga agar yang sudah ada tidak diam-diam hilang.
++
++Deno.test('M6-V: bergantian yang mustahil terhadap jumlah murid tetap ditolak', async () => {
++  const k = await fixtureSekarang();
++  const lk = ((k.pertemuan as Konten[])[0].langkah as Konten[]).find(x => x.nama === 'MENGAPLIKASI')!;
++  const sl = (lk.sub_langkah as Konten[])[0];
++  sl.mode_pelaksanaan = 'bergantian';
++  sl.ukuran_kelompok  = 2;         // 30 murid → 15 kelompok
++  sl.durasi_menit     = 10;        // mustahil: 15 kelompok dalam 10 menit
++  const h = validate(k, ...ARG, undefined, false, false, false, false, true);
++  assert(h.errors.some(e => e.includes('bergantian memberi hanya')),
++    `kelayakan waktu bergantian hilang: ${h.errors.join(' | ')}`);
++});
++
++Deno.test('M6-W: individual+semua yang mustahil tetap ditolak', async () => {
++  const k = await fixtureSekarang();
++  const lk = ((k.pertemuan as Konten[])[0].langkah as Konten[]).find(x => x.nama === 'MENGAPLIKASI')!;
++  const sl = (lk.sub_langkah as Konten[])[0];
++  sl.mode_pelaksanaan = 'individual';
++  sl.mode_observasi   = 'semua';
++  sl.durasi_menit     = 20;        // 30 murid × 2 menit = 60 menit
++  const h = validate(k, ...ARG, undefined, false, false, false, false, true);
++  assert(h.errors.some(e => e.includes('individual+semua membutuhkan')),
++    `kelayakan waktu individual hilang: ${h.errors.join(' | ')}`);
++});
++
++// ══ KONTRAK M3 IKUT MEMBAWA BENTUK M6 ═══════════════════════════════════════
++
++Deno.test('M6-KONTRAK: bentuk M6 sampai ke prompt dan pesan perbaikan otomatis', () => {
++  const kerangka = kerangkaFase('A');
++  assertStringIncludes(kerangka, 'keputusan_kontekstual');
++  assertStringIncludes(kerangka, 'KTX-01');
++  assertStringIncludes(kerangka, 'komponen_terdampak');
++  for (const v of ENUM_KONTRAK.jenis_sumber_konteks) assertStringIncludes(kerangka, `"${v}"`);
++
++  // Peta nama enum → nama field di pesan warisan wajib ikut: tanpa itu model
++  // harus menebak, dan tebakannya akan gagal validasi.
++  assertStringIncludes(kerangka, 'konteks_contoh_dan_tugas');
++  assertStringIncludes(kerangka, 'penekanan_guru');
++
++  assertStringIncludes(perintahPerbaikanStruktural('A'), 'keputusan_kontekstual');
++
++  // `required: false` DISENGAJA — lihat catatan di contract.ts. Kalau ini
++  // berubah menjadi true, dokumen historis akan gagal pemeriksaan bentuk akar.
++  assertEquals(KONTRAK_ROOT.keputusan_kontekstual.required, false);
++  assertEquals(KONTRAK_ROOT.keputusan_kontekstual.fase, 'A');
++});
++
++// ══ HIST — DOKUMEN HISTORIS TETAP TERBACA ═══════════════════════════════════
++
++Deno.test('M6-HIST: kelima fixture historis tetap pada baseline di modus historis', async () => {
++  const harapan: Record<string, number> = {
++    'tp02.json': 0, 'tp03.json': 0, 'tp04.json': 0, 'tp05.json': 1, 'tp06.json': 1,
++  };
++  for (const [nama, jumlah] of Object.entries(harapan)) {
++    const raw = JSON.parse(await Deno.readTextFile(new URL(nama, FIXTURES)));
++    const h = raw._harapan;
++    const hasil = validate(raw.konten, h.nomor_tp, h.jumlah_pertemuan, h.jp_per_pertemuan,
++      h.durasi_jp, h.jumlah_murid, undefined, h.perangkat_digital_ok,
++      false, false, false, false);
++    assertEquals(hasil.errors.length, jumlah,
++      `${nama}: ${jumlah} temuan diharapkan, dapat ${hasil.errors.length} — ${hasil.errors.join(' | ')}`);
++    // Tidak satu pun temuan historis boleh berasal dari aturan M6.
++    for (const e of hasil.errors) {
++      assert(!/keputusan_kontekstual|komponen_terdampak|potret ATP|penekanan guru '/.test(e),
++        `${nama}: aturan M6 bocor ke modus historis — ${e}`);
++    }
++  }
++});
++
++// ══ GEN — JALUR PENYUSUNAN ══════════════════════════════════════════════════
++
++Deno.test('M6-GEN: jalur penyusunan menyalakan kontrak M6 di KEDUA pemanggilan', async () => {
++  const src = await Deno.readTextFile(EF_MODUL);
++  const panggilan = [...src.matchAll(/validateModulOutputV400\(\s*merged[A-Za-z]*,[^;]*?\);/gs)].map(m => m[0]);
++  assertEquals(panggilan.length, 2,
++    `diharapkan tepat 2 pemanggilan validator di jalur penyusunan, dapat ${panggilan.length}`);
++  for (const p of panggilan) {
++    // M2 + M4 + M5 + M6 — keempat bendera menyala.
++    assertStringIncludes(p, 'true, true, true, true');
++    assertStringIncludes(p, 'manifestFaseD');
++  }
++  // Bawaannya tetap mati: dokumen lama tidak dihakimi surut.
++  assertStringIncludes(src, 'wajibKausalitasCurrent = false');
++});
